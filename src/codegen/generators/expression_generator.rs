@@ -2583,12 +2583,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {
                 unreachable!("VLA must have information about dimension offsets")
             };
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset)
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())
                 .into_int_value()
         } else {
+            // see https://plc-lang.github.io/rusty/arch/codegen.html#multi-dimensional-arrays
+            // for more details on multi-dimensional array accessor calculation
             let accessors = access_statements
                 .iter()
-                .map(|it| self.generate_expression(it).expect("Uncaught invalid accessor statement"))
+                .map(|it| {
+                    self.generate_expression(it)
+                        .expect("Uncaught invalid accessor statement")
+                        .into_int_value()
+                })
                 .collect::<Vec<_>>();
 
             if access_statements.len() != index_offsets.len() {
@@ -2598,10 +2604,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // length of a dimension is 'end - start + 1'
             let lengths = get_dimension_lengths(self.llvm, &index_offsets);
 
-            // for an array with dimensions of [ 4, 3, 2 ],
-            // accessing [ 1, 2, 2 ] means to access [ 1*6 + 2*2 + 2*1 ] = 12
-            // see `get_element_pointer_for_array` for more details on this
-
             // calculate the accessor multiplicators for each dimension.
             let dimension_offsets = get_vla_accessor_factors(self.llvm, &lengths);
 
@@ -2609,15 +2611,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets);
 
             // calculate the resulting accessor for the given accessor statements and dimension offsets
-            adjusted_accessors.iter().zip(&dimension_offsets).calculate_offset_llvm::<IntValue>(self.llvm)
+            adjusted_accessors.iter().zip(&dimension_offsets).multiply_accumulate::<IntValue>(self.llvm)
         };
 
-        // %tmpVar = getelementptr inbounds [26312 x i64], [26312 x i64]* %arr, i32 0, i32 23847
-        // %arr_val = getelementptr inbounds i64, i64* %vla_arr_ptr, i32 23847
-
-        // var_in_out array:
-        // %tmpVar = getelementptr inbounds i64, i64* %deref, i32 5
-        // let accessor = self.llvm.i32_type().const_int(34979, false);
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
     }
 }
@@ -2653,7 +2649,7 @@ pub fn get_implicit_call_parameter<'a>(
     Ok((location, param_statement, is_implicit))
 }
 
-/// turns the given intValue into an i1 by comparing it to 0 (of the same size)
+/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
 pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
     if value.get_type().get_bit_width() > 1 {
         builder.build_int_compare(IntPredicate::NE, value, value.get_type().const_int(0, false), "")
@@ -2663,37 +2659,44 @@ pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
 }
 
 trait FoldIntValueExt<'fold, 'll>: Iterator {
-    fn product_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    /// Computes the product of all elements in a collection
+    ///
+    /// a <- a * b
+    fn ll_product<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         Self: Iterator<Item = &'fold IntValue<'fold>> + Sized,
         I: FoldIntValue<'fold, 'll>,
     {
-        I::product_llvm(self, llvm)
+        I::product(self, llvm)
     }
 
-    fn calculate_offset_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    /// Iterates over a collection of tuples, computes the product of the two numbers
+    /// and adds that product to an accumulator.
+    ///
+    /// a <- a + (b * c)
+    fn multiply_accumulate<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         Self: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)> + Sized,
         I: FoldIntValue<'fold, 'll>,
     {
-        I::calculate_offset_llvm(self, llvm)
+        I::multiply_accumulate(self, llvm)
     }
 }
 
 impl<'fold, 'll, I: Iterator> FoldIntValueExt<'fold, 'll> for I {}
 
 trait FoldIntValue<'fold, 'll, A = Self> {
-    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    fn product<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         I: Iterator<Item = &'fold IntValue<'fold>>;
 
-    fn calculate_offset_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    fn multiply_accumulate<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>;
 }
 
 impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
-    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    fn product<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         I: Iterator<Item = &'fold IntValue<'fold>>,
     {
@@ -2712,18 +2715,18 @@ impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
         llvm.builder.build_load(accum_ptr, "accessor_factor").into_int_value()
     }
 
-    fn calculate_offset_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    fn multiply_accumulate<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
     where
         I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>,
     {
         // initialize the accumulator
         let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
         llvm.builder.build_store(accum, llvm.i32_type().const_zero());
-        for (accessor, factor) in iter {
+        for (left, right) in iter {
             // load prev val from accum
             let prev = llvm.builder.build_load(accum, "load_accum");
             // multiply accessor with dimension factor
-            let product = llvm.builder.build_int_mul(*accessor, *factor, "product");
+            let product = llvm.builder.build_int_mul(*left, *right, "product");
             // add to acc
             let curr = llvm.builder.build_int_add(prev.into_int_value(), product, "current");
             // store
@@ -2737,7 +2740,7 @@ fn get_indices<'ink>(
     llvm: &Llvm<'ink>,
     ndims: usize,
     dim_arr_gep: PointerValue<'ink>,
-) -> Vec<(BasicValueEnum<'ink>, BasicValueEnum<'ink>)> {
+) -> Vec<(IntValue<'ink>, IntValue<'ink>)> {
     (0..ndims)
         .map(|i| unsafe {
             let (start_ptr, end_ptr) = (
@@ -2753,8 +2756,8 @@ fn get_indices<'ink>(
                 ),
             );
             (
-                llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()),
-                llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()),
+                llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()).into_int_value(),
+                llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()).into_int_value(),
             )
         })
         .collect::<Vec<_>>()
@@ -2762,26 +2765,22 @@ fn get_indices<'ink>(
 
 fn normalize_offsets<'b, 'ink>(
     llvm: &'b Llvm<'ink>,
-    accessors: &'b [BasicValueEnum<'ink>],
-    offsets: &'b [(BasicValueEnum<'ink>, BasicValueEnum<'ink>)],
+    accessors: &'b [IntValue<'ink>],
+    offsets: &'b [(IntValue<'ink>, IntValue<'ink>)],
 ) -> Vec<IntValue<'ink>> {
     accessors
         .iter()
         .enumerate()
         .zip(offsets.iter().map(|(start, _)| start))
         .map(|((idx, accessor), start_offset)| {
-            llvm.builder.build_int_sub(
-                accessor.into_int_value(),
-                start_offset.into_int_value(),
-                format!("adj_access{idx}").as_str(),
-            )
+            llvm.builder.build_int_sub(*accessor, *start_offset, format!("adj_access{idx}").as_str())
         })
         .collect::<Vec<_>>()
 }
 
 fn get_dimension_lengths<'b, 'ink>(
     llvm: &'b Llvm<'ink>,
-    offsets: &'b [(BasicValueEnum<'ink>, BasicValueEnum<'ink>)],
+    offsets: &'b [(IntValue<'ink>, IntValue<'ink>)],
 ) -> Vec<IntValue<'ink>> {
     offsets
         .iter()
@@ -2789,7 +2788,7 @@ fn get_dimension_lengths<'b, 'ink>(
         .map(|(idx, (start, end))| {
             llvm.builder.build_int_add(
                 llvm.i32_type().const_int(1, false),
-                llvm.builder.build_int_sub(end.into_int_value(), start.into_int_value(), ""),
+                llvm.builder.build_int_sub(*end, *start, ""),
                 format!("len_dim{idx}").as_str(),
             )
         })
@@ -2807,7 +2806,7 @@ fn get_vla_accessor_factors<'b, 'ink>(
                 llvm.i32_type().const_int(1, false)
             } else {
                 // for other dimensions, calculate size to the right
-                lengths[idx + 1..lengths.len()].iter().product_llvm::<IntValue>(llvm)
+                lengths[idx + 1..lengths.len()].iter().ll_product::<IntValue>(llvm)
             }
         })
         .collect::<Vec<_>>()
