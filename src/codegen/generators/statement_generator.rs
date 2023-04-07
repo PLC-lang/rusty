@@ -32,12 +32,12 @@ pub struct FunctionContext<'ink, 'b> {
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
 pub struct StatementCodeGenerator<'a, 'b> {
-    llvm: &'b Llvm<'a>,
-    index: &'b Index,
     annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
-    llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a, 'b>,
+    pub index: &'b Index,
+    pub llvm: &'b Llvm<'a>,
+    pub llvm_index: &'b LlvmTypedIndex<'a>,
 
     pub load_prefix: String,
     pub load_suffix: String,
