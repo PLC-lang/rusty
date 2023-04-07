@@ -229,10 +229,10 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let zero = cast_data.llvm.i32_type().const_zero();
 
         let Ok(associated_type) = cast_data
-                .llvm_type_index
-                .get_associated_type(cast_data.target_type.get_name()) else {
-                    unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-                };
+            .llvm_type_index
+            .get_associated_type(cast_data.target_type.get_name()) else {
+                unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+        };
 
         // Get array annotation from parent POU and get pointer to array
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
@@ -243,14 +243,21 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             .find_loaded_associated_variable_value(qualified_name.as_str())
             .unwrap_or_else(|| unreachable!("passed array must be in the llvm index"));
 
-        // Bitcast to element
-        let arr_bitcast = builder
-            .build_bitcast(
-                array_pointer,
-                self.get_type().get_element_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                "",
-            )
-            .into_pointer_value();
+        // gep into the original array. the resulting address will be stored in the VLA struct
+        let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep") };
+
+        // let arr_bitcast = builder
+        //     .build_bitcast(
+        //         array_pointer,
+        //         array_pointer
+        //             .get_type()
+        //             .get_element_type()
+        //             .into_array_type()
+        //             .get_element_type()
+        //             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+        //         "",
+        //     )
+        //     .into_pointer_value();
 
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();
@@ -280,7 +287,8 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             builder.build_store(adr, value);
         }
 
-        builder.build_store(vla_arr_ptr, arr_bitcast);
+        builder.build_store(vla_arr_ptr, arr_gep);
+
         builder.build_load(vla_struct, "")
     }
 }

@@ -4,23 +4,25 @@ use rusty::runner::compile_and_run;
 fn variable_length_array_single_dimension_access() {
     #[derive(Default)]
     struct MainType {
-        a: i32,
-        b: i32,
-        c: i32,
-        d: i32,
-        e: i32,
+        a: i64,
+        b: i64,
+        c: i64,
+        d: i64,
+        e: i64,
     }
 
     let mut main_type = MainType::default();
     let src = r#"
     PROGRAM main
         VAR
-            a, b, c, d, e : DINT;
-            arr : ARRAY[0..4] OF DINT;
+            a, b, c, d, e : LINT;
+        END_VAR
+        VAR_TEMP
+            arr : ARRAY[-21..4] OF LINT;
         END_VAR
 
         foo(arr);
-        a := arr[0];
+        a := arr[-21];
         b := arr[1];
         c := arr[2];
         d := arr[3];
@@ -29,10 +31,10 @@ fn variable_length_array_single_dimension_access() {
 
     FUNCTION foo : DINT
         VAR_INPUT
-            vla : ARRAY[ * ] OF DINT;
+            vla : ARRAY[ * ] OF LINT;
         END_VAR
 
-        vla[0] := 2;
+        vla[-21] := 2;
         vla[1] := 4;
         vla[2] := 6;
         vla[3] := 8;
@@ -63,6 +65,8 @@ fn variable_length_array_multi_dimension_access() {
     PROGRAM main
         VAR
             a, b, c, d: DINT;
+        END_VAR
+        VAR_TEMP
             arr : ARRAY[0..1, 0..1] OF DINT;
         END_VAR
 
@@ -106,6 +110,8 @@ fn variable_length_array_multi_dimension_read_write() {
     PROGRAM main
         VAR
             a, b, c:  LINT;
+        END_VAR
+        VAR_TEMP
             arr : ARRAY[0..3, 0..2, 0..1, 0..10] OF LINT;
         END_VAR
 
@@ -147,25 +153,27 @@ fn variable_length_array_multi_dimension_read_write_with_offsets() {
     PROGRAM main
     VAR
         a, b, c, d: LINT;
-        arr : ARRAY[-5..5, -10..15, -1..1, 0..3] OF LINT;
+    END_VAR
+    VAR_TEMP
+        arr : ARRAY[-5..5, -21..15, -21..1, 0..3] OF LINT;
     END_VAR
 
     foo(arr);
-    a := arr[-5,   5, -1, 3];
-    b := arr[ 5,  11, -1, 3];
-    c := arr[-1,  10, -1, 3];
-    d := arr[ 0,   0, -1, 3];
+    a := arr[  5, -11, -17, 3];
+    b := arr[ -2, -21,  -0, 2];
+    c := arr[ -5,  15,   1, 1];
+    d := arr[  0,   0,   0, 0];
 END_PROGRAM
 
 FUNCTION foo : DINT
-    VAR_INPUT
+    VAR_INPUT 
         vla : ARRAY[ *, *, *, * ] OF LINT;
     END_VAR
 
-    vla[-5,   5, -1, 3] := 10;
-    vla[ 5,  11, -1, 3] := -7;
-    vla[-1,  10, -1, 3] := 4;
-    vla[ 0,   0, -1, 3] := 8;
+    vla[  5, -11, -17, 3] := 10;
+    vla[ -2, -21, -0,  2] := -7;
+    vla[ -5,  15,  1,  1] := 4;
+    vla[  0,   0,  0,  0] := 8;
 END_FUNCTION
     "#;
 
@@ -192,6 +200,8 @@ fn variable_length_array_single_dimension_access_with_offset() {
     PROGRAM main
         VAR
             a, b, c, d, e : DINT;
+        END_VAR
+        VAR_TEMP
             arr : ARRAY[5..5+4] OF DINT;
         END_VAR
 
@@ -240,6 +250,8 @@ fn variable_length_array_var_input_ref() {
     PROGRAM main
         VAR
             a, b, c, d, e : DINT;
+        END_VAR
+        VAR_TEMP
             arr : ARRAY[-2..2] OF DINT;
         END_VAR
 
@@ -288,6 +300,8 @@ fn variable_length_array_by_ref_param_access() {
     PROGRAM main
         VAR
             a, b, c, d, e : DINT;
+        END_VAR
+        VAR_TEMP
             arr : ARRAY[0..4] OF DINT;
         END_VAR
 
@@ -335,10 +349,12 @@ fn variable_length_array_output_param_access() {
     let mut main_type = MainType::default();
     let src = r#"
     PROGRAM main
-        VAR
-            a, b, c, d, e : DINT;
-            arr: ARRAY[0..4] OF DINT;
-        END_VAR
+    VAR
+        a, b, c, d, e : DINT;
+    END_VAR
+    VAR_TEMP
+        arr: ARRAY[0..4] OF DINT;
+    END_VAR
 
         foo(arr);
         a := arr[0];

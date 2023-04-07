@@ -2602,6 +2602,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             adjusted_accessors.iter().zip(&dimension_offsets).calculate_offset_llvm::<IntValue>(self.llvm)
         };
 
+        // %tmpVar = getelementptr inbounds [26312 x i64], [26312 x i64]* %arr, i32 0, i32 23847
+        // %arr_val = getelementptr inbounds i64, i64* %vla_arr_ptr, i32 23847
+
+        // var_in_out array:
+        // %tmpVar = getelementptr inbounds i64, i64* %deref, i32 5
+        // let accessor = self.llvm.i32_type().const_int(34979, false);
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
     }
 }
