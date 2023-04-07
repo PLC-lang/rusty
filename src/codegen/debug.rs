@@ -187,13 +187,13 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     context.metadata_node(&[dwarf_version]),
                 );
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
-                let directory = root.or_else(|| path.parent()).and_then(|it| it.to_str()).unwrap_or("");
-                let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or("");
+                let root = root.unwrap_or_else(|| Path::new(""));
+                let filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
                     filename,
-                    directory,
+                    root.to_str().unwrap_or_default(),
                     "RuSTy Structured text Compiler",
                     optimization.is_optimized(),
                     "",
@@ -206,6 +206,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     "",
                     "",
                 );
+
                 let dbg_obj = DebugBuilder {
                     context,
                     debug_info,

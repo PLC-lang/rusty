@@ -266,6 +266,19 @@ pub enum PouType {
     Method { owner_class: String },
 }
 
+impl Display for PouType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PouType::Program => write!(f, "Program"),
+            PouType::Function => write!(f, "Function"),
+            PouType::FunctionBlock => write!(f, "FunctionBlock"),
+            PouType::Action => write!(f, "Action"),
+            PouType::Class => write!(f, "Class"),
+            PouType::Method { .. } => write!(f, "Method"),
+        }
+    }
+}
+
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
@@ -366,6 +379,19 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+}
+
+impl Display for VariableBlockType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            VariableBlockType::Local => write!(f, "Local"),
+            VariableBlockType::Temp => write!(f, "Temp"),
+            VariableBlockType::Input(_) => write!(f, "Input"),
+            VariableBlockType::Output => write!(f, "Output"),
+            VariableBlockType::Global => write!(f, "Global"),
+            VariableBlockType::InOut => write!(f, "InOut"),
+        }
+    }
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone)]
@@ -571,6 +597,11 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
         }
     }
+
+    pub fn get_referenced_type(&self) -> Option<String> {
+        let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
+        Some(referenced_type.to_owned())
+    }
 }
 
 #[derive(PartialEq)]
@@ -612,14 +643,10 @@ pub enum DataType {
         name: Option<String>,
         bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
+        is_variable_length: bool,
     },
     PointerType {
         name: Option<String>,
-        referenced_type: Box<DataTypeDeclaration>,
-    },
-    VariableLengthArrayType {
-        name: Option<String>,
-        bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
     },
     StringType {
@@ -646,7 +673,6 @@ impl DataType {
             | DataType::SubRangeType { name, .. }
             | DataType::ArrayType { name, .. }
             | DataType::PointerType { name, .. }
-            | DataType::VariableLengthArrayType { name, .. }
             | DataType::StringType { name, .. } => *name = Some(new_name),
             DataType::GenericType { name, .. } => *name = new_name,
             DataType::VarArgs { .. } => {} //No names on varargs
@@ -659,7 +685,6 @@ impl DataType {
             | DataType::EnumType { name, .. }
             | DataType::ArrayType { name, .. }
             | DataType::PointerType { name, .. }
-            | DataType::VariableLengthArrayType { name, .. }
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
@@ -677,9 +702,7 @@ impl DataType {
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
-            DataType::ArrayType { referenced_type, .. }
-            | DataType::PointerType { referenced_type, .. }
-            | DataType::VariableLengthArrayType { referenced_type, .. } => {
+            DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } => {
                 replace_reference(referenced_type, type_name, location)
             }
             _ => None,
@@ -852,9 +875,6 @@ pub enum AstStatement {
         expressions: Vec<AstStatement>,
         id: AstId,
     },
-    // TODO: Maybe introduce RangeKind, such that the RangeStatement can be defined as
-    // `RangeStatement { id, kind }`
-    // where kind is a enume defined as `RangeKind { Array(start, end) }`
     RangeStatement {
         id: AstId,
         start: Box<AstStatement>,

@@ -119,7 +119,7 @@ impl Validator {
 
         // validate global variables
         for gv in &unit.global_vars {
-            visit_variable_block(self, gv, &context);
+            visit_variable_block(self, None, gv, &context);
         }
 
         // validate implementations

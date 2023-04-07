@@ -65,6 +65,10 @@ pub enum ErrNo {
     //array related
     arr__invalid_array_assignment,
 
+    // VLA related
+    vla__invalid_container,
+    vla__invalid_array_access,
+
     //reference related
     reference__unresolved,
     reference__illegal_access,
@@ -738,6 +742,26 @@ impl Diagnostic {
             message: format!("Recursive data structure `{path}` has infinite size"),
             range,
             err_no: ErrNo::pou__recursive_data_structure,
+        }
+    }
+
+    pub fn vla_by_val_warning(range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: "Variable Length Arrays are always by-ref, even when declared in a by-value block"
+                .to_string(),
+            range: vec![range],
+        }
+    }
+
+    pub fn invalid_vla_container(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
+    }
+
+    pub fn invalid_vla_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Expected array access with {expected} dimensions, found {actual}"),
+            range: vec![range],
+            err_no: ErrNo::vla__invalid_array_access,
         }
     }
 }

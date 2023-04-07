@@ -1289,8 +1289,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                if self.annotations.get_type(reference, self.index).unwrap().get_type_information().is_vla() {
+                let Some(dt) = self.annotations.get_type(reference, self.index) else {
+                    // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
+                    unreachable!("unresolved reference")
+                };
+
+                if dt.get_type_information().is_vla() {
                     self.generate_element_pointer_for_vla(reference, access)
+                        .map_err(|_| unreachable!("invalid access statement"))
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
                 }
@@ -1412,12 +1418,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Ok(accessor_ptr)
         }
     }
-
-    /*
-       get dimension lengths from dimension array in struct
-       deref the array pointer in struct
-       ...
-    */
 
     /// generates the access-expression for an array-reference
     /// myArray[array_expression] where array_expression is the access-expression
@@ -1895,7 +1895,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                let type_hint = self.get_type_hint_info_for(dbg!(literal_statement))?;
+                let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
                         self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
@@ -2520,27 +2520,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime.
+    /// TODO: Will be explained in the multi dimension branch
     fn generate_element_pointer_for_vla(
         &self,
         reference: &AstStatement,
         access: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
+    ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
-
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
-        // find struct value in llvm index
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?;
+
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr =
-            if self.index.find_fully_qualified_variable(qualified_name).unwrap().is_in_parameter_by_ref() {
+            if self.index.find_fully_qualified_variable(qualified_name).ok_or(())?.is_in_parameter_by_ref() {
                 builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
             } else {
                 struct_ptr
             };
-        // get the pointer to the original array
-        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
-        // load array behind the pointer and store as pointer
+
+        // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
+        // dereferences the former
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
@@ -2549,7 +2551,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let Some(type_) = self.annotations.get_type(reference, self.index) else {
             unreachable!()
         };
-        let Some(ndims) = type_.get_type_information().get_vla_dimensions() else {
+        let Some(ndims) = type_.get_type_information().get_dimensions() else {
             unreachable!()
         };
 
@@ -2563,9 +2565,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let access_statements = access.get_as_list();
         let accessor = if access_statements.len() == 1 {
             let Some(stmt) = access_statements.get(0) else {
-                unreachable!("must have exactly 1 access statement")
+                unreachable!("Must have exactly 1 access statement")
             };
-            let access_value = self.generate_expression(stmt)?;
+            let access_value = self.generate_expression(stmt).map_err(|_| ())?;
 
             // if start offset is not 0, adjust the access value accordingly
             let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {

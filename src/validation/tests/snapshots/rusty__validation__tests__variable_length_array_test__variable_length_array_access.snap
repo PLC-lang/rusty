@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+expression: res
+---
+SemanticError { message: "Expected array access with 1 dimensions, found 2", range: [SourceRange { range: 163..167 }], err_no: vla__invalid_array_access }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_local_b' to '__fn_arr'", range: [SourceRange { range: 458..465 }], err_no: var__invalid_assignment }
+

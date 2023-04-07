@@ -794,64 +794,34 @@ fn parse_array_type_definition(
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
         let location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
-        match &range {
-            AstStatement::RangeStatement { .. } => (
-                DataTypeDeclaration::DataTypeDefinition {
-                    data_type: DataType::ArrayType {
-                        name,
-                        bounds: range,
-                        referenced_type: Box::new(reference),
-                    },
-                    location,
-                    scope: lexer.scope.clone(),
-                },
-                initializer,
-            ),
 
-            AstStatement::VlaRangeStatement { .. } => (
-                DataTypeDeclaration::DataTypeDefinition {
-                    data_type: DataType::VariableLengthArrayType {
-                        name,
-                        bounds: range,
-                        referenced_type: Box::new(reference),
-                    },
-                    location,
-                    scope: lexer.scope.clone(),
-                },
-                initializer,
-            ),
+        let is_variable_length = match &range {
+            // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
+            AstStatement::RangeStatement { .. } => false,
+            AstStatement::VlaRangeStatement { .. } => true,
 
+            // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
             AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
-                AstStatement::RangeStatement { .. } => (
-                    DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name,
-                            bounds: range,
-                            referenced_type: Box::new(reference),
-                        },
-                        location,
-                        scope: lexer.scope.clone(),
-                    },
-                    initializer,
-                ),
-
-                AstStatement::VlaRangeStatement { .. } => (
-                    DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::VariableLengthArrayType {
-                            name,
-                            bounds: range,
-                            referenced_type: Box::new(reference),
-                        },
-                        location,
-                        scope: lexer.scope.clone(),
-                    },
-                    initializer,
-                ),
-
-                _ => unreachable!("lets find out"),
+                AstStatement::RangeStatement { .. } => false,
+                AstStatement::VlaRangeStatement { .. } => true,
+                _ => unreachable!(),
             },
-            _ => unreachable!(""),
-        }
+            _ => unreachable!(),
+        };
+
+        (
+            DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::ArrayType {
+                    name,
+                    bounds: range,
+                    referenced_type: Box::new(reference),
+                    is_variable_length,
+                },
+                location,
+                scope: lexer.scope.clone(),
+            },
+            initializer,
+        )
     })
 }
 

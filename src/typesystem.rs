@@ -224,6 +224,7 @@ impl DataType {
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
             TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
+
             _ => false,
         }
     }
@@ -264,7 +265,7 @@ impl StringEncoding {
     }
 }
 
-/// Used to determine size/length of ranges. // TODO: revisit struct name. sharpen doc string
+/// Enum for ranges and aggregate type sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
@@ -432,16 +433,7 @@ impl DataTypeInformation {
     }
 
     pub fn is_array(&self) -> bool {
-        matches!(self, DataTypeInformation::Array { .. }) || self.is_vla() // TODO: are VLAs always arrays?
-    }
-
-    pub fn is_numerical(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Integer { .. }
-                | DataTypeInformation::Float { .. }
-                | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
-        )
+        matches!(self, DataTypeInformation::Array { .. })
     }
 
     pub fn is_vla(&self) -> bool {
@@ -454,20 +446,33 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn get_vla_dimensions(&self) -> Option<usize> {
-        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { ndims , ..}), ..} = self else {
-            return None;
-        };
-
-        Some(*ndims)
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Integer { .. }
+                | DataTypeInformation::Float { .. }
+                | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
+        )
     }
 
-    pub fn get_vla_referenced_type(&self) -> Option<String> {
-        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+    pub fn get_dimensions(&self) -> Option<usize> {
+        match self {
+            DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { ndims, .. }),
+                ..
+            } => Some(*ndims),
+
+            _ => None,
+        }
+    }
+
+    pub fn get_vla_referenced_type(&self) -> Option<&str> {
+        let DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
             return None;
         };
 
-        Some(inner_type_name.to_owned())
+        Some(inner_type_name)
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
@@ -649,8 +654,7 @@ impl Dimension {
     }
 
     pub fn is_undetermined(&self) -> bool {
-        matches!(self.start_offset, TypeSize::Undetermined)
-            & matches!(self.end_offset, TypeSize::Undetermined)
+        matches!((self.start_offset, self.end_offset), (TypeSize::Undetermined, TypeSize::Undetermined))
     }
 }
 

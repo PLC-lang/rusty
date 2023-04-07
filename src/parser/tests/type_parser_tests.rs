@@ -198,6 +198,7 @@ fn array_type_can_be_parsed_test() {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: false,
             },
             initializer: None,
             location: SourceRange::undefined(),
@@ -348,6 +349,7 @@ fn struct_with_inline_array_can_be_parsed() {
                         referenced_type: DataTypeReference {
                             referenced_type: "INT",
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -487,13 +489,14 @@ fn variable_length_array_can_be_parsed() {
     let expected = Variable {
         name: "x".to_string(),
         data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::VariableLengthArrayType {
+            data_type: DataType::ArrayType {
                 name: None,
                 bounds: AstStatement::VlaRangeStatement { id: 0 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: true,
             },
             location: SourceRange::undefined(),
             scope: None,
@@ -522,7 +525,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
     let expected = Variable {
         name: "x".to_string(),
         data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::VariableLengthArrayType {
+            data_type: DataType::ArrayType {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![
@@ -535,6 +538,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: true,
             },
             location: SourceRange::undefined(),
             scope: None,
@@ -549,7 +553,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
     let expected = Variable {
         name: "y".to_string(),
         data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::VariableLengthArrayType {
+            data_type: DataType::ArrayType {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![
@@ -564,6 +568,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: true,
             },
             location: SourceRange::undefined(),
             scope: None,
