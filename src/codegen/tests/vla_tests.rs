@@ -114,3 +114,28 @@ fn multi_dimensional_vla() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn consecutive_calls_with_differently_sized_arrays() {
+    let res = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*, *] OF INT;
+        END_VAR
+            vla[2, -1] := 1;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..14, -2..1] OF INT;
+            arr2: ARRAY[-8..4, -3..19] OF INT;
+        END_VAR
+            foo(arr);
+            foo(arr2);
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(res);
+}

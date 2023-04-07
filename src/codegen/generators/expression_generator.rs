@@ -2704,11 +2704,13 @@ impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
         let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
         llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
         for val in iter {
-            // load previous value from accumulator
-            let previous = llvm.builder.build_load(accum_ptr, "load_accum").into_int_value();
-            // mul with cur
-            let product = llvm.builder.build_int_mul(previous, *val, "product");
-            // store
+            // load previous value from accumulator and multiply with current value
+            let product = llvm.builder.build_int_mul(
+                llvm.builder.build_load(accum_ptr, "load_accum").into_int_value(),
+                *val,
+                "product",
+            );
+            // store new value into accumulator
             llvm.builder.build_store(accum_ptr, product);
         }
 
@@ -2719,38 +2721,45 @@ impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
     where
         I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>,
     {
-        // initialize the accumulator
+        // initialize the accumulator with 0
         let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
         llvm.builder.build_store(accum, llvm.i32_type().const_zero());
         for (left, right) in iter {
-            // load prev val from accum
-            let prev = llvm.builder.build_load(accum, "load_accum");
             // multiply accessor with dimension factor
-            let product = llvm.builder.build_int_mul(*left, *right, "product");
-            // add to acc
-            let curr = llvm.builder.build_int_add(prev.into_int_value(), product, "current");
-            // store
+            let product = llvm.builder.build_int_mul(*left, *right, "multiply");
+            // load previous value from accum and add product
+            let curr = llvm.builder.build_int_add(
+                llvm.builder.build_load(accum, "load_accum").into_int_value(),
+                product,
+                "accumulate",
+            );
+            // store new value into accumulator
             llvm.builder.build_store(accum, curr);
         }
         llvm.builder.build_load(accum, "accessor").into_int_value()
     }
 }
 
+/// Gets a collection of start- and end-values for each dimension of a variable length array.
+///
+/// # Safety
+///
+/// performs in-bounds GEP operations at runtime
 fn get_indices<'ink>(
     llvm: &Llvm<'ink>,
     ndims: usize,
-    dim_arr_gep: PointerValue<'ink>,
+    dimensions_array: PointerValue<'ink>,
 ) -> Vec<(IntValue<'ink>, IntValue<'ink>)> {
     (0..ndims)
         .map(|i| unsafe {
             let (start_ptr, end_ptr) = (
                 llvm.builder.build_in_bounds_gep(
-                    dim_arr_gep,
+                    dimensions_array,
                     &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(i as u64 * 2, false)],
                     format!("start_idx_ptr{i}").as_str(),
                 ),
                 llvm.builder.build_in_bounds_gep(
-                    dim_arr_gep,
+                    dimensions_array,
                     &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(1 + i as u64 * 2, false)],
                     format!("end_idx_ptr{i}").as_str(),
                 ),

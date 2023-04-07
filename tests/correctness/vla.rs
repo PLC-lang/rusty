@@ -187,6 +187,69 @@ END_FUNCTION
 }
 
 #[test]
+fn consecutive_calls_with_differently_sized_arrays() {
+    #[derive(Default)]
+    struct MainType {
+        a: i64,
+        b: i64,
+        c: i64,
+        d: i64,
+        e: i64,
+        f: i64,
+        g: i64,
+        h: i64,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        a, b, c, d, e, f, g, h: LINT;
+    END_VAR
+    VAR_TEMP
+        arr : ARRAY[-5..5, -1..15] OF LINT;
+        arr2 : ARRAY[-21..20, -13..13] OF LINT;
+    END_VAR
+
+    foo(arr);
+    foo(arr2);
+
+    a := arr [  5, -11 ];
+    b := arr [ -1,   1 ];
+    c := arr [ -2,  13 ];
+    d := arr [  0,   0 ];
+
+    e := arr2 [  5, -11 ];
+    f := arr2 [ -1,   1 ];
+    g := arr2 [ -2,  13 ];
+    h := arr2 [  0,   0 ];
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+        VAR_INPUT 
+            vla : ARRAY[ *, * ] OF LINT;
+        END_VAR
+
+        vla [  5, -11 ] := 10;
+        vla [ -1,   1 ] := -7;
+        vla [ -2,  13 ] :=  4;
+        vla [  0,   0 ] :=  8;
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(10, main_type.a);
+    assert_eq!(-7, main_type.b);
+    assert_eq!(4, main_type.c);
+    assert_eq!(8, main_type.d);
+
+    assert_eq!(10, main_type.e);
+    assert_eq!(-7, main_type.f);
+    assert_eq!(4, main_type.g);
+    assert_eq!(8, main_type.h);
+}
+
+#[test]
 fn variable_length_array_single_dimension_access_with_offset() {
     #[derive(Default)]
     struct MainType {
