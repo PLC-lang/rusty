@@ -1,0 +1,37 @@
+---
+source: src/codegen/tests/multifile_codegen_tests.rs
+expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+---
+; ModuleID = 'myStruct.st'
+source_filename = "myStruct.st"
+
+%myStruct = type { i32, i16 }
+
+@__myStruct__init = unnamed_addr constant %myStruct { i32 6, i16 2 }
+
+; ModuleID = 'myStruct2.st'
+source_filename = "myStruct2.st"
+
+%myStruct2 = type { i32, i16 }
+
+@__myStruct2__init = unnamed_addr constant %myStruct2 { i32 6, i16 2 }
+
+; ModuleID = 'prog.st'
+source_filename = "prog.st"
+
+%prog = type { %myStruct.2, %myStruct2.3 }
+%myStruct.2 = type { i32, i16 }
+%myStruct2.3 = type { i32, i16 }
+
+@prog_instance = global %prog { %myStruct.2 { i32 5, i16 2 }, %myStruct2.3 { i32 6, i16 2 } }
+@__myStruct__init = external global %myStruct.2
+@__myStruct2__init = external global %myStruct2.3
+@__prog.x__init = unnamed_addr constant %myStruct.2 { i32 5, i16 2 }
+
+define void @prog(%prog* %0) {
+entry:
+  %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %y = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+  ret void
+}
+

@@ -1,0 +1,35 @@
+[package]
+name = "plc_driver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+plc = {path = "../..", package = "rusty"}
+ast = {path = "../plc_ast/", package = "plc_ast"}
+project = {path = "../plc_project/", package = "plc_project"}
+source_code = {path = "../plc_source/", package = "plc_source"}
+diagnostics = {path = "../plc_diagnostics/", package = "plc_diagnostics"}
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+clap = { version = "3.0", features = ["derive"] }
+encoding_rs.workspace = true
+encoding_rs_io.workspace = true
+rayon = "1.6.1"
+tempfile = "3"
+indexmap = "1.6"
+
+[dev-dependencies]
+pretty_assertions = "1.3.0"
+insta = "1.20.0"
+
+
+[lib]
+name = "plc_driver"
+path = "./src/lib.rs"
+
+[[bin]]
+name = "plc"
+path = "./src/main.rs"

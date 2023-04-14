@@ -110,8 +110,8 @@ fn assigning_string_literals() {
     %prg = type { [11 x i8], [11 x i8] }
 
     @prg_instance = global %prg zeroinitializer
-    @utf08_literal_0 = unnamed_addr constant [6 x i8] c"hello\00"
-    @utf08_literal_1 = unnamed_addr constant [6 x i8] c"world\00"
+    @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
+    @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
     define void @prg(%prg* %0) {
     entry:

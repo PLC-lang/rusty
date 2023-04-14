@@ -71,30 +71,30 @@ impl Linker {
     }
 
     /// Set the output file and run the linker to generate a shared object
-    pub fn build_shared_obj(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_shared_obj(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_shared_object(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Set the output file and run the linker to generate an executable
-    pub fn build_exectuable(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_exectuable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_exectuable(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Set the output file and run the linker to generate a relocatable object for further linking
-    pub fn build_relocatable(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_relocatable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_relocatable(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Check if the path is valid, log an error if it wasn't

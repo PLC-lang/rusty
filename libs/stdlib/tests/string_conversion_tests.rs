@@ -179,7 +179,7 @@ fn string_to_wstring_extra_conversion() {
         "#;
 
     let mut exp = [0; 8];
-    for (i, c) in "Hèßlo😀\0".encode_utf16().into_iter().enumerate() {
+    for (i, c) in "Hèßlo😀\0".encode_utf16().enumerate() {
         exp[i] = c;
     }
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -206,7 +206,6 @@ fn string_to_wstring_long_conversion() {
     let mut exp = [0; 81];
     for (i, c) in "11111111112222222222333333333344444444445555555555666666666677777777778888888888"
         .encode_utf16()
-        .into_iter()
         .enumerate()
     {
         exp[i] = c;

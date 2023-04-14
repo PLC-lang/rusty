@@ -3,19 +3,19 @@ pub mod tests {
 
     use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
-    use encoding_rs::Encoding;
-    use inkwell::context::Context;
+    use source::{Compilable, SourceCode, SourceContainer};
 
     use crate::{
         ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
+        codegen::{CodegenContext, GeneratedModule},
         diagnostics::{Diagnostic, DiagnosticReporter, Diagnostician, ResolvedDiagnostics},
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
-        CompileOptions, DebugLevel, SourceContainer, Validator,
+        DebugLevel, Validator,
     };
 
     ///a Diagnostic reporter that holds all diagnostics in a list
@@ -73,7 +73,10 @@ pub mod tests {
         (unit, diagnostic)
     }
 
-    fn do_index(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
+    fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
+        let source = src.into();
+        let source_str = &source.source;
+        let source_path = source.get_location_str();
         let mut index = Index::default();
         //Import builtins
         let builtins = builtins::parse_built_ins(id_provider.clone());
@@ -84,10 +87,15 @@ pub mod tests {
             index.register_type(data_type);
         }
 
+        let range_factory = if source_path == "<internal>" {
+            SourceRangeFactory::internal()
+        } else {
+            SourceRangeFactory::for_file(source_path)
+        };
         let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             ast::LinkageType::Internal,
-            "test.st",
+            source_path,
         );
         ast::pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
@@ -99,7 +107,7 @@ pub mod tests {
         do_index(src, id_provider)
     }
 
-    pub fn index_with_ids(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
+    pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
         do_index(src, id_provider)
     }
 
@@ -108,7 +116,7 @@ pub mod tests {
         index: &mut Index,
         id_provider: IdProvider,
     ) -> AnnotationMapImpl {
-        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
@@ -118,7 +126,7 @@ pub mod tests {
         let (unit, index) = index_with_ids(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
@@ -128,27 +136,23 @@ pub mod tests {
     }
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
-        codegen_debug_without_unwrap(src, DebugLevel::None).map(|(it, _)| it).map_err(|(_, err)| err)
+        codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(
-        src: &str,
-        debug_level: DebugLevel,
-    ) -> Result<(String, Vec<ResolvedDiagnostics>), (Vec<ResolvedDiagnostics>, Diagnostic)> {
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
-        let diagnostics = Rc::new(RefCell::new(vec![]));
-        let diagnostician = list_based_diagnostician(diagnostics.clone());
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, literals) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        let (mut annotations, dependencies, literals) =
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
-        let context = inkwell::context::Context::create();
+        let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(
             &context,
@@ -158,22 +162,15 @@ pub mod tests {
             debug_level,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator
-            .generate_llvm_index(&annotations, literals, &index, &diagnostician)
-            .map_err(|err| (diagnostics.take(), err))?;
+        let llvm_index =
+            code_generator.generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)?;
 
         code_generator
-            .generate(&unit, &annotations, &index, &llvm_index)
-            .and_then(|_| code_generator.finalize())
-            .map(|_| (code_generator.module.print_to_string().to_string(), diagnostics.take()))
-            .map_err(|err| (diagnostics.take(), err))
+            .generate(&context, &unit, &annotations, &index, &llvm_index)
+            .map(|module| module.persist_to_string())
     }
 
-    pub fn codegen_with_diagnostics(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
-        codegen_debug_without_unwrap(src, DebugLevel::None).unwrap()
-    }
-
-    pub fn codegen_with_debug(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
+    pub fn codegen_with_debug(src: &str) -> String {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
@@ -181,42 +178,86 @@ pub mod tests {
         codegen_without_unwrap(src).unwrap()
     }
 
+    fn codegen_into_modules<T: Compilable>(
+        context: &CodegenContext,
+        sources: T,
+        debug_level: DebugLevel,
+    ) -> Result<Vec<GeneratedModule<'_>>, Diagnostic>
+    where
+        SourceCode: From<<T as Compilable>::T>,
+    {
+        let mut id_provider = IdProvider::default();
+        let mut units = vec![];
+        let mut index = Index::default();
+        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
+            |(unit, idx)| {
+                units.push(unit);
+                index.import(idx);
+            },
+        );
+        let (mut index, ..) = evaluate_constants(index);
+        let mut all_annotations = AnnotationMapImpl::default();
+        let units = units
+            .into_iter()
+            .map(|unit| {
+                let (mut annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+                index.import(std::mem::take(&mut annotation.new_index));
+                all_annotations.import(annotation);
+                (unit, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        let path = PathBuf::from_str("src").ok();
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+        units
+            .into_iter()
+            .map(|(unit, dependencies, literals)| {
+                let mut code_generator = crate::codegen::CodeGen::new(
+                    context,
+                    path.as_deref(),
+                    &unit.file_name,
+                    crate::OptimizationLevel::None,
+                    debug_level,
+                );
+                let llvm_index = code_generator.generate_llvm_index(
+                    context,
+                    &annotations,
+                    &literals,
+                    &dependencies,
+                    &index,
+                )?;
+
+                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
+            })
+            .collect::<Result<Vec<_>, Diagnostic>>()
+    }
+
+    pub fn codegen_multi<T: Compilable>(sources: T, debug_level: DebugLevel) -> Vec<String>
+    where
+        SourceCode: From<<T as Compilable>::T>,
+    {
+        let context = CodegenContext::create();
+        codegen_into_modules(&context, sources, debug_level)
+            .unwrap()
+            .into_iter()
+            .map(|module| module.persist_to_string())
+            .collect()
+    }
+
+    pub fn codegen_into_single_module<T: Compilable>(sources: T, debug_level: DebugLevel) -> String
+    where
+        SourceCode: From<<T as Compilable>::T>,
+    {
+        let context = CodegenContext::create();
+        let module = codegen_into_modules(&context, sources, debug_level)
+            .map(|it| it.into_iter().reduce(|module1, module2| module1.merge(module2).unwrap()).unwrap())
+            .unwrap();
+        module.persist_to_string()
+    }
+
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
-    }
-
-    pub fn compile_to_string<T: SourceContainer>(
-        sources: Vec<T>,
-        includes: Vec<T>,
-        encoding: Option<&'static Encoding>,
-        debug_level: DebugLevel,
-    ) -> Result<String, Diagnostic> {
-        let context = Context::create();
-        let (_, cg) = crate::compile_module(
-            &context,
-            sources,
-            includes,
-            encoding,
-            &CompileOptions { debug_level, ..Default::default() },
-        )?;
-        Ok(cg.module.print_to_string().to_string())
-    }
-
-    pub fn compile_with_root<T: SourceContainer>(
-        sources: Vec<T>,
-        includes: Vec<T>,
-        root: &str,
-        debug_level: DebugLevel,
-    ) -> Result<String, Diagnostic> {
-        let context = Context::create();
-        let (_, cg) = crate::compile_module(
-            &context,
-            sources,
-            includes,
-            None,
-            &CompileOptions { debug_level, root: Some(root.into()), ..Default::default() },
-        )?;
-        Ok(cg.module.print_to_string().to_string())
     }
 }

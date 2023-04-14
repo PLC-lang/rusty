@@ -2,8 +2,8 @@
 
 use std::{env, fs};
 
+use driver::compile;
 use encoding_rs::Encoding;
-use rusty::{build_and_link, CompileOptions, ErrorFormat, FilePath};
 
 use crate::get_test_file;
 
@@ -13,100 +13,31 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    build_and_link(
-        vec![FilePath { path: path.clone() }],
-        vec![],
-        encoding,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            format: rusty::FormatOption::IR,
-            output: out.clone(),
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::default(),
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Default::default(),
-    )
-    .unwrap();
+    let mut main_args = vec!["plc", &path, "-o", &out, "-Odefault"];
+    if let Some(encoding) = encoding {
+        main_args.push("--encoding");
+        main_args.push(encoding.name());
+    }
+
+    let mut args = main_args.clone();
+    args.push("--ir");
+    compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
-    build_and_link(
-        vec![FilePath { path: path.clone() }],
-        vec![],
-        encoding,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            format: rusty::FormatOption::Bitcode,
-            output: out.clone(),
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::default(),
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Default::default(),
-    )
-    .unwrap();
+    let mut args = main_args.clone();
+    args.push("--bc");
+    compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
-    build_and_link(
-        vec![FilePath { path: path.clone() }],
-        vec![],
-        encoding,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            format: rusty::FormatOption::Shared,
-            output: out.clone(),
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::default(),
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Default::default(),
-    )
-    .unwrap();
+    let mut args = main_args.clone();
+    args.push("--shared");
+    compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
-    build_and_link(
-        vec![FilePath { path: path.clone() }],
-        vec![],
-        encoding,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            format: rusty::FormatOption::PIC,
-            output: out.clone(),
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::default(),
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Default::default(),
-    )
-    .unwrap();
+    let mut args = main_args.clone();
+    args.push("--pic");
+    compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
-    build_and_link(
-        vec![FilePath { path }],
-        vec![],
-        encoding,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            format: rusty::FormatOption::Static,
-            output: out.clone(),
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::default(),
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Default::default(),
-    )
-    .unwrap();
+    let mut args = main_args.clone();
+    args.push("--static");
+    compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
 }
 

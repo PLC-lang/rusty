@@ -6,7 +6,7 @@ use crate::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
     },
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    resolver::AnnotationMap,
     Diagnostic,
 };
 
@@ -29,16 +29,16 @@ mod variable;
 mod tests;
 
 #[derive(Clone)]
-pub struct ValidationContext<'s> {
-    annotations: &'s AnnotationMapImpl,
+pub struct ValidationContext<'s, T: AnnotationMap> {
+    annotations: &'s T,
     index: &'s Index,
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
     is_call: bool,
 }
 
-impl<'s> ValidationContext<'s> {
-    fn with_qualifier(&self, qualifier: &'s str) -> ValidationContext<'s> {
+impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
+    fn with_qualifier(&self, qualifier: &'s str) -> Self {
         ValidationContext {
             annotations: self.annotations,
             index: self.index,
@@ -68,7 +68,7 @@ impl<'s> ValidationContext<'s> {
         })
     }
 
-    fn set_is_call(&self) -> ValidationContext<'s> {
+    fn set_is_call(&self) -> Self {
         ValidationContext {
             annotations: self.annotations,
             index: self.index,
@@ -129,7 +129,7 @@ impl Validator {
         }
     }
 
-    pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
+    pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // validate POU and declared Variables
         for pou in &unit.units {
@@ -160,10 +160,10 @@ impl Validator {
 /// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
 /// - https://github.com/PLC-lang/rusty/issues/707 and
 /// - `array_validation_test.rs/array_initialization_validation`
-pub fn validate_for_array_assignment(
+pub fn validate_for_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     expressions: &[AstStatement],
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     let mut array_assignment = false;
     expressions.iter().for_each(|e| {

@@ -497,7 +497,7 @@ fn return_a_complex_type_from_function() {
     %prg = type { [81 x i8] }
 
     @prg_instance = global %prg zeroinitializer
-    @utf08_literal_0 = unnamed_addr constant [13 x i8] c"hello world!\00"
+    @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
     define void @foo([81 x i8]* %0) {
     entry:

@@ -1,27 +1,28 @@
 use crate::{
     ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration},
     index::Index,
+    resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},
     Diagnostic,
 };
 
 use super::{variable::visit_variable, ValidationContext, Validator, Validators};
 
-pub fn visit_data_type_declaration(
+pub fn visit_data_type_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     declaration: &DataTypeDeclaration,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
         visit_data_type(validator, data_type, location, context);
     }
 }
 
-pub fn visit_data_type(
+pub fn visit_data_type<T: AnnotationMap>(
     validator: &mut Validator,
     data_type: &DataType,
     location: &SourceRange,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     validate_data_type(validator, data_type, location);
 
@@ -61,10 +62,10 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
     }
 }
 
-pub fn visit_user_type_declaration(
+pub fn visit_user_type_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     user_type: &UserTypeDeclaration,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     visit_data_type(validator, &user_type.data_type, &user_type.location, context);
 }

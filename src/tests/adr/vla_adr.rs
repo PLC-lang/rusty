@@ -220,7 +220,7 @@ fn pass() {
     let (_, local) = deconstruct_call_statement!(&statements[0]);
 
     // `local` is defined as an array of type DINT...
-    insta::assert_debug_snapshot!(annotations.get_type(&local[0], &index).unwrap(), 
+    insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(), 
     @r###"
     DataType {
         name: "__main_local",
@@ -257,7 +257,7 @@ fn pass() {
 
     // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
     // result in wrapping arrays into structs.
-    let hint = annotations.get_type_hint(&local[0], &index).unwrap();
+    let hint = annotations.get_type_hint(local[0], &index).unwrap();
     insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information), 
     @r###"
     Struct {
