@@ -58,8 +58,9 @@ path = "src/main.rs"
 
 [workspace]
 members = [
-	"xtask"
+	"xtask",
+	"libs/stdlib",
 ]
 exclude = [
-	"libs/stdlib"
+	# "libs/stdlib",
 ]

@@ -23,7 +23,7 @@ source "${BASH_SOURCE%/*}/common.sh"
 
 
 function set_cargo_options() {
-	CARGO_OPTIONS=""
+	CARGO_OPTIONS="-p iec61131std"
 
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
@@ -165,7 +165,7 @@ function run_package() {
 	include_dir=$OUTPUT_DIR/include 
 	make_dir $include_dir
 	#Copy the iec61131-st folder
-	cp -r "$project_location"/iec61131-st/*.st "$include_dir"
+	cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
 
 	if [[ ! -z $target ]]; then
 		for val in ${target//,/ }
