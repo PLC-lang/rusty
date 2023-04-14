@@ -1,0 +1,11 @@
+/target
+/target-watch
+/.idea
+**/*.rs.bk
+**/*.un~
+**/*.toml~
+*.ll
+*.o
+*.bc
+*.a
+*.elf

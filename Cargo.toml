@@ -58,9 +58,8 @@ path = "src/main.rs"
 
 [workspace]
 members = [
-	"libs/stdlib", #The standard library
 	"xtask"
 ]
-default-members = [
+exclude = [
 	"libs/stdlib"
 ]

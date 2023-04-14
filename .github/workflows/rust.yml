@@ -38,8 +38,23 @@ jobs:
       - name: Cargo test
         shell: bash
         run: |
-          echo "Build command : ./scripts/build.sh --verbose --build --package --test"
-          ./scripts/build.sh --verbose --build --package --test
+          echo "Build command : ./scripts/build.sh --verbose --build --test"
+          ./scripts/build.sh --verbose --build --test
+
+  test-linux:
+    name: Test std Linux
+    runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cargo test
+        working-directory: libs/stdlib
+        shell: bash
+        run: |
+          echo "Build command : ./scripts/build.sh --verbose --build --test"
+          ./scripts/build.sh --verbose --build --test
 
   test-windows:
     name: Test Windows
@@ -100,11 +115,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run Standard libs Build
+        working-directory: libs/stdlib
         run: |
-          ./libs/stdlib/scripts/build.sh --verbose --build --package \
-          --target x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+          ./scripts/build.sh --verbose --build --package \
+          --target x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu \
+          --release
 
       - uses: actions/upload-artifact@master
+        working-directory: libs/stdlib
         with:
           name: output
           path: stdlib
