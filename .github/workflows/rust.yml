@@ -17,6 +17,7 @@ jobs:
   check: 
     name: Check
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,11 +25,7 @@ jobs:
 
       - name: Run Check
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
-          ./scripts/build.sh --check --container --container-name=$IMAGE_ID
+         ./scripts/build.sh --check
 
   test-linux:
     name: Test Linux
@@ -41,10 +38,6 @@ jobs:
       - name: Cargo test
         shell: bash
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
           echo "Build command : ./scripts/build.sh --verbose --build --package --test"
           ./scripts/build.sh --verbose --build --package --test
 
