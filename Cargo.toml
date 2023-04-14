@@ -61,6 +61,3 @@ members = [
 	"xtask",
 	"libs/stdlib",
 ]
-exclude = [
-	# "libs/stdlib",
-]
