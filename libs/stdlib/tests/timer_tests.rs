@@ -73,10 +73,7 @@ fn tp_true_for_time() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.tp_out);
@@ -125,10 +122,7 @@ fn tp_does_not_retrigger_on_consecutive_input() {
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
 
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.tp_out);
@@ -169,10 +163,7 @@ fn tp_not_interrupted_by_signal_change() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
 
     //On first call with true, out is true, et is 0
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
@@ -216,10 +207,7 @@ fn ton_returns_true_after_time_preset() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.tp_out);
@@ -269,10 +257,7 @@ fn ton_counts_elapsed_time_while_waiting() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true, counter starts at 0
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.tp_out);
@@ -310,10 +295,7 @@ fn ton_waits_again_after_turining_off() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.tp_out);
@@ -369,10 +351,7 @@ fn toff_starts_timer_after_input_is_off() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.tp_out);
@@ -409,10 +388,7 @@ fn toff_runs_for_preset_time() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.tp_out);
@@ -457,10 +433,7 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
     let source = add_std!(prog, "timers.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        value: true,
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.tp_out);

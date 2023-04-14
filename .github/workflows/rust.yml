@@ -107,8 +107,8 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: output
-          path: stdlib
+          name: stdlib
+          path: output
 
   style:
     name: Check Style

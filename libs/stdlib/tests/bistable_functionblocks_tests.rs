@@ -52,9 +52,7 @@ fn sr() {
     let source = add_std!(prog, "bistable_functionblocks.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { ..MainType::default() };
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.t_t_f);
     assert!(!main_inst.f_t_t);
@@ -96,9 +94,7 @@ fn rs() {
     let source = add_std!(prog, "bistable_functionblocks.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = MainType {
-        ..MainType::default()
-    };
+    let mut main_inst = MainType { ..MainType::default() };
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.t_t_f);
     assert!(!main_inst.f_f_f);

@@ -8,10 +8,8 @@ use chrono::{TimeZone, Timelike};
 pub extern "C" fn DATE_AND_TIME_TO_DATE(input: i64) -> i64 {
     let date_time = chrono::Utc.timestamp_nanos(input);
 
-    let new_date_time = date_time
-        .date_naive()
-        .and_hms_opt(0, 0, 0)
-        .expect("Cannot create date time from date");
+    let new_date_time =
+        date_time.date_naive().and_hms_opt(0, 0, 0).expect("Cannot create date time from date");
     new_date_time.timestamp_nanos()
 }
 

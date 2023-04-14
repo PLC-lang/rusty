@@ -14,9 +14,7 @@ struct MainType<T: PrimInt> {
 // x to string/wstring
 #[test]
 fn byte_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -42,9 +40,7 @@ fn byte_to_string_conversion() {
 
 #[test]
 fn dword_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -69,9 +65,7 @@ fn dword_to_string_conversion() {
 
 #[test]
 fn lword_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -97,9 +91,7 @@ fn lword_to_string_conversion() {
 
 #[test]
 fn byte_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -126,9 +118,7 @@ fn byte_to_wstring_conversion() {
 
 #[test]
 fn dword_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -154,9 +144,7 @@ fn dword_to_wstring_conversion() {
 
 #[test]
 fn lword_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -183,9 +171,7 @@ fn lword_to_wstring_conversion() {
 
 #[test]
 fn lint_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -211,9 +197,7 @@ fn lint_to_string_conversion() {
 
 #[test]
 fn lint_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -240,9 +224,7 @@ fn lint_to_wstring_conversion() {
 
 #[test]
 fn dint_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -268,9 +250,7 @@ fn dint_to_string_conversion() {
 
 #[test]
 fn dint_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -297,9 +277,7 @@ fn dint_to_wstring_conversion() {
 
 #[test]
 fn lreal_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -326,9 +304,7 @@ fn lreal_to_string_conversion() {
 
 #[test]
 fn lreal_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -355,9 +331,7 @@ fn lreal_to_wstring_conversion() {
 
 #[test]
 fn real_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -383,9 +357,7 @@ fn real_to_string_conversion() {
 
 #[test]
 fn real_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -965,10 +937,7 @@ fn dt_to_lint_conversion() {
     );
     let res: i64 = compile_and_run_no_params(sources);
 
-    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12)
-        .unwrap()
-        .and_hms_opt(23, 23, 0)
-        .unwrap();
+    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
     let expected = datetime_utc.timestamp_nanos();
     assert_eq!(expected, res)
@@ -994,10 +963,7 @@ fn ldt_to_lint_conversion() {
     );
     let res: i64 = compile_and_run_no_params(sources);
 
-    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12)
-        .unwrap()
-        .and_hms_opt(23, 23, 0)
-        .unwrap();
+    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
     let expected = datetime_utc.timestamp_nanos();
     assert_eq!(expected, res)
@@ -1178,10 +1144,7 @@ fn dt_to_ulint_conversion() {
     );
     let res: u64 = compile_and_run_no_params(sources);
 
-    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12)
-        .unwrap()
-        .and_hms_opt(23, 23, 0)
-        .unwrap();
+    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
     let expected = datetime_utc.timestamp_nanos() as u64;
     assert_eq!(expected, res)
@@ -1207,10 +1170,7 @@ fn ldt_to_ulint_conversion() {
     );
     let res: u64 = compile_and_run_no_params(sources);
 
-    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12)
-        .unwrap()
-        .and_hms_opt(23, 23, 0)
-        .unwrap();
+    let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
     let expected = datetime_utc.timestamp_nanos() as u64;
     assert_eq!(expected, res)
@@ -1702,9 +1662,7 @@ fn test_time() {
 
 #[test]
 fn dt_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -1730,9 +1688,7 @@ fn dt_to_string_conversion() {
 
 #[test]
 fn dt_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -1759,9 +1715,7 @@ fn dt_to_wstring_conversion() {
 
 #[test]
 fn date_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -1787,9 +1741,7 @@ fn date_to_string_conversion() {
 
 #[test]
 fn date_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -1816,9 +1768,7 @@ fn date_to_wstring_conversion() {
 
 #[test]
 fn time_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -1844,9 +1794,7 @@ fn time_to_string_conversion() {
 
 #[test]
 fn time_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -1873,9 +1821,7 @@ fn time_to_wstring_conversion() {
 
 #[test]
 fn tod_ltod_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -1901,9 +1847,7 @@ fn tod_ltod_to_string_conversion() {
 
 #[test]
 fn tod_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -1930,9 +1874,7 @@ fn tod_to_wstring_conversion() {
 
 #[test]
 fn ldt_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -1958,9 +1900,7 @@ fn ldt_to_string_conversion() {
 
 #[test]
 fn ldt_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -1987,9 +1927,7 @@ fn ldt_to_wstring_conversion() {
 
 #[test]
 fn ldate_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -2015,9 +1953,7 @@ fn ldate_to_string_conversion() {
 
 #[test]
 fn ldate_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -2044,9 +1980,7 @@ fn ldate_to_wstring_conversion() {
 
 #[test]
 fn ltime_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -2072,9 +2006,7 @@ fn ltime_to_string_conversion() {
 
 #[test]
 fn ltime_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR
@@ -2101,9 +2033,7 @@ fn ltime_to_wstring_conversion() {
 
 #[test]
 fn ltod_to_string_conversion() {
-    let mut maintype = MainType {
-        s: [0_u8; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
     FUNCTION main : STRING
     VAR
@@ -2129,9 +2059,7 @@ fn ltod_to_string_conversion() {
 
 #[test]
 fn ltod_to_wstring_conversion() {
-    let mut maintype = MainType {
-        s: [0_u16; STR_SIZE],
-    };
+    let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"
     FUNCTION main : WSTRING
     VAR

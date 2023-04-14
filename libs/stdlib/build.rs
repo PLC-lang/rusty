@@ -24,11 +24,7 @@ fn main() {
         }
     }
     rusty::build_with_params(rusty::cli::CompileParameters::parse(&args).unwrap()).unwrap();
-    Command::new("ar")
-        .args(["crs", "libst.a", "st.o"])
-        .current_dir(Path::new(&out_dir))
-        .status()
-        .unwrap();
+    Command::new("ar").args(["crs", "libst.a", "st.o"]).current_dir(Path::new(&out_dir)).status().unwrap();
 
     //link the object file
     println!("cargo:rustc-link-search=native={out_dir}");

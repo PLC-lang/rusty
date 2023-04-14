@@ -606,12 +606,7 @@ fn test_to_big_endian_date() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -625,11 +620,7 @@ fn test_to_little_endian_date() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -643,11 +634,7 @@ fn test_from_big_endian_date() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -661,12 +648,7 @@ fn test_from_little_endian_date() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -731,12 +713,7 @@ fn test_to_big_endian_dt() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -751,11 +728,7 @@ fn test_to_little_endian_dt() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -770,11 +743,7 @@ fn test_from_big_endian_dt() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -789,12 +758,7 @@ fn test_from_little_endian_dt() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -811,12 +775,7 @@ fn test_to_big_endian_ldate_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -831,11 +790,7 @@ fn test_to_little_endian_ldate_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -850,11 +805,7 @@ fn test_from_big_endian_ldate_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -869,12 +820,7 @@ fn test_from_little_endian_ldate_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 
@@ -911,11 +857,7 @@ fn test_to_little_endian_ldt_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -930,11 +872,7 @@ fn test_from_big_endian_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     )
 }
 
@@ -949,12 +887,7 @@ fn test_from_little_endian_nanos() {
     let res: i64 = compile_and_run_no_params(src);
     assert_eq!(
         res,
-        NaiveDate::from_ymd_opt(1984, 6, 25)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
-            .to_be()
+        NaiveDate::from_ymd_opt(1984, 6, 25).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos().to_be()
     )
 }
 

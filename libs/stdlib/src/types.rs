@@ -23,10 +23,7 @@ macro_rules! define_float_type {
                 panic!("Null pointer for value");
             };
 
-            arr.iter()
-                .map(|it| *it)
-                .reduce(<$rust_type>::max)
-                .expect("A max will always exist")
+            arr.iter().map(|it| *it).reduce(<$rust_type>::max).expect("A max will always exist")
         }
         /// # Safety
         /// Dealing with raw pointers
@@ -40,20 +37,13 @@ macro_rules! define_float_type {
                 panic!("Null pointer for value");
             };
 
-            arr.iter()
-                .map(|it| *it)
-                .reduce(<$rust_type>::min)
-                .expect("A max will always exist")
+            arr.iter().map(|it| *it).reduce(<$rust_type>::min).expect("A max will always exist")
         }
 
         //Limit
         #[allow(non_snake_case)]
         #[no_mangle]
-        pub extern "C" fn $limit_name(
-            min: $rust_type,
-            value: $rust_type,
-            max: $rust_type,
-        ) -> $rust_type {
+        pub extern "C" fn $limit_name(min: $rust_type, value: $rust_type, max: $rust_type) -> $rust_type {
             limit(min, value, max)
         }
     };
@@ -92,11 +82,7 @@ macro_rules! define_order_type {
         //Limit
         #[allow(non_snake_case)]
         #[no_mangle]
-        pub extern "C" fn $limit_name(
-            min: $rust_type,
-            value: $rust_type,
-            max: $rust_type,
-        ) -> $rust_type {
+        pub extern "C" fn $limit_name(min: $rust_type, value: $rust_type, max: $rust_type) -> $rust_type {
             limit(min, value, max)
         }
     };
@@ -130,12 +116,7 @@ define_int_type!(MAX__UDINT, MIN__UDINT, LIMIT__UDINT, u32);
 define_int_type!(MAX__LINT, MIN__LINT, LIMIT__LINT, i64);
 define_int_type!(MAX__ULINT, MIN__ULINT, LIMIT__ULINT, u64);
 define_int_type!(MAX__DATE, MIN__DATE, LIMIT__DATE, i64);
-define_int_type!(
-    MAX__DATE_AND_TIME,
-    MIN__DATE_AND_TIME,
-    LIMIT__DATE_AND_TIME,
-    i64
-);
+define_int_type!(MAX__DATE_AND_TIME, MIN__DATE_AND_TIME, LIMIT__DATE_AND_TIME, i64);
 define_int_type!(MAX__TIME, MIN__TIME, LIMIT__TIME, i64);
 define_int_type!(MAX__TIME_OF_DAY, MIN__TIME_OF_DAY, LIMIT__TIME_OF_DAY, i64);
 //Floats

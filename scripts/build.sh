@@ -101,7 +101,7 @@ function run_check_style() {
 	log "Running cargo clippy"
 	cargo clippy $CARGO_OPTIONS -- -Dwarnings
 	log "Running cargo fmt check"
-	cargo fmt --wokspace -- --check
+	cargo fmt -- --check
 }
 
 function run_test() {

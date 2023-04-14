@@ -71,11 +71,7 @@ fn ldt_to_date_conversion() {
     let res: i64 = compile_and_run(sources, &mut maintype);
     assert_eq!(
         res,
-        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     );
 }
 
@@ -147,11 +143,7 @@ fn dt_to_date_conversion() {
     let res: i64 = compile_and_run(sources, &mut maintype);
     assert_eq!(
         res,
-        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .timestamp_nanos()
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
     );
 }
 

@@ -7,19 +7,15 @@ use common::add_std;
 
 // helper function to convert null-terminated utf8 byte array to string slice
 fn str_from_u8_utf8(src: &[u8]) -> Result<&str, std::str::Utf8Error> {
-    let null_pos = src
-        .iter()
-        .position(|&c| c == 0)
-        .unwrap_or_else(|| panic!("No null-terminating character found!"));
+    let null_pos =
+        src.iter().position(|&c| c == 0).unwrap_or_else(|| panic!("No null-terminating character found!"));
     std::str::from_utf8(&src[0..null_pos])
 }
 
 // helper function to convert null-terminated utf16 byte array to string slice
 fn string_from_utf16(src: &[u16]) -> Result<String, FromUtf16Error> {
-    let null_pos = src
-        .iter()
-        .position(|&c| c == 0)
-        .unwrap_or_else(|| panic!("No null-terminating character found!"));
+    let null_pos =
+        src.iter().position(|&c| c == 0).unwrap_or_else(|| panic!("No null-terminating character found!"));
     String::from_utf16(&src[0..null_pos])
 }
 
@@ -495,10 +491,7 @@ fn delete_string_with_escape_sequence() {
 
     let sources = add_std!(src, "string_functions.st");
     let res: [u8; 20] = compile_and_run_no_params(sources);
-    let res = std::str::from_utf8(&res)
-        .unwrap()
-        .trim_end_matches('\0')
-        .as_bytes();
+    let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
 
@@ -549,10 +542,7 @@ fn delete_ext_string_with_escape_sequence() {
 
     let sources = add_std!(src, "string_functions.st");
     let res: [u8; 20] = compile_and_run_no_params(sources);
-    let res = std::str::from_utf8(&res)
-        .unwrap()
-        .trim_end_matches('\0')
-        .as_bytes();
+    let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
 
@@ -1176,10 +1166,7 @@ fn delete_ext_wstring() {
     } else {
         panic!("Given string is not UTF16-encoded")
     }
-    assert_eq!(
-        String::from_utf16(&res).unwrap().trim_end_matches('\0'),
-        "typo".to_owned()
-    );
+    assert_eq!(String::from_utf16(&res).unwrap().trim_end_matches('\0'), "typo".to_owned());
 }
 
 #[test]
@@ -1599,14 +1586,7 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
     let mut maintype = MainType::default();
     let source = add_std!(src, "string_functions.st");
     let _: i32 = common::compile_and_run(source, &mut maintype);
-    let expected = MainType {
-        lt: true,
-        le: true,
-        eq: true,
-        ge: true,
-        gt: true,
-        ne: true,
-    };
+    let expected = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
     assert!(expected == maintype);
 }
 
@@ -1635,14 +1615,7 @@ fn test_wstring_binary_operator_wrapper_functions_work() {
     let mut maintype = MainType::default();
     let source = add_std!(src, "string_functions.st");
     let _: i32 = common::compile_and_run(source, &mut maintype);
-    let expected = MainType {
-        lt: true,
-        le: true,
-        eq: true,
-        ge: true,
-        gt: true,
-        ne: true,
-    };
+    let expected = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
     assert!(expected == maintype);
 }
 
@@ -1668,14 +1641,7 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
     END_PROGRAM
     "#;
 
-    let mut maintype = MainType {
-        lt: true,
-        le: true,
-        eq: true,
-        ge: true,
-        gt: true,
-        ne: true,
-    };
+    let mut maintype = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
     let source = add_std!(src, "string_functions.st");
     let _: i32 = common::compile_and_run(source, &mut maintype);
     let expected = MainType::default();

@@ -96,9 +96,7 @@ where
         [b'1', b'6', b'#', ..] => (std::str::from_utf8(&slice[3..]), 16),
         [b'0', b'x', ..] | [b'0', b'X', ..] => (std::str::from_utf8(&slice[2..]), 16),
         [b'8', b'#', ..] => (std::str::from_utf8(&slice[2..]), 8), // support c-style octal prefixes? e.g. 010 -> 10 octal
-        [b'2', b'#', ..] | [b'0', b'b', ..] | [b'0', b'B', ..] => {
-            (std::str::from_utf8(&slice[2..]), 2)
-        }
+        [b'2', b'#', ..] | [b'0', b'b', ..] | [b'0', b'B', ..] => (std::str::from_utf8(&slice[2..]), 2),
         _ => (std::str::from_utf8(slice), 10),
     };
 
@@ -197,15 +195,7 @@ fn parse_timestamp<'a>(timestamp_nanos: i64) -> [(u32, &'a str); 7] {
     let nanos_per_day = 1e9 as i64 * 3600 * 24;
     let days = (timestamp_nanos / nanos_per_day) as u32;
 
-    [
-        (days, "d"),
-        (hours, "h"),
-        (minutes, "m"),
-        (seconds, "s"),
-        (millis, "ms"),
-        (micros, "us"),
-        (nanos, "ns"),
-    ]
+    [(days, "d"), (hours, "h"), (minutes, "m"), (seconds, "s"), (millis, "ms"), (micros, "us"), (nanos, "ns")]
 }
 
 /// # Safety
@@ -263,8 +253,7 @@ mod test {
         let dest_ptr = dest.as_mut_ptr();
 
         let _ = unsafe { BYTE_TO_STRING_EXT(byte, dest_ptr) };
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!(0b1010_1010_u8.to_string(), res.trim_end_matches('\0'));
     }
@@ -276,13 +265,9 @@ mod test {
         let dest_ptr = dest.as_mut_ptr();
 
         let _ = unsafe { LWORD_TO_STRING_EXT(lword, dest_ptr) };
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
-        assert_eq!(
-            0xFF_00_FF_00_00_FF_00_FF_u64.to_string(),
-            res.trim_end_matches('\0')
-        );
+        assert_eq!(0xFF_00_FF_00_00_FF_00_FF_u64.to_string(), res.trim_end_matches('\0'));
     }
 
     #[test]
@@ -292,8 +277,7 @@ mod test {
         let dest_ptr = dest.as_mut_ptr();
 
         let _ = unsafe { LINT_TO_STRING_EXT(lint, dest_ptr) };
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!("100200300400500", res.trim_end_matches('\0'));
     }
@@ -307,29 +291,23 @@ mod test {
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
         let _ = unsafe { LREAL_TO_STRING_EXT(lreal, dest_ptr) };
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!(format!("{lreal:.6}"), res.trim_end_matches('\0'));
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
         let _ = unsafe { LREAL_TO_STRING_EXT(lreal_neg, dest_ptr) };
-        let res_neg =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res_neg = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!(format!("{lreal_neg:.6}"), res_neg.trim_end_matches('\0'));
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
         let _ = unsafe { LREAL_TO_STRING_EXT(pre_e_notation, dest_ptr) };
-        let res_large =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res_large = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
-        assert_eq!(
-            format!("{pre_e_notation:.6}"),
-            res_large.trim_end_matches('\0')
-        );
+        assert_eq!(format!("{pre_e_notation:.6}"), res_large.trim_end_matches('\0'));
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
@@ -337,10 +315,7 @@ mod test {
         let res_scientific =
             std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
-        assert_eq!(
-            format!("{e_notation:.6e}"),
-            res_scientific.trim_end_matches('\0')
-        );
+        assert_eq!(format!("{e_notation:.6e}"), res_scientific.trim_end_matches('\0'));
     }
 
     #[test]
@@ -418,8 +393,7 @@ mod test {
         let _ = unsafe { DATE_TO_STRING_EXT(timestamp, dest_ptr) };
 
         let expected = "1982-12-15";
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
         let res = res.trim_end_matches('\0');
         assert_eq!(expected, res);
     }
@@ -436,8 +410,7 @@ mod test {
         let _ = unsafe { DT_TO_STRING_EXT(timestamp, dest_ptr) };
 
         let expected = "1982-12-15-10:10:02.123456789";
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
         let res = res.trim_end_matches('\0');
         assert_eq!(expected, res);
     }
@@ -454,8 +427,7 @@ mod test {
         let _ = unsafe { TOD_TO_STRING_EXT(timestamp, dest_ptr) };
 
         let expected = "10:10:02.123456789";
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
         let res = res.trim_end_matches('\0');
         assert_eq!(expected, res);
     }
@@ -472,8 +444,7 @@ mod test {
         let _ = unsafe { TIME_TO_STRING_EXT(timestamp, dest_ptr) };
 
         let expected = "19380d10h10m123ms456us789ns";
-        let res =
-            std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
         let res = res.trim_end_matches('\0');
         assert_eq!(expected, res);
     }

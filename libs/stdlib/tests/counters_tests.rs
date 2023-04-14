@@ -41,9 +41,7 @@ fn ctu() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<i16> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -85,9 +83,7 @@ fn ctu_int() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<i16> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -129,9 +125,7 @@ fn ctu_dint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<i32> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<i32> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -173,9 +167,7 @@ fn ctu_udint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<u32> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<u32> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -217,9 +209,7 @@ fn ctu_lint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<i64> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<i64> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -261,9 +251,7 @@ fn ctu_ulint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUType::<u64> {
-        ..CTUType::default()
-    };
+    let mut main_inst = CTUType::<u64> { ..CTUType::default() };
     // count up
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -315,10 +303,7 @@ fn ctd() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<i16> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -361,10 +346,7 @@ fn ctd_int() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<i16> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -407,10 +389,7 @@ fn ctd_dint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<i32> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<i32> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -453,10 +432,7 @@ fn ctd_udint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<u32> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<u32> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -499,10 +475,7 @@ fn ctd_lint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<i64> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<i64> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -545,10 +518,7 @@ fn ctd_ulint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTDType::<u64> {
-        load: true,
-        ..CTDType::default()
-    };
+    let mut main_inst = CTDType::<u64> { load: true, ..CTDType::default() };
     // count down
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(!main_inst.q);
@@ -625,10 +595,7 @@ fn ctud() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<i16> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);
@@ -703,10 +670,7 @@ fn ctud_int() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<i16> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);
@@ -781,10 +745,7 @@ fn ctud_dint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<i32> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<i32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);
@@ -859,10 +820,7 @@ fn ctud_udint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<u32> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<u32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);
@@ -937,10 +895,7 @@ fn ctud_lint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<i64> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<i64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);
@@ -1015,10 +970,7 @@ fn ctud_ulint() {
     let source = add_std!(prog, "counters.st");
     let context: Context = Context::create();
     let exec_engine = compile_with_native(&context, source);
-    let mut main_inst = CTUDType::<u64> {
-        load: true,
-        ..CTUDType::default()
-    };
+    let mut main_inst = CTUDType::<u64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     run::<_, ()>(&exec_engine, "main", &mut main_inst);
     assert!(main_inst.qu);

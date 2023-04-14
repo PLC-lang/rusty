@@ -80,9 +80,7 @@ impl<'a> CharsDecoder<u8> for EncodedCharsIter<Utf8Iterator<'a>> {
     type IteratorType = Utf8Iterator<'a>;
     unsafe fn decode(src: *const u8) -> Self {
         let slice = ptr_to_slice(src);
-        Self {
-            iter: std::str::from_utf8(slice).unwrap().chars(),
-        }
+        Self { iter: std::str::from_utf8(slice).unwrap().chars() }
     }
 }
 
@@ -120,9 +118,7 @@ impl<'a> CharsDecoder<u16> for EncodedCharsIter<Utf16Iterator<'a>> {
     type IteratorType = Utf16Iterator<'a>;
     unsafe fn decode(src: *const u16) -> Self {
         let src = ptr_to_slice(src);
-        Self {
-            iter: decode_utf16(src.iter().copied()),
-        }
+        Self { iter: decode_utf16(src.iter().copied()) }
     }
 }
 
@@ -175,15 +171,9 @@ pub unsafe extern "C" fn FIND__STRING(src1: *const u8, src2: *const u8) -> i32 {
         return 0;
     }
 
-    if let Some(idx) = haystack
-        .windows(needle.len())
-        .position(|window| window == needle)
-    {
+    if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
         // get chars until byte index
-        let char_index = core::str::from_utf8(std::slice::from_raw_parts(src1, idx))
-            .unwrap()
-            .chars()
-            .count();
+        let char_index = core::str::from_utf8(std::slice::from_raw_parts(src1, idx)).unwrap().chars().count();
         // correct for ST indexing
         char_index as i32 + 1
     } else {
@@ -207,13 +197,9 @@ pub unsafe extern "C" fn FIND__WSTRING(src1: *const u16, src2: *const u16) -> i3
         return 0;
     }
 
-    if let Some(idx) = haystack
-        .windows(needle.len())
-        .position(|window| window == needle)
-    {
+    if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
         // match found. count utf16 chars to window position
-        let char_index =
-            decode_utf16(std::slice::from_raw_parts(src1, idx).iter().copied()).count();
+        let char_index = decode_utf16(std::slice::from_raw_parts(src1, idx).iter().copied()).count();
 
         // correct indexing for ST
         char_index as i32 + 1
@@ -260,11 +246,7 @@ pub unsafe extern "C" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest:
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LEFT_EXT__WSTRING(
-    src: *const u16,
-    substr_len: i32,
-    dest: *mut u16,
-) -> i32 {
+pub unsafe extern "C" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -318,11 +300,7 @@ pub unsafe extern "C" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn RIGHT_EXT__WSTRING(
-    src: *const u16,
-    substr_len: i32,
-    dest: *mut u16,
-) -> i32 {
+pub unsafe extern "C" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -368,13 +346,9 @@ pub unsafe extern "C" fn MID_EXT__STRING(
     // correct for 0-indexing
     let start_index = start_index - 1;
     if nchars < substr_len + start_index {
-        panic!(
-            "Requested substring length {substr_len} from position {start_index} exceeds string length."
-        )
+        panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
     }
-    let chars = EncodedCharsIter::decode(src)
-        .skip(start_index)
-        .take(substr_len);
+    let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     chars.encode(&mut dest);
 
     0
@@ -411,13 +385,9 @@ pub unsafe extern "C" fn MID_EXT__WSTRING(
     // correct for 0-indexing
     let start_index = start_index - 1;
     if nchars < substr_len + start_index {
-        panic!(
-            "Requested substring length {substr_len} from position {start_index} exceeds string length."
-        )
+        panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
     }
-    let chars = EncodedCharsIter::decode(src)
-        .skip(start_index)
-        .take(substr_len);
+    let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     chars.encode(&mut dest);
 
     0
@@ -701,11 +671,7 @@ pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CONCAT_EXT__STRING(
-    dest: *mut u8,
-    argc: i32,
-    argv: *const *const u8,
-) -> i32 {
+pub unsafe extern "C" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) -> i32 {
     if argv.is_null() || dest.is_null() {
         panic!("Received null-pointer.")
     }
@@ -749,11 +715,7 @@ pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CONCAT_EXT__WSTRING(
-    dest: *mut u16,
-    argc: i32,
-    argv: *const *const u16,
-) -> i32 {
+pub unsafe extern "C" fn CONCAT_EXT__WSTRING(dest: *mut u16, argc: i32, argv: *const *const u16) -> i32 {
     if argv.is_null() || dest.is_null() {
         panic!("Received null-pointer.")
     }
@@ -1023,7 +985,10 @@ mod test {
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
-            assert_eq!("     this is   a  very   long           sentence   with plenty  of    characters and ", string)
+            assert_eq!(
+                "     this is   a  very   long           sentence   with plenty  of    characters and ",
+                string
+            )
         }
     }
 
@@ -1152,12 +1117,7 @@ mod test {
         let insert = "ϕϚϡxϗ new \0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
-            INSERT_EXT__STRING(
-                base.as_ptr(),
-                insert.as_ptr(),
-                (base.len() - 1) as i32,
-                dest.as_mut_ptr(),
-            );
+            INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), (base.len() - 1) as i32, dest.as_mut_ptr());
             let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
             assert_eq!("hello worldϕϚϡxϗ new ", string)
         }
@@ -1170,12 +1130,7 @@ mod test {
         let insert = "brave new \0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
-            INSERT_EXT__STRING(
-                base.as_ptr(),
-                insert.as_ptr(),
-                base.len() as i32,
-                dest.as_mut_ptr(),
-            );
+            INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), base.len() as i32, dest.as_mut_ptr());
         }
     }
 
@@ -1308,13 +1263,7 @@ mod test {
         let replacement = "aldo, how are you\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
-            REPLACE_EXT__STRING(
-                base.as_ptr(),
-                replacement.as_ptr(),
-                12,
-                1,
-                dest.as_mut_ptr(),
-            );
+            REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 12, 1, dest.as_mut_ptr());
         }
     }
 
@@ -1336,23 +1285,13 @@ mod test {
         let replacement = "aldo, how are you\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
-            REPLACE_EXT__STRING(
-                base.as_ptr(),
-                replacement.as_ptr(),
-                8,
-                12,
-                dest.as_mut_ptr(),
-            );
+            REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 8, 12, dest.as_mut_ptr());
         }
     }
 
     #[test]
     fn test_concat_str() {
-        let argv = [
-            "hællø wørlÞ\0".as_ptr(),
-            "hello world\0".as_ptr(),
-            "𝄞music\0".as_ptr(),
-        ];
+        let argv = ["hællø wørlÞ\0".as_ptr(), "hello world\0".as_ptr(), "𝄞music\0".as_ptr()];
         unsafe {
             let mut arr = [0_u8; 2049];
             let dest = arr.as_mut_ptr();
@@ -1365,11 +1304,7 @@ mod test {
 
     #[test]
     fn test_concat_ext_str() {
-        let argv = [
-            "hællø wørlÞ\0".as_ptr(),
-            "hello world\0".as_ptr(),
-            "𝄞music\0".as_ptr(),
-        ];
+        let argv = ["hællø wørlÞ\0".as_ptr(), "hello world\0".as_ptr(), "𝄞music\0".as_ptr()];
         let argc = argv.len() as i32;
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
@@ -1399,11 +1334,7 @@ mod test {
 
     #[test]
     fn test_greater_than_string_is_true_for_decreasing_sequence() {
-        let argv = [
-            "zyxZabcdefghijklmn\0".as_ptr(),
-            "zyxA\0".as_ptr(),
-            "zyx\0".as_ptr(),
-        ];
+        let argv = ["zyxZabcdefghijklmn\0".as_ptr(), "zyxA\0".as_ptr(), "zyx\0".as_ptr()];
         let argc = argv.len() as i32;
         unsafe { assert!(GT__STRING(argc, argv.as_ptr())) }
     }
@@ -1556,9 +1487,7 @@ mod test {
     fn test_find_wstring_base_string_too_short() {
         let base = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
-        let find = "hello world oachkatzlschwoaf\0"
-            .encode_utf16()
-            .collect::<Vec<u16>>();
+        let find = "hello world oachkatzlschwoaf\0".encode_utf16().collect::<Vec<u16>>();
         let find_ptr = find.as_slice().as_ptr();
         unsafe {
             let res = FIND__WSTRING(base_ptr, find_ptr);
@@ -1817,9 +1746,7 @@ mod test {
     fn test_replace_ext_wstring_replace_at_end() {
         let base = "hello w😀rld𝄞\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
-        let replacement = "aldo, how are you? 😀\0"
-            .encode_utf16()
-            .collect::<Vec<u16>>();
+        let replacement = "aldo, how are you? 😀\0".encode_utf16().collect::<Vec<u16>>();
         let replacement_ptr = replacement.as_slice().as_ptr();
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
@@ -1996,10 +1923,8 @@ mod test {
 
     #[test]
     fn test_ne_wstring() {
-        let argvec: [Vec<u16>; 2] = [
-            "hællø wørlÞ\0".encode_utf16().collect(),
-            "hello world\0".encode_utf16().collect(),
-        ];
+        let argvec: [Vec<u16>; 2] =
+            ["hællø wørlÞ\0".encode_utf16().collect(), "hello world\0".encode_utf16().collect()];
         let mut argv: [*const u16; 2] = [std::ptr::null(); 2];
         for (i, arg) in argvec.iter().enumerate() {
             argv[i] = arg.as_ptr();

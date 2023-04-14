@@ -23,9 +23,7 @@ pub struct MockClock;
 
 impl std::fmt::Debug for MockClock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MockClock")
-            .field("time", &Self::time())
-            .finish()
+        f.debug_struct("MockClock").field("time", &Self::time()).finish()
     }
 }
 

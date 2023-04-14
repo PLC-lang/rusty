@@ -50,9 +50,7 @@ impl TimerParams {
         if self.is_running() {
             self.set_elapsed_time(std::cmp::min(
                 self.preset_time,
-                self.get_run_time()
-                    .expect("Timer should be running")
-                    .as_nanos() as i64,
+                self.get_run_time().expect("Timer should be running").as_nanos() as i64,
             ));
         }
     }
