@@ -203,7 +203,7 @@ fn right_string_substring_too_long() {
 		main := RIGHT(in, 12);
     END_FUNCTION
         "#;
-    
+
     let sources = add_std!(src, "string_functions.st");
     let _: [u8; 81] = compile_and_run_no_params(sources);
 }
