@@ -61,3 +61,4 @@ members = [
 	"xtask",
 	"libs/stdlib",
 ]
+default-members = ["libs/stdlib", "xtask"]

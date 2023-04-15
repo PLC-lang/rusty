@@ -191,7 +191,8 @@ fn right_string_usint() {
 }
 
 #[test]
-#[should_panic]
+#[cfg_attr(target_os = "windows", ignore = "This test misbehaves on windows")]
+#[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_string_substring_too_long() {
     let src = r#"
 	FUNCTION main : STRING
@@ -202,7 +203,7 @@ fn right_string_substring_too_long() {
 		main := RIGHT(in, 12);
     END_FUNCTION
         "#;
-
+    
     let sources = add_std!(src, "string_functions.st");
     let _: [u8; 81] = compile_and_run_no_params(sources);
 }
@@ -872,7 +873,8 @@ fn right_wstring_usint() {
 }
 
 #[test]
-#[should_panic]
+#[cfg_attr(target_os = "windows", ignore = "This test misbehaves on windows")]
+#[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_wstring_substring_too_long() {
     let src = r#"
 	FUNCTION main : WSTRING
