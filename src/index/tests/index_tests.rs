@@ -870,7 +870,7 @@ fn pre_processing_generates_inline_arrays() {
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::LiteralInteger { value: 0 },
+                    kind: LiteralKind::LiteralInteger { value: 1 },
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -919,16 +919,8 @@ fn pre_processing_generates_inline_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::LiteralInteger { value: 0 },
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::LiteralInteger { value: 0 },
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -948,16 +940,8 @@ fn pre_processing_generates_inline_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::LiteralInteger { value: 0 },
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::LiteralInteger { value: 0 },
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {

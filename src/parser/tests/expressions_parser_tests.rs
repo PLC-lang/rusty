@@ -2846,12 +2846,12 @@ fn array_type_as_function_return() {
                     start: Box::new(AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
-                    kind: LiteralKind::LiteralInteger { value: 0 },
+                        kind: LiteralKind::LiteralInteger { value: 0 },
                     }),
                     end: Box::new(AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
-                    kind: LiteralKind::LiteralInteger { value: 10 },
+                        kind: LiteralKind::LiteralInteger { value: 10 },
                     }),
                     id: 0,
                 },

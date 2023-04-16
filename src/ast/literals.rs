@@ -1,6 +1,10 @@
 use std::fmt::{Debug, Formatter, Result};
 
-use crate::typesystem::{BOOL_TYPE, SINT_TYPE, INT_TYPE, DINT_TYPE, LINT_TYPE, USINT_TYPE, UINT_TYPE, UDINT_TYPE, ULINT_TYPE, VOID_TYPE, WSTRING_TYPE, STRING_TYPE, LREAL_TYPE, DATE_TYPE, DATE_AND_TIME_TYPE, TIME_TYPE, TIME_OF_DAY_TYPE};
+use crate::typesystem::{
+    BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE,
+    STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE,
+    WSTRING_TYPE,
+};
 
 use super::AstStatement;
 
@@ -63,8 +67,29 @@ pub enum LiteralKind {
 }
 
 impl LiteralKind {
+    /// Creates a new literal array
     pub fn new_array(elements: Option<Box<AstStatement>>) -> Self {
         LiteralKind::LiteralArray { elements }
+    }
+    /// Creates a new literal integer
+    pub fn new_integer(value: i128) -> Self {
+        LiteralKind::LiteralInteger { value }
+    }
+    /// Creates a new literal real
+    pub fn new_real(value: String) -> Self {
+        LiteralKind::LiteralReal { value }
+    }
+    // Creates a new literal bool
+    pub fn new_bool(value: bool) -> Self {
+        LiteralKind::LiteralBool { value }
+    }
+    // Creates a new literal string
+    pub fn new_string(value: String, is_wide: bool) -> Self {
+        LiteralKind::LiteralString { value, is_wide }
+    }
+    // Creates a new literal null
+    pub fn null() -> Self {
+        LiteralKind::LiteralNull
     }
 
     pub fn get_literal_actual_signed_type_name(&self, signed: bool) -> Option<&str> {
@@ -123,8 +148,6 @@ impl LiteralKind {
                 | LiteralKind::LiteralDateAndTime { .. }
         )
     }
-
-
 }
 
 impl Debug for LiteralKind {

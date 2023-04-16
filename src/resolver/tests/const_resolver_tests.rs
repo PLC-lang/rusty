@@ -740,13 +740,17 @@ fn division_by_0_should_fail() {
     debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "b").unwrap());
     debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "d").unwrap());
 
-    if let AstStatement::Literal { kind: LiteralKind::LiteralReal { value }, .. } = find_constant_value(&index, "bb").unwrap() {
+    if let AstStatement::Literal { kind: LiteralKind::LiteralReal { value }, .. } =
+        find_constant_value(&index, "bb").unwrap()
+    {
         assert!(value.parse::<f64>().unwrap().is_nan());
     } else {
         unreachable!()
     }
 
-    if let AstStatement::Literal { kind: LiteralKind::LiteralReal { value }, .. } = find_constant_value(&index, "dd").unwrap() {
+    if let AstStatement::Literal { kind: LiteralKind::LiteralReal { value }, .. } =
+        find_constant_value(&index, "dd").unwrap()
+    {
         assert!(value.parse::<f64>().unwrap().is_nan());
     } else {
         unreachable!()
@@ -893,9 +897,7 @@ fn const_string_initializers_should_be_converted() {
     debug_assert_eq!(
         find_constant_value(&index, "aa"),
         Some(AstStatement::Literal {
-            kind: LiteralKind::LiteralString { 
-            value: "World".into(),
-            is_wide: false},
+            kind: LiteralKind::LiteralString { value: "World".into(), is_wide: false },
             id: 0,
             location: SourceRange::undefined()
         })
@@ -903,9 +905,7 @@ fn const_string_initializers_should_be_converted() {
     debug_assert_eq!(
         find_constant_value(&index, "bb"),
         Some(AstStatement::Literal {
-            kind: LiteralKind::LiteralString { 
-            value: "Hello".into(),
-            is_wide: false},
+            kind: LiteralKind::LiteralString { value: "Hello".into(), is_wide: true },
             id: 0,
             location: SourceRange::undefined()
         })
@@ -940,7 +940,11 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
     // AND the globals should have gotten their values
     debug_assert_eq!(
         find_constant_value(&index, "tau"),
-        Some(AstStatement::Literal { kind: LiteralKind::LiteralReal { value: "6.283".into()}, id: 0, location: SourceRange::undefined() })
+        Some(AstStatement::Literal {
+            kind: LiteralKind::LiteralReal { value: "6.283".into() },
+            id: 0,
+            location: SourceRange::undefined()
+        })
     );
 
     //AND the type is correctly associated
@@ -1129,7 +1133,11 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
     //check the initializer's array-element's types
     // [[2(2)],[2(3)]]
-    if let AstStatement::Literal { kind: LiteralKind::LiteralArray { elements: Some(outer_expression_list) }, .. } = initializer {
+    if let AstStatement::Literal {
+        kind: LiteralKind::LiteralArray { elements: Some(outer_expression_list) },
+        ..
+    } = initializer
+    {
         // outer_expression_list = [2(2)],[2(3)]
         if let Some(DataTypeInformation::Array { inner_type_name: array_of_byte, .. }) =
             index.find_effective_type_by_name(a.get_type_name()).map(|t| t.get_type_information())
@@ -1147,7 +1155,11 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
                 assert_eq!(Some(element_hint), index.find_effective_type_by_name(array_of_byte));
 
                 //check if the inner array statement's also got the type-annotations
-                if let AstStatement::Literal { kind: LiteralKind::LiteralArray { elements: Some(inner_multiplied_stmt) }, .. } = inner_array {
+                if let AstStatement::Literal {
+                    kind: LiteralKind::LiteralArray { elements: Some(inner_multiplied_stmt) },
+                    ..
+                } = inner_array
+                {
                     // inner_multiplied_stmt = 2(2)
                     for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
                         if let AstStatement::MultipliedStatement { element: multiplied_element, .. } =

@@ -857,11 +857,11 @@ fn parse_literal_real(
         let fractional = lexer.slice_and_advance();
         let value = format!("{}{}.{}", if is_negative { "-" } else { "" }, integer, fractional);
         let new_location = lexer.source_range_factory.create_range(start..end);
-        return Ok(AstStatement::Literal {
+        Ok(AstStatement::Literal {
             kind: LiteralKind::LiteralReal { value },
             location: new_location,
             id: lexer.next_id(),
-        });
+        })
     } else {
         Err(Diagnostic::unexpected_token_found(
             "LiteralInteger or LiteralExponent",

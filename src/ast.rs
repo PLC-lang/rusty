@@ -1131,6 +1131,10 @@ impl AstStatement {
     pub fn new_literal_string(value: String, is_wide: bool, id: AstId, location: SourceRange) -> Self {
         AstStatement::Literal { kind: LiteralKind::LiteralString { value, is_wide }, id, location }
     }
+
+    pub fn is_literal(&self) -> bool {
+        matches!(self, AstStatement::Literal { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

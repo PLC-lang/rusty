@@ -1869,7 +1869,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_string_literal(literal_statement, value, location)
                 }
                 LiteralKind::LiteralArray { elements, .. } => self
-                    .generate_literal_array(elements.ok_or_else(|| cannot_generate_literal())?.as_ref())
+                    .generate_literal_array(elements.as_ref().ok_or_else(cannot_generate_literal)?.as_ref())
                     .map(ExpressionValue::RValue),
                 LiteralKind::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },

@@ -502,12 +502,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        AstStatement::Literal {
-            kind: LiteralKind::LiteralNull,
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
+        AstStatement::Literal { kind: LiteralKind::LiteralNull, location: (1..5).into(), id: 7 }.get_id(),
         7
     );
     assert_eq!(
@@ -642,7 +637,8 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::Literal { kind: LiteralKind::LiteralNull, location: (1..5).into(), id: 7 }.get_location(),
+        AstStatement::Literal { kind: LiteralKind::LiteralNull, location: (1..5).into(), id: 7 }
+            .get_location(),
         (1..5).into()
     );
     assert_eq!(

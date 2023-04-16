@@ -15,7 +15,7 @@ pub mod generics;
 use crate::{
     ast::{
         flatten_expression_list, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        LiteralKind, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -571,7 +571,9 @@ impl<'i> TypeAnnotator<'i> {
     fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstStatement) {
         //see if we need to dive into it
         match statement {
-            AstStatement::LiteralArray { elements: Some(elements), .. } => {
+            AstStatement::Literal {
+                kind: LiteralKind::LiteralArray { elements: Some(elements) }, ..
+            } => {
                 //annotate the literal-array itself
                 self.annotation_map
                     .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
@@ -630,7 +632,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.update_expected_types(expected_type, start);
                 self.update_expected_types(expected_type, end);
             }
-            AstStatement::LiteralInteger { .. } => {
+            AstStatement::Literal { kind: LiteralKind::LiteralInteger { .. }, .. } => {
                 //special case -> promote a literal-Integer directly, not via type-hint
                 // (avoid later cast)
                 if expected_type.get_type_information().is_float() {
@@ -647,7 +649,8 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()))
                 }
             }
-            AstStatement::LiteralString { .. } | AstStatement::BinaryExpression { .. } => {
+            AstStatement::Literal { kind: LiteralKind::LiteralString { .. }, .. }
+            | AstStatement::BinaryExpression { .. } => {
                 // needed if we try to initialize an array with an expression-list
                 // without we would annotate a false type this would leed to an error in expression_generator
                 if let DataTypeInformation::Array { inner_type_name, .. } =
@@ -1152,22 +1155,28 @@ impl<'i> TypeAnnotator<'i> {
                     match (t, target.as_ref()) {
                         (
                             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-                            AstStatement::LiteralString { value, is_wide: is_wide @ true, location, id },
+                            AstStatement::Literal {
+                                kind: LiteralKind::LiteralString { value, is_wide: is_wide @ true },
+                                ..
+                            },
                         )
                         | (
                             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-                            AstStatement::LiteralString { value, is_wide: is_wide @ false, location, id },
+                            AstStatement::Literal {
+                                kind: LiteralKind::LiteralString { value, is_wide: is_wide @ false },
+                                ..
+                            },
                         ) => {
                             // visit the target-statement as if the programmer used the correct quotes to prevent
                             // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
                             self.visit_statement(
                                 ctx,
-                                &AstStatement::LiteralString {
-                                    value: value.clone(),
-                                    is_wide: !*is_wide,
-                                    location: location.clone(),
-                                    id: *id,
-                                },
+                                &AstStatement::new_literal_string(
+                                    value.clone(),
+                                    !*is_wide,
+                                    target.get_id(),
+                                    target.get_location(),
+                                ),
                             );
                         }
                         _ => {}
@@ -1371,53 +1380,59 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a literal statement
     fn visit_statement_literals(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::LiteralBool { .. } => {
-                self.annotation_map.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
-            }
-
-            AstStatement::LiteralString { is_wide, value, .. } => {
-                let string_type_name =
-                    register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
-                self.annotation_map.annotate(statement, StatementAnnotation::new_value(string_type_name));
-
-                //collect literals so we can generate global constants later
-                if ctx.is_in_a_body() {
-                    if *is_wide {
-                        self.string_literals.utf16.insert(value.to_string());
-                    } else {
-                        self.string_literals.utf08.insert(value.to_string());
+            AstStatement::Literal { kind, .. } => {
+                match kind {
+                    LiteralKind::LiteralBool { .. } => {
+                        self.annotation_map.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
                     }
+
+                    LiteralKind::LiteralString { is_wide, value, .. } => {
+                        let string_type_name =
+                            register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
+                        self.annotation_map
+                            .annotate(statement, StatementAnnotation::new_value(string_type_name));
+
+                        //collect literals so we can generate global constants later
+                        if ctx.is_in_a_body() {
+                            if *is_wide {
+                                self.string_literals.utf16.insert(value.to_string());
+                            } else {
+                                self.string_literals.utf08.insert(value.to_string());
+                            }
+                        }
+                    }
+                    LiteralKind::LiteralInteger { value, .. } => {
+                        self.annotation_map
+                            .annotate(statement, StatementAnnotation::value(get_int_type_name_for(*value)));
+                    }
+                    LiteralKind::LiteralTime { .. } => {
+                        self.annotation_map.annotate(statement, StatementAnnotation::value(TIME_TYPE))
+                    }
+                    LiteralKind::LiteralTimeOfDay { .. } => {
+                        self.annotation_map.annotate(statement, StatementAnnotation::value(TIME_OF_DAY_TYPE));
+                    }
+                    LiteralKind::LiteralDate { .. } => {
+                        self.annotation_map.annotate(statement, StatementAnnotation::value(DATE_TYPE));
+                    }
+                    LiteralKind::LiteralDateAndTime { .. } => {
+                        self.annotation_map
+                            .annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
+                    }
+                    LiteralKind::LiteralReal { value, .. } => {
+                        self.annotation_map
+                            .annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
+                    }
+                    LiteralKind::LiteralArray { elements: Some(elements), .. } => {
+                        self.visit_statement(ctx, elements.as_ref());
+                        //TODO as of yet we have no way to derive a name that reflects a fixed size array
+                    }
+                    _ => {} // ignore literalNull, arrays (they are covered earlier)
                 }
-            }
-            AstStatement::LiteralInteger { value, .. } => {
-                self.annotation_map
-                    .annotate(statement, StatementAnnotation::value(get_int_type_name_for(*value)));
-            }
-            AstStatement::LiteralTime { .. } => {
-                self.annotation_map.annotate(statement, StatementAnnotation::value(TIME_TYPE))
-            }
-            AstStatement::LiteralTimeOfDay { .. } => {
-                self.annotation_map.annotate(statement, StatementAnnotation::value(TIME_OF_DAY_TYPE));
-            }
-            AstStatement::LiteralDate { .. } => {
-                self.annotation_map.annotate(statement, StatementAnnotation::value(DATE_TYPE));
-            }
-            AstStatement::LiteralDateAndTime { .. } => {
-                self.annotation_map.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
-            }
-            AstStatement::LiteralReal { value, .. } => {
-                self.annotation_map
-                    .annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
-            }
-            AstStatement::LiteralArray { elements: Some(elements), .. } => {
-                self.visit_statement(ctx, elements.as_ref());
-                //TODO as of yet we have no way to derive a name that reflects a fixed size array
             }
             AstStatement::MultipliedStatement { element, .. } => {
                 self.visit_statement(ctx, element)
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
             }
-
             _ => {}
         }
     }
