@@ -5,17 +5,16 @@ pub struct Oscat;
 impl Task for Oscat {
     fn prepare(&self, sh: &Shell) -> anyhow::Result<()> {
         cmd!(sh, "git clone https://github.com/plc-lang/oscat ./benchmark/oscat").run()?;
-        sh.create_dir("./benchmark/oscat/lib").unwrap();
-        sh.create_dir("./benchmark/oscat/include").unwrap();
+        sh.create_dir("./benchmark/oscat/lib")?;
+        sh.create_dir("./benchmark/oscat/include")?;
 
         cmd!(sh, "cargo b --release").run()?;
         sh.copy_file("./target/release/rustyc", "./benchmark/oscat")?;
-        sh.copy_file("./target/release/libiec61131std.so", "./benchmark/oscat/lib").unwrap();
+        sh.copy_file("./target/release/libiec61131std.so", "./benchmark/oscat/lib")?;
 
-        sh.read_dir("libs/stdlib/iec61131-st")
-            .unwrap()
-            .iter()
-            .for_each(|f| sh.copy_file(f, "./benchmark/oscat/include").unwrap());
+        for file in sh.read_dir("libs/stdlib/iec61131-st")? {
+            sh.copy_file(file, "./benchmark/oscat/include")?;
+        }
 
         Ok(())
     }
