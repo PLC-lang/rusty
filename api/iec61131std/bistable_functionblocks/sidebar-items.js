@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["RS",". Bistable function, reset dominant"],["SR",". Bistable function, set dominant"]],"struct":[["SetResetParams",""]]};
