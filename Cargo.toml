@@ -55,3 +55,10 @@ path = "src/lib.rs"
 [[bin]]
 name = "rustyc"
 path = "src/main.rs"
+
+[workspace]
+members = [
+    "xtask",
+	"libs/stdlib",
+]
+default-members = [".", "libs/stdlib"]
