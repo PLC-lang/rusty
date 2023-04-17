@@ -58,7 +58,7 @@ path = "src/main.rs"
 
 [workspace]
 members = [
-	"xtask",
+    "xtask",
 	"libs/stdlib",
 ]
-default-members = ["libs/stdlib", "xtask"]
+default-members = [".", "libs/stdlib"]
