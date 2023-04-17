@@ -35,9 +35,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
-        AstStatement::Literal {
-            kind: LiteralKind::LiteralArray { elements: Some(elements), .. }, ..
-        } => {
+        AstStatement::Literal { kind: LiteralKind::Array { elements: Some(elements), .. }, .. } => {
             visit_statement(validator, elements.as_ref(), context);
         }
         AstStatement::CastStatement { target, type_name, location, .. } => {
@@ -235,7 +233,7 @@ fn validate_access_index(
     location: &SourceRange,
 ) {
     match *access_index {
-        AstStatement::Literal { kind: LiteralKind::LiteralInteger { value }, .. } => {
+        AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } => {
             if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
@@ -318,7 +316,7 @@ fn validate_array_access(
     dimension_index: usize,
     context: &ValidationContext,
 ) {
-    if let AstStatement::Literal { kind: LiteralKind::LiteralInteger { value }, .. } = access {
+    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = access {
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
@@ -590,7 +588,7 @@ fn is_valid_string_to_char_assignment(
 ) -> bool {
     // TODO: casted literals and reference
     if left_type.is_compatible_char_and_string(right_type) {
-        if let AstStatement::Literal { kind: LiteralKind::LiteralString { value, .. }, .. } = right {
+        if let AstStatement::Literal { kind: LiteralKind::String { value, .. }, .. } = right {
             if value.len() == 1 {
                 return true;
             } else {
@@ -771,7 +769,7 @@ fn validate_case_statement(
             })
             .map(|v| {
                 // check for duplicates if we got a value
-                if let Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger { value }, .. }) = v {
+                if let Some(AstStatement::Literal { kind: LiteralKind::Integer { value }, .. }) = v {
                     if !cases.insert(value) {
                         validator.push_diagnostic(Diagnostic::duplicate_case_condition(
                             &value,

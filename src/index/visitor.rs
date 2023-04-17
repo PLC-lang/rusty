@@ -583,7 +583,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger { value, .. }, .. }) => {
+                Some(AstStatement::Literal { kind: LiteralKind::Integer { value, .. }, .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
@@ -592,11 +592,11 @@ fn visit_data_type(
                         id: statement.get_id(),
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::Literal {
-                            kind: LiteralKind::LiteralInteger { value: 1 },
-                            location: statement.get_location(),
-                            id: statement.get_id(),
-                        }),
+                        right: Box::new(AstStatement::new_literal(
+                            LiteralKind::new_integer(1),
+                            statement.get_id(),
+                            statement.get_location(),
+                        )),
                     };
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(

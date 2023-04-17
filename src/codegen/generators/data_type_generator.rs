@@ -295,12 +295,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: LiteralKind::LiteralArray { .. }, .. }),
+                |stmt| matches!(stmt, AstStatement::Literal { kind: LiteralKind::Array { .. }, .. }),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: LiteralKind::LiteralString { .. }, .. }),
+                |stmt| matches!(stmt, AstStatement::Literal { kind: LiteralKind::String { .. }, .. }),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {

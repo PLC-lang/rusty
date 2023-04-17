@@ -2013,9 +2013,8 @@ fn data_type_initializers_type_hint_test() {
         assert_eq!(Some(index.get_type("MyArray").unwrap()), annotations.get_type_hint(initializer, &index));
 
         let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
-        if let AstStatement::Literal {
-            kind: LiteralKind::LiteralArray { elements: Some(exp_list) }, ..
-        } = index.get_const_expressions().get_constant_statement(&initializer).unwrap()
+        if let AstStatement::Literal { kind: LiteralKind::Array { elements: Some(exp_list) }, .. } =
+            index.get_const_expressions().get_constant_statement(&initializer).unwrap()
         {
             if let AstStatement::ExpressionList { expressions: elements, .. } = exp_list.as_ref() {
                 for ele in elements {
@@ -2057,7 +2056,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
 
         let my_array_type_const_initializer = my_array_type.initial_value.unwrap();
         if let AstStatement::Literal {
-            kind: LiteralKind::LiteralArray { elements: Some(multiplied_statement) },
+            kind: LiteralKind::Array { elements: Some(multiplied_statement) },
             ..
         } = index.get_const_expressions().get_constant_statement(&my_array_type_const_initializer).unwrap()
         {
@@ -2086,7 +2085,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
 
         let global_var_const_initializer = global.initial_value.unwrap();
         if let AstStatement::Literal {
-            kind: LiteralKind::LiteralArray { elements: Some(multiplied_statement) },
+            kind: LiteralKind::Array { elements: Some(multiplied_statement) },
             ..
         } = index.get_const_expressions().get_constant_statement(&global_var_const_initializer).unwrap()
         {

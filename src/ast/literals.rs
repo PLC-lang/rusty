@@ -17,16 +17,16 @@ macro_rules! is_covered_by {
 
 #[derive(Clone, PartialEq)]
 pub enum LiteralKind {
-    LiteralNull,
-    LiteralInteger {
+    Null,
+    Integer {
         value: i128,
     },
-    LiteralDate {
+    Date {
         year: i32,
         month: u32,
         day: u32,
     },
-    LiteralDateAndTime {
+    DateAndTime {
         year: i32,
         month: u32,
         day: u32,
@@ -35,13 +35,13 @@ pub enum LiteralKind {
         sec: u32,
         nano: u32,
     },
-    LiteralTimeOfDay {
+    TimeOfDay {
         hour: u32,
         min: u32,
         sec: u32,
         nano: u32,
     },
-    LiteralTime {
+    Time {
         day: f64,
         hour: f64,
         min: f64,
@@ -51,17 +51,17 @@ pub enum LiteralKind {
         nano: u32,
         negative: bool,
     },
-    LiteralReal {
+    Real {
         value: String,
     },
-    LiteralBool {
+    Bool {
         value: bool,
     },
-    LiteralString {
+    String {
         value: String,
         is_wide: bool,
     },
-    LiteralArray {
+    Array {
         elements: Option<Box<AstStatement>>, // expression-list
     },
 }
@@ -69,32 +69,56 @@ pub enum LiteralKind {
 impl LiteralKind {
     /// Creates a new literal array
     pub fn new_array(elements: Option<Box<AstStatement>>) -> Self {
-        LiteralKind::LiteralArray { elements }
+        LiteralKind::Array { elements }
     }
     /// Creates a new literal integer
     pub fn new_integer(value: i128) -> Self {
-        LiteralKind::LiteralInteger { value }
+        LiteralKind::Integer { value }
     }
     /// Creates a new literal real
     pub fn new_real(value: String) -> Self {
-        LiteralKind::LiteralReal { value }
+        LiteralKind::Real { value }
     }
     // Creates a new literal bool
     pub fn new_bool(value: bool) -> Self {
-        LiteralKind::LiteralBool { value }
+        LiteralKind::Bool { value }
     }
     // Creates a new literal string
     pub fn new_string(value: String, is_wide: bool) -> Self {
-        LiteralKind::LiteralString { value, is_wide }
+        LiteralKind::String { value, is_wide }
     }
+
+    //Creates a new literal date
+    pub fn new_date(year: i32, month: u32, day: u32) -> Self {
+        LiteralKind::Date { year, month, day }
+    }
+
+    // Creates a new literal date and time
+    pub fn new_date_and_time(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        nano: u32,
+    ) -> Self {
+        LiteralKind::DateAndTime { year, month, day, hour, min, sec, nano }
+    }
+
+    // Creates a new literal time of day
+    pub fn new_time_of_day(hour: u32, min: u32, sec: u32, nano: u32) -> Self {
+        LiteralKind::TimeOfDay { hour, min, sec, nano }
+    }
+
     // Creates a new literal null
-    pub fn null() -> Self {
-        LiteralKind::LiteralNull
+    pub fn new_null() -> Self {
+        LiteralKind::Null
     }
 
     pub fn get_literal_actual_signed_type_name(&self, signed: bool) -> Option<&str> {
         match self {
-            LiteralKind::LiteralInteger { value, .. } => match signed {
+            LiteralKind::Integer { value, .. } => match signed {
                 _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
                 true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
                 true if is_covered_by!(i16, *value) => Some(INT_TYPE),
@@ -107,29 +131,29 @@ impl LiteralKind {
                 false if is_covered_by!(u64, *value) => Some(ULINT_TYPE),
                 _ => Some(VOID_TYPE),
             },
-            LiteralKind::LiteralBool { .. } => Some(BOOL_TYPE),
-            LiteralKind::LiteralString { is_wide: true, .. } => Some(WSTRING_TYPE),
-            LiteralKind::LiteralString { is_wide: false, .. } => Some(STRING_TYPE),
-            LiteralKind::LiteralReal { .. } => Some(LREAL_TYPE),
-            LiteralKind::LiteralDate { .. } => Some(DATE_TYPE),
-            LiteralKind::LiteralDateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
-            LiteralKind::LiteralTime { .. } => Some(TIME_TYPE),
-            LiteralKind::LiteralTimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
+            LiteralKind::Bool { .. } => Some(BOOL_TYPE),
+            LiteralKind::String { is_wide: true, .. } => Some(WSTRING_TYPE),
+            LiteralKind::String { is_wide: false, .. } => Some(STRING_TYPE),
+            LiteralKind::Real { .. } => Some(LREAL_TYPE),
+            LiteralKind::Date { .. } => Some(DATE_TYPE),
+            LiteralKind::DateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
+            LiteralKind::Time { .. } => Some(TIME_TYPE),
+            LiteralKind::TimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
             _ => None,
         }
     }
 
     pub fn get_literal_value(&self) -> String {
         match self {
-            LiteralKind::LiteralString { value, is_wide: true, .. } => format!(r#""{value}""#),
-            LiteralKind::LiteralString { value, is_wide: false, .. } => format!(r#"'{value}'"#),
-            LiteralKind::LiteralBool { value, .. } => {
+            LiteralKind::String { value, is_wide: true, .. } => format!(r#""{value}""#),
+            LiteralKind::String { value, is_wide: false, .. } => format!(r#"'{value}'"#),
+            LiteralKind::Bool { value, .. } => {
                 format!("{value}")
             }
-            LiteralKind::LiteralInteger { value, .. } => {
+            LiteralKind::Integer { value, .. } => {
                 format!("{value}")
             }
-            LiteralKind::LiteralReal { value, .. } => value.clone(),
+            LiteralKind::Real { value, .. } => value.clone(),
             _ => format!("{self:#?}"),
         }
     }
@@ -138,14 +162,14 @@ impl LiteralKind {
         // TODO: figure out a better name for this...
         matches!(
             self,
-            LiteralKind::LiteralBool { .. }
-                | LiteralKind::LiteralInteger { .. }
-                | LiteralKind::LiteralReal { .. }
-                | LiteralKind::LiteralString { .. }
-                | LiteralKind::LiteralTime { .. }
-                | LiteralKind::LiteralDate { .. }
-                | LiteralKind::LiteralTimeOfDay { .. }
-                | LiteralKind::LiteralDateAndTime { .. }
+            LiteralKind::Bool { .. }
+                | LiteralKind::Integer { .. }
+                | LiteralKind::Real { .. }
+                | LiteralKind::String { .. }
+                | LiteralKind::Time { .. }
+                | LiteralKind::Date { .. }
+                | LiteralKind::TimeOfDay { .. }
+                | LiteralKind::DateAndTime { .. }
         )
     }
 }
@@ -153,17 +177,17 @@ impl LiteralKind {
 impl Debug for LiteralKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            LiteralKind::LiteralNull => f.debug_struct("LiteralNull").finish(),
-            LiteralKind::LiteralInteger { value, .. } => {
+            LiteralKind::Null => f.debug_struct("LiteralNull").finish(),
+            LiteralKind::Integer { value, .. } => {
                 f.debug_struct("LiteralInteger").field("value", value).finish()
             }
-            LiteralKind::LiteralDate { year, month, day, .. } => f
+            LiteralKind::Date { year, month, day, .. } => f
                 .debug_struct("LiteralDate")
                 .field("year", year)
                 .field("month", month)
                 .field("day", day)
                 .finish(),
-            LiteralKind::LiteralDateAndTime { year, month, day, hour, min, sec, nano, .. } => f
+            LiteralKind::DateAndTime { year, month, day, hour, min, sec, nano, .. } => f
                 .debug_struct("LiteralDateAndTime")
                 .field("year", year)
                 .field("month", month)
@@ -173,14 +197,14 @@ impl Debug for LiteralKind {
                 .field("sec", sec)
                 .field("nano", nano)
                 .finish(),
-            LiteralKind::LiteralTimeOfDay { hour, min, sec, nano, .. } => f
+            LiteralKind::TimeOfDay { hour, min, sec, nano, .. } => f
                 .debug_struct("LiteralTimeOfDay")
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
                 .field("nano", nano)
                 .finish(),
-            LiteralKind::LiteralTime { day, hour, min, sec, milli, micro, nano, negative, .. } => f
+            LiteralKind::Time { day, hour, min, sec, milli, micro, nano, negative, .. } => f
                 .debug_struct("LiteralTime")
                 .field("day", day)
                 .field("hour", hour)
@@ -191,16 +215,12 @@ impl Debug for LiteralKind {
                 .field("nano", nano)
                 .field("negative", negative)
                 .finish(),
-            LiteralKind::LiteralReal { value, .. } => {
-                f.debug_struct("LiteralReal").field("value", value).finish()
-            }
-            LiteralKind::LiteralBool { value, .. } => {
-                f.debug_struct("LiteralBool").field("value", value).finish()
-            }
-            LiteralKind::LiteralString { value, is_wide, .. } => {
+            LiteralKind::Real { value, .. } => f.debug_struct("LiteralReal").field("value", value).finish(),
+            LiteralKind::Bool { value, .. } => f.debug_struct("LiteralBool").field("value", value).finish(),
+            LiteralKind::String { value, is_wide, .. } => {
                 f.debug_struct("LiteralString").field("value", value).field("is_wide", is_wide).finish()
             }
-            LiteralKind::LiteralArray { elements, .. } => {
+            LiteralKind::Array { elements, .. } => {
                 f.debug_struct("LiteralArray").field("elements", elements).finish()
             }
         }

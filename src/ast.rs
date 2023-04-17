@@ -1116,20 +1116,8 @@ impl AstStatement {
             || self.is_hardware_access()
     }
 
-    pub fn new_literal_integer(value: i128, id: AstId, location: SourceRange) -> Self {
-        AstStatement::Literal { kind: LiteralKind::LiteralInteger { value }, id, location }
-    }
-
-    pub fn new_literal_real(value: String, id: AstId, location: SourceRange) -> Self {
-        AstStatement::Literal { kind: LiteralKind::LiteralReal { value }, id, location }
-    }
-
-    pub fn new_literal_bool(value: bool, id: AstId, location: SourceRange) -> Self {
-        AstStatement::Literal { kind: LiteralKind::LiteralBool { value }, id, location }
-    }
-
-    pub fn new_literal_string(value: String, is_wide: bool, id: AstId, location: SourceRange) -> Self {
-        AstStatement::Literal { kind: LiteralKind::LiteralString { value, is_wide }, id, location }
+    pub fn new_literal(kind: LiteralKind, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind, id, location }
     }
 
     pub fn is_literal(&self) -> bool {
@@ -1285,7 +1273,7 @@ pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstSta
 
 pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
     let location = location.clone();
-    AstStatement::Literal { kind: LiteralKind::LiteralInteger { value }, location, id }
+    AstStatement::new_literal(LiteralKind::new_integer(value), id, location)
 }
 
 pub fn create_binary_expression(
