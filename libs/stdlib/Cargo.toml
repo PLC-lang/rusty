@@ -1,0 +1,37 @@
+[package]
+name = "iec61131std"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build-dependencies]
+glob = "0.3"
+
+[build-dependencies.rusty]
+path = "../../"
+
+
+[dev-dependencies.iec61131std]
+path= "."
+features = ["mock_time"]
+
+[dev-dependencies.rusty]
+path = "../../"
+
+[dev-dependencies.inkwell]
+git = "https://github.com/TheDan64/inkwell"
+branch = "master"
+features = ["llvm14-0"]
+
+[dependencies]
+chrono = "0.4"
+num = "0.4"
+paste = "1.0.8"
+
+[features]
+default = []
+mock_time = []
+debug = []
+
+[lib]
+crate-type = ["staticlib", "lib", "cdylib"]
