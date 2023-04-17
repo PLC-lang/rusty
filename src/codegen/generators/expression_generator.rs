@@ -1865,6 +1865,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
+                // FIXME: no type hint for array of struct in struct
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
@@ -2117,7 +2118,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements {
                     AstStatement::ExpressionList { expressions, .. } => expressions.iter().collect(),
-                    _ => unreachable!("This should always be an expression list"),
+                    _ => unreachable!("This should always be an expression list"), // FIXME: reached with  arr : ARRAY [0..10] OF STRUCT2 := 11(x1 := FALSE, x2 := TRUE);
                 }
             } else {
                 flatten_expression_list(elements)
