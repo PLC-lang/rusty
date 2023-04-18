@@ -1571,3 +1571,29 @@ pub fn create_call_to_check_function_ast(
         id_provider,
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ast::{ArgumentProperty, PouType, VariableBlockType};
+
+    #[test]
+    fn display_pou() {
+        assert_eq!(PouType::Program.to_string(), "Program");
+        assert_eq!(PouType::Function.to_string(), "Function");
+        assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
+        assert_eq!(PouType::Action.to_string(), "Action");
+        assert_eq!(PouType::Class.to_string(), "Class");
+        assert_eq!(PouType::Method { owner_class: "...".to_string() }.to_string(), "Method");
+    }
+
+    #[test]
+    fn display_variable_block_type() {
+        assert_eq!(VariableBlockType::Local.to_string(), "Local");
+        assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
+        assert_eq!(VariableBlockType::Output.to_string(), "Ouput");
+        assert_eq!(VariableBlockType::Global.to_string(), "Global");
+        assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+    }
+}
