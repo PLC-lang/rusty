@@ -1,8 +1,7 @@
 //! ST supports the concept of Variable Length Arrays (VLA), allowing users to pass array arguments of
 //! different sizes to a function, function-block or method POU. These VLAs can be declared using an asterisk
-//! instead of a range statement, such that `arr : ARRAY[*] OF DINT` is a valid declaration. In the given example
-//! we pass two arrays of different sizes (`local_a`, `local_b`) to the `foo` function accepting any 1D array
-//! of type DINT. Any read and write access is thereby valid, as long as we're not out-of-bounds. [...]
+//! instead of a range statement, such that `arr : ARRAY[*] OF DINT` is a valid declaration. Any POU with
+//! either a INPUT, OUTPUT or INOUT variable block thereby accepts a 1D array of type DINT as an argument.
 
 use crate::{
     lexer::IdProvider,
@@ -16,7 +15,7 @@ use crate::{
 /// pointed arrays dimensions and sizes. These fields and how they're populated will be explained in the
 /// [`pass`] test, here we just want to showcase how these VLAs are represented internally in the index.
 #[test]
-fn ddeclare() {
+fn representation() {
     let (_, _, index) = annotate!(
         r"
         FUNCTION foo : DINT
@@ -95,6 +94,7 @@ fn ddeclare() {
         }
     "###);
 
+    // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("ptr_to___arr_vla_1_dint").unwrap(), 
     @r###"
         DataType {
@@ -115,7 +115,33 @@ fn ddeclare() {
         }
     "###);
 
-    // TODO: Why only one dimension
+    // ...an array of type DINT with their dimensions unknown at compile time
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),
+    @r###"
+    DataType {
+        name: "__arr_vla_1_dint",
+        initial_value: None,
+        information: Array {
+            name: "__arr_vla_1_dint",
+            inner_type_name: "DINT",
+            dimensions: [
+                Dimension {
+                    start_offset: Undetermined,
+                    end_offset: Undetermined,
+                },
+            ],
+        },
+        nature: Any,
+        location: SymbolLocation {
+            line_number: 4294967295,
+            source_range: SourceRange {
+                range: 0..0,
+            },
+        },
+    }
+    "###);
+
+    // Finally the dimensions array, which is being populated at runtime; see [`pass`]
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("n_dims").unwrap(), 
     @r###"
         DataType {
@@ -168,10 +194,10 @@ fn declare() {
 
 /// TODO: This is most definitely a bug, i.e. allocating should only happen once
 /// VLAs (in RuSTy) are defined to be always by-ref, meaning POUs accepting VLAs expect a pointer to a struct.
-/// To satisfy that constraint, any array passed to such a POU needs to be first wrapped inside a fat-pointer
-/// struct with their fields populated. Therefore, whenever we encounter such situations we first stack
-/// allocate a fat-pointer struct then pass (1) the arrays address and (2) an array consisiting of the
-/// dimensions' {start,end}-offset.
+/// To satisfy that constraint, any array passed to such a POU needs to be first wrapped inside a struct
+/// with their fields populated. Therefore, whenever we encounter such situations we first stack allocate
+/// a struct then pass (1) the arrays address and (2) an array consisiting of the dimensions'
+/// {start,end}-offset.
 #[test]
 fn pass() {
     let src = "
@@ -193,7 +219,7 @@ fn pass() {
     let (statements, annotations, index) = annotate!(src);
     let (_, local) = deconstruct_call_statement!(&statements[0]);
 
-    // `local` is defined as a ARRAY of type DINT...
+    // `local` is defined as an array of type DINT...
     insta::assert_debug_snapshot!(annotations.get_type(&local[0], &index).unwrap(), 
     @r###"
     DataType {
@@ -229,8 +255,8 @@ fn pass() {
     }
     "###);
 
-    // ...but their type-hint indicates it should be fat-pointer struct. Thanks to these type-hints finding
-    // cases where arrays need to be wrapped before-hand is made easy.
+    // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
+    // result in wrapping arrays into structs.
     let hint = annotations.get_type_hint(&local[0], &index).unwrap();
     insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information), 
     @r###"
@@ -287,10 +313,10 @@ fn pass() {
     }
     "###);
 
-    // Finally here's the codegen for populating fat-pointer struct, where we
-    // 1. Stack allocate a fat-pointer struct
+    // Finally here's the codegen for populating the struct, where we
+    // 1. Stack allocate a struct
     // 2. GEP the structs array and dimension field
-    // 3. And populate them based on the information we have on `local`, i.e. 1D and (start, end)= (0, 5)
+    // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
     insta::assert_snapshot!(codegen(src), 
     @r###"
     ; ModuleID = 'main'
@@ -342,6 +368,12 @@ fn pass() {
     "###);
 }
 
+/// Accessing arrays for read- / write-operations works by gepping the structs array and dimension fields,
+/// similar to how the codegen looks like in [`pass`]. However, because arrays in ST can be defined with
+/// offset != 0, such as `foo : ARRAY[90..100] OF DINT;`, we have to do calculations such that the offset
+/// always starts at 0 for LLVM. For example accessing the 6th element in ST would work with `foo[95]`, but
+/// for LLVM to not panic, we have to start at zero i.e. `95-90`. This is done at run-time, as can be seen
+/// in the codegen.
 #[test]
 fn access() {
     let src = "
