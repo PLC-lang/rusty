@@ -898,6 +898,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
 
             if target_type_info.is_vla() {
+                // XXX: Calling `cast_if_needed` will result in an `alloca` call for EVERY function call.
+                // LLVM might be able to optimize it away but ideally we find a solution for this at some
+                // point? For a more in-depth description see the `pass` function in `vla_adr.rs`
                 return Ok(cast_if_needed(
                     self.llvm,
                     self.index,

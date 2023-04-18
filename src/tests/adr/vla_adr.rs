@@ -12,7 +12,7 @@ use crate::{
 
 /// While declared as an array, VLAs are internally expanded into so called fat-pointer structs. These structs
 /// carry two metadata fields, namely (1) a pointer to an array and (2) an array with information about the
-/// pointed arrays dimensions and sizes. These fields and how they're populated will be explained in the
+/// pointed array's dimensions and sizes. These fields and how they're populated will be explained in the
 /// [`pass`] test, here we just want to showcase how these VLAs are represented internally in the index.
 #[test]
 fn representation() {
@@ -115,7 +115,7 @@ fn representation() {
         }
     "###);
 
-    // ...an array of type DINT with their dimensions unknown at compile time
+    // ...an array of type DINT with its dimensions unknown at compile time
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),
     @r###"
     DataType {
@@ -192,12 +192,12 @@ fn declare() {
     assert!(codegen(src).contains("%__foo_arr = type { i32*, [2 x i32] }"));
 }
 
-/// TODO: This is most definitely a bug, i.e. allocating should only happen once
 /// VLAs (in RuSTy) are defined to be always by-ref, meaning POUs accepting VLAs expect a pointer to a struct.
 /// To satisfy that constraint, any array passed to such a POU needs to be first wrapped inside a struct
-/// with their fields populated. Therefore, whenever we encounter such situations we first stack allocate
-/// a struct then pass (1) the arrays address and (2) an array consisiting of the dimensions'
+/// with their fields populated. Therefore, whenever we encounter such situations we first stack-allocate
+/// a struct then pass (1) the array's address and (2) an array consisting of the dimensions'
 /// {start,end}-offset.
+/// XXX: It would be ideal to only stack allocate once instead of allocating with every POU call
 #[test]
 fn pass() {
     let src = "
@@ -314,7 +314,7 @@ fn pass() {
     "###);
 
     // Finally here's the codegen for populating the struct, where we
-    // 1. Stack allocate a struct
+    // 1. Stack-allocate a struct
     // 2. GEP the structs array and dimension field
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
     insta::assert_snapshot!(codegen(src), 
@@ -369,11 +369,11 @@ fn pass() {
 }
 
 /// Accessing arrays for read- / write-operations works by gepping the structs array and dimension fields,
-/// similar to how the codegen looks like in [`pass`]. However, because arrays in ST can be defined with
-/// offset != 0, such as `foo : ARRAY[90..100] OF DINT;`, we have to do calculations such that the offset
-/// always starts at 0 for LLVM. For example accessing the 6th element in ST would work with `foo[95]`, but
-/// for LLVM to not panic, we have to start at zero i.e. `95-90`. This is done at run-time, as can be seen
-/// in the codegen.
+/// similar to how the codegen looks like in [`pass`]. However, because arrays in ST are not always zero-indexed
+/// but rather their offsets can be any number such as `foo : ARRAY[90..100] OF DINT;`, which we have to do
+/// adjust for LLVM. For example accessing the 6th element in ST would work with `foo[95]`, but
+/// for LLVM to not segfault, we have to start at zero i.e. `foo[95 - 90]`. This is done at run-time, as can
+/// be seen in the codegen.
 #[test]
 fn access() {
     let src = "
