@@ -1283,7 +1283,6 @@ impl AstStatement {
     /// returns true if this AST Statement is a literal or reference that can be
     /// prefixed with a type-cast (e.g. INT#23)
     pub fn is_cast_prefix_eligible(&self) -> bool {
-        // TODO: figure out a better name for this...
         matches!(
             self,
             AstStatement::LiteralBool { .. }
@@ -1332,7 +1331,6 @@ impl AstStatement {
         } else {
             matches!(self, AstStatement::ArrayAccess { .. })
         }
-        // TODO: add vla access?
     }
 
     pub fn is_pointer_access(&self) -> bool {

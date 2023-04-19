@@ -2523,8 +2523,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime.
-    /// TODO: Will be explained in the multi dimension branch
+    /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime
     fn generate_element_pointer_for_vla(
         &self,
         reference: &AstStatement,
