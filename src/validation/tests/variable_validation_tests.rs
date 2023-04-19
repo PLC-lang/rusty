@@ -158,3 +158,38 @@ fn sized_varargs_require_type() {
 
     assert_validation_snapshot!(&diagnostics);
 }
+
+mod overflows {
+    macro_rules! overflow_expression {
+        ($fn_name:ident, $type_name:expr, $type_name_rust:ident) => {
+            #[test]
+            fn $fn_name() {
+                let diagnostics = crate::test_utils::tests::parse_and_validate(&format!(
+                    "
+                    FUNCTION main : DINT
+                        VAR
+                            // Expressions
+                            overflow_signed_a   : {type_name} := {type_name_rust_min} - 1;
+                            overflow_signed_b   : {type_name} := {type_name_rust_max} + 1;
+                        END_VAR
+                    END_FUNCTION
+                    ",
+                    type_name = $type_name,
+                    type_name_rust_min = format!("{}", $type_name_rust::MIN),
+                    type_name_rust_max = format!("{}", $type_name_rust::MAX),
+                ));
+
+                crate::assert_validation_snapshot!(&diagnostics);
+            }
+        };
+    }
+
+    overflow_expression!(overflow_i8, "SINT", i8);
+    overflow_expression!(overflow_u8, "USINT", u8);
+    overflow_expression!(overflow_i16, "INT", i16);
+    overflow_expression!(overflow_u16, "UINT", u16);
+    overflow_expression!(overflow_i32, "DINT", i32);
+    overflow_expression!(overflow_u32, "UDINT", u32);
+    overflow_expression!(overflow_i64, "LINT", i64);
+    overflow_expression!(overflow_u64, "ULINT", u64);
+}

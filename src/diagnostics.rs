@@ -61,6 +61,7 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__overflow,
 
     //array related
     arr__invalid_array_assignment,

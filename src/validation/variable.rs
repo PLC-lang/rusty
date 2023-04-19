@@ -1,5 +1,6 @@
 use crate::{
     ast::{AstStatement, DataTypeDeclaration, Variable, VariableBlock, VariableBlockType},
+    diagnostics::ErrNo,
     index::const_expressions::ConstExpression,
     resolver::const_evaluator,
     typesystem::DataTypeInformation,
@@ -36,39 +37,59 @@ pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &
 
 fn temp(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
     let Some(initializer) = &variable.initializer else { return };
-    let Ok(initializer) = const_evaluator::evaluate(&initializer, None, context.index) else { return };
+    let Ok(Some(initializer)) = const_evaluator::evaluate(&initializer, None, context.index) else { return };
+    let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { return };
 
-    let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else {
-        return
-    };
-
+    // TODO: User defined types doesn't work as of now, e.g. `TYPE myreal : REAL := -3.50282347E+38; END_TYPE`
     let Some(dt) = context.index.find_effective_type_by_name(&referenced_type) else { return };
     let err = match dt.get_type_information() {
-        DataTypeInformation::Integer { signed, size, .. } => match (size, signed, initializer) {
-            (8, true, Some(AstStatement::LiteralInteger { value, .. })) => i8::try_from(value).is_err(),
-            (16, true, Some(AstStatement::LiteralInteger { value, .. })) => i16::try_from(value).is_err(),
-            (32, true, Some(AstStatement::LiteralInteger { value, .. })) => i32::try_from(value).is_err(),
-            (64, true, Some(AstStatement::LiteralInteger { value, .. })) => i64::try_from(value).is_err(),
+        DataTypeInformation::Integer { signed, size, .. } => match (signed, size, initializer) {
+            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(value).is_err(),
+            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(value).is_err(),
+            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(value).is_err(),
+            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(value).is_err(),
 
-            (8, false, Some(AstStatement::LiteralInteger { value, .. })) => i8::try_from(value).is_err(),
-            (16, false, Some(AstStatement::LiteralInteger { value, .. })) => i16::try_from(value).is_err(),
-            (32, false, Some(AstStatement::LiteralInteger { value, .. })) => i32::try_from(value).is_err(),
-            (64, false, Some(AstStatement::LiteralInteger { value, .. })) => i64::try_from(value).is_err(),
+            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(value).is_err(),
+            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(value).is_err(),
+            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(value).is_err(),
+            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(value).is_err(),
 
             _ => return,
         },
 
-        // DataTypeInformation::Float { size, .. } => match (size, initializer) {
-        //     (32, Some(AstStatement::LiteralReal { value, .. })) => value.parse::<f32>().is_err(),
-        //     (64, Some(AstStatement::LiteralReal { value, .. })) => value.parse::<f64>().is_err(),
-        // },
+        DataTypeInformation::Float { size, .. } => match (size, initializer) {
+            // TODO: remove unwrap
+            (32, AstStatement::LiteralReal { value, .. }) => value.parse::<f32>().unwrap().is_infinite(),
+            (64, AstStatement::LiteralReal { value, .. }) => value.parse::<f64>().unwrap().is_infinite(),
+
+            _ => return,
+        },
+
         _ => return,
     };
+
     if err {
+        let message = match dbg!(&variable.initializer) {
+            Some(
+                AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::UnaryExpression { .. },
+            ) => {
+                format!("Literal out of range for {}", dt.get_name())
+            }
+
+            // TODO: check if we really need all of these
+            Some(AstStatement::ExpressionList { .. } | AstStatement::BinaryExpression { .. }) => {
+                format!("This arithmetic operation will overflow for {}", dt.get_name())
+            }
+
+            _ => unreachable!(),
+        };
+
         validator.push_diagnostic(Diagnostic::SemanticError {
-            message: format!("Literal out of range for {}", dt.get_name()),
+            message,
             range: vec![variable.initializer.as_ref().unwrap().get_location()],
-            err_no: crate::diagnostics::ErrNo::type__incompatible_literal_cast,
+            err_no: ErrNo::var__overflow,
         });
     }
 }
