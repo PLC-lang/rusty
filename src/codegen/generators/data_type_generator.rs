@@ -44,7 +44,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 /// this function may create and register a ...
 /// - Struct type for a STRUCT
 /// - global variables for enum-elements
-/// - an alias index entry for sub-range types         
+/// - an alias index entry for sub-range types
 /// - Array type for arrays
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
