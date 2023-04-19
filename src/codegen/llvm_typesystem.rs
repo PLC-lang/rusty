@@ -231,6 +231,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         };
 
         // Get array annotation from parent POU and get pointer to array
+        // Get array annotation from parent POU and get pointer to array
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
             unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
         };
@@ -245,6 +246,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();
         let vla_struct = builder.build_alloca(ty, "vla_struct");
+
+        let Ok(vla_arr_ptr) = builder.build_struct_gep(vla_struct, 0, "vla_array_gep") else {
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+        };
+
+        let Ok(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep") else {
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+        };
 
         let Ok(vla_arr_ptr) = builder.build_struct_gep(vla_struct, 0, "vla_array_gep") else {
             unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
