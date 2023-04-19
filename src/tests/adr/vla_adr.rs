@@ -369,8 +369,8 @@ fn pass() {
 }
 
 /// Accessing arrays for read- / write-operations works by gepping the structs array and dimension fields,
-/// similar to how the codegen looks like in [`pass`]. However, because arrays in ST are not always zero-indexed
-/// but rather their offsets can be any number such as `foo : ARRAY[90..100] OF DINT;`, which we have to do
+/// similar to how the codegen looks like in [`pass`]. However, arrays in ST are not always zero-indexed -
+/// rather their offsets can be any number such as `foo : ARRAY[90..100] OF DINT;`, which we have to
 /// adjust for LLVM. For example accessing the 6th element in ST would work with `foo[95]`, but
 /// for LLVM to not segfault, we have to start at zero i.e. `foo[95 - 90]`. This is done at run-time, as can
 /// be seen in the codegen.
@@ -418,5 +418,86 @@ fn access() {
     "###);
 }
 
+/// Now that we have given an overview of how single-dimensional VLAs work, we'd now like to introduce
+/// the implementation details of multi-dimensional variable-length arrays. While the construction and allocation of
+/// the fat-pointer struct remains largely the same (the dimension array now has more elements), the array access operation
+/// is vastly different - and more complex.
+///
+/// The accessor (`arr[0, 1]`) calculation mirrors the implementation of regular multi-dimensional arrays, with
+/// one significant difference: it now has to be done at runtime.
+///
+/// For more information on multi-dimensional array access and architecture, see
+/// - [`codegen::generators::expression_generator::generate_element_pointer_for_array`]
+/// - https://plc-lang.github.io/rusty/arch/codegen.html#multi-dimensional-arrays
 #[test]
-fn multi_dimensional() {}
+fn multi_dimensional() {
+    let src = "
+        FUNCTION foo : DINT
+            VAR_INPUT {ref}
+                arr : ARRAY[*, *] OF DINT;
+            END_VAR
+
+            arr[0, 1] := 12345;
+        END_FUNCTION
+    ";
+
+    // To increase readability of the generated IR, most values are named according to their purpose.
+    // When dealing with a higher dimension-count or multiple access statements, the IR gets bloated really fast and
+    // is borderline incomprehensible as a result, if not given readable names.
+    insta::assert_snapshot!(codegen(src), 
+    @r###"
+        ; ModuleID = 'main'
+        source_filename = "main"
+        
+        %__foo_arr = type { i32*, [4 x i32] }
+        
+        @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
+        
+        define i32 @foo(%__foo_arr* %0) {
+        entry:
+          %foo = alloca i32, align 4
+          %arr = alloca %__foo_arr*, align 8
+          store %__foo_arr* %0, %__foo_arr** %arr, align 8
+          store i32 0, i32* %foo, align 4
+          %auto_deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+          %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
+          %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
+          %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
+          %start_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 0
+          %end_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 1
+          %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
+          %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+          %start_idx_ptr1 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 2
+          %end_idx_ptr1 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 3
+          %start_idx_value1 = load i32, i32* %start_idx_ptr1, align 4
+          %end_idx_value1 = load i32, i32* %end_idx_ptr1, align 4
+          %1 = sub i32 %end_idx_value0, %start_idx_value0
+          %len_dim0 = add i32 1, %1
+          %2 = sub i32 %end_idx_value1, %start_idx_value1
+          %len_dim1 = add i32 1, %2
+          %accum = alloca i32, align 4
+          store i32 1, i32* %accum, align 4
+          %load_accum = load i32, i32* %accum, align 4
+          %product = mul i32 %load_accum, %len_dim1
+          store i32 %product, i32* %accum, align 4
+          %accessor_factor = load i32, i32* %accum, align 4
+          %adj_access0 = sub i32 0, %start_idx_value0
+          %adj_access1 = sub i32 1, %start_idx_value1
+          %accum1 = alloca i32, align 4
+          store i32 0, i32* %accum1, align 4
+          %multiply = mul i32 %adj_access0, %accessor_factor
+          %load_accum2 = load i32, i32* %accum1, align 4
+          %accumulate = add i32 %load_accum2, %multiply
+          store i32 %accumulate, i32* %accum1, align 4
+          %multiply3 = mul i32 %adj_access1, 1
+          %load_accum4 = load i32, i32* %accum1, align 4
+          %accumulate5 = add i32 %load_accum4, %multiply3
+          store i32 %accumulate5, i32* %accum1, align 4
+          %accessor = load i32, i32* %accum1, align 4
+          %arr_val = getelementptr inbounds i32, i32* %vla_arr_ptr, i32 %accessor
+          store i32 12345, i32* %arr_val, align 4
+          %foo_ret = load i32, i32* %foo, align 4
+          ret i32 %foo_ret
+        }
+    "###);
+}

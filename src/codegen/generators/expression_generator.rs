@@ -2695,10 +2695,10 @@ fn get_indices<'ink>(
 }
 
 /// Adjusts VLA accessor values to 0-indexed accessors
-fn normalize_offsets<'b, 'ink>(
-    llvm: &'b Llvm<'ink>,
-    accessors: &'b [IntValue<'ink>],
-    offsets: &'b [(IntValue<'ink>, IntValue<'ink>)],
+fn normalize_offsets<'ink>(
+    llvm: &Llvm<'ink>,
+    accessors: &[IntValue<'ink>],
+    offsets: &[(IntValue<'ink>, IntValue<'ink>)],
 ) -> Vec<IntValue<'ink>> {
     accessors
         .iter()
@@ -2710,9 +2710,9 @@ fn normalize_offsets<'b, 'ink>(
         .collect::<Vec<_>>()
 }
 
-fn get_dimension_lengths<'b, 'ink>(
-    llvm: &'b Llvm<'ink>,
-    offsets: &'b [(IntValue<'ink>, IntValue<'ink>)],
+fn get_dimension_lengths<'ink>(
+    llvm: &Llvm<'ink>,
+    offsets: &[(IntValue<'ink>, IntValue<'ink>)],
 ) -> Vec<IntValue<'ink>> {
     offsets
         .iter()
@@ -2727,10 +2727,7 @@ fn get_dimension_lengths<'b, 'ink>(
         .collect::<Vec<_>>()
 }
 
-fn get_vla_accessor_factors<'b, 'ink>(
-    llvm: &'b Llvm<'ink>,
-    lengths: &'b [IntValue<'ink>],
-) -> Vec<IntValue<'ink>> {
+fn get_vla_accessor_factors<'ink>(llvm: &Llvm<'ink>, lengths: &[IntValue<'ink>]) -> Vec<IntValue<'ink>> {
     (0..lengths.len())
         .map(|idx| {
             if idx == lengths.len() - 1 {
@@ -2747,7 +2744,7 @@ fn get_vla_accessor_factors<'b, 'ink>(
 /// Computes the product of all elements in a collection of IntValues
 ///
 /// a <- a * b
-fn int_value_product<'b, 'ink>(llvm: &'b Llvm<'ink>, values: &[IntValue<'ink>]) -> IntValue<'ink> {
+fn int_value_product<'ink>(llvm: &Llvm<'ink>, values: &[IntValue<'ink>]) -> IntValue<'ink> {
     // initialize the accumulator with 1
     let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
     llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
@@ -2769,9 +2766,9 @@ fn int_value_product<'b, 'ink>(llvm: &'b Llvm<'ink>, values: &[IntValue<'ink>]) 
 /// and adds that product to an accumulator.
 ///
 /// a <- a + (b * c)
-fn int_value_multiply_accumulate<'b, 'ink>(
-    llvm: &'b Llvm<'ink>,
-    values: &'b [(&IntValue<'ink>, &IntValue<'ink>)],
+fn int_value_multiply_accumulate<'ink>(
+    llvm: &Llvm<'ink>,
+    values: &[(&IntValue<'ink>, &IntValue<'ink>)],
 ) -> IntValue<'ink> {
     // initialize the accumulator with 0
     let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
