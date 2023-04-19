@@ -2565,9 +2565,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             unreachable!()
         };
 
-        // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
         // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
-        //                                                      ^   ^   ^  ^
         let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep);
 
         // calculate the required offset from the array pointer for the given accessor statements. this is
@@ -2611,7 +2609,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets);
 
             // calculate the resulting accessor for the given accessor statements and dimension offsets
-            adjusted_accessors.iter().zip(&dimension_offsets).multiply_accumulate::<IntValue>(self.llvm)
+            int_value_multiply_accumulate(
+                self.llvm,
+                &adjusted_accessors.iter().zip(&dimension_offsets).collect::<Vec<_>>(),
+            )
         };
 
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
@@ -2658,88 +2659,6 @@ pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
     }
 }
 
-trait FoldIntValueExt<'fold, 'll>: Iterator {
-    /// Computes the product of all elements in a collection
-    ///
-    /// a <- a * b
-    fn ll_product<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        Self: Iterator<Item = &'fold IntValue<'fold>> + Sized,
-        I: FoldIntValue<'fold, 'll>,
-    {
-        I::product(self, llvm)
-    }
-
-    /// Iterates over a collection of tuples, computes the product of the two numbers
-    /// and adds that product to an accumulator.
-    ///
-    /// a <- a + (b * c)
-    fn multiply_accumulate<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        Self: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)> + Sized,
-        I: FoldIntValue<'fold, 'll>,
-    {
-        I::multiply_accumulate(self, llvm)
-    }
-}
-
-impl<'fold, 'll, I: Iterator> FoldIntValueExt<'fold, 'll> for I {}
-
-trait FoldIntValue<'fold, 'll, A = Self> {
-    fn product<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = &'fold IntValue<'fold>>;
-
-    fn multiply_accumulate<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>;
-}
-
-impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
-    fn product<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = &'fold IntValue<'fold>>,
-    {
-        // initialize the accumulator with 1
-        let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
-        llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
-        for val in iter {
-            // load previous value from accumulator and multiply with current value
-            let product = llvm.builder.build_int_mul(
-                llvm.builder.build_load(accum_ptr, "load_accum").into_int_value(),
-                *val,
-                "product",
-            );
-            // store new value into accumulator
-            llvm.builder.build_store(accum_ptr, product);
-        }
-
-        llvm.builder.build_load(accum_ptr, "accessor_factor").into_int_value()
-    }
-
-    fn multiply_accumulate<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>,
-    {
-        // initialize the accumulator with 0
-        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
-        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
-        for (left, right) in iter {
-            // multiply accessor with dimension factor
-            let product = llvm.builder.build_int_mul(*left, *right, "multiply");
-            // load previous value from accum and add product
-            let curr = llvm.builder.build_int_add(
-                llvm.builder.build_load(accum, "load_accum").into_int_value(),
-                product,
-                "accumulate",
-            );
-            // store new value into accumulator
-            llvm.builder.build_store(accum, curr);
-        }
-        llvm.builder.build_load(accum, "accessor").into_int_value()
-    }
-}
-
 /// Gets a collection of start- and end-values for each dimension of a variable length array.
 ///
 /// # Safety
@@ -2772,6 +2691,7 @@ fn get_indices<'ink>(
         .collect::<Vec<_>>()
 }
 
+/// Adjusts VLA accessor values to 0-indexed accessors
 fn normalize_offsets<'b, 'ink>(
     llvm: &'b Llvm<'ink>,
     accessors: &'b [IntValue<'ink>],
@@ -2815,8 +2735,55 @@ fn get_vla_accessor_factors<'b, 'ink>(
                 llvm.i32_type().const_int(1, false)
             } else {
                 // for other dimensions, calculate size to the right
-                lengths[idx + 1..lengths.len()].iter().ll_product::<IntValue>(llvm)
+                int_value_product(llvm, &lengths[idx + 1..lengths.len()])
             }
         })
         .collect::<Vec<_>>()
+}
+
+/// Computes the product of all elements in a collection of IntValues
+///
+/// a <- a * b
+fn int_value_product<'b, 'ink>(llvm: &'b Llvm<'ink>, values: &[IntValue<'ink>]) -> IntValue<'ink> {
+    // initialize the accumulator with 1
+    let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+    llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
+    for val in values {
+        // load previous value from accumulator and multiply with current value
+        let product = llvm.builder.build_int_mul(
+            llvm.builder.build_load(accum_ptr, "load_accum").into_int_value(),
+            *val,
+            "product",
+        );
+        // store new value into accumulator
+        llvm.builder.build_store(accum_ptr, product);
+    }
+
+    llvm.builder.build_load(accum_ptr, "accessor_factor").into_int_value()
+}
+
+/// Iterates over a collection of tuples, computes the product of the two numbers
+/// and adds that product to an accumulator.
+///
+/// a <- a + (b * c)
+fn int_value_multiply_accumulate<'b, 'ink>(
+    llvm: &'b Llvm<'ink>,
+    values: &'b [(&IntValue<'ink>, &IntValue<'ink>)],
+) -> IntValue<'ink> {
+    // initialize the accumulator with 0
+    let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+    llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+    for (left, right) in values {
+        // multiply accessor with dimension factor
+        let product = llvm.builder.build_int_mul(**left, **right, "multiply");
+        // load previous value from accum and add product
+        let curr = llvm.builder.build_int_add(
+            llvm.builder.build_load(accum, "load_accum").into_int_value(),
+            product,
+            "accumulate",
+        );
+        // store new value into accumulator
+        llvm.builder.build_store(accum, curr);
+    }
+    llvm.builder.build_load(accum, "accessor").into_int_value()
 }
