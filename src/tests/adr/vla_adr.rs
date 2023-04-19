@@ -334,18 +334,18 @@ fn pass() {
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([6 x i32]* getelementptr ([6 x i32], [6 x i32]* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       %auto_deref = load [6 x i32], [6 x i32]* %local, align 4
-      %1 = bitcast [6 x i32]* %local to i32*
+      %outer_arr_gep = getelementptr inbounds [6 x i32], [6 x i32]* %local, i32 0, i32 0
       %vla_struct = alloca %__foo_arr, align 8
       %vla_array_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 0
       %vla_dimensions_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 1
-      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 0
-      store i32 0, i32* %2, align 4
-      %3 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 1
-      store i32 5, i32* %3, align 4
-      store i32* %1, i32** %vla_array_gep, align 8
-      %4 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
+      %1 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 0
+      store i32 0, i32* %1, align 4
+      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 1
+      store i32 5, i32* %2, align 4
+      store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
+      %3 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
       %vla_struct_ptr = alloca %__foo_arr, align 8
-      store %__foo_arr %4, %__foo_arr* %vla_struct_ptr, align 8
+      store %__foo_arr %3, %__foo_arr* %vla_struct_ptr, align 8
       %call = call i32 @foo(%__foo_arr* %vla_struct_ptr)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
@@ -405,10 +405,11 @@ fn access() {
       %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
       %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
       %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
-      %start_idx_ptr = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
-      %end_idx_ptr = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
-      %start_offset = load i32, i32* %start_idx_ptr, align 4
-      %tmpVar = sub i32 0, %start_offset
+      %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
+      %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
+      %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
+      %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+      %tmpVar = sub i32 0, %start_idx_value0
       %arr_val = getelementptr inbounds i32, i32* %vla_arr_ptr, i32 %tmpVar
       store i32 12345, i32* %arr_val, align 4
       %foo_ret = load i32, i32* %foo, align 4
@@ -416,3 +417,6 @@ fn access() {
     }
     "###);
 }
+
+#[test]
+fn multi_dimensional() {}

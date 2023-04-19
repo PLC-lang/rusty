@@ -1593,7 +1593,7 @@ mod tests {
         assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
         assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
         assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
-        assert_eq!(VariableBlockType::Output.to_string(), "Ouput");
+        assert_eq!(VariableBlockType::Output.to_string(), "Output");
         assert_eq!(VariableBlockType::Global.to_string(), "Global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
     }

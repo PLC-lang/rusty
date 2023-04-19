@@ -255,14 +255,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
         };
 
-        let Ok(vla_arr_ptr) = builder.build_struct_gep(vla_struct, 0, "vla_array_gep") else {
-            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
-        };
-
-        let Ok(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep") else {
-            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
-        };
-
         // -- Generate dimensions --
         let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
         let mut dims = Vec::new();
