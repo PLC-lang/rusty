@@ -37,11 +37,11 @@ pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &
 
 fn temp(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
     let Some(initializer) = &variable.initializer else { return };
-    let Ok(Some(initializer)) = const_evaluator::evaluate(&initializer, None, context.index) else { return };
+    let Ok(Some(initializer)) = const_evaluator::evaluate(initializer, None, context.index) else { return };
     let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { return };
 
     // TODO: User defined types doesn't work as of now, e.g. `TYPE myreal : REAL := -3.50282347E+38; END_TYPE`
-    let Some(dt) = context.index.find_effective_type_by_name(&referenced_type) else { return };
+    let Some(dt) = context.index.find_effective_type_by_name(referenced_type) else { return };
     let err = match dt.get_type_information() {
         DataTypeInformation::Integer { signed, size, .. } => match (signed, size, initializer) {
             (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(value).is_err(),
