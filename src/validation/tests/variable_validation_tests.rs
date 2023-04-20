@@ -160,9 +160,8 @@ fn sized_varargs_require_type() {
 }
 
 #[test]
-fn overflow_by_one() {
-    // Check whether or not overflow errors trigger if we step over by one, e.g. i8::MAX == 127 thus check
-    // if literal 128 would trigger.
+fn overflow_literal() {
+    // Check if we detect overflows in literals
     let diagnostics = parse_and_validate(
         "
         FUNCTION main : DINT
@@ -212,7 +211,8 @@ fn overflow_by_one() {
 }
 
 #[test]
-fn overflow_expr() {
+fn overflow_expression() {
+    // Check if we detect overflows in expressions
     let diagnostics = parse_and_validate(
         "
         FUNCTION main : DINT
