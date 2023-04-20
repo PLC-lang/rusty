@@ -88,7 +88,7 @@ fn check_if_overflows(validator: &mut Validator, variable: &Variable, context: &
         return
     };
 
-    let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = dbg!(&variable.data_type_declaration) else {
+    let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else {
         return
     };
 
@@ -101,21 +101,21 @@ fn check_if_overflows(validator: &mut Validator, variable: &Variable, context: &
     };
 
     let overflow = match dt.get_type_information() {
-        DataTypeInformation::Integer { signed, size, .. } => match (signed, size, &initializer) {
-            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(*value).is_err(),
-            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(*value).is_err(),
-            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(*value).is_err(),
-            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(*value).is_err(),
+        DataTypeInformation::Integer { signed, size, .. } => match (signed, size, initializer) {
+            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(value).is_err(),
+            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(value).is_err(),
+            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(value).is_err(),
+            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(value).is_err(),
 
-            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(*value).is_err(),
-            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(*value).is_err(),
-            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(*value).is_err(),
-            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(*value).is_err(),
+            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(value).is_err(),
+            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(value).is_err(),
+            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(value).is_err(),
+            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(value).is_err(),
 
             _ => return,
         },
 
-        DataTypeInformation::Float { size, .. } => match (size, &initializer) {
+        DataTypeInformation::Float { size, .. } => match (size, initializer) {
             // The unwraps() should be safe, because the `const_evaluator::evaluate` checks for invalid values
             (32, AstStatement::LiteralReal { value, .. }) => value.parse::<f32>().unwrap().is_infinite(),
             (64, AstStatement::LiteralReal { value, .. }) => value.parse::<f64>().unwrap().is_infinite(),
@@ -127,14 +127,16 @@ fn check_if_overflows(validator: &mut Validator, variable: &Variable, context: &
     };
 
     if overflow {
-        let message = match &initializer {
-            AstStatement::LiteralInteger { .. }
-            | AstStatement::LiteralReal { .. }
-            | AstStatement::UnaryExpression { .. } => {
+        let message = match &variable.initializer {
+            Some(
+                AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::UnaryExpression { .. },
+            ) => {
                 format!("Literal out of range for {}", dt.get_name())
             }
 
-            AstStatement::ExpressionList { .. } | AstStatement::BinaryExpression { .. } => {
+            Some(AstStatement::ExpressionList { .. } | AstStatement::BinaryExpression { .. }) => {
                 format!("This arithmetic operation will overflow for {}", dt.get_name())
             }
 
