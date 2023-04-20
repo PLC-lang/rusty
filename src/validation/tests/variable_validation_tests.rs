@@ -159,37 +159,104 @@ fn sized_varargs_require_type() {
     assert_validation_snapshot!(&diagnostics);
 }
 
-mod overflows {
-    macro_rules! overflow_expression {
-        ($fn_name:ident, $type_name:expr, $type_name_rust:ident) => {
-            #[test]
-            fn $fn_name() {
-                let diagnostics = crate::test_utils::tests::parse_and_validate(&format!(
-                    "
-                    FUNCTION main : DINT
-                        VAR
-                            // Expressions
-                            overflow_signed_a   : {type_name} := {type_name_rust_min} - 1;
-                            overflow_signed_b   : {type_name} := {type_name_rust_max} + 1;
-                        END_VAR
-                    END_FUNCTION
-                    ",
-                    type_name = $type_name,
-                    type_name_rust_min = format!("{}", $type_name_rust::MIN),
-                    type_name_rust_max = format!("{}", $type_name_rust::MAX),
-                ));
+#[test]
+fn overflow_by_one() {
+    // Check whether or not overflow errors trigger if we step over by one, e.g. i8::MAX == 127 thus check
+    // if literal 128 would trigger.
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION main : DINT
+            VAR
+                // 8
+                min_sint    : SINT  := -129;    // -128
+                max_sint    : SINT  :=  128;    //  127
 
-                crate::assert_validation_snapshot!(&diagnostics);
-            }
-        };
-    }
+                min_usint   : USINT  := -1;     // 0
+                max_usint   : USINT  := 257;    // 256
 
-    overflow_expression!(overflow_i8, "SINT", i8);
-    overflow_expression!(overflow_u8, "USINT", u8);
-    overflow_expression!(overflow_i16, "INT", i16);
-    overflow_expression!(overflow_u16, "UINT", u16);
-    overflow_expression!(overflow_i32, "DINT", i32);
-    overflow_expression!(overflow_u32, "UDINT", u32);
-    overflow_expression!(overflow_i64, "LINT", i64);
-    overflow_expression!(overflow_u64, "ULINT", u64);
+                // 16
+                min_int     : INT  := -32_769;  // -32768
+                max_int     : INT  := 32_768;   //  32767
+
+                min_uint    : UINT  := -1;      // 0
+                max_uint    : UINT  := 65_537;  // 65536
+
+                // 32
+                min_dint    : DINT  := -2_147_483_649;  // -2_147_483_648
+                max_dint    : DINT  :=  2_147_483_648;  //  2_147_483_647
+
+                min_udint   : UDINT  := -1;             // 0
+                max_udint   : UDINT  := 4_294_967_296;  // 4_294_967_296
+
+                // 64
+                min_lint    : LINT  := -9_223_372_036_854_775_809;  // -9_223_372_036_854_775_808
+                max_lint    : LINT  :=  9_223_372_036_854_775_808;  //  9_223_372_036_854_775_807
+
+                min_ulint   : ULINT  := -1;                         // 0
+                max_ulint   : ULINT  := 18_446_744_073_709_551_616; // 18_446_744_073_709_551_615
+
+                // f32
+                min_real : REAL := -3.50282347E+38; // -3.40282347E+38
+                max_real : REAL :=  3.50282347E+38; //  3.40282347E+38
+
+                // f64
+                min_lreal : LREAL := -1.8076931348623157E+308; // -1.7976931348623157E+308
+                max_lreal : LREAL :=  1.8076931348623157E+308; //  1.7976931348623157E+308
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 20);
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn overflow_expr() {
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION main : DINT
+            VAR
+                // 8
+                min_sint    : SINT  := ((-128 * 1) * 2);    // -128
+                max_sint    : SINT  :=  ((127 * 1) * 2);    //  127
+
+                min_usint   : USINT  := ((1 * 1) * -2);     // 0
+                max_usint   : USINT  := ((256 * 1) * 2);    // 256
+
+                // 16
+                min_int     : INT  := ((-32_768 * 1) * 2);   // -32768
+                max_int     : INT  :=  ((32_767 * 1) * 2);   //  32767
+
+                min_uint    : UINT  := ((1 * 1) * -2);      // 0
+                max_uint    : UINT  := ((65_536 * 1) * 2);  // 65536
+
+                // 32
+                min_dint    : DINT  := ((-2_147_483_649 * 1) * 2);  // -2_147_483_648
+                max_dint    : DINT  := (( 2_147_483_648 * 1) * 2);  //  2_147_483_647
+
+                min_udint   : UDINT  := ((1 * 1) * -2);             // 0
+                max_udint   : UDINT  := ((4_294_967_296 * 1) * 2);  // 4_294_967_296
+
+                // 64
+                min_lint    : LINT  := ((-9_223_372_036_854_775_808 * 1) * 2);  // -9_223_372_036_854_775_808
+                max_lint    : LINT  := (( 9_223_372_036_854_775_807 * 1) * 2);  //  9_223_372_036_854_775_807
+
+                min_ulint   : ULINT  := ((1 * 1) * -2);                         // 0
+                max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
+
+                // f32
+                min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -3.40282347E+38
+                max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  3.40282347E+38
+
+                // f64
+                min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -1.7976931348623157E+308
+                max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  1.7976931348623157E+308
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 20);
+    assert_validation_snapshot!(diagnostics);
 }
