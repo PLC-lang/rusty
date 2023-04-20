@@ -865,12 +865,12 @@ fn pre_processing_generates_inline_arrays() {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(0),
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(1),
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1067,12 +1067,12 @@ fn pre_processing_nested_array_in_struct() {
             name: Some("__MyStruct_field1".to_string()),
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(0),
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(4),
+                    kind: AstLiteral::new_integer(4),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1112,12 +1112,12 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array__".to_string()),
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(0),
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(1),
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1141,12 +1141,12 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array_".to_string()),
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(0),
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(1),
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1170,12 +1170,12 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(0),
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: LiteralKind::new_integer(1),
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),

@@ -79,7 +79,7 @@ fn exponent_literals_parsed_as_variables() {
                 location: SourceRange::undefined(),
             }),
             right: Box::new(AstStatement::Literal {
-                kind: LiteralKind::Real { value: "1.0E6".into() },
+                kind: AstLiteral::Real { value: "1.0E6".into() },
                 id: 0,
                 location: SourceRange::undefined(),
             }),
@@ -501,7 +501,7 @@ fn id_implementation_for_all_statements() {
             .get_id(),
         7
     );
-    assert_eq!(AstStatement::Literal { kind: LiteralKind::Null, location: (1..5).into(), id: 7 }.get_id(), 7);
+    assert_eq!(AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_id(), 7);
     assert_eq!(
         AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
@@ -634,7 +634,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::Literal { kind: LiteralKind::Null, location: (1..5).into(), id: 7 }.get_location(),
+        AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_location(),
         (1..5).into()
     );
     assert_eq!(

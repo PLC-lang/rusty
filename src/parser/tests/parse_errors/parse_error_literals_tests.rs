@@ -143,7 +143,7 @@ fn string_with_round_parens_can_be_parsed() {
                 data_type: DataType::StringType {
                     name: Some("MyString1".to_string()),
                     size: Some(AstStatement::Literal {
-                        kind: LiteralKind::Integer { value: 253 },
+                        kind: AstLiteral::Integer { value: 253 },
                         location: (10..11).into(),
                         id: 0
                     }),
@@ -157,14 +157,14 @@ fn string_with_round_parens_can_be_parsed() {
                 data_type: DataType::StringType {
                     name: Some("MyString2".to_string()),
                     size: Some(AstStatement::Literal {
-                        kind: LiteralKind::Integer { value: 254 },
+                        kind: AstLiteral::Integer { value: 254 },
                         location: (10..11).into(),
                         id: 0
                     }),
                     is_wide: false,
                 },
                 initializer: Some(AstStatement::Literal {
-                    kind: crate::ast::literals::LiteralKind::String { is_wide: false, value: "abc".into() },
+                    kind: crate::ast::literals::AstLiteral::String { is_wide: false, value: "abc".into() },
                     location: (69..102).into(),
                     id: 0,
                 }),
@@ -175,7 +175,7 @@ fn string_with_round_parens_can_be_parsed() {
                 data_type: DataType::StringType {
                     name: Some("MyString3".to_string()),
                     size: Some(AstStatement::Literal {
-                        kind: LiteralKind::Integer { value: 255 },
+                        kind: AstLiteral::Integer { value: 255 },
                         location: (10..11).into(),
                         id: 0
                     }),

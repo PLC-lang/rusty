@@ -1,4 +1,4 @@
-use crate::ast::{AstStatement, LiteralKind, SourceRange};
+use crate::ast::{AstLiteral, AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
 
@@ -37,7 +37,7 @@ fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstS
 
 fn create_int_literal(v: i128) -> AstStatement {
     AstStatement::Literal {
-        kind: LiteralKind::Integer { value: v },
+        kind: AstLiteral::Integer { value: v },
         id: 0,
         location: SourceRange::undefined(),
     }
@@ -45,7 +45,7 @@ fn create_int_literal(v: i128) -> AstStatement {
 
 fn create_string_literal(v: &str, wide: bool) -> AstStatement {
     AstStatement::Literal {
-        kind: LiteralKind::String { value: v.to_string(), is_wide: wide },
+        kind: AstLiteral::String { value: v.to_string(), is_wide: wide },
         id: 0,
         location: SourceRange::undefined(),
     }
@@ -53,14 +53,14 @@ fn create_string_literal(v: &str, wide: bool) -> AstStatement {
 
 fn create_real_literal(v: f64) -> AstStatement {
     AstStatement::Literal {
-        kind: LiteralKind::Real { value: format!("{v:}") },
+        kind: AstLiteral::Real { value: format!("{v:}") },
         id: 0,
         location: SourceRange::undefined(),
     }
 }
 
 fn create_bool_literal(v: bool) -> AstStatement {
-    AstStatement::Literal { kind: LiteralKind::Bool { value: v }, id: 0, location: SourceRange::undefined() }
+    AstStatement::Literal { kind: AstLiteral::Bool { value: v }, id: 0, location: SourceRange::undefined() }
 }
 
 #[test]
@@ -736,7 +736,7 @@ fn division_by_0_should_fail() {
     debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "b").unwrap());
     debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "d").unwrap());
 
-    if let AstStatement::Literal { kind: LiteralKind::Real { value }, .. } =
+    if let AstStatement::Literal { kind: AstLiteral::Real { value }, .. } =
         find_constant_value(&index, "bb").unwrap()
     {
         assert!(value.parse::<f64>().unwrap().is_nan());
@@ -744,7 +744,7 @@ fn division_by_0_should_fail() {
         unreachable!()
     }
 
-    if let AstStatement::Literal { kind: LiteralKind::Real { value }, .. } =
+    if let AstStatement::Literal { kind: AstLiteral::Real { value }, .. } =
         find_constant_value(&index, "dd").unwrap()
     {
         assert!(value.parse::<f64>().unwrap().is_nan());
@@ -893,7 +893,7 @@ fn const_string_initializers_should_be_converted() {
     debug_assert_eq!(
         find_constant_value(&index, "aa"),
         Some(AstStatement::Literal {
-            kind: LiteralKind::String { value: "World".into(), is_wide: false },
+            kind: AstLiteral::String { value: "World".into(), is_wide: false },
             id: 0,
             location: SourceRange::undefined()
         })
@@ -901,7 +901,7 @@ fn const_string_initializers_should_be_converted() {
     debug_assert_eq!(
         find_constant_value(&index, "bb"),
         Some(AstStatement::Literal {
-            kind: LiteralKind::String { value: "Hello".into(), is_wide: true },
+            kind: AstLiteral::String { value: "Hello".into(), is_wide: true },
             id: 0,
             location: SourceRange::undefined()
         })
@@ -937,7 +937,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
     debug_assert_eq!(
         find_constant_value(&index, "tau"),
         Some(AstStatement::Literal {
-            kind: LiteralKind::Real { value: "6.283".into() },
+            kind: AstLiteral::Real { value: "6.283".into() },
             id: 0,
             location: SourceRange::undefined()
         })
@@ -1010,7 +1010,7 @@ fn array_literals_type_resolving() {
     );
 
     // AND the array-literals types are associated correctly
-    if let AstStatement::Literal { kind: LiteralKind::Array { elements: Some(elements) }, .. } =
+    if let AstStatement::Literal { kind: AstLiteral::Array { elements: Some(elements) }, .. } =
         parse_result.global_vars[0].variables[0].initializer.as_ref().unwrap()
     {
         if let AstStatement::ExpressionList { expressions, .. } = elements.as_ref() {
@@ -1068,7 +1068,7 @@ fn nested_array_literals_type_resolving() {
     println!("{initializer:#?}");
 
     //check the initializer's array-element's types
-    if let AstStatement::Literal { kind: LiteralKind::Array { elements: Some(e) }, .. } = initializer {
+    if let AstStatement::Literal { kind: AstLiteral::Array { elements: Some(e) }, .. } = initializer {
         if let Some(DataTypeInformation::Array { inner_type_name, .. }) =
             index.find_effective_type_by_name(a.get_type_name()).map(|t| t.get_type_information())
         {
@@ -1130,7 +1130,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     //check the initializer's array-element's types
     // [[2(2)],[2(3)]]
     if let AstStatement::Literal {
-        kind: LiteralKind::Array { elements: Some(outer_expression_list) }, ..
+        kind: AstLiteral::Array { elements: Some(outer_expression_list) }, ..
     } = initializer
     {
         // outer_expression_list = [2(2)],[2(3)]
@@ -1151,7 +1151,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
                 //check if the inner array statement's also got the type-annotations
                 if let AstStatement::Literal {
-                    kind: LiteralKind::Array { elements: Some(inner_multiplied_stmt) },
+                    kind: AstLiteral::Array { elements: Some(inner_multiplied_stmt) },
                     ..
                 } = inner_array
                 {

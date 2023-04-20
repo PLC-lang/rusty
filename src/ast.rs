@@ -718,7 +718,7 @@ pub enum AstStatement {
     },
     // Literals
     Literal {
-        kind: LiteralKind,
+        kind: AstLiteral,
         location: SourceRange,
         id: AstId,
     },
@@ -1116,12 +1116,8 @@ impl AstStatement {
             || self.is_hardware_access()
     }
 
-    pub fn new_literal(kind: LiteralKind, id: AstId, location: SourceRange) -> Self {
+    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> Self {
         AstStatement::Literal { kind, id, location }
-    }
-
-    pub fn is_literal(&self) -> bool {
-        matches!(self, AstStatement::Literal { .. })
     }
 }
 
@@ -1273,7 +1269,7 @@ pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstSta
 
 pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
     let location = location.clone();
-    AstStatement::new_literal(LiteralKind::new_integer(value), id, location)
+    AstStatement::new_literal(AstLiteral::new_integer(value), id, location)
 }
 
 pub fn create_binary_expression(

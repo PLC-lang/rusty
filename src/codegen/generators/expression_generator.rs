@@ -1,8 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        self, flatten_expression_list, AstStatement, DirectAccessType, LiteralKind, Operator, SourceRange,
-    },
+    ast::{self, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -1276,7 +1274,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::PointerAccess { reference, .. } => {
                 self.do_generate_element_pointer(qualifier, reference).map(|it| self.deref(it))
             }
-            AstStatement::Literal { kind: LiteralKind::String { value, is_wide, .. }, .. } => if *is_wide {
+            AstStatement::Literal { kind: AstLiteral::String { value, is_wide, .. }, .. } => if *is_wide {
                 self.llvm_index.find_utf16_literal_string(value)
             } else {
                 self.llvm_index.find_utf08_literal_string(value)
@@ -1827,34 +1825,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         match literal_statement {
             AstStatement::Literal { kind, location, .. } => match kind {
-                LiteralKind::Bool { value, .. } => {
+                AstLiteral::Bool { value, .. } => {
                     self.llvm.create_const_bool(*value).map(ExpressionValue::RValue)
                 }
-                LiteralKind::Integer { value, .. } => self
+                AstLiteral::Integer { value, .. } => self
                     .generate_numeric_literal(literal_statement, value.to_string().as_str())
                     .map(ExpressionValue::RValue),
-                LiteralKind::Real { value, .. } => {
+                AstLiteral::Real { value, .. } => {
                     self.generate_numeric_literal(literal_statement, value).map(ExpressionValue::RValue)
                 }
-                LiteralKind::Date { year, month, day, .. } => {
+                AstLiteral::Date { year, month, day, .. } => {
                     super::date_time_util::calculate_date_time(*year, *month, *day, 0, 0, 0, 0)
                         .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                         .and_then(|ns| self.create_const_int(ns))
                         .map(ExpressionValue::RValue)
                 }
-                LiteralKind::DateAndTime { year, month, day, hour, min, sec, nano, .. } => {
+                AstLiteral::DateAndTime { year, month, day, hour, min, sec, nano, .. } => {
                     super::date_time_util::calculate_date_time(*year, *month, *day, *hour, *min, *sec, *nano)
                         .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                         .and_then(|ns| self.create_const_int(ns))
                         .map(ExpressionValue::RValue)
                 }
-                LiteralKind::TimeOfDay { hour, min, sec, nano, .. } => {
+                AstLiteral::TimeOfDay { hour, min, sec, nano, .. } => {
                     super::date_time_util::calculate_date_time(1970, 1, 1, *hour, *min, *sec, *nano)
                         .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                         .and_then(|ns| self.create_const_int(ns))
                         .map(ExpressionValue::RValue)
                 }
-                LiteralKind::Time { day, hour, min, sec, milli, micro, nano, negative, .. } => self
+                AstLiteral::Time { day, hour, min, sec, milli, micro, nano, negative, .. } => self
                     .create_const_int(super::date_time_util::calculate_time_nano(
                         *negative,
                         super::date_time_util::calculate_dhm_time_seconds(*day, *hour, *min, *sec),
@@ -1863,13 +1861,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         *nano,
                     ))
                     .map(ExpressionValue::RValue),
-                LiteralKind::String { value, .. } => {
+                AstLiteral::String { value, .. } => {
                     self.generate_string_literal(literal_statement, value, location)
                 }
-                LiteralKind::Array { elements, .. } => self
+                AstLiteral::Array { elements, .. } => self
                     .generate_literal_array(elements.as_ref().ok_or_else(cannot_generate_literal)?.as_ref())
                     .map(ExpressionValue::RValue),
-                LiteralKind::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
+                AstLiteral::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
             AstStatement::MultipliedStatement { .. } => {

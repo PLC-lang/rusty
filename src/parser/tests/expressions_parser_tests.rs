@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::{
-    AstStatement, DataType, DataTypeDeclaration, DirectAccessType, LiteralKind, Operator, Pou, SourceRange,
+    AstLiteral, AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
 };
 use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::parse;
@@ -171,7 +171,7 @@ fn literal_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &7_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -186,7 +186,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &45_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -201,7 +201,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -216,7 +216,7 @@ fn literal_hex_number_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -231,7 +231,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -246,7 +246,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &43000_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -261,7 +261,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::Literal { kind: LiteralKind::Integer { value }, .. } = statement {
+    if let AstStatement::Literal { kind: AstLiteral::Integer { value }, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
         panic!("Expected LiteralInteger but found {statement:?}");
@@ -1246,7 +1246,7 @@ fn literal_int_cast(data_type: &str, value: i128) -> AstStatement {
         target: Box::new(AstStatement::Literal {
             id: 0,
             location: (0..0).into(),
-            kind: LiteralKind::Integer { value },
+            kind: AstLiteral::Integer { value },
         }),
         type_name: data_type.to_string(),
     }
@@ -1338,7 +1338,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::Real { value: "-3.1415".to_string() }
+                        kind: AstLiteral::Real { value: "-3.1415".to_string() }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1348,7 +1348,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::Integer { value: 1 }
+                        kind: AstLiteral::Integer { value: 1 }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1358,7 +1358,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::Bool { value: false }
+                        kind: AstLiteral::Bool { value: false }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1368,7 +1368,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::String { value: "abc".to_string(), is_wide: true }
+                        kind: AstLiteral::String { value: "abc".to_string(), is_wide: true }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1378,7 +1378,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::String { value: "xyz".to_string(), is_wide: false }
+                        kind: AstLiteral::String { value: "xyz".to_string(), is_wide: false }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1389,7 +1389,7 @@ fn literal_cast_parse_test() {
                         id: 0,
                         location: (0..0).into(),
 
-                        kind: LiteralKind::String { value: "A".to_string(), is_wide: true }
+                        kind: AstLiteral::String { value: "A".to_string(), is_wide: true }
                     })
                 },
                 AstStatement::CastStatement {
@@ -1399,7 +1399,7 @@ fn literal_cast_parse_test() {
                     target: Box::new(AstStatement::Literal {
                         id: 0,
                         location: (0..0).into(),
-                        kind: LiteralKind::String { value: "B".to_string(), is_wide: false }
+                        kind: AstLiteral::String { value: "B".to_string(), is_wide: false }
                     })
                 },
             ]
@@ -2804,7 +2804,7 @@ fn sized_string_as_function_return() {
                 name: None,
                 is_wide: false,
                 size: Some(AstStatement::Literal {
-                    kind: LiteralKind::Integer { value: 10 },
+                    kind: AstLiteral::Integer { value: 10 },
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -2846,12 +2846,12 @@ fn array_type_as_function_return() {
                     start: Box::new(AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
-                        kind: LiteralKind::Integer { value: 0 },
+                        kind: AstLiteral::Integer { value: 0 },
                     }),
                     end: Box::new(AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
-                        kind: LiteralKind::Integer { value: 10 },
+                        kind: AstLiteral::Integer { value: 10 },
                     }),
                     id: 0,
                 },

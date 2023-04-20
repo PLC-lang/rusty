@@ -2,8 +2,8 @@ use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    LiteralKind, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
+    self, ArgumentProperty, AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+    Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
     VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
@@ -583,7 +583,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::Literal { kind: LiteralKind::Integer { value, .. }, .. }) => {
+                Some(AstStatement::Literal { kind: AstLiteral::Integer { value, .. }, .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
@@ -593,7 +593,7 @@ fn visit_data_type(
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
                         right: Box::new(AstStatement::new_literal(
-                            LiteralKind::new_integer(1),
+                            AstLiteral::new_integer(1),
                             statement.get_id(),
                             statement.get_location(),
                         )),
