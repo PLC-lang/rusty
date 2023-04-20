@@ -112,7 +112,6 @@ impl PartialEq for DataType {
 
 impl Eq for DataType {}
 
-// TODO: remove some of these getters?
 impl DataType {
     pub fn get_name(&self) -> &str {
         self.name.as_str()
