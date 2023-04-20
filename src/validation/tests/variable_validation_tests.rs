@@ -260,3 +260,19 @@ fn overflow_expression() {
     assert_eq!(diagnostics.len(), 20);
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn overflow_global() {
+    // Check if we detect overflows in literals
+    let diagnostics = parse_and_validate(
+        "
+        VAR_GLOBAL
+            a : INT := 65537;
+            b : INT := 65536 + 1;
+        END_VAR
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 2);
+    assert_validation_snapshot!(diagnostics);
+}

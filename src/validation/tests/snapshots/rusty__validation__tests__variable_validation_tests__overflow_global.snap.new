@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+assertion_line: 277
+expression: res
+---
+SemanticError { message: "Literal out of range for INT", range: [SourceRange { range: 43..48 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for INT", range: [SourceRange { range: 73..82 }], err_no: var__overflow }
+
