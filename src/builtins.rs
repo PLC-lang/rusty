@@ -21,6 +21,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
+    typesystem::DataTypeInformation,
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -257,6 +258,70 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "LOWER_BOUND",
+            BuiltIn {
+                decl: "FUNCTION LOWER_BOUND<U: ANY> : DINT
+                VAR_INPUT
+                    arr : U;
+                    dim : DINT;
+                END_VAR
+                END_FUNCTION",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(AstStatement::ExpressionList { expressions, .. }) = parameters else { todo!("error") };
+
+                    match &expressions[1] {
+                        AstStatement::LiteralInteger { .. } => (),
+                        AstStatement::Reference { .. } => {
+                            let kind = annotator.annotation_map.get_type_or_void(&expressions[1], annotator.index);
+                            if !matches!(&kind.information, DataTypeInformation::Integer { .. }) {
+                                todo!("error");
+                            }
+
+                            ()
+                        },
+
+                        _ => todo!("error"),
+                    };
+
+                    Ok(())
+                    }
+                ),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                    let llvm = generator.llvm;
+                    let value = match params[1] {
+                        AstStatement::LiteralInteger { value, .. } => *value,
+                        AstStatement::Reference { name, .. } => todo!("
+                            What do we return here?
+                            Theoretically reference could be anything but annotator checks if it's an integer;
+                            still LiteralInteger returns an int-value, reference just a string (name)
+                            -> extract at run-time but how to pass onto `.const_int(...)`
+                        "),
+
+                        _ => todo!("error"),
+                    };
+
+                    if value <= 0 {
+                        todo!("error");
+                    }
+
+                    let vla = generator.generate_element_pointer(params[0]).unwrap();
+                    let dim = llvm.builder.build_struct_gep(vla, 1, "dim").unwrap();
+
+                    let gep_lower_bound = unsafe {
+                        llvm.builder.build_gep(
+                            dim,
+                            &[llvm.i32_type().const_zero(), llvm.i32_type().const_int((value - 1) as u64 * 2, false)],
+                            ""
+                        )
+                    };
+
+                    let lower_bound = llvm.builder.build_load(gep_lower_bound, "").into_int_value().as_basic_value_enum();
+                    Ok(ExpressionValue::RValue(lower_bound))
+                }
+            }
+        )
     ]);
 }
 

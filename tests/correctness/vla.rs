@@ -597,3 +597,37 @@ fn variable_length_array_of_array() {
     assert_eq!(6, main_type.g);
     assert_eq!(7, main_type.h);
 }
+
+#[test]
+fn helper_function_lower_bound() {
+    #[derive(Default)]
+    struct MainType {
+        lower: i32,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+        FUNCTION foo : DINT
+            VAR_INPUT {ref}
+                vla : ARRAY[ * ] OF DINT;
+            END_VAR
+
+            foo := LOWER_BOUND(vla, 1);
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                lower : DINT;
+            END_VAR
+
+            VAR_TEMP
+                arr : ARRAY[-2..2] OF DINT;
+            END_VAR
+
+            lower := foo(arr);
+        END_PROGRAM
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(-2, main_type.lower);
+}
