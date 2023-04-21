@@ -70,33 +70,19 @@ entry:
   %vla_struct = alloca %__foo_vla, align 8
   %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
   %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-  %2 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep, i32 0, i32 0
-  store i32 0, i32* %2, align 4
-  %3 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep, i32 0, i32 1
-  store i32 14, i32* %3, align 4
-  %4 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep, i32 0, i32 2
-  store i32 -2, i32* %4, align 4
-  %5 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep, i32 0, i32 3
-  store i32 1, i32* %5, align 4
+  store [4 x i32] [i32 0, i32 14, i32 -2, i32 1], [4 x i32]* %vla_dimensions_gep, align 4
   store i16* %outer_arr_gep, i16** %vla_array_gep, align 8
-  %6 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-  %call = call i16 @foo(%__foo_vla %6)
+  %2 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
+  %call = call i16 @foo(%__foo_vla %2)
   %load_arr2 = load [299 x i16], [299 x i16]* %arr2, align 2
   %outer_arr_gep1 = getelementptr inbounds [299 x i16], [299 x i16]* %arr2, i32 0, i32 0
   %vla_struct2 = alloca %__foo_vla, align 8
   %vla_array_gep3 = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct2, i32 0, i32 0
   %vla_dimensions_gep4 = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct2, i32 0, i32 1
-  %7 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep4, i32 0, i32 0
-  store i32 -8, i32* %7, align 4
-  %8 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep4, i32 0, i32 1
-  store i32 4, i32* %8, align 4
-  %9 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep4, i32 0, i32 2
-  store i32 -3, i32* %9, align 4
-  %10 = getelementptr inbounds [4 x i32], [4 x i32]* %vla_dimensions_gep4, i32 0, i32 3
-  store i32 19, i32* %10, align 4
+  store [4 x i32] [i32 -8, i32 4, i32 -3, i32 19], [4 x i32]* %vla_dimensions_gep4, align 4
   store i16* %outer_arr_gep1, i16** %vla_array_gep3, align 8
-  %11 = load %__foo_vla, %__foo_vla* %vla_struct2, align 8
-  %call5 = call i16 @foo(%__foo_vla %11)
+  %3 = load %__foo_vla, %__foo_vla* %vla_struct2, align 8
+  %call5 = call i16 @foo(%__foo_vla %3)
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }

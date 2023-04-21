@@ -1319,7 +1319,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement.get_location(),
             )),
         }
-        .and_then(|it| self.auto_deref_if_necessary(it, reference_statement))
+        .map(|it| self.auto_deref_if_necessary(it, reference_statement))
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
@@ -1412,13 +1412,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         accessor_ptr: PointerValue<'ink>,
         statement: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
+    ) -> PointerValue<'ink> {
         if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
             self.annotations.get(statement)
         {
-            Ok(self.deref(accessor_ptr))
+            self.deref(accessor_ptr)
         } else {
-            Ok(accessor_ptr)
+            accessor_ptr
         }
     }
 
@@ -2542,15 +2542,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             unreachable!()
         };
 
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?;
-
         // if the vla parameter is by-ref, we need to dereference the pointer
-        let struct_ptr =
-            if self.index.find_fully_qualified_variable(qualified_name).ok_or(())?.is_in_parameter_by_ref() {
-                builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
-            } else {
-                struct_ptr
-            };
+        let struct_ptr = self.auto_deref_if_necessary(
+            self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
+            reference,
+        );
 
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former

@@ -87,7 +87,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
-            validate_call(validator, operator, parameters, context);
+            validate_call(validator, operator, parameters, &context.set_is_call());
         }
         AstStatement::IfStatement { blocks, else_block, .. } => {
             blocks.iter().for_each(|b| {
@@ -294,12 +294,17 @@ fn visit_array_access(
     match target_type {
         DataTypeInformation::Array { dimensions, .. } => match access {
             AstStatement::ExpressionList { expressions, .. } => {
+                validate_array_access_dimensions(dimensions.len(), expressions.len(), validator, access);
+
                 for (i, exp) in expressions.iter().enumerate() {
                     validate_array_access(validator, exp, dimensions, i, context);
                 }
             }
 
-            _ => validate_array_access(validator, access, dimensions, 0, context),
+            _ => {
+                validate_array_access_dimensions(dimensions.len(), 1, validator, access);
+                validate_array_access(validator, access, dimensions, 0, context)
+            }
         },
 
         DataTypeInformation::Struct {
@@ -311,19 +316,24 @@ fn visit_array_access(
                 _ => 1,
             };
 
-            if *ndims != dims {
-                validator.push_diagnostic(Diagnostic::invalid_vla_array_access(
-                    *ndims,
-                    dims,
-                    access.get_location(),
-                ))
-            }
+            validate_array_access_dimensions(*ndims, dims, validator, access);
         }
 
         _ => validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
             target_type.get_name(),
             access.get_location(),
         )),
+    }
+}
+
+fn validate_array_access_dimensions(
+    ndims: usize,
+    dims: usize,
+    validator: &mut Validator,
+    access: &AstStatement,
+) {
+    if ndims != dims {
+        validator.push_diagnostic(Diagnostic::invalid_array_access(ndims, dims, access.get_location()))
     }
 }
 
@@ -547,10 +557,12 @@ fn validate_assignment(
             left_type
         };
 
-        if left_type.is_vla() && right_type.is_array() {
+        // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
+        // are no longer allowed inside a POU body
+        if left_type.is_vla() && right_type.is_array() && context.is_call() {
             // TODO: This could benefit from a better error message, tracked in
             // https://github.com/PLC-lang/rusty/issues/118
-            validate_variable_length_array(validator, context, location, left_type, right_type);
+            validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
             return;
         }
 
@@ -568,7 +580,7 @@ fn validate_assignment(
     }
 }
 
-fn validate_variable_length_array(
+fn validate_variable_length_array_assignment(
     validator: &mut Validator,
     context: &ValidationContext,
     location: &SourceRange,

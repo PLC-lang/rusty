@@ -141,3 +141,40 @@ mod access {
         assert_validation_snapshot!(diagnostics);
     }
 }
+
+mod assignment {
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+
+    #[test]
+    fn function_calls() {
+        let diagnostics = parse_and_validate(
+            "
+            FUNCTION fn : DINT
+                VAR_TEMP
+                    a : ARRAY[0..10] OF DINT;
+                END_VAR
+
+                VAR_INPUT {ref}
+                    vla : ARRAY[*] OF DINT;
+                END_VAR
+
+                // Invalid
+                a   := vla;
+                vla := a;
+            END_FUNCTION
+
+            FUNCTION main : DINT
+                VAR
+                    arr : ARRAY[0..1] OF DINT;
+                END_VAR
+
+                // Valid (fn.vla <- main.arr assignment)
+                fn(arr);
+            END_FUNCTION
+            ",
+        );
+
+        assert_eq!(diagnostics.len(), 2);
+        assert_validation_snapshot!(diagnostics);
+    }
+}

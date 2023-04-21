@@ -44,7 +44,7 @@ fn representation() {
                             Input,
                         ),
                         is_constant: false,
-                        data_type_name: "ptr_to___arr_vla_1_dint",
+                        data_type_name: "__ptr_to___arr_vla_1_dint",
                         location_in_parent: 0,
                         linkage: Internal,
                         binding: None,
@@ -95,13 +95,13 @@ fn representation() {
     "###);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("ptr_to___arr_vla_1_dint").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(), 
     @r###"
         DataType {
-            name: "ptr_to___arr_vla_1_dint",
+            name: "__ptr_to___arr_vla_1_dint",
             initial_value: None,
             information: Pointer {
-                name: "ptr_to___arr_vla_1_dint",
+                name: "__ptr_to___arr_vla_1_dint",
                 inner_type_name: "__arr_vla_1_dint",
                 auto_deref: false,
             },
@@ -271,7 +271,7 @@ fn pass() {
                     Input,
                 ),
                 is_constant: false,
-                data_type_name: "ptr_to___arr_vla_1_dint",
+                data_type_name: "__ptr_to___arr_vla_1_dint",
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
@@ -321,11 +321,11 @@ fn pass() {
     @r###"
     ; ModuleID = 'main'
     source_filename = "main"
-    
+
     %__foo_arr = type { i32*, [2 x i32] }
-    
+
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-    
+
     define i32 @main() {
     entry:
       %main = alloca i32, align 4
@@ -338,19 +338,16 @@ fn pass() {
       %vla_struct = alloca %__foo_arr, align 8
       %vla_array_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 0
       %vla_dimensions_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 1
-      %1 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 0
-      store i32 0, i32* %1, align 4
-      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 1
-      store i32 5, i32* %2, align 4
+      store [2 x i32] [i32 0, i32 5], [2 x i32]* %vla_dimensions_gep, align 4
       store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-      %3 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
+      %1 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
       %vla_struct_ptr = alloca %__foo_arr, align 8
-      store %__foo_arr %3, %__foo_arr* %vla_struct_ptr, align 8
+      store %__foo_arr %1, %__foo_arr* %vla_struct_ptr, align 8
       %call = call i32 @foo(%__foo_arr* %vla_struct_ptr)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
-    
+
     define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
@@ -360,7 +357,7 @@ fn pass() {
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }
-    
+
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -401,10 +398,10 @@ fn access() {
       %arr = alloca %__foo_arr*, align 8
       store %__foo_arr* %0, %__foo_arr** %arr, align 8
       store i32 0, i32* %foo, align 4
-      %auto_deref = load %__foo_arr*, %__foo_arr** %arr, align 8
-      %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
+      %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+      %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
       %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
-      %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
+      %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
       %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
@@ -459,10 +456,10 @@ fn multi_dimensional() {
           %arr = alloca %__foo_arr*, align 8
           store %__foo_arr* %0, %__foo_arr** %arr, align 8
           store i32 0, i32* %foo, align 4
-          %auto_deref = load %__foo_arr*, %__foo_arr** %arr, align 8
-          %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
+          %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+          %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
           %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
-          %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
+          %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
           %start_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 0
           %end_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 1
           %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4

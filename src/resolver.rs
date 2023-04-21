@@ -1078,7 +1078,7 @@ impl<'i> TypeAnnotator<'i> {
                 };
                 if let Some(annotation) = annotation {
                     self.annotation_map.annotate(statement, annotation);
-                    self.maybe_annotate_vla(statement);
+                    self.maybe_annotate_vla(ctx, statement);
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {
@@ -1198,7 +1198,7 @@ impl<'i> TypeAnnotator<'i> {
 
     /// Checks if the given reference statement is a VLA struct and if so annotates it with a type hint
     /// referencing the contained array. This is needed to simplify codegen and validation.
-    fn maybe_annotate_vla(&mut self, statement: &AstStatement) {
+    fn maybe_annotate_vla(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         if let DataTypeInformation::Struct {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
@@ -1216,11 +1216,27 @@ impl<'i> TypeAnnotator<'i> {
                     unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
                 };
 
+                let Some(pou) = ctx.pou else {
+                    unreachable!("VLA not allowed outside of POUs")
+                };
+
+                let AstStatement::Reference { name, .. } = statement else {
+                    unreachable!("must be a reference to a VLA")
+                };
+
+                let Some(variable_type) = self.index.get_pou_members(pou)
+                    .iter()
+                    .filter(|it| it.get_name() == name)
+                    .map(|it| it.get_variable_type())
+                    .next() else {
+                        unreachable!()
+                    };
+
                 let hint_annotation = StatementAnnotation::Variable {
                     resulting_type: inner_type_name.to_owned(),
                     qualified_name: qualified_name.to_string(),
                     constant: false,
-                    variable_type: VariableType::Input,
+                    variable_type,
                     is_auto_deref: false,
                 };
                 self.annotation_map.annotate_type_hint(statement, hint_annotation)

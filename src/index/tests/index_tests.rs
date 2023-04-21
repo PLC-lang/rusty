@@ -2019,7 +2019,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     initial_value: None,
                     variable_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
-                    data_type_name: "ptr_to___arr_vla_1_int".to_string(),
+                    data_type_name: "__ptr_to___arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,

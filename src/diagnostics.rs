@@ -13,7 +13,7 @@ use codespan_reporting::{
 use inkwell::support::LLVMString;
 
 use crate::{
-    ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
+    ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
     index::VariableType,
 };
 
@@ -757,11 +757,19 @@ impl Diagnostic {
         Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
     }
 
-    pub fn invalid_vla_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
+    pub fn invalid_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Expected array access with {expected} dimensions, found {actual}"),
             range: vec![range],
             err_no: ErrNo::vla__invalid_array_access,
+        }
+    }
+
+    pub fn invalid_range_statement(entity: &AstStatement, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Expected a range statement, got {entity:?} instead"),
+            range: vec![range],
+            err_no: ErrNo::syntax__unexpected_token,
         }
     }
 }

@@ -591,19 +591,10 @@ fn visit_variable_length_array(
             name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
             data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType {
-                    name: Some(format!("ptr_to_{array_name}")),
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name: Some(array_name),
-                            bounds: bounds.clone(),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                referenced_type: referenced_type.clone(),
-                                location: SourceRange::undefined(),
-                            }),
-                            is_variable_length: false,
-                        },
+                    name: Some(format!("__ptr_to_{array_name}")),
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                        referenced_type: array_name,
                         location: SourceRange::undefined(),
-                        scope: None,
                     }),
                 },
                 location: SourceRange::undefined(),
@@ -700,11 +691,17 @@ fn visit_array(
                     )),
                 })
             }
-            // XXX: is this actually unreachable or just missing test coverage?
-            _ => unreachable!("Invalid array definition: RangeStatement expected"),
+
+            _ => Err(Diagnostic::codegen_error(
+                "Invalid array definition: RangeStatement expected",
+                it.get_location(),
+            )),
         })
         .collect();
+
+    // TODO(mhasel, volsa): This unwrap will panic with `ARRAY[0..5, 5] OF DINT;`
     let dimensions = dimensions.unwrap();
+
     //TODO hmm we need to talk about all this unwrapping :-/
     let referenced_type_name = referenced_type.get_name().expect("named datatype");
     let information = DataTypeInformation::Array {
