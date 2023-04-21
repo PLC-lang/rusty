@@ -87,7 +87,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
-            validate_call(validator, operator, parameters, context);
+            validate_call(validator, operator, parameters, &context.set_is_call());
         }
         AstStatement::IfStatement { blocks, else_block, .. } => {
             blocks.iter().for_each(|b| {
@@ -557,7 +557,9 @@ fn validate_assignment(
             left_type
         };
 
-        if left_type.is_vla() && right_type.is_array() {
+        // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
+        // are no longer allowed inside a POU body
+        if left_type.is_vla() && right_type.is_array() && context.is_call() {
             // TODO: This could benefit from a better error message, tracked in
             // https://github.com/PLC-lang/rusty/issues/118
             validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
