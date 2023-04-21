@@ -550,7 +550,7 @@ fn validate_assignment(
         if left_type.is_vla() && right_type.is_array() {
             // TODO: This could benefit from a better error message, tracked in
             // https://github.com/PLC-lang/rusty/issues/118
-            validate_variable_length_array(validator, context, location, left_type, right_type);
+            validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
             return;
         }
 
@@ -568,7 +568,7 @@ fn validate_assignment(
     }
 }
 
-fn validate_variable_length_array(
+fn validate_variable_length_array_assignment(
     validator: &mut Validator,
     context: &ValidationContext,
     location: &SourceRange,
