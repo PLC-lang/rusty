@@ -70,9 +70,12 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
 
         (
             PouType::Function | PouType::Method { .. },
-            VariableBlockType::Input(_) | VariableBlockType::Output | VariableBlockType::InOut,
+            VariableBlockType::Input(ArgumentProperty::ByRef)
+            | VariableBlockType::Output
+            | VariableBlockType::InOut,
         )
         | (PouType::FunctionBlock, VariableBlockType::InOut) => (),
+
         _ => validator.push_diagnostic(Diagnostic::invalid_vla_container(
             format!(
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
