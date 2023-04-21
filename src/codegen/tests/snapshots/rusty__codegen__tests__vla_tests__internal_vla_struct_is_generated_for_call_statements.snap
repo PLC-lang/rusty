@@ -26,13 +26,10 @@ entry:
   %vla_struct = alloca %__foo_vla, align 8
   %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
   %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-  %1 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 0
-  store i32 0, i32* %1, align 4
-  %2 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 1
-  store i32 1, i32* %2, align 4
+  store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
   store i16* %outer_arr_gep, i16** %vla_array_gep, align 8
-  %3 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-  call void @foo(%__foo_vla %3)
+  %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
+  call void @foo(%__foo_vla %1)
   ret void
 }
 

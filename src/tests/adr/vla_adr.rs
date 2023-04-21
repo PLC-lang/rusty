@@ -321,11 +321,11 @@ fn pass() {
     @r###"
     ; ModuleID = 'main'
     source_filename = "main"
-    
+
     %__foo_arr = type { i32*, [2 x i32] }
-    
+
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-    
+
     define i32 @main() {
     entry:
       %main = alloca i32, align 4
@@ -338,19 +338,16 @@ fn pass() {
       %vla_struct = alloca %__foo_arr, align 8
       %vla_array_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 0
       %vla_dimensions_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 1
-      %1 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 0
-      store i32 0, i32* %1, align 4
-      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %vla_dimensions_gep, i32 0, i32 1
-      store i32 5, i32* %2, align 4
+      store [2 x i32] [i32 0, i32 5], [2 x i32]* %vla_dimensions_gep, align 4
       store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-      %3 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
+      %1 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
       %vla_struct_ptr = alloca %__foo_arr, align 8
-      store %__foo_arr %3, %__foo_arr* %vla_struct_ptr, align 8
+      store %__foo_arr %1, %__foo_arr* %vla_struct_ptr, align 8
       %call = call i32 @foo(%__foo_arr* %vla_struct_ptr)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
-    
+
     define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
@@ -360,7 +357,7 @@ fn pass() {
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }
-    
+
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 

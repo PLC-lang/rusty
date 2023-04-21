@@ -263,12 +263,10 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         }
 
         // Populate each array element
-        for (i, val) in dims.iter().enumerate() {
-            let value = cast_data.llvm.i32_type().const_int(*val as u64, true);
-            let idx = cast_data.llvm.i32_type().const_int(i as u64, true);
-            let adr = unsafe { builder.build_in_bounds_gep(vla_dimensions_ptr, &[zero, idx], "") };
-            builder.build_store(adr, value);
-        }
+        let dimensions =
+            dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
+        let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
+        builder.build_store(vla_dimensions_ptr, array_value);
 
         builder.build_store(vla_arr_ptr, arr_gep);
 
