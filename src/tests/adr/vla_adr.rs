@@ -44,7 +44,7 @@ fn representation() {
                             Input,
                         ),
                         is_constant: false,
-                        data_type_name: "ptr_to___arr_vla_1_dint",
+                        data_type_name: "__ptr_to___arr_vla_1_dint",
                         location_in_parent: 0,
                         linkage: Internal,
                         binding: None,
@@ -95,13 +95,13 @@ fn representation() {
     "###);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("ptr_to___arr_vla_1_dint").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(), 
     @r###"
         DataType {
-            name: "ptr_to___arr_vla_1_dint",
+            name: "__ptr_to___arr_vla_1_dint",
             initial_value: None,
             information: Pointer {
-                name: "ptr_to___arr_vla_1_dint",
+                name: "__ptr_to___arr_vla_1_dint",
                 inner_type_name: "__arr_vla_1_dint",
                 auto_deref: false,
             },
@@ -271,7 +271,7 @@ fn pass() {
                     Input,
                 ),
                 is_constant: false,
-                data_type_name: "ptr_to___arr_vla_1_dint",
+                data_type_name: "__ptr_to___arr_vla_1_dint",
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,

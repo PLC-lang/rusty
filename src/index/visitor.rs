@@ -591,7 +591,7 @@ fn visit_variable_length_array(
             name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
             data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType {
-                    name: Some(format!("ptr_to_{array_name}")),
+                    name: Some(format!("__ptr_to_{array_name}")),
                     referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::ArrayType {
                             name: Some(array_name),

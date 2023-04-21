@@ -231,7 +231,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         };
 
         // Get array annotation from parent POU and get pointer to array
-        // Get array annotation from parent POU and get pointer to array
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
             unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
         };
