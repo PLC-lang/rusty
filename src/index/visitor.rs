@@ -592,18 +592,9 @@ fn visit_variable_length_array(
             data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType {
                     name: Some(format!("__ptr_to_{array_name}")),
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name: Some(array_name),
-                            bounds: bounds.clone(),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                referenced_type: referenced_type.clone(),
-                                location: SourceRange::undefined(),
-                            }),
-                            is_variable_length: false,
-                        },
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                        referenced_type: array_name.clone(),
                         location: SourceRange::undefined(),
-                        scope: None,
                     }),
                 },
                 location: SourceRange::undefined(),
