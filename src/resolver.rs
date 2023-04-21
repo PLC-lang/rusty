@@ -1078,7 +1078,7 @@ impl<'i> TypeAnnotator<'i> {
                 };
                 if let Some(annotation) = annotation {
                     self.annotation_map.annotate(statement, annotation);
-                    self.maybe_annotate_vla(&ctx, statement);
+                    self.maybe_annotate_vla(ctx, statement);
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {

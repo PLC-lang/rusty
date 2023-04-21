@@ -593,7 +593,7 @@ fn visit_variable_length_array(
                 data_type: DataType::PointerType {
                     name: Some(format!("__ptr_to_{array_name}")),
                     referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: array_name.clone(),
+                        referenced_type: array_name,
                         location: SourceRange::undefined(),
                     }),
                 },
