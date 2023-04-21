@@ -797,16 +797,25 @@ fn parse_array_type_definition(
 
         let is_variable_length = match &range {
             // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
-            AstStatement::RangeStatement { .. } => false,
-            AstStatement::VlaRangeStatement { .. } => true,
+            AstStatement::RangeStatement { .. } => Some(false),
+            AstStatement::VlaRangeStatement { .. } => Some(true),
 
             // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
             AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
-                AstStatement::RangeStatement { .. } => false,
-                AstStatement::VlaRangeStatement { .. } => true,
-                _ => unreachable!(),
+                AstStatement::RangeStatement { .. } => Some(false),
+                AstStatement::VlaRangeStatement { .. } => Some(true),
+                _ => None,
             },
-            _ => unreachable!(),
+
+            _ => None,
+        };
+
+        let is_variable_length = match is_variable_length {
+            Some(val) => val,
+            None => {
+                Diagnostic::invalid_range_statement(&range, range.get_location());
+                false
+            }
         };
 
         (

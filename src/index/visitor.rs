@@ -700,11 +700,17 @@ fn visit_array(
                     )),
                 })
             }
-            // XXX: is this actually unreachable or just missing test coverage?
-            _ => unreachable!("Invalid array definition: RangeStatement expected"),
+
+            _ => Err(Diagnostic::codegen_error(
+                "Invalid array definition: RangeStatement expected",
+                it.get_location(),
+            )),
         })
         .collect();
+
+    // TODO(mhasel, volsa): This unwrap will panic with `ARRAY[0..5, 5] OF DINT;`
     let dimensions = dimensions.unwrap();
+
     //TODO hmm we need to talk about all this unwrapping :-/
     let referenced_type_name = referenced_type.get_name().expect("named datatype");
     let information = DataTypeInformation::Array {
