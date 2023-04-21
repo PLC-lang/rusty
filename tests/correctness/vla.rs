@@ -612,7 +612,12 @@ fn helper_function_lower_bound() {
                 vla : ARRAY[ * ] OF DINT;
             END_VAR
 
+            VAR_TEMP
+                i : DINT := 1;
+            END_VAR
+
             foo := LOWER_BOUND(vla, 1);
+            // foo := LOWER_BOUND(vla, 1);
         END_FUNCTION
 
         PROGRAM main
@@ -630,4 +635,53 @@ fn helper_function_lower_bound() {
 
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
     assert_eq!(-2, main_type.lower);
+}
+
+// TODO: Not working
+#[test]
+fn din_copy_paste() {
+    #[derive(Default)]
+    struct MainType {
+        sum_a1: i32,
+        sum_a2: i32,
+    }
+
+    let src = r#"
+        VAR_GLOBAL
+           A1 : ARRAY [1..10]          OF INT := [10(1)];
+           A2 : ARRAY [1..20, -2..2]   OF INT := [20(5(1))];
+        END_VAR
+        
+        FUNCTION SUM : DINT
+           VAR_IN_OUT
+               A: ARRAY [*] OF INT;
+           END_VAR
+        
+           VAR
+               i, sum2 : DINT;
+           END_VAR
+        
+           sum2 := 0;
+           FOR i:= LOWER_BOUND(A, 1) TO UPPER_BOUND(A, 1) DO
+               sum2 := sum2 + A[i];
+           END_FOR
+        
+           SUM := sum2;
+        END_FUNCTION
+        
+        FUNCTION main : DINT
+           VAR
+               sum_a1 : DINT;
+               sum_a2 : DINT;
+           END_VAR
+        
+           sum_a1 := SUM(A1);
+           // SUM(A2[2]);
+        END_FUNCTION
+    "#;
+
+    let mut main_type = MainType::default();
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(10, main_type.sum_a1);
+    // assert_eq!(5, main_type.sum_a2);
 }

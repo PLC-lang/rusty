@@ -12,14 +12,17 @@ use crate::{
         flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
         SourceRangeFactory,
     },
-    codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
+    codegen::generators::{
+        expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
+        llvm::Llvm,
+    },
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
-        AnnotationMap, TypeAnnotator, VisitorContext,
+        AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::DataTypeInformation,
 };
@@ -268,61 +271,136 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: Some(|annotator, _, parameters, _| {
-                    let Some(AstStatement::ExpressionList { expressions, .. }) = parameters else { todo!("error") };
-
-                    match &expressions[1] {
-                        AstStatement::LiteralInteger { .. } => (),
-                        AstStatement::Reference { .. } => {
-                            let kind = annotator.annotation_map.get_type_or_void(&expressions[1], annotator.index);
-                            if !matches!(&kind.information, DataTypeInformation::Integer { .. }) {
-                                todo!("error");
-                            }
-
-                            ()
-                        },
-
-                        _ => todo!("error"),
-                    };
-
-                    Ok(())
-                    }
-                ),
+                    generate_annotation(annotator, parameters)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                    let llvm = generator.llvm;
-                    let value = match params[1] {
-                        AstStatement::LiteralInteger { value, .. } => *value,
-                        AstStatement::Reference { name, .. } => todo!("
-                            What do we return here?
-                            Theoretically reference could be anything but annotator checks if it's an integer;
-                            still LiteralInteger returns an int-value, reference just a string (name)
-                            -> extract at run-time but how to pass onto `.const_int(...)`
-                        "),
-
-                        _ => todo!("error"),
-                    };
-
-                    if value <= 0 {
-                        todo!("error");
+                code : |generator, params, location| {
+                    fn lower<'ink, 'b>(
+                        generator: &ExpressionCodeGenerator<'ink, 'b>,
+                        llvm: &Llvm<'ink>,
+                        value: IntValue<'ink>,
+                    ) -> IntValue<'ink> {
+                        generator.llvm.builder.build_int_mul(
+                            llvm.i32_type().const_int(2, false),
+                            generator.llvm.builder.build_int_sub(
+                                value,
+                                llvm.i32_type().const_int(1, false),
+                                ""
+                            ),
+                            "accessor",
+                        )
                     }
 
-                    let vla = generator.generate_element_pointer(params[0]).unwrap();
-                    let dim = llvm.builder.build_struct_gep(vla, 1, "dim").unwrap();
-
-                    let gep_lower_bound = unsafe {
-                        llvm.builder.build_gep(
-                            dim,
-                            &[llvm.i32_type().const_zero(), llvm.i32_type().const_int((value - 1) as u64 * 2, false)],
+                    generate_vla_helper_function_code(generator, params, location, lower)
+                }
+            }
+        ),
+        (
+            "UPPER_BOUND",
+            BuiltIn {
+                decl: "FUNCTION UPPER_BOUND<U: ANY> : DINT
+                VAR_INPUT
+                    arr : U;
+                    dim : DINT;
+                END_VAR
+                END_FUNCTION",
+                annotation: Some(|annotator, _, parameters, _| {
+                    generate_annotation(annotator, parameters)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, location| {
+                    fn upper<'ink, 'b>(
+                        generator: &ExpressionCodeGenerator<'ink, 'b>,
+                        llvm: &Llvm<'ink>,
+                        value: IntValue<'ink>,
+                    ) -> IntValue<'ink> {
+                        generator.llvm.builder.build_int_add(
+                            generator.llvm.builder.build_int_mul(
+                                llvm.i32_type().const_int(2, false),
+                                generator.llvm.builder.build_int_sub(
+                                    value,
+                                    llvm.i32_type().const_int(1, false),
+                                    ""
+                                ),
+                                "accessor",
+                            ),
+                            llvm.i32_type().const_int(1, false),
                             ""
                         )
-                    };
 
-                    let lower_bound = llvm.builder.build_load(gep_lower_bound, "").into_int_value().as_basic_value_enum();
-                    Ok(ExpressionValue::RValue(lower_bound))
+                    }
+
+                    generate_vla_helper_function_code(generator, params, location, upper)
                 }
             }
         )
     ]);
+}
+
+fn generate_annotation(
+    annotator: &mut TypeAnnotator,
+    parameters: Option<&AstStatement>,
+) -> Result<(), Diagnostic> {
+    let Some(AstStatement::ExpressionList { expressions, .. }) = parameters else { todo!("error") };
+
+    // match expression[0] => vla_array
+
+    match &expressions[1] {
+        AstStatement::LiteralInteger { .. } => (),
+        AstStatement::Reference { .. } => {
+            let kind = annotator.annotation_map.get_type_or_void(&expressions[1], annotator.index);
+            if !matches!(&kind.information, DataTypeInformation::Integer { .. }) {
+                todo!("error");
+            }
+
+            ()
+        }
+
+        _ => todo!("error"),
+    };
+
+    Ok(())
+}
+
+//TODO: better name
+fn generate_vla_helper_function_code<'ink, 'b>(
+    generator: &ExpressionCodeGenerator<'ink, 'b>,
+    params: &[&AstStatement],
+    location: SourceRange,
+    temp: fn(&ExpressionCodeGenerator<'ink, 'b>, &Llvm<'ink>, IntValue<'ink>) -> IntValue<'ink>,
+) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    let llvm = generator.llvm;
+
+    let vla = generator.generate_element_pointer(params[0]).unwrap();
+    let dim = llvm.builder.build_struct_gep(vla, 1, "dim").unwrap();
+    let accessor = match params[1] {
+        AstStatement::LiteralInteger { value, .. } => {
+            llvm.i32_type().const_int((value - 1) as u64 * 2, false)
+        }
+
+        AstStatement::Reference { .. } => {
+            let Some(StatementAnnotation::Variable {
+                                qualified_name,
+                                // resulting_type,
+                                ..
+                                }) = generator.annotations.get(params[1]) else {
+                                todo!()
+                            };
+
+            let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+            let value = generator.llvm.builder.build_load(ptr, "").into_int_value();
+
+            temp(generator, llvm, value)
+        }
+
+        _ => return Err(Diagnostic::codegen_error("Expected exactly one parameter for SIZEOF", location)),
+    };
+
+    let gep_lower_bound =
+        unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+
+    let lower_bound = llvm.builder.build_load(gep_lower_bound, "").into_int_value().as_basic_value_enum();
+    Ok(ExpressionValue::RValue(lower_bound))
 }
 
 type AnnotationFunction =
