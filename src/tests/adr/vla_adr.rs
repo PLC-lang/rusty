@@ -398,10 +398,10 @@ fn access() {
       %arr = alloca %__foo_arr*, align 8
       store %__foo_arr* %0, %__foo_arr** %arr, align 8
       store i32 0, i32* %foo, align 4
-      %auto_deref = load %__foo_arr*, %__foo_arr** %arr, align 8
-      %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
+      %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+      %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
       %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
-      %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
+      %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
       %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
@@ -456,10 +456,10 @@ fn multi_dimensional() {
           %arr = alloca %__foo_arr*, align 8
           store %__foo_arr* %0, %__foo_arr** %arr, align 8
           store i32 0, i32* %foo, align 4
-          %auto_deref = load %__foo_arr*, %__foo_arr** %arr, align 8
-          %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 0
+          %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+          %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
           %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
-          %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %auto_deref, i32 0, i32 1
+          %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
           %start_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 0
           %end_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 1
           %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
