@@ -1319,7 +1319,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement.get_location(),
             )),
         }
-        .and_then(|it| Ok(self.auto_deref_if_necessary(it, reference_statement)))
+        .map(|it| self.auto_deref_if_necessary(it, reference_statement))
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
