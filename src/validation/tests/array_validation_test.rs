@@ -78,3 +78,30 @@ fn array_initialization_validation() {
 
     assert_validation_snapshot!(&diagnostics);
 }
+
+#[test]
+fn array_access_dimension_mismatch() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION fn : DINT
+			VAR_INPUT {ref}
+				arr : ARRAY[0..5] OF DINT;
+				vla : ARRAY[*] OF DINT;
+			END_VAR
+
+			// Valid
+			arr[0] := 1;
+			vla[0] := 1;
+
+			// Invalid
+			arr[0, 1] := 1;
+			vla[0, 1] := 1;
+			arr[0, 1, 2] := 1;
+			vla[0, 1, 2] := 1;
+		END_FUNCTION
+		",
+    );
+
+    assert_eq!(diagnostics.len(), 4);
+    assert_validation_snapshot!(diagnostics);
+}
