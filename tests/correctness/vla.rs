@@ -598,69 +598,321 @@ fn variable_length_array_of_array() {
     assert_eq!(7, main_type.h);
 }
 
-#[test]
-fn helper_function_lower_bound() {
-    #[derive(Default)]
-    struct MainType {
-        lower: i32,
-        upper: i32,
-    }
+mod builtins {
+    // TODO: defining VLAs inside a VAR_INPUT {ref} block seems to break codegen...
+    // (tested with two different dimensions)
 
-    let mut main_type = MainType::default();
-    let src = r#"
+    use rusty::runner::compile_and_run;
+
+    #[test]
+    fn variable_length_array_literal_access_1d() {
+        #[derive(Default)]
+        struct MainType {
+            lower_1d: i32,
+            upper_1d: i32,
+        }
+
+        let src = r#"
         FUNCTION foo : ARRAY[0..1] OF DINT
             VAR_INPUT {ref}
-                vla : ARRAY[ * ] OF DINT;
+                array_1d : ARRAY[*] OF DINT;
+            END_VAR
+            
+            foo[0] := LOWER_BOUND(array_1d, 1);
+            foo[1] := UPPER_BOUND(array_1d, 1);
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                lower_1d, upper_1d : DINT;
+            END_VAR
+
+            VAR_TEMP
+                res : ARRAY[0..1] OF DINT;
+                array_1d : ARRAY[-5..5] OF DINT;
+            END_VAR
+
+            res := foo(array_1d); 
+            
+            lower_1d := res[0];
+            upper_1d := res[1];
+        END_PROGRAM
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_1d, -5);
+        assert_eq!(main_type.upper_1d, 5);
+    }
+
+    #[test]
+    fn variable_length_array_reference_access_1d() {
+        #[derive(Default)]
+        struct MainType {
+            lower_1d: i32,
+            upper_1d: i32,
+        }
+
+        let src = r#"
+        FUNCTION foo : ARRAY[0..1] OF DINT
+            VAR_INPUT {ref}
+                array_1d : ARRAY[*] OF DINT;
             END_VAR
 
             VAR_TEMP
                 i : DINT := 1;
             END_VAR
-
-            // foo[0] := LOWER_BOUND(vla, i);
-            // foo[1] := UPPER_BOUND(vla, i);
-            foo[0] := LOWER_BOUND(vla, 1);
-            foo[1] := UPPER_BOUND(vla, 1);
+            
+            foo[0] := LOWER_BOUND(array_1d, i);
+            foo[1] := UPPER_BOUND(array_1d, i);
         END_FUNCTION
 
         PROGRAM main
             VAR
-                lower : DINT;
-                upper : DINT;
+                lower_1d, upper_1d : DINT;
             END_VAR
 
             VAR_TEMP
                 res : ARRAY[0..1] OF DINT;
-                arr : ARRAY[-5..5] OF DINT;
+                array_1d : ARRAY[-5..5] OF DINT;
             END_VAR
 
-            res := foo(arr);
-            lower := res[0];
-            upper := res[1];
+            res := foo(array_1d); 
+            
+            lower_1d := res[0];
+            upper_1d := res[1];
         END_PROGRAM
-    "#;
+        "#;
 
-    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
-    assert_eq!(-5, main_type.lower);
-    assert_eq!(5, main_type.upper);
-}
-
-// TODO: Not working
-#[test]
-fn din_copy_paste() {
-    #[derive(Default)]
-    struct MainType {
-        sum_a1: i32,
-        // sum_a2: i32,
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_1d, -5);
+        assert_eq!(main_type.upper_1d, 5);
     }
 
-    let src = r#"
+    #[test]
+    fn variable_length_array_literal_access_2d() {
+        #[derive(Default)]
+        struct MainType {
+            lower_2d_1: i32,
+            upper_2d_1: i32,
+            lower_2d_2: i32,
+            upper_2d_2: i32,
+        }
+
+        let src = r#"
+        FUNCTION foo : ARRAY[0..3] OF DINT
+            VAR_INPUT {ref}
+                arr : ARRAY[*, *] OF DINT;
+            END_VAR
+            
+            foo[0] := LOWER_BOUND(arr, 1);
+            foo[1] := UPPER_BOUND(arr, 1);
+            foo[2] := LOWER_BOUND(arr, 2);
+            foo[3] := UPPER_BOUND(arr, 2);
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                lower_2d_1, upper_2d_1 : DINT;
+                lower_2d_2, upper_2d_2 : DINT;
+            END_VAR
+
+            VAR_TEMP
+                res : ARRAY[0..1] OF DINT;
+                array_2d : ARRAY[-5..5, -10..10] OF DINT;
+            END_VAR
+
+            res := foo(array_2d); 
+            
+            lower_2d_1 := res[0];
+            upper_2d_1 := res[1];
+            lower_2d_2 := res[2];
+            upper_2d_2 := res[3];
+        END_PROGRAM
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_2d_1, -5);
+        assert_eq!(main_type.upper_2d_1, 5);
+        assert_eq!(main_type.lower_2d_2, -10);
+        assert_eq!(main_type.upper_2d_2, 10);
+    }
+
+    #[test]
+    fn variable_length_array_reference_access_2d() {
+        #[derive(Default)]
+        struct MainType {
+            lower_2d_1: i32,
+            upper_2d_1: i32,
+            lower_2d_2: i32,
+            upper_2d_2: i32,
+        }
+
+        let src = r#"
+        FUNCTION foo : ARRAY[0..3] OF DINT
+            VAR_INPUT {ref}
+                arr : ARRAY[*, *] OF DINT;
+            END_VAR
+
+            VAR_TEMP
+                i : DINT := 1;
+                j : DINT := 2;
+            END_VAR
+            
+            foo[0] := LOWER_BOUND(arr, i);
+            foo[1] := UPPER_BOUND(arr, i);
+            foo[2] := LOWER_BOUND(arr, j);
+            foo[3] := UPPER_BOUND(arr, j);
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                lower_2d_1, upper_2d_1 : DINT;
+                lower_2d_2, upper_2d_2 : DINT;
+            END_VAR
+
+            VAR_TEMP
+                res : ARRAY[0..1] OF DINT;
+                array_2d : ARRAY[-5..5, -10..10] OF DINT;
+            END_VAR
+
+            res := foo(array_2d); 
+            
+            lower_2d_1 := res[0];
+            upper_2d_1 := res[1];
+            lower_2d_2 := res[2];
+            upper_2d_2 := res[3];
+        END_PROGRAM
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_2d_1, -5);
+        assert_eq!(main_type.upper_2d_1, 5);
+        assert_eq!(main_type.lower_2d_2, -10);
+        assert_eq!(main_type.upper_2d_2, 10);
+    }
+
+    #[test]
+    fn arrays() {
+        #[derive(Default)]
+        struct MainType {
+            lower_1d: i32,
+            upper_1d: i32,
+
+            lower_2d_1: i32,
+            upper_2d_1: i32,
+
+            lower_2d_2: i32,
+            upper_2d_2: i32,
+        }
+
+        let src = r#"
+        PROGRAM main
+            VAR
+                lower_1d,   upper_1d    : DINT;
+                lower_2d_1, upper_2d_1  : DINT;
+                lower_2d_2, upper_2d_2  : DINT;
+            END_VAR
+
+            VAR_TEMP
+                array_1d : ARRAY[-5..5] OF DINT;
+                array_2d : ARRAY[-5..5, -10..10] OF DINT;
+            END_VAR
+
+            lower_1d := LOWER_BOUND(array_1d, 1);
+            upper_1d := UPPER_BOUND(array_1d, 1);
+
+            lower_2d_1 := LOWER_BOUND(array_2d, 1);
+            upper_2d_1 := UPPER_BOUND(array_2d, 1);
+
+            lower_2d_2 := LOWER_BOUND(array_2d, 2);
+            upper_2d_2 := UPPER_BOUND(array_2d, 2);
+        END_PROGRAM
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_1d, -5);
+        assert_eq!(main_type.upper_1d, 5);
+
+        assert_eq!(main_type.lower_2d_1, -5);
+        assert_eq!(main_type.upper_2d_1, 5);
+
+        assert_eq!(main_type.lower_2d_2, -10);
+        assert_eq!(main_type.upper_2d_2, 10);
+    }
+
+    #[test]
+    #[ignore = "References are not resolvable for arrays right now"]
+    fn array_reference() {
+        #[derive(Default)]
+        struct MainType {
+            lower_1d: i32,
+            upper_1d: i32,
+
+            lower_2d_1: i32,
+            upper_2d_1: i32,
+
+            lower_2d_2: i32,
+            upper_2d_2: i32,
+        }
+
+        let src = r#"
+        PROGRAM main
+            VAR
+                lower_1d,   upper_1d    : DINT;
+                lower_2d_1, upper_2d_1  : DINT;
+                lower_2d_2, upper_2d_2  : DINT;
+            END_VAR
+
+            VAR_TEMP
+                array_1d : ARRAY[-5..5] OF DINT;
+                array_2d : ARRAY[-5..5, -10..10] OF DINT;
+
+                one : DINT := 1;
+                two : DINT := 2;
+            END_VAR
+
+            lower_1d := LOWER_BOUND(array_1d, one);
+            upper_1d := UPPER_BOUND(array_1d, one);
+
+            lower_2d_1 := LOWER_BOUND(array_2d, one);
+            upper_2d_1 := UPPER_BOUND(array_2d, one);
+
+            lower_2d_2 := LOWER_BOUND(array_2d, two);
+            upper_2d_2 := UPPER_BOUND(array_2d, two);
+        END_PROGRAM
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.lower_1d, -5);
+        assert_eq!(main_type.upper_1d, 5);
+
+        assert_eq!(main_type.lower_2d_1, -5);
+        assert_eq!(main_type.upper_2d_1, 5);
+
+        assert_eq!(main_type.lower_2d_2, -10);
+        assert_eq!(main_type.upper_2d_2, 10);
+    }
+
+    #[test]
+    fn sum_1d() {
+        #[derive(Default)]
+        struct MainType {
+            sum: i32,
+        }
+
+        let src = r#"
         VAR_GLOBAL
            A1 : ARRAY [1..10]          OF INT := [10(1)];
            A2 : ARRAY [1..20, -2..2]   OF INT := [20(5(1))];
         END_VAR
         
-        FUNCTION SUM : DINT
+        FUNCTION sum : DINT
            VAR_IN_OUT
                A: ARRAY [*] OF INT;
            END_VAR
@@ -674,7 +926,7 @@ fn din_copy_paste() {
                sum2 := sum2 + A[i];
            END_FOR
         
-           SUM := sum2;
+           sum := sum2;
         END_FUNCTION
         
         PROGRAM main
@@ -683,58 +935,13 @@ fn din_copy_paste() {
                sum_a2 : DINT;
            END_VAR
         
-           sum_a1 := SUM(A1);
+           sum_a1 := sum(A1);
         //    sum_a2 := SUM(A2[2]);
         END_PROGRAM
     "#;
 
-    let mut main_type = MainType::default();
-    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
-    assert_eq!(10, main_type.sum_a1);
-    // assert_eq!(5, main_type.sum_a2);
-}
-
-#[test]
-fn custom() {
-    #[derive(Default)]
-    struct MainType {
-        sum_a1: i32,
-        sum_a2: i32,
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(10, main_type.sum);
     }
-
-    let src = r#"
-        FUNCTION foo : DINT
-            VAR_INPUT {ref}
-                arr : ARRAY[*] OF DINT
-            END_VAR
-
-            VAR
-                i : DINT;
-                sum : DINT := 0;
-            END_VAR
-
-            FOR i := LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1)
-                sum := sum + 1;
-            END_FOR
-
-            foo := sum;
-        END_FUNCTION
-
-        PROGRAM main
-            VAR
-                sum_a1 : DINT;
-            END_VAR
-
-            VAR_TEMP
-                local : ARRAY[0..5] OF DINT;
-            END_VAR
-
-            sum_a1 := foo(local);
-        END_PROGRAM
-    "#;
-
-    let mut main_type = MainType::default();
-    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
-    assert_eq!(6, main_type.sum_a1);
-    // assert_eq!(5, main_type.sum_a2);
 }

@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
-        SourceRangeFactory,
+        flatten_expression_list, AstStatement, CompilationUnit, DataType, GenericBinding, LinkageType,
+        SourceRange, SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
@@ -267,10 +267,11 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
+                // annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
+                annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    generate_vla_helper_function_code(generator, params, location, false)
+                    generate_vla_helper_function_code(generator, params, location, true)
                 }
             }
         ),
@@ -283,10 +284,11 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
+                // annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
+                annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    generate_vla_helper_function_code(generator, params, location, true)
+                    generate_vla_helper_function_code(generator, params, location, false)
                 }
             }
         ),
@@ -321,20 +323,40 @@ fn generate_vla_helper_function_code<'ink, 'b>(
     generator: &ExpressionCodeGenerator<'ink, 'b>,
     params: &[&AstStatement],
     location: SourceRange,
-    upper: bool,
+    lower: bool,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
+
+    if let DataTypeInformation::Array { dimensions, .. } =
+        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information()
+    {
+        match params[1] {
+            AstStatement::LiteralInteger { value, .. } => {
+                let i = *value as usize - 1;
+                let access = if lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
+
+                return Ok(ExpressionValue::RValue(
+                    llvm.i32_type()
+                        .const_int(access.as_int_value(generator.index).unwrap() as u64, false)
+                        .into(),
+                ));
+            }
+
+            AstStatement::Reference { .. } => todo!("How?"),
+            _ => todo!(),
+        }
+    }
 
     let vla = generator.generate_element_pointer(params[0]).unwrap();
     let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
     let accessor = match params[1] {
         AstStatement::LiteralInteger { value, .. } => {
-            if upper {
-                llvm.i32_type().const_int((value - 1) as u64 * 2 + 1, false)
-            } else {
+            if lower {
                 llvm.i32_type().const_int((value - 1) as u64 * 2, false)
+            } else {
+                llvm.i32_type().const_int((value - 1) as u64 * 2 + 1, false)
             }
         }
 
@@ -343,11 +365,10 @@ fn generate_vla_helper_function_code<'ink, 'b>(
                 let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
                 let value = builder.build_load(ptr, "").into_int_value();
 
-                // temp(generator, llvm, value)
                 let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
                 let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
 
-                if upper {
+                if !lower {
                     mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
                 }
 
@@ -362,6 +383,7 @@ fn generate_vla_helper_function_code<'ink, 'b>(
 
     let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
     let bound = llvm.builder.build_load(gep_bound, "").into_int_value().as_basic_value_enum();
+
     Ok(ExpressionValue::RValue(bound))
 }
 
