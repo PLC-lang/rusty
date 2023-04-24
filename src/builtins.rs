@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, DataType, GenericBinding, LinkageType,
-        SourceRange, SourceRangeFactory,
+        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
+        SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
@@ -267,11 +267,10 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                // annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    generate_vla_helper_function_code(generator, params, location, true)
+                    generate_variable_length_array_bound_function(generator, params, location, true)
                 }
             }
         ),
@@ -284,107 +283,94 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                // annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    generate_vla_helper_function_code(generator, params, location, false)
+                    generate_variable_length_array_bound_function(generator, params, location, false)
                 }
             }
         ),
     ]);
 }
 
-fn generate_annotation(
-    annotator: &mut TypeAnnotator,
-    parameters: Option<&AstStatement>,
-) -> Result<(), Diagnostic> {
-    let Some(AstStatement::ExpressionList { expressions, .. }) = parameters else { todo!("error") };
-
-    // match expression[0] => vla_array
-
-    match &expressions[1] {
-        AstStatement::LiteralInteger { .. } => (),
-        AstStatement::Reference { .. } => {
-            let kind = annotator.annotation_map.get_type_or_void(&expressions[1], annotator.index);
-            if !matches!(&kind.information, DataTypeInformation::Integer { .. }) {
-                todo!("error");
-            }
-        }
-
-        _ => todo!("error"),
-    };
-
-    Ok(())
-}
-
-//TODO: better name
-fn generate_vla_helper_function_code<'ink, 'b>(
+fn generate_variable_length_array_bound_function<'ink, 'b>(
     generator: &ExpressionCodeGenerator<'ink, 'b>,
     params: &[&AstStatement],
     location: SourceRange,
     lower: bool,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    let [AstStatement::Reference { .. }, AstStatement::LiteralInteger {..} | AstStatement::Reference {..}] = params else {
+        return Err(Diagnostic::codegen_error("Invalid {UPPER,LOWER}_BOUND function signature", location))
+    };
+
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
+    let dti = generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    if let DataTypeInformation::Array { dimensions, .. } =
-        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information()
-    {
+    if !dti.is_vla() && !dti.is_array() {
+        return Err(Diagnostic::codegen_error(&format!("Expected an array, got {:?}", params[0]), location));
+    }
+
+    if let DataTypeInformation::Array { dimensions, .. } = dti {
         match params[1] {
+            // ...
             AstStatement::LiteralInteger { value, .. } => {
                 let i = *value as usize - 1;
-                let access = if lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
+                let offset = if lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
 
                 return Ok(ExpressionValue::RValue(
                     llvm.i32_type()
-                        .const_int(access.as_int_value(generator.index).unwrap() as u64, false)
+                        .const_int(offset.as_int_value(generator.index).unwrap() as u64, false)
                         .into(),
                 ));
             }
 
+            // ...
             AstStatement::Reference { .. } => todo!("How?"),
-            _ => todo!(),
+
+            _ => unreachable!("should be covered above"),
         }
     }
 
-    let vla = generator.generate_element_pointer(params[0]).unwrap();
-    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+    if let DataTypeInformation::Struct { .. } = dti {
+        let vla = generator.generate_element_pointer(params[0]).unwrap();
+        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
-    let accessor = match params[1] {
-        AstStatement::LiteralInteger { value, .. } => {
-            if lower {
-                llvm.i32_type().const_int((value - 1) as u64 * 2, false)
-            } else {
-                llvm.i32_type().const_int((value - 1) as u64 * 2 + 1, false)
+        let accessor = match params[1] {
+            AstStatement::LiteralInteger { value, .. } => {
+                let raw = if lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+                llvm.i32_type().const_int(raw, false)
             }
-        }
 
-        AstStatement::Reference { .. } => match generator.annotations.get(params[1]) {
-            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
-                let value = builder.build_load(ptr, "").into_int_value();
+            AstStatement::Reference { .. } => match generator.annotations.get(params[1]) {
+                Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                    let ptr =
+                        generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+                    let value = builder.build_load(ptr, "").into_int_value();
 
-                let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
-                let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
+                    let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
+                    let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
 
-                if !lower {
-                    mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
+                    if !lower {
+                        mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
+                    }
+
+                    mul
                 }
 
-                mul
-            }
+                _ => todo!("err"),
+            },
 
-            _ => todo!(),
-        },
+            _ => unreachable!("should be covered above"),
+        };
 
-        _ => return Err(Diagnostic::codegen_error("Received an invalid argument", location)),
-    };
+        let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+        let bound = llvm.builder.build_load(gep_bound, "").into_int_value().as_basic_value_enum();
 
-    let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-    let bound = llvm.builder.build_load(gep_bound, "").into_int_value().as_basic_value_enum();
+        return Ok(ExpressionValue::RValue(bound));
+    }
 
-    Ok(ExpressionValue::RValue(bound))
+    unreachable!("Should be, right?")
 }
 
 type AnnotationFunction =
