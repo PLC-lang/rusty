@@ -12,10 +12,7 @@ use crate::{
         flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
         SourceRangeFactory,
     },
-    codegen::generators::{
-        expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-        llvm::Llvm,
-    },
+    codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
@@ -270,28 +267,10 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
-                    generate_annotation(annotator, parameters)
-                }),
+                annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    fn lower<'ink, 'b>(
-                        generator: &ExpressionCodeGenerator<'ink, 'b>,
-                        llvm: &Llvm<'ink>,
-                        value: IntValue<'ink>,
-                    ) -> IntValue<'ink> {
-                        generator.llvm.builder.build_int_mul(
-                            llvm.i32_type().const_int(2, false),
-                            generator.llvm.builder.build_int_sub(
-                                value,
-                                llvm.i32_type().const_int(1, false),
-                                ""
-                            ),
-                            "accessor",
-                        )
-                    }
-
-                    generate_vla_helper_function_code(generator, params, location, lower)
+                    generate_vla_helper_function_code(generator, params, location, false)
                 }
             }
         ),
@@ -304,36 +283,13 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
-                    generate_annotation(annotator, parameters)
-                }),
+                annotation: Some(|annotator, _, parameters, _| { generate_annotation(annotator, parameters) }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
-                    fn upper<'ink, 'b>(
-                        generator: &ExpressionCodeGenerator<'ink, 'b>,
-                        llvm: &Llvm<'ink>,
-                        value: IntValue<'ink>,
-                    ) -> IntValue<'ink> {
-                        generator.llvm.builder.build_int_add(
-                            generator.llvm.builder.build_int_mul(
-                                llvm.i32_type().const_int(2, false),
-                                generator.llvm.builder.build_int_sub(
-                                    value,
-                                    llvm.i32_type().const_int(1, false),
-                                    ""
-                                ),
-                                "accessor",
-                            ),
-                            llvm.i32_type().const_int(1, false),
-                            ""
-                        )
-
-                    }
-
-                    generate_vla_helper_function_code(generator, params, location, upper)
+                    generate_vla_helper_function_code(generator, params, location, true)
                 }
             }
-        )
+        ),
     ]);
 }
 
@@ -352,8 +308,6 @@ fn generate_annotation(
             if !matches!(&kind.information, DataTypeInformation::Integer { .. }) {
                 todo!("error");
             }
-
-            ()
         }
 
         _ => todo!("error"),
@@ -367,40 +321,48 @@ fn generate_vla_helper_function_code<'ink, 'b>(
     generator: &ExpressionCodeGenerator<'ink, 'b>,
     params: &[&AstStatement],
     location: SourceRange,
-    temp: fn(&ExpressionCodeGenerator<'ink, 'b>, &Llvm<'ink>, IntValue<'ink>) -> IntValue<'ink>,
+    upper: bool,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
+    let builder = &generator.llvm.builder;
 
     let vla = generator.generate_element_pointer(params[0]).unwrap();
-    let dim = llvm.builder.build_struct_gep(vla, 1, "dim").unwrap();
+    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+
     let accessor = match params[1] {
         AstStatement::LiteralInteger { value, .. } => {
-            llvm.i32_type().const_int((value - 1) as u64 * 2, false)
+            if upper {
+                llvm.i32_type().const_int((value - 1) as u64 * 2 + 1, false)
+            } else {
+                llvm.i32_type().const_int((value - 1) as u64 * 2, false)
+            }
         }
 
-        AstStatement::Reference { .. } => {
-            let Some(StatementAnnotation::Variable {
-                                qualified_name,
-                                // resulting_type,
-                                ..
-                                }) = generator.annotations.get(params[1]) else {
-                                todo!()
-                            };
+        AstStatement::Reference { .. } => match generator.annotations.get(params[1]) {
+            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+                let value = builder.build_load(ptr, "").into_int_value();
 
-            let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
-            let value = generator.llvm.builder.build_load(ptr, "").into_int_value();
+                // temp(generator, llvm, value)
+                let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
+                let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
 
-            temp(generator, llvm, value)
-        }
+                if upper {
+                    mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
+                }
 
-        _ => return Err(Diagnostic::codegen_error("Expected exactly one parameter for SIZEOF", location)),
+                mul
+            }
+
+            _ => todo!(),
+        },
+
+        _ => return Err(Diagnostic::codegen_error("Received an invalid argument", location)),
     };
 
-    let gep_lower_bound =
-        unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-
-    let lower_bound = llvm.builder.build_load(gep_lower_bound, "").into_int_value().as_basic_value_enum();
-    Ok(ExpressionValue::RValue(lower_bound))
+    let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+    let bound = llvm.builder.build_load(gep_bound, "").into_int_value().as_basic_value_enum();
+    Ok(ExpressionValue::RValue(bound))
 }
 
 type AnnotationFunction =

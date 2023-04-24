@@ -603,11 +603,12 @@ fn helper_function_lower_bound() {
     #[derive(Default)]
     struct MainType {
         lower: i32,
+        upper: i32,
     }
 
     let mut main_type = MainType::default();
     let src = r#"
-        FUNCTION foo : DINT
+        FUNCTION foo : ARRAY[0..1] OF DINT
             VAR_INPUT {ref}
                 vla : ARRAY[ * ] OF DINT;
             END_VAR
@@ -616,25 +617,32 @@ fn helper_function_lower_bound() {
                 i : DINT := 1;
             END_VAR
 
-            foo := LOWER_BOUND(vla, 1);
-            // foo := LOWER_BOUND(vla, 1);
+            // foo[0] := LOWER_BOUND(vla, i);
+            // foo[1] := UPPER_BOUND(vla, i);
+            foo[0] := LOWER_BOUND(vla, 1);
+            foo[1] := UPPER_BOUND(vla, 1);
         END_FUNCTION
 
         PROGRAM main
             VAR
                 lower : DINT;
+                upper : DINT;
             END_VAR
 
             VAR_TEMP
-                arr : ARRAY[-2..2] OF DINT;
+                res : ARRAY[0..1] OF DINT;
+                arr : ARRAY[-5..5] OF DINT;
             END_VAR
 
-            lower := foo(arr);
+            res := foo(arr);
+            lower := res[0];
+            upper := res[1];
         END_PROGRAM
     "#;
 
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
-    assert_eq!(-2, main_type.lower);
+    assert_eq!(-5, main_type.lower);
+    assert_eq!(5, main_type.upper);
 }
 
 // TODO: Not working
@@ -643,7 +651,7 @@ fn din_copy_paste() {
     #[derive(Default)]
     struct MainType {
         sum_a1: i32,
-        sum_a2: i32,
+        // sum_a2: i32,
     }
 
     let src = r#"
@@ -669,19 +677,64 @@ fn din_copy_paste() {
            SUM := sum2;
         END_FUNCTION
         
-        FUNCTION main : DINT
+        PROGRAM main
            VAR
                sum_a1 : DINT;
                sum_a2 : DINT;
            END_VAR
         
            sum_a1 := SUM(A1);
-           // SUM(A2[2]);
-        END_FUNCTION
+        //    sum_a2 := SUM(A2[2]);
+        END_PROGRAM
     "#;
 
     let mut main_type = MainType::default();
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
     assert_eq!(10, main_type.sum_a1);
+    // assert_eq!(5, main_type.sum_a2);
+}
+
+#[test]
+fn custom() {
+    #[derive(Default)]
+    struct MainType {
+        sum_a1: i32,
+        sum_a2: i32,
+    }
+
+    let src = r#"
+        FUNCTION foo : DINT
+            VAR_INPUT {ref}
+                arr : ARRAY[*] OF DINT
+            END_VAR
+
+            VAR
+                i : DINT;
+                sum : DINT := 0;
+            END_VAR
+
+            FOR i := LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1)
+                sum := sum + 1;
+            END_FOR
+
+            foo := sum;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                sum_a1 : DINT;
+            END_VAR
+
+            VAR_TEMP
+                local : ARRAY[0..5] OF DINT;
+            END_VAR
+
+            sum_a1 := foo(local);
+        END_PROGRAM
+    "#;
+
+    let mut main_type = MainType::default();
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(6, main_type.sum_a1);
     // assert_eq!(5, main_type.sum_a2);
 }
