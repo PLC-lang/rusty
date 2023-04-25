@@ -837,6 +837,71 @@
 <a href="#837" id="837">837</a>
 <a href="#838" id="838">838</a>
 <a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, convert::TryInto, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -846,7 +911,8 @@
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        <span class="self">self</span>, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, BOOL_TYPE, POINTER_SIZE,
+        <span class="self">self</span>, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
+        BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -925,7 +991,7 @@
             validate_assignment(validator, right, <span class="prelude-val">Some</span>(left), <span class="kw-2">&amp;</span>statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } =&gt; {
-            validate_call(validator, operator, parameters, context);
+            validate_call(validator, operator, parameters, <span class="kw-2">&amp;</span>context.set_is_call());
         }
         AstStatement::IfStatement { blocks, else_block, .. } =&gt; {
             blocks.iter().for_each(|b| {
@@ -1129,19 +1195,49 @@
 ) {
     <span class="kw">let </span>target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
-    <span class="kw">if let </span>DataTypeInformation::Array { dimensions, .. } = target_type {
-        <span class="kw">if let </span>AstStatement::ExpressionList { expressions, .. } = access {
-            <span class="kw">for </span>(i, exp) <span class="kw">in </span>expressions.iter().enumerate() {
-                validate_array_access(validator, exp, dimensions, i, context);
+    <span class="kw">match </span>target_type {
+        DataTypeInformation::Array { dimensions, .. } =&gt; <span class="kw">match </span>access {
+            AstStatement::ExpressionList { expressions, .. } =&gt; {
+                validate_array_access_dimensions(dimensions.len(), expressions.len(), validator, access);
+
+                <span class="kw">for </span>(i, exp) <span class="kw">in </span>expressions.iter().enumerate() {
+                    validate_array_access(validator, exp, dimensions, i, context);
+                }
             }
-        } <span class="kw">else </span>{
-            validate_array_access(validator, access, dimensions, <span class="number">0</span>, context);
+
+            <span class="kw">_ </span>=&gt; {
+                validate_array_access_dimensions(dimensions.len(), <span class="number">1</span>, validator, access);
+                validate_array_access(validator, access, dimensions, <span class="number">0</span>, context)
+            }
+        },
+
+        DataTypeInformation::Struct {
+            source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
+            ..
+        } =&gt; {
+            <span class="kw">let </span>dims = <span class="kw">match </span>access {
+                AstStatement::ExpressionList { expressions, .. } =&gt; expressions.len(),
+                <span class="kw">_ </span>=&gt; <span class="number">1</span>,
+            };
+
+            validate_array_access_dimensions(<span class="kw-2">*</span>ndims, dims, validator, access);
         }
-    } <span class="kw">else </span>{
-        validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
+
+        <span class="kw">_ </span>=&gt; validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
             target_type.get_name(),
             access.get_location(),
-        ));
+        )),
+    }
+}
+
+<span class="kw">fn </span>validate_array_access_dimensions(
+    ndims: usize,
+    dims: usize,
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    access: <span class="kw-2">&amp;</span>AstStatement,
+) {
+    <span class="kw">if </span>ndims != dims {
+        validator.push_diagnostic(Diagnostic::invalid_array_access(ndims, dims, access.get_location()))
     }
 }
 
@@ -1365,8 +1461,17 @@
             left_type
         };
 
-        <span class="kw">if </span>!left_type.is_compatible_with_type(right_type)
-            || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
+        <span class="comment">// VLA &lt;- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
+        // are no longer allowed inside a POU body
+        </span><span class="kw">if </span>left_type.is_vla() &amp;&amp; right_type.is_array() &amp;&amp; context.is_call() {
+            <span class="comment">// TODO: This could benefit from a better error message, tracked in
+            // https://github.com/PLC-lang/rusty/issues/118
+            </span>validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
+            <span class="kw">return</span>;
+        }
+
+        <span class="kw">if </span>!(left_type.is_compatible_with_type(right_type)
+            &amp;&amp; is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type.get_type_information().get_name(),
@@ -1376,6 +1481,31 @@
         } <span class="kw">else if </span>!right.is_literal() {
             validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
+    }
+}
+
+<span class="kw">fn </span>validate_variable_length_array_assignment(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext,
+    location: <span class="kw-2">&amp;</span>SourceRange,
+    left_type: <span class="kw-2">&amp;</span>DataType,
+    right_type: <span class="kw-2">&amp;</span>DataType,
+) {
+    <span class="kw">let </span>left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
+    <span class="kw">let </span>right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
+
+    <span class="kw">let </span>left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
+    <span class="kw">let </span>right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
+
+    <span class="kw">let </span>left_dims = left_type.get_type_information().get_dimensions().unwrap();
+    <span class="kw">let </span>right_dims = right_type.get_type_information().get_dimensions().unwrap();
+
+    <span class="kw">if </span>left_dt != right_dt || left_dims != right_dims {
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            right_type.get_type_information().get_name(),
+            left_type.get_type_information().get_name(),
+            location.clone(),
+        ));
     }
 }
 

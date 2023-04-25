@@ -452,8 +452,10 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, VecDeque};
-<span class="kw">use </span>std::convert::TryInto;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="doccomment">/// the data_type_generator generates user defined data-types
@@ -479,7 +481,7 @@
     typesystem::DataType,
 };
 <span class="kw">use </span>inkwell::{
-    types::{ArrayType, BasicType, BasicTypeEnum},
+    types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
@@ -519,7 +521,6 @@
         .filter(|(<span class="kw">_</span>, it)| !it.get_type_information().is_generic(generator.index))
         .map(|(a, b)| (a.as_str(), b))
         .collect::&lt;Vec&lt;(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>DataType)&gt;&gt;();
-
     <span class="kw">let </span>pou_types = generator
         .index
         .get_pous()
@@ -632,7 +633,7 @@
 
             <span class="kw">let </span>struct_type = <span class="kw">match </span>source {
                 StructSource::Pou(..) =&gt; <span class="self">self</span>.types_index.get_associated_pou_type(data_type.get_name()),
-                StructSource::OriginalDeclaration =&gt; {
+                StructSource::OriginalDeclaration | StructSource::Internal(<span class="kw">_</span>) =&gt; {
                     <span class="self">self</span>.types_index.get_associated_type(data_type.get_name())
                 }
             }
@@ -655,13 +656,23 @@
                 StructSource::OriginalDeclaration =&gt; {
                     <span class="self">self</span>.types_index.get_associated_type(data_type.get_name())
                 }
+                StructSource::Internal(<span class="kw">_</span>) =&gt; <span class="self">self</span>.types_index.get_associated_type(data_type.get_name()),
             },
-            DataTypeInformation::Array { inner_type_name, dimensions, .. } =&gt; <span class="self">self
-                </span>.index
-                .get_effective_type_by_name(inner_type_name)
-                .and_then(|inner_type| <span class="self">self</span>.create_type(inner_type_name, inner_type))
-                .and_then(|inner_type| <span class="self">self</span>.create_nested_array_type(inner_type, dimensions))
-                .map(|it| it.as_basic_type_enum()),
+
+            <span class="comment">// We distinguish between two types of arrays, normal and variable length ones.
+            // Variable Length Arrays are defined by having unknown sizes at compile time, thus we handle
+            // these two cases based on whether the {start,end}-offset equals `TypeSize::Undetermined`.
+            </span>DataTypeInformation::Array { inner_type_name, dimensions, .. } =&gt; {
+                <span class="kw">if </span>dimensions.iter().any(|dimension| dimension.is_undetermined()) {
+                    <span class="self">self</span>.create_type(inner_type_name, <span class="self">self</span>.index.get_type(inner_type_name)<span class="question-mark">?</span>)
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.index
+                        .get_effective_type_by_name(inner_type_name)
+                        .and_then(|inner_type| <span class="self">self</span>.create_type(inner_type_name, inner_type))
+                        .and_then(|inner_type| <span class="self">self</span>.create_nested_array_type(inner_type, dimensions))
+                        .map(|it| it.as_basic_type_enum())
+                }
+            }
             DataTypeInformation::Integer { size, .. } =&gt; {
                 <span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).into())
             }
@@ -742,6 +753,7 @@
                     StructSource::OriginalDeclaration =&gt; {
                         <span class="self">self</span>.types_index.get_associated_type(data_type.get_name())
                     }
+                    StructSource::Internal(<span class="kw">_</span>) =&gt; <span class="self">self</span>.types_index.get_associated_type(data_type.get_name()),
                 }<span class="question-mark">?
                 </span>.into_struct_type();
 
@@ -863,7 +875,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         inner_type: BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
         dimensions: <span class="kw-2">&amp;</span>[Dimension],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ArrayType&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>len = dimensions
             .iter()
             .map(|dimension| {
@@ -877,22 +889,16 @@
             .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Invalid array dimensions&quot;</span>, SourceRange::undefined()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>result = <span class="kw">match </span>inner_type {
-            BasicTypeEnum::IntType(..) =&gt; inner_type.into_int_type().array_type(len),
-            BasicTypeEnum::FloatType(..) =&gt; inner_type.into_float_type().array_type(len),
-            BasicTypeEnum::StructType(..) =&gt; inner_type.into_struct_type().array_type(len),
-            BasicTypeEnum::ArrayType(..) =&gt; inner_type.into_array_type().array_type(len),
-            BasicTypeEnum::PointerType(..) =&gt; inner_type.into_pointer_type().array_type(len),
-            BasicTypeEnum::VectorType(..) =&gt; inner_type.into_vector_type().array_type(len),
+            BasicTypeEnum::IntType(ty) =&gt; ty.array_type(len),
+            BasicTypeEnum::FloatType(ty) =&gt; ty.array_type(len),
+            BasicTypeEnum::StructType(ty) =&gt; ty.array_type(len),
+            BasicTypeEnum::ArrayType(ty) =&gt; ty.array_type(len),
+            BasicTypeEnum::PointerType(ty) =&gt; ty.array_type(len),
+            BasicTypeEnum::VectorType(ty) =&gt; ty.array_type(len),
         }
         .as_basic_type_enum();
 
-        <span class="kw">let </span>array_result: <span class="prelude-ty">Result</span>&lt;ArrayType, <span class="kw">_</span>&gt; = result.try_into();
-        array_result.map_err(|<span class="kw">_</span>| {
-            Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected ArrayType but found {result:#?}&quot;</span>),
-                SourceRange::undefined(),
-            )
-        })
+        <span class="prelude-val">Ok</span>(result)
     }
 }
 

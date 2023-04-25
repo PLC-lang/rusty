@@ -876,6 +876,10 @@
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
 <a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -1132,7 +1136,6 @@
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>};
-
     <span class="kw">let </span>literal_parse_result = <span class="kw">match </span>lexer.token {
         <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
         </span>OperatorPlus | OperatorMinus =&gt; {
@@ -1151,7 +1154,7 @@
                 )),
             }
         }
-
+        OperatorMultiplication =&gt; parse_vla_range(lexer),
         <span class="comment">// ...and if not then this token may be anything
         </span><span class="kw">_ </span>=&gt; <span class="kw">match </span>lexer.token {
             Identifier =&gt; parse_qualified_reference(lexer),
@@ -1232,6 +1235,11 @@
     }
 }
 
+<span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+    lexer.advance();
+    <span class="prelude-val">Ok</span>(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+}
+
 <span class="kw">fn </span>parse_array_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)<span class="question-mark">?</span>;
@@ -1266,7 +1274,7 @@
 <span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
     <span class="kw">let </span>start = lexer.range().start;
     <span class="kw">let </span><span class="kw-2">mut </span>reference_elements = <span class="macro">vec!</span>[parse_reference_access(lexer)<span class="question-mark">?</span>];
-    <span class="kw">while </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordDot) {
+    <span class="kw">while </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot) {
         <span class="kw">let </span>segment = <span class="kw">match </span>lexer.token {
             <span class="comment">//Is this an integer?
             </span>LiteralInteger =&gt; {
@@ -1295,9 +1303,9 @@
         }
     };
 
-    <span class="kw">if </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
         <span class="comment">// Call Statement
-        </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordParensClose) {
+        </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensClose) {
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(<span class="prelude-val">None</span>),
@@ -1350,7 +1358,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>reference = original_reference;
     <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result
     </span><span class="kw">while </span>lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
-        <span class="kw">if </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) {
+        <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) {
             <span class="kw">let </span>access = parse_expression(lexer);
             lexer.consume_or_report(KeywordSquareParensClose);
             reference = AstStatement::ArrayAccess {
@@ -1358,7 +1366,7 @@
                 access: Box::new(access),
                 id: lexer.next_id(),
             };
-        } <span class="kw">else if </span>lexer.allow(<span class="kw-2">&amp;</span>OperatorDeref) {
+        } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>OperatorDeref) {
             reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
         }
     }
@@ -1395,9 +1403,9 @@
         <span class="kw">let </span>result = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
         <span class="comment">//Treat exponents as reals
         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::LiteralReal { value: result, location, id: lexer.next_id() });
-    } <span class="kw">else if </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordDot) {
+    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot) {
         <span class="kw">return </span>parse_literal_real(lexer, result, location, is_negative);
-    } <span class="kw">else if </span>lexer.allow(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
         <span class="kw">let </span>multiplier = result
             .parse::&lt;u32&gt;()
             .map_err(|e| Diagnostic::syntax_error(<span class="macro">format!</span>(<span class="string">&quot;{e}&quot;</span>).as_str(), location.clone()))<span class="question-mark">?</span>;

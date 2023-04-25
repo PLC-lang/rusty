@@ -1187,6 +1187,56 @@
 <a href="#1187" id="1187">1187</a>
 <a href="#1188" id="1188">1188</a>
 <a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1341,6 +1391,10 @@
         <span class="self">self</span>.get_type_information().is_array()
     }
 
+    <span class="kw">pub fn </span>is_vla(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_type_information().is_vla()
+    }
+
     <span class="doccomment">/// returns true if this type is an array, struct or string
     </span><span class="kw">pub fn </span>is_aggregate_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_type_information().is_aggregate()
@@ -1409,6 +1463,7 @@
             TypeNature::String =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::String),
             TypeNature::Any =&gt; <span class="bool-val">true</span>,
             TypeNature::Derived =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::Derived),
+
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1449,10 +1504,12 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+<span class="doccomment">/// Enum for ranges and aggregate type sizes.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
+    Undetermined,
 }
 
 <span class="kw">impl </span>TypeSize {
@@ -1471,6 +1528,7 @@
             TypeSize::ConstExpression(id) =&gt; {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it <span class="kw">as </span>i64)
             }
+            TypeSize::Undetermined =&gt; <span class="prelude-val">Ok</span>(POINTER_SIZE <span class="kw">as </span>i64),
         }
     }
 
@@ -1480,6 +1538,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             TypeSize::LiteralInteger(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             TypeSize::ConstExpression(id) =&gt; index.get_const_expressions().get_constant_statement(id),
+            TypeSize::Undetermined =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -1489,6 +1548,12 @@
 </span><span class="kw">pub enum </span>StructSource {
     OriginalDeclaration,
     Pou(PouType),
+    Internal(InternalType),
+}
+
+<span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>InternalType {
+    VariableLengthArray { inner_type_name: String, ndims: usize },
 }
 
 <span class="kw">type </span>TypeId = String;
@@ -1610,6 +1675,16 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Array { .. })
     }
 
+    <span class="kw">pub fn </span>is_vla(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+                ..
+            }
+        )
+    }
+
     <span class="kw">pub fn </span>is_numerical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
@@ -1617,6 +1692,26 @@
                 | DataTypeInformation::Float { .. }
                 | <span class="kw-2">&amp;</span>DataTypeInformation::Enum { .. } <span class="comment">// internally an enum is represented as a DINT
         </span>)
+    }
+
+    <span class="kw">pub fn </span>get_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            DataTypeInformation::Array { dimensions, .. } =&gt; <span class="prelude-val">Some</span>(dimensions.len()),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { ndims, .. }),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ndims),
+
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_vla_referenced_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">let </span>DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = <span class="self">self </span><span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        };
+
+        <span class="prelude-val">Some</span>(inner_type_name)
     }
 
     <span class="kw">pub fn </span>is_generic(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
@@ -1795,6 +1890,10 @@
         <span class="kw">let </span>start = <span class="self">self</span>.start_offset.as_int_value(index)<span class="question-mark">?</span>;
         <span class="kw">let </span>end = <span class="self">self</span>.end_offset.as_int_value(index)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(start..=end)
+    }
+
+    <span class="kw">pub fn </span>is_undetermined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>((<span class="self">self</span>.start_offset, <span class="self">self</span>.end_offset), (TypeSize::Undetermined, TypeSize::Undetermined))
     }
 }
 
@@ -2239,6 +2338,7 @@
         DataTypeInformation::String { size, .. } =&gt; <span class="kw">match </span>size {
             TypeSize::LiteralInteger(size) =&gt; (<span class="kw-2">*</span>size).try_into().unwrap(),
             TypeSize::ConstExpression(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;String rank with CONSTANTS&quot;</span>),
+            TypeSize::Undetermined =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Strings will never have undetermined size&quot;</span>),
         },
         DataTypeInformation::Enum { referenced_type, .. } =&gt; {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)

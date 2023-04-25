@@ -178,6 +178,25 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
@@ -210,11 +229,17 @@
     index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Index,
     <span class="doccomment">/// the type_name of the context for a reference (e.g. `a.b` where `a`&#39;s type is the context of `b`)
     </span>qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt;,
+    is_call: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
     <span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str) -&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
-        ValidationContext { annotations: <span class="self">self</span>.annotations, index: <span class="self">self</span>.index, qualifier: <span class="prelude-val">Some</span>(qualifier) }
+        ValidationContext {
+            annotations: <span class="self">self</span>.annotations,
+            index: <span class="self">self</span>.index,
+            qualifier: <span class="prelude-val">Some</span>(qualifier),
+            is_call: <span class="self">self</span>.is_call,
+        }
     }
 
     <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
@@ -236,6 +261,19 @@
                 </span>.or(<span class="prelude-val">Some</span>(pou_name))
                 .and_then(|name| <span class="self">self</span>.index.find_pou(name))
         })
+    }
+
+    <span class="kw">fn </span>set_is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
+        ValidationContext {
+            annotations: <span class="self">self</span>.annotations,
+            index: <span class="self">self</span>.index,
+            qualifier: <span class="self">self</span>.qualifier,
+            is_call: <span class="bool-val">true</span>,
+        }
+    }
+
+    <span class="kw">fn </span>is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_call
     }
 }
 
@@ -286,7 +324,7 @@
     }
 
     <span class="kw">pub fn </span>visit_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>AnnotationMapImpl, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
-        <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None </span>};
+        <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
         <span class="comment">// validate POU and declared Variables
         </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
             visit_pou(<span class="self">self</span>, pou, <span class="kw-2">&amp;</span>context.with_qualifier(pou.name.as_str()));
@@ -299,7 +337,7 @@
 
         <span class="comment">// validate global variables
         </span><span class="kw">for </span>gv <span class="kw">in </span><span class="kw-2">&amp;</span>unit.global_vars {
-            visit_variable_block(<span class="self">self</span>, gv, <span class="kw-2">&amp;</span>context);
+            visit_variable_block(<span class="self">self</span>, <span class="prelude-val">None</span>, gv, <span class="kw-2">&amp;</span>context);
         }
 
         <span class="comment">// validate implementations

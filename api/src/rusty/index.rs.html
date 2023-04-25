@@ -1469,6 +1469,7 @@
 <a href="#1469" id="1469">1469</a>
 <a href="#1470" id="1470">1470</a>
 <a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::{
@@ -2405,6 +2406,7 @@
                     <span class="self">self</span>.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
                 })
                 .map(TypeSize::from_expression),
+            TypeSize::Undetermined =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>type_size),
         };
 
         <span class="kw">match </span>ts {

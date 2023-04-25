@@ -130,8 +130,63 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    ast::{AstStatement, Variable, VariableBlock, VariableBlockType},
+    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
     Diagnostic,
 };
@@ -141,11 +196,22 @@
     validate_for_array_assignment, ValidationContext, Validator, Validators,
 };
 
-<span class="kw">pub fn </span>visit_variable_block(validator: <span class="kw-2">&amp;mut </span>Validator, block: <span class="kw-2">&amp;</span>VariableBlock, context: <span class="kw-2">&amp;</span>ValidationContext) {
+<span class="kw">pub fn </span>visit_variable_block(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pou&gt;,
+    block: <span class="kw-2">&amp;</span>VariableBlock,
+    context: <span class="kw-2">&amp;</span>ValidationContext,
+) {
     validate_variable_block(validator, block);
 
     <span class="kw">for </span>variable <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
         visit_variable(validator, variable, context);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(referenced_type) = variable.data_type_declaration.get_referenced_type() {
+            <span class="kw">if </span>context.index.get_type_information_or_void(<span class="kw-2">&amp;</span>referenced_type).is_vla() {
+                validate_vla(validator, pou, block, variable);
+            }
+        }
     }
 }
 
@@ -161,6 +227,50 @@
     validate_variable(validator, variable, context);
 
     visit_data_type_declaration(validator, <span class="kw-2">&amp;</span>variable.data_type_declaration, context);
+}
+
+<span class="doccomment">/// Validates Variable Length Arrays as specified in the IEC61131-3, i.e. VLAs are only allowed to be defined
+/// inside the following Variable Block and POU combinations
+/// - Input, Output and InOut within a Function or Method or
+/// - InOut within Function-Block
+</span><span class="kw">fn </span>validate_vla(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pou&gt;, block: <span class="kw-2">&amp;</span>VariableBlock, variable: <span class="kw-2">&amp;</span>Variable) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = pou <span class="kw">else </span>{
+        <span class="kw">if </span><span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::Global) {
+            validator.push_diagnostic(Diagnostic::invalid_vla_container(
+                <span class="string">&quot;VLAs can not be defined as global variables&quot;</span>.to_string(),
+                variable.location.clone())
+            )
+        }
+
+        <span class="kw">return</span>;
+    };
+
+    <span class="kw">match </span>(<span class="kw-2">&amp;</span>pou.pou_type, block.variable_block_type) {
+        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) =&gt; {
+            validator.push_diagnostic(Diagnostic::vla_by_val_warning(variable.location.clone()))
+        }
+
+        (PouType::Program, <span class="kw">_</span>) =&gt; validator.push_diagnostic(Diagnostic::invalid_vla_container(
+            <span class="string">&quot;Variable Length Arrays are not allowed to be defined inside a Program&quot;</span>.to_string(),
+            variable.location.clone(),
+        )),
+
+        (
+            PouType::Function | PouType::Method { .. },
+            VariableBlockType::Input(ArgumentProperty::ByRef)
+            | VariableBlockType::Output
+            | VariableBlockType::InOut,
+        )
+        | (PouType::FunctionBlock, VariableBlockType::InOut) =&gt; (),
+
+        <span class="kw">_ </span>=&gt; validator.push_diagnostic(Diagnostic::invalid_vla_container(
+            <span class="macro">format!</span>(
+                <span class="string">&quot;Variable Length Arrays are not allowed to be defined as {} variables inside a {}&quot;</span>,
+                block.variable_block_type, pou.pou_type
+            ),
+            variable.location.clone(),
+        )),
+    }
 }
 
 <span class="kw">fn </span>validate_variable(validator: <span class="kw-2">&amp;mut </span>Validator, variable: <span class="kw-2">&amp;</span>Variable, context: <span class="kw-2">&amp;</span>ValidationContext) {

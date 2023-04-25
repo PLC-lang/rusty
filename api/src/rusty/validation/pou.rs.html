@@ -41,7 +41,7 @@
     validate_pou(validator, pou, context);
 
     <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
-        visit_variable_block(validator, block, context);
+        visit_variable_block(validator, <span class="prelude-val">Some</span>(pou), block, context);
     }
 }
 

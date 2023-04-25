@@ -1536,6 +1536,66 @@
 <a href="#1536" id="1536">1536</a>
 <a href="#1537" id="1537">1537</a>
 <a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
@@ -1804,6 +1864,19 @@
     Method { owner_class: String },
 }
 
+<span class="kw">impl </span>Display <span class="kw">for </span>PouType {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            PouType::Program =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Program&quot;</span>),
+            PouType::Function =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Function&quot;</span>),
+            PouType::FunctionBlock =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;FunctionBlock&quot;</span>),
+            PouType::Action =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action&quot;</span>),
+            PouType::Class =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Class&quot;</span>),
+            PouType::Method { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Method&quot;</span>),
+        }
+    }
+}
+
 <span class="kw">impl </span>PouType {
     <span class="doccomment">/// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     </span><span class="kw">pub fn </span>get_optional_owner_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
@@ -1904,6 +1977,19 @@
     Output,
     Global,
     InOut,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>VariableBlockType {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            VariableBlockType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Local&quot;</span>),
+            VariableBlockType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Temp&quot;</span>),
+            VariableBlockType::Input(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Input&quot;</span>),
+            VariableBlockType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Output&quot;</span>),
+            VariableBlockType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Global&quot;</span>),
+            VariableBlockType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;InOut&quot;</span>),
+        }
+    }
 }
 
 <span class="attr">#[derive(Debug, Copy, PartialEq, Eq, Clone)]
@@ -2109,6 +2195,11 @@
             DataTypeDeclaration::DataTypeDefinition { location, .. } =&gt; location.clone(),
         }
     }
+
+    <span class="kw">pub fn </span>get_referenced_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="kw">let </span>DataTypeDeclaration::DataTypeReference {referenced_type, ..} = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+        <span class="prelude-val">Some</span>(referenced_type.to_owned())
+    }
 }
 
 <span class="attr">#[derive(PartialEq)]
@@ -2150,6 +2241,7 @@
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         bounds: AstStatement,
         referenced_type: Box&lt;DataTypeDeclaration&gt;,
+        is_variable_length: bool,
     },
     PointerType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -2208,10 +2300,7 @@
         location: <span class="kw-2">&amp;</span>SourceRange,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            DataType::ArrayType { referenced_type, .. } =&gt; {
-                replace_reference(referenced_type, type_name, location)
-            }
-            DataType::PointerType { referenced_type, .. } =&gt; {
+            DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } =&gt; {
                 replace_reference(referenced_type, type_name, location)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -2385,8 +2474,11 @@
         id: AstId,
     },
     RangeStatement {
+        id: AstId,
         start: Box&lt;AstStatement&gt;,
         end: Box&lt;AstStatement&gt;,
+    },
+    VlaRangeStatement {
         id: AstId,
     },
     <span class="comment">// Assignment
@@ -2539,6 +2631,7 @@
             AstStatement::RangeStatement { start, end, .. } =&gt; {
                 f.debug_struct(<span class="string">&quot;RangeStatement&quot;</span>).field(<span class="string">&quot;start&quot;</span>, start).field(<span class="string">&quot;end&quot;</span>, end).finish()
             }
+            AstStatement::VlaRangeStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;VlaRangeStatement&quot;</span>).finish(),
             AstStatement::Assignment { left, right, .. } =&gt; {
                 f.debug_struct(<span class="string">&quot;Assignment&quot;</span>).field(<span class="string">&quot;left&quot;</span>, left).field(<span class="string">&quot;right&quot;</span>, right).finish()
             }
@@ -2656,7 +2749,8 @@
                 <span class="kw">let </span>end_loc = end.get_location();
                 start_loc.span(<span class="kw-2">&amp;</span>end_loc)
             }
-            AstStatement::Assignment { left, right, .. } =&gt; {
+            AstStatement::VlaRangeStatement { .. } =&gt; SourceRange::undefined(), <span class="comment">// internal type only
+            </span>AstStatement::Assignment { left, right, .. } =&gt; {
                 <span class="kw">let </span>left_loc = left.get_location();
                 <span class="kw">let </span>right_loc = right.get_location();
                 left_loc.span(<span class="kw-2">&amp;</span>right_loc)
@@ -2714,6 +2808,7 @@
             AstStatement::UnaryExpression { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::ExpressionList { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::RangeStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
+            AstStatement::VlaRangeStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::Assignment { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::OutputAssignment { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::CallStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
@@ -2786,8 +2881,7 @@
     <span class="doccomment">/// returns true if this AST Statement is a literal or reference that can be
     /// prefixed with a type-cast (e.g. INT#23)
     </span><span class="kw">pub fn </span>is_cast_prefix_eligible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// TODO: figure out a better name for this...
-        </span><span class="macro">matches!</span>(
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
             AstStatement::LiteralBool { .. }
                 | AstStatement::LiteralInteger { .. }
@@ -3073,6 +3167,32 @@
         location,
         id_provider,
     )
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::ast::{ArgumentProperty, PouType, VariableBlockType};
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>display_pou() {
+        <span class="macro">assert_eq!</span>(PouType::Program.to_string(), <span class="string">&quot;Program&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::Function.to_string(), <span class="string">&quot;Function&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">&quot;FunctionBlock&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">&quot;Action&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">&quot;Class&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::Method { owner_class: <span class="string">&quot;...&quot;</span>.to_string() }.to_string(), <span class="string">&quot;Method&quot;</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>display_variable_block_type() {
+        <span class="macro">assert_eq!</span>(VariableBlockType::Local.to_string(), <span class="string">&quot;Local&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Temp.to_string(), <span class="string">&quot;Temp&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), <span class="string">&quot;Input&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), <span class="string">&quot;Input&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Output.to_string(), <span class="string">&quot;Output&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Global.to_string(), <span class="string">&quot;Global&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::InOut.to_string(), <span class="string">&quot;InOut&quot;</span>);
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

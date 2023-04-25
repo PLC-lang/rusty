@@ -489,18 +489,18 @@
         }
     }
 
-    <span class="doccomment">/// consumes an optional token and returns true if it was consumed.
-    </span><span class="kw">pub fn </span>allow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>Token) -&gt; bool {
+    <span class="doccomment">/// Tries to consume the given token, returning false if it failed.
+    </span><span class="kw">pub fn </span>try_consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>Token) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.token == <span class="kw-2">*</span>token {
             <span class="self">self</span>.advance();
-            <span class="bool-val">true
-        </span>} <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
-    }
+            <span class="kw">return </span><span class="bool-val">true</span>;
+        }
+
+        <span class="bool-val">false
+    </span>}
 
     <span class="kw">pub fn </span>consume_or_report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) {
-        <span class="kw">if </span>!<span class="self">self</span>.allow(<span class="kw-2">&amp;</span>token) {
+        <span class="kw">if </span>!<span class="self">self</span>.try_consume(<span class="kw-2">&amp;</span>token) {
             <span class="self">self</span>.accept_diagnostic(Diagnostic::missing_token(<span class="macro">format!</span>(<span class="string">&quot;{token:?}&quot;</span>).as_str(), <span class="self">self</span>.location()));
         }
     }
