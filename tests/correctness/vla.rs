@@ -719,7 +719,7 @@ mod builtins {
             END_VAR
 
             VAR_TEMP
-                res : ARRAY[0..1] OF DINT;
+                res : ARRAY[0..3] OF DINT;
                 array_2d : ARRAY[-5..5, -10..10] OF DINT;
             END_VAR
 
@@ -774,7 +774,7 @@ mod builtins {
             END_VAR
 
             VAR_TEMP
-                res : ARRAY[0..1] OF DINT;
+                res : ARRAY[0..3] OF DINT;
                 array_2d : ARRAY[-5..5, -10..10] OF DINT;
             END_VAR
 
