@@ -49,3 +49,19 @@ assert_with_type_name!(WSTRING);
 assert_with_type_name!(CHAR);
 assert_with_type_name!(WCHAR);
 assert_with_type_name!(VOID);
+
+#[test]
+fn two_identical_vlas_in_same_pou_arent_duplicated_in_symbol_map() {
+    let diag = parse_and_validate(
+        r#"
+    FUNCTION foo : INT
+    VAR_INPUT{ref}
+        vla : ARRAY[ * , * ] OF INT;
+        vla2 : ARRAY[ * , * ] OF INT;
+    END_VAR
+    END_FUNCTION
+    "#,
+    );
+
+    assert_validation_snapshot!(&diag);
+}
