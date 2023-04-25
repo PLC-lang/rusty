@@ -312,14 +312,15 @@ fn generate_variable_length_array_bound_function<'ink>(
 
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
-    let dti = generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
+    let data_type_information =
+        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    if !dti.is_vla() && !dti.is_array() {
+    if !(data_type_information.is_vla() || data_type_information.is_array()) {
         return Err(Diagnostic::codegen_error(&format!("Expected an array, got {:?}", params[0]), location));
     }
 
     // Code for when the function is called with a normal array argument
-    if let DataTypeInformation::Array { dimensions, .. } = dti {
+    if let DataTypeInformation::Array { dimensions, .. } = data_type_information {
         match params[1] {
             // e.g. LOWER_BOUND(arr, 1)
             AstStatement::LiteralInteger { value, .. } => {
@@ -334,54 +335,63 @@ fn generate_variable_length_array_bound_function<'ink>(
             }
 
             // e.g. LOWER_BOUND(arr, idx)
-            AstStatement::Reference { .. } => todo!("How?"),
+            AstStatement::Reference { .. } => {
+                return Err(Diagnostic::codegen_error(
+                    // FIXME: is there a way to access lower/upper-bound information for regular arrays at runtime?
+                    // accessing the dimension.start_offset/end_offset does not seem to be an option, since the value behind
+                    // the reference is not known at compile-time
+                    "Dimension index cannot be a reference for arrays. Information not available at runtime.",
+                    location,
+                ));
+            }
 
-            _ => unreachable!("should be covered above"),
+            _ => unreachable!("other possibilities are excluded via pattern-matching above"),
         }
     }
 
     // Code for when the function is called with a variable length array
-    if let DataTypeInformation::Struct { .. } = dti {
+    if let DataTypeInformation::Struct { .. } = data_type_information {
         let vla = generator.generate_element_pointer(params[0]).unwrap();
         let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
         let accessor = match params[1] {
             // e.g. LOWER_BOUND(arr, 1)
             AstStatement::LiteralInteger { value, .. } => {
+                // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
+                // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
                 let raw = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
                 llvm.i32_type().const_int(raw, false)
             }
 
             // e.g. LOWER_BOUND(arr, idx)
-            AstStatement::Reference { .. } => match generator.annotations.get(params[1]) {
-                Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                    let ptr =
-                        generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
-                    let value = builder.build_load(ptr, "").into_int_value();
+            AstStatement::Reference { .. } => {
+                let Some(StatementAnnotation::Variable { qualified_name, .. }) = generator.annotations.get(params[1]) else {
+                    return Err(Diagnostic::codegen_error("Expected a variable reference", location))                
+                };
 
-                    let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
-                    let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
+                let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+                let value = builder.build_load(ptr, "").into_int_value();
 
-                    if !is_lower {
-                        mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
-                    }
+                let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
+                let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
 
-                    mul
+                if !is_lower {
+                    mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
                 }
 
-                _ => return Err(Diagnostic::codegen_error("Expected a variable reference", location)),
-            },
+                mul
+            }
 
-            _ => unreachable!("Should be covered above"),
+            _ => unreachable!("other possibilities are excluded via pattern-matching above"),
         };
 
         let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-        let bound = llvm.builder.build_load(gep_bound, "").into_int_value().as_basic_value_enum();
+        let bound = llvm.builder.build_load(gep_bound, "");
 
         return Ok(ExpressionValue::RValue(bound));
     }
 
-    unreachable!("Should be, right?")
+    unreachable!()
 }
 
 type AnnotationFunction =
