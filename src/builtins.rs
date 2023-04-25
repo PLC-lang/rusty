@@ -293,8 +293,8 @@ lazy_static! {
     ]);
 }
 
-fn generate_variable_length_array_bound_function<'ink, 'b>(
-    generator: &ExpressionCodeGenerator<'ink, 'b>,
+fn generate_variable_length_array_bound_function<'ink>(
+    generator: &ExpressionCodeGenerator<'ink, '_>,
     params: &[&AstStatement],
     location: SourceRange,
     lower: bool,
