@@ -846,7 +846,7 @@ mod builtins {
     }
 
     #[test]
-    #[ignore = "References are not resolvable for arrays right now"]
+    #[ignore = "Reference index-access is not resolvable at runtime for arrays right now"]
     fn array_reference() {
         #[derive(Default)]
         struct MainType {
