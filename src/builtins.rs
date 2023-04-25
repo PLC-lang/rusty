@@ -293,14 +293,21 @@ lazy_static! {
     ]);
 }
 
+/// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
+/// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
     params: &[&AstStatement],
     location: SourceRange,
-    lower: bool,
+    is_lower: bool,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let [AstStatement::Reference { .. }, AstStatement::LiteralInteger {..} | AstStatement::Reference {..}] = params else {
-        return Err(Diagnostic::codegen_error("Invalid {UPPER,LOWER}_BOUND function signature", location))
+        return Err(
+            Diagnostic::codegen_error(
+                &format!("Invalid {} function signature", if is_lower { "LOWER_BOUND" } else { "UPPER_BOUND" }),
+                location
+            )
+        )
     };
 
     let llvm = generator.llvm;
@@ -311,12 +318,13 @@ fn generate_variable_length_array_bound_function<'ink>(
         return Err(Diagnostic::codegen_error(&format!("Expected an array, got {:?}", params[0]), location));
     }
 
+    // Code for when the function is called with a normal array argument
     if let DataTypeInformation::Array { dimensions, .. } = dti {
         match params[1] {
-            // ...
+            // e.g. LOWER_BOUND(arr, 1)
             AstStatement::LiteralInteger { value, .. } => {
                 let i = *value as usize - 1;
-                let offset = if lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
+                let offset = if is_lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
 
                 return Ok(ExpressionValue::RValue(
                     llvm.i32_type()
@@ -325,23 +333,26 @@ fn generate_variable_length_array_bound_function<'ink>(
                 ));
             }
 
-            // ...
+            // e.g. LOWER_BOUND(arr, idx)
             AstStatement::Reference { .. } => todo!("How?"),
 
             _ => unreachable!("should be covered above"),
         }
     }
 
+    // Code for when the function is called with a variable length array
     if let DataTypeInformation::Struct { .. } = dti {
         let vla = generator.generate_element_pointer(params[0]).unwrap();
         let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
         let accessor = match params[1] {
+            // e.g. LOWER_BOUND(arr, 1)
             AstStatement::LiteralInteger { value, .. } => {
-                let raw = if lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+                let raw = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
                 llvm.i32_type().const_int(raw, false)
             }
 
+            // e.g. LOWER_BOUND(arr, idx)
             AstStatement::Reference { .. } => match generator.annotations.get(params[1]) {
                 Some(StatementAnnotation::Variable { qualified_name, .. }) => {
                     let ptr =
@@ -351,17 +362,17 @@ fn generate_variable_length_array_bound_function<'ink>(
                     let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
                     let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
 
-                    if !lower {
+                    if !is_lower {
                         mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
                     }
 
                     mul
                 }
 
-                _ => todo!("err"),
+                _ => return Err(Diagnostic::codegen_error("Expected a variable reference", location)),
             },
 
-            _ => unreachable!("should be covered above"),
+            _ => unreachable!("Should be covered above"),
         };
 
         let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
