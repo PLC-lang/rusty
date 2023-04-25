@@ -254,7 +254,6 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     } else {
         None
     };
-
     let literal_parse_result = match lexer.token {
         // Check if we're dealing with a number that has an explicit '+' or '-' sign...
         OperatorPlus | OperatorMinus => {
@@ -273,7 +272,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                 )),
             }
         }
-
+        OperatorMultiplication => parse_vla_range(lexer),
         // ...and if not then this token may be anything
         _ => match lexer.token {
             Identifier => parse_qualified_reference(lexer),
@@ -354,6 +353,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     }
 }
 
+fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    lexer.advance();
+    Ok(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+}
+
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
@@ -388,7 +392,7 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
-    while lexer.allow(&KeywordDot) {
+    while lexer.try_consume(&KeywordDot) {
         let segment = match lexer.token {
             //Is this an integer?
             LiteralInteger => {
@@ -417,9 +421,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
         }
     };
 
-    if lexer.allow(&KeywordParensOpen) {
+    if lexer.try_consume(&KeywordParensOpen) {
         // Call Statement
-        let call_statement = if lexer.allow(&KeywordParensClose) {
+        let call_statement = if lexer.try_consume(&KeywordParensClose) {
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
@@ -472,7 +476,7 @@ fn parse_access_modifiers(
     let mut reference = original_reference;
     //If (while) we hit a dereference, parse and append the dereference to the result
     while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
-        if lexer.allow(&KeywordSquareParensOpen) {
+        if lexer.try_consume(&KeywordSquareParensOpen) {
             let access = parse_expression(lexer);
             lexer.consume_or_report(KeywordSquareParensClose);
             reference = AstStatement::ArrayAccess {
@@ -480,7 +484,7 @@ fn parse_access_modifiers(
                 access: Box::new(access),
                 id: lexer.next_id(),
             };
-        } else if lexer.allow(&OperatorDeref) {
+        } else if lexer.try_consume(&OperatorDeref) {
             reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
         }
     }
@@ -517,9 +521,9 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
         let result = result.replace('_', "");
         //Treat exponents as reals
         return Ok(AstStatement::LiteralReal { value: result, location, id: lexer.next_id() });
-    } else if lexer.allow(&KeywordDot) {
+    } else if lexer.try_consume(&KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
-    } else if lexer.allow(&KeywordParensOpen) {
+    } else if lexer.try_consume(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{e}").as_str(), location.clone()))?;

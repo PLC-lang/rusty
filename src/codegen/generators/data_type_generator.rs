@@ -1,5 +1,4 @@
 use std::collections::{HashMap, VecDeque};
-use std::convert::TryInto;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 /// the data_type_generator generates user defined data-types
@@ -25,7 +24,7 @@ use crate::{
     typesystem::DataType,
 };
 use inkwell::{
-    types::{ArrayType, BasicType, BasicTypeEnum},
+    types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
@@ -65,7 +64,6 @@ pub fn generate_data_types<'ink>(
         .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
         .map(|(a, b)| (a.as_str(), b))
         .collect::<Vec<(&str, &DataType)>>();
-
     let pou_types = generator
         .index
         .get_pous()
@@ -178,7 +176,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
 
             let struct_type = match source {
                 StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
-                StructSource::OriginalDeclaration => {
+                StructSource::OriginalDeclaration | StructSource::Internal(_) => {
                     self.types_index.get_associated_type(data_type.get_name())
                 }
             }
@@ -201,13 +199,23 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 StructSource::OriginalDeclaration => {
                     self.types_index.get_associated_type(data_type.get_name())
                 }
+                StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
             },
-            DataTypeInformation::Array { inner_type_name, dimensions, .. } => self
-                .index
-                .get_effective_type_by_name(inner_type_name)
-                .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
-                .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
-                .map(|it| it.as_basic_type_enum()),
+
+            // We distinguish between two types of arrays, normal and variable length ones.
+            // Variable Length Arrays are defined by having unknown sizes at compile time, thus we handle
+            // these two cases based on whether the {start,end}-offset equals `TypeSize::Undetermined`.
+            DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
+                if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
+                    self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)
+                } else {
+                    self.index
+                        .get_effective_type_by_name(inner_type_name)
+                        .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
+                        .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
+                        .map(|it| it.as_basic_type_enum())
+                }
+            }
             DataTypeInformation::Integer { size, .. } => {
                 Ok(get_llvm_int_type(self.llvm.context, *size, name).into())
             }
@@ -288,6 +296,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     StructSource::OriginalDeclaration => {
                         self.types_index.get_associated_type(data_type.get_name())
                     }
+                    StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
                 }?
                 .into_struct_type();
 
@@ -409,7 +418,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &self,
         inner_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
-    ) -> Result<ArrayType<'ink>, Diagnostic> {
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         let len = dimensions
             .iter()
             .map(|dimension| {
@@ -423,22 +432,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .ok_or_else(|| Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined()))?;
 
         let result = match inner_type {
-            BasicTypeEnum::IntType(..) => inner_type.into_int_type().array_type(len),
-            BasicTypeEnum::FloatType(..) => inner_type.into_float_type().array_type(len),
-            BasicTypeEnum::StructType(..) => inner_type.into_struct_type().array_type(len),
-            BasicTypeEnum::ArrayType(..) => inner_type.into_array_type().array_type(len),
-            BasicTypeEnum::PointerType(..) => inner_type.into_pointer_type().array_type(len),
-            BasicTypeEnum::VectorType(..) => inner_type.into_vector_type().array_type(len),
+            BasicTypeEnum::IntType(ty) => ty.array_type(len),
+            BasicTypeEnum::FloatType(ty) => ty.array_type(len),
+            BasicTypeEnum::StructType(ty) => ty.array_type(len),
+            BasicTypeEnum::ArrayType(ty) => ty.array_type(len),
+            BasicTypeEnum::PointerType(ty) => ty.array_type(len),
+            BasicTypeEnum::VectorType(ty) => ty.array_type(len),
         }
         .as_basic_type_enum();
 
-        let array_result: Result<ArrayType, _> = result.try_into();
-        array_result.map_err(|_| {
-            Diagnostic::codegen_error(
-                &format!("Expected ArrayType but found {result:#?}"),
-                SourceRange::undefined(),
-            )
-        })
+        Ok(result)
     }
 }
 

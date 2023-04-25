@@ -164,7 +164,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(v)
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
-        Ok(cast_if_needed(self.llvm, self.index, self.llvm_index, target_type, actual_type, v))
+        Ok(cast_if_needed(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            target_type,
+            actual_type,
+            v,
+            self.annotations.get(expression),
+        ))
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
@@ -186,7 +194,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(ExpressionValue::RValue(basic_value_enum));
             }
         }
-
         // generate the expression
         match expression {
             AstStatement::Reference { .. } => {
@@ -384,6 +391,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 self.get_type_hint_for(index)?,
                 reference,
+                None,
             )
             .into_int_value();
             // let reference = reference.into_int_value();
@@ -883,6 +891,38 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Ok(argument)
         })?;
 
+        // ...check if we can bitcast a reference to their hinted type
+        if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+            let actual_type = self.annotations.get_type_or_void(argument, self.index);
+            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
+            let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
+
+            if target_type_info.is_vla() {
+                // XXX: Calling `cast_if_needed` will result in an `alloca` call for EVERY function call.
+                // LLVM might be able to optimize it away but ideally we find a solution for this at some
+                // point? For a more in-depth description see the `pass` function in `vla_adr.rs`
+                return Ok(cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    self.llvm_index,
+                    hint,
+                    actual_type,
+                    value.into(),
+                    self.annotations.get(argument),
+                ));
+            };
+
+            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
+            // a value to cast, which must be a **non-aggregate** first class value [...]
+            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
+                return Ok(self.llvm.builder.build_bitcast(
+                    value,
+                    self.llvm_index.get_associated_type(hint.get_name())?,
+                    "",
+                ));
+            }
+        }
+
         // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
         if value.get_type().get_element_type().is_array_type() {
             let res = self.llvm.builder.build_bitcast(
@@ -897,23 +937,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             );
 
             return Ok(res.into_pointer_value().into());
-        }
-
-        // ...check if we can bitcast a reference to their hinted type
-        if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
-            let actual_type = self.annotations.get_type_or_void(argument, self.index);
-            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
-            let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
-
-            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
-            // a value to cast, which must be a **non-aggregate** first class value [...]
-            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
-                return Ok(self.llvm.builder.build_bitcast(
-                    value,
-                    self.llvm_index.get_associated_type(hint.get_name())?,
-                    "",
-                ));
-            }
         }
 
         // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
@@ -1262,14 +1285,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         qualifier: Option<PointerValue<'ink>>,
         reference_statement: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let result = match reference_statement {
+        match reference_statement {
             AstStatement::Reference { name, .. } => self.create_llvm_pointer_value_for_reference(
                 qualifier.as_ref(),
                 name.as_str(),
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
+                let Some(dt) = self.annotations.get_type(reference, self.index) else {
+                    // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
+                    unreachable!("unresolved reference")
+                };
+
+                if dt.get_type_information().is_vla() {
+                    self.generate_element_pointer_for_vla(reference, access)
+                        .map_err(|_| unreachable!("invalid access statement"))
+                } else {
+                    self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
+                }
             }
             AstStatement::PointerAccess { reference, .. } => {
                 self.do_generate_element_pointer(qualifier, reference).map(|it| self.deref(it))
@@ -1285,9 +1318,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 &format!("Cannot generate a LValue for {reference_statement:?}"),
                 reference_statement.get_location(),
             )),
-        };
-
-        result.and_then(|it| self.auto_deref_if_necessary(it, reference_statement))
+        }
+        .map(|it| self.auto_deref_if_necessary(it, reference_statement))
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
@@ -1380,13 +1412,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         accessor_ptr: PointerValue<'ink>,
         statement: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
+    ) -> PointerValue<'ink> {
         if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
             self.annotations.get(statement)
         {
-            Ok(self.deref(accessor_ptr))
+            self.deref(accessor_ptr)
         } else {
-            Ok(accessor_ptr)
+            accessor_ptr
         }
     }
 
@@ -1426,6 +1458,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index.get_type(DINT_TYPE)?,
             self.get_type_hint_for(access_expression)?,
             result.as_basic_value_enum(),
+            None,
         ))
     }
 
@@ -2072,7 +2105,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
-    fn generate_literal_array(&self, initializer: &AstStatement) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+    pub fn generate_literal_array(
+        &self,
+        initializer: &AstStatement,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let array_value = self.generate_literal_array_value(
             initializer,
             self.get_type_hint_info_for(initializer)?,
@@ -2486,6 +2522,99 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => None,
         }
     }
+
+    /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime
+    fn generate_element_pointer_for_vla(
+        &self,
+        reference: &AstStatement,
+        access: &AstStatement,
+    ) -> Result<PointerValue<'ink>, ()> {
+        let builder = &self.llvm.builder;
+
+        // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
+        let annotation = match reference {
+            AstStatement::Reference { .. } => self.annotations.get(reference),
+            AstStatement::ArrayAccess { reference, .. } => self.annotations.get(reference.as_ref()),
+            _ => unreachable!(),
+        };
+
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = annotation else {
+            unreachable!()
+        };
+
+        // if the vla parameter is by-ref, we need to dereference the pointer
+        let struct_ptr = self.auto_deref_if_necessary(
+            self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
+            reference,
+        );
+
+        // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
+        // dereferences the former
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
+        let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
+        // get pointer to array containing dimension information
+        let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
+
+        // get lengths of dimensions
+        let Some(type_) = self.annotations.get_type(reference, self.index) else {
+            unreachable!()
+        };
+        let Some(ndims) = type_.get_type_information().get_dimensions() else {
+            unreachable!()
+        };
+
+        // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
+        let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep);
+
+        // calculate the required offset from the array pointer for the given accessor statements. this is
+        // relatively straightforward for single-dimensional arrays, but is quite costly (O(n²)) for multi-dimensional arrays
+        let access_statements = access.get_as_list();
+        let accessor = if access_statements.len() == 1 {
+            let Some(stmt) = access_statements.get(0) else {
+                unreachable!("Must have exactly 1 access statement")
+            };
+            let access_value = self.generate_expression(stmt).map_err(|_| ())?;
+
+            // if start offset is not 0, adjust the access value accordingly
+            let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {
+                unreachable!("VLA must have information about dimension offsets")
+            };
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())
+                .into_int_value()
+        } else {
+            // see https://plc-lang.github.io/rusty/arch/codegen.html#multi-dimensional-arrays
+            // for more details on multi-dimensional array accessor calculation
+            let accessors = access_statements
+                .iter()
+                .map(|it| {
+                    self.generate_expression(it)
+                        .expect("Uncaught invalid accessor statement")
+                        .into_int_value()
+                })
+                .collect::<Vec<_>>();
+
+            if access_statements.len() != index_offsets.len() {
+                unreachable!("Amount of access statements and dimensions does not match.")
+            }
+
+            // length of a dimension is 'end - start + 1'
+            let lengths = get_dimension_lengths(self.llvm, &index_offsets);
+
+            // calculate the accessor multiplicators for each dimension.
+            let dimension_offsets = get_vla_accessor_factors(self.llvm, &lengths);
+
+            // adjust accessors for 0-indexing
+            let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets);
+
+            // calculate the resulting accessor for the given accessor statements and dimension offsets
+            int_value_multiply_accumulate(
+                self.llvm,
+                &adjusted_accessors.iter().zip(&dimension_offsets).collect::<Vec<_>>(),
+            )
+        };
+
+        Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
+    }
 }
 
 /// Returns the information required to call a parameter implicitly in a function
@@ -2519,11 +2648,137 @@ pub fn get_implicit_call_parameter<'a>(
     Ok((location, param_statement, is_implicit))
 }
 
-/// turns the given intValue into an i1 by comparing it to 0 (of the same size)
+/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
 pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
     if value.get_type().get_bit_width() > 1 {
         builder.build_int_compare(IntPredicate::NE, value, value.get_type().const_int(0, false), "")
     } else {
         value
     }
+}
+
+/// Gets a collection of start- and end-values for each dimension of a variable length array.
+///
+/// # Safety
+///
+/// performs in-bounds GEP operations at runtime
+fn get_indices<'ink>(
+    llvm: &Llvm<'ink>,
+    ndims: usize,
+    dimensions_array: PointerValue<'ink>,
+) -> Vec<(IntValue<'ink>, IntValue<'ink>)> {
+    (0..ndims)
+        .map(|i| unsafe {
+            let (start_ptr, end_ptr) = (
+                llvm.builder.build_in_bounds_gep(
+                    dimensions_array,
+                    &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(i as u64 * 2, false)],
+                    format!("start_idx_ptr{i}").as_str(),
+                ),
+                llvm.builder.build_in_bounds_gep(
+                    dimensions_array,
+                    &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(1 + i as u64 * 2, false)],
+                    format!("end_idx_ptr{i}").as_str(),
+                ),
+            );
+            (
+                llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()).into_int_value(),
+                llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()).into_int_value(),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+/// Adjusts VLA accessor values to 0-indexed accessors
+fn normalize_offsets<'ink>(
+    llvm: &Llvm<'ink>,
+    accessors: &[IntValue<'ink>],
+    offsets: &[(IntValue<'ink>, IntValue<'ink>)],
+) -> Vec<IntValue<'ink>> {
+    accessors
+        .iter()
+        .enumerate()
+        .zip(offsets.iter().map(|(start, _)| start))
+        .map(|((idx, accessor), start_offset)| {
+            llvm.builder.build_int_sub(*accessor, *start_offset, format!("adj_access{idx}").as_str())
+        })
+        .collect::<Vec<_>>()
+}
+
+fn get_dimension_lengths<'ink>(
+    llvm: &Llvm<'ink>,
+    offsets: &[(IntValue<'ink>, IntValue<'ink>)],
+) -> Vec<IntValue<'ink>> {
+    offsets
+        .iter()
+        .enumerate()
+        .map(|(idx, (start, end))| {
+            llvm.builder.build_int_add(
+                llvm.i32_type().const_int(1, false),
+                llvm.builder.build_int_sub(*end, *start, ""),
+                format!("len_dim{idx}").as_str(),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+fn get_vla_accessor_factors<'ink>(llvm: &Llvm<'ink>, lengths: &[IntValue<'ink>]) -> Vec<IntValue<'ink>> {
+    (0..lengths.len())
+        .map(|idx| {
+            if idx == lengths.len() - 1 {
+                // the last dimension has a factor of 1
+                llvm.i32_type().const_int(1, false)
+            } else {
+                // for other dimensions, calculate size to the right
+                int_value_product(llvm, &lengths[idx + 1..lengths.len()])
+            }
+        })
+        .collect::<Vec<_>>()
+}
+
+/// Computes the product of all elements in a collection of IntValues
+///
+/// a <- a * b
+fn int_value_product<'ink>(llvm: &Llvm<'ink>, values: &[IntValue<'ink>]) -> IntValue<'ink> {
+    // initialize the accumulator with 1
+    let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+    llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
+    for val in values {
+        // load previous value from accumulator and multiply with current value
+        let product = llvm.builder.build_int_mul(
+            llvm.builder.build_load(accum_ptr, "load_accum").into_int_value(),
+            *val,
+            "product",
+        );
+        // store new value into accumulator
+        llvm.builder.build_store(accum_ptr, product);
+    }
+
+    llvm.builder.build_load(accum_ptr, "accessor_factor").into_int_value()
+}
+
+/// Iterates over a collection of tuples, computes the product of the two numbers
+/// and adds that product to an accumulator.
+///
+/// a <- a + (b * c)
+fn int_value_multiply_accumulate<'ink>(
+    llvm: &Llvm<'ink>,
+    values: &[(&IntValue<'ink>, &IntValue<'ink>)],
+) -> IntValue<'ink> {
+    // initialize the accumulator with 0
+    let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+    llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+    for (left, right) in values {
+        // multiply accessor with dimension factor
+        let product = llvm.builder.build_int_mul(**left, **right, "multiply");
+        // load previous value from accum and add product
+        let curr = llvm.builder.build_int_add(
+            llvm.builder.build_load(accum, "load_accum").into_int_value(),
+            product,
+            "accumulate",
+        );
+        // store new value into accumulator
+        llvm.builder.build_store(accum, curr);
+    }
+    llvm.builder.build_load(accum, "accessor").into_int_value()
 }

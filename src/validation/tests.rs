@@ -10,6 +10,7 @@ mod pou_validation_tests;
 mod recursive_validation_tests;
 mod reference_resolve_tests;
 mod statement_validation_tests;
+mod variable_length_array_test;
 mod variable_validation_tests;
 
 #[macro_export]

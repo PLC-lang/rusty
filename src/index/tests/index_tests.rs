@@ -5,7 +5,7 @@ use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEnt
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
-use crate::typesystem::{TypeSize, INT_TYPE, VOID_TYPE};
+use crate::typesystem::{InternalType, StructSource, TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 #[test]
@@ -880,6 +880,7 @@ fn pre_processing_generates_inline_arrays() {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..77).into(),
@@ -935,6 +936,7 @@ fn pre_processing_generates_inline_array_of_array() {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..92).into(),
@@ -964,6 +966,7 @@ fn pre_processing_generates_inline_array_of_array() {
                 referenced_type: "__foo_inline_array_".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..92).into(),
@@ -1004,6 +1007,7 @@ fn pre_processing_generates_array_of_array_type() {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         location: SourceRange::undefined(),
         initializer: None,
@@ -1025,6 +1029,7 @@ fn pre_processing_generates_array_of_array_type() {
                 referenced_type: "__arr_arr".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         location: SourceRange::undefined(),
         initializer: None,
@@ -1098,6 +1103,7 @@ fn pre_processing_nested_array_in_struct() {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..77).into(),
@@ -1143,6 +1149,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (74..107).into(),
@@ -1172,6 +1179,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 referenced_type: "__foo_inline_array__".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..107).into(),
@@ -1201,6 +1209,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 referenced_type: "__foo_inline_array_".to_string(),
                 location: SourceRange::undefined(),
             }),
+            is_variable_length: false,
         },
         initializer: None,
         location: (59..107).into(),
@@ -1983,4 +1992,58 @@ fn global_variables_duplicates_are_indexed() {
     let x2 = globals.get(1).unwrap();
     assert_eq!(x2.get_name(), "x");
     assert_eq!(x2.get_type_name(), "BOOL");
+}
+
+#[test]
+fn internal_vla_struct_type_is_indexed_correctly() {
+    let id_provider = IdProvider::default();
+
+    let (_, index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+        END_FUNCTION
+    ",
+        id_provider,
+    );
+    assert_eq!(
+        *index.get_type("__foo_arr").unwrap().get_type_information(),
+        DataTypeInformation::Struct {
+            name: "__foo_arr".to_string(),
+            members: vec![
+                VariableIndexEntry {
+                    name: "struct_vla_int_1".to_string(),
+                    qualified_name: "__foo_arr.struct_vla_int_1".to_string(),
+                    initial_value: None,
+                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    is_constant: false,
+                    data_type_name: "__ptr_to___arr_vla_1_int".to_string(),
+                    location_in_parent: 0,
+                    linkage: LinkageType::Internal,
+                    binding: None,
+                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    varargs: None
+                },
+                VariableIndexEntry {
+                    name: "dimensions".to_string(),
+                    qualified_name: "__foo_arr.dimensions".to_string(),
+                    initial_value: None,
+                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    is_constant: false,
+                    data_type_name: "n_dims".to_string(),
+                    location_in_parent: 1,
+                    linkage: LinkageType::Internal,
+                    binding: None,
+                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    varargs: None
+                }
+            ],
+            source: StructSource::Internal(InternalType::VariableLengthArray {
+                inner_type_name: "INT".to_string(),
+                ndims: 1
+            })
+        }
+    );
 }
