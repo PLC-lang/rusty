@@ -2328,6 +2328,7 @@ fn arrays_can_be_parsed() {
                         referenced_type: DataTypeReference {
                             referenced_type: "STRING",
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -2411,8 +2412,10 @@ fn nested_arrays_can_be_parsed() {
                                 referenced_type: DataTypeReference {
                                     referenced_type: "STRING",
                                 },
+                                is_variable_length: false,
                             },
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -2505,6 +2508,7 @@ fn multidim_arrays_can_be_parsed() {
                         referenced_type: DataTypeReference {
                             referenced_type: "STRING",
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -2856,6 +2860,7 @@ fn array_type_as_function_return() {
                     id: 0,
                 },
                 name: None,
+                is_variable_length: false,
             },
             location: SourceRange::undefined(),
             scope: Some("foo".into()),

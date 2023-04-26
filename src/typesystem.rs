@@ -152,6 +152,10 @@ impl DataType {
         self.get_type_information().is_array()
     }
 
+    pub fn is_vla(&self) -> bool {
+        self.get_type_information().is_vla()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
@@ -220,6 +224,7 @@ impl DataType {
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
             TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
+
             _ => false,
         }
     }
@@ -260,10 +265,12 @@ impl StringEncoding {
     }
 }
 
+/// Enum for ranges and aggregate type sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
+    Undetermined,
 }
 
 impl TypeSize {
@@ -282,6 +289,7 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
+            TypeSize::Undetermined => Ok(POINTER_SIZE as i64),
         }
     }
 
@@ -291,6 +299,7 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
+            TypeSize::Undetermined => unreachable!(),
         }
     }
 }
@@ -300,6 +309,12 @@ impl TypeSize {
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
+    Internal(InternalType),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InternalType {
+    VariableLengthArray { inner_type_name: String, ndims: usize },
 }
 
 type TypeId = String;
@@ -421,6 +436,16 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Array { .. })
     }
 
+    pub fn is_vla(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+                ..
+            }
+        )
+    }
+
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,
@@ -428,6 +453,26 @@ impl DataTypeInformation {
                 | DataTypeInformation::Float { .. }
                 | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
+    }
+
+    pub fn get_dimensions(&self) -> Option<usize> {
+        match self {
+            DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { ndims, .. }),
+                ..
+            } => Some(*ndims),
+
+            _ => None,
+        }
+    }
+
+    pub fn get_vla_referenced_type(&self) -> Option<&str> {
+        let DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+            return None;
+        };
+
+        Some(inner_type_name)
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
@@ -606,6 +651,10 @@ impl Dimension {
         let start = self.start_offset.as_int_value(index)?;
         let end = self.end_offset.as_int_value(index)?;
         Ok(start..=end)
+    }
+
+    pub fn is_undetermined(&self) -> bool {
+        matches!((self.start_offset, self.end_offset), (TypeSize::Undetermined, TypeSize::Undetermined))
     }
 }
 
@@ -1050,6 +1099,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::String { size, .. } => match size {
             TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
+            TypeSize::Undetermined => unreachable!("Strings will never have undetermined size"),
         },
         DataTypeInformation::Enum { referenced_type, .. } => {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)

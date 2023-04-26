@@ -198,6 +198,7 @@ fn array_type_can_be_parsed_test() {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: false,
             },
             initializer: None,
             location: SourceRange::undefined(),
@@ -367,6 +368,7 @@ fn struct_with_inline_array_can_be_parsed() {
                         referenced_type: DataTypeReference {
                             referenced_type: "INT",
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -489,4 +491,110 @@ fn global_pointer_declaration() {
         range: vec![(91..98).into()],
     };
     assert_eq!(diagnostics[0], diagnostic);
+}
+
+#[test]
+fn variable_length_array_can_be_parsed() {
+    let (parse_result, diagnostics) = parse(
+        r#"
+    VAR_GLOBAL
+        x : ARRAY[*] OF INT;
+    END_VAR
+    "#,
+    );
+    assert_eq!(diagnostics.len(), 0);
+
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "x".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::VlaRangeStatement { id: 0 },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
+}
+
+#[test]
+fn multi_dimensional_variable_length_arrays_can_be_parsed() {
+    let (parse_result, diagnostics) = parse(
+        r#"
+    VAR_GLOBAL
+        x : ARRAY[*, *] OF INT;
+        y : ARRAY[*, *, *, *] OF INT;
+    END_VAR
+    "#,
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+
+    let var = &parse_result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "x".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::ExpressionList {
+                    expressions: vec![
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                    ],
+                    id: 0,
+                },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{var:#?}").as_str());
+
+    let var = &parse_result.global_vars[0].variables[1];
+    let expected = Variable {
+        name: "y".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::ExpressionList {
+                    expressions: vec![
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                    ],
+                    id: 0,
+                },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{var:#?}").as_str());
 }

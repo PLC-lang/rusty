@@ -21,9 +21,9 @@ use crate::{
     index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     lexer::IdProvider,
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE,
-        DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
-        TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
+        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -283,6 +283,7 @@ pub trait AnnotationMap {
     }
 }
 
+#[derive(Debug)]
 pub struct AstAnnotations {
     annotation_map: AnnotationMapImpl,
     bool_id: AstId,
@@ -739,7 +740,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_data_type_declaration(ctx, referenced_type)
             }
             DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
-                self.visit_data_type_declaration(ctx, referenced_type.as_ref());
+                self.visit_data_type_declaration(ctx, referenced_type.as_ref())
             }
             DataType::SubRangeType { referenced_type, bounds: Some(bounds), .. } => {
                 if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
@@ -818,6 +819,7 @@ impl<'i> TypeAnnotator<'i> {
         match statement {
             AstStatement::ArrayAccess { reference, access, .. } => {
                 visit_all_statements!(self, ctx, reference);
+
                 self.visit_statement(
                     &VisitorContext {
                         lhs: None,
@@ -832,12 +834,17 @@ impl<'i> TypeAnnotator<'i> {
                 );
                 let array_type =
                     self.annotation_map.get_type_or_void(reference, self.index).get_type_information();
-                let inner_type_name = if let DataTypeInformation::Array { inner_type_name, .. } = array_type {
-                    Some(
+
+                let inner_type_name = match array_type {
+                    DataTypeInformation::Array { inner_type_name, .. }
+                    | DataTypeInformation::Struct {
+                        source:
+                            StructSource::Internal(InternalType::VariableLengthArray { inner_type_name, .. }),
+                        ..
+                    } => Some(
                         self.index.get_effective_type_or_void_by_name(inner_type_name).get_name().to_string(),
-                    )
-                } else {
-                    None
+                    ),
+                    _ => None,
                 };
 
                 if let Some(inner_type_name) = inner_type_name {
@@ -1071,7 +1078,8 @@ impl<'i> TypeAnnotator<'i> {
                         })
                 };
                 if let Some(annotation) = annotation {
-                    self.annotation_map.annotate(statement, annotation)
+                    self.annotation_map.annotate(statement, annotation);
+                    self.maybe_annotate_vla(ctx, statement);
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {
@@ -1190,6 +1198,54 @@ impl<'i> TypeAnnotator<'i> {
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
+            }
+        }
+    }
+
+    /// Checks if the given reference statement is a VLA struct and if so annotates it with a type hint
+    /// referencing the contained array. This is needed to simplify codegen and validation.
+    fn maybe_annotate_vla(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+        if let DataTypeInformation::Struct {
+            source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+            members,
+            ..
+        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
+        {
+            if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
+                .index
+                .get_effective_type_or_void_by_name(
+                    members.get(0).expect("internal VLA struct ALWAYS has this member").get_type_name(),
+                )
+                .get_type_information()
+            {
+                let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
+                    unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
+                };
+
+                let Some(pou) = ctx.pou else {
+                    unreachable!("VLA not allowed outside of POUs")
+                };
+
+                let AstStatement::Reference { name, .. } = statement else {
+                    unreachable!("must be a reference to a VLA")
+                };
+
+                let Some(variable_type) = self.index.get_pou_members(pou)
+                    .iter()
+                    .filter(|it| it.get_name() == name)
+                    .map(|it| it.get_variable_type())
+                    .next() else {
+                        unreachable!()
+                    };
+
+                let hint_annotation = StatementAnnotation::Variable {
+                    resulting_type: inner_type_name.to_owned(),
+                    qualified_name: qualified_name.to_string(),
+                    constant: false,
+                    variable_type,
+                    is_auto_deref: false,
+                };
+                self.annotation_map.annotate_type_hint(statement, hint_annotation)
             }
         }
     }

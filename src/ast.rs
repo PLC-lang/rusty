@@ -261,6 +261,19 @@ pub enum PouType {
     Method { owner_class: String },
 }
 
+impl Display for PouType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PouType::Program => write!(f, "Program"),
+            PouType::Function => write!(f, "Function"),
+            PouType::FunctionBlock => write!(f, "FunctionBlock"),
+            PouType::Action => write!(f, "Action"),
+            PouType::Class => write!(f, "Class"),
+            PouType::Method { .. } => write!(f, "Method"),
+        }
+    }
+}
+
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
@@ -361,6 +374,19 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+}
+
+impl Display for VariableBlockType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            VariableBlockType::Local => write!(f, "Local"),
+            VariableBlockType::Temp => write!(f, "Temp"),
+            VariableBlockType::Input(_) => write!(f, "Input"),
+            VariableBlockType::Output => write!(f, "Output"),
+            VariableBlockType::Global => write!(f, "Global"),
+            VariableBlockType::InOut => write!(f, "InOut"),
+        }
+    }
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone)]
@@ -566,6 +592,11 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
         }
     }
+
+    pub fn get_referenced_type(&self) -> Option<String> {
+        let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
+        Some(referenced_type.to_owned())
+    }
 }
 
 #[derive(PartialEq)]
@@ -607,6 +638,7 @@ pub enum DataType {
         name: Option<String>,
         bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
+        is_variable_length: bool,
     },
     PointerType {
         name: Option<String>,
@@ -665,10 +697,7 @@ impl DataType {
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
-            DataType::ArrayType { referenced_type, .. } => {
-                replace_reference(referenced_type, type_name, location)
-            }
-            DataType::PointerType { referenced_type, .. } => {
+            DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } => {
                 replace_reference(referenced_type, type_name, location)
             }
             _ => None,
@@ -784,8 +813,11 @@ pub enum AstStatement {
         id: AstId,
     },
     RangeStatement {
+        id: AstId,
         start: Box<AstStatement>,
         end: Box<AstStatement>,
+    },
+    VlaRangeStatement {
         id: AstId,
     },
     // Assignment
@@ -885,6 +917,7 @@ impl Debug for AstStatement {
             AstStatement::RangeStatement { start, end, .. } => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
             }
+            AstStatement::VlaRangeStatement { .. } => f.debug_struct("VlaRangeStatement").finish(),
             AstStatement::Assignment { left, right, .. } => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
@@ -993,6 +1026,7 @@ impl AstStatement {
                 let end_loc = end.get_location();
                 start_loc.span(&end_loc)
             }
+            AstStatement::VlaRangeStatement { .. } => SourceRange::undefined(), // internal type only
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1042,6 +1076,7 @@ impl AstStatement {
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,
             AstStatement::RangeStatement { id, .. } => *id,
+            AstStatement::VlaRangeStatement { id, .. } => *id,
             AstStatement::Assignment { id, .. } => *id,
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
@@ -1340,4 +1375,30 @@ pub fn create_call_to_check_function_ast(
         location,
         id_provider,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ast::{ArgumentProperty, PouType, VariableBlockType};
+
+    #[test]
+    fn display_pou() {
+        assert_eq!(PouType::Program.to_string(), "Program");
+        assert_eq!(PouType::Function.to_string(), "Function");
+        assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
+        assert_eq!(PouType::Action.to_string(), "Action");
+        assert_eq!(PouType::Class.to_string(), "Class");
+        assert_eq!(PouType::Method { owner_class: "...".to_string() }.to_string(), "Method");
+    }
+
+    #[test]
+    fn display_variable_block_type() {
+        assert_eq!(VariableBlockType::Local.to_string(), "Local");
+        assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
+        assert_eq!(VariableBlockType::Output.to_string(), "Output");
+        assert_eq!(VariableBlockType::Global.to_string(), "Global");
+        assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+    }
 }

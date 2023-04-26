@@ -10,7 +10,8 @@ use crate::{
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, BOOL_TYPE, POINTER_SIZE,
+        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
+        BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -91,7 +92,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
-            validate_call(validator, operator, parameters, context);
+            validate_call(validator, operator, parameters, &context.set_is_call());
         }
         AstStatement::IfStatement { blocks, else_block, .. } => {
             blocks.iter().for_each(|b| {
@@ -296,19 +297,49 @@ fn visit_array_access(
 ) {
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
-    if let DataTypeInformation::Array { dimensions, .. } = target_type {
-        if let AstStatement::ExpressionList { expressions, .. } = access {
-            for (i, exp) in expressions.iter().enumerate() {
-                validate_array_access(validator, exp, dimensions, i, context);
+    match target_type {
+        DataTypeInformation::Array { dimensions, .. } => match access {
+            AstStatement::ExpressionList { expressions, .. } => {
+                validate_array_access_dimensions(dimensions.len(), expressions.len(), validator, access);
+
+                for (i, exp) in expressions.iter().enumerate() {
+                    validate_array_access(validator, exp, dimensions, i, context);
+                }
             }
-        } else {
-            validate_array_access(validator, access, dimensions, 0, context);
+
+            _ => {
+                validate_array_access_dimensions(dimensions.len(), 1, validator, access);
+                validate_array_access(validator, access, dimensions, 0, context)
+            }
+        },
+
+        DataTypeInformation::Struct {
+            source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
+            ..
+        } => {
+            let dims = match access {
+                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+                _ => 1,
+            };
+
+            validate_array_access_dimensions(*ndims, dims, validator, access);
         }
-    } else {
-        validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
+
+        _ => validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
             target_type.get_name(),
             access.get_location(),
-        ));
+        )),
+    }
+}
+
+fn validate_array_access_dimensions(
+    ndims: usize,
+    dims: usize,
+    validator: &mut Validator,
+    access: &AstStatement,
+) {
+    if ndims != dims {
+        validator.push_diagnostic(Diagnostic::invalid_array_access(ndims, dims, access.get_location()))
     }
 }
 
@@ -532,8 +563,17 @@ fn validate_assignment(
             left_type
         };
 
-        if !left_type.is_compatible_with_type(right_type)
-            || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
+        // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
+        // are no longer allowed inside a POU body
+        if left_type.is_vla() && right_type.is_array() && context.is_call() {
+            // TODO: This could benefit from a better error message, tracked in
+            // https://github.com/PLC-lang/rusty/issues/118
+            validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
+            return;
+        }
+
+        if !(left_type.is_compatible_with_type(right_type)
+            && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type.get_type_information().get_name(),
@@ -543,6 +583,31 @@ fn validate_assignment(
         } else if !matches!(right, AstStatement::Literal { .. }) {
             validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
+    }
+}
+
+fn validate_variable_length_array_assignment(
+    validator: &mut Validator,
+    context: &ValidationContext,
+    location: &SourceRange,
+    left_type: &DataType,
+    right_type: &DataType,
+) {
+    let left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
+    let right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
+
+    let left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
+    let right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
+
+    let left_dims = left_type.get_type_information().get_dimensions().unwrap();
+    let right_dims = right_type.get_type_information().get_dimensions().unwrap();
+
+    if left_dt != right_dt || left_dims != right_dims {
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            right_type.get_type_information().get_name(),
+            left_type.get_type_information().get_name(),
+            location.clone(),
+        ));
     }
 }
 
