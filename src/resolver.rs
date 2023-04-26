@@ -14,8 +14,8 @@ pub mod generics;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        flatten_expression_list, Array, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, Operator, Pou, StringValue, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -571,7 +571,7 @@ impl<'i> TypeAnnotator<'i> {
     fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstStatement) {
         //see if we need to dive into it
         match statement {
-            AstStatement::Literal { kind: AstLiteral::Array { elements: Some(elements) }, .. } => {
+            AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(elements) }), .. } => {
                 //annotate the literal-array itself
                 self.annotation_map
                     .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
@@ -1154,14 +1154,14 @@ impl<'i> TypeAnnotator<'i> {
                         (
                             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
                             AstStatement::Literal {
-                                kind: AstLiteral::String { value, is_wide: is_wide @ true },
+                                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ true }),
                                 ..
                             },
                         )
                         | (
                             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
                             AstStatement::Literal {
-                                kind: AstLiteral::String { value, is_wide: is_wide @ false },
+                                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ false }),
                                 ..
                             },
                         ) => {
@@ -1383,7 +1383,7 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
                     }
 
-                    AstLiteral::String { is_wide, value, .. } => {
+                    AstLiteral::String(StringValue { is_wide, value, .. }) => {
                         let string_type_name =
                             register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
                         self.annotation_map
@@ -1398,7 +1398,7 @@ impl<'i> TypeAnnotator<'i> {
                             }
                         }
                     }
-                    AstLiteral::Integer { value, .. } => {
+                    AstLiteral::Integer(value) => {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(get_int_type_name_for(*value)));
                     }
@@ -1415,11 +1415,11 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
                     }
-                    AstLiteral::Real { value, .. } => {
+                    AstLiteral::Real(value) => {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
                     }
-                    AstLiteral::Array { elements: Some(elements), .. } => {
+                    AstLiteral::Array(Array { elements: Some(elements), .. }) => {
                         self.visit_statement(ctx, elements.as_ref());
                         //TODO as of yet we have no way to derive a name that reflects a fixed size array
                     }

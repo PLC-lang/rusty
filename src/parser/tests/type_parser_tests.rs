@@ -183,12 +183,12 @@ fn array_type_can_be_parsed_test() {
                 name: Some("MyArray".to_string()),
                 bounds: AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 0 },
+                        kind: AstLiteral::new_integer(0),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
                     end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 8 },
+                        kind: AstLiteral::new_integer(8),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
@@ -226,7 +226,7 @@ fn string_type_can_be_parsed_test() {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
                     size: Some(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 253 },
+                        kind: AstLiteral::new_integer(253),
                         location: (10..11).into(),
                         id: 0
                     }),
@@ -240,14 +240,14 @@ fn string_type_can_be_parsed_test() {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
                     size: Some(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 253 },
+                        kind: AstLiteral::new_integer(253),
                         location: (10..11).into(),
                         id: 0
                     }),
                     is_wide: false,
                 },
                 initializer: Some(AstStatement::Literal {
-                    kind: AstLiteral::String { is_wide: false, value: "abc".into() },
+                    kind: AstLiteral::new_string("abc".into(), false),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -276,7 +276,7 @@ fn wide_string_type_can_be_parsed_test() {
             data_type: DataType::StringType {
                 name: Some("MyString".to_string()),
                 size: Some(AstStatement::Literal {
-                    kind: AstLiteral::Integer { value: 253 },
+                    kind: AstLiteral::new_integer(253),
                     location: (10..11).into(),
                     id: 0
                 }),
@@ -308,12 +308,12 @@ fn subrangetype_can_be_parsed() {
                 name: None,
                 bounds: Some(AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 0 },
+                        kind: AstLiteral::new_integer(0),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
                     end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::Integer { value: 1000 },
+                        kind: AstLiteral::new_integer(1000),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),

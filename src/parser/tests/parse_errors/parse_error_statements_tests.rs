@@ -375,7 +375,7 @@ fn test_nested_if_with_missing_end_if() {
             vec![AstStatement::IfStatement {
                 blocks: vec![ConditionalBlock {
                     condition: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::Bool { value: false },
+                        kind: AstLiteral::new_bool(false),
                         location: SourceRange::undefined(),
                         id: 0
                     }),
@@ -383,7 +383,7 @@ fn test_nested_if_with_missing_end_if() {
                         AstStatement::IfStatement {
                             blocks: vec![ConditionalBlock {
                                 condition: Box::new(AstStatement::Literal {
-                                    kind: AstLiteral::Bool { value: true },
+                                    kind: AstLiteral::new_bool(true),
                                     location: SourceRange::undefined(),
                                     id: 0
                                 }),
@@ -460,12 +460,12 @@ fn test_nested_for_with_missing_end_for() {
             vec![AstStatement::ForLoopStatement {
                 counter: Box::new(ref_to("x")),
                 start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::Integer { value: 1 },
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0
                 }),
                 end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::Integer { value: 2 },
+                    kind: AstLiteral::new_integer(2),
                     location: SourceRange::undefined(),
                     id: 0
                 }),
@@ -474,12 +474,12 @@ fn test_nested_for_with_missing_end_for() {
                     AstStatement::ForLoopStatement {
                         counter: Box::new(ref_to("x")),
                         start: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::Integer { value: 1 },
+                            kind: AstLiteral::new_integer(1),
                             location: SourceRange::undefined(),
                             id: 0
                         }),
                         end: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::Integer { value: 2 },
+                            kind: AstLiteral::new_integer(2),
                             location: SourceRange::undefined(),
                             id: 0
                         }),
@@ -535,7 +535,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                     body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
                         right: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::Integer { value: 3 },
+                            kind: AstLiteral::new_integer(3),
                             location: SourceRange::undefined(),
                             id: 0
                         }),
@@ -749,7 +749,7 @@ fn test_while_with_missing_semicolon_in_body() {
                     body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
                         right: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::Integer { value: 3 },
+                            kind: AstLiteral::new_integer(3),
                             location: SourceRange::undefined(),
                             id: 0
                         }),

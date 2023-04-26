@@ -79,7 +79,7 @@ fn exponent_literals_parsed_as_variables() {
                 location: SourceRange::undefined(),
             }),
             right: Box::new(AstStatement::Literal {
-                kind: AstLiteral::Real { value: "1.0E6".into() },
+                kind: AstLiteral::new_real("1.0E6".into()),
                 id: 0,
                 location: SourceRange::undefined(),
             }),

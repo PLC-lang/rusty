@@ -204,7 +204,7 @@ impl ConstExpressions {
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
             |it| match it {
-                AstStatement::Literal { kind: AstLiteral::Integer { value, .. }, .. } => Ok(*value),
+                AstStatement::Literal { kind: AstLiteral::Integer(i), .. } => Ok(*i),
                 _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )

@@ -1,10 +1,10 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
+use crate::ast::AstLiteral;
 use crate::ast::{
-    self, ArgumentProperty, AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-    Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
-    VariableBlockType,
+    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
@@ -583,7 +583,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::Literal { kind: AstLiteral::Integer { value, .. }, .. }) => {
+                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {

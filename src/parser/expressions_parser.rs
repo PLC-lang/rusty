@@ -177,11 +177,11 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
 
         match (&operator, &expression) {
-            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer { value, .. }, .. }) => {
+            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
                 AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer { value, .. }, .. }) => {
+            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
                 AstStatement::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
@@ -747,7 +747,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
     }
 
     Ok(AstStatement::new_literal(
-        AstLiteral::Time {
+        AstLiteral::Time(Time {
             day: values[POS_D].unwrap_or_default(),
             hour: values[POS_H].unwrap_or_default(),
             min: values[POS_M].unwrap_or_default(),
@@ -756,7 +756,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
             micro: values[POS_US].unwrap_or_default(),
             nano: values[POS_NS].map(|it| it as u32).unwrap_or(0u32),
             negative: is_negative,
-        },
+        }),
         lexer.next_id(),
         location,
     ))
