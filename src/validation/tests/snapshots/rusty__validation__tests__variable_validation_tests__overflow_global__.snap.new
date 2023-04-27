@@ -1,9 +1,0 @@
----
-source: src/validation/tests/variable_validation_tests.rs
-assertion_line: 307
-expression: res
----
-SemanticError { message: "Literal out of range for INT", range: [SourceRange { range: 53..58 }], err_no: var__overflow }
-SemanticError { message: "Literal out of range for INT", range: [SourceRange { range: 121..126 }], err_no: var__overflow }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'DINT' to variable of type 'INT'.", range: [SourceRange { range: 252..260 }] }
-

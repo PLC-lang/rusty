@@ -1113,7 +1113,7 @@ impl AstStatement {
         }
     }
 
-    /// Returns true if the current statement is a literal
+    /// Returns true if the current statement is a reference
     pub fn is_reference(&self) -> bool {
         matches!(self, AstStatement::Reference { .. })
     }
