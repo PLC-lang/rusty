@@ -194,7 +194,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     target_type,
                 );
 
-                match (initial_value_literal, candidates_type) {
+                match (initial_value_literal.to_owned(), candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
                         Ok(Some(AstStatement::LiteralInteger { value, id, location })),
@@ -219,6 +219,11 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     (Ok(Some(literal)), _) => {
                         let literal = cast_if_necessary(
                             literal,
+                            &index.get_const_expressions().find_expression_target_type(&candidate),
+                            &index,
+                        );
+                        check_if_overflows(
+                            &literal,
                             &index.get_const_expressions().find_expression_target_type(&candidate),
                             &index,
                         );
@@ -309,6 +314,38 @@ fn get_default_initializer(
             _ => None,
         };
         Ok(init)
+    }
+}
+
+fn check_if_overflows(literal: &AstStatement, target_type_name: &Option<&str>, index: &Index) {
+    if let Some(dt) = target_type_name.and_then(|it| index.find_effective_type_by_name(it)) {
+        let dti = dt.get_type_information();
+        // dbg!((literal, dti));
+
+        let overflow = match dt.get_type_information() {
+            DataTypeInformation::Integer { signed, size, .. } => match (signed, size, literal) {
+                (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(*value).is_err(),
+                (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(*value).is_err(),
+                (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(*value).is_err(),
+                (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(*value).is_err(),
+
+                (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(*value).is_err(),
+                (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(*value).is_err(),
+                (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(*value).is_err(),
+                (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(*value).is_err(),
+
+                _ => return,
+            },
+
+            _ => {
+                println!("unhandled: {literal:?}");
+                return;
+            }
+        };
+
+        if overflow {
+            println!("{literal:?} will overflow");
+        }
     }
 }
 

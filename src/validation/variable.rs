@@ -84,33 +84,28 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
 
 /// Checks if a literal or an expression would yield an overflow and if so reports it.
 fn check_if_overflows(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
-    let Some(initializer) = &variable.initializer else {
-        return
-    };
+    let Some(entry) = context.qualifier
+        .and_then(|qualifier| context.index.find_member(qualifier, &variable.name))
+        .or_else(|| context.index.find_global_variable(&variable.name)) else {
+            return 
+        };
 
-    let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else {
-        return
-    };
+    let Some(id) = entry.initial_value else { return };
+    let Some(initializer) = context.index.get_const_expressions().get_resolved_constant_statement(&id) else { return };
+    let Some(dt) = context.index.find_effective_type_info(&entry.data_type_name) else { return };
 
-    let Some(dt) = context.index.find_effective_type_by_name(referenced_type) else {
-        return
-    };
 
-    let Ok(Some(initializer)) = const_evaluator::evaluate(initializer, None, context.index) else {
-        return
-    };
-
-    let overflow = match dt.get_type_information() {
+    let overflow = match dt {
         DataTypeInformation::Integer { signed, size, .. } => match (signed, size, initializer) {
-            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(value).is_err(),
-            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(value).is_err(),
-            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(value).is_err(),
-            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(value).is_err(),
+            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(*value).is_err(),
+            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(*value).is_err(),
+            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(*value).is_err(),
+            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(*value).is_err(),
 
-            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(value).is_err(),
-            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(value).is_err(),
-            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(value).is_err(),
-            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(value).is_err(),
+            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(*value).is_err(),
+            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(*value).is_err(),
+            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(*value).is_err(),
+            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(*value).is_err(),
 
             _ => return,
         },

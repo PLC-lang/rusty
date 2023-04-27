@@ -160,8 +160,7 @@ fn sized_varargs_require_type() {
 }
 
 #[test]
-fn overflow_literal() {
-    // Check if we detect overflows in literals
+fn overflow_with_literals() {
     let diagnostics = parse_and_validate(
         "
         FUNCTION main : DINT
@@ -206,13 +205,11 @@ fn overflow_literal() {
         ",
     );
 
-    assert_eq!(diagnostics.len(), 20);
     assert_validation_snapshot!(diagnostics);
 }
 
 #[test]
-fn overflow_expression() {
-    // Check if we detect overflows in expressions
+fn overflow_with_expression() {
     let diagnostics = parse_and_validate(
         "
         FUNCTION main : DINT
@@ -257,13 +254,11 @@ fn overflow_expression() {
         ",
     );
 
-    assert_eq!(diagnostics.len(), 20);
     assert_validation_snapshot!(diagnostics);
 }
 
 #[test]
-fn overflow_global() {
-    // Check if we detect overflows in literals
+fn overflow_with_global_literals_and_expressions() {
     let diagnostics = parse_and_validate(
         "
         VAR_GLOBAL
@@ -273,6 +268,5 @@ fn overflow_global() {
         ",
     );
 
-    assert_eq!(diagnostics.len(), 2);
     assert_validation_snapshot!(diagnostics);
 }
