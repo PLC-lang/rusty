@@ -178,3 +178,27 @@ mod assignment {
         assert_validation_snapshot!(diagnostics);
     }
 }
+
+mod builtins {
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+
+    #[test]
+    fn builtins_called_with_invalid_type() {
+        let diagnostics = parse_and_validate(
+            "
+        FUNCTION main : DINT
+        VAR CONSTANT
+            MY_CONST : DINT := 10;
+        END_VAR
+        VAR
+            // x: DINT;
+            x : ARRAY[0..1] OF DINT;
+        END_VAR
+            LOWER_BOUND(x, MY_CONST + 1);
+        END_FUNCTION
+        ",
+        );
+
+        dbg!(diagnostics);
+    }
+}

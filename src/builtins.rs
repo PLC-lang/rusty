@@ -13,7 +13,7 @@ use crate::{
         SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::Diagnostic,
+    diagnostics::{Diagnostic, ErrNo},
     lexer::{self, IdProvider},
     parser,
     resolver::{
@@ -21,7 +21,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::DataTypeInformation,
+    typesystem::{DataTypeInformation, InternalType, StructSource},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -267,10 +267,12 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: None,
+                annotation: Some(|annotator, operator, parameters, _|{
+                    validate_vla_builtins(annotator, operator, parameters, true)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, location| {
-                    generate_variable_length_array_bound_function(generator, params, location, true)
+                code : |generator, params, _| {
+                    generate_variable_length_array_bound_function(generator, params, true)
                 }
             }
         ),
@@ -283,115 +285,114 @@ lazy_static! {
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: None,
+                annotation: Some(|annotator, operator, parameters, _|{
+                    validate_vla_builtins(annotator, operator, parameters, false)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, location| {
-                    generate_variable_length_array_bound_function(generator, params, location, false)
+                code : |generator, params, _| {
+                    generate_variable_length_array_bound_function(generator, params, false)
                 }
             }
         ),
     ]);
 }
 
+fn validate_vla_builtins(
+    annotator: &mut TypeAnnotator,
+    operator: &AstStatement,
+    parameters: Option<&AstStatement>,
+    is_lower: bool,
+) -> Result<(), Diagnostic> {
+    let pou_name = if is_lower { "LOWER_BOUND" } else { "UPPER_BOUND" };
+
+    let params = parameters.ok_or_else(|| {
+        Diagnostic::codegen_error(&format!("{} requires parameters", pou_name), operator.get_location())
+    })?;
+    // Get the input and annotate it with a vla type
+    let params = flatten_expression_list(params);
+    let Some(input) = params.get(0) else {
+            unreachable!()
+    };
+    let type_information =
+        annotator.annotation_map.get_type_or_void(input, annotator.index).get_type_information();
+
+    if !matches!(
+        type_information,
+        DataTypeInformation::Struct {
+            source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+            ..
+        }
+    ) {
+        return Err(Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid parameter type for {} function. Expected array or variable length array, found {}",
+                pou_name,
+                type_information.get_name()
+            ),
+            range: vec![operator.get_location()],
+            err_no: ErrNo::call__invalid_parameter_type,
+        });
+    };
+
+    Ok(())
+}
 /// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
     params: &[&AstStatement],
-    location: SourceRange,
     is_lower: bool,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-    let [AstStatement::Reference { .. }, AstStatement::LiteralInteger {..} | AstStatement::Reference {..}] = params else {
-        return Err(
-            Diagnostic::codegen_error(
-                &format!("Invalid {} function signature", if is_lower { "LOWER_BOUND" } else { "UPPER_BOUND" }),
-                location
-            )
-        )
-    };
-
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
     let data_type_information =
         generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    if !(data_type_information.is_vla() || data_type_information.is_array()) {
-        return Err(Diagnostic::codegen_error(&format!("Expected an array, got {:?}", params[0]), location));
-    }
-
-    // Code for when the function is called with a normal array argument
-    if let DataTypeInformation::Array { dimensions, .. } = data_type_information {
-        match params[1] {
-            // e.g. LOWER_BOUND(arr, 1)
-            AstStatement::LiteralInteger { value, .. } => {
-                let i = *value as usize - 1;
-                let offset = if is_lower { dimensions[i].start_offset } else { dimensions[i].end_offset };
-
-                return Ok(ExpressionValue::RValue(
-                    llvm.i32_type()
-                        .const_int(offset.as_int_value(generator.index).unwrap() as u64, false)
-                        .into(),
-                ));
-            }
-
-            // e.g. LOWER_BOUND(arr, idx)
-            AstStatement::Reference { .. } => {
-                return Err(Diagnostic::codegen_error(
-                    // FIXME: is there a way to access lower/upper-bound information for regular arrays at runtime?
-                    // accessing the dimension.start_offset/end_offset does not seem to be an option, since the value behind
-                    // the reference is not known at compile-time
-                    "Dimension index cannot be a reference for arrays. Information not available at runtime.",
-                    location,
-                ));
-            }
-
-            _ => unreachable!("other possibilities are excluded via pattern-matching above"),
-        }
-    }
-
-    // Code for when the function is called with a variable length array
-    if let DataTypeInformation::Struct { .. } = data_type_information {
-        let vla = generator.generate_element_pointer(params[0]).unwrap();
-        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
-
-        let accessor = match params[1] {
-            // e.g. LOWER_BOUND(arr, 1)
-            AstStatement::LiteralInteger { value, .. } => {
-                // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
-                // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
-                let raw = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
-                llvm.i32_type().const_int(raw, false)
-            }
-
-            // e.g. LOWER_BOUND(arr, idx)
-            AstStatement::Reference { .. } => {
-                let Some(StatementAnnotation::Variable { qualified_name, .. }) = generator.annotations.get(params[1]) else {
-                    return Err(Diagnostic::codegen_error("Expected a variable reference", location))                
-                };
-
-                let ptr = generator.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
-                let value = builder.build_load(ptr, "").into_int_value();
-
-                let sub = builder.build_int_sub(value, llvm.i32_type().const_int(1, false), "");
-                let mut mul = builder.build_int_mul(llvm.i32_type().const_int(2, false), sub, "");
-
-                if !is_lower {
-                    mul = builder.build_int_add(mul, llvm.i32_type().const_int(1, false), "")
-                }
-
-                mul
-            }
-
-            _ => unreachable!("other possibilities are excluded via pattern-matching above"),
+    let DataTypeInformation::Struct { .. } = data_type_information else {
+            unreachable!()
         };
 
-        let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-        let bound = llvm.builder.build_load(gep_bound, "");
+    let vla = generator.generate_element_pointer(params[0]).unwrap();
+    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
-        return Ok(ExpressionValue::RValue(bound));
-    }
+    let accessor = match params[1] {
+        // e.g. LOWER_BOUND(arr, 1)
+        AstStatement::LiteralInteger { value, .. } => {
+            // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
+            // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
+            let raw = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+            llvm.i32_type().const_int(raw, false)
+        }
+        _ => {
+            let expression_value = generator.generate_expression(params[1])?;
+            if !expression_value.is_int_value() {
+                todo!()
+            };
+            // e.g. LOWER_BOUND(arr, idx)
+            let dimension_accessor = builder.build_int_mul(
+                llvm.i32_type().const_int(2, false),
+                builder.build_int_sub(
+                    expression_value.into_int_value(),
+                    llvm.i32_type().const_int(1, false),
+                    "",
+                ),
+                "",
+            );
 
-    unreachable!()
+            let bound = if !is_lower {
+                builder.build_int_add(dimension_accessor, llvm.i32_type().const_int(1, false), "")
+            } else {
+                dimension_accessor
+            };
+
+            bound
+        }
+    };
+
+    let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+    let bound = llvm.builder.build_load(gep_bound, "");
+
+    Ok(ExpressionValue::RValue(bound))
 }
 
 type AnnotationFunction =

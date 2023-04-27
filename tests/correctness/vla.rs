@@ -944,4 +944,83 @@ mod builtins {
         let _: i32 = compile_and_run(src.to_string(), &mut main_type);
         assert_eq!(10, main_type.sum);
     }
+
+    #[test]
+    fn variable_length_array_binary_expression() {
+        #[derive(Default)]
+        struct MainType {
+            a: i32,
+            b: i32,
+        }
+
+        let src = r#"
+        VAR_GLOBAL CONSTANT
+            MY_CONST : DINT := 10;
+        END_VAR
+
+        PROGRAM main        
+        VAR
+            a, b: DINT;
+        END_VAR
+        VAR_TEMP
+            x : ARRAY[-5..5] OF DINT;
+        END_VAR
+            a := lower(x);
+            b := upper(x);
+        END_FUNCTION
+
+        FUNCTION lower : DINT        
+        VAR_INPUT
+            vla : ARRAY[*] OF DINT;
+        END_VAR
+            lower := LOWER_BOUND(vla, MY_CONST - 9);
+        END_FUNCTION
+
+        FUNCTION upper : DINT        
+        VAR_INPUT
+            vla : ARRAY[*] OF DINT;
+        END_VAR
+            upper := UPPER_BOUND(vla, MY_CONST - 9);
+        END_FUNCTION
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.a, -5);
+        assert_eq!(main_type.b, 5);
+    }
+
+    #[test]
+    fn variable_length_array_wrong_params() {
+        #[derive(Default)]
+        struct MainType {
+            a: i32,
+            b: i32,
+        }
+
+        let src = r#"
+        PROGRAM main        
+        VAR
+            a, b: DINT;
+        END_VAR
+        VAR_TEMP
+            x : ARRAY[-5..5] OF DINT;
+        END_VAR
+            a := lower(x);
+            b := upper(x);
+        END_FUNCTION
+
+        FUNCTION lower : DINT        
+        VAR_INPUT
+            vla : ARRAY[*] OF DINT;
+        END_VAR
+            lower := LOWER_BOUND(vla, REAL#2.1);
+        END_FUNCTION
+        "#;
+
+        let mut main_type = MainType::default();
+        let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+        assert_eq!(main_type.a, -5);
+        assert_eq!(main_type.b, 5);
+    }
 }
