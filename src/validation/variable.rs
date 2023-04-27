@@ -13,6 +13,7 @@ use super::{
 };
 
 pub fn visit_variable_block(validator: &mut Validator, block: &VariableBlock, context: &ValidationContext) {
+    dbg!(context.index.get_const_expressions());
     validate_variable_block(validator, block);
 
     for variable in &block.variables {

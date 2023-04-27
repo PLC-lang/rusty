@@ -222,12 +222,8 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             &index.get_const_expressions().find_expression_target_type(&candidate),
                             &index,
                         );
-                        check_if_overflows(
-                            &literal,
-                            &index.get_const_expressions().find_expression_target_type(&candidate),
-                            &index,
-                        );
-                        do_resolve_candidate(&mut index, candidate, literal);
+                        do_resolve_candidate(&mut index, candidate, literal.to_owned());
+                        check_if_overflows(&literal, &candidate, &mut index);
                         failed_tries = 0;
                     }
 
@@ -317,7 +313,8 @@ fn get_default_initializer(
     }
 }
 
-fn check_if_overflows(literal: &AstStatement, target_type_name: &Option<&str>, index: &Index) {
+fn check_if_overflows(literal: &AstStatement, candidate: &generational_arena::Index, index: &mut Index) {
+    let target_type_name = &mut index.get_const_expressions().find_expression_target_type(&candidate);
     if let Some(dt) = target_type_name.and_then(|it| index.find_effective_type_by_name(it)) {
         let dti = dt.get_type_information();
         // dbg!((literal, dti));
@@ -344,7 +341,7 @@ fn check_if_overflows(literal: &AstStatement, target_type_name: &Option<&str>, i
         };
 
         if overflow {
-            println!("{literal:?} will overflow");
+            index.get_mut_const_expressions().mark_unresolvable(candidate, "Overflows").unwrap();
         }
     }
 }
