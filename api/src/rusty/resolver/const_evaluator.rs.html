@@ -664,9 +664,30 @@
 <a href="#664" id="664">664</a>
 <a href="#665" id="665">665</a>
 <a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use crate</span>::{
+    ast::literals::{Array, AstLiteral, StringValue},
     ast::{AstId, AstStatement, Operator, SourceRange},
     index::{
         const_expressions::{ConstExpression, ConstId},
@@ -688,36 +709,36 @@
 <span class="macro">macro_rules! </span>arithmetic_expression {
     (<span class="macro-nonterminal">$left</span>:expr, <span class="macro-nonterminal">$op</span>:tt, <span class="macro-nonterminal">$right</span>:expr, <span class="macro-nonterminal">$op_text</span>:expr, <span class="macro-nonterminal">$resulting_id</span>:expr) =&gt; {
         <span class="kw">match </span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$right</span>) {
-            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) =&gt; {
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralInteger{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: lvalue <span class="macro-nonterminal">$op </span>rvalue, location: loc_left.span(loc_right)
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) =&gt; {
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_integer(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: loc_left.span(loc_right)
                 })
             },
-            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralReal{value: rvalue, location: loc_right, ..}) =&gt; {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) =&gt; {
                     <span class="kw">let </span>rvalue = rvalue.parse::&lt;f64&gt;()
                         .map_err(|err| err.to_string())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralReal{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: (<span class="kw-2">*</span>lvalue <span class="kw">as </span>f64 <span class="macro-nonterminal">$op </span>rvalue).to_string(), location: loc_left.span(loc_right)
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_real((<span class="kw-2">*</span>lvalue <span class="kw">as </span>f64 <span class="macro-nonterminal">$op </span>rvalue).to_string()), location: loc_left.span(loc_right)
                 })
             },
-            (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) =&gt; {
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) =&gt; {
                     <span class="kw">let </span>lvalue = lvalue.parse::&lt;f64&gt;()
                         .map_err(|err| err.to_string())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralReal{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: (lvalue <span class="macro-nonterminal">$op </span><span class="kw-2">*</span>rvalue <span class="kw">as </span>f64).to_string(), location: loc_left.span(loc_right)
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_real((lvalue <span class="macro-nonterminal">$op </span><span class="kw-2">*</span>rvalue <span class="kw">as </span>f64).to_string()), location: loc_left.span(loc_right)
                 })
             },
-            (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralReal{value: rvalue, location: loc_right, ..}) =&gt; {
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) =&gt; {
                     <span class="kw">let </span>lvalue = lvalue.parse::&lt;f64&gt;()
                         .map_err(|err| err.to_string())<span class="question-mark">?</span>;
                     <span class="kw">let </span>rvalue = rvalue.parse::&lt;f64&gt;()
                         .map_err(|err| err.to_string())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralReal{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: (lvalue <span class="macro-nonterminal">$op </span>rvalue).to_string(), location: loc_left.span(loc_right)
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_real((lvalue <span class="macro-nonterminal">$op </span>rvalue).to_string()), location: loc_left.span(loc_right)
                 })
             },
             <span class="kw">_ </span>=&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>),
@@ -728,16 +749,17 @@
 <span class="macro">macro_rules! </span>bitwise_expression {
     (<span class="macro-nonterminal">$left</span>:expr, <span class="macro-nonterminal">$op</span>:tt, <span class="macro-nonterminal">$right</span>:expr, <span class="macro-nonterminal">$op_text</span>:expr, <span class="macro-nonterminal">$resulting_id</span>:expr) =&gt; {
         <span class="kw">match </span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$right</span>) {
-            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) =&gt; {
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralInteger{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: lvalue <span class="macro-nonterminal">$op </span>rvalue, location: loc_left.span(loc_right)
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) =&gt; {
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_integer(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: loc_left.span(loc_right)
                 })
             },
-            (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) =&gt; {
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralBool{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: lvalue <span class="macro-nonterminal">$op </span>rvalue, location: loc_left.span(loc_right)
+
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) =&gt; {
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: loc_left.span(loc_right)
                 })
             },
             <span class="kw">_ </span>=&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>),
@@ -748,20 +770,20 @@
 <span class="macro">macro_rules! </span>compare_expression {
     (<span class="macro-nonterminal">$left</span>:expr, <span class="macro-nonterminal">$op</span>:tt, <span class="macro-nonterminal">$right</span>:expr, <span class="macro-nonterminal">$op_text</span>:expr, <span class="macro-nonterminal">$resulting_id</span>:expr) =&gt; {
         <span class="kw">match </span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$right</span>) {
-            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) =&gt; {
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralBool{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: lvalue <span class="macro-nonterminal">$op </span>rvalue, location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) =&gt; {
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            (   AstStatement::LiteralReal{..},
-                AstStatement::LiteralReal{..}) =&gt; {
-                <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot compare Reals without epsilon&quot;</span>.into())
+            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
+                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) =&gt; {
+               <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot compare Reals without epsilon&quot;</span>.into())
             },
-            (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
-                AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) =&gt; {
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralBool{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, value: lvalue <span class="macro-nonterminal">$op </span>rvalue, location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) =&gt; {
+                <span class="prelude-val">Ok</span>(AstStatement::Literal{
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             <span class="kw">_ </span>=&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>),
@@ -797,20 +819,15 @@
 /// literals must not be further evaluated and can be known at
 /// compile time
 </span><span class="kw">fn </span>needs_evaluation(expr: <span class="kw-2">&amp;</span>AstStatement) -&gt; bool {
-    <span class="kw">match </span><span class="kw-2">&amp;</span>expr {
-        AstStatement::LiteralBool { .. }
-        | AstStatement::LiteralInteger { .. }
-        | AstStatement::LiteralReal { .. }
-        | AstStatement::LiteralDate { .. }
-        | AstStatement::LiteralDateAndTime { .. }
-        | AstStatement::LiteralTimeOfDay { .. }
-        | AstStatement::LiteralTime { .. }
-        | AstStatement::LiteralString { .. } =&gt; <span class="bool-val">false</span>,
-        AstStatement::Assignment { right, .. } =&gt; needs_evaluation(right.as_ref()),
-        <span class="kw-2">&amp;</span>AstStatement::LiteralArray { elements: <span class="prelude-val">Some</span>(elements), .. } =&gt; <span class="kw">match </span>elements.as_ref() {
-            AstStatement::ExpressionList { expressions, .. } =&gt; expressions.iter().any(needs_evaluation),
-            <span class="kw">_ </span>=&gt; needs_evaluation(elements.as_ref()),
+    <span class="kw">match </span>expr {
+        AstStatement::Literal { kind, .. } =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span>kind {
+            <span class="kw-2">&amp;</span>AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements), .. }) =&gt; <span class="kw">match </span>elements.as_ref() {
+                AstStatement::ExpressionList { expressions, .. } =&gt; expressions.iter().any(needs_evaluation),
+                <span class="kw">_ </span>=&gt; needs_evaluation(elements.as_ref()),
+            },
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         },
+        AstStatement::Assignment { right, .. } =&gt; needs_evaluation(right.as_ref()),
         AstStatement::ExpressionList { expressions, .. } =&gt; expressions.iter().any(needs_evaluation),
         AstStatement::RangeStatement { start, end, .. } =&gt; needs_evaluation(start) || needs_evaluation(end),
         <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
@@ -863,19 +880,23 @@
                 <span class="kw">match </span>(initial_value_literal, candidates_type) {
                     <span class="comment">//we found an Int-Value and we found the const&#39;s datatype to be an unsigned Integer type (e.g. WORD)
                     </span>(
-                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value, id, location })),
+                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
                         <span class="prelude-val">Some</span>(DataTypeInformation::Integer { size, signed: <span class="bool-val">false</span>, .. }),
                     ) =&gt; {
                         <span class="comment">// since we store literal-ints as i128 we need to truncate all of them down to their
                         // original size to avoid negative numbers
                         </span><span class="kw">let </span>mask = <span class="number">2_i128</span>.pow(<span class="kw-2">*</span>size) - <span class="number">1</span>; <span class="comment">// bitmask for this type&#39;s size
-                        </span><span class="kw">let </span>masked_value = value &amp; mask; <span class="comment">//delete all bits &gt; size of data_type
+                        </span><span class="kw">let </span>masked_value = i &amp; mask; <span class="comment">//delete all bits &gt; size of data_type
 
                         </span>index
                             .get_mut_const_expressions()
                             .mark_resolved(
                                 <span class="kw-2">&amp;</span>candidate,
-                                AstStatement::LiteralInteger { id, location, value: masked_value },
+                                AstStatement::Literal {
+                                    id,
+                                    location,
+                                    kind: AstLiteral::new_integer(masked_value),
+                                },
                             )
                             .expect(<span class="string">&quot;unknown id for const-expression&quot;</span>); <span class="comment">//panic if we dont know the id
                         </span>failed_tries = <span class="number">0</span>;
@@ -946,11 +967,13 @@
         <span class="kw">let </span>dt = index.get_type_information_or_void(target_type);
         <span class="kw">let </span>init = <span class="kw">match </span>dt {
             DataTypeInformation::Pointer { .. } =&gt; {
-                <span class="prelude-val">Some</span>(AstStatement::LiteralNull { location: location.clone(), id })
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Null, location: location.clone(), id })
             }
-            DataTypeInformation::Integer { .. } =&gt; {
-                <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value: <span class="number">0</span>, location: location.clone(), id })
-            }
+            DataTypeInformation::Integer { .. } =&gt; <span class="prelude-val">Some</span>(AstStatement::Literal {
+                kind: AstLiteral::new_integer(<span class="number">0</span>),
+                location: location.clone(),
+                id,
+            }),
             DataTypeInformation::Enum { name, elements, .. } =&gt; elements
                 .get(<span class="number">0</span>)
                 .and_then(|default_enum| index.find_enum_element(name, default_enum))
@@ -959,12 +982,13 @@
                     index.get_const_expressions().get_resolved_constant_statement(<span class="kw-2">&amp;</span>initial_val)
                 })
                 .cloned(),
-            DataTypeInformation::Float { .. } =&gt; {
-                <span class="prelude-val">Some</span>(AstStatement::LiteralReal { value: <span class="string">&quot;0.0&quot;</span>.to_string(), location: location.clone(), id })
-            }
-            DataTypeInformation::String { encoding, .. } =&gt; <span class="prelude-val">Some</span>(AstStatement::LiteralString {
-                value: <span class="string">&quot;&quot;</span>.to_string(),
-                is_wide: encoding == <span class="kw-2">&amp;</span>StringEncoding::Utf16,
+            DataTypeInformation::Float { .. } =&gt; <span class="prelude-val">Some</span>(AstStatement::Literal {
+                kind: AstLiteral::new_real(<span class="string">&quot;0.0&quot;</span>.to_string()),
+                location: location.clone(),
+                id,
+            }),
+            DataTypeInformation::String { encoding, .. } =&gt; <span class="prelude-val">Some</span>(AstStatement::Literal {
+                kind: AstLiteral::new_string(<span class="string">&quot;&quot;</span>.to_string(), encoding == <span class="kw-2">&amp;</span>StringEncoding::Utf16),
                 location: location.clone(),
                 id,
             }),
@@ -980,48 +1004,51 @@
 
 <span class="doccomment">/// transforms the given literal to better fit the datatype of the candidate
 /// effectively this casts an IntLiteral to a RealLiteral if necessary
-</span><span class="kw">fn </span>cast_if_necessary(literal: AstStatement, target_type_name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, index: <span class="kw-2">&amp;</span>Index) -&gt; AstStatement {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(data_type) = target_type_name.and_then(|it| index.find_effective_type_by_name(it)) {
-        <span class="kw">match </span><span class="kw-2">&amp;</span>literal {
-            AstStatement::LiteralInteger { value, id, location } =&gt; {
+</span><span class="kw">fn </span>cast_if_necessary(
+    statement: AstStatement,
+    target_type_name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    index: <span class="kw-2">&amp;</span>Index,
+) -&gt; AstStatement {
+    <span class="kw">let </span>data_type = target_type_name.and_then(|it| index.find_effective_type_by_name(it));
+    <span class="kw">if let </span>(<span class="prelude-val">Some</span>(data_type), AstStatement::Literal { kind: literal, .. }) = (data_type, <span class="kw-2">&amp;</span>statement) {
+        <span class="kw">match </span>literal {
+            AstLiteral::Integer(value) =&gt; {
                 <span class="kw">if </span>data_type.get_type_information().is_float() {
-                    <span class="kw">return </span>AstStatement::LiteralReal {
-                        value: <span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>),
-                        id: <span class="kw-2">*</span>id,
-                        location: location.clone(),
-                    };
+                    <span class="kw">return </span>AstStatement::new_literal(
+                        AstLiteral::new_real(<span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>)),
+                        statement.get_id(),
+                        statement.get_location(),
+                    );
                 }
             }
-            AstStatement::LiteralString { value, id, location, is_wide: <span class="bool-val">false </span>} =&gt; {
+            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">false </span>}) =&gt; {
                 <span class="kw">if </span><span class="macro">matches!</span>(
                     data_type.get_type_information(),
                     DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }
                 ) {
-                    <span class="kw">return </span>AstStatement::LiteralString {
-                        value: value.clone(),
-                        id: <span class="kw-2">*</span>id,
-                        location: location.clone(),
-                        is_wide: <span class="bool-val">true</span>,
-                    };
+                    <span class="kw">return </span>AstStatement::new_literal(
+                        AstLiteral::new_string(value.clone(), <span class="bool-val">true</span>),
+                        statement.get_id(),
+                        statement.get_location(),
+                    );
                 }
             }
-            AstStatement::LiteralString { value, id, location, is_wide: <span class="bool-val">true </span>} =&gt; {
+            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">true </span>}) =&gt; {
                 <span class="kw">if </span><span class="macro">matches!</span>(
                     data_type.get_type_information(),
                     DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }
                 ) {
-                    <span class="kw">return </span>AstStatement::LiteralString {
-                        value: value.clone(),
-                        id: <span class="kw-2">*</span>id,
-                        location: location.clone(),
-                        is_wide: <span class="bool-val">false</span>,
-                    };
+                    <span class="kw">return </span>AstStatement::new_literal(
+                        AstLiteral::new_string(value.clone(), <span class="bool-val">false</span>),
+                        statement.get_id(),
+                        statement.get_location(),
+                    );
                 }
             }
             <span class="kw">_ </span>=&gt; {}
         }
     }
-    literal
+    statement
 }
 
 <span class="kw">pub fn </span>evaluate(
@@ -1131,11 +1158,11 @@
         <span class="comment">// NOT x
         </span>AstStatement::UnaryExpression { operator: Operator::Not, value, .. } =&gt; {
             <span class="kw">match </span>evaluate(value, scope, index)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(AstStatement::LiteralBool { value: v, id, location }) =&gt; {
-                    <span class="prelude-val">Some</span>(AstStatement::LiteralBool { value: !v, id, location })
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Bool(v), id, location }) =&gt; {
+                    <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Bool(!v), id, location })
                 }
-                <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value: v, id, location }) =&gt; {
-                    <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value: !v, id, location })
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) =&gt; {
+                    <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(!v), id, location })
                 }
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="prelude-val">None </span><span class="comment">//not yet resolvable
@@ -1146,12 +1173,15 @@
         <span class="comment">// - x
         </span>AstStatement::UnaryExpression { operator: Operator::Minus, value, .. } =&gt; {
             <span class="kw">match </span>evaluate(value, scope, index)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value: v, id, location }) =&gt; {
-                    <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value: -v, id, location })
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) =&gt; {
+                    <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(-v), id, location })
                 }
-                <span class="prelude-val">Some</span>(AstStatement::LiteralReal { value: v, id, location }) =&gt; {
-                    <span class="prelude-val">Some</span>(AstStatement::LiteralReal {
-                        value: <span class="macro">format!</span>(<span class="string">&quot;{:}&quot;</span>, -(v.parse::&lt;f64&gt;()).map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;{err:}: {v:}&quot;</span>))<span class="question-mark">?</span>),
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Real(v), id, location }) =&gt; {
+                    <span class="prelude-val">Some</span>(AstStatement::Literal {
+                        kind: AstLiteral::new_real(<span class="macro">format!</span>(
+                            <span class="string">&quot;{:}&quot;</span>,
+                            -(v.parse::&lt;f64&gt;()).map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;{err:}: {v:}&quot;</span>))<span class="question-mark">?
+                        </span>)),
                         id,
                         location,
                     })
@@ -1162,7 +1192,12 @@
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Minus {value:?}&quot;</span>)),
             }
         }
-        AstStatement::LiteralArray { id, elements: <span class="prelude-val">Some</span>(elements), location, .. } =&gt; {
+        AstStatement::Literal {
+            id,
+            kind: AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements) }),
+            location,
+            ..
+        } =&gt; {
             <span class="kw">let </span>inner_elements = AstStatement::get_as_list(elements)
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -1171,9 +1206,12 @@
                 .collect::&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;AstStatement&gt;&gt;&gt;();
 
             <span class="comment">//return a new array, or return none if one was not resolvable
-            </span>inner_elements.map(|ie| AstStatement::LiteralArray {
+            </span>inner_elements.map(|ie| AstStatement::Literal {
                 id: <span class="kw-2">*</span>id,
-                elements: <span class="prelude-val">Some</span>(Box::new(AstStatement::ExpressionList { expressions: ie, id: <span class="kw-2">*</span>id })),
+                kind: AstLiteral::new_array(<span class="prelude-val">Some</span>(Box::new(AstStatement::ExpressionList {
+                    expressions: ie,
+                    id: <span class="kw-2">*</span>id,
+                }))),
                 location: location.clone(),
             })
         }
@@ -1258,7 +1296,7 @@
 }
 
 <span class="kw">fn </span>is_zero(v: <span class="kw-2">&amp;</span>AstStatement) -&gt; bool {
-    <span class="macro">matches!</span>(v, AstStatement::LiteralInteger { value: <span class="number">0</span>, .. })
+    <span class="macro">matches!</span>(v, AstStatement::Literal { kind: AstLiteral::Integer(<span class="number">0</span>), .. })
 }
 
 <span class="doccomment">/// takes the given cast_statement transform it into a literal that better represents
@@ -1275,7 +1313,7 @@
             <span class="kw">let </span>evaluated_initial = evaluate(cast_statement, scope, index)<span class="question-mark">?
                 </span>.as_ref()
                 .map(|v| {
-                    <span class="kw">if let </span>AstStatement::LiteralInteger { value, .. } = v {
+                    <span class="kw">if let </span>AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = v {
                         <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>value)
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Expected integer value, found {v:?}&quot;</span>))
@@ -1298,8 +1336,8 @@
                     (UNSIGNED, LINT_SIZE) =&gt; (value <span class="kw">as </span>NativeLwordType) <span class="kw">as </span>i128,
                     <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {type_name}#{cast_statement:?}&quot;</span>)),
                 };
-                <span class="prelude-val">Ok</span>(AstStatement::LiteralInteger {
-                    value,
+                <span class="prelude-val">Ok</span>(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(value),
                     id: cast_statement.get_id(),
                     location: cast_statement.get_location(),
                 })
@@ -1311,8 +1349,10 @@
         <span class="prelude-val">Some</span>(DataTypeInformation::Float { .. }) =&gt; {
             <span class="kw">let </span>evaluated = evaluate(cast_statement, scope, index)<span class="question-mark">?</span>;
             <span class="kw">let </span>value = <span class="kw">match </span>evaluated {
-                <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value, .. }) =&gt; <span class="prelude-val">Some</span>(value <span class="kw">as </span>f64),
-                <span class="prelude-val">Some</span>(AstStatement::LiteralReal { value, .. }) =&gt; value.parse::&lt;f64&gt;().ok(),
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; <span class="prelude-val">Some</span>(value <span class="kw">as </span>f64),
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Real(value), .. }) =&gt; {
+                    value.parse::&lt;f64&gt;().ok()
+                }
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Expected floating point type, got: {evaluated:?}&quot;</span>)),
             };
 
@@ -1320,8 +1360,8 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot resolve constant: {type_name}#{cast_statement:?}&quot;</span>))
             };
 
-            <span class="prelude-val">Ok</span>(AstStatement::LiteralReal {
-                value: value.to_string(),
+            <span class="prelude-val">Ok</span>(AstStatement::Literal {
+                kind: AstLiteral::new_real(value.to_string()),
                 id: cast_statement.get_id(),
                 location: cast_statement.get_location(),
             })

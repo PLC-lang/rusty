@@ -237,7 +237,7 @@
 <a href="#237" id="237">237</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-</span><span class="kw">use </span><span class="kw">crate</span>::ast::AstStatement;
+</span><span class="kw">use </span><span class="kw">crate</span>::ast::{AstLiteral, AstStatement};
 <span class="kw">use </span>generational_arena::{Arena, Iter};
 
 <span class="kw">pub type </span>ConstId = generational_arena::Index;
@@ -441,7 +441,7 @@
     </span><span class="kw">pub fn </span>get_constant_int_statement_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="prelude-ty">Result</span>&lt;i128, String&gt; {
         <span class="self">self</span>.get_constant_statement(id).ok_or_else(|| <span class="string">&quot;Cannot find constant expression&quot;</span>.into()).and_then(
             |it| <span class="kw">match </span>it {
-                AstStatement::LiteralInteger { value, .. } =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>value),
+                AstStatement::Literal { kind: AstLiteral::Integer(i), .. } =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>i),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot extract int constant from {it:#?}&quot;</span>)),
             },
         )

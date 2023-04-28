@@ -471,7 +471,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::resolver::AstAnnotations;
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{Dimension, StringEncoding, StructSource};
 <span class="kw">use </span><span class="kw">crate</span>::Diagnostic;
-<span class="kw">use crate</span>::{ast::AstStatement, typesystem::DataTypeInformation};
+<span class="kw">use crate</span>::{ast::literals::AstLiteral, ast::AstStatement, typesystem::DataTypeInformation};
 <span class="kw">use crate</span>::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -761,12 +761,12 @@
             }
             DataTypeInformation::Array { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
-                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::LiteralArray { .. }),
+                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::Literal { kind: AstLiteral::Array { .. }, .. }),
                 <span class="string">&quot;LiteralArray&quot;</span>,
             ),
             DataTypeInformation::String { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
-                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::LiteralString { .. }),
+                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::Literal { kind: AstLiteral::String { .. }, .. }),
                 <span class="string">&quot;LiteralString&quot;</span>,
             ),
             DataTypeInformation::SubRange { referenced_type, .. } =&gt; {

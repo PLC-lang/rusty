@@ -2774,17 +2774,9 @@
 <a href="#2774" id="2774">2774</a>
 <a href="#2775" id="2775">2775</a>
 <a href="#2776" id="2776">2776</a>
-<a href="#2777" id="2777">2777</a>
-<a href="#2778" id="2778">2778</a>
-<a href="#2779" id="2779">2779</a>
-<a href="#2780" id="2780">2780</a>
-<a href="#2781" id="2781">2781</a>
-<a href="#2782" id="2782">2782</a>
-<a href="#2783" id="2783">2783</a>
-<a href="#2784" id="2784">2784</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
-    ast::{<span class="self">self</span>, flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{<span class="self">self</span>, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -4091,10 +4083,10 @@
             AstStatement::PointerAccess { reference, .. } =&gt; {
                 <span class="self">self</span>.do_generate_element_pointer(qualifier, reference).map(|it| <span class="self">self</span>.deref(it))
             }
-            AstStatement::LiteralString { value, is_wide, .. } =&gt; <span class="kw">if </span><span class="kw-2">*</span>is_wide {
-                <span class="self">self</span>.llvm_index.find_utf16_literal_string(value)
+            AstStatement::Literal { kind: AstLiteral::String(sv), .. } =&gt; <span class="kw">if </span>sv.is_wide() {
+                <span class="self">self</span>.llvm_index.find_utf16_literal_string(sv.value())
             } <span class="kw">else </span>{
-                <span class="self">self</span>.llvm_index.find_utf08_literal_string(value)
+                <span class="self">self</span>.llvm_index.find_utf08_literal_string(sv.value())
             }
             .map(|it| it.as_pointer_value())
             .ok_or_else(|| <span class="macro">unreachable!</span>(<span class="string">&quot;All string literals have to be constants&quot;</span>)),
@@ -4633,53 +4625,48 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         literal_statement: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span>cannot_generate_literal = || {
+            Diagnostic::codegen_error(
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
+                literal_statement.get_location(),
+            )
+        };
+
         <span class="kw">match </span>literal_statement {
-            AstStatement::LiteralBool { value, .. } =&gt; {
-                <span class="self">self</span>.llvm.create_const_bool(<span class="kw-2">*</span>value).map(ExpressionValue::RValue)
-            }
-            AstStatement::LiteralInteger { value, .. } =&gt; <span class="self">self
-                </span>.generate_numeric_literal(literal_statement, value.to_string().as_str())
-                .map(ExpressionValue::RValue),
-            AstStatement::LiteralReal { value, .. } =&gt; {
-                <span class="self">self</span>.generate_numeric_literal(literal_statement, value).map(ExpressionValue::RValue)
-            }
-            AstStatement::LiteralDate { year, month, day, location, .. } =&gt; {
-                <span class="kw">super</span>::date_time_util::calculate_date_time(<span class="kw-2">*</span>year, <span class="kw-2">*</span>month, <span class="kw-2">*</span>day, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+            AstStatement::Literal { kind, location, .. } =&gt; <span class="kw">match </span>kind {
+                AstLiteral::Bool(b) =&gt; <span class="self">self</span>.llvm.create_const_bool(<span class="kw-2">*</span>b).map(ExpressionValue::RValue),
+                AstLiteral::Integer(i, ..) =&gt; <span class="self">self
+                    </span>.generate_numeric_literal(literal_statement, i.to_string().as_str())
+                    .map(ExpressionValue::RValue),
+                AstLiteral::Real(r, ..) =&gt; {
+                    <span class="self">self</span>.generate_numeric_literal(literal_statement, r).map(ExpressionValue::RValue)
+                }
+                AstLiteral::Date(d) =&gt; d
+                    .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
-                    .map(ExpressionValue::RValue)
-            }
-            AstStatement::LiteralDateAndTime { year, month, day, hour, min, sec, nano, location, .. } =&gt; {
-                <span class="kw">super</span>::date_time_util::calculate_date_time(<span class="kw-2">*</span>year, <span class="kw-2">*</span>month, <span class="kw-2">*</span>day, <span class="kw-2">*</span>hour, <span class="kw-2">*</span>min, <span class="kw-2">*</span>sec, <span class="kw-2">*</span>nano)
+                    .map(ExpressionValue::RValue),
+                AstLiteral::DateAndTime(dt) =&gt; dt
+                    .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
-                    .map(ExpressionValue::RValue)
-            }
-            AstStatement::LiteralTimeOfDay { hour, min, sec, nano, location, .. } =&gt; {
-                <span class="kw">super</span>::date_time_util::calculate_date_time(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="kw-2">*</span>hour, <span class="kw-2">*</span>min, <span class="kw-2">*</span>sec, <span class="kw-2">*</span>nano)
+                    .map(ExpressionValue::RValue),
+                AstLiteral::TimeOfDay(tod) =&gt; tod
+                    .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
-                    .map(ExpressionValue::RValue)
-            }
-            AstStatement::LiteralTime { day, hour, min, sec, milli, micro, nano, negative, .. } =&gt; <span class="self">self
-                </span>.create_const_int(<span class="kw">super</span>::date_time_util::calculate_time_nano(
-                    <span class="kw-2">*</span>negative,
-                    <span class="kw">super</span>::date_time_util::calculate_dhm_time_seconds(<span class="kw-2">*</span>day, <span class="kw-2">*</span>hour, <span class="kw-2">*</span>min, <span class="kw-2">*</span>sec),
-                    <span class="kw-2">*</span>milli,
-                    <span class="kw-2">*</span>micro,
-                    <span class="kw-2">*</span>nano,
-                ))
-                .map(ExpressionValue::RValue),
-            AstStatement::LiteralString { value, location, .. } =&gt; {
-                <span class="self">self</span>.generate_string_literal(literal_statement, value, location)
-            }
-            AstStatement::LiteralArray { elements: <span class="prelude-val">Some</span>(elements), .. } =&gt; {
-                <span class="self">self</span>.generate_literal_array(elements).map(ExpressionValue::RValue)
-            }
+                    .map(ExpressionValue::RValue),
+                AstLiteral::Time(t) =&gt; <span class="self">self</span>.create_const_int(t.value()).map(ExpressionValue::RValue),
+                AstLiteral::String(s) =&gt; <span class="self">self</span>.generate_string_literal(literal_statement, s.value(), location),
+                AstLiteral::Array(arr) =&gt; <span class="self">self
+                    </span>.generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)<span class="question-mark">?</span>)
+                    .map(ExpressionValue::RValue),
+                AstLiteral::Null { .. } =&gt; <span class="self">self</span>.llvm.create_null_ptr().map(ExpressionValue::RValue),
+            },
+
             AstStatement::MultipliedStatement { .. } =&gt; {
                 <span class="self">self</span>.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
-            AstStatement::LiteralNull { .. } =&gt; <span class="self">self</span>.llvm.create_null_ptr().map(ExpressionValue::RValue),
             <span class="comment">// if there is an expression-list this might be a struct-initialization or array-initialization
             </span>AstStatement::ExpressionList { .. } =&gt; {
                 <span class="kw">let </span>type_hint = <span class="self">self</span>.get_type_hint_info_for(literal_statement)<span class="question-mark">?</span>;
@@ -4693,10 +4680,7 @@
             <span class="comment">// if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             </span>AstStatement::Assignment { .. } =&gt; <span class="self">self</span>.generate_literal_struct(literal_statement),
             AstStatement::CastStatement { target, .. } =&gt; <span class="self">self</span>.generate_expression_value(target),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
-                literal_statement.get_location(),
-            )),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(cannot_generate_literal()),
         }
     }
 

@@ -826,9 +826,11 @@
 <a href="#826" id="826">826</a>
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
+<span class="kw">use </span><span class="kw">crate</span>::ast::AstLiteral;
 <span class="kw">use </span><span class="kw">crate</span>::ast::{
     <span class="self">self</span>, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
     Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
@@ -1293,7 +1295,7 @@
             <span class="kw">let </span>encoding = <span class="kw">if </span><span class="kw-2">*</span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 };
 
             <span class="kw">let </span>size = <span class="kw">match </span>size {
-                <span class="prelude-val">Some</span>(AstStatement::LiteralInteger { value, .. }) =&gt; {
+                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; {
                     TypeSize::from_literal((value + <span class="number">1</span>) <span class="kw">as </span>i64)
                 }
                 <span class="prelude-val">Some</span>(statement) =&gt; {
@@ -1302,11 +1304,11 @@
                         id: statement.get_id(),
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::LiteralInteger {
-                            id: statement.get_id(),
-                            location: statement.get_location(),
-                            value: <span class="number">1</span>,
-                        }),
+                        right: Box::new(AstStatement::new_literal(
+                            AstLiteral::new_integer(<span class="number">1</span>),
+                            statement.get_id(),
+                            statement.get_location(),
+                        )),
                     };
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
@@ -1441,16 +1443,16 @@
                     bounds: AstStatement::ExpressionList {
                         expressions: (<span class="number">0</span>..ndims)
                             .map(|<span class="kw">_</span>| AstStatement::RangeStatement {
-                                start: Box::new(AstStatement::LiteralInteger {
-                                    value: <span class="number">0</span>,
-                                    location: SourceRange::undefined(),
-                                    id: <span class="number">0</span>,
-                                }),
-                                end: Box::new(AstStatement::LiteralInteger {
-                                    value: <span class="number">1</span>,
-                                    location: SourceRange::undefined(),
-                                    id: <span class="number">0</span>,
-                                }),
+                                start: Box::new(AstStatement::new_literal(
+                                    AstLiteral::new_integer(<span class="number">0</span>),
+                                    <span class="number">0</span>,
+                                    SourceRange::undefined(),
+                                )),
+                                end: Box::new(AstStatement::new_literal(
+                                    AstLiteral::new_integer(<span class="number">1</span>),
+                                    <span class="number">0</span>,
+                                    SourceRange::undefined(),
+                                )),
                                 id: <span class="number">0</span>,
                             })
                             .collect::&lt;<span class="kw">_</span>&gt;(),
