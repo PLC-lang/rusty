@@ -1,6 +1,7 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
+use crate::ast::AstLiteral;
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
     Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
@@ -465,7 +466,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::LiteralInteger { value, .. }) => {
+                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
@@ -474,11 +475,11 @@ fn visit_data_type(
                         id: statement.get_id(),
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::LiteralInteger {
-                            id: statement.get_id(),
-                            location: statement.get_location(),
-                            value: 1,
-                        }),
+                        right: Box::new(AstStatement::new_literal(
+                            AstLiteral::new_integer(1),
+                            statement.get_id(),
+                            statement.get_location(),
+                        )),
                     };
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
@@ -613,16 +614,16 @@ fn visit_variable_length_array(
                     bounds: AstStatement::ExpressionList {
                         expressions: (0..ndims)
                             .map(|_| AstStatement::RangeStatement {
-                                start: Box::new(AstStatement::LiteralInteger {
-                                    value: 0,
-                                    location: SourceRange::undefined(),
-                                    id: 0,
-                                }),
-                                end: Box::new(AstStatement::LiteralInteger {
-                                    value: 1,
-                                    location: SourceRange::undefined(),
-                                    id: 0,
-                                }),
+                                start: Box::new(AstStatement::new_literal(
+                                    AstLiteral::new_integer(0),
+                                    0,
+                                    SourceRange::undefined(),
+                                )),
+                                end: Box::new(AstStatement::new_literal(
+                                    AstLiteral::new_integer(1),
+                                    0,
+                                    SourceRange::undefined(),
+                                )),
                                 id: 0,
                             })
                             .collect::<_>(),
