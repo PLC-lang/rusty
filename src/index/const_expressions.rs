@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::{AstLiteral, AstStatement};
+use crate::{
+    ast::{AstLiteral, AstStatement, SourceRange},
+    typesystem::DataTypeInformation,
+};
 use generational_arena::{Arena, Iter};
 
 pub type ConstId = generational_arena::Index;
@@ -39,6 +42,11 @@ pub enum ConstExpression {
         statement: AstStatement,
         reason: String,
     },
+    Overflow {
+        reason: String,
+        statement: AstStatement,
+        location: SourceRange,
+    },
 }
 
 impl ConstExpression {
@@ -47,7 +55,8 @@ impl ConstExpression {
         match &self {
             ConstExpression::Unresolved { statement, .. }
             | ConstExpression::Resolved(statement)
-            | ConstExpression::Unresolvable { statement, .. } => statement,
+            | ConstExpression::Unresolvable { statement, .. }
+            | ConstExpression::Overflow { statement, .. } => statement,
         }
     }
 
@@ -62,6 +71,10 @@ impl ConstExpression {
 
     pub fn is_resolved(&self) -> bool {
         matches!(self, ConstExpression::Resolved(_))
+    }
+
+    pub fn is_overflow(&self) -> bool {
+        matches!(self, ConstExpression::Overflow { .. })
     }
 
     pub(crate) fn is_default(&self) -> bool {
@@ -123,6 +136,8 @@ impl ConstExpressions {
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
                 (s.clone(), it.target_type_name.clone(), None)
             }
+            // TODO: Currently wrong
+            ConstExpression::Overflow { statement, .. } => (statement.clone(), "Overflow".into(), None),
         })
     }
 
@@ -135,6 +150,26 @@ impl ConstExpressions {
             .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
         wrapper.expr = ConstExpression::Resolved(new_statement);
+        Ok(())
+    }
+
+    pub fn mark_overflow(
+        &mut self,
+        id: &ConstId,
+        statement: &AstStatement,
+        type_info: &DataTypeInformation,
+    ) -> Result<(), String> {
+        let wrapper = self
+            .expressions
+            .get_mut(*id)
+            .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
+
+        wrapper.expr = ConstExpression::Overflow {
+            statement: wrapper.get_statement().clone(),
+            location: statement.get_location(),
+            // TODO: It would be nice to know whether this is a literal or an expression in the error message
+            reason: format!("This will overflow for type {}", type_info.get_name()),
+        };
         Ok(())
     }
 

@@ -148,6 +148,57 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
     }
 }
 
+/// Checks if an integer or float would result in an overflow and if so marks the expression as
+/// [`ConstExpression::Overflow`] returning true.
+fn does_overflow(
+    index: &mut Index,
+    literal: &AstStatement,
+    id: &ConstId,
+    dti: Option<DataTypeInformation>,
+) -> bool {
+    let Some(dti) = dti else { return false };
+    let AstStatement::Literal { kind, .. } = literal else { return false };
+
+    if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
+        return false;
+    };
+
+    let overflows = match dbg!(&dti) {
+        DataTypeInformation::Integer { signed, size, .. } => match (kind, signed, size) {
+            // Signed
+            (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
+
+            // Unsigned
+            (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
+
+            _ => false,
+        },
+
+        DataTypeInformation::Float { size, .. } => match (kind, size) {
+            // The unwraps should be safe, as the `const_evaluator::evaluate` already checks for invalid values
+            (AstLiteral::Real(value), 32) => value.parse::<f32>().unwrap().is_infinite(),
+            (AstLiteral::Real(value), 64) => value.parse::<f64>().unwrap().is_infinite(),
+
+            _ => false,
+        },
+
+        // We're only interested in integers and floats
+        _ => false,
+    };
+
+    if overflows {
+        index.get_mut_const_expressions().mark_overflow(id, literal, &dti).unwrap();
+    }
+
+    overflows
+}
+
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
 pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>) {
     let mut unresolvable: Vec<UnresolvableConstant> = Vec::new();
@@ -170,9 +221,11 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
             ) {
                 let candidates_type = target_type
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
-                    .map(DataType::get_type_information);
+                    .map(DataType::get_type_information)
+                    .cloned();
 
                 if candidates_type
+                    .as_ref()
                     .map(|it| (it.is_struct() || it.is_array()) && const_expr.is_default())
                     .unwrap_or(false)
                 {
@@ -191,29 +244,39 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     target_type,
                 );
 
-                match (initial_value_literal, candidates_type) {
+                match (initial_value_literal, &candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
                         Ok(Some(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
                         Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
-                        // since we store literal-ints as i128 we need to truncate all of them down to their
-                        // original size to avoid negative numbers
-                        let mask = 2_i128.pow(*size) - 1; // bitmask for this type's size
-                        let masked_value = i & mask; //delete all bits > size of data_type
+                        // TODO: Kind of sucks to recreate the AstStatment here
+                        let lit = AstStatement::Literal {
+                            kind: AstLiteral::Integer(i),
+                            id,
+                            location: location.clone(),
+                        };
 
-                        index
-                            .get_mut_const_expressions()
-                            .mark_resolved(
-                                &candidate,
-                                AstStatement::Literal {
-                                    id,
-                                    location,
-                                    kind: AstLiteral::new_integer(masked_value),
-                                },
-                            )
-                            .expect("unknown id for const-expression"); //panic if we dont know the id
-                        failed_tries = 0;
+                        // TODO: Explain why we're using `lit` instead of `masked_value` (unsigned becomes 0 on overflow)
+                        if !does_overflow(&mut index, &lit, &candidate, candidates_type.clone()) {
+                            // since we store literal-ints as i128 we need to truncate all of them down to their
+                            // original size to avoid negative numbers
+                            let mask = 2_i128.pow(*size) - 1; // bitmask for this type's size
+                            let masked_value = i & mask; //delete all bits > size of data_type
+
+                            index
+                                .get_mut_const_expressions()
+                                .mark_resolved(
+                                    &candidate,
+                                    AstStatement::Literal {
+                                        id,
+                                        location,
+                                        kind: AstLiteral::new_integer(masked_value),
+                                    },
+                                )
+                                .expect("unknown id for const-expression"); //panic if we dont know the id
+                            failed_tries = 0;
+                        }
                     }
 
                     // we were able to evaluate a valid statement
@@ -223,7 +286,11 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             &index.get_const_expressions().find_expression_target_type(&candidate),
                             &index,
                         );
-                        do_resolve_candidate(&mut index, candidate, literal);
+
+                        if !does_overflow(&mut index, &literal, &candidate, candidates_type) {
+                            do_resolve_candidate(&mut index, candidate, literal);
+                        }
+
                         failed_tries = 0;
                     }
 
@@ -257,11 +324,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     (index, unresolvable)
 }
 
-fn do_resolve_candidate(
-    index: &mut Index,
-    candidate: generational_arena::Index,
-    new_statement: AstStatement,
-) {
+fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: AstStatement) {
     index
         .get_mut_const_expressions()
         .mark_resolved(&candidate, new_statement)

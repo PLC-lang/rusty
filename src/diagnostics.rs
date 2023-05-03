@@ -61,6 +61,7 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__overflow,
 
     //array related
     arr__invalid_array_assignment,
@@ -771,6 +772,10 @@ impl Diagnostic {
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
         }
+    }
+
+    pub fn overflow(message: String, location: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![location], err_no: ErrNo::var__overflow }
     }
 }
 
