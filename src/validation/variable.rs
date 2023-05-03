@@ -1,6 +1,9 @@
 use crate::{
-    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
+    ast::{AstStatement, DataTypeDeclaration, Variable, VariableBlock, VariableBlockType},
+    diagnostics::ErrNo,
     index::const_expressions::ConstExpression,
+    resolver::const_evaluator,
+    typesystem::DataTypeInformation,
     Diagnostic,
 };
 
@@ -38,6 +41,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
 
 pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
     validate_variable(validator, variable, context);
+    check_if_overflows(validator, variable, context);
 
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
 }
@@ -130,6 +134,70 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
             validator
                 .push_diagnostic(Diagnostic::invalid_constant(v_entry.get_name(), variable.location.clone()));
         }
+    }
+}
+
+/// Checks if a literal or an expression would yield an overflow and if so reports it.
+fn check_if_overflows(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
+    let Some(entry) = context.qualifier
+        .and_then(|qualifier| context.index.find_member(qualifier, &variable.name))
+        .or_else(|| context.index.find_global_variable(&variable.name)) else {
+            return 
+        };
+
+    let Some(id) = entry.initial_value else { return };
+    let Some(initializer) = context.index.get_const_expressions().get_resolved_constant_statement(&id) else { return };
+    let Some(dt) = context.index.find_effective_type_info(&entry.data_type_name) else { return };
+
+
+    let overflow = match dt {
+        DataTypeInformation::Integer { signed, size, .. } => match (signed, size, initializer) {
+            (true, 8, AstStatement::LiteralInteger { value, .. }) => i8::try_from(*value).is_err(),
+            (true, 16, AstStatement::LiteralInteger { value, .. }) => i16::try_from(*value).is_err(),
+            (true, 32, AstStatement::LiteralInteger { value, .. }) => i32::try_from(*value).is_err(),
+            (true, 64, AstStatement::LiteralInteger { value, .. }) => i64::try_from(*value).is_err(),
+
+            (false, 8, AstStatement::LiteralInteger { value, .. }) => u8::try_from(*value).is_err(),
+            (false, 16, AstStatement::LiteralInteger { value, .. }) => u16::try_from(*value).is_err(),
+            (false, 32, AstStatement::LiteralInteger { value, .. }) => u32::try_from(*value).is_err(),
+            (false, 64, AstStatement::LiteralInteger { value, .. }) => u64::try_from(*value).is_err(),
+
+            _ => return,
+        },
+
+        DataTypeInformation::Float { size, .. } => match (size, initializer) {
+            // The unwraps() should be safe, because the `const_evaluator::evaluate` checks for invalid values
+            (32, AstStatement::LiteralReal { value, .. }) => value.parse::<f32>().unwrap().is_infinite(),
+            (64, AstStatement::LiteralReal { value, .. }) => value.parse::<f64>().unwrap().is_infinite(),
+
+            _ => return,
+        },
+
+        _ => return,
+    };
+
+    if overflow {
+        let message = match &variable.initializer {
+            Some(
+                AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::UnaryExpression { .. },
+            ) => {
+                format!("Literal out of range for {}", dt.get_name())
+            }
+
+            Some(AstStatement::ExpressionList { .. } | AstStatement::BinaryExpression { .. }) => {
+                format!("This arithmetic operation will overflow for {}", dt.get_name())
+            }
+
+            _ => unreachable!(),
+        };
+
+        validator.push_diagnostic(Diagnostic::SemanticError {
+            message,
+            range: vec![variable.initializer.as_ref().unwrap().get_location()],
+            err_no: ErrNo::var__overflow,
+        });
     }
 }
 

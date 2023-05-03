@@ -1,0 +1,25 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: res
+---
+SemanticError { message: "This arithmetic operation will overflow for SINT", range: [SourceRange { range: 108..121 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for SINT", range: [SourceRange { range: 177..189 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for USINT", range: [SourceRange { range: 246..257 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for USINT", range: [SourceRange { range: 311..323 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for INT", range: [SourceRange { range: 399..415 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for INT", range: [SourceRange { range: 471..486 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for UINT", range: [SourceRange { range: 543..554 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for UINT", range: [SourceRange { range: 608..623 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for DINT", range: [SourceRange { range: 700..723 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for DINT", range: [SourceRange { range: 787..809 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for UDINT", range: [SourceRange { range: 874..885 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for UDINT", range: [SourceRange { range: 947..969 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for LINT", range: [SourceRange { range: 1054..1089 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for LINT", range: [SourceRange { range: 1165..1199 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for ULINT", range: [SourceRange { range: 1276..1287 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for ULINT", range: [SourceRange { range: 1361..1396 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for REAL", range: [SourceRange { range: 1490..1514 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for REAL", range: [SourceRange { range: 1574..1597 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for LREAL", range: [SourceRange { range: 1682..1715 }], err_no: var__overflow }
+SemanticError { message: "This arithmetic operation will overflow for LREAL", range: [SourceRange { range: 1786..1818 }], err_no: var__overflow }
+

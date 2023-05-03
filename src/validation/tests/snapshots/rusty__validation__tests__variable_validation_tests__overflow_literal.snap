@@ -1,0 +1,25 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: res
+---
+SemanticError { message: "Literal out of range for SINT", range: [SourceRange { range: 106..110 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for SINT", range: [SourceRange { range: 163..166 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for USINT", range: [SourceRange { range: 220..222 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for USINT", range: [SourceRange { range: 273..276 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for INT", range: [SourceRange { range: 349..356 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for INT", range: [SourceRange { range: 407..413 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for UINT", range: [SourceRange { range: 467..469 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for UINT", range: [SourceRange { range: 520..526 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for DINT", range: [SourceRange { range: 600..614 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for DINT", range: [SourceRange { range: 675..688 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for UDINT", range: [SourceRange { range: 750..752 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for UDINT", range: [SourceRange { range: 811..824 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for LINT", range: [SourceRange { range: 906..932 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for LINT", range: [SourceRange { range: 1005..1030 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for ULINT", range: [SourceRange { range: 1104..1106 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for ULINT", range: [SourceRange { range: 1177..1203 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for REAL", range: [SourceRange { range: 1294..1309 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for REAL", range: [SourceRange { range: 1366..1380 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for LREAL", range: [SourceRange { range: 1462..1486 }], err_no: var__overflow }
+SemanticError { message: "Literal out of range for LREAL", range: [SourceRange { range: 1554..1577 }], err_no: var__overflow }
+
