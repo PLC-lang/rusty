@@ -163,7 +163,7 @@ fn does_overflow(
         return false;
     };
 
-    let overflows = match dbg!(&dti) {
+    let overflows = match &dti {
         DataTypeInformation::Integer { signed, size, .. } => match (kind, signed, size) {
             // Signed
             (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
