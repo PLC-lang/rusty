@@ -1,8 +1,11 @@
-use std::{collections::HashSet, convert::TryInto, mem::discriminant};
+use std::{collections::HashSet, mem::discriminant};
 
 use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
-    ast::{self, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange},
+    ast::{
+        self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
+        StringValue,
+    },
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -36,11 +39,13 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
-        AstStatement::LiteralArray { elements: Some(elements), .. } => {
+        AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(elements), .. }), .. } => {
             visit_statement(validator, elements.as_ref(), context);
         }
         AstStatement::CastStatement { target, type_name, location, .. } => {
-            validate_cast_literal(validator, target, type_name, location, context);
+            if let AstStatement::Literal { kind: literal, .. } = target.as_ref() {
+                validate_cast_literal(validator, literal, statement, type_name, location, context);
+            }
         }
         AstStatement::MultipliedStatement { element, .. } => {
             visit_statement(validator, element, context);
@@ -137,7 +142,8 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
 fn validate_cast_literal(
     // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     validator: &mut Validator,
-    literal: &AstStatement,
+    literal: &AstLiteral,
+    statement: &AstStatement,
     type_name: &str,
     location: &SourceRange,
     context: &ValidationContext,
@@ -146,8 +152,8 @@ fn validate_cast_literal(
     let literal_type = context.index.get_type_information_or_void(
         literal
             .get_literal_actual_signed_type_name(!cast_type.is_unsigned_int())
-            .or_else(|| context.annotations.get_type_hint(literal, context.index).map(DataType::get_name))
-            .unwrap_or_else(|| context.annotations.get_type_or_void(literal, context.index).get_name()),
+            .or_else(|| context.annotations.get_type_hint(statement, context.index).map(DataType::get_name))
+            .unwrap_or_else(|| context.annotations.get_type_or_void(statement, context.index).get_name()),
     );
 
     if !literal.is_cast_prefix_eligible() {
@@ -231,7 +237,7 @@ fn validate_access_index(
     location: &SourceRange,
 ) {
     match *access_index {
-        AstStatement::LiteralInteger { value, .. } => {
+        AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
             if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
@@ -344,7 +350,7 @@ fn validate_array_access(
     dimension_index: usize,
     context: &ValidationContext,
 ) {
-    if let AstStatement::LiteralInteger { value, .. } = access {
+    if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = access {
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
@@ -574,7 +580,7 @@ fn validate_assignment(
                 left_type.get_type_information().get_name(),
                 location.clone(),
             ));
-        } else if !right.is_literal() {
+        } else if !matches!(right, AstStatement::Literal { .. }) {
             validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
@@ -650,7 +656,7 @@ fn is_valid_string_to_char_assignment(
 ) -> bool {
     // TODO: casted literals and reference
     if left_type.is_compatible_char_and_string(right_type) {
-        if let AstStatement::LiteralString { value, .. } = right {
+        if let AstStatement::Literal { kind: AstLiteral::String(StringValue { value, .. }), .. } = right {
             if value.len() == 1 {
                 return true;
             } else {
@@ -831,7 +837,7 @@ fn validate_case_statement(
             })
             .map(|v| {
                 // check for duplicates if we got a value
-                if let Some(AstStatement::LiteralInteger { value, .. }) = v {
+                if let Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) = v {
                     if !cases.insert(value) {
                         validator.push_diagnostic(Diagnostic::duplicate_case_condition(
                             &value,
