@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        self, flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
-        SourceRange, SourceRangeFactory, TypeNature,
+        self, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
+        LinkageType, SourceRange, SourceRangeFactory, TypeNature,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::{Diagnostic, ErrNo},
@@ -353,13 +353,17 @@ fn generate_variable_length_array_bound_function<'ink>(
 
     let accessor = match params[1] {
         // e.g. LOWER_BOUND(arr, 1)
-        AstStatement::LiteralInteger { value, .. } => {
+        AstStatement::Literal { kind, .. } => {
+            let AstLiteral::Integer(value) = kind else {
+                todo!()
+            };
             // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
             // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
         // e.g. LOWER_BOUND(arr, idx + 3)
+        AstStatement::CastStatement { target, type_name, .. } => todo!(),
         _ => {
             let expression_value = generator.generate_expression(params[1])?;
             if !expression_value.is_int_value() {
