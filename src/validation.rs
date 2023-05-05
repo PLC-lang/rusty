@@ -1,3 +1,5 @@
+use rusty_derive::Validators;
+
 use crate::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
@@ -85,21 +87,12 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
+#[derive(Validators)]
 pub struct Validator {
     //context: ValidationContext<'s>,
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-}
-
-impl Validators for Validator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl Validator {
