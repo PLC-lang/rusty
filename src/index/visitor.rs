@@ -580,7 +580,7 @@ fn visit_variable_length_array(
                 })
                 .collect::<Vec<_>>(),
         },
-        nature: TypeNature::Any,
+        nature: TypeNature::__VLA,
         location: SymbolLocation::internal(),
     });
 
@@ -800,6 +800,7 @@ fn visit_struct(
         })
         .collect::<Vec<_>>();
 
+    let nature = source.get_type_nature();
     let information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
 
     let init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -811,7 +812,7 @@ fn visit_struct(
         name: name.to_string(),
         initial_value: init,
         information,
-        nature: TypeNature::Derived,
+        nature,
         location: symbol_location_factory.create_symbol_location(&type_declaration.location),
     });
     //Generate an initializer for the struct

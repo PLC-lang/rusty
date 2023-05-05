@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
-        SourceRangeFactory,
+        self, flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
+        SourceRange, SourceRangeFactory, TypeNature,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::{Diagnostic, ErrNo},
@@ -21,7 +21,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{DataTypeInformation, InternalType, StructSource},
+    typesystem::{self, DataTypeInformation, InternalType, StructSource},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -261,96 +261,92 @@ lazy_static! {
         (
             "LOWER_BOUND",
             BuiltIn {
-                decl: "FUNCTION LOWER_BOUND<U: ANY> : DINT
-                VAR_INPUT
+                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA> : DINT
+                VAR_IN_OUT
                     arr : U;
+                END_VAR
+                VAR_INPUT
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, operator, parameters, _|{
-                    validate_vla_builtins(annotator, operator, parameters, true)
+                annotation: Some(|annotator, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters)
                 }),
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                    generate_variable_length_array_bound_function(generator, params, true)
+                code : |generator, params, location| {
+                    generate_variable_length_array_bound_function(generator, params, true, location)
                 }
             }
         ),
         (
             "UPPER_BOUND",
             BuiltIn {
-                decl: "FUNCTION UPPER_BOUND<U: ANY> : DINT
-                VAR_INPUT
+                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA> : DINT
+                VAR_IN_OUT
                     arr : U;
+                END_VAR
+                VAR_INPUT
                     dim : DINT;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, operator, parameters, _|{
-                    validate_vla_builtins(annotator, operator, parameters, false)
+                annotation: Some(|annotator, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters)
                 }),
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                    generate_variable_length_array_bound_function(generator, params, false)
+                code : |generator, params, location| {
+                    generate_variable_length_array_bound_function(generator, params, false, location)
                 }
             }
         ),
     ]);
 }
 
-fn validate_vla_builtins(
+fn annotate_variable_length_array_bound_function(
     annotator: &mut TypeAnnotator,
-    operator: &AstStatement,
     parameters: Option<&AstStatement>,
-    is_lower: bool,
 ) -> Result<(), Diagnostic> {
-    let pou_name = if is_lower { "LOWER_BOUND" } else { "UPPER_BOUND" };
-
-    let params = parameters.ok_or_else(|| {
-        Diagnostic::codegen_error(&format!("{} requires parameters", pou_name), operator.get_location())
-    })?;
-    // Get the input and annotate it with a vla type
-    let params = flatten_expression_list(params);
-    let Some(input) = params.get(0) else {
-            unreachable!()
+    let Some(parameters) = parameters else {
+        todo!()
     };
-    let type_information =
-        annotator.annotation_map.get_type_or_void(input, annotator.index).get_type_information();
-
-    if !matches!(
-        type_information,
-        DataTypeInformation::Struct {
-            source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
-            ..
-        }
-    ) {
-        return Err(Diagnostic::SyntaxError {
-            message: format!(
-                "Invalid parameter type for {} function. Expected array or variable length array, found {}",
-                pou_name,
-                type_information.get_name()
-            ),
-            range: vec![operator.get_location()],
-            err_no: ErrNo::call__invalid_parameter_type,
-        });
+    let params = ast::flatten_expression_list(parameters);
+    let (Some(vla), Some(idx)) = (params.get(0), params.get(1)) else {
+        todo!()
     };
+    // if the parameter is a VLA struct, annotate it as such
+    let data_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    let type_name = if data_type.get_nature() == TypeNature::__VLA {
+        data_type.get_name()
+    } else {
+        // otherwise annotate it with an internal, reserved VLA type
+        typesystem::__VLA_TYPE
+    };
+
+    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(type_name));
 
     Ok(())
 }
+
 /// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
     params: &[&AstStatement],
     is_lower: bool,
+    location: SourceRange,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
     let data_type_information =
         generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    let DataTypeInformation::Struct { .. } = data_type_information else {
-            unreachable!()
-        };
+    // TODO: once we abort codegen on critical errors, either remove this check or change Err to unreachable!()
+    if !matches!(data_type_information, DataTypeInformation::Struct { source: StructSource::Internal(_), .. })
+    {
+        return Err(Diagnostic::codegen_error(
+            &format!("Expected VLA type, received {}", data_type_information.get_name()),
+            location,
+        ));
+    };
 
     let vla = generator.generate_element_pointer(params[0]).unwrap();
     let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
@@ -360,16 +356,17 @@ fn generate_variable_length_array_bound_function<'ink>(
         AstStatement::LiteralInteger { value, .. } => {
             // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
             // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
-            let raw = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
-            llvm.i32_type().const_int(raw, false)
+            let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+            llvm.i32_type().const_int(offset, false)
         }
+        // e.g. LOWER_BOUND(arr, idx + 3)
         _ => {
             let expression_value = generator.generate_expression(params[1])?;
             if !expression_value.is_int_value() {
                 todo!()
             };
-            // e.g. LOWER_BOUND(arr, idx)
-            let dimension_accessor = builder.build_int_mul(
+            // this operation mirrors the offset calculation of literal ints, but at runtime
+            let offset = builder.build_int_mul(
                 llvm.i32_type().const_int(2, false),
                 builder.build_int_sub(
                     expression_value.into_int_value(),
@@ -378,18 +375,16 @@ fn generate_variable_length_array_bound_function<'ink>(
                 ),
                 "",
             );
-
-            let bound = if !is_lower {
-                builder.build_int_add(dimension_accessor, llvm.i32_type().const_int(1, false), "")
+            if !is_lower {
+                builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
             } else {
-                dimension_accessor
-            };
-
-            bound
+                offset
+            }
         }
     };
 
-    let gep_bound = unsafe { llvm.builder.build_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+    let gep_bound =
+        unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
     let bound = llvm.builder.build_load(gep_bound, "");
 
     Ok(ExpressionValue::RValue(bound))

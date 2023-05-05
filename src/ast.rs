@@ -91,6 +91,7 @@ pub enum TypeNature {
     String,
     Char,
     Date,
+    __VLA,
 }
 
 impl TypeNature {
@@ -116,6 +117,7 @@ impl TypeNature {
             match self {
                 TypeNature::Any => true,
                 TypeNature::Derived => matches!(other, TypeNature::Any),
+                TypeNature::__VLA => matches!(other, TypeNature::Any),
                 TypeNature::Elementary => matches!(other, TypeNature::Any),
                 TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Num => {

@@ -191,10 +191,68 @@ mod builtins {
             MY_CONST : DINT := 10;
         END_VAR
         VAR
-            // x: DINT;
-            x : ARRAY[0..1] OF DINT;
+            arr : ARRAY[0..1] OF DINT;
+            duration: TIME;
         END_VAR
-            LOWER_BOUND(x, MY_CONST + 1);
+            LOWER_BOUND(arr, MY_CONST + 1);
+            LOWER_BOUND(duration, 1);
+            LOWER_BOUND('i am a string', 1);
+        END_FUNCTION
+        ",
+        );
+
+        dbg!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_invalid_index() {
+        let diagnostics = parse_and_validate(
+            "
+        VAR_GLOBAL CONSTANT
+            MY_CONST : DINT := 10;
+        END_VAR
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            LOWER_BOUND(vla, MY_CONST + 1); // valid
+            LOWER_BOUND(vla, DINT#1.0); // valid
+            LOWER_BOUND(vla, 0); // index out of bounds
+            LOWER_BOUND(vla, 3.1415); // invalid type
+        END_FUNCTION
+        ",
+        );
+
+        dbg!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_invalid_number_of_params() {
+        let diagnostics = parse_and_validate(
+            "
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            LOWER_BOUND(vla, MY_CONST + 1); // valid
+            LOWER_BOUND();
+            LOWER_BOUND(vla);
+            LOWER_BOUND(1);
+            LOWER_BOUND(vla, 1, 2, 3);
         END_FUNCTION
         ",
         );
