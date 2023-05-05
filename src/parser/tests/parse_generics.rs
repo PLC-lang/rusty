@@ -19,7 +19,7 @@ fn generic_markers_on_pou_added() {
         M : ANY_STRING,
         N : ANY_CHAR,
         O : ANY_DATE,
-        P : ANY___VLA> : INT END_FUNCTION";
+        P : __ANY_VLA> : INT END_FUNCTION";
     let (parse_result, _) = parse(src);
     let function = &parse_result.units[0];
     //Make sure the function has the generic parametes T: ANY, R : ANY_NUMBER

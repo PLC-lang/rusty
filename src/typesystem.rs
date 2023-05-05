@@ -325,7 +325,7 @@ impl StructSource {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
-    __VLA,
+    __VLA, // used for error-reporting only
 }
 
 type TypeId = String;
