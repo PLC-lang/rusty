@@ -40,12 +40,7 @@ pub enum ConstExpression {
     Resolved(AstStatement),
     Unresolvable {
         statement: AstStatement,
-        reason: String,
-    },
-    Overflow {
-        reason: String,
-        statement: AstStatement,
-        location: SourceRange,
+        reason: UnresolvableKind,
     },
 }
 
@@ -55,8 +50,7 @@ impl ConstExpression {
         match &self {
             ConstExpression::Unresolved { statement, .. }
             | ConstExpression::Resolved(statement)
-            | ConstExpression::Unresolvable { statement, .. }
-            | ConstExpression::Overflow { statement, .. } => statement,
+            | ConstExpression::Unresolvable { statement, .. } => statement,
         }
     }
 
@@ -73,12 +67,30 @@ impl ConstExpression {
         matches!(self, ConstExpression::Resolved(_))
     }
 
-    pub fn is_overflow(&self) -> bool {
-        matches!(self, ConstExpression::Overflow { .. })
-    }
-
     pub(crate) fn is_default(&self) -> bool {
         matches!(self.get_statement(), AstStatement::DefaultValue { .. })
+    }
+}
+
+#[derive(Debug)]
+pub enum UnresolvableKind {
+    Misc(String),
+    Overflow(String, SourceRange),
+}
+
+impl UnresolvableKind {
+    pub fn get_reason(&self) -> &str {
+        match self {
+            UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
+        }
+    }
+
+    pub fn is_misc(&self) -> bool {
+        matches!(self, UnresolvableKind::Misc(..))
+    }
+
+    pub fn is_overflow(&self) -> bool {
+        matches!(self, UnresolvableKind::Overflow(..))
     }
 }
 
@@ -136,8 +148,6 @@ impl ConstExpressions {
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
                 (s.clone(), it.target_type_name.clone(), None)
             }
-            // TODO: Currently wrong
-            ConstExpression::Overflow { statement, .. } => (statement.clone(), "Overflow".into(), None),
         })
     }
 
@@ -153,38 +163,16 @@ impl ConstExpressions {
         Ok(())
     }
 
-    pub fn mark_overflow(
-        &mut self,
-        id: &ConstId,
-        statement: &AstStatement,
-        type_info: &DataTypeInformation,
-    ) -> Result<(), String> {
-        let wrapper = self
-            .expressions
-            .get_mut(*id)
-            .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
-
-        wrapper.expr = ConstExpression::Overflow {
-            statement: wrapper.get_statement().clone(),
-            location: statement.get_location(),
-            // TODO: It would be nice to know whether this is a literal or an expression in the error message
-            reason: format!("This will overflow for type {}", type_info.get_name()),
-        };
-        Ok(())
-    }
-
     /// marks the const-expression represented by the given `id` as unresolvable with a given
     /// `reason`.
-    pub fn mark_unresolvable(&mut self, id: &ConstId, reason: &str) -> Result<(), String> {
+    pub fn mark_unresolvable(&mut self, id: &ConstId, reason: UnresolvableKind) -> Result<(), String> {
         let wrapper = self
             .expressions
             .get_mut(*id)
             .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
-        wrapper.expr = ConstExpression::Unresolvable {
-            statement: wrapper.get_statement().clone(),
-            reason: reason.to_string(),
-        };
+        wrapper.expr = ConstExpression::Unresolvable { statement: wrapper.get_statement().clone(), reason };
+
         Ok(())
     }
 

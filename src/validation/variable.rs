@@ -1,6 +1,6 @@
 use crate::{
     ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::ConstExpression,
+    index::const_expressions::{ConstExpression, UnresolvableKind},
     Diagnostic,
 };
 
@@ -100,10 +100,10 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
-            Some(ConstExpression::Unresolvable { reason, statement }) => {
+            Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
                 validator.push_diagnostic(Diagnostic::unresolved_constant(
                     variable.name.as_str(),
-                    Some(reason),
+                    Some(reason.get_reason()),
                     statement.get_location(),
                 ));
             }
