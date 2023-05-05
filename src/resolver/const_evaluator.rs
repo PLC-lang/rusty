@@ -139,6 +139,7 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
                 AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
                 _ => needs_evaluation(elements.as_ref()),
             },
+            AstLiteral::Integer(_) => true,
             _ => false,
         },
         AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
@@ -250,33 +251,24 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                         Ok(Some(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
                         Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
-                        // TODO: Kind of sucks to recreate the AstStatment here
-                        let lit = AstStatement::Literal {
-                            kind: AstLiteral::Integer(i),
-                            id,
-                            location: location.clone(),
-                        };
-
                         // TODO: Explain why we're using `lit` instead of `masked_value` (unsigned becomes 0 on overflow)
-                        if !does_overflow(&mut index, &lit, &candidate, candidates_type.clone()) {
-                            // since we store literal-ints as i128 we need to truncate all of them down to their
-                            // original size to avoid negative numbers
-                            let mask = 2_i128.pow(*size) - 1; // bitmask for this type's size
-                            let masked_value = i & mask; //delete all bits > size of data_type
+                        // since we store literal-ints as i128 we need to truncate all of them down to their
+                        // original size to avoid negative numbers
+                        let mask = 2_i128.pow(*size) - 1; // bitmask for this type's size
+                        let masked_value = i & mask; //delete all bits > size of data_type
 
-                            index
-                                .get_mut_const_expressions()
-                                .mark_resolved(
-                                    &candidate,
-                                    AstStatement::Literal {
-                                        id,
-                                        location,
-                                        kind: AstLiteral::new_integer(masked_value),
-                                    },
-                                )
-                                .expect("unknown id for const-expression"); //panic if we dont know the id
-                            failed_tries = 0;
-                        }
+                        index
+                            .get_mut_const_expressions()
+                            .mark_resolved(
+                                &candidate,
+                                AstStatement::Literal {
+                                    id,
+                                    location,
+                                    kind: AstLiteral::new_integer(masked_value),
+                                },
+                            )
+                            .expect("unknown id for const-expression"); //panic if we dont know the id
+                        failed_tries = 0;
                     }
 
                     // we were able to evaluate a valid statement
@@ -287,10 +279,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             &index,
                         );
 
-                        if !does_overflow(&mut index, &literal, &candidate, candidates_type) {
-                            do_resolve_candidate(&mut index, candidate, literal);
-                        }
-
+                        do_resolve_candidate(&mut index, candidate, literal);
                         failed_tries = 0;
                     }
 
@@ -302,6 +291,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
 
                     // there was an error during evaluation
                     (Err(err_msg), _) => {
+                        dbg!(&err_msg);
                         //error during resolving
                         index
                             .get_mut_const_expressions()
@@ -428,6 +418,51 @@ fn cast_if_necessary(
     statement
 }
 
+fn does_overflow2(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
+    let Some(dti) = dti else { return false };
+    let AstStatement::Literal { kind, .. } = literal else { return false };
+
+    if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
+        return false;
+    };
+
+    dbg!((literal, dti));
+    match &dti {
+        DataTypeInformation::Integer { signed, size, .. } => match (kind, signed, size) {
+            // Signed
+            (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
+
+            // Unsigned
+            (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), false, 16) => {
+                let x = *value > u16::MAX as i128;
+                let y = *value < u16::MIN as i128;
+                dbg!((x, y));
+
+                x || y
+            }
+            (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
+            (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
+
+            _ => false,
+        },
+
+        DataTypeInformation::Float { size, .. } => match (kind, size) {
+            // The unwraps should be safe, as the `const_evaluator::evaluate` already checks for invalid values
+            (AstLiteral::Real(value), 32) => value.parse::<f32>().unwrap().is_infinite(),
+            (AstLiteral::Real(value), 64) => value.parse::<f64>().unwrap().is_infinite(),
+
+            _ => false,
+        },
+
+        // We're only interested in integers and floats
+        _ => false,
+    }
+}
+
 pub fn evaluate(
     initial: &AstStatement,
     scope: Option<&str>,
@@ -455,6 +490,43 @@ pub fn evaluate_with_target_hint(
     }
 
     let literal = match initial {
+        AstStatement::Literal { kind, location, id } => match kind {
+            AstLiteral::Array(Array { elements: Some(elements) }) => {
+                let tt = target_type
+                    .and_then(|it| index.find_effective_type_info(it))
+                    .and_then(|it| it.get_inner_array_type_name())
+                    .or_else(|| target_type);
+
+                let inner_elements = AstStatement::get_as_list(elements)
+                    .iter()
+                    .map(|e| evaluate_with_target_hint(e, scope, index, tt))
+                    .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                    .into_iter()
+                    .collect::<Option<Vec<AstStatement>>>();
+
+                //return a new array, or return none if one was not resolvable
+                inner_elements.map(|ie| AstStatement::Literal {
+                    id: *id,
+                    kind: AstLiteral::new_array(Some(Box::new(AstStatement::ExpressionList {
+                        expressions: ie,
+                        id: *id,
+                    }))),
+                    location: location.clone(),
+                })
+            }
+
+            AstLiteral::Integer(_) => {
+                let dti = target_type.and_then(|it| index.find_effective_type_info(it));
+                if does_overflow2(&initial, dti) {
+                    return Err("overflows".into());
+                }
+
+                return Ok(Some(initial.clone()));
+            }
+
+            _ => return Ok(Some(initial.clone())),
+        },
+
         AstStatement::DefaultValue { location, .. } => {
             return get_default_initializer(
                 initial.get_id(),
@@ -534,11 +606,13 @@ pub fn evaluate_with_target_hint(
 
         // NOT x
         AstStatement::UnaryExpression { operator: Operator::Not, value, .. } => {
-            match evaluate(value, scope, index)? {
+            let eval = evaluate(value, scope, index)?;
+            match eval.clone() {
                 Some(AstStatement::Literal { kind: AstLiteral::Bool(v), id, location }) => {
                     Some(AstStatement::Literal { kind: AstLiteral::Bool(!v), id, location })
                 }
                 Some(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) => {
+                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)?;
                     Some(AstStatement::Literal { kind: AstLiteral::Integer(!v), id, location })
                 }
                 None => {
@@ -568,29 +642,6 @@ pub fn evaluate_with_target_hint(
                 }
                 _ => return Err(format!("Cannot resolve constant Minus {value:?}")),
             }
-        }
-        AstStatement::Literal {
-            id,
-            kind: AstLiteral::Array(Array { elements: Some(elements) }),
-            location,
-            ..
-        } => {
-            let inner_elements = AstStatement::get_as_list(elements)
-                .iter()
-                .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
-                .into_iter()
-                .collect::<Option<Vec<AstStatement>>>();
-
-            //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstStatement::Literal {
-                id: *id,
-                kind: AstLiteral::new_array(Some(Box::new(AstStatement::ExpressionList {
-                    expressions: ie,
-                    id: *id,
-                }))),
-                location: location.clone(),
-            })
         }
         AstStatement::ExpressionList { expressions, id } => {
             let inner_elements = expressions
@@ -685,18 +736,20 @@ fn get_cast_statement_literal(
     scope: Option<&str>,
     index: &Index,
 ) -> Result<AstStatement, String> {
-    match index.find_effective_type_by_name(type_name).map(DataType::get_type_information) {
+    let dti = index.find_effective_type_info(type_name);
+    match dti {
         Some(&crate::typesystem::DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
-            let evaluated_initial = evaluate(cast_statement, scope, index)?
-                .as_ref()
-                .map(|v| {
-                    if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = v {
-                        Ok(*value)
-                    } else {
-                        Err(format!("Expected integer value, found {v:?}"))
-                    }
-                })
-                .transpose()?;
+            let evaluated_initial =
+                dbg!(evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?)
+                    .as_ref()
+                    .map(|v| {
+                        if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = v {
+                            Ok(*value)
+                        } else {
+                            Err(format!("Expected integer value, found {v:?}"))
+                        }
+                    })
+                    .transpose()?;
             if let Some(value) = evaluated_initial {
                 const SIGNED: bool = true;
                 const UNSIGNED: bool = false;
