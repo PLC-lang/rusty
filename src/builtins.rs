@@ -13,7 +13,7 @@ use crate::{
         LinkageType, SourceRange, SourceRangeFactory, TypeNature,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::{Diagnostic, ErrNo},
+    diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
     resolver::{
@@ -21,7 +21,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, DataTypeInformation, InternalType, StructSource},
+    typesystem::{self, DataTypeInformation, StructSource},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -261,12 +261,12 @@ lazy_static! {
         (
             "LOWER_BOUND",
             BuiltIn {
-                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA> : DINT
+                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
                 VAR_IN_OUT
                     arr : U;
                 END_VAR
                 VAR_INPUT
-                    dim : DINT;
+                    dim : T;
                 END_VAR
                 END_FUNCTION",
                 annotation: Some(|annotator, _, parameters, _| {
@@ -281,12 +281,12 @@ lazy_static! {
         (
             "UPPER_BOUND",
             BuiltIn {
-                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA> : DINT
+                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
                 VAR_IN_OUT
                     arr : U;
                 END_VAR
                 VAR_INPUT
-                    dim : DINT;
+                    dim : T;
                 END_VAR
                 END_FUNCTION",
                 annotation: Some(|annotator, _, parameters, _| {
@@ -312,16 +312,24 @@ fn annotate_variable_length_array_bound_function(
     let (Some(vla), Some(idx)) = (params.get(0), params.get(1)) else {
         todo!()
     };
-    // if the parameter is a VLA struct, annotate it as such
-    let data_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
-    let type_name = if data_type.get_nature() == TypeNature::__VLA {
-        data_type.get_name()
+    // if the VLA parameter is a VLA struct, annotate it as such
+    let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+        vla_type.get_name()
     } else {
         // otherwise annotate it with an internal, reserved VLA type
         typesystem::__VLA_TYPE
     };
 
-    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(type_name));
+    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
+
+    // idx needs to have a type and generic nature annotation for validation
+    annotator.annotation_map.annotate(idx, StatementAnnotation::value(annotator.annotation_map.get_type_or_void(idx, annotator.index).get_name()));
+    if !matches!(annotator.annotation_map.get_generic_nature(idx), Some(TypeNature::Int)) {
+        annotator.annotation_map.add_generic_nature(idx, TypeNature::Int);    
+    }
+    // annotate the type-hint for idx with the smallest possible INT type
+    annotator.annotation_map.annotate_type_hint(idx, StatementAnnotation::value(typesystem::USINT_TYPE));
 
     Ok(())
 }
@@ -339,7 +347,8 @@ fn generate_variable_length_array_bound_function<'ink>(
     let data_type_information =
         generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    // TODO: once we abort codegen on critical errors, either remove this check or change Err to unreachable!()
+    // TODO: most of the codegen errors should already be caught during validation. 
+    // once we abort codegen on critical errors, revisit and change to unreachable where possible
     if !matches!(data_type_information, DataTypeInformation::Struct { source: StructSource::Internal(_), .. })
     {
         return Err(Diagnostic::codegen_error(
@@ -355,15 +364,34 @@ fn generate_variable_length_array_bound_function<'ink>(
         // e.g. LOWER_BOUND(arr, 1)
         AstStatement::Literal { kind, .. } => {
             let AstLiteral::Integer(value) = kind else {
-                todo!()
+                let Some(type_name) = kind.get_literal_actual_signed_type_name(false) else {
+                    unreachable!("type cannot be VOID")
+                };
+                return Err(Diagnostic::codegen_error(
+                    &format!("Invalid literal type. Expected INT type, received {} type", type_name),
+                    location,
+                ));
             };
             // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
             // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
+        AstStatement::CastStatement { target, .. } => {
+            let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
+                unreachable!()                
+            };
+
+            if !value.is_int_value() {
+                return Err(Diagnostic::codegen_error(
+                    &format!("Expected INT value, found {}", value.get_type().to_string()),
+                    location,
+                ));
+            };
+
+            value.into_int_value()
+        }
         // e.g. LOWER_BOUND(arr, idx + 3)
-        AstStatement::CastStatement { target, type_name, .. } => todo!(),
         _ => {
             let expression_value = generator.generate_expression(params[1])?;
             if !expression_value.is_int_value() {

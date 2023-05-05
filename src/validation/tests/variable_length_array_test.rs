@@ -223,9 +223,9 @@ mod builtins {
             vla: ARRAY[*] OF DINT;
         END_VAR
             LOWER_BOUND(vla, MY_CONST + 1); // valid
-            LOWER_BOUND(vla, DINT#1.0); // valid
+            LOWER_BOUND(vla, 3.1415); // invalid
+            LOWER_BOUND(vla, TIME#3s); // invalid
             LOWER_BOUND(vla, 0); // index out of bounds
-            LOWER_BOUND(vla, 3.1415); // invalid type
         END_FUNCTION
         ",
         );
