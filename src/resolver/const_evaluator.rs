@@ -149,57 +149,6 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
     }
 }
 
-/// Checks if an integer or float would result in an overflow and if so marks the expression as
-/// [`ConstExpression::Overflow`] returning true.
-fn does_overflow(
-    index: &mut Index,
-    literal: &AstStatement,
-    id: &ConstId,
-    dti: Option<DataTypeInformation>,
-) -> bool {
-    let Some(dti) = dti else { return false };
-    let AstStatement::Literal { kind, .. } = literal else { return false };
-
-    if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
-        return false;
-    };
-
-    let overflows = match &dti {
-        DataTypeInformation::Integer { signed, size, .. } => match (kind, signed, size) {
-            // Signed
-            (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
-
-            // Unsigned
-            (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
-
-            _ => false,
-        },
-
-        DataTypeInformation::Float { size, .. } => match (kind, size) {
-            // The unwraps should be safe, as the `const_evaluator::evaluate` already checks for invalid values
-            (AstLiteral::Real(value), 32) => value.parse::<f32>().unwrap().is_infinite(),
-            (AstLiteral::Real(value), 64) => value.parse::<f64>().unwrap().is_infinite(),
-
-            _ => false,
-        },
-
-        // We're only interested in integers and floats
-        _ => false,
-    };
-
-    if overflows {
-        index.get_mut_const_expressions().mark_overflow(id, literal, &dti).unwrap();
-    }
-
-    overflows
-}
-
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
 pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>) {
     let mut unresolvable: Vec<UnresolvableConstant> = Vec::new();
@@ -418,7 +367,7 @@ fn cast_if_necessary(
     statement
 }
 
-fn does_overflow2(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
+fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
     let Some(dti) = dti else { return false };
     let AstStatement::Literal { kind, .. } = literal else { return false };
 
@@ -437,13 +386,7 @@ fn does_overflow2(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> 
 
             // Unsigned
             (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 16) => {
-                let x = *value > u16::MAX as i128;
-                let y = *value < u16::MIN as i128;
-                dbg!((x, y));
-
-                x || y
-            }
+            (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
             (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
             (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
 
@@ -517,7 +460,7 @@ pub fn evaluate_with_target_hint(
 
             AstLiteral::Integer(_) => {
                 let dti = target_type.and_then(|it| index.find_effective_type_info(it));
-                if does_overflow2(&initial, dti) {
+                if does_overflow(&initial, dti) {
                     return Err("overflows".into());
                 }
 
