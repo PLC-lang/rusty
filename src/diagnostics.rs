@@ -347,7 +347,7 @@ impl Diagnostic {
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Literal {literal_type} is not campatible to {cast_type}"),
+            message: format!("Literal {literal_type} is not compatible to {cast_type}"),
             range: vec![location],
             err_no: ErrNo::type__incompatible_literal_cast,
         }
