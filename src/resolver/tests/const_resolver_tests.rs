@@ -680,10 +680,7 @@ fn illegal_cast_should_not_be_resolved() {
 
     // THEN a could not be resolved, because the literal is invalid
     debug_assert_eq!(
-        vec![UnresolvableConstant::new(
-            global!(index, "a"),
-            "Cannot resolve constant: BOOL#LiteralInteger { value: 255 }"
-        )],
+        vec![UnresolvableConstant::new(global!(index, "a"), "This will overflow for type BOOL")],
         unresolvable
     );
 }

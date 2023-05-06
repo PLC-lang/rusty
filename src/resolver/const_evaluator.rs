@@ -362,7 +362,8 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
 
     match &dti {
         DataTypeInformation::Integer { signed, size, semantic_size, .. } => {
-            match (kind, signed, semantic_size.as_ref().unwrap_or(size)) {
+            let size = semantic_size.as_ref().unwrap_or(size).to_owned();
+            match (kind, signed, size) {
                 // Signed
                 (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
                 (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
@@ -375,19 +376,29 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
                 (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
                 (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
 
+                // We are dealing with e.g. booleans if we have a semantic size != 8, 16, 32 or 64
+                (AstLiteral::Integer(value), _, _) => {
+                    let min = if *signed { -2_i128.pow(size - 1) } else { 0 };
+                    let max = 2_i128.pow(size) - 1;
+
+                    *value < min || *value > max
+                }
+
+                // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
                 _ => false,
             }
         }
 
         DataTypeInformation::Float { size, .. } => match (kind, size) {
-            // The unwraps should be safe, as the `const_evaluator::evaluate` already checks for invalid values
+            // In _theory_ these unwraps should be safe because we'll be dealing with only evaluated literals
             (AstLiteral::Real(value), 32) => value.parse::<f32>().unwrap().is_infinite(),
             (AstLiteral::Real(value), 64) => value.parse::<f64>().unwrap().is_infinite(),
 
+            // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
             _ => false,
         },
 
-        // We're only interested in integers and floats
+        // Only interested in integers and floats
         _ => false,
     }
 }
@@ -656,19 +667,16 @@ fn resolve_const_reference(
     name: &str,
     index: &Index,
 ) -> Result<Option<AstStatement>, UnresolvableKind> {
-    if variable.is_constant() {
-        if let Some(ConstExpression::Resolved(statement)) = variable
-            .initial_value
-            .as_ref()
-            .and_then(|it| index.get_const_expressions().find_const_expression(it))
-        {
-            Ok(Some(statement.clone()))
-        } else {
-            Ok(None) //not resolved yet
-        }
+    if !variable.is_constant() {
+        return Err(UnresolvableKind::Misc(format!("'{name}' is no const reference")));
+    }
+
+    if let Some(ConstExpression::Resolved(statement)) =
+        variable.initial_value.as_ref().and_then(|it| index.get_const_expressions().find_const_expression(it))
+    {
+        Ok(Some(statement.clone()))
     } else {
-        //the referenced variabale is no const!
-        Err(UnresolvableKind::Misc(format!("'{name}' is no const reference")))
+        Ok(None) //not resolved yet
     }
 }
 
@@ -683,7 +691,7 @@ fn get_cast_statement_literal(
 ) -> Result<AstStatement, UnresolvableKind> {
     let dti = index.find_effective_type_info(type_name);
     match dti {
-        Some(&DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
+        Some(&DataTypeInformation::Integer { .. }) => {
             let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
                 .as_ref()
                 .map(|v| {
@@ -694,36 +702,16 @@ fn get_cast_statement_literal(
                     }
                 })
                 .transpose()?;
+
             if let Some(value) = evaluated_initial {
-                const SIGNED: bool = true;
-                const UNSIGNED: bool = false;
-                let value: i128 = match (signed, semantic_size.unwrap_or(size)) {
-                    //signed
-                    (SIGNED, SINT_SIZE) => (value as NativeSintType) as i128,
-                    (SIGNED, INT_SIZE) => (value as NativeIntType) as i128,
-                    (SIGNED, DINT_SIZE) => (value as NativeDintType) as i128,
-                    (SIGNED, LINT_SIZE) => (value as NativeLintType) as i128,
-                    //unsigned
-                    (UNSIGNED, SINT_SIZE) => (value as NativeByteType) as i128,
-                    (UNSIGNED, INT_SIZE) => (value as NativeWordType) as i128,
-                    (UNSIGNED, DINT_SIZE) => (value as NativeDwordType) as i128,
-                    (UNSIGNED, LINT_SIZE) => (value as NativeLwordType) as i128,
-                    _ => {
-                        return Err(UnresolvableKind::Misc(format!(
-                            "Cannot resolve constant: {type_name}#{cast_statement:?}"
-                        )))
-                    }
-                };
-                Ok(AstStatement::Literal {
+                return Ok(AstStatement::Literal {
                     kind: AstLiteral::new_integer(value),
                     id: cast_statement.get_id(),
                     location: cast_statement.get_location(),
-                })
-            } else {
-                Err(UnresolvableKind::Misc(format!(
-                    "Cannot resolve constant: {type_name}#{cast_statement:?}"
-                )))
+                });
             }
+
+            Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")))
         }
 
         Some(DataTypeInformation::Float { .. }) => {
