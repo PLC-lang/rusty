@@ -7,11 +7,7 @@ use crate::{
         const_expressions::{ConstExpression, ConstId, UnresolvableKind},
         Index,
     },
-    typesystem::{
-        DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType, NativeIntType,
-        NativeLintType, NativeLwordType, NativeSintType, NativeWordType, StringEncoding, DINT_SIZE, INT_SIZE,
-        LINT_SIZE, SINT_SIZE, VOID_TYPE,
-    },
+    typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
 
 macro_rules! cannot_eval_error {
