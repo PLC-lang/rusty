@@ -585,7 +585,7 @@ pub fn evaluate_with_target_hint(
                     Some(AstStatement::Literal { kind: AstLiteral::Integer(-v), id, location })
                 }
                 Some(AstStatement::Literal { kind: AstLiteral::Real(v), id, location }) => {
-                    Some(AstStatement::Literal {
+                    let lit = AstStatement::Literal {
                         kind: AstLiteral::new_real(format!(
                             "{:}",
                             -(v.parse::<f64>())
@@ -593,7 +593,8 @@ pub fn evaluate_with_target_hint(
                         )),
                         id,
                         location,
-                    })
+                    };
+                    evaluate_with_target_hint(&lit, scope, index, target_type)?
                 }
                 None => {
                     None //not yet resolvable
