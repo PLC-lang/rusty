@@ -396,6 +396,14 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::String { .. })
     }
 
+    pub fn is_string_utf8(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. })
+    }
+
+    pub fn is_string_utf16(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
+    }
+
     pub fn is_character(&self) -> bool {
         match self {
             DataTypeInformation::Integer { name, .. } => name == WCHAR_TYPE || name == CHAR_TYPE,

@@ -326,45 +326,28 @@ fn cast_if_necessary(
     target_type_name: &Option<&str>,
     index: &Index,
 ) -> AstStatement {
-    let data_type = target_type_name.and_then(|it| index.find_effective_type_by_name(it));
-    if let (Some(data_type), AstStatement::Literal { kind: literal, .. }) = (data_type, &statement) {
+    let Some(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) else {
+         return statement;
+    };
+
+    if let AstStatement::Literal { kind: literal, location, id } = &statement {
         match literal {
-            AstLiteral::Integer(value) => {
-                if data_type.get_type_information().is_float() {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_real(format!("{value}")),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+            AstLiteral::Integer(value) if dti.is_float() => {
+                return AstStatement::new_real(value.to_string(), *id, location.to_owned())
             }
-            AstLiteral::String(StringValue { value, is_wide: false }) => {
-                if matches!(
-                    data_type.get_type_information(),
-                    DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }
-                ) {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_string(value.clone(), true),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+
+            AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
+                return AstStatement::new_string(value, false, *id, location.to_owned())
             }
-            AstLiteral::String(StringValue { value, is_wide: true }) => {
-                if matches!(
-                    data_type.get_type_information(),
-                    DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }
-                ) {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_string(value.clone(), false),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+
+            AstLiteral::String(StringValue { value, is_wide: false }) if dti.is_string_utf16() => {
+                return AstStatement::new_string(value, true, *id, location.to_owned())
             }
-            _ => {}
+
+            _ => (),
         }
-    }
+    };
+
     statement
 }
 

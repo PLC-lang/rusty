@@ -1155,6 +1155,22 @@ impl AstStatement {
         AstStatement::Literal { kind, id, location }
     }
 
+    pub fn new_integer(value: i128, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
+    }
+
+    pub fn new_real(value: String, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
+    }
+
+    pub fn new_string(value: impl Into<String>, is_wide: bool, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal {
+            kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
+            location,
+            id,
+        }
+    }
+
     /// Returns true if the given token is an integer and zero.
     pub fn is_zero(&self) -> bool {
         matches!(self, AstStatement::Literal { kind: AstLiteral::Integer(0), .. })
