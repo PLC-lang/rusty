@@ -1,6 +1,6 @@
 use crate::{
     ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::{ConstExpression, UnresolvableKind},
+    index::const_expressions::ConstExpression,
     Diagnostic,
 };
 

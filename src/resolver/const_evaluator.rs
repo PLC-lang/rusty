@@ -368,6 +368,7 @@ fn cast_if_necessary(
     statement
 }
 
+/// Checks if a literal integer or float overflows based on its value, and if so returns true.
 fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
     let Some(dti) = dti else { return false };
     let AstStatement::Literal { kind, .. } = literal else { return false };
@@ -377,21 +378,23 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
     };
 
     match &dti {
-        DataTypeInformation::Integer { signed, size, .. } => match (kind, signed, size) {
-            // Signed
-            (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
+        DataTypeInformation::Integer { signed, size, semantic_size, .. } => {
+            match (kind, signed, semantic_size.as_ref().unwrap_or(size)) {
+                // Signed
+                (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
 
-            // Unsigned
-            (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
-            (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
+                // Unsigned
+                (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
 
-            _ => false,
-        },
+                _ => false,
+            }
+        }
 
         DataTypeInformation::Float { size, .. } => match (kind, size) {
             // The unwraps should be safe, as the `const_evaluator::evaluate` already checks for invalid values
@@ -482,7 +485,8 @@ pub fn evaluate_with_target_hint(
             )
         }
         AstStatement::CastStatement { target, type_name, .. } => {
-            match index.find_effective_type_info(type_name) {
+            let dti = index.find_effective_type_info(type_name);
+            match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
                     if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
                         return index
@@ -497,7 +501,10 @@ pub fn evaluate_with_target_hint(
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
                 }
-                _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+                _ => {
+                    evaluate_with_target_hint(&target, scope, index, Some(&type_name))?;
+                    Some(get_cast_statement_literal(dbg!(target), dbg!(type_name), scope, index)?)
+                }
             }
         }
         AstStatement::Reference { name, .. } => index
@@ -530,11 +537,11 @@ pub fn evaluate_with_target_hint(
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", *id)?,
                     Operator::Minus => arithmetic_expression!(left, -, right, "-", *id)?,
                     Operator::Multiplication => arithmetic_expression!(left, *, right, "*", *id)?,
-                    Operator::Division if is_zero(right) => {
+                    Operator::Division if right.is_zero() => {
                         return Err(UnresolvableKind::Misc("Attempt to divide by zero".to_string()))
                     }
                     Operator::Division => arithmetic_expression!(left, /, right, "/", *id)?,
-                    Operator::Modulo if is_zero(right) => {
+                    Operator::Modulo if right.is_zero() => {
                         return Err(UnresolvableKind::Misc(
                             "Attempt to calculate the remainder with a divisor of zero".to_string(),
                         ))
@@ -682,10 +689,6 @@ fn resolve_const_reference(
     }
 }
 
-fn is_zero(v: &AstStatement) -> bool {
-    matches!(v, AstStatement::Literal { kind: AstLiteral::Integer(0), .. })
-}
-
 /// takes the given cast_statement transform it into a literal that better represents
 /// the data_type given by the `type_name`
 /// (e.g. WORD#FFFF ... =-1 vs. DINT#FFFF ... =0x0000_FFFF)
@@ -697,7 +700,7 @@ fn get_cast_statement_literal(
 ) -> Result<AstStatement, UnresolvableKind> {
     let dti = index.find_effective_type_info(type_name);
     match dti {
-        Some(&crate::typesystem::DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
+        Some(&DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
             let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
                 .as_ref()
                 .map(|v| {

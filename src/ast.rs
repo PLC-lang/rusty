@@ -1154,6 +1154,11 @@ impl AstStatement {
     pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> Self {
         AstStatement::Literal { kind, id, location }
     }
+
+    /// Returns true if the given token is an integer and zero.
+    pub fn is_zero(&self) -> bool {
+        matches!(self, AstStatement::Literal { kind: AstLiteral::Integer(0), .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
