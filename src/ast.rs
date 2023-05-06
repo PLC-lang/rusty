@@ -1171,9 +1171,17 @@ impl AstStatement {
         }
     }
 
-    /// Returns true if the given token is an integer and zero.
+    /// Returns true if the given token is an integer or float and zero.
     pub fn is_zero(&self) -> bool {
-        matches!(self, AstStatement::Literal { kind: AstLiteral::Integer(0), .. })
+        match self {
+            AstStatement::Literal { kind, .. } => match kind {
+                AstLiteral::Integer(0) => true,
+                AstLiteral::Real(val) => val == "0" || val == "0.0",
+                _ => false,
+            },
+
+            _ => false,
+        }
     }
 }
 

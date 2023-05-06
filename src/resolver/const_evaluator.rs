@@ -136,9 +136,6 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
                 _ => needs_evaluation(elements.as_ref()),
             },
 
-            // Already evaluated and most likely divided by zero
-            AstLiteral::Real(value) if value == "inf" => false,
-
             // We want to check if literals will overflow, hence they'll need to be evaluated
             AstLiteral::Integer(_) | AstLiteral::Real(_) => true,
 
