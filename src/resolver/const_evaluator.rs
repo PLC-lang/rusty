@@ -136,6 +136,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
                 _ => needs_evaluation(elements.as_ref()),
             },
 
+            // Already evaluated and most likely divided by zero
+            AstLiteral::Real(value) if value == "inf" => false,
+
             // We want to check if literals will overflow, hence they'll need to be evaluated
             AstLiteral::Integer(_) | AstLiteral::Real(_) => true,
 
@@ -552,6 +555,8 @@ pub fn evaluate_with_target_hint(
                         )))
                     }
                 };
+
+                // We have to re-evaluate to detect overflows
                 evaluate_with_target_hint(&evalualted, scope, index, target_type)?
             } else {
                 None //not all operators can be resolved
