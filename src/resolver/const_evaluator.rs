@@ -10,97 +10,6 @@ use crate::{
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
 
-macro_rules! cannot_eval_error {
-    ($left:expr, $op_text:expr, $right:expr) => {
-        Err(UnresolvableKind::Misc(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)))
-    };
-}
-
-macro_rules! arithmetic_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
-                    let rvalue = rvalue.parse::<f64>()
-                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                    let lvalue = lvalue.parse::<f64>()
-                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op *rvalue as f64).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
-                    let lvalue = lvalue.parse::<f64>()
-                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                    let rvalue = rvalue.parse::<f64>()
-                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    }
-}
-
-macro_rules! bitwise_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    };
-}
-
-macro_rules! compare_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
-                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) => {
-               Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    }
-}
-
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
 #[derive(PartialEq, Eq, Debug)]
@@ -122,29 +31,6 @@ impl UnresolvableConstant {
 
     pub fn no_initial_value(id: &ConstId) -> Self {
         UnresolvableConstant::new(*id, "No initial value")
-    }
-}
-
-/// returns true, if the given expression needs to be evaluated.
-/// literals must not be further evaluated and can be known at
-/// compile time
-fn needs_evaluation(expr: &AstStatement) -> bool {
-    match expr {
-        AstStatement::Literal { kind, .. } => match &kind {
-            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match elements.as_ref() {
-                AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-                _ => needs_evaluation(elements.as_ref()),
-            },
-
-            // We want to check if literals will overflow, hence they'll need to be evaluated
-            AstLiteral::Integer(_) | AstLiteral::Real(_) => true,
-
-            _ => false,
-        },
-        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
-        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
-        _ => true,
     }
 }
 
@@ -265,6 +151,29 @@ fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: As
         .get_mut_const_expressions()
         .mark_resolved(&candidate, new_statement)
         .expect("unknown id for const-expression");
+}
+
+/// returns true, if the given expression needs to be evaluated.
+/// literals must not be further evaluated and can be known at
+/// compile time
+fn needs_evaluation(expr: &AstStatement) -> bool {
+    match expr {
+        AstStatement::Literal { kind, .. } => match &kind {
+            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match elements.as_ref() {
+                AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+                _ => needs_evaluation(elements.as_ref()),
+            },
+
+            // We want to check if literals will overflow, hence they'll need to be evaluated
+            AstLiteral::Integer(_) | AstLiteral::Real(_) => true,
+
+            _ => false,
+        },
+        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
+        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
+        _ => true,
+    }
 }
 
 /// generates an ast-statement that initializes the given type with the registered default values
@@ -415,7 +324,7 @@ pub fn evaluate(
 /// ## Returns
 /// - returns an Err if resolving caused an internal error (e.g. number parsing)
 /// - returns None if the initializer cannot be resolved  (e.g. missing value)
-pub fn evaluate_with_target_hint(
+fn evaluate_with_target_hint(
     initial: &AstStatement,
     scope: Option<&str>,
     index: &Index,
@@ -740,3 +649,98 @@ fn get_cast_statement_literal(
         _ => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}"))),
     }
 }
+
+macro_rules! cannot_eval_error {
+    ($left:expr, $op_text:expr, $right:expr) => {
+        Err(UnresolvableKind::Misc(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)))
+    };
+}
+use cannot_eval_error;
+
+macro_rules! arithmetic_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+                    let rvalue = rvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                    let lvalue = lvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op *rvalue as f64).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+                    let lvalue = lvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                    let rvalue = rvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op rvalue).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    }
+}
+use arithmetic_expression;
+
+macro_rules! bitwise_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    };
+}
+use bitwise_expression;
+
+macro_rules! compare_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
+                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) => {
+               Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    }
+}
+use compare_expression;
