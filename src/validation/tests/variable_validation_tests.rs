@@ -309,3 +309,47 @@ fn overflows_with_non_global_constants() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(diagnostics[0].get_message(), "Unresolved constant 'c' variable: 'a' is no const reference");
 }
+
+#[test]
+fn overflows_with_array_initializer() {
+    // TODO(volsa): We currently only detect the first overflow value inside an array-initalizer because
+    // the `evaluate_with_target_hint` method will return an error after it first detected such a value (i.e.
+    // after `-1`).
+    let diagnostics = parse_and_validate(
+        "
+        VAR_GLOBAL
+            arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+        END_VAR
+        ",
+    );
+
+    assert_validation_snapshot!(diagnostics)
+}
+
+#[test]
+fn overflows_with_not() {
+    let diagnostics = parse_and_validate(
+        "
+        VAR_GLOBAL
+            x : UINT := 1234;       // OK
+            y : UINT := NOT -1234;  // Not OK (because of -1234)
+        END_VAR
+        ",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn overflows_with_hex() {
+    let diagnostics = parse_and_validate(
+        "
+        VAR_GLOBAL
+            x : UINT := WORD#16#ffff;   // OK
+            y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
+        END_VAR
+        ",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
