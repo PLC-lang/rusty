@@ -159,10 +159,13 @@ fn sized_varargs_require_type() {
     assert_validation_snapshot!(&diagnostics);
 }
 
-#[test]
-fn overflows_with_literals() {
-    let diagnostics = parse_and_validate(
-        "
+mod overflows {
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+
+    #[test]
+    fn overflows_with_literals() {
+        let diagnostics = parse_and_validate(
+            "
         FUNCTION main : DINT
             VAR
                 // 8
@@ -199,15 +202,15 @@ fn overflows_with_literals() {
             END_VAR
         END_FUNCTION
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_expressions() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_expressions() {
+        let diagnostics = parse_and_validate(
+            "
         FUNCTION main : DINT
             VAR
                 // 8
@@ -244,112 +247,116 @@ fn overflows_with_expressions() {
             END_VAR
         END_FUNCTION
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_globals() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_globals() {
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL
             a : INT := 32768;
             b : INT := 32767 + 1;
         END_VAR
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_aliases() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_aliases() {
+        let diagnostics = parse_and_validate(
+            "
         TYPE MyINT      : INT   := 60000; END_TYPE
         TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE
         TYPE MyLREAL    : LREAL := 1.8076931348623157E+308; END_TYPE
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_constants() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_constants() {
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL CONSTANT
             a : INT := 16384; // OK
             b : INT := 16384; // OK 
             c : INT := a + b; // Will overflow
         END_VAR
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_non_global_constants() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_non_global_constants() {
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL
             a : INT := 16384; // OK
             b : INT := 16384; // OK 
             c : INT := a + b; // Will overflow 
         END_VAR
         ",
-    );
+        );
 
-    // As of now we do not evaluate `c` because the variable block isn't defined to be constant.
-    // If at some point we support evaluation such cases, this test should fail. See also:
-    // https://github.com/PLC-lang/rusty/issues/847
-    assert_eq!(diagnostics.len(), 1);
-    assert_eq!(diagnostics[0].get_message(), "Unresolved constant 'c' variable: 'a' is no const reference");
-}
+        // As of now we do not evaluate `c` because the variable block isn't defined to be constant.
+        // If at some point we support evaluation such cases, this test should fail. See also:
+        // https://github.com/PLC-lang/rusty/issues/847
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(
+            diagnostics[0].get_message(),
+            "Unresolved constant 'c' variable: 'a' is no const reference"
+        );
+    }
 
-#[test]
-fn overflows_with_array_initializer() {
-    // TODO(volsa): We currently only detect the first overflow value inside an array-initalizer because
-    // the `evaluate_with_target_hint` method will return an error after it first detected such a value (i.e.
-    // after `-1`).
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_array_initializer() {
+        // TODO(volsa): We currently only detect the first overflow value inside an array-initalizer because
+        // the `evaluate_with_target_hint` method will return an error after it first detected such a value (i.e.
+        // after `-1`).
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL
             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
         END_VAR
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics)
-}
+        assert_validation_snapshot!(diagnostics)
+    }
 
-#[test]
-fn overflows_with_not() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_not() {
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL
             x : UINT := 1234;       // OK
             y : UINT := NOT -1234;  // Not OK (because of -1234)
         END_VAR
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
-}
+        assert_validation_snapshot!(diagnostics);
+    }
 
-#[test]
-fn overflows_with_hex() {
-    let diagnostics = parse_and_validate(
-        "
+    #[test]
+    fn overflows_with_hex() {
+        let diagnostics = parse_and_validate(
+            "
         VAR_GLOBAL
             x : UINT := WORD#16#ffff;   // OK
             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
         END_VAR
         ",
-    );
+        );
 
-    assert_validation_snapshot!(diagnostics);
+        assert_validation_snapshot!(diagnostics);
+    }
 }
