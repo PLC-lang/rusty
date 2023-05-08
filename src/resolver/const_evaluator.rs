@@ -283,7 +283,7 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
 
                 // We are dealing with e.g. booleans if we have a semantic size != 8, 16, 32 or 64
                 (AstLiteral::Integer(value), _, _) => {
-                    let min = if *signed { -2_i128.pow(size - 1) } else { 0 };
+                    let min = if *signed { -(2_i128.pow(size - 1)) } else { 0 };
                     let max = 2_i128.pow(size) - 1;
 
                     *value < min || *value > max
@@ -340,7 +340,7 @@ fn evaluate_with_target_hint(
                 let tt = target_type
                     .and_then(|it| index.find_effective_type_info(it))
                     .and_then(|it| it.get_inner_array_type_name())
-                    .or_else(|| target_type);
+                    .or(target_type);
 
                 let inner_elements = AstStatement::get_as_list(elements)
                     .iter()
@@ -362,7 +362,7 @@ fn evaluate_with_target_hint(
 
             AstLiteral::Integer(_) | AstLiteral::Real(_) => {
                 let dti = target_type.and_then(|it| index.find_effective_type_info(it));
-                if does_overflow(&initial, dti) {
+                if does_overflow(initial, dti) {
                     return Err(UnresolvableKind::Overflow(
                         format!("This will overflow for type {}", dti.unwrap().get_name()),
                         initial.get_location(),
@@ -401,7 +401,7 @@ fn evaluate_with_target_hint(
                     }
                 }
                 _ => {
-                    evaluate_with_target_hint(&target, scope, index, Some(&type_name))?;
+                    evaluate_with_target_hint(target, scope, index, Some(type_name))?;
                     Some(get_cast_statement_literal(dbg!(target), dbg!(type_name), scope, index)?)
                 }
             }
