@@ -1183,6 +1183,10 @@ impl AstStatement {
             _ => false,
         }
     }
+
+    pub fn is_binary_expression(&self) -> bool {
+        matches!(self, AstStatement::BinaryExpression { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

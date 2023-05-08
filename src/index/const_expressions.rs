@@ -71,7 +71,10 @@ impl ConstExpression {
 
 #[derive(Debug)]
 pub enum UnresolvableKind {
+    /// Indicates that the const expression was not resolvable any reason not listed in [`UnresolvableKind`].
     Misc(String),
+
+    /// Indicates that the const expression was not resolvable because it would yield an overflow.
     Overflow(String, SourceRange),
 }
 

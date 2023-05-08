@@ -712,37 +712,39 @@ fn division_by_0_should_fail() {
     debug_assert_eq!(
         vec![
             UnresolvableConstant::new(global!(&index, "a"), "Attempt to divide by zero"),
+            UnresolvableConstant::new(global!(&index, "b"), "Attempt to divide by zero"),
             UnresolvableConstant::new(global!(&index, "c"), "Attempt to divide by zero"),
+            UnresolvableConstant::new(global!(&index, "d"), "Attempt to divide by zero"),
             UnresolvableConstant::new(
                 global!(&index, "aa"),
+                "Attempt to calculate the remainder with a divisor of zero"
+            ),
+            UnresolvableConstant::new(
+                global!(&index, "bb"),
                 "Attempt to calculate the remainder with a divisor of zero"
             ),
             UnresolvableConstant::new(
                 global!(&index, "cc"),
                 "Attempt to calculate the remainder with a divisor of zero"
             ),
+            UnresolvableConstant::new(
+                global!(&index, "dd"),
+                "Attempt to calculate the remainder with a divisor of zero"
+            ),
         ],
         unresolvable
     );
-    // AND the real divisions are inf or nan
-    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "b").unwrap());
-    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "d").unwrap());
 
-    if let AstStatement::Literal { kind: AstLiteral::Real(value), .. } =
-        find_constant_value(&index, "bb").unwrap()
-    {
-        assert!(value.parse::<f64>().unwrap().is_nan());
-    } else {
-        unreachable!()
-    }
+    // AND the real divisions are unresolved (= Binary Expressions)
+    assert!(find_constant_value(&index, "a").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "b").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "c").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "d").unwrap().is_binary_expression());
 
-    if let AstStatement::Literal { kind: AstLiteral::Real(value), .. } =
-        find_constant_value(&index, "dd").unwrap()
-    {
-        assert!(value.parse::<f64>().unwrap().is_nan());
-    } else {
-        unreachable!()
-    }
+    assert!(find_constant_value(&index, "aa").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "bb").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "cc").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "dd").unwrap().is_binary_expression());
 }
 
 #[test]
