@@ -85,7 +85,6 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                         Ok(Some(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
                         Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
-                        // TODO: Explain why we're using `lit` instead of `masked_value` (unsigned becomes 0 on overflow)
                         // since we store literal-ints as i128 we need to truncate all of them down to their
                         // original size to avoid negative numbers
                         let mask = 2_i128.pow(*size) - 1; // bitmask for this type's size
@@ -402,7 +401,7 @@ fn evaluate_with_target_hint(
                 }
                 _ => {
                     evaluate_with_target_hint(target, scope, index, Some(type_name))?;
-                    Some(get_cast_statement_literal(dbg!(target), dbg!(type_name), scope, index)?)
+                    Some(get_cast_statement_literal(target, type_name, scope, index)?)
                 }
             }
         }
