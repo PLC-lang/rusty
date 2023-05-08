@@ -201,7 +201,7 @@ mod builtins {
         ",
         );
 
-        dbg!(diagnostics);
+        assert_validation_snapshot!(diagnostics);
     }
 
     #[test]
@@ -230,7 +230,7 @@ mod builtins {
         ",
         );
 
-        dbg!(diagnostics);
+        assert_validation_snapshot!(diagnostics);
     }
 
     #[test]
@@ -248,7 +248,6 @@ mod builtins {
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
         END_VAR
-            LOWER_BOUND(vla, MY_CONST + 1); // valid
             LOWER_BOUND();
             LOWER_BOUND(vla);
             LOWER_BOUND(1);
@@ -257,6 +256,6 @@ mod builtins {
         ",
         );
 
-        dbg!(diagnostics);
+        assert_validation_snapshot!(diagnostics);
     }
 }

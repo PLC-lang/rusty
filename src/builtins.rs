@@ -14,17 +14,18 @@ use crate::{
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
+    index::Index,
     lexer::{self, IdProvider},
     parser,
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
-        AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
+        AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, DataTypeInformation, StructSource},
+    typesystem,
+    validation::{Validator, Validators},
 };
 
-// Defines a set of functions that are always included in a compiled application
 lazy_static! {
     static ref BUILTIN: HashMap<&'static str, BuiltIn> = HashMap::from([
         (
@@ -37,6 +38,7 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -87,7 +89,8 @@ lazy_static! {
                             unreachable!()
                         }
                     }
-            ),
+                ),
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -114,6 +117,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation : None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     let llvm = generator.llvm;
@@ -170,6 +174,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
@@ -212,6 +217,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
@@ -231,6 +237,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if let [reference] = params {
@@ -272,6 +279,9 @@ lazy_static! {
                 annotation: Some(|annotator, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters)
                 }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     generate_variable_length_array_bound_function(generator, params, true, location)
@@ -292,6 +302,9 @@ lazy_static! {
                 annotation: Some(|annotator, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters)
                 }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     generate_variable_length_array_bound_function(generator, params, false, location)
@@ -306,11 +319,11 @@ fn annotate_variable_length_array_bound_function(
     parameters: Option<&AstStatement>,
 ) -> Result<(), Diagnostic> {
     let Some(parameters) = parameters else {
-        todo!()
+        return Ok(());
     };
     let params = ast::flatten_expression_list(parameters);
     let (Some(vla), Some(idx)) = (params.get(0), params.get(1)) else {
-        todo!()
+        return Ok(());
     };
     // if the VLA parameter is a VLA struct, annotate it as such
     let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
@@ -324,14 +337,65 @@ fn annotate_variable_length_array_bound_function(
     annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
 
     // idx needs to have a type and generic nature annotation for validation
-    annotator.annotation_map.annotate(idx, StatementAnnotation::value(annotator.annotation_map.get_type_or_void(idx, annotator.index).get_name()));
+    annotator.annotation_map.annotate(
+        idx,
+        StatementAnnotation::value(
+            annotator.annotation_map.get_type_or_void(idx, annotator.index).get_name(),
+        ),
+    );
     if !matches!(annotator.annotation_map.get_generic_nature(idx), Some(TypeNature::Int)) {
-        annotator.annotation_map.add_generic_nature(idx, TypeNature::Int);    
+        annotator.annotation_map.add_generic_nature(idx, TypeNature::Int);
     }
-    // annotate the type-hint for idx with the smallest possible INT type
-    annotator.annotation_map.annotate_type_hint(idx, StatementAnnotation::value(typesystem::USINT_TYPE));
 
     Ok(())
+}
+
+fn validate_variable_length_array_bound_function(
+    validator: &mut Validator,
+    operator: &AstStatement,
+    parameters: &Option<AstStatement>,
+    annotations: &AnnotationMapImpl,
+    index: &Index,
+) {
+    let Some(parameters) = parameters else {
+        validator.push_diagnostic(
+            Diagnostic::invalid_parameter_count(2, 0, operator.get_location())
+        );
+        // no params, nothing to validate
+        return;
+    };
+
+    let params = ast::flatten_expression_list(parameters);
+
+    if params.len() > 2 {
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+            2,
+            params.len(),
+            operator.get_location(),
+        ));
+    }
+
+    match (params.get(0), params.get(1)) {
+        (Some(vla), Some(idx)) => {
+            // TODO: compile-time evaluated const expressions
+            if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
+                let dimension_idx = *dimension_idx as usize;
+
+                let Some(n_dimensions) = annotations.get_type_or_void(vla, index).get_type_information().get_dimensions() else {
+                    // not a vla, validated via type nature
+                    return;
+                };
+
+                if dimension_idx < 1 || dimension_idx > n_dimensions {
+                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(idx.get_location()))
+                }
+            };
+        }
+        (Some(_), None) => {
+            validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 1, operator.get_location()))
+        }
+        _ => unreachable!(),
+    }
 }
 
 /// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
@@ -347,10 +411,9 @@ fn generate_variable_length_array_bound_function<'ink>(
     let data_type_information =
         generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    // TODO: most of the codegen errors should already be caught during validation. 
+    // TODO: most of the codegen errors should already be caught during validation.
     // once we abort codegen on critical errors, revisit and change to unreachable where possible
-    if !matches!(data_type_information, DataTypeInformation::Struct { source: StructSource::Internal(_), .. })
-    {
+    if !data_type_information.is_vla() {
         return Err(Diagnostic::codegen_error(
             &format!("Expected VLA type, received {}", data_type_information.get_name()),
             location,
@@ -368,7 +431,7 @@ fn generate_variable_length_array_bound_function<'ink>(
                     unreachable!("type cannot be VOID")
                 };
                 return Err(Diagnostic::codegen_error(
-                    &format!("Invalid literal type. Expected INT type, received {} type", type_name),
+                    &format!("Invalid literal type. Expected INT type, received {type_name} type"),
                     location,
                 ));
             };
@@ -379,12 +442,12 @@ fn generate_variable_length_array_bound_function<'ink>(
         }
         AstStatement::CastStatement { target, .. } => {
             let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
-                unreachable!()                
+                unreachable!()
             };
 
             if !value.is_int_value() {
                 return Err(Diagnostic::codegen_error(
-                    &format!("Expected INT value, found {}", value.get_type().to_string()),
+                    &format!("Expected INT value, found {}", value.get_type()),
                     location,
                 ));
             };
@@ -430,9 +493,13 @@ type CodegenFunction = for<'ink, 'b> fn(
     &[&AstStatement],
     SourceRange,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
+type ValidationFunction =
+    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &AnnotationMapImpl, &Index);
+
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
+    validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,
     code: CodegenFunction,
 }
@@ -452,6 +519,10 @@ impl BuiltIn {
 
     pub(crate) fn get_generic_name_resolver(&self) -> GenericNameResolver {
         self.generic_name_resolver
+    }
+
+    pub(crate) fn get_validation(&self) -> Option<ValidationFunction> {
+        self.validation
     }
 }
 

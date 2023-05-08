@@ -6,6 +6,7 @@ use crate::{
         self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
         StringValue,
     },
+    builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -747,6 +748,11 @@ fn validate_call(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
+        // additional validation for builtin calls if necessary
+        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 

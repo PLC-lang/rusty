@@ -53,6 +53,7 @@ pub enum ErrNo {
 
     // call
     call__invalid_parameter_type,
+    call__invalid_parameter_count,
 
     //variable related
     var__unresolved_constant,
@@ -68,6 +69,7 @@ pub enum ErrNo {
     // VLA related
     vla__invalid_container,
     vla__invalid_array_access,
+    vla__dimension_idx_out_of_bounds,
 
     //reference related
     reference__unresolved,
@@ -647,6 +649,16 @@ impl Diagnostic {
         }
     }
 
+    pub fn invalid_parameter_count(expected: usize, received: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
+            ),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_count,
+        }
+    }
+
     pub fn implicit_downcast(
         actual_type_name: &str,
         assigned_type_name: &str,
@@ -770,6 +782,14 @@ impl Diagnostic {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    pub fn index_out_of_bounds(range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Index out of bounds.".into(),
+            range: vec![range],
+            err_no: ErrNo::vla__dimension_idx_out_of_bounds,
         }
     }
 }
