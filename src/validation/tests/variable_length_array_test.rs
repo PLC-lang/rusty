@@ -211,11 +211,7 @@ mod builtins {
     #[test]
     fn builtins_called_with_invalid_index() {
         let diagnostics = parse_and_validate(
-            "
-        VAR_GLOBAL CONSTANT
-            MY_CONST : DINT := 10;
-        END_VAR
-        
+            "        
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;
@@ -223,19 +219,54 @@ mod builtins {
             foo(arr);
         END_FUNCTION
 
+        TYPE MyType : INT END_TYPE;
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
         END_VAR
-            LOWER_BOUND(vla, MY_CONST + 1); // valid
+        VAR
+            x: MyType := 1;
+        END_VAR
             LOWER_BOUND(vla, 3.1415); // invalid
             LOWER_BOUND(vla, TIME#3s); // invalid
             LOWER_BOUND(vla, 0); // index out of bounds
 
-            UPPER_BOUND(vla, MY_CONST + 1); // valid
             UPPER_BOUND(vla, 3.1415); // invalid
             UPPER_BOUND(vla, TIME#3s); // invalid
             UPPER_BOUND(vla, 0); // index out of bounds
+
+            UPPER_BOUND(vla, vla[LOWER_BOUND(vla, INT#1)]); // valid
+        END_FUNCTION
+        ",
+        );
+
+        assert_validation_snapshot!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_aliased_type() {
+        let diagnostics = parse_and_validate(
+            "        
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        TYPE MyType : INT END_TYPE;
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+        VAR
+            x: MyType := 1;
+        END_VAR
+
+            LOWER_BOUND(vla, x); // valid
+            UPPER_BOUND(vla, MyType#1); // valid
         END_FUNCTION
         ",
         );

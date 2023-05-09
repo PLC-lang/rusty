@@ -375,15 +375,17 @@ fn validate_variable_length_array_bound_function(
 
     match (params.get(0), params.get(1)) {
         (Some(vla), Some(idx)) => {
-            let idx_type = annotations.get_type_or_void(&idx, index);
+            let idx_type = annotations.get_type_or_void(idx, index);
+
             if !idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(Diagnostic::invalid_type_nature(
-                    &idx_type.get_name(),
+                    idx_type.get_name(),
                     &format!("{:?}", TypeNature::Int),
                     idx.get_location(),
                 ))
             }
 
+            // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
             if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
                 let dimension_idx = *dimension_idx as usize;
 
@@ -393,7 +395,7 @@ fn validate_variable_length_array_bound_function(
                 };
 
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
-                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(idx.get_location()))
+                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(operator.get_location()))
                 }
             };
         }
