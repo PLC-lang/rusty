@@ -1270,7 +1270,7 @@ impl<'i> TypeAnnotator<'i> {
         };
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(self, operator, parameters_stmt, ctx).unwrap()
+            annotation(self, operator, parameters_stmt, ctx)
         } else {
             //If builtin, skip this
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();

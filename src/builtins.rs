@@ -26,6 +26,7 @@ use crate::{
     validation::{Validator, Validators},
 };
 
+// Defines a set of functions that are always included in a compiled application
 lazy_static! {
     static ref BUILTIN: HashMap<&'static str, BuiltIn> = HashMap::from([
         (
@@ -64,33 +65,40 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: Some(|annotator, operator, parameters, _| {
-                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
-                        // Get the input and annotate it with a pointer type
-                        if let [input] = flatten_expression_list(params)[..] {
-                            let input_type = annotator.annotation_map
-                                .get_type_or_void(input, annotator.index)
-                                .get_type_information()
-                                .get_name()
-                                .to_owned();
+                    // invalid amount of parameters is checked during validation
+                    let Some(params) = parameters else { return; };
+                    // Get the input and annotate it with a pointer type
+                    let input = flatten_expression_list(params);
+                    let Some(input) = input.get(0)  else { return; };
+                    let input_type = annotator.annotation_map
+                        .get_type_or_void(input, annotator.index)
+                        .get_type_information()
+                        .get_name()
+                        .to_owned();
 
-                            let ptr_type = resolver::add_pointer_type(
-                                &mut annotator.annotation_map.new_index,
-                                input_type
-                            );
+                    let ptr_type = resolver::add_pointer_type(
+                        &mut annotator.annotation_map.new_index,
+                        input_type
+                    );
 
-                            annotator.annotation_map.annotate(
-                                operator, resolver::StatementAnnotation::Function {
-                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
-                                }
-                            );
-
-                            Ok(())
-                        } else {
-                            unreachable!()
+                    annotator.annotation_map.annotate(
+                        operator, resolver::StatementAnnotation::Function {
+                            return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                         }
+                    );
+                }),
+                validation: Some(|validator, operator, parameters, _, _| {
+                    let Some(params) = parameters else {
+                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, 0, operator.get_location()));
+                        return;
+                    };
+
+                    let params = ast::flatten_expression_list(params);
+
+                    if params.len() > 1 {
+                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
                     }
-                ),
-                validation: None,
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -317,15 +325,15 @@ lazy_static! {
 fn annotate_variable_length_array_bound_function(
     annotator: &mut TypeAnnotator,
     parameters: Option<&AstStatement>,
-) -> Result<(), Diagnostic> {
+) {
     let Some(parameters) = parameters else {
         // caught during validation
-        return Ok(());
+        return;
     };
     let params = ast::flatten_expression_list(parameters);
     let Some(vla) = params.get(0) else {
         // caught during validation
-        return Ok(());
+        return;
     };
 
     // if the VLA parameter is a VLA struct, annotate it as such
@@ -338,8 +346,6 @@ fn annotate_variable_length_array_bound_function(
     };
 
     annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
-
-    Ok(())
 }
 
 fn validate_variable_length_array_bound_function(
@@ -378,7 +384,6 @@ fn validate_variable_length_array_bound_function(
                 ))
             }
 
-            // TODO: compile-time evaluated const expressions
             if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
                 let dimension_idx = *dimension_idx as usize;
 
@@ -486,8 +491,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction =
-    fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext) -> Result<(), Diagnostic>;
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
