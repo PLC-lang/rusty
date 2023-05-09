@@ -6,4 +6,8 @@ SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIA
 SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 265..273 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceRange { range: 303..318 }], err_no: call__invalid_parameter_type }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 303..318 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 349..352 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 393..401 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceRange { range: 431..446 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 431..446 }], err_no: var__invalid_assignment }
 

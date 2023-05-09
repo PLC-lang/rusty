@@ -197,6 +197,10 @@ mod builtins {
             LOWER_BOUND(arr, MY_CONST + 1);
             LOWER_BOUND(duration, 1);
             LOWER_BOUND('i am a string', 1);
+
+            UPPER_BOUND(arr, MY_CONST + 1);
+            UPPER_BOUND(duration, 1);
+            UPPER_BOUND('i am a string', 1);
         END_FUNCTION
         ",
         );
@@ -227,6 +231,11 @@ mod builtins {
             LOWER_BOUND(vla, 3.1415); // invalid
             LOWER_BOUND(vla, TIME#3s); // invalid
             LOWER_BOUND(vla, 0); // index out of bounds
+
+            UPPER_BOUND(vla, MY_CONST + 1); // valid
+            UPPER_BOUND(vla, 3.1415); // invalid
+            UPPER_BOUND(vla, TIME#3s); // invalid
+            UPPER_BOUND(vla, 0); // index out of bounds
         END_FUNCTION
         ",
         );
@@ -253,6 +262,11 @@ mod builtins {
             LOWER_BOUND(vla);
             LOWER_BOUND(1);
             LOWER_BOUND(vla, 1, 2, 3);
+
+            UPPER_BOUND();
+            UPPER_BOUND(vla);
+            UPPER_BOUND(1);
+            UPPER_BOUND(vla, 1, 2, 3);
         END_FUNCTION
         ",
         );
