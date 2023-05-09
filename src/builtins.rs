@@ -319,12 +319,15 @@ fn annotate_variable_length_array_bound_function(
     parameters: Option<&AstStatement>,
 ) -> Result<(), Diagnostic> {
     let Some(parameters) = parameters else {
+        // caught during validation
         return Ok(());
     };
     let params = ast::flatten_expression_list(parameters);
-    let (Some(vla), Some(idx)) = (params.get(0), params.get(1)) else {
+    let Some(vla) = params.get(0) else {
+        // caught during validation
         return Ok(());
     };
+
     // if the VLA parameter is a VLA struct, annotate it as such
     let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
@@ -335,17 +338,6 @@ fn annotate_variable_length_array_bound_function(
     };
 
     annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
-
-    // idx needs to have a type and generic nature annotation for validation
-    annotator.annotation_map.annotate(
-        idx,
-        StatementAnnotation::value(
-            annotator.annotation_map.get_type_or_void(idx, annotator.index).get_name(),
-        ),
-    );
-    if !matches!(annotator.annotation_map.get_generic_nature(idx), Some(TypeNature::Int)) {
-        annotator.annotation_map.add_generic_nature(idx, TypeNature::Int);
-    }
 
     Ok(())
 }
@@ -377,6 +369,15 @@ fn validate_variable_length_array_bound_function(
 
     match (params.get(0), params.get(1)) {
         (Some(vla), Some(idx)) => {
+            let idx_type = annotations.get_type_or_void(&idx, index);
+            if !idx_type.has_nature(TypeNature::Int, index) {
+                validator.push_diagnostic(Diagnostic::invalid_type_nature(
+                    &idx_type.get_name(),
+                    &format!("{:?}", TypeNature::Int),
+                    idx.get_location(),
+                ))
+            }
+
             // TODO: compile-time evaluated const expressions
             if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
                 let dimension_idx = *dimension_idx as usize;

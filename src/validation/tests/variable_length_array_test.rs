@@ -211,6 +211,7 @@ mod builtins {
         VAR_GLOBAL CONSTANT
             MY_CONST : DINT := 10;
         END_VAR
+        
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;
