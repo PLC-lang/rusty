@@ -133,7 +133,7 @@ impl Validator {
             let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
             let ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr else { continue };
 
-            self.push_diagnostic(dbg!(Diagnostic::overflow(reason.to_owned(), location.to_owned())));
+            self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
         }
     }
 
