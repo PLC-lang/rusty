@@ -1,3 +1,5 @@
+use rusty_derive::Validators;
+
 use crate::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
@@ -30,11 +32,17 @@ pub struct ValidationContext<'s> {
     index: &'s Index,
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
+    is_call: bool,
 }
 
 impl<'s> ValidationContext<'s> {
     fn with_qualifier(&self, qualifier: &'s str) -> ValidationContext<'s> {
-        ValidationContext { annotations: self.annotations, index: self.index, qualifier: Some(qualifier) }
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: Some(qualifier),
+            is_call: self.is_call,
+        }
     }
 
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
@@ -57,6 +65,19 @@ impl<'s> ValidationContext<'s> {
                 .and_then(|name| self.index.find_pou(name))
         })
     }
+
+    fn set_is_call(&self) -> ValidationContext<'s> {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: true,
+        }
+    }
+
+    fn is_call(&self) -> bool {
+        self.is_call
+    }
 }
 
 /// This trait should be implemented by any validator used by `validation::Validator`
@@ -66,21 +87,12 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
+#[derive(Validators)]
 pub struct Validator {
     //context: ValidationContext<'s>,
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-}
-
-impl Validators for Validator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl Validator {
@@ -106,7 +118,7 @@ impl Validator {
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
-        let context = ValidationContext { annotations, index, qualifier: None };
+        let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // validate POU and declared Variables
         for pou in &unit.units {
             visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
@@ -119,7 +131,7 @@ impl Validator {
 
         // validate global variables
         for gv in &unit.global_vars {
-            visit_variable_block(self, gv, &context);
+            visit_variable_block(self, None, gv, &context);
         }
 
         // validate implementations

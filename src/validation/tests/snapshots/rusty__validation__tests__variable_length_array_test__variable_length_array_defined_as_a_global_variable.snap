@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+expression: res
+---
+SemanticError { message: "VLAs can not be defined as global variables", range: [SourceRange { range: 32..35 }], err_no: vla__invalid_container }
+

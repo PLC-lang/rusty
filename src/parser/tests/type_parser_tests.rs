@@ -1,4 +1,4 @@
-use crate::{ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::parse, Diagnostic};
+use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
@@ -182,13 +182,13 @@ fn array_type_can_be_parsed_test() {
             data_type: DataType::ArrayType {
                 name: Some("MyArray".to_string()),
                 bounds: AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::LiteralInteger {
-                        value: 0,
+                    start: Box::new(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(0),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
-                    end: Box::new(AstStatement::LiteralInteger {
-                        value: 8,
+                    end: Box::new(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(8),
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
@@ -198,6 +198,7 @@ fn array_type_can_be_parsed_test() {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
                 }),
+                is_variable_length: false,
             },
             initializer: None,
             location: SourceRange::undefined(),
@@ -225,7 +226,11 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(253),
+                        location: (10..11).into(),
+                        id: 0
+                    }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -235,13 +240,16 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(253),
+                        location: (10..11).into(),
+                        id: 0
+                    }),
                     is_wide: false,
                 },
-                initializer: Some(AstStatement::LiteralString {
-                    is_wide: false,
+                initializer: Some(AstStatement::Literal {
+                    kind: AstLiteral::new_string("abc".into(), false),
                     location: SourceRange::undefined(),
-                    value: "abc".into(),
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
@@ -268,7 +276,11 @@ fn wide_string_type_can_be_parsed_test() {
         &UserTypeDeclaration {
             data_type: DataType::StringType {
                 name: Some("MyString".to_string()),
-                size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                size: Some(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(253),
+                    location: (10..11).into(),
+                    id: 0
+                }),
                 is_wide: true,
             },
             initializer: None,
@@ -296,8 +308,16 @@ fn subrangetype_can_be_parsed() {
             data_type: DataType::SubRangeType {
                 name: None,
                 bounds: Some(AstStatement::RangeStatement {
-                    start: Box::new(LiteralInteger { value: 0, location: SourceRange::undefined(), id: 0 }),
-                    end: Box::new(LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 }),
+                    start: Box::new(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(0),
+                        location: SourceRange::undefined(),
+                        id: 0,
+                    }),
+                    end: Box::new(AstStatement::Literal {
+                        kind: AstLiteral::new_integer(1000),
+                        location: SourceRange::undefined(),
+                        id: 0,
+                    }),
                     id: 0,
                 }),
                 referenced_type: "UINT".to_string(),
@@ -348,6 +368,7 @@ fn struct_with_inline_array_can_be_parsed() {
                         referenced_type: DataTypeReference {
                             referenced_type: "INT",
                         },
+                        is_variable_length: false,
                     },
                 },
             },
@@ -470,4 +491,110 @@ fn global_pointer_declaration() {
         range: vec![(91..98).into()],
     };
     assert_eq!(diagnostics[0], diagnostic);
+}
+
+#[test]
+fn variable_length_array_can_be_parsed() {
+    let (parse_result, diagnostics) = parse(
+        r#"
+    VAR_GLOBAL
+        x : ARRAY[*] OF INT;
+    END_VAR
+    "#,
+    );
+    assert_eq!(diagnostics.len(), 0);
+
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "x".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::VlaRangeStatement { id: 0 },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
+}
+
+#[test]
+fn multi_dimensional_variable_length_arrays_can_be_parsed() {
+    let (parse_result, diagnostics) = parse(
+        r#"
+    VAR_GLOBAL
+        x : ARRAY[*, *] OF INT;
+        y : ARRAY[*, *, *, *] OF INT;
+    END_VAR
+    "#,
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+
+    let var = &parse_result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "x".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::ExpressionList {
+                    expressions: vec![
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                    ],
+                    id: 0,
+                },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{var:#?}").as_str());
+
+    let var = &parse_result.global_vars[0].variables[1];
+    let expected = Variable {
+        name: "y".to_string(),
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name: None,
+                bounds: AstStatement::ExpressionList {
+                    expressions: vec![
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                    ],
+                    id: 0,
+                },
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+                is_variable_length: true,
+            },
+            location: SourceRange::undefined(),
+            scope: None,
+        },
+        initializer: None,
+        address: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(format!("{expected:#?}"), format!("{var:#?}").as_str());
 }

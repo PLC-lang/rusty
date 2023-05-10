@@ -2,7 +2,6 @@
 
 - [RuSTy](./intro_1.md)
 - [Build & Install](./build_and_install.md)
-  - [Development Tips](./development_tips.md)
 - [Using RuSTy](./using_rusty.md)
   - [Build Configuration](using_rusty/build_configuration.md)
 - [Writing ST Programs]()
