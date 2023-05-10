@@ -276,6 +276,110 @@ fn dint_to_wstring_conversion() {
 }
 
 #[test]
+fn usint_to_string_conversion() {
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
+    let src = r#"
+    FUNCTION main : STRING
+    VAR
+        in: USINT := 255;
+    END_VAR
+        main := USINT_TO_STRING(in);
+    END_FUNCTION
+    "#;
+
+    let sources = add_std!(
+        src,
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st"
+    );
+
+    let expected = format!("{}", 255);
+    let _: i32 = compile_and_run(sources, &mut maintype);
+    let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
+    assert_eq!(expected, res);
+}
+
+#[test]
+fn uint_to_string_conversion() {
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
+    let src = r#"
+    FUNCTION main : STRING
+    VAR
+        in: UINT := 65_535;
+    END_VAR
+        main := UINT_TO_STRING(in);
+    END_FUNCTION
+    "#;
+
+    let sources = add_std!(
+        src,
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st"
+    );
+
+    let expected = format!("{}", 65_535);
+    let _: i32 = compile_and_run(sources, &mut maintype);
+    let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
+    assert_eq!(expected, res);
+}
+
+#[test]
+fn udint_to_string_conversion() {
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
+    let src = r#"
+    FUNCTION main : STRING
+    VAR
+        in: UDINT := 4_294_967_295;
+    END_VAR
+        main := UDINT_TO_STRING(in);
+    END_FUNCTION
+    "#;
+
+    let sources = add_std!(
+        src,
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st"
+    );
+
+    let expected = format!("{}", 4_294_967_295_u32);
+    let _: i32 = compile_and_run(sources, &mut maintype);
+    let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
+    assert_eq!(expected, res);
+}
+
+#[test]
+fn ulint_to_string_conversion() {
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
+    let src = r#"
+    FUNCTION main : STRING
+    VAR
+        in: ULINT := 18_446_744_073_709_551_615;
+    END_VAR
+        main := ULINT_TO_STRING(in);
+    END_FUNCTION
+    "#;
+
+    let sources = add_std!(
+        src,
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st"
+    );
+
+    let expected = format!("{}", 18_446_744_073_709_551_615u64);
+    let _: i32 = compile_and_run(sources, &mut maintype);
+    let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
+    assert_eq!(expected, res);
+}
+
+#[test]
 fn lreal_to_string_conversion() {
     let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"
