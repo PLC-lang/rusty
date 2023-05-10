@@ -1048,3 +1048,51 @@ END_FUNCTION
 ******************************************************************************)
 {external}
 FUNCTION TIME : TIME END_FUNCTION
+
+(******************************************************************************
+*
+* Converts USINT to STRING.
+*
+******************************************************************************)
+FUNCTION USINT_TO_STRING : STRING[__STRING_LENGTH]
+VAR_INPUT
+    IN : USINT;
+END_VAR
+    LWORD_TO_STRING_EXT(IN, USINT_TO_STRING);
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UINT to STRING.
+*
+******************************************************************************)
+FUNCTION UINT_TO_STRING : STRING[__STRING_LENGTH]
+VAR_INPUT
+    IN : UINT;
+END_VAR
+    LWORD_TO_STRING_EXT(IN, UINT_TO_STRING);
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UDINT to STRING.
+*
+******************************************************************************)
+FUNCTION UDINT_TO_STRING : STRING[__STRING_LENGTH]
+VAR_INPUT
+    IN : UDINT;
+END_VAR
+    LWORD_TO_STRING_EXT(IN, UDINT_TO_STRING);
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts ULINT to STRING.
+*
+******************************************************************************)
+FUNCTION ULINT_TO_STRING : STRING[__STRING_LENGTH]
+VAR_INPUT
+    IN : ULINT;
+END_VAR
+    LWORD_TO_STRING_EXT(IN, ULINT_TO_STRING);
+END_FUNCTION
