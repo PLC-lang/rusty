@@ -1,5 +1,3 @@
-use insta::assert_snapshot;
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
 
@@ -3254,5 +3252,5 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
        ",
     );
 
-    assert_snapshot!(res);
+    insta::assert_snapshot!(res);
 }
