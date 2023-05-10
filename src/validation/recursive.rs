@@ -26,19 +26,9 @@ use super::Validators;
 /// overflows the stack.
 ///
 /// [1] https://en.wikipedia.org/wiki/Depth-first_search
-#[derive(Default)]
+#[derive(Default, Validators)]
 pub struct RecursiveValidator {
     pub diagnostics: Vec<Diagnostic>,
-}
-
-impl Validators for RecursiveValidator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl RecursiveValidator {

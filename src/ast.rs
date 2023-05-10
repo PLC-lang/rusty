@@ -3,11 +3,11 @@ use crate::{
     index::Index,
     lexer::IdProvider,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
-        UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
+        USINT_TYPE, VOID_TYPE,
     },
 };
+pub use literals::*;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -15,14 +15,9 @@ use std::{
     ops::Range,
     unimplemented, vec,
 };
-mod pre_processor;
 
-//returns a range with the min and max value of the given type
-macro_rules! is_covered_by {
-    ($t:ty, $e:expr) => {
-        <$t>::MIN as i128 <= $e as i128 && $e as i128 <= <$t>::MAX as i128
-    };
-}
+pub mod literals;
+mod pre_processor;
 
 pub type AstId = usize;
 
@@ -266,6 +261,19 @@ pub enum PouType {
     Method { owner_class: String },
 }
 
+impl Display for PouType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PouType::Program => write!(f, "Program"),
+            PouType::Function => write!(f, "Function"),
+            PouType::FunctionBlock => write!(f, "FunctionBlock"),
+            PouType::Action => write!(f, "Action"),
+            PouType::Class => write!(f, "Class"),
+            PouType::Method { .. } => write!(f, "Method"),
+        }
+    }
+}
+
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
@@ -366,6 +374,19 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+}
+
+impl Display for VariableBlockType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            VariableBlockType::Local => write!(f, "Local"),
+            VariableBlockType::Temp => write!(f, "Temp"),
+            VariableBlockType::Input(_) => write!(f, "Input"),
+            VariableBlockType::Output => write!(f, "Output"),
+            VariableBlockType::Global => write!(f, "Global"),
+            VariableBlockType::InOut => write!(f, "InOut"),
+        }
+    }
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone)]
@@ -571,6 +592,11 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
         }
     }
+
+    pub fn get_referenced_type(&self) -> Option<String> {
+        let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
+        Some(referenced_type.to_owned())
+    }
 }
 
 #[derive(PartialEq)]
@@ -612,6 +638,7 @@ pub enum DataType {
         name: Option<String>,
         bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
+        is_variable_length: bool,
     },
     PointerType {
         name: Option<String>,
@@ -670,10 +697,7 @@ impl DataType {
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
-            DataType::ArrayType { referenced_type, .. } => {
-                replace_reference(referenced_type, type_name, location)
-            }
-            DataType::PointerType { referenced_type, .. } => {
+            DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } => {
                 replace_reference(referenced_type, type_name, location)
             }
             _ => None,
@@ -722,70 +746,12 @@ pub enum AstStatement {
         id: AstId,
     },
     // Literals
-    LiteralInteger {
-        value: i128,
+    Literal {
+        kind: AstLiteral,
         location: SourceRange,
         id: AstId,
     },
-    LiteralDate {
-        year: i32,
-        month: u32,
-        day: u32,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralDateAndTime {
-        year: i32,
-        month: u32,
-        day: u32,
-        hour: u32,
-        min: u32,
-        sec: u32,
-        nano: u32,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralTimeOfDay {
-        hour: u32,
-        min: u32,
-        sec: u32,
-        nano: u32,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralTime {
-        day: f64,
-        hour: f64,
-        min: f64,
-        sec: f64,
-        milli: f64,
-        micro: f64,
-        nano: u32,
-        negative: bool,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralReal {
-        value: String,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralBool {
-        value: bool,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralString {
-        value: String,
-        is_wide: bool,
-        location: SourceRange,
-        id: AstId,
-    },
-    LiteralArray {
-        elements: Option<Box<AstStatement>>, // expression-list
-        location: SourceRange,
-        id: AstId,
-    },
+
     CastStatement {
         target: Box<AstStatement>,
         type_name: String,
@@ -847,8 +813,11 @@ pub enum AstStatement {
         id: AstId,
     },
     RangeStatement {
+        id: AstId,
         start: Box<AstStatement>,
         end: Box<AstStatement>,
+    },
+    VlaRangeStatement {
         id: AstId,
     },
     // Assignment
@@ -921,10 +890,6 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
-    LiteralNull {
-        location: SourceRange,
-        id: AstId,
-    },
 }
 
 impl Debug for AstStatement {
@@ -932,56 +897,7 @@ impl Debug for AstStatement {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
-            AstStatement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
-            AstStatement::LiteralInteger { value, .. } => {
-                f.debug_struct("LiteralInteger").field("value", value).finish()
-            }
-            AstStatement::LiteralDate { year, month, day, .. } => f
-                .debug_struct("LiteralDate")
-                .field("year", year)
-                .field("month", month)
-                .field("day", day)
-                .finish(),
-            AstStatement::LiteralDateAndTime { year, month, day, hour, min, sec, nano, .. } => f
-                .debug_struct("LiteralDateAndTime")
-                .field("year", year)
-                .field("month", month)
-                .field("day", day)
-                .field("hour", hour)
-                .field("min", min)
-                .field("sec", sec)
-                .field("nano", nano)
-                .finish(),
-            AstStatement::LiteralTimeOfDay { hour, min, sec, nano, .. } => f
-                .debug_struct("LiteralTimeOfDay")
-                .field("hour", hour)
-                .field("min", min)
-                .field("sec", sec)
-                .field("nano", nano)
-                .finish(),
-            AstStatement::LiteralTime { day, hour, min, sec, milli, micro, nano, negative, .. } => f
-                .debug_struct("LiteralTime")
-                .field("day", day)
-                .field("hour", hour)
-                .field("min", min)
-                .field("sec", sec)
-                .field("milli", milli)
-                .field("micro", micro)
-                .field("nano", nano)
-                .field("negative", negative)
-                .finish(),
-            AstStatement::LiteralReal { value, .. } => {
-                f.debug_struct("LiteralReal").field("value", value).finish()
-            }
-            AstStatement::LiteralBool { value, .. } => {
-                f.debug_struct("LiteralBool").field("value", value).finish()
-            }
-            AstStatement::LiteralString { value, is_wide, .. } => {
-                f.debug_struct("LiteralString").field("value", value).field("is_wide", is_wide).finish()
-            }
-            AstStatement::LiteralArray { elements, .. } => {
-                f.debug_struct("LiteralArray").field("elements", elements).finish()
-            }
+            AstStatement::Literal { kind, .. } => kind.fmt(f),
             AstStatement::Reference { name, .. } => f.debug_struct("Reference").field("name", name).finish(),
             AstStatement::QualifiedReference { elements, .. } => {
                 f.debug_struct("QualifiedReference").field("elements", elements).finish()
@@ -1001,6 +917,7 @@ impl Debug for AstStatement {
             AstStatement::RangeStatement { start, end, .. } => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
             }
+            AstStatement::VlaRangeStatement { .. } => f.debug_struct("VlaRangeStatement").finish(),
             AstStatement::Assignment { left, right, .. } => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
@@ -1086,16 +1003,7 @@ impl AstStatement {
         match self {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
             AstStatement::DefaultValue { location, .. } => location.clone(),
-            AstStatement::LiteralNull { location, .. } => location.clone(),
-            AstStatement::LiteralInteger { location, .. } => location.clone(),
-            AstStatement::LiteralDate { location, .. } => location.clone(),
-            AstStatement::LiteralDateAndTime { location, .. } => location.clone(),
-            AstStatement::LiteralTimeOfDay { location, .. } => location.clone(),
-            AstStatement::LiteralTime { location, .. } => location.clone(),
-            AstStatement::LiteralReal { location, .. } => location.clone(),
-            AstStatement::LiteralBool { location, .. } => location.clone(),
-            AstStatement::LiteralString { location, .. } => location.clone(),
-            AstStatement::LiteralArray { location, .. } => location.clone(),
+            AstStatement::Literal { location, .. } => location.clone(),
             AstStatement::Reference { location, .. } => location.clone(),
             AstStatement::QualifiedReference { elements, .. } => {
                 let first = elements.first().map_or_else(SourceRange::undefined, |it| it.get_location());
@@ -1118,6 +1026,7 @@ impl AstStatement {
                 let end_loc = end.get_location();
                 start_loc.span(&end_loc)
             }
+            AstStatement::VlaRangeStatement { .. } => SourceRange::undefined(), // internal type only
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1155,16 +1064,7 @@ impl AstStatement {
         match self {
             AstStatement::EmptyStatement { id, .. } => *id,
             AstStatement::DefaultValue { id, .. } => *id,
-            AstStatement::LiteralNull { id, .. } => *id,
-            AstStatement::LiteralInteger { id, .. } => *id,
-            AstStatement::LiteralDate { id, .. } => *id,
-            AstStatement::LiteralDateAndTime { id, .. } => *id,
-            AstStatement::LiteralTimeOfDay { id, .. } => *id,
-            AstStatement::LiteralTime { id, .. } => *id,
-            AstStatement::LiteralReal { id, .. } => *id,
-            AstStatement::LiteralBool { id, .. } => *id,
-            AstStatement::LiteralString { id, .. } => *id,
-            AstStatement::LiteralArray { id, .. } => *id,
+            AstStatement::Literal { id, .. } => *id,
             AstStatement::MultipliedStatement { id, .. } => *id,
             AstStatement::QualifiedReference { id, .. } => *id,
             AstStatement::Reference { id, .. } => *id,
@@ -1176,6 +1076,7 @@ impl AstStatement {
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,
             AstStatement::RangeStatement { id, .. } => *id,
+            AstStatement::VlaRangeStatement { id, .. } => *id,
             AstStatement::Assignment { id, .. } => *id,
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
@@ -1201,84 +1102,18 @@ impl AstStatement {
         }
     }
 
-    pub fn get_literal_value(&self) -> String {
-        match self {
-            AstStatement::LiteralString { value, is_wide: true, .. } => format!(r#""{value}""#),
-            AstStatement::LiteralString { value, is_wide: false, .. } => format!(r#"'{value}'"#),
-            AstStatement::LiteralBool { value, .. } => {
-                format!("{value}")
-            }
-            AstStatement::LiteralInteger { value, .. } => {
-                format!("{value}")
-            }
-            AstStatement::LiteralReal { value, .. } => value.clone(),
-            _ => {
-                format!("{self:#?}")
-            }
-        }
-    }
-
-    pub fn get_literal_actual_signed_type_name(&self, signed: bool) -> Option<&str> {
-        match self {
-            AstStatement::LiteralInteger { value, .. } => match signed {
-                _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
-                true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
-                true if is_covered_by!(i16, *value) => Some(INT_TYPE),
-                true if is_covered_by!(i32, *value) => Some(DINT_TYPE),
-                true if is_covered_by!(i64, *value) => Some(LINT_TYPE),
-
-                false if is_covered_by!(u8, *value) => Some(USINT_TYPE),
-                false if is_covered_by!(u16, *value) => Some(UINT_TYPE),
-                false if is_covered_by!(u32, *value) => Some(UDINT_TYPE),
-                false if is_covered_by!(u64, *value) => Some(ULINT_TYPE),
-                _ => Some(VOID_TYPE),
-            },
-            AstStatement::LiteralBool { .. } => Some(BOOL_TYPE),
-            AstStatement::LiteralString { is_wide: true, .. } => Some(WSTRING_TYPE),
-            AstStatement::LiteralString { is_wide: false, .. } => Some(STRING_TYPE),
-            AstStatement::LiteralReal { .. } => Some(LREAL_TYPE),
-            AstStatement::LiteralDate { .. } => Some(DATE_TYPE),
-            AstStatement::LiteralDateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
-            AstStatement::LiteralTime { .. } => Some(TIME_TYPE),
-            AstStatement::LiteralTimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
-            _ => None,
-        }
-    }
-
     /// returns true if this AST Statement is a literal or reference that can be
     /// prefixed with a type-cast (e.g. INT#23)
     pub fn is_cast_prefix_eligible(&self) -> bool {
         // TODO: figure out a better name for this...
-        matches!(
-            self,
-            AstStatement::LiteralBool { .. }
-                | AstStatement::LiteralInteger { .. }
-                | AstStatement::LiteralReal { .. }
-                | AstStatement::LiteralString { .. }
-                | AstStatement::LiteralTime { .. }
-                | AstStatement::LiteralDate { .. }
-                | AstStatement::LiteralTimeOfDay { .. }
-                | AstStatement::LiteralDateAndTime { .. }
-                | AstStatement::Reference { .. }
-        )
-    }
-    /// Returns true if the current statement is a literal
-    pub fn is_literal(&self) -> bool {
-        matches!(
-            self,
-            AstStatement::LiteralNull { .. }
-                | AstStatement::LiteralInteger { .. }
-                | AstStatement::LiteralDate { .. }
-                | AstStatement::LiteralDateAndTime { .. }
-                | AstStatement::LiteralTimeOfDay { .. }
-                | AstStatement::LiteralTime { .. }
-                | AstStatement::LiteralReal { .. }
-                | AstStatement::LiteralBool { .. }
-                | AstStatement::LiteralString { .. }
-                | AstStatement::LiteralArray { .. }
-        )
+        match self {
+            AstStatement::Literal { kind, .. } => kind.is_cast_prefix_eligible(),
+            AstStatement::Reference { .. } => true,
+            _ => false,
+        }
     }
 
+    /// Returns true if the current statement is a reference
     pub fn is_reference(&self) -> bool {
         matches!(self, AstStatement::Reference { .. })
     }
@@ -1314,6 +1149,10 @@ impl AstStatement {
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()
+    }
+
+    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind, id, location }
     }
 }
 
@@ -1464,7 +1303,8 @@ pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstSta
 }
 
 pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
-    AstStatement::LiteralInteger { id, location: location.clone(), value }
+    let location = location.clone();
+    AstStatement::new_literal(AstLiteral::new_integer(value), id, location)
 }
 
 pub fn create_binary_expression(
@@ -1535,4 +1375,30 @@ pub fn create_call_to_check_function_ast(
         location,
         id_provider,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ast::{ArgumentProperty, PouType, VariableBlockType};
+
+    #[test]
+    fn display_pou() {
+        assert_eq!(PouType::Program.to_string(), "Program");
+        assert_eq!(PouType::Function.to_string(), "Function");
+        assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
+        assert_eq!(PouType::Action.to_string(), "Action");
+        assert_eq!(PouType::Class.to_string(), "Class");
+        assert_eq!(PouType::Method { owner_class: "...".to_string() }.to_string(), "Method");
+    }
+
+    #[test]
+    fn display_variable_block_type() {
+        assert_eq!(VariableBlockType::Local.to_string(), "Local");
+        assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
+        assert_eq!(VariableBlockType::Output.to_string(), "Output");
+        assert_eq!(VariableBlockType::Global.to_string(), "Global");
+        assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+    }
 }

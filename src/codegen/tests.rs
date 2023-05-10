@@ -15,3 +15,4 @@ mod string_tests;
 #[cfg(feature = "verify")]
 mod switch_case_tests;
 mod typesystem_test;
+mod vla_tests;

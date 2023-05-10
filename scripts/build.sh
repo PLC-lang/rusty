@@ -22,12 +22,11 @@ CONTAINER_NAME='rust-llvm'
 source "${BASH_SOURCE%/*}/common.sh"
 
 function set_cargo_options() {
-	CARGO_OPTIONS=""
+	CARGO_OPTIONS="--workspace"
 
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
 	fi
-	CARGO_OPTIONS=""
 	if [[ $release -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --release"
 	fi
@@ -45,9 +44,9 @@ function run_coverage() {
 	log "Cleaning before build"
 	cargo clean
 	log "Building coverage"
-	cargo build
+	cargo build --workspace
 	log "Running coverage tests"
-	cargo test
+	cargo test --workspace
 	log "Collecting coverage results"
 	grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
 		--ignore "/*" \
@@ -112,11 +111,16 @@ function run_test() {
 		#Delete the test results if they exist
 		rm -rf "$project_location/test_results"
 		make_dir "$project_location/test_results"
-		#Passing through tail here will remove the first line which is currently empty.
-		cargo test $CARGO_OPTIONS --lib -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_unit_tests.xml
+		cargo test $CARGO_OPTIONS --lib -- --format=junit \
+			-Zunstable-options \
+		 | split -l1 - "$project_location"/test_results/unit_tests \
+		 -d --additional-suffix=.xml
 		# Run only the integration tests
 		#https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
-		cargo test $CARGO_OPTIONS --test '*' -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_integration_tests.xml
+		cargo test $CARGO_OPTIONS --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/integration_tests \
+		 -d --additional-suffix=.xml
 	else
 		cargo test $CARGO_OPTIONS
 	fi
