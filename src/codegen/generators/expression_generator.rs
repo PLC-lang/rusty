@@ -2146,7 +2146,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements {
                     AstStatement::ExpressionList { expressions, .. } => expressions.iter().collect(),
-                    _ => unreachable!("This should always be an expression list"), // FIXME: reached with  arr : ARRAY [0..10] OF STRUCT2 := 11(x1 := FALSE, x2 := TRUE);
+                    _ => unreachable!("This should always be an expression list"),
                 }
             } else {
                 flatten_expression_list(elements)

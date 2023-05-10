@@ -615,25 +615,6 @@ impl<'i> TypeAnnotator<'i> {
                             }
                         }
                     }
-                    // TODO: explain why this is needed (can't resolve references to struct members in array of struct which is itself a member of another struct.. see 'resolve_array_of_struct_as_member_of_another_struct_assignment' test)
-                    (
-                        typesystem::DataTypeInformation::Array { inner_type_name, .. },
-                        AstStatement::Reference { name: variable_name, .. },
-                    ) => {
-                        if let Some(v) = self.index.find_member(inner_type_name, variable_name) {
-                            if let Some(target_type) =
-                                self.index.find_effective_type_by_name(v.get_type_name())
-                            {
-                                self.annotation_map
-                                    .annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
-                                self.annotation_map.annotate_type_hint(
-                                    right.as_ref(),
-                                    StatementAnnotation::value(v.get_type_name()),
-                                );
-                                self.update_expected_types(target_type, right);
-                            }
-                        }
-                    }
                     _ => (),
                 }
             }

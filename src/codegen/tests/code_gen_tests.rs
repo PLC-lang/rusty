@@ -3234,8 +3234,7 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
         "
         PROGRAM mainProg
         VAR
-            // arr_str1 : ARRAY[0..1] OF STRUCT1 := (x1 := TRUE, x2 := 128 );
-            var_str1 : STRUCT1 := ((myInt := 10), (myArr := (x1 := TRUE, x2 := 128 ));
+            var_str1 : STRUCT1 := ((myInt := 10), (myArr := ((x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)));
         END_VAR
         END_PROGRAM
 
