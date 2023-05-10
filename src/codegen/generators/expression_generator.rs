@@ -1893,7 +1893,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                // FIXME: no type hint for array of struct in struct
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
