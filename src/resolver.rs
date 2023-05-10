@@ -735,11 +735,11 @@ impl<'i> TypeAnnotator<'i> {
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let flattened = crate::ast::flatten_expression_list(&initializer);
+                        let flattened = crate::ast::flatten_expression_list(initializer);
                         let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
                             todo!()
                         };
-                        self.annotate_array_of_struct(data_type, right, &ctx);
+                        self.annotate_array_of_struct(data_type, right, ctx);
                     }
                 }
             }
