@@ -12,7 +12,7 @@ path = "../../"
 
 
 [dev-dependencies.iec61131std]
-path= "."
+path = "."
 features = ["mock_time"]
 
 [dev-dependencies.rusty]
