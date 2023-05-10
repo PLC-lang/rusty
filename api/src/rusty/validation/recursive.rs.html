@@ -141,16 +141,6 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>itertools::Itertools;
 
@@ -179,19 +169,9 @@
 /// overflows the stack.
 ///
 /// [1] https://en.wikipedia.org/wiki/Depth-first_search
-</span><span class="attr">#[derive(Default)]
+</span><span class="attr">#[derive(Default, Validators)]
 </span><span class="kw">pub struct </span>RecursiveValidator {
     <span class="kw">pub </span>diagnostics: Vec&lt;Diagnostic&gt;,
-}
-
-<span class="kw">impl </span>Validators <span class="kw">for </span>RecursiveValidator {
-    <span class="kw">fn </span>push_diagnostic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: Diagnostic) {
-        <span class="self">self</span>.diagnostics.push(diagnostic);
-    }
-
-    <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.diagnostics)
-    }
 }
 
 <span class="kw">impl </span>RecursiveValidator {

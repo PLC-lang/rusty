@@ -190,14 +190,9 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+</pre><pre class="rust"><code><span class="kw">use </span>rusty_derive::Validators;
+
+<span class="kw">use crate</span>::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl},
@@ -284,21 +279,12 @@
     <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt;;
 }
 
-<span class="kw">pub struct </span>Validator {
+<span class="attr">#[derive(Validators)]
+</span><span class="kw">pub struct </span>Validator {
     <span class="comment">//context: ValidationContext&lt;&#39;s&gt;,
     </span>diagnostics: Vec&lt;Diagnostic&gt;,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-}
-
-<span class="kw">impl </span>Validators <span class="kw">for </span>Validator {
-    <span class="kw">fn </span>push_diagnostic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: Diagnostic) {
-        <span class="self">self</span>.diagnostics.push(diagnostic);
-    }
-
-    <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.diagnostics)
-    }
 }
 
 <span class="kw">impl </span>Validator {

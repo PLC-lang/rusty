@@ -211,16 +211,6 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
 </pre><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 
 <span class="kw">use crate</span>::{
@@ -237,19 +227,9 @@
 /// It performs validations including:
 ///  - naming-conflicts
 ///  - &lt;tbc&gt;
-</span><span class="attr">#[derive(Default)]
+</span><span class="attr">#[derive(Default, Validators)]
 </span><span class="kw">pub struct </span>GlobalValidator {
     diagnostics: Vec&lt;Diagnostic&gt;,
-}
-
-<span class="kw">impl </span>Validators <span class="kw">for </span>GlobalValidator {
-    <span class="kw">fn </span>push_diagnostic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: Diagnostic) {
-        <span class="self">self</span>.diagnostics.push(diagnostic);
-    }
-
-    <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.diagnostics)
-    }
 }
 
 <span class="kw">impl </span>GlobalValidator {
