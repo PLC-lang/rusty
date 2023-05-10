@@ -864,13 +864,13 @@ fn pre_processing_generates_inline_arrays() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
+                start: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
+                end: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -920,16 +920,8 @@ fn pre_processing_generates_inline_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -950,16 +942,8 @@ fn pre_processing_generates_inline_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -1087,13 +1071,13 @@ fn pre_processing_nested_array_in_struct() {
         data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
+                start: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 4,
+                end: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(4),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1133,13 +1117,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
+                start: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
+                end: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1163,13 +1147,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
+                start: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
+                end: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1193,13 +1177,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 0,
+                start: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(0),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
+                end: Box::new(AstStatement::Literal {
+                    kind: AstLiteral::new_integer(1),
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
@@ -1319,8 +1303,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: AstStatement::LiteralInteger { value: 7, location: SourceRange::undefined(), id: 0 }
-            ..AstStatement::LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 },
+        sub_range: literal_int(7)..literal_int(1000),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));

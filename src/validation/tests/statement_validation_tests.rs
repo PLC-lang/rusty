@@ -961,7 +961,6 @@ fn program_implicit_downcast() {
             out_var         : DINT;
         END_VAR
         END_PROGRAM
-
     "#,
     );
 

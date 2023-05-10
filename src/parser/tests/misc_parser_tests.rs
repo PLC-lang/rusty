@@ -78,8 +78,8 @@ fn exponent_literals_parsed_as_variables() {
                 id: 0,
                 location: SourceRange::undefined(),
             }),
-            right: Box::new(AstStatement::LiteralReal {
-                value: "1.0E6".into(),
+            right: Box::new(AstStatement::Literal {
+                kind: AstLiteral::new_real("1.0E6".into()),
                 id: 0,
                 location: SourceRange::undefined(),
             }),
@@ -501,63 +501,7 @@ fn id_implementation_for_all_statements() {
             .get_id(),
         7
     );
-    assert_eq!(AstStatement::LiteralArray { elements: None, location: (1..5).into(), id: 7 }.get_id(), 7);
-    assert_eq!(AstStatement::LiteralBool { value: true, location: (1..5).into(), id: 7 }.get_id(), 7);
-    assert_eq!(AstStatement::LiteralInteger { value: 7, location: (1..5).into(), id: 7 }.get_id(), 7);
-    assert_eq!(
-        AstStatement::LiteralDate { day: 0, month: 0, year: 0, location: (1..5).into(), id: 7 }.get_id(),
-        7
-    );
-    assert_eq!(
-        AstStatement::LiteralDateAndTime {
-            day: 0,
-            month: 0,
-            year: 0,
-            hour: 0,
-            nano: 0,
-            min: 0,
-            sec: 0,
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
-    assert_eq!(
-        AstStatement::LiteralReal { value: "2.3".to_string(), location: (1..5).into(), id: 7 }.get_id(),
-        7
-    );
-    assert_eq!(
-        AstStatement::LiteralString {
-            is_wide: false,
-            value: "2.3".to_string(),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
-    assert_eq!(
-        AstStatement::LiteralTime {
-            day: 0.0,
-            hour: 0.0,
-            milli: 0.0,
-            min: 0.0,
-            sec: 0.0,
-            micro: 0.0,
-            nano: 0,
-            negative: false,
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
-    assert_eq!(
-        AstStatement::LiteralTimeOfDay { hour: 0, min: 0, sec: 0, nano: 0, location: (1..5).into(), id: 7 }
-            .get_id(),
-        7
-    );
+    assert_eq!(AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_id(), 7);
     assert_eq!(
         AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
@@ -690,70 +634,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::LiteralArray { elements: None, location: (1..5).into(), id: 7 }.get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralBool { value: true, location: (1..5).into(), id: 7 }.get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralInteger { value: 7, location: (1..5).into(), id: 7 }.get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralDate { day: 0, month: 0, year: 0, location: (1..5).into(), id: 7 }
-            .get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralDateAndTime {
-            day: 0,
-            month: 0,
-            year: 0,
-            hour: 0,
-            nano: 0,
-            min: 0,
-            sec: 0,
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralReal { value: "2.3".to_string(), location: (1..5).into(), id: 7 }.get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralString {
-            is_wide: false,
-            value: "2.3".to_string(),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralTime {
-            day: 0.0,
-            hour: 0.0,
-            milli: 0.0,
-            min: 0.0,
-            sec: 0.0,
-            micro: 0.0,
-            nano: 0,
-            negative: false,
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
-        (1..5).into()
-    );
-    assert_eq!(
-        AstStatement::LiteralTimeOfDay { hour: 0, min: 0, sec: 0, nano: 0, location: (1..5).into(), id: 7 }
-            .get_location(),
+        AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_location(),
         (1..5).into()
     );
     assert_eq!(
