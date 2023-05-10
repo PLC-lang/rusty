@@ -17,3 +17,28 @@ fn actions_container_no_name() {
     // THEN there should be one diagnostic -> missing action container name
     assert_validation_snapshot!(&diagnostics);
 }
+
+#[test]
+fn do_not_validate_external() {
+    // GIVEN an external program with a simple assignment
+    // for this kind of assignment our validator would report
+    // potential loss of information (assigning bigger to smaller type)
+    // WHEN ...
+    let diagnostics = parse_and_validate(
+        "
+    PROGRAM main
+    END_PROGRAM
+
+    {external}
+    PROGRAM program_0
+    VAR
+        x : SINT;
+        y : INT;
+    END_VAR
+        x := y;
+    END_PROGRAM
+    ",
+    );
+    // THEN there should not be any reported diagnostic for the external program
+    assert!(diagnostics.is_empty());
+}
