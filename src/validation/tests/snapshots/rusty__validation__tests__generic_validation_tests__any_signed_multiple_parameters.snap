@@ -1,16 +1,14 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Invalid type nature for generic argument. REAL is no Signed.", range: [SourceRange { range: 432..440 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Signed.", range: [SourceRange { range: 442..454 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'DINT'.", range: [SourceRange { range: 468..476 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Signed.", range: [SourceRange { range: 468..476 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Signed.", range: [SourceRange { range: 478..486 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 488..495 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. STRING is no Signed.", range: [SourceRange { range: 488..495 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceRange { range: 497..505 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Signed.", range: [SourceRange { range: 497..505 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE' to variable of type 'DINT'.", range: [SourceRange { range: 507..515 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceRange { range: 507..515 }], err_no: type__invalid_nature }
 
