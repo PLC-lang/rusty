@@ -565,42 +565,97 @@ fn visit_variable_length_array(
     let referenced_type = referenced_type.get_name().expect("named datatype").to_string();
     let struct_name = name.to_owned();
 
-    // register dummy array type so it can later be annotated as a type hint
-    let array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
-    index.register_type(typesystem::DataType {
-        name: array_name.clone(),
-        initial_value: None,
-        information: DataTypeInformation::Array {
-            name: array_name.clone(),
-            inner_type_name: referenced_type.clone(),
-            // dummy dimensions that will never actually be used
-            dimensions: (0..ndims)
-                .map(|_| Dimension {
-                    start_offset: TypeSize::Undetermined,
-                    end_offset: TypeSize::Undetermined,
-                })
-                .collect::<Vec<_>>(),
-        },
-        nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
-    });
+    let dummy_array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
+    let member_array_name = format!("__ptr_to_{dummy_array_name}");
+    let member_dimensions_name = format!("__bounds_{dummy_array_name}");
+
+    // check the index if a dummy-array type matching the given VLA (eg. 1 dimension, type INT) already exists.
+    // if we find a type, we can use references to the internal types. otherwise, register the array in the index
+    // and declare internal member types.
+    let (vla_arr_type_declaration, dim_arr_type_declaration) =
+        if index.get_effective_type_by_name(&dummy_array_name).is_ok() {
+            (
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_array_name,
+                    location: SourceRange::undefined(),
+                },
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_dimensions_name,
+                    location: SourceRange::undefined(),
+                },
+            )
+        } else {
+            // register dummy array type so it can later be annotated as a type hint
+            index.register_type(typesystem::DataType {
+                name: dummy_array_name.clone(),
+                initial_value: None,
+                information: DataTypeInformation::Array {
+                    name: dummy_array_name.clone(),
+                    inner_type_name: referenced_type.clone(),
+                    // dummy dimensions that will never actually be used
+                    dimensions: (0..ndims)
+                        .map(|_| Dimension {
+                            start_offset: TypeSize::Undetermined,
+                            end_offset: TypeSize::Undetermined,
+                        })
+                        .collect::<Vec<_>>(),
+                },
+                nature: TypeNature::Any,
+                location: SymbolLocation::internal(),
+            });
+
+            // define internal vla members
+            (
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::PointerType {
+                        name: Some(member_array_name),
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: dummy_array_name,
+                            location: SourceRange::undefined(),
+                        }),
+                    },
+                    location: SourceRange::undefined(),
+                    scope: None,
+                },
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::ArrayType {
+                        name: Some(member_dimensions_name),
+                        bounds: AstStatement::ExpressionList {
+                            expressions: (0..ndims)
+                                .map(|_| AstStatement::RangeStatement {
+                                    start: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(0),
+                                        0,
+                                        SourceRange::undefined(),
+                                    )),
+                                    end: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(1),
+                                        0,
+                                        SourceRange::undefined(),
+                                    )),
+                                    id: 0,
+                                })
+                                .collect::<_>(),
+                            id: 0,
+                        },
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: DINT_TYPE.to_string(),
+                            location: SourceRange::undefined(),
+                        }),
+                        is_variable_length: false,
+                    },
+                    location: SourceRange::undefined(),
+                    scope: None,
+                },
+            )
+        };
 
     // Create variable index entries for VLA struct members
     let variables = vec![
         // Pointer
         Variable {
             name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
-            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType {
-                    name: Some(format!("__ptr_to_{array_name}")),
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: array_name,
-                        location: SourceRange::undefined(),
-                    }),
-                },
-                location: SourceRange::undefined(),
-                scope: None,
-            },
+            data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,
             location: SourceRange::undefined(),
@@ -608,36 +663,7 @@ fn visit_variable_length_array(
         // Dimensions Array
         Variable {
             name: "dimensions".to_string(),
-            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::ArrayType {
-                    name: Some("n_dims".to_string()),
-                    bounds: AstStatement::ExpressionList {
-                        expressions: (0..ndims)
-                            .map(|_| AstStatement::RangeStatement {
-                                start: Box::new(AstStatement::new_literal(
-                                    AstLiteral::new_integer(0),
-                                    0,
-                                    SourceRange::undefined(),
-                                )),
-                                end: Box::new(AstStatement::new_literal(
-                                    AstLiteral::new_integer(1),
-                                    0,
-                                    SourceRange::undefined(),
-                                )),
-                                id: 0,
-                            })
-                            .collect::<_>(),
-                        id: 0,
-                    },
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: DINT_TYPE.to_string(),
-                        location: SourceRange::undefined(),
-                    }),
-                    is_variable_length: false,
-                },
-                location: SourceRange::undefined(),
-                scope: None,
-            },
+            data_type_declaration: dim_arr_type_declaration,
             initializer: None,
             address: None,
             location: SourceRange::undefined(),
