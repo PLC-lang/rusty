@@ -186,10 +186,6 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
 </pre><pre class="rust"><code><span class="kw">use </span>rusty_derive::Validators;
 
 <span class="kw">use crate</span>::{
@@ -201,9 +197,8 @@
 
 <span class="kw">use </span><span class="self">self</span>::{
     global::GlobalValidator,
-    pou::{validate_action_container, visit_pou},
+    pou::{visit_implementation, visit_pou},
     recursive::RecursiveValidator,
-    statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
@@ -328,10 +323,7 @@
 
         <span class="comment">// validate implementations
         </span><span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
-            validate_action_container(<span class="self">self</span>, implementation);
-            implementation.statements.iter().for_each(|s| {
-                visit_statement(<span class="self">self</span>, s, <span class="kw-2">&amp;</span>context.with_qualifier(implementation.name.as_str()))
-            });
+            visit_implementation(<span class="self">self</span>, implementation, <span class="kw-2">&amp;</span>context);
         }
     }
 }
