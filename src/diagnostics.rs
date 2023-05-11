@@ -61,6 +61,7 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__assigning_to_var_input_ref,
 
     //array related
     arr__invalid_array_assignment,
@@ -770,6 +771,13 @@ impl Diagnostic {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: "Use VAR_IN_OUT instead of VAR_INPUT {ref} if you're assigning to it".into(),
+            range: vec![location.to_owned()],
         }
     }
 }

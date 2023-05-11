@@ -2,6 +2,6 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__fn_vla' to '__fn_a'", range: [SourceRange { range: 272..282 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__fn_a' to '__fn_vla'", range: [SourceRange { range: 300..308 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__fn_vla' to '__fn_a'", range: [SourceRange { range: 267..277 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__fn_a' to '__fn_vla'", range: [SourceRange { range: 295..303 }], err_no: var__invalid_assignment }
 

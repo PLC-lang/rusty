@@ -531,21 +531,28 @@ fn validate_assignment(
     context: &ValidationContext,
 ) {
     if let Some(left) = left {
-        // check if we assign to a constant variable
+        // Check if we are assigning to a...
         if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
             context.annotations.get(left)
         {
+            // ...constant variable
             if *constant {
                 validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
             }
+
+            // ...VAR_INPUT {ref} variable
+            if let Some(var) = context.index.find_fully_qualified_variable(&qualified_name) {
+                if matches!(var.variable_type, ArgumentType::ByRef(VariableType::Input)) {
+                    validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+                }
+            }
         }
 
-        // If whatever we got is not assignable, output an error
+        // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            // we hit an assignment without a LValue to assign to
             validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
         }
     }

@@ -154,7 +154,7 @@ mod assignment {
                     a : ARRAY[0..10] OF DINT;
                 END_VAR
 
-                VAR_INPUT {ref}
+                VAR_IN_OUT
                     vla : ARRAY[*] OF DINT;
                 END_VAR
 
@@ -174,7 +174,46 @@ mod assignment {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
+        assert_validation_snapshot!(diagnostics);
+    }
+
+    #[test]
+    fn input_by_ref_should_deliver_improvment_suggestion() {
+        let diagnostics = parse_and_validate(
+            "
+            FUNCTION fn : DINT
+                VAR_INPUT
+                    a : DINT;
+                END_VAR
+
+                VAR_INPUT {ref}
+                    b : REAL;
+                    c : REAL;
+                END_VAR
+
+                VAR_IN_OUT
+                    d : LREAL;
+                END_VAR
+
+                a := 1;
+                b := 1.0;   // This should trigger an improvment suggestion, because we are assigning a value
+                c;          // This should NOT trigger an improvment suggestion, because we are NOT assigning a value
+                d := 1.0;
+            END_FUNCTION
+
+            FUNCTION main : DINT
+                VAR
+                    a : DINT = 3;
+                    b : REAL := 3.14;
+                    c : REAL := 3.14;
+                    d : LREAL := 3.14;
+                END_VAR
+
+                fn(a, b, c, d);
+            END_FUNCTION
+            ",
+        );
+
         assert_validation_snapshot!(diagnostics);
     }
 }
