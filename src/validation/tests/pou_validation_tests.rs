@@ -49,22 +49,18 @@ fn in_out_variable_out_of_order() {
         "
     PROGRAM mainProg
     VAR
-    fb_DM_Para : FB_DM_Para;
-    fb_DM_Para2 : FB_DM_Para;
-    out1, out2, out3 : BOOL;
+        fb : fb_t;
+        out1, out2 : BOOL;
     END_VAR
-        fb_DM_Para(
-                    myOtherInOut := out1,
-                    myInOut := out2
-                 );
-        
-        fb_DM_Para2(
-            TRUE, 0, out1, out3, out2 
-        );
-    ;
+        fb(myOtherInOut := out1, myInOut := out2);  // valid
+        fb(myInOut := out1, myOtherInOut := out2);  // valid
+        fb(myInOut := out2); // invalid: missing in-out param
+        fb(0, TRUE);  // invalid: one in-out is a literal, the other is missing
+
+        fb.foo(myOtherInOut := out2, myInOut := out1); // valid
     END_PROGRAM
     
-    FUNCTION_BLOCK FB_DM_Para
+    FUNCTION_BLOCK fb_t
     VAR
         myVar	: BOOL;
     END_VAR
@@ -81,8 +77,14 @@ fn in_out_variable_out_of_order() {
         myOtherInOut : BOOL;
     END_VAR
     END_FUNCTION_BLOCK
+
+    ACTIONS
+        ACTION foo
+            myInOut := myOtherInOut;
+        END_ACTION
+    END_ACTIONS
     ",
     );
 
-    dbg!(diagnostics);
+    assert_validation_snapshot!(diagnostics);
 }

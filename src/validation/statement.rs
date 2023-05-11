@@ -751,7 +751,7 @@ fn validate_call(
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
         let mut are_implicit_parameters = true;
-        let mut absolute_location_in_parent = vec![];
+        let mut variable_location_in_parent = vec![];
 
         // validate parameters
         for (i, p) in passed_parameters.iter().enumerate() {
@@ -761,9 +761,9 @@ fn validate_call(
                 let left = declared_parameters.get(parameter_location_in_parent);
                 if let Some(left) = left {
                     validate_call_by_ref(validator, left, p);
-                    // 'parameter location in parent' and 'location in parent' are not the same (VAR blocks are not counted as param).
-                    // save location in parent for InOut validation
-                    absolute_location_in_parent.push(left.get_location_in_parent());
+                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    variable_location_in_parent.push(left.get_location_in_parent());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -793,7 +793,7 @@ fn validate_call(
             if !declared_in_out_params.is_empty() {
                 // check if all inouts were passed to the pou call
                 declared_in_out_params.into_iter().for_each(|p| {
-                    if !absolute_location_in_parent.contains(&p.get_location_in_parent()) {
+                    if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(Diagnostic::missing_inout_parameter(
                             p.get_name(),
                             operator.get_location(),
