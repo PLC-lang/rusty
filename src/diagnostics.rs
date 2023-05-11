@@ -777,7 +777,7 @@ impl Diagnostic {
     pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: "Use VAR_IN_OUT instead of VAR_INPUT {ref} if you're assigning to it".into(),
-            range: vec![location.to_owned()],
+            range: vec![location],
         }
     }
 }

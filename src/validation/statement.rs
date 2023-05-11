@@ -544,7 +544,7 @@ fn validate_assignment(
             }
 
             // ...VAR_INPUT {ref} variable
-            if let Some(var) = context.index.find_fully_qualified_variable(&qualified_name) {
+            if let Some(var) = context.index.find_fully_qualified_variable(qualified_name) {
                 if matches!(var.variable_type, ArgumentType::ByRef(VariableType::Input)) {
                     validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
                 }
