@@ -42,3 +42,47 @@ fn do_not_validate_external() {
     // THEN there should not be any reported diagnostic for the external program
     assert!(diagnostics.is_empty());
 }
+
+#[test]
+fn in_out_variable_out_of_order() {
+    let diagnostics = parse_and_validate(
+        "
+    PROGRAM mainProg
+    VAR
+    fb_DM_Para : FB_DM_Para;
+    fb_DM_Para2 : FB_DM_Para;
+    out1, out2, out3 : BOOL;
+    END_VAR
+        fb_DM_Para(
+                    myOtherInOut := out1,
+                    myInOut := out2
+                 );
+        
+        fb_DM_Para2(
+            TRUE, 0, out1, out3, out2 
+        );
+    ;
+    END_PROGRAM
+    
+    FUNCTION_BLOCK FB_DM_Para
+    VAR
+        myVar	: BOOL;
+    END_VAR
+    VAR_INPUT
+        myInput	: USINT;    
+    END_VAR
+    VAR_IN_OUT
+        myInOut	: BOOL;
+    END_VAR
+    VAR_OUTPUT
+        myOut	: BOOL;
+    END_VAR
+    VAR_IN_OUT
+        myOtherInOut : BOOL;
+    END_VAR
+    END_FUNCTION_BLOCK
+    ",
+    );
+
+    dbg!(diagnostics);
+}

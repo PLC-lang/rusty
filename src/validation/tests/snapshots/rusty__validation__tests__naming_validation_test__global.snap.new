@@ -1,0 +1,12 @@
+---
+source: src/validation/tests/naming_validation_test.rs
+assertion_line: 85
+expression: res
+---
+SemanticError { message: "Variable Length Arrays are not allowed to be defined as Local variables inside a Function", range: [SourceRange { range: 143..146 }], err_no: vla__invalid_container }
+SemanticError { message: "VLAs can not be defined as global variables", range: [SourceRange { range: 32..35 }], err_no: vla__invalid_container }
+SyntaxError { message: "__ptr_to___arr_vla_2_dint can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to___arr_vla_2_dint can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "n_dims can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "n_dims can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }], err_no: type__invalid_name }
+
