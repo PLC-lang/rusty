@@ -14,19 +14,9 @@ use super::Validators;
 /// It performs validations including:
 ///  - naming-conflicts
 ///  - <tbc>
-#[derive(Default)]
+#[derive(Default, Validators)]
 pub struct GlobalValidator {
     diagnostics: Vec<Diagnostic>,
-}
-
-impl Validators for GlobalValidator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl GlobalValidator {

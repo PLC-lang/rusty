@@ -1,3 +1,5 @@
+use rusty_derive::Validators;
+
 use crate::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
@@ -7,9 +9,8 @@ use crate::{
 
 use self::{
     global::GlobalValidator,
-    pou::{validate_action_container, visit_pou},
+    pou::{visit_implementation, visit_pou},
     recursive::RecursiveValidator,
-    statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
@@ -85,21 +86,12 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
+#[derive(Validators)]
 pub struct Validator {
     //context: ValidationContext<'s>,
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-}
-
-impl Validators for Validator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl Validator {
@@ -143,10 +135,7 @@ impl Validator {
 
         // validate implementations
         for implementation in &unit.implementations {
-            validate_action_container(self, implementation);
-            implementation.statements.iter().for_each(|s| {
-                visit_statement(self, s, &context.with_qualifier(implementation.name.as_str()))
-            });
+            visit_implementation(self, implementation, &context);
         }
     }
 }
