@@ -777,7 +777,7 @@ impl Diagnostic {
     pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message:
-                "VAR_INPUT {ref} variables are mutable and will reflect changes to the referenced variable. Use VAR_IN_OUT instead."
+                "VAR_INPUT {reF} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use a VAR_IN_OUT instead."
                     .into(),
             range: vec![location],
         }
