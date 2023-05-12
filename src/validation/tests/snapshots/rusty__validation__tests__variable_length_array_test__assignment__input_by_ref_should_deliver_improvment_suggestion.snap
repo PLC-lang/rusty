@@ -2,5 +2,5 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-ImprovementSuggestion { message: "Use VAR_IN_OUT instead of VAR_INPUT {ref} if you're assigning to it", range: [SourceRange { range: 353..361 }] }
+ImprovementSuggestion { message: "VAR_INPUT {ref} variables are mutable and will reflect changes to the referenced variable. Use VAR_IN_OUT instead.", range: [SourceRange { range: 353..361 }] }
 
