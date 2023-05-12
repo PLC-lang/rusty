@@ -292,9 +292,8 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
         }
 
         DataTypeInformation::Float { size, .. } => match (kind, size) {
-            // In _theory_ these unwraps should be safe because we'll be dealing with only evaluated literals
-            (AstLiteral::Real(value), 32) => value.parse::<f32>().unwrap().is_infinite(),
-            (AstLiteral::Real(value), 64) => value.parse::<f64>().unwrap().is_infinite(),
+            (AstLiteral::Real(value), 32) => value.parse::<f32>().map(f32::is_infinite).unwrap_or(false),
+            (AstLiteral::Real(value), 64) => value.parse::<f64>().map(f64::is_infinite).unwrap_or(false),
 
             // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
             _ => false,
