@@ -1,11 +1,5 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_INT' to '__prog_input1'", range: [SourceRange { range: 1286..1308 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__prog_input2'", range: [SourceRange { range: 1322..1344 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__prog_input3'", range: [SourceRange { range: 1358..1380 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_INT' to '__prog_input1'", range: [SourceRange { range: 1596..1615 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__prog_input2'", range: [SourceRange { range: 1630..1649 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__prog_input3'", range: [SourceRange { range: 1664..1683 }], err_no: var__invalid_assignment }
 

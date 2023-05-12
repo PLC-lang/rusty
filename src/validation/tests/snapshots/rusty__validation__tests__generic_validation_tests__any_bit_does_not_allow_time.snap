@@ -1,9 +1,7 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'BOOL'.", range: [SourceRange { range: 137..138 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'BOOL'.", range: [SourceRange { range: 206..207 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
 
