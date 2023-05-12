@@ -903,11 +903,6 @@
 <a href="#903" id="903">903</a>
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -1491,8 +1486,9 @@
                 location.clone(),
             ));
         } <span class="kw">else if </span>!<span class="macro">matches!</span>(right, AstStatement::Literal { .. }) {
-            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
-        }
+            <span class="comment">// FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+        </span>}
     }
 }
 
@@ -1539,16 +1535,10 @@
         <span class="comment">// in this case return true and skip any other validation
         // because those would fail
         </span><span class="kw">return </span><span class="bool-val">true</span>;
-    } <span class="kw">else if </span>is_invalid_pointer_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-        index,
-        location,
-        validator,
-    ) | is_invalid_char_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+    } <span class="kw">else if </span>is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+    <span class="comment">// FIXME: See https://github.com/PLC-lang/rusty/issues/857
+    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        </span>| is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         <span class="kw">return </span><span class="bool-val">false</span>;
@@ -1581,7 +1571,7 @@
     <span class="bool-val">false
 </span>}
 
-<span class="kw">fn </span>is_invalid_pointer_assignment(
+<span class="kw">fn </span>_is_invalid_pointer_assignment(
     left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     index: <span class="kw-2">&amp;</span>Index,
@@ -1801,7 +1791,7 @@
     }
 }
 
-<span class="kw">fn </span>validate_assignment_type_sizes(
+<span class="kw">fn </span>_validate_assignment_type_sizes(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     left: <span class="kw-2">&amp;</span>DataType,
     right: <span class="kw-2">&amp;</span>DataType,
