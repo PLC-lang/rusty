@@ -1,15 +1,10 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'SINT'.", range: [SourceRange { range: 138..139 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'SINT'.", range: [SourceRange { range: 205..206 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceRange { range: 205..206 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE' to variable of type 'SINT'.", range: [SourceRange { range: 273..274 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceRange { range: 273..274 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'SINT'.", range: [SourceRange { range: 340..341 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceRange { range: 340..341 }], err_no: type__invalid_nature }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'SINT'.", range: [SourceRange { range: 408..409 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceRange { range: 408..409 }], err_no: type__invalid_nature }
 

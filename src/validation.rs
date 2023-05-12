@@ -12,9 +12,8 @@ use crate::{
 
 use self::{
     global::GlobalValidator,
-    pou::{validate_action_container, visit_pou},
+    pou::{visit_implementation, visit_pou},
     recursive::RecursiveValidator,
-    statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
@@ -149,10 +148,7 @@ impl Validator {
 
         // validate implementations
         for implementation in &unit.implementations {
-            validate_action_container(self, implementation);
-            implementation.statements.iter().for_each(|s| {
-                visit_statement(self, s, &context.with_qualifier(implementation.name.as_str()))
-            });
+            visit_implementation(self, implementation, &context);
         }
     }
 }
