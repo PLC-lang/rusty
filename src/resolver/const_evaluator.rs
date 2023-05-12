@@ -56,11 +56,9 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
             ) {
                 let candidates_type = target_type
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
-                    .map(DataType::get_type_information)
-                    .cloned();
+                    .map(DataType::get_type_information);
 
                 if candidates_type
-                    .as_ref()
                     .map(|it| (it.is_struct() || it.is_array()) && const_expr.is_default())
                     .unwrap_or(false)
                 {
@@ -586,9 +584,9 @@ fn resolve_const_reference(
     }
 }
 
-/// takes the given cast_statement transform it into a literal that better represents
-/// the data_type given by the `type_name`
-/// (e.g. WORD#FFFF ... =-1 vs. DINT#FFFF ... =0x0000_FFFF)
+/// Transforms the given `cast_statement` into a literal. For example `WORD#FFFF` will be a
+/// [`AstLiteral::Integer`] with value `65_535` whereas `INT#FFFF` will not evaluate because it overflows
+/// (see also [`does_overflow`] and [`evaluate_with_target_hint`]).
 fn get_cast_statement_literal(
     cast_statement: &AstStatement,
     type_name: &str,
