@@ -582,7 +582,8 @@ fn validate_assignment(
                 location.clone(),
             ));
         } else if !matches!(right, AstStatement::Literal { .. }) {
-            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+            // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -630,16 +631,10 @@ fn is_valid_assignment(
         // in this case return true and skip any other validation
         // because those would fail
         return true;
-    } else if is_invalid_pointer_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-        index,
-        location,
-        validator,
-    ) | is_invalid_char_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+    } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         return false;
@@ -672,7 +667,7 @@ fn is_valid_string_to_char_assignment(
     false
 }
 
-fn is_invalid_pointer_assignment(
+fn _is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
@@ -897,7 +892,7 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
     }
 }
 
-fn validate_assignment_type_sizes(
+fn _validate_assignment_type_sizes(
     validator: &mut Validator,
     left: &DataType,
     right: &DataType,
