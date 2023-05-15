@@ -2,7 +2,10 @@ use rusty_derive::Validators;
 
 use crate::{
     ast::{AstStatement, CompilationUnit},
-    index::{Index, PouIndexEntry},
+    index::{
+        const_expressions::{ConstExpression, UnresolvableKind},
+        Index, PouIndexEntry,
+    },
     resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
@@ -114,6 +117,16 @@ impl Validator {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
+
+        // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
+        //      function if another global check is introduced (including the overflow checks)?
+        // Find and report const-expressions that would overflow
+        for it in index.get_const_expressions().into_iter() {
+            let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
+            let ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr else { continue };
+
+            self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+        }
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {

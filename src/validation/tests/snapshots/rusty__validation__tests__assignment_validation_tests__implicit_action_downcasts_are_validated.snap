@@ -1,8 +1,6 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'DINT'.", range: [SourceRange { range: 552..556 }] }
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'LWORD' to variable of type 'DWORD'.", range: [SourceRange { range: 558..562 }] }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 564..568 }], err_no: var__invalid_assignment }
 

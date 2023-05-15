@@ -1,7 +1,6 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'INT'.", range: [SourceRange { range: 146..154 }] }
 SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to '__MyClass.testMethod_arr'", range: [SourceRange { range: 156..163 }], err_no: var__invalid_assignment }
 
