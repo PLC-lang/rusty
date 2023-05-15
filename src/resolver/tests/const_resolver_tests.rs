@@ -680,10 +680,7 @@ fn illegal_cast_should_not_be_resolved() {
 
     // THEN a could not be resolved, because the literal is invalid
     debug_assert_eq!(
-        vec![UnresolvableConstant::new(
-            global!(index, "a"),
-            "Cannot resolve constant: BOOL#LiteralInteger { value: 255 }"
-        )],
+        vec![UnresolvableConstant::new(global!(index, "a"), "This will overflow for type BOOL")],
         unresolvable
     );
 }
@@ -705,7 +702,6 @@ fn division_by_0_should_fail() {
             bb : REAL := 5 MOD zero_real;
             cc : REAL := 5.0 MOD zero_int;
             dd : REAL := 5.0 MOD zero_real;
-
         END_VAR
        ",
     );
@@ -716,37 +712,39 @@ fn division_by_0_should_fail() {
     debug_assert_eq!(
         vec![
             UnresolvableConstant::new(global!(&index, "a"), "Attempt to divide by zero"),
+            UnresolvableConstant::new(global!(&index, "b"), "Attempt to divide by zero"),
             UnresolvableConstant::new(global!(&index, "c"), "Attempt to divide by zero"),
+            UnresolvableConstant::new(global!(&index, "d"), "Attempt to divide by zero"),
             UnresolvableConstant::new(
                 global!(&index, "aa"),
+                "Attempt to calculate the remainder with a divisor of zero"
+            ),
+            UnresolvableConstant::new(
+                global!(&index, "bb"),
                 "Attempt to calculate the remainder with a divisor of zero"
             ),
             UnresolvableConstant::new(
                 global!(&index, "cc"),
                 "Attempt to calculate the remainder with a divisor of zero"
             ),
+            UnresolvableConstant::new(
+                global!(&index, "dd"),
+                "Attempt to calculate the remainder with a divisor of zero"
+            ),
         ],
         unresolvable
     );
-    // AND the real divisions are inf or nan
-    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "b").unwrap());
-    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "d").unwrap());
 
-    if let AstStatement::Literal { kind: AstLiteral::Real(value), .. } =
-        find_constant_value(&index, "bb").unwrap()
-    {
-        assert!(value.parse::<f64>().unwrap().is_nan());
-    } else {
-        unreachable!()
-    }
+    // AND the real divisions are unresolved (= Binary Expressions)
+    assert!(find_constant_value(&index, "a").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "b").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "c").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "d").unwrap().is_binary_expression());
 
-    if let AstStatement::Literal { kind: AstLiteral::Real(value), .. } =
-        find_constant_value(&index, "dd").unwrap()
-    {
-        assert!(value.parse::<f64>().unwrap().is_nan());
-    } else {
-        unreachable!()
-    }
+    assert!(find_constant_value(&index, "aa").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "bb").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "cc").unwrap().is_binary_expression());
+    assert!(find_constant_value(&index, "dd").unwrap().is_binary_expression());
 }
 
 #[test]
@@ -754,16 +752,16 @@ fn const_references_not_function_with_signed_ints() {
     // GIVEN some bit-functions used as initializers
     let (_, index) = index(
         "VAR_GLOBAL CONSTANT
-            _0x00ff : INT := 16#00FF; //255
+            _0x00ff : INT := 16#00FF;   // 255
         END_VAR
         
         VAR_GLOBAL CONSTANT
-            a : INT := INT#16#FFAB;//-85;
-            aa : INT := WORD#16#FFAB;//65xxx;
-            b : INT := a AND _0x00ff; //171
-            c : INT := a OR _0x00ff; //-1
-            d : INT := a XOR _0x00ff; //-172
-            e : INT := NOT a; //84
+            a : INT := INT#16#55;       // 85;
+            aa : INT := WORD#16#FFAB;   // 65xxx;
+            b : INT := a AND _0x00ff;   // 85
+            c : INT := a OR _0x00ff;    // 255
+            d : INT := a XOR _0x00ff;   // 170
+            e : INT := NOT a;           // -86
         END_VAR
         ",
     );
@@ -774,12 +772,12 @@ fn const_references_not_function_with_signed_ints() {
     // THEN everything got resolved
     debug_assert_eq!(EMPTY, unresolvable);
     // AND the index should have literal values
-    debug_assert_eq!(&create_int_literal(-85), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(85), find_constant_value(&index, "a").unwrap());
     debug_assert_eq!(&create_int_literal(0x0000_ffab), find_constant_value(&index, "aa").unwrap());
-    debug_assert_eq!(&create_int_literal(171), find_constant_value(&index, "b").unwrap());
-    debug_assert_eq!(&create_int_literal(-1), find_constant_value(&index, "c").unwrap());
-    debug_assert_eq!(&create_int_literal(-172), find_constant_value(&index, "d").unwrap());
-    debug_assert_eq!(&create_int_literal(84), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_int_literal(85), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(255), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_int_literal(170), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_int_literal(-86), find_constant_value(&index, "e").unwrap());
 }
 
 #[test]
