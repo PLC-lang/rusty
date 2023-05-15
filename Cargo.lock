@@ -877,6 +877,8 @@ version = "0.1.0"
 dependencies = [
  "quick-xml",
  "serde",
+ "serde_json",
+ "xmltojson",
 ]
 
 [[package]]
@@ -1582,6 +1584,18 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[package]]
+name = "xmltojson"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35c6ef73dae3b7a4a94270d84e70e8ac63134d47106a7283450137bee3439bbb"
+dependencies = [
+ "log",
+ "quick-xml",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "xshell"
