@@ -827,8 +827,10 @@ fn validate_case_statement(
         const_evaluator::evaluate(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
-                validator
-                    .push_diagnostic(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
+                validator.push_diagnostic(Diagnostic::non_constant_case_condition(
+                    err.get_reason(),
+                    condition.get_location(),
+                ))
             })
             .map(|v| {
                 // check for duplicates if we got a value

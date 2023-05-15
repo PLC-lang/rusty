@@ -23,10 +23,10 @@ pub type NativeSintType = i8;
 pub type NativeIntType = i16;
 pub type NativeDintType = i32;
 pub type NativeLintType = i64;
-pub type NativeByteType = u8;
-pub type NativeWordType = u16;
-pub type NativeDwordType = u32;
-pub type NativeLwordType = u64;
+// pub type NativeByteType = u8;
+// pub type NativeWordType = u16;
+// pub type NativeDwordType = u32;
+// pub type NativeLwordType = u64;
 pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
 pub type NativePointerType = usize;
@@ -394,6 +394,14 @@ impl DataTypeInformation {
 
     pub fn is_string(&self) -> bool {
         matches!(self, DataTypeInformation::String { .. })
+    }
+
+    pub fn is_string_utf8(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. })
+    }
+
+    pub fn is_string_utf16(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
     }
 
     pub fn is_character(&self) -> bool {
