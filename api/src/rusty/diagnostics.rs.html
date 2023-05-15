@@ -1201,6 +1201,11 @@
 <a href="#1201" id="1201">1201</a>
 <a href="#1202" id="1202">1202</a>
 <a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     error::Error,
@@ -1264,6 +1269,7 @@
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__overflow,
 
     <span class="comment">//array related
     </span>arr__invalid_array_assignment,
@@ -1974,6 +1980,10 @@
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::syntax__unexpected_token,
         }
+    }
+
+    <span class="kw">pub fn </span>overflow(message: String, location: SourceRange) -&gt; Diagnostic {
+        Diagnostic::SemanticError { message, range: <span class="macro">vec!</span>[location], err_no: ErrNo::var__overflow }
     }
 }
 

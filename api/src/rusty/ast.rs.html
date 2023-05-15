@@ -1402,6 +1402,39 @@
 <a href="#1402" id="1402">1402</a>
 <a href="#1403" id="1403">1403</a>
 <a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
@@ -2557,6 +2590,39 @@
 
     <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
         AstStatement::Literal { kind, id, location }
+    }
+
+    <span class="kw">pub fn </span>new_integer(value: i128, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+        AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
+    }
+
+    <span class="kw">pub fn </span>new_real(value: String, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+        AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
+    }
+
+    <span class="kw">pub fn </span>new_string(value: <span class="kw">impl </span>Into&lt;String&gt;, is_wide: bool, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+        AstStatement::Literal {
+            kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
+            location,
+            id,
+        }
+    }
+
+    <span class="doccomment">/// Returns true if the given token is an integer or float and zero.
+    </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstStatement::Literal { kind, .. } =&gt; <span class="kw">match </span>kind {
+                AstLiteral::Integer(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
+                AstLiteral::Real(val) =&gt; val == <span class="string">&quot;0&quot; </span>|| val == <span class="string">&quot;0.0&quot;</span>,
+                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+            },
+
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>is_binary_expression(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::BinaryExpression { .. })
     }
 }
 

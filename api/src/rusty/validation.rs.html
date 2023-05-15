@@ -186,11 +186,27 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="kw">use </span>rusty_derive::Validators;
 
 <span class="kw">use crate</span>::{
     ast::{AstStatement, CompilationUnit},
-    index::{Index, PouIndexEntry},
+    index::{
+        const_expressions::{ConstExpression, UnresolvableKind},
+        Index, PouIndexEntry,
+    },
     resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
@@ -302,6 +318,16 @@
     <span class="kw">pub fn </span>perform_global_validation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) {
         <span class="self">self</span>.global_validator.validate(index);
         <span class="self">self</span>.recursive_validator.validate(index);
+
+        <span class="comment">// XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
+        //      function if another global check is introduced (including the overflow checks)?
+        // Find and report const-expressions that would overflow
+        </span><span class="kw">for </span>it <span class="kw">in </span>index.get_const_expressions().into_iter() {
+            <span class="kw">let </span><span class="prelude-val">Some</span>(expr) = index.get_const_expressions().find_const_expression(<span class="kw-2">&amp;</span>it.<span class="number">0</span>) <span class="kw">else </span>{ <span class="kw">continue </span>};
+            <span class="kw">let </span>ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr <span class="kw">else </span>{ <span class="kw">continue </span>};
+
+            <span class="self">self</span>.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+        }
     }
 
     <span class="kw">pub fn </span>visit_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>AnnotationMapImpl, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {

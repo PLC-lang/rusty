@@ -287,10 +287,10 @@
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(<span class="kw-2">&amp;</span>initial_id))
         {
-            <span class="prelude-val">Some</span>(ConstExpression::Unresolvable { reason, statement }) =&gt; {
+            <span class="prelude-val">Some</span>(ConstExpression::Unresolvable { reason, statement }) <span class="kw">if </span>reason.is_misc() =&gt; {
                 validator.push_diagnostic(Diagnostic::unresolved_constant(
                     variable.name.as_str(),
-                    <span class="prelude-val">Some</span>(reason),
+                    <span class="prelude-val">Some</span>(reason.get_reason()),
                     statement.get_location(),
                 ));
             }
