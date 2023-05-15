@@ -905,6 +905,12 @@
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
 <a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -913,6 +919,7 @@
         <span class="self">self</span>, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
         StringValue,
     },
+    builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -1649,6 +1656,11 @@
     </span>visit_statement(validator, operator, context);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = context.find_pou(operator) {
+        <span class="comment">// additional validation for builtin calls if necessary
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         <span class="kw">let </span>declared_parameters = context.index.get_declared_parameters(pou.get_name());
         <span class="kw">let </span>passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 

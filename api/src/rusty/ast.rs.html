@@ -1435,6 +1435,8 @@
 <a href="#1435" id="1435">1435</a>
 <a href="#1436" id="1436">1436</a>
 <a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
@@ -1523,6 +1525,7 @@
     String,
     Char,
     Date,
+    __VLA,
 }
 
 <span class="kw">impl </span>TypeNature {
@@ -1548,6 +1551,7 @@
             <span class="kw">match </span><span class="self">self </span>{
                 TypeNature::Any =&gt; <span class="bool-val">true</span>,
                 TypeNature::Derived =&gt; <span class="macro">matches!</span>(other, TypeNature::Any),
+                TypeNature::__VLA =&gt; <span class="macro">matches!</span>(other, TypeNature::Any),
                 TypeNature::Elementary =&gt; <span class="macro">matches!</span>(other, TypeNature::Any),
                 TypeNature::Magnitude =&gt; <span class="macro">matches!</span>(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Num =&gt; {

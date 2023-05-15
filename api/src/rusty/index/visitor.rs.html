@@ -827,6 +827,7 @@
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
 <a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
@@ -1410,7 +1411,7 @@
                 })
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
         },
-        nature: TypeNature::Any,
+        nature: TypeNature::__VLA,
         location: SymbolLocation::internal(),
     });
 
@@ -1630,6 +1631,7 @@
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
+    <span class="kw">let </span>nature = source.get_type_nature();
     <span class="kw">let </span>information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
 
     <span class="kw">let </span>init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -1641,7 +1643,7 @@
         name: name.to_string(),
         initial_value: init,
         information,
-        nature: TypeNature::Derived,
+        nature,
         location: symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>type_declaration.location),
     });
     <span class="comment">//Generate an initializer for the struct

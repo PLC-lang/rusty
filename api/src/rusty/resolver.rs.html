@@ -1642,6 +1642,7 @@
 <a href="#1642" id="1642">1642</a>
 <a href="#1643" id="1643">1643</a>
 <a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2912,9 +2913,9 @@
         } <span class="kw">else </span>{
             <span class="macro">vec!</span>[]
         };
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(anntation) = builtins::get_builtin(<span class="kw-2">&amp;</span>operator_qualifier).and_then(BuiltIn::get_annotation)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = builtins::get_builtin(<span class="kw-2">&amp;</span>operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            anntation(<span class="self">self</span>, operator, parameters_stmt, ctx).unwrap();
+            annotation(<span class="self">self</span>, operator, parameters_stmt, ctx)
         } <span class="kw">else </span>{
             <span class="comment">//If builtin, skip this
             </span><span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt; = HashMap::new();
@@ -2945,6 +2946,7 @@
                 }
             }
             <span class="comment">//We possibly did not consume all parameters, see if the variadic arguments are derivable
+
             </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(operator_qualifier) {
                 <span class="prelude-val">Some</span>(pou) <span class="kw">if </span>pou.is_variadic() =&gt; {
                     <span class="comment">//get variadic argument type, if it is generic, update the generic candidates

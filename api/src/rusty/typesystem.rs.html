@@ -1245,6 +1245,28 @@
 <a href="#1245" id="1245">1245</a>
 <a href="#1246" id="1246">1246</a>
 <a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1329,6 +1351,7 @@
 <span class="kw">pub const </span>CHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CHAR&quot;</span>;
 <span class="kw">pub const </span>WCHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;WCHAR&quot;</span>;
 <span class="kw">pub const </span>VOID_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;VOID&quot;</span>;
+<span class="kw">pub const </span>__VLA_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;__VLA&quot;</span>;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -1471,7 +1494,7 @@
             TypeNature::String =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::String),
             TypeNature::Any =&gt; <span class="bool-val">true</span>,
             TypeNature::Derived =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::Derived),
-
+            TypeNature::__VLA =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::__VLA),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1559,10 +1582,20 @@
     Internal(InternalType),
 }
 
+<span class="kw">impl </span>StructSource {
+    <span class="kw">pub fn </span>get_type_nature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypeNature {
+        <span class="kw">match </span><span class="self">self </span>{
+            StructSource::Internal(InternalType::VariableLengthArray { .. }) =&gt; TypeNature::__VLA,
+            <span class="kw">_ </span>=&gt; TypeNature::Derived,
+        }
+    }
+}
+
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
-}
+    __VLA, <span class="comment">// used for error-reporting only
+</span>}
 
 <span class="kw">type </span>TypeId = String;
 
@@ -1942,6 +1975,17 @@
             initial_value: <span class="prelude-val">None</span>,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
+        },
+        DataType {
+            name: <span class="string">&quot;__VLA&quot;</span>.into(),
+            initial_value: <span class="prelude-val">None</span>,
+            information: DataTypeInformation::Struct {
+                name: <span class="string">&quot;VARIABLE LENGTH ARRAY&quot;</span>.to_string(),
+                members: <span class="macro">vec!</span>[],
+                source: StructSource::Internal(InternalType::__VLA),
+            },
+            nature: TypeNature::__VLA,
             location: SymbolLocation::internal(),
         },
         DataType {
