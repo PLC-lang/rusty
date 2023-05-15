@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rusty_derive::Validators;
+    use plc_derive::Validators;
     #[derive(PartialEq, Eq, Debug, Clone)]
     pub enum Diagnostic {
         SomeError,
