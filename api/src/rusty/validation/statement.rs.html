@@ -911,6 +911,8 @@
 <a href="#911" id="911">911</a>
 <a href="#912" id="912">912</a>
 <a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -1664,19 +1666,20 @@
         <span class="kw">let </span>declared_parameters = context.index.get_declared_parameters(pou.get_name());
         <span class="kw">let </span>passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>passed_params_idx = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>are_implicit_parameters = <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
+
         <span class="comment">// validate parameters
         </span><span class="kw">for </span>(i, p) <span class="kw">in </span>passed_parameters.iter().enumerate() {
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>((location_in_parent, right, is_implicit)) =
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>((parameter_location_in_parent, right, is_implicit)) =
                 get_implicit_call_parameter(p, <span class="kw-2">&amp;</span>declared_parameters, i)
             {
-                <span class="comment">// safe index of passed parameter
-                </span>passed_params_idx.push(location_in_parent);
-
-                <span class="kw">let </span>left = declared_parameters.get(location_in_parent);
+                <span class="kw">let </span>left = declared_parameters.get(parameter_location_in_parent);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
                     validate_call_by_ref(validator, left, p);
+                    <span class="comment">// &#39;parameter location in parent&#39; and &#39;variable location in parent&#39; are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    </span>variable_location_in_parent.push(left.get_location_in_parent());
                 }
 
                 <span class="comment">// explicit call parameter assignments will be handled by
@@ -1699,13 +1702,14 @@
 
         <span class="comment">// for PROGRAM/FB we need special inout validation
         </span><span class="kw">if let </span>PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
-            <span class="kw">let </span>inouts: Vec&lt;&amp;&amp;VariableIndexEntry&gt; =
+            <span class="kw">let </span>declared_in_out_params: Vec&lt;&amp;&amp;VariableIndexEntry&gt; =
                 declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+
             <span class="comment">// if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-            </span><span class="kw">if </span>!inouts.is_empty() {
+            </span><span class="kw">if </span>!declared_in_out_params.is_empty() {
                 <span class="comment">// check if all inouts were passed to the pou call
-                </span>inouts.into_iter().for_each(|p| {
-                    <span class="kw">if </span>!passed_params_idx.contains(<span class="kw-2">&amp;</span>(p.get_location_in_parent() <span class="kw">as </span>usize)) {
+                </span>declared_in_out_params.into_iter().for_each(|p| {
+                    <span class="kw">if </span>!variable_location_in_parent.contains(<span class="kw-2">&amp;</span>p.get_location_in_parent()) {
                         validator.push_diagnostic(Diagnostic::missing_inout_parameter(
                             p.get_name(),
                             operator.get_location(),
