@@ -53,6 +53,7 @@ pub enum ErrNo {
 
     // call
     call__invalid_parameter_type,
+    call__invalid_parameter_count,
 
     //variable related
     var__unresolved_constant,
@@ -61,6 +62,7 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__overflow,
 
     //array related
     arr__invalid_array_assignment,
@@ -68,6 +70,7 @@ pub enum ErrNo {
     // VLA related
     vla__invalid_container,
     vla__invalid_array_access,
+    vla__dimension_idx_out_of_bounds,
 
     //reference related
     reference__unresolved,
@@ -347,7 +350,7 @@ impl Diagnostic {
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Literal {literal_type} is not campatible to {cast_type}"),
+            message: format!("Literal {literal_type} is not compatible to {cast_type}"),
             range: vec![location],
             err_no: ErrNo::type__incompatible_literal_cast,
         }
@@ -647,6 +650,16 @@ impl Diagnostic {
         }
     }
 
+    pub fn invalid_parameter_count(expected: usize, received: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
+            ),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_count,
+        }
+    }
+
     pub fn implicit_downcast(
         actual_type_name: &str,
         assigned_type_name: &str,
@@ -770,6 +783,18 @@ impl Diagnostic {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    pub fn overflow(message: String, location: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![location], err_no: ErrNo::var__overflow }
+    }
+
+    pub fn index_out_of_bounds(range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Index out of bounds.".into(),
+            range: vec![range],
+            err_no: ErrNo::vla__dimension_idx_out_of_bounds,
         }
     }
 }

@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Invalid parameter count. Received 0 parameters while 1 parameters were expected.", range: [SourceRange { range: 134..137 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 4 parameters while 1 parameters were expected.", range: [SourceRange { range: 154..157 }], err_no: call__invalid_parameter_count }
+

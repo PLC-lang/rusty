@@ -86,6 +86,7 @@ pub enum TypeNature {
     String,
     Char,
     Date,
+    __VLA,
 }
 
 impl TypeNature {
@@ -111,6 +112,7 @@ impl TypeNature {
             match self {
                 TypeNature::Any => true,
                 TypeNature::Derived => matches!(other, TypeNature::Any),
+                TypeNature::__VLA => matches!(other, TypeNature::Any),
                 TypeNature::Elementary => matches!(other, TypeNature::Any),
                 TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Num => {
@@ -1153,6 +1155,39 @@ impl AstStatement {
 
     pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> Self {
         AstStatement::Literal { kind, id, location }
+    }
+
+    pub fn new_integer(value: i128, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
+    }
+
+    pub fn new_real(value: String, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
+    }
+
+    pub fn new_string(value: impl Into<String>, is_wide: bool, id: AstId, location: SourceRange) -> Self {
+        AstStatement::Literal {
+            kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
+            location,
+            id,
+        }
+    }
+
+    /// Returns true if the given token is an integer or float and zero.
+    pub fn is_zero(&self) -> bool {
+        match self {
+            AstStatement::Literal { kind, .. } => match kind {
+                AstLiteral::Integer(0) => true,
+                AstLiteral::Real(val) => val == "0" || val == "0.0",
+                _ => false,
+            },
+
+            _ => false,
+        }
+    }
+
+    pub fn is_binary_expression(&self) -> bool {
+        matches!(self, AstStatement::BinaryExpression { .. })
     }
 }
 

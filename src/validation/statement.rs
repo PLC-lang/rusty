@@ -6,6 +6,7 @@ use crate::{
         self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
         StringValue,
     },
+    builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -581,7 +582,8 @@ fn validate_assignment(
                 location.clone(),
             ));
         } else if !matches!(right, AstStatement::Literal { .. }) {
-            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+            // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -629,16 +631,10 @@ fn is_valid_assignment(
         // in this case return true and skip any other validation
         // because those would fail
         return true;
-    } else if is_invalid_pointer_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-        index,
-        location,
-        validator,
-    ) | is_invalid_char_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+    } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         return false;
@@ -671,7 +667,7 @@ fn is_valid_string_to_char_assignment(
     false
 }
 
-fn is_invalid_pointer_assignment(
+fn _is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
@@ -747,6 +743,11 @@ fn validate_call(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
+        // additional validation for builtin calls if necessary
+        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
@@ -834,8 +835,10 @@ fn validate_case_statement(
         const_evaluator::evaluate(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
-                validator
-                    .push_diagnostic(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
+                validator.push_diagnostic(Diagnostic::non_constant_case_condition(
+                    err.get_reason(),
+                    condition.get_location(),
+                ))
             })
             .map(|v| {
                 // check for duplicates if we got a value
@@ -893,7 +896,7 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
     }
 }
 
-fn validate_assignment_type_sizes(
+fn _validate_assignment_type_sizes(
     validator: &mut Validator,
     left: &DataType,
     right: &DataType,
