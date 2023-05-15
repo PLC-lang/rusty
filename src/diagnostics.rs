@@ -62,6 +62,8 @@ pub enum ErrNo {
     var__invalid_assignment,
     var__missing_type,
     var__assigning_to_var_input_ref,
+    var__overflow,
+
 
     //array related
     arr__invalid_array_assignment,
@@ -781,6 +783,10 @@ impl Diagnostic {
                     .into(),
             range: vec![location],
         }
+    }
+      
+    pub fn overflow(message: String, location: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![location], err_no: ErrNo::var__overflow }
     }
 }
 
