@@ -178,3 +178,130 @@ mod assignment {
         assert_validation_snapshot!(diagnostics);
     }
 }
+
+mod builtins {
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+
+    #[test]
+    fn builtins_called_with_invalid_type() {
+        let diagnostics = parse_and_validate(
+            "
+        FUNCTION main : DINT
+        VAR CONSTANT
+            MY_CONST : DINT := 10;
+        END_VAR
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+            duration: TIME;
+        END_VAR
+            LOWER_BOUND(arr, MY_CONST + 1);
+            LOWER_BOUND(duration, 1);
+            LOWER_BOUND('i am a string', 1);
+
+            UPPER_BOUND(arr, MY_CONST + 1);
+            UPPER_BOUND(duration, 1);
+            UPPER_BOUND('i am a string', 1);
+        END_FUNCTION
+        ",
+        );
+
+        assert_validation_snapshot!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_invalid_index() {
+        let diagnostics = parse_and_validate(
+            "        
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        TYPE MyType : INT END_TYPE;
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+        VAR
+            x: MyType := 1;
+        END_VAR
+            LOWER_BOUND(vla, 3.1415); // invalid
+            LOWER_BOUND(vla, TIME#3s); // invalid
+            LOWER_BOUND(vla, 0); // index out of bounds
+
+            UPPER_BOUND(vla, 3.1415); // invalid
+            UPPER_BOUND(vla, TIME#3s); // invalid
+            UPPER_BOUND(vla, 0); // index out of bounds
+
+            UPPER_BOUND(vla, vla[LOWER_BOUND(vla, INT#1)]); // valid
+        END_FUNCTION
+        ",
+        );
+
+        assert_validation_snapshot!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_aliased_type() {
+        let diagnostics = parse_and_validate(
+            "        
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        TYPE MyType : INT END_TYPE;
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+        VAR
+            x: MyType := 1;
+        END_VAR
+
+            LOWER_BOUND(vla, x); // valid
+            UPPER_BOUND(vla, MyType#1); // valid
+        END_FUNCTION
+        ",
+        );
+
+        assert_validation_snapshot!(diagnostics);
+    }
+
+    #[test]
+    fn builtins_called_with_invalid_number_of_params() {
+        let diagnostics = parse_and_validate(
+            "
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            LOWER_BOUND();
+            LOWER_BOUND(vla);
+            LOWER_BOUND(1);
+            LOWER_BOUND(vla, 1, 2, 3);
+
+            UPPER_BOUND();
+            UPPER_BOUND(vla);
+            UPPER_BOUND(1);
+            UPPER_BOUND(vla, 1, 2, 3);
+        END_FUNCTION
+        ",
+        );
+
+        assert_validation_snapshot!(diagnostics);
+    }
+}

@@ -271,6 +271,7 @@ fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
         "ANY_STRING" => TypeNature::String,
         "ANY_CHAR" => TypeNature::Char,
         "ANY_DATE" => TypeNature::Date,
+        "__ANY_VLA" => TypeNature::__VLA,
         _ => {
             lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
             TypeNature::Any
