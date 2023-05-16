@@ -64,7 +64,7 @@ fn representation() {
                         Input,
                     ),
                     is_constant: false,
-                    data_type_name: "n_dims",
+                    data_type_name: "__bounds___arr_vla_1_dint",
                     location_in_parent: 1,
                     linkage: Internal,
                     binding: None,
@@ -142,39 +142,39 @@ fn representation() {
     "###);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("n_dims").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(), 
     @r###"
-        DataType {
-            name: "n_dims",
-            initial_value: None,
-            information: Array {
-                name: "n_dims",
-                inner_type_name: "DINT",
-                dimensions: [
-                    Dimension {
-                        start_offset: ConstExpression(
-                            Index {
-                                index: 0,
-                                generation: 0,
-                            },
-                        ),
-                        end_offset: ConstExpression(
-                            Index {
-                                index: 1,
-                                generation: 0,
-                            },
-                        ),
-                    },
-                ],
-            },
-            nature: Any,
-            location: SymbolLocation {
-                line_number: 0,
-                source_range: SourceRange {
-                    range: 0..0,
+    DataType {
+        name: "__bounds___arr_vla_1_dint",
+        initial_value: None,
+        information: Array {
+            name: "__bounds___arr_vla_1_dint",
+            inner_type_name: "DINT",
+            dimensions: [
+                Dimension {
+                    start_offset: ConstExpression(
+                        Index {
+                            index: 0,
+                            generation: 0,
+                        },
+                    ),
+                    end_offset: ConstExpression(
+                        Index {
+                            index: 1,
+                            generation: 0,
+                        },
+                    ),
                 },
+            ],
+        },
+        nature: Any,
+        location: SymbolLocation {
+            line_number: 0,
+            source_range: SourceRange {
+                range: 0..0,
             },
-        }
+        },
+    }
     "###);
 }
 
@@ -291,7 +291,7 @@ fn pass() {
                     Input,
                 ),
                 is_constant: false,
-                data_type_name: "n_dims",
+                data_type_name: "__bounds___arr_vla_1_dint",
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
