@@ -1,97 +1,236 @@
+use std::{
+    borrow::{Borrow, Cow},
+    collections::HashMap,
+    str::FromStr,
+};
+
 use quick_xml::{
     events::{BytesStart, Event},
+    name::QName,
     Reader,
 };
 
-const POU: &[u8] = b"pou";
-const BODY: &[u8] = b"body";
-const INTERFACE: &[u8] = b"interface";
-const FBD: &[u8] = b"FBD";
-const BLOCK: &[u8] = b"block";
+use crate::model::{
+    constant::{
+        BLOCK, BODY, FBD, INPUT_VARIABLES, IN_OUT_VARIABLE, IN_OUT_VARIABLES, IN_VARIABLE, OUTPUT_VARIABLES,
+        OUT_VARIABLE, POU,
+    },
+    Block, BlockVariable, BlockVariableKind, Body, FbdVariable, FunctionBlockDiagram, Pou, PouElement,
+    Attributes,
+};
 
-fn parse() {
-    // let content = std::fs::read_to_string("res/demo.xml").unwrap();
-    let mut reader = Reader::from_str(CONTENT);
+#[derive(Debug)]
+pub enum Error {
+    /// ...
+    UnexpectedAttribute(String),
+
+    ///
+    MissingAttribute(&'static str),
+
+    /// Indicates that we reached EOF inside any parsing method other than [`parse`]
+    UnexpectedEndOfFile,
+
+    Read,
+
+    TryFrom,
+}
+
+impl std::error::Error for Error {}
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::UnexpectedAttribute(inner) => println!("{inner:#?}"),
+            Error::MissingAttribute(inner) => println!("{inner:#?}"),
+            Error::UnexpectedEndOfFile => println!("EOF"),
+            Error::Read => println!("Read"),
+            Error::TryFrom => (),
+        }
+
+        Ok(())
+    }
+}
+
+
+// TODO: remove (crate) and return Vec<AstStatment>
+pub(crate) fn parse(filename: &str) -> Result<Pou, Error> {
+    let content = std::fs::read_to_string(filename).unwrap();
+    let mut reader = Reader::from_str(&content);
     reader.trim_text(true);
-    reader.parse();
+    do_parse(&mut reader)
 }
 
-pub trait CfcParser {
-    fn parse(&mut self);
-    fn parse_pou(&mut self);
-    fn parse_fbd(&mut self);
+pub(crate) fn do_parse(reader: &mut Reader<&[u8]>) -> Result<Pou, Error> {
+    let mut pou = Pou::default();
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().as_ref() {
+                POU => return Pou::new(tag, parse_pou(reader)?),
+                _ => {}
+            },
+
+            Event::Eof => break,
+            _ => {}
+        }
+    }
+
+    Ok(pou)
 }
 
-impl CfcParser for Reader<&[u8]> {
-    fn parse(&mut self) {
-        loop {
-            match self.read_event().unwrap() {
-                Event::Start(tag) => match tag.name().into_inner() {
-                    POU => self.parse_pou(),
-                    _ => {}
-                },
+fn parse_pou(reader: &mut Reader<&[u8]>) -> Result<Vec<PouElement>, Error> {
+    let mut elements = vec![];
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().into_inner() {
+                BODY => elements.push(PouElement::Body(parse_pou_body(reader)?)),
+                // INTERFACE => todo!(),
+                // ACTIONS => todo!(),
+                // TRANSITIONS => todo!(),
+                _ => {}
+            },
 
-                Event::Eof => {
-                    println!("done");
-                    break;
+            Event::End(tag) if tag.as_ref() == POU => break,
+
+            _ => {}
+        }
+    }
+
+    Ok(elements)
+}
+
+fn parse_pou_body(reader: &mut Reader<&[u8]>) -> Result<Body, Error> {
+    let mut body = Body::default();
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().into_inner() {
+                FBD => body.fbd = parse_fbd(reader, tag)?,
+                _ => todo!(),
+            },
+
+            Event::End(tag) if tag.as_ref() == BODY => break,
+
+            Event::Eof => return Err(Error::UnexpectedEndOfFile),
+
+            _ => {}
+        }
+    }
+
+    Ok(body)
+}
+
+fn parse_fbd(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FunctionBlockDiagram, Error> {
+    let mut fbd = FunctionBlockDiagram::default();
+
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().into_inner() {
+                BLOCK => fbd.blocks.push(parse_block(reader, tag)?),                
+                IN_VARIABLE | OUT_VARIABLE | IN_OUT_VARIABLE => {
+                    // TODO:
+                    // fbd.variables.push(parse_fbd_variable(reader, tag)?)
                 }
-
                 _ => {}
-            }
+                // b"label" => todo!(),
+                // b"jump" => todo!(),
+                // _ => todo!(),
+            },
+
+            Event::End(tag) if tag.name().as_ref() == FBD => break,
+
+            Event::Eof => break,
+
+            _ => {}
         }
     }
 
-    fn parse_pou(&mut self) {
-        loop {
-            let Ok(event) = self.read_event() else {
-          unreachable!()
-        };
+    Ok(fbd)
+}
 
-            match event {
-                Event::Start(tag) => match tag.name().into_inner() {
-                    BODY | INTERFACE => continue,
-                    FBD => self.parse_fbd(),
-                    _ => {
-                        dbg!(tag);
-                    }
-                },
-                Event::Eof => {
-                    break;
+fn parse_fbd_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FbdVariable, Error> {
+    todo!()
+}
+
+fn parse_block(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Block, Error> {
+    let mut block = Block::new(tag)?;
+
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().into_inner() {
+                INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES => {
+                    block.variables.append(&mut parse_block_variable(reader, tag)?)
                 }
+                _ => todo!(),
+            },
 
-                _ => {}
-            }
+            Event::End(tag) if tag.name().as_ref() == BLOCK => break,
+
+            Event::Eof => break,
+
+            _ => {}
         }
     }
 
-    fn parse_fbd(&mut self) {
-        loop {
-            match self.read_event().unwrap() {
-                Event::Start(tag) => match tag.name().into_inner() {
-                    BLOCK => parse_block_attributes(tag),
-                    _ => {}
-                },
+    Ok(block)
+}
 
-                Event::End(tag) => match tag.name().into_inner() {
-                    BLOCK => break,
-                    _ => {}
-                },
+fn parse_block_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Vec<BlockVariable>, Error> {
+    let mut variables = vec![];
+    let kind = BlockVariableKind::from(tag.as_ref());
 
-                Event::Eof => break,
+    loop {
+        match reader.read_event().map_err(|_| Error::Read)? {
+            Event::Start(tag) => match tag.name().as_ref() {
+                // TODO: remove None
+                b"variable" => variables.push(BlockVariable::new(tag, None, &kind)?),
 
-                _ => {}
+                _ => {} // _ => return Err(Error::UnexpectedAttribute(tag.name().to_string())),
+            },
+
+            Event::End(tag)
+                if matches!(tag.as_ref(), INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES) =>
+            {
+                break
             }
+            _ => {}
         }
+    }
+
+    Ok(variables)
+}
+
+pub(crate) fn extract_attributes(tag: BytesStart) -> HashMap<String, String> {
+    tag.attributes().flat_map(|it| it).map(|it| (it.key.to_string(), it.value.to_string())).collect()
+}
+
+pub(crate) trait HashMapExt {
+    fn get_or_err(&self, key: &'static str) -> Result<String, Error>;
+}
+
+impl HashMapExt for HashMap<String, String> {
+    fn get_or_err(&self, key: &'static str) -> Result<String, Error> {
+        self.get(key).ok_or(Error::MissingAttribute(key)).cloned()
     }
 }
 
-fn parse_block_attributes(tag: BytesStart) {
-    println!("{:#?}", tag.attributes().collect::<Vec<_>>());
+trait PrototypingToString {
+    fn to_string(self) -> String;
+}
+
+impl<'a> PrototypingToString for QName<'a> {
+    fn to_string(self) -> String {
+        String::from_utf8(self.into_inner().to_vec()).unwrap()
+    }
+}
+
+impl PrototypingToString for Cow<'_, [u8]> {
+    fn to_string(self) -> String {
+        String::from_utf8(self.to_vec()).unwrap()
+    }
 }
 
 #[test]
 fn demo() {
-    crate::parser::parse();
+    let mut reader = Reader::from_str(CONTENT);
+    println!("{:#?}", crate::parser::do_parse(&mut reader).unwrap());
 }
 
 const CONTENT: &str = r#"
