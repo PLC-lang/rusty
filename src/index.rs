@@ -284,21 +284,6 @@ pub enum VariableType {
     Return,
 }
 
-/// information regarding a variable
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct VariableInformation {
-    /// the type of variable
-    variable_type: VariableType,
-    /// true if this variable is a compile-time-constant
-    is_constant: bool,
-    /// the variable's datatype
-    data_type_name: String,
-    /// the variable's qualifier, None for global variables
-    qualifier: Option<String>,
-    /// Location in the qualifier defautls to 0 (Single variables)
-    location_in_parent: u32,
-}
-
 #[derive(Debug)]
 pub enum DataTypeType {
     Scalar,        // built in types: INT, BOOL, WORD, ...
