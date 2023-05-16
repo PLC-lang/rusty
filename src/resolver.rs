@@ -18,7 +18,7 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, StringValue, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry},
     lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
@@ -162,7 +162,7 @@ pub enum StatementAnnotation {
         /// denotes wheter this variable is declared as a constant
         constant: bool,
         /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
-        variable_type: VariableType,
+        argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
     },
@@ -1230,10 +1230,10 @@ impl<'i> TypeAnnotator<'i> {
                     unreachable!("must be a reference to a VLA")
                 };
 
-                let Some(variable_type) = self.index.get_pou_members(pou)
+                let Some(argument_type) = self.index.get_pou_members(pou)
                     .iter()
                     .filter(|it| it.get_name() == name)
-                    .map(|it| it.get_variable_type())
+                    .map(|it| it.get_declaration_type())
                     .next() else {
                         unreachable!()
                     };
@@ -1242,7 +1242,7 @@ impl<'i> TypeAnnotator<'i> {
                     resulting_type: inner_type_name.to_owned(),
                     qualified_name: qualified_name.to_string(),
                     constant: false,
-                    variable_type,
+                    argument_type,
                     is_auto_deref: false,
                 };
                 self.annotation_map.annotate_type_hint(statement, hint_annotation)
@@ -1583,7 +1583,7 @@ fn to_variable_annotation(
         qualified_name: v.get_qualified_name().into(),
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
-        variable_type: v.variable_type.get_variable_type(),
+        argument_type: v.get_declaration_type(),
         is_auto_deref,
     }
 }
