@@ -6,6 +6,7 @@ use crate::{
         self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
         StringValue,
     },
+    builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -749,22 +750,28 @@ fn validate_call(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
+        // additional validation for builtin calls if necessary
+        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
-        let mut passed_params_idx = Vec::new();
         let mut are_implicit_parameters = true;
+        let mut variable_location_in_parent = vec![];
+
         // validate parameters
         for (i, p) in passed_parameters.iter().enumerate() {
-            if let Ok((location_in_parent, right, is_implicit)) =
+            if let Ok((parameter_location_in_parent, right, is_implicit)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
-                // safe index of passed parameter
-                passed_params_idx.push(location_in_parent);
-
-                let left = declared_parameters.get(location_in_parent);
+                let left = declared_parameters.get(parameter_location_in_parent);
                 if let Some(left) = left {
                     validate_call_by_ref(validator, left, p);
+                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    variable_location_in_parent.push(left.get_location_in_parent());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -787,13 +794,14 @@ fn validate_call(
 
         // for PROGRAM/FB we need special inout validation
         if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
-            let inouts: Vec<&&VariableIndexEntry> =
+            let declared_in_out_params: Vec<&&VariableIndexEntry> =
                 declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+
             // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-            if !inouts.is_empty() {
+            if !declared_in_out_params.is_empty() {
                 // check if all inouts were passed to the pou call
-                inouts.into_iter().for_each(|p| {
-                    if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
+                declared_in_out_params.into_iter().for_each(|p| {
+                    if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(Diagnostic::missing_inout_parameter(
                             p.get_name(),
                             operator.get_location(),

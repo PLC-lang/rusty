@@ -385,6 +385,83 @@ fn builtin_function_call_sizeof() {
 }
 
 #[test]
+fn builtin_function_call_lower_bound() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: ARRAY[0..1] OF DINT;
+            b: DINT;
+        END_VAR
+            b := foo(a);
+        END_PROGRAM
+        
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            foo := LOWER_BOUND(vla, 1);
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_upper_bound() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: ARRAY[0..1] OF DINT;
+            b: DINT;
+        END_VAR
+            b := foo(a);
+        END_PROGRAM
+        
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            foo := UPPER_BOUND(vla, 1);
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_upper_bound_expr() {
+    let result = codegen(
+        "
+        VAR_GLOBAL CONSTANT
+            MY_CONST : DINT := 10;
+        END_VAR
+        PROGRAM main
+        VAR
+            a: ARRAY[0..1, 1..2, 2..3, 3..4] OF DINT;
+            b: DINT;
+        END_VAR
+            b := foo(a);
+        END_PROGRAM
+        
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            // upper bound of 4th dimension => 8th element in dimension array
+            foo := UPPER_BOUND(vla, MY_CONST - (2 * 3)); 
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn test_max_int() {
     let result = codegen(
         r"
