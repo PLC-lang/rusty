@@ -532,7 +532,7 @@ fn validate_assignment(
 ) {
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
             context.annotations.get(left)
         {
             // ...constant variable
@@ -544,10 +544,8 @@ fn validate_assignment(
             }
 
             // ...VAR_INPUT {ref} variable
-            if let Some(var) = context.index.find_fully_qualified_variable(qualified_name) {
-                if matches!(var.argument_type, ArgumentType::ByRef(VariableType::Input)) {
-                    validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
-                }
+            if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
+                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
             }
         }
 
