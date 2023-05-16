@@ -1,0 +1,11 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+expression: res
+---
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceRange { range: 369..375 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 418..425 }], err_no: type__invalid_nature }
+SemanticError { message: "Index out of bounds.", range: [SourceRange { range: 451..462 }], err_no: vla__dimension_idx_out_of_bounds }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceRange { range: 525..531 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 574..581 }], err_no: type__invalid_nature }
+SemanticError { message: "Index out of bounds.", range: [SourceRange { range: 607..618 }], err_no: vla__dimension_idx_out_of_bounds }
+

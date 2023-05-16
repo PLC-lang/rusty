@@ -1268,9 +1268,9 @@ impl<'i> TypeAnnotator<'i> {
         } else {
             vec![]
         };
-        if let Some(anntation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
+        if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            anntation(self, operator, parameters_stmt, ctx).unwrap();
+            annotation(self, operator, parameters_stmt, ctx)
         } else {
             //If builtin, skip this
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
@@ -1301,6 +1301,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             //We possibly did not consume all parameters, see if the variadic arguments are derivable
+
             match self.index.find_pou(operator_qualifier) {
                 Some(pou) if pou.is_variadic() => {
                     //get variadic argument type, if it is generic, update the generic candidates

@@ -40,7 +40,7 @@ fn representation() {
                     name: "struct_vla_dint_1",
                     qualified_name: "__foo_arr.struct_vla_dint_1",
                     initial_value: None,
-                    argument_type: ByVal(
+                    variable_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -60,7 +60,7 @@ fn representation() {
                     name: "dimensions",
                     qualified_name: "__foo_arr.dimensions",
                     initial_value: None,
-                    argument_type: ByVal(
+                    variable_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -84,7 +84,7 @@ fn representation() {
                 },
             ),
         },
-        nature: Derived,
+        nature: __VLA,
         location: SymbolLocation {
             line_number: 3,
             source_range: SourceRange {
@@ -131,7 +131,7 @@ fn representation() {
                 },
             ],
         },
-        nature: Any,
+        nature: __VLA,
         location: SymbolLocation {
             line_number: 4294967295,
             source_range: SourceRange {

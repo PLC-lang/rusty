@@ -18,7 +18,8 @@ fn generic_markers_on_pou_added() {
         L : ANY_CHARS,
         M : ANY_STRING,
         N : ANY_CHAR,
-        O : ANY_DATE> : INT END_FUNCTION";
+        O : ANY_DATE,
+        P : __ANY_VLA> : INT END_FUNCTION";
     let (parse_result, _) = parse(src);
     let function = &parse_result.units[0];
     //Make sure the function has the generic parametes T: ANY, R : ANY_NUMBER
@@ -54,6 +55,8 @@ fn generic_markers_on_pou_added() {
     assert_eq!(&GenericBinding { name: "N".into(), nature: TypeNature::Char }, r);
     let t = &generics[14];
     assert_eq!(&GenericBinding { name: "O".into(), nature: TypeNature::Date }, t);
+    let t = &generics[15];
+    assert_eq!(&GenericBinding { name: "P".into(), nature: TypeNature::__VLA }, t);
 }
 
 #[test]

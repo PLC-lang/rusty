@@ -714,6 +714,24 @@ fn reference_to_reference_assignments_in_function_arguments() {
 }
 
 #[test]
+fn ref_builtin_function_reports_invalid_param_count() {
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION main : DINT
+        VAR
+            x: ARRAY[0..1] OF INT;
+        END_VAR
+            REF(x); // valid
+            REF(); 
+            REF(x, 1, 2, 'abc');
+        END_FUNCTION
+    ",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
 fn address_of_operations() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "

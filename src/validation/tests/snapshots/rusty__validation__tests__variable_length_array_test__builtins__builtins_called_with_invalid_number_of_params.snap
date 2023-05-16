@@ -1,0 +1,17 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+expression: res
+---
+SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceRange { range: 251..262 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceRange { range: 278..289 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceRange { range: 308..319 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceRange { range: 320..321 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 320..321 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceRange { range: 336..347 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceRange { range: 376..387 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceRange { range: 403..414 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceRange { range: 433..444 }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceRange { range: 445..446 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'", range: [SourceRange { range: 445..446 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceRange { range: 461..472 }], err_no: call__invalid_parameter_count }
+
