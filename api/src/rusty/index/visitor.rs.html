@@ -828,6 +828,32 @@
 <a href="#828" id="828">828</a>
 <a href="#829" id="829">829</a>
 <a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
@@ -1395,42 +1421,97 @@
     <span class="kw">let </span>referenced_type = referenced_type.get_name().expect(<span class="string">&quot;named datatype&quot;</span>).to_string();
     <span class="kw">let </span>struct_name = name.to_owned();
 
-    <span class="comment">// register dummy array type so it can later be annotated as a type hint
-    </span><span class="kw">let </span>array_name = <span class="macro">format!</span>(<span class="string">&quot;__arr_vla_{ndims}_{referenced_type}&quot;</span>).to_lowercase();
-    index.register_type(typesystem::DataType {
-        name: array_name.clone(),
-        initial_value: <span class="prelude-val">None</span>,
-        information: DataTypeInformation::Array {
-            name: array_name.clone(),
-            inner_type_name: referenced_type.clone(),
-            <span class="comment">// dummy dimensions that will never actually be used
-            </span>dimensions: (<span class="number">0</span>..ndims)
-                .map(|<span class="kw">_</span>| Dimension {
-                    start_offset: TypeSize::Undetermined,
-                    end_offset: TypeSize::Undetermined,
-                })
-                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-        },
-        nature: TypeNature::__VLA,
-        location: SymbolLocation::internal(),
-    });
+    <span class="kw">let </span>dummy_array_name = <span class="macro">format!</span>(<span class="string">&quot;__arr_vla_{ndims}_{referenced_type}&quot;</span>).to_lowercase();
+    <span class="kw">let </span>member_array_name = <span class="macro">format!</span>(<span class="string">&quot;__ptr_to_{dummy_array_name}&quot;</span>);
+    <span class="kw">let </span>member_dimensions_name = <span class="macro">format!</span>(<span class="string">&quot;__bounds_{dummy_array_name}&quot;</span>);
+
+    <span class="comment">// check the index if a dummy-array type matching the given VLA (eg. 1 dimension, type INT) already exists.
+    // if we find a type, we can use references to the internal types. otherwise, register the array in the index
+    // and declare internal member types.
+    </span><span class="kw">let </span>(vla_arr_type_declaration, dim_arr_type_declaration) =
+        <span class="kw">if </span>index.get_effective_type_by_name(<span class="kw-2">&amp;</span>dummy_array_name).is_ok() {
+            (
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_array_name,
+                    location: SourceRange::undefined(),
+                },
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_dimensions_name,
+                    location: SourceRange::undefined(),
+                },
+            )
+        } <span class="kw">else </span>{
+            <span class="comment">// register dummy array type so it can later be annotated as a type hint
+            </span>index.register_type(typesystem::DataType {
+                name: dummy_array_name.clone(),
+                initial_value: <span class="prelude-val">None</span>,
+                information: DataTypeInformation::Array {
+                    name: dummy_array_name.clone(),
+                    inner_type_name: referenced_type.clone(),
+                    <span class="comment">// dummy dimensions that will never actually be used
+                    </span>dimensions: (<span class="number">0</span>..ndims)
+                        .map(|<span class="kw">_</span>| Dimension {
+                            start_offset: TypeSize::Undetermined,
+                            end_offset: TypeSize::Undetermined,
+                        })
+                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+                },
+                nature: TypeNature::__VLA,
+                location: SymbolLocation::internal(),
+            });
+
+            <span class="comment">// define internal vla members
+            </span>(
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::PointerType {
+                        name: <span class="prelude-val">Some</span>(member_array_name),
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: dummy_array_name,
+                            location: SourceRange::undefined(),
+                        }),
+                    },
+                    location: SourceRange::undefined(),
+                    scope: <span class="prelude-val">None</span>,
+                },
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::ArrayType {
+                        name: <span class="prelude-val">Some</span>(member_dimensions_name),
+                        bounds: AstStatement::ExpressionList {
+                            expressions: (<span class="number">0</span>..ndims)
+                                .map(|<span class="kw">_</span>| AstStatement::RangeStatement {
+                                    start: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(<span class="number">0</span>),
+                                        <span class="number">0</span>,
+                                        SourceRange::undefined(),
+                                    )),
+                                    end: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(<span class="number">1</span>),
+                                        <span class="number">0</span>,
+                                        SourceRange::undefined(),
+                                    )),
+                                    id: <span class="number">0</span>,
+                                })
+                                .collect::&lt;<span class="kw">_</span>&gt;(),
+                            id: <span class="number">0</span>,
+                        },
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: DINT_TYPE.to_string(),
+                            location: SourceRange::undefined(),
+                        }),
+                        is_variable_length: <span class="bool-val">false</span>,
+                    },
+                    location: SourceRange::undefined(),
+                    scope: <span class="prelude-val">None</span>,
+                },
+            )
+        };
 
     <span class="comment">// Create variable index entries for VLA struct members
     </span><span class="kw">let </span>variables = <span class="macro">vec!</span>[
         <span class="comment">// Pointer
         </span>Variable {
             name: <span class="macro">format!</span>(<span class="string">&quot;struct_vla_{referenced_type}_{ndims}&quot;</span>).to_lowercase(),
-            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType {
-                    name: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;__ptr_to_{array_name}&quot;</span>)),
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: array_name,
-                        location: SourceRange::undefined(),
-                    }),
-                },
-                location: SourceRange::undefined(),
-                scope: <span class="prelude-val">None</span>,
-            },
+            data_type_declaration: vla_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
             location: SourceRange::undefined(),
@@ -1438,36 +1519,7 @@
         <span class="comment">// Dimensions Array
         </span>Variable {
             name: <span class="string">&quot;dimensions&quot;</span>.to_string(),
-            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::ArrayType {
-                    name: <span class="prelude-val">Some</span>(<span class="string">&quot;n_dims&quot;</span>.to_string()),
-                    bounds: AstStatement::ExpressionList {
-                        expressions: (<span class="number">0</span>..ndims)
-                            .map(|<span class="kw">_</span>| AstStatement::RangeStatement {
-                                start: Box::new(AstStatement::new_literal(
-                                    AstLiteral::new_integer(<span class="number">0</span>),
-                                    <span class="number">0</span>,
-                                    SourceRange::undefined(),
-                                )),
-                                end: Box::new(AstStatement::new_literal(
-                                    AstLiteral::new_integer(<span class="number">1</span>),
-                                    <span class="number">0</span>,
-                                    SourceRange::undefined(),
-                                )),
-                                id: <span class="number">0</span>,
-                            })
-                            .collect::&lt;<span class="kw">_</span>&gt;(),
-                        id: <span class="number">0</span>,
-                    },
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: DINT_TYPE.to_string(),
-                        location: SourceRange::undefined(),
-                    }),
-                    is_variable_length: <span class="bool-val">false</span>,
-                },
-                location: SourceRange::undefined(),
-                scope: <span class="prelude-val">None</span>,
-            },
+            data_type_declaration: dim_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
             location: SourceRange::undefined(),
