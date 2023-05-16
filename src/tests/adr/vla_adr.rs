@@ -84,7 +84,7 @@ fn representation() {
                 },
             ),
         },
-        nature: Derived,
+        nature: __VLA,
         location: SymbolLocation {
             line_number: 3,
             source_range: SourceRange {
@@ -131,7 +131,7 @@ fn representation() {
                 },
             ],
         },
-        nature: Any,
+        nature: __VLA,
         location: SymbolLocation {
             line_number: 4294967295,
             source_range: SourceRange {
