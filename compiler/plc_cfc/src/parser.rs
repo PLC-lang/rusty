@@ -5,7 +5,7 @@ use std::{
 };
 
 use quick_xml::{
-    events::{BytesStart, Event},
+    events::{BytesStart, Event, attributes::Attr},
     name::QName,
     Reader,
 };
@@ -15,8 +15,8 @@ use crate::model::{
         BLOCK, BODY, FBD, INPUT_VARIABLES, IN_OUT_VARIABLE, IN_OUT_VARIABLES, IN_VARIABLE, OUTPUT_VARIABLES,
         OUT_VARIABLE, POU,
     },
-    Block, BlockVariable, BlockVariableKind, Body, FbdVariable, FunctionBlockDiagram, Pou, PouElement,
-    Attributes,
+    Attributes, Block, BlockVariable, BlockVariableKind, Body, FbdVariable, FunctionBlockDiagram, Pou,
+    PouElement,
 };
 
 #[derive(Debug)]
@@ -50,6 +50,125 @@ impl std::fmt::Display for Error {
     }
 }
 
+// struct Tag {
+//     result
+
+//     for tag in result
+//         match tag
+//             block ... Block::parse()
+// }
+
+
+pub(crate) struct Transformer<'rdr> {
+    pub reader: Reader<&'rdr [u8]>,
+}
+
+pub(crate) enum Tag {
+    Start(String, Attributes),
+    Empty(String, Attributes),
+    Skip,
+    End
+}
+
+impl<'rdr> Transformer<'rdr> {
+    fn new(content: &'rdr str) -> Self {
+        Transformer { reader: Reader::from_str(content) }
+    }
+
+    pub fn next(&mut self) -> Result<Tag, Error> {
+        match self.reader.read_event().unwrap() {
+            Event::Start(tag) => Ok(Tag::Start(tag.name().to_string(), extract_attributes(tag))),
+            Event::End(tag) => Ok(Tag::End),       
+            Event::Empty(tag) => Ok(Tag::Empty(tag.name().to_string(), extract_attributes(tag))),
+            Event::Eof => panic!(),
+            _ => Ok(Tag::Skip),
+        }
+    }
+}
+
+
+
+mod tests {
+    #[test]
+    fn inputVariables() {
+        let content = r#"
+            <block localId="1" width="77" height="60" typeName="myAdd" executionOrderId="2">
+                <inputVariables>
+                    <variable formalParameter="a" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="30" />
+                            <connection refLocalId="2" />
+                        </connectionPointIn>
+                    </variable>
+                    <variable formalParameter="b" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="50" />
+                            <connection refLocalId="3" />
+                        </connectionPointIn>
+                    </variable>
+                </inputVariables>
+                <inOutVariables />
+                <outputVariables>
+                    <variable formalParameter="x" negated="false">
+                        <connectionPointOut>
+                            <relPosition x="77" y="30" />
+                        </connectionPointOut>
+                    </variable>
+                    <variable formalParameter="myAdd" negated="false">
+                        <connectionPointOut>
+                            <relPosition x="77" y="50" />
+                        </connectionPointOut>
+                    </variable>
+                </outputVariables>
+            </block>
+        "#;
+        /*
+         1. Deserialize (XML -> Model)
+         2. Transform   (Model -> simplified Model) ???
+         3. Map         (Simplified Model -> AST)
+         */
+        
+        // let result = Parse::parse(content).unwrap();
+        let result: Pou = Deserializer::deserialize(content).unwrap();
+
+        let variables = result.get("inputVariables").unwrap(); -> Vec<_>
+        assert_eq!(variables.len(), 2);
+        
+    }
+
+
+}
+
+// trait Parseable: Sized {
+//     fn parse() -> Self;
+// }
+
+// struct Blockkk {
+//     name: String,
+//     names: Vec<String>,
+// }
+
+// impl Parseable for Blockkk {
+//     fn parse() -> Self {
+//         todo!()
+//     }
+// }
+
+// HashMap<String, T: ParseAble>
+// let inputVariables = map.get("inputVariables");
+// for var in inputVariables {
+//     var.parse()
+// }
+
+// struct Block {
+//     ...
+// }
+
+// impl Parseable for Block {
+//     fn parse() -> Self {
+
+//     }
+// }
 
 // TODO: remove (crate) and return Vec<AstStatment>
 pub(crate) fn parse(filename: &str) -> Result<Pou, Error> {
@@ -116,6 +235,12 @@ fn parse_pou_body(reader: &mut Reader<&[u8]>) -> Result<Body, Error> {
 
     Ok(body)
 }
+
+// let result: (reader, tag) = parse_until(fbd);
+// parse_fbd(result)
+// let result = parse_until(BLOCK, IN_VARIABLE, OUT_VARIABLE, IN_OUT_VARIABLE, LABEL, JUMP)
+// if result == BLOCK: parse_$ident
+// if result == ... : parse...
 
 fn parse_fbd(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FunctionBlockDiagram, Error> {
     let mut fbd = FunctionBlockDiagram::default();

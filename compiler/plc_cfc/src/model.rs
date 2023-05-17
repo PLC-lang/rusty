@@ -1,8 +1,8 @@
 use std::{collections::HashMap, str::FromStr};
 
-use quick_xml::events::BytesStart;
+use quick_xml::{events::BytesStart, Reader};
 
-use crate::parser::{extract_attributes, Error, HashMapExt};
+use crate::parser::{extract_attributes, Error, HashMapExt, Tag, Transformer};
 
 pub(crate) type Attributes = HashMap<String, String>;
 
@@ -22,6 +22,10 @@ pub(crate) mod constant {
     pub const IN_OUT_VARIABLES: &[u8] = b"inOutVariables";
 }
 
+pub(crate) trait Parseable {
+    type Item;
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error>;
+}
 #[derive(Debug, Default)]
 pub(crate) struct Pou {
     pub name: String,
@@ -39,6 +43,31 @@ impl Pou {
             global_id: attr.get("globalId").cloned(),
             elements,
         })
+    }
+}
+
+impl Parseable for Pou {
+    type Item = Self;
+
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error> {
+        let Some(Tag::Start(_, pou_attr)) = tag else {
+            panic!()
+        };
+        let mut blocks = vec![];
+        loop {
+            let tag = transformer.next()?;
+            match tag {
+                Tag::Start(name, attr) => match name.as_str() {
+                    "block" => blocks.push(Block::parse(transformer, Some(tag))),
+                    _ => panic!(),
+                },
+                Tag::Empty(name, attr) => todo!(),
+                Tag::End => todo!(),
+                Tag::Skip => continue,
+            }
+        }
+
+        todo!()
     }
 }
 
@@ -119,6 +148,30 @@ impl Block {
             execution_order_id: attr.get("executionOrderId").map(|it| it.parse::<usize>().unwrap()),
             variables: vec![],
         })
+    }
+}
+
+impl Parseable for Block {
+    type Item = Self;
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error> {
+        let Some(Tag::Start(_, block_attr)) = tag else {
+            panic!()
+        };
+        let mut input_variables = vec![];
+        loop {
+            let tag = transformer.next()?;
+            match tag {
+                Tag::Start(name, attr) => match name.as_str() {
+                    "inputVariables" => blocks.push(Block::parse(transformer, Some(tag))),
+                    _ => panic!(),
+                },
+                Tag::Empty(name, attr) => todo!(),
+                Tag::End => todo!(),
+                Tag::Skip => continue,
+            }
+        }
+
+        todo!()
     }
 }
 
