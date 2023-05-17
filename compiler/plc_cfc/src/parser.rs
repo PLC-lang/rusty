@@ -66,8 +66,8 @@ pub(crate) struct Transformer<'rdr> {
 pub(crate) enum Tag {
     Start(String, Attributes),
     Empty(String, Attributes),
+    End(String),
     Skip,
-    End
 }
 
 impl<'rdr> Transformer<'rdr> {
@@ -75,10 +75,10 @@ impl<'rdr> Transformer<'rdr> {
         Transformer { reader: Reader::from_str(content) }
     }
 
-    pub fn next(&mut self) -> Result<Tag, Error> {
+    pub fn advance(&mut self) -> Result<Tag, Error> {
         match self.reader.read_event().unwrap() {
             Event::Start(tag) => Ok(Tag::Start(tag.name().to_string(), extract_attributes(tag))),
-            Event::End(tag) => Ok(Tag::End),       
+            Event::End(tag) => Ok(Tag::End(tag.name().to_string())),       
             Event::Empty(tag) => Ok(Tag::Empty(tag.name().to_string(), extract_attributes(tag))),
             Event::Eof => panic!(),
             _ => Ok(Tag::Skip),
@@ -170,157 +170,157 @@ mod tests {
 //     }
 // }
 
-// TODO: remove (crate) and return Vec<AstStatment>
-pub(crate) fn parse(filename: &str) -> Result<Pou, Error> {
-    let content = std::fs::read_to_string(filename).unwrap();
-    let mut reader = Reader::from_str(&content);
-    reader.trim_text(true);
-    do_parse(&mut reader)
-}
+// // TODO: remove (crate) and return Vec<AstStatment>
+// pub(crate) fn parse(filename: &str) -> Result<Pou, Error> {
+//     let content = std::fs::read_to_string(filename).unwrap();
+//     let mut reader = Reader::from_str(&content);
+//     reader.trim_text(true);
+//     do_parse(&mut reader)
+// }
 
-pub(crate) fn do_parse(reader: &mut Reader<&[u8]>) -> Result<Pou, Error> {
-    let mut pou = Pou::default();
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().as_ref() {
-                POU => return Pou::new(tag, parse_pou(reader)?),
-                _ => {}
-            },
+// pub(crate) fn do_parse(reader: &mut Reader<&[u8]>) -> Result<Pou, Error> {
+//     let mut pou = Pou::default();
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().as_ref() {
+//                 POU => return Pou::new(tag, parse_pou(reader)?),
+//                 _ => {}
+//             },
 
-            Event::Eof => break,
-            _ => {}
-        }
-    }
+//             Event::Eof => break,
+//             _ => {}
+//         }
+//     }
 
-    Ok(pou)
-}
+//     Ok(pou)
+// }
 
-fn parse_pou(reader: &mut Reader<&[u8]>) -> Result<Vec<PouElement>, Error> {
-    let mut elements = vec![];
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().into_inner() {
-                BODY => elements.push(PouElement::Body(parse_pou_body(reader)?)),
-                // INTERFACE => todo!(),
-                // ACTIONS => todo!(),
-                // TRANSITIONS => todo!(),
-                _ => {}
-            },
+// fn parse_pou(reader: &mut Reader<&[u8]>) -> Result<Vec<PouElement>, Error> {
+//     let mut elements = vec![];
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().into_inner() {
+//                 BODY => elements.push(PouElement::Body(parse_pou_body(reader)?)),
+//                 // INTERFACE => todo!(),
+//                 // ACTIONS => todo!(),
+//                 // TRANSITIONS => todo!(),
+//                 _ => {}
+//             },
 
-            Event::End(tag) if tag.as_ref() == POU => break,
+//             Event::End(tag) if tag.as_ref() == POU => break,
 
-            _ => {}
-        }
-    }
+//             _ => {}
+//         }
+//     }
 
-    Ok(elements)
-}
+//     Ok(elements)
+// }
 
-fn parse_pou_body(reader: &mut Reader<&[u8]>) -> Result<Body, Error> {
-    let mut body = Body::default();
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().into_inner() {
-                FBD => body.fbd = parse_fbd(reader, tag)?,
-                _ => todo!(),
-            },
+// fn parse_pou_body(reader: &mut Reader<&[u8]>) -> Result<Body, Error> {
+//     let mut body = Body::default();
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().into_inner() {
+//                 FBD => body.fbd = parse_fbd(reader, tag)?,
+//                 _ => todo!(),
+//             },
 
-            Event::End(tag) if tag.as_ref() == BODY => break,
+//             Event::End(tag) if tag.as_ref() == BODY => break,
 
-            Event::Eof => return Err(Error::UnexpectedEndOfFile),
+//             Event::Eof => return Err(Error::UnexpectedEndOfFile),
 
-            _ => {}
-        }
-    }
+//             _ => {}
+//         }
+//     }
 
-    Ok(body)
-}
+//     Ok(body)
+// }
 
-// let result: (reader, tag) = parse_until(fbd);
-// parse_fbd(result)
-// let result = parse_until(BLOCK, IN_VARIABLE, OUT_VARIABLE, IN_OUT_VARIABLE, LABEL, JUMP)
-// if result == BLOCK: parse_$ident
-// if result == ... : parse...
+// // let result: (reader, tag) = parse_until(fbd);
+// // parse_fbd(result)
+// // let result = parse_until(BLOCK, IN_VARIABLE, OUT_VARIABLE, IN_OUT_VARIABLE, LABEL, JUMP)
+// // if result == BLOCK: parse_$ident
+// // if result == ... : parse...
 
-fn parse_fbd(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FunctionBlockDiagram, Error> {
-    let mut fbd = FunctionBlockDiagram::default();
+// fn parse_fbd(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FunctionBlockDiagram, Error> {
+//     let mut fbd = FunctionBlockDiagram::default();
 
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().into_inner() {
-                BLOCK => fbd.blocks.push(parse_block(reader, tag)?),                
-                IN_VARIABLE | OUT_VARIABLE | IN_OUT_VARIABLE => {
-                    // TODO:
-                    // fbd.variables.push(parse_fbd_variable(reader, tag)?)
-                }
-                _ => {}
-                // b"label" => todo!(),
-                // b"jump" => todo!(),
-                // _ => todo!(),
-            },
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().into_inner() {
+//                 BLOCK => fbd.blocks.push(parse_block(reader, tag)?),                
+//                 IN_VARIABLE | OUT_VARIABLE | IN_OUT_VARIABLE => {
+//                     // TODO:
+//                     // fbd.variables.push(parse_fbd_variable(reader, tag)?)
+//                 }
+//                 _ => {}
+//                 // b"label" => todo!(),
+//                 // b"jump" => todo!(),
+//                 // _ => todo!(),
+//             },
 
-            Event::End(tag) if tag.name().as_ref() == FBD => break,
+//             Event::End(tag) if tag.name().as_ref() == FBD => break,
 
-            Event::Eof => break,
+//             Event::Eof => break,
 
-            _ => {}
-        }
-    }
+//             _ => {}
+//         }
+//     }
 
-    Ok(fbd)
-}
+//     Ok(fbd)
+// }
 
-fn parse_fbd_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FbdVariable, Error> {
-    todo!()
-}
+// fn parse_fbd_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<FbdVariable, Error> {
+//     todo!()
+// }
 
-fn parse_block(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Block, Error> {
-    let mut block = Block::new(tag)?;
+// fn parse_block(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Block, Error> {
+//     let mut block = Block::new(tag)?;
 
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().into_inner() {
-                INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES => {
-                    block.variables.append(&mut parse_block_variable(reader, tag)?)
-                }
-                _ => todo!(),
-            },
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().into_inner() {
+//                 INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES => {
+//                     block.variables.append(&mut parse_block_variable(reader, tag)?)
+//                 }
+//                 _ => todo!(),
+//             },
 
-            Event::End(tag) if tag.name().as_ref() == BLOCK => break,
+//             Event::End(tag) if tag.name().as_ref() == BLOCK => break,
 
-            Event::Eof => break,
+//             Event::Eof => break,
 
-            _ => {}
-        }
-    }
+//             _ => {}
+//         }
+//     }
 
-    Ok(block)
-}
+//     Ok(block)
+// }
 
-fn parse_block_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Vec<BlockVariable>, Error> {
-    let mut variables = vec![];
-    let kind = BlockVariableKind::from(tag.as_ref());
+// fn parse_block_variable(reader: &mut Reader<&[u8]>, tag: BytesStart) -> Result<Vec<BlockVariable>, Error> {
+//     let mut variables = vec![];
+//     let kind = BlockVariableKind::from(tag.as_ref());
 
-    loop {
-        match reader.read_event().map_err(|_| Error::Read)? {
-            Event::Start(tag) => match tag.name().as_ref() {
-                // TODO: remove None
-                b"variable" => variables.push(BlockVariable::new(tag, None, &kind)?),
+//     loop {
+//         match reader.read_event().map_err(|_| Error::Read)? {
+//             Event::Start(tag) => match tag.name().as_ref() {
+//                 // TODO: remove None
+//                 b"variable" => variables.push(BlockVariable::new(tag, None, &kind)?),
 
-                _ => {} // _ => return Err(Error::UnexpectedAttribute(tag.name().to_string())),
-            },
+//                 _ => {} // _ => return Err(Error::UnexpectedAttribute(tag.name().to_string())),
+//             },
 
-            Event::End(tag)
-                if matches!(tag.as_ref(), INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES) =>
-            {
-                break
-            }
-            _ => {}
-        }
-    }
+//             Event::End(tag)
+//                 if matches!(tag.as_ref(), INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES) =>
+//             {
+//                 break
+//             }
+//             _ => {}
+//         }
+//     }
 
-    Ok(variables)
-}
+//     Ok(variables)
+// }
 
 pub(crate) fn extract_attributes(tag: BytesStart) -> HashMap<String, String> {
     tag.attributes().flat_map(|it| it).map(|it| (it.key.to_string(), it.value.to_string())).collect()
@@ -352,11 +352,11 @@ impl PrototypingToString for Cow<'_, [u8]> {
     }
 }
 
-#[test]
-fn demo() {
-    let mut reader = Reader::from_str(CONTENT);
-    println!("{:#?}", crate::parser::do_parse(&mut reader).unwrap());
-}
+// #[test]
+// fn demo() {
+//     let mut reader = Reader::from_str(CONTENT);
+//     println!("{:#?}", crate::parser::do_parse(&mut reader).unwrap());
+// }
 
 const CONTENT: &str = r#"
 <?xml version="1.0" encoding="UTF-8"?>

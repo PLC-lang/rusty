@@ -2,7 +2,12 @@ use std::{collections::HashMap, str::FromStr};
 
 use quick_xml::{events::BytesStart, Reader};
 
-use crate::parser::{extract_attributes, Error, HashMapExt, Tag, Transformer};
+use crate::{
+    model::constant::{INPUT_VARIABLES, IN_OUT_VARIABLES, OUTPUT_VARIABLES},
+    parser::{extract_attributes, Error, HashMapExt, Tag, Transformer},
+};
+
+use self::constant::FBD;
 
 pub(crate) type Attributes = HashMap<String, String>;
 
@@ -35,8 +40,7 @@ pub(crate) struct Pou {
 }
 
 impl Pou {
-    pub(crate) fn new(tag: BytesStart, elements: Vec<PouElement>) -> Result<Self, Error> {
-        let attr = extract_attributes(tag);
+    pub(crate) fn new(attr: Attributes, elements: Vec<PouElement>) -> Result<Self, Error> {
         Ok(Pou {
             name: attr.get("name").cloned().ok_or(Error::MissingAttribute("name"))?,
             pou_type: PouType::from_str(&attr.get("pouType").ok_or(Error::MissingAttribute("pouType"))?)?,
@@ -53,21 +57,19 @@ impl Parseable for Pou {
         let Some(Tag::Start(_, pou_attr)) = tag else {
             panic!()
         };
-        let mut blocks = vec![];
+        let mut elements = vec![];
         loop {
-            let tag = transformer.next()?;
+            let tag = transformer.advance()?;
             match tag {
                 Tag::Start(name, attr) => match name.as_str() {
-                    "block" => blocks.push(Block::parse(transformer, Some(tag))),
+                    BODY => elements.push(PouElement::Body(Body::parse(transformer, Some(tag))?)),
                     _ => panic!(),
                 },
                 Tag::Empty(name, attr) => todo!(),
-                Tag::End => todo!(),
+                Tag::End(_) => return Pou::new(pou_attr, elements),
                 Tag::Skip => continue,
             }
         }
-
-        todo!()
     }
 }
 
@@ -110,6 +112,28 @@ pub(crate) struct Body {
     pub fbd: FunctionBlockDiagram,
 }
 
+impl Parseable for Body {
+    type Item = Self;
+
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error> {
+        let Some(Tag::Start(_, pou_attr)) = tag else {
+            panic!()
+        };
+        loop {
+            let tag = transformer.advance()?;
+            match tag {
+                Tag::Start(name, attr) => match name.as_bytes() {
+                    FBD => return Ok(Body { fbd: FunctionBlockDiagram::parse(transformer, Some(tag))? }),
+                    _ => panic!(),
+                },
+                Tag::Empty(name, attr) => todo!(),
+                Tag::End(_) => todo!(),
+                Tag::Skip => continue,
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct Interface {}
 
@@ -128,6 +152,31 @@ pub(crate) struct FunctionBlockDiagram {
     // pub return_stmt: todo!(),
 }
 
+impl Parseable for FunctionBlockDiagram {
+    type Item = Self;
+
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error> {
+        let Some(Tag::Start(_, pou_attr)) = tag else {
+            panic!()
+        };
+        let mut blocks = vec![];
+        let mut variables = vec![];
+        loop {
+            let tag = transformer.advance()?;
+            match tag {
+                Tag::Start(name, attr) => match name.as_str() {
+                    "block" => blocks.push(Block::parse(transformer, Some(tag))?),
+                    _ => panic!(),
+                },
+                Tag::Empty(name, attr) => todo!(),
+                Tag::End(_) => break,
+                Tag::Skip => continue,
+            }
+        }
+
+        Ok(FunctionBlockDiagram { blocks, variables })
+    }
+}
 #[derive(Debug, Default)]
 pub(crate) struct Block {
     pub local_id: usize,
@@ -139,14 +188,13 @@ pub(crate) struct Block {
 
 // TODO: remove all these `cloned()` calls
 impl Block {
-    pub(crate) fn new(tag: BytesStart) -> Result<Self, Error> {
-        let attr = extract_attributes(tag);
+    pub(crate) fn new(attr: Attributes, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Block {
             local_id: attr.get_or_err("localId").map(|it| it.parse::<usize>().unwrap())?,
             type_name: attr.get_or_err("typeName")?,
             instance_name: attr.get("instanceName").cloned(),
             execution_order_id: attr.get("executionOrderId").map(|it| it.parse::<usize>().unwrap()),
-            variables: vec![],
+            variables,
         })
     }
 }
@@ -157,19 +205,42 @@ impl Parseable for Block {
         let Some(Tag::Start(_, block_attr)) = tag else {
             panic!()
         };
-        let mut input_variables = vec![];
+        let mut variables = vec![];
+
         loop {
-            let tag = transformer.next()?;
+            let tag = transformer.advance()?;
+            let mut vtype: Option<Tag> = None;
             match tag {
-                Tag::Start(name, attr) => match name.as_str() {
-                    "inputVariables" => blocks.push(Block::parse(transformer, Some(tag))),
+                Tag::Start(name, attr) => match name.as_bytes() {
+                    INPUT_VARIABLES | OUTPUT_VARIABLES | IN_OUT_VARIABLES => {
+                        // start of a new variable block. save the tag to extract the block-type when
+                        // parsing this block's variables
+                        vtype = Some(tag);
+                    }
+                    b"variable" => variables.push(BlockVariable::parse(transformer, vtype)?),
                     _ => panic!(),
                 },
                 Tag::Empty(name, attr) => todo!(),
-                Tag::End => todo!(),
+                Tag::End(name) => match name.as_bytes() {
+                    b"/block" => break,
+                    _ => continue,
+                },
                 Tag::Skip => continue,
             }
         }
+
+        Block::new(block_attr, variables)
+    }
+}
+
+impl Parseable for BlockVariable {
+    type Item = Self;
+
+    fn parse(transformer: &mut Transformer, tag: Option<Tag>) -> Result<Self::Item, Error> {
+        let Some(Tag::Start(name, _)) = tag else {
+            panic!()
+        };
+        let kind = BlockVariableKind::from(name.as_bytes());
 
         todo!()
     }
