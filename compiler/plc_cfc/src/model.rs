@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+use std::{str::Utf8Error, string::FromUtf8Error};
 
 #[derive(Debug)]
 pub enum Error {
@@ -8,7 +8,7 @@ pub enum Error {
 
     EncodingError(Utf8Error),
 
-    MissingAttributes,
+    MissingAttribute(String),
 
     ReadEvent,
 }
@@ -18,7 +18,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::UnexpectedEndOfFile => write!(f, "{self:#?}"),
-            Error::MissingAttributes => write!(f, "{self:#?}"),
+            Error::MissingAttribute(key) => write!(f, "{self:#?}"),
             Error::ReadEvent => write!(f, "{self:#?}"),
             Error::UnexpectedElement(element) => write!(f, "{element}"),
             Error::EncodingError(why) => write!(f, "{why:#?}"),
@@ -36,8 +36,8 @@ pub struct FunctionBlockDiagram {
 pub struct Block {
     pub local_id: String,
     pub type_name: String,
-    pub instance_name: String,
-    pub execution_order_id: String,
+    pub instance_name: Option<String>,
+    pub execution_order_id: Option<String>,
     pub variables: Vec<BlockVariable>,
 }
 
@@ -66,10 +66,12 @@ pub struct FunctionBlockVariable {
     pub ref_local_id: Option<String>,
 }
 
+#[derive(Debug)]
 pub struct Body {
     pub function_block_diagram: FunctionBlockDiagram,
 }
 
+#[derive(Debug)]
 pub struct Pou {
     // TODO: interface
     pub name: String,
@@ -77,6 +79,7 @@ pub struct Pou {
     pub body: Body,
 }
 
+#[derive(Debug)]
 pub enum PouType {
     Program,
     Function,
@@ -105,7 +108,7 @@ impl TryFrom<&[u8]> for VariableKind {
             b"outputVariables" | b"outVariable" => Ok(VariableKind::Output),
             b"inOutVariables" | b"inOutVariable" => Ok(VariableKind::InOut),
             _ => {
-                let value = std::str::from_utf8(value).map_err(Error::EncodingError)?;
+                let value = std::str::from_utf8(value).map_err(|err| Error::EncodingError(err))?;
                 Err(Error::UnexpectedElement(value.to_string()))
             }
         }
