@@ -9,7 +9,45 @@ fn demo() {
     visit()
 }
 
-// pub fn stop_at() {}
+#[derive(Debug)]
+struct FunctionBlockDiagram {
+    blocks: Vec<Block>,
+    variables: Vec<FunctionBlockVariable>,
+}
+
+#[derive(Debug)]
+struct Block {
+    local_id: String,
+    type_name: String,
+    instance_name: String,
+    execution_order_id: String,
+    variables: Vec<BlockVariable>,
+}
+
+#[derive(Debug)]
+struct BlockVariable {
+    kind: VariableKind,
+    formal_parameter: String,
+    negated: String,
+    ref_local_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum VariableKind {
+    Input,
+    Output,
+    InOut,
+}
+
+#[derive(Debug)]
+struct FunctionBlockVariable {
+    kind: VariableKind,
+    local_id: String,
+    negated: String,
+    expression: String,
+    execution_order_id: Option<String>,
+    ref_local_id: Option<String>,
+}
 
 pub fn visit() {
     let mut reader = PeekableReader::new(CONTENT);
@@ -46,7 +84,10 @@ fn visit_body(reader: &mut PeekableReader) {
     loop {
         match reader.peek() {
             Event::Start(tag) => match tag.name().as_ref() {
-                b"FBD" => visit_fbd(reader),
+                b"FBD" => {
+                    let fbd = visit_fbd(reader);
+                    println!("{fbd:#?}");
+                }
                 _ => reader.consume(),
             },
 
@@ -59,14 +100,16 @@ fn visit_body(reader: &mut PeekableReader) {
     }
 }
 
-fn visit_fbd(reader: &mut PeekableReader) {
+fn visit_fbd(reader: &mut PeekableReader) -> FunctionBlockDiagram {
     reader.consume();
+    let mut blocks = Vec::new();
+    let mut variables = Vec::new();
 
     loop {
         match reader.peek() {
             Event::Start(tag) => match tag.name().as_ref() {
-                b"block" => visit_block(reader),
-                b"inVariable" | b"outVariable" => visit_fbd_variable(reader),
+                b"block" => blocks.push(visit_block(reader)),
+                b"inVariable" | b"outVariable" => variables.push(visit_fbd_variable(reader)),
                 _ => reader.consume(),
             },
 
@@ -77,10 +120,24 @@ fn visit_fbd(reader: &mut PeekableReader) {
             _ => reader.consume(),
         }
     }
+
+    FunctionBlockDiagram { blocks, variables }
 }
 
-fn visit_fbd_variable(reader: &mut PeekableReader) {
-    let mut attributes = extract_attributes(reader.next());
+fn visit_fbd_variable(reader: &mut PeekableReader) -> FunctionBlockVariable {
+    let next = reader.next();
+    let kind = match &next {
+        Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
+            b"inVariable" => VariableKind::Input,
+            b"outVariable" => VariableKind::Output,
+            b"inOutVariable" => VariableKind::InOut,
+            _ => unreachable!(),
+        },
+
+        _ => unreachable!(),
+    };
+
+    let mut attributes = extract_attributes(next);
     loop {
         match reader.peek() {
             Event::Text(tag) => {
@@ -101,15 +158,26 @@ fn visit_fbd_variable(reader: &mut PeekableReader) {
     }
 
     println!("FBD Variables: {attributes:#?}");
+    FunctionBlockVariable {
+        kind,
+        local_id: attributes.get("localId").unwrap().to_owned(),
+        negated: attributes.get("negated").unwrap().to_owned(),
+        expression: attributes.get("expression").unwrap().to_owned(),
+        execution_order_id: attributes.get("executionOrderId").cloned(),
+        ref_local_id: attributes.get("refLocalId").cloned(),
+    }
 }
 
-fn visit_block(reader: &mut PeekableReader) {
+fn visit_block(reader: &mut PeekableReader) -> Block {
     let attributes = extract_attributes(reader.next());
+    let mut variables = Vec::new();
 
     loop {
         match reader.peek() {
             Event::Start(tag) => match tag.name().as_ref() {
-                b"inputVariables" | b"outputVariables" | b"inOutVariables" => vist_block_variable(reader),
+                b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
+                    variables.push(visit_block_variable(reader))
+                }
                 _ => reader.consume(),
             },
 
@@ -122,23 +190,39 @@ fn visit_block(reader: &mut PeekableReader) {
     }
 
     println!("Block: {attributes:#?}");
+    Block {
+        local_id: attributes.get("localId").unwrap().to_owned(),
+        type_name: attributes.get("typeName").unwrap().to_owned(),
+        instance_name: attributes.get("instanceName").unwrap().to_owned(),
+        variables,
+        execution_order_id: attributes.get("executionOrderId").unwrap().to_owned(),
+    }
 }
 
-fn vist_block_variable(reader: &mut PeekableReader) {
+fn visit_block_variable(reader: &mut PeekableReader) -> BlockVariable {
     let kind = match reader.next() {
         Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-            b"inputVariables" => "input",
-            b"outputVariables" => "output",
-            b"inOutVariables" => "inOut",
+            b"inputVariables" => VariableKind::Input,
+            b"outputVariables" => VariableKind::Output,
+            b"inOutVariables" => VariableKind::InOut,
             _ => unreachable!(),
         },
 
         _ => unreachable!(),
     };
 
+    let mut ret: Option<BlockVariable> = None;
     loop {
         match reader.peek() {
-            Event::Start(tag) if tag.name().as_ref() == b"variable" => visit_variable(reader),
+            Event::Start(tag) if tag.name().as_ref() == b"variable" => {
+                let hm = visit_variable(reader);
+                ret = Some(BlockVariable {
+                    kind: kind.clone(),
+                    formal_parameter: hm.get("formalParameter").unwrap().to_owned(),
+                    negated: hm.get("negated").unwrap().to_owned(),
+                    ref_local_id: hm.get("refLocalId").cloned(),
+                });
+            }
 
             Event::End(tag) => match tag.name().as_ref() {
                 b"inputVariables" | b"outputVariables" | b"inOut" => {
@@ -149,11 +233,13 @@ fn vist_block_variable(reader: &mut PeekableReader) {
             },
 
             _ => reader.consume(),
-        }
+        };
     }
+
+    ret.unwrap()
 }
 
-fn visit_variable(reader: &mut PeekableReader) {
+fn visit_variable(reader: &mut PeekableReader) -> HashMap<String, String> {
     let mut attributes = HashMap::new();
     loop {
         match reader.peek() {
@@ -170,7 +256,8 @@ fn visit_variable(reader: &mut PeekableReader) {
         }
     }
 
-    println!("Variable: {attributes:#?}");
+    // println!("Variable: {attributes:#?}");
+    attributes
 }
 
 pub(crate) fn extract_attributes(event: Event) -> HashMap<String, String> {
