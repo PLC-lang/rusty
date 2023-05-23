@@ -3,6 +3,8 @@ use quick_xml::{
     Reader,
 };
 
+use crate::model::Error;
+
 pub struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
     peek: Option<Event<'xml>>,
@@ -18,11 +20,6 @@ impl<'xml> PeekableReader<'xml> {
             },
             peek: None,
         }
-    }
-
-    /// Advances the reader consuming the event without returning it.
-    pub fn consume(&mut self) {
-        self.next();
     }
 
     pub fn next(&mut self) -> Event<'xml> {
@@ -42,6 +39,23 @@ impl<'xml> PeekableReader<'xml> {
             Some(val) => val,
             None => unreachable!(),
         }
+    }
+
+    pub fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
+        loop {
+            match self.next() {
+                Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile),
+                _ => continue,
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Advances the reader consuming the event without returning it.
+    pub fn consume(&mut self) {
+        self.next();
     }
 }
 
