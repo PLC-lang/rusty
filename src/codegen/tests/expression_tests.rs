@@ -569,3 +569,22 @@ fn allowed_assignable_types() {
 
     insta::assert_snapshot!(result);
 }
+
+
+#[test]
+fn add() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : DINT;
+            l1 : LINT;
+            s1 : SINT;
+        END_VAR
+            ADD(x1, x2, x3, l1, s1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}

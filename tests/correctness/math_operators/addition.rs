@@ -271,6 +271,25 @@ fn adds_array_basic() {
     assert_eq!(res, 36);
 }
 
+#[test]
+fn builtin_add() {
+    let prog  = r#"
+    FUNCTION main : DINT
+    VAR
+        x1 : ARRAY[0..3] OF DINT := (1, 2, 3, 4);
+        l1 : LINT := 1000;
+        s1 : SINT := 1;
+    END_VAR
+        main := ADD(x1[0], x1[1], x1[2], x1[3], l1, s1);
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType::default();
+
+    let res: i32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 1011);
+}
+
 //--------------------------
 
 fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {

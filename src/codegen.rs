@@ -27,7 +27,7 @@ use inkwell::{context::Context, types::BasicType};
 mod debug;
 pub(crate) mod generators;
 mod llvm_index;
-mod llvm_typesystem;
+pub(crate) mod llvm_typesystem;
 #[cfg(test)]
 mod tests;
 

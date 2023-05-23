@@ -22,7 +22,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem,
+    typesystem::{self, get_bigger_type},
     validation::{Validator, Validators},
 };
 
@@ -328,13 +328,71 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION                
                 ",
-                annotation: None,
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        todo!()
+                    };
+
+                    // find biggest type and annotate it as type hint
+                    let params = ast::flatten_expression_list(params);
+
+                    let mut left_type = annotator.annotation_map.get_type_or_void(params.get(0).expect("must have parameters"), annotator.index);
+                    
+                    for param in params.iter().skip(1) {
+                        let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
+                        left_type = get_bigger_type(left_type, right_type, annotator.index);
+                    }
+
+                    // TODO: is annotating the first param sufficient?
+                    annotator.annotation_map.annotate_type_hint(params[0], StatementAnnotation::value(left_type.get_name()));
+                }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
-                    todo!()
-                }
+                    let llvm = generator.llvm;
+                    let context = llvm.context;
+                    let builder = &llvm.builder;
 
+                    // let function_context = generator.get_function_context(params.get(0).expect("Param 0 exists"))?;
+                    let first = params.get(0).unwrap();
+                    let hint = generator.annotations.get_hint(first);
+        
+                    let Some(StatementAnnotation::Value { resulting_type }) = hint else {
+                        todo!()
+                    };
+                    let target_type = generator.index.get_effective_type_or_void_by_name(resulting_type);
+            
+                    let mut accum = crate::codegen::llvm_typesystem::cast_if_needed(
+                        llvm, 
+                        generator.index, 
+                        generator.llvm_index, 
+                        target_type, 
+                        generator.index.get_effective_type_or_void_by_name(typesystem::DINT_TYPE),
+                        generator.generate_expression(first).unwrap(),
+                        hint
+                    );
+
+                    for param in params.iter().skip(1) {
+                        let rhs = crate::codegen::llvm_typesystem::cast_if_needed(
+                            llvm, 
+                            generator.index, 
+                            generator.llvm_index, 
+                            target_type, 
+                            generator.index.get_effective_type_or_void_by_name(typesystem::DINT_TYPE),
+                            generator.generate_expression(param).unwrap(),
+                            hint
+                        );
+                        accum = if target_type.get_type_information().is_int() {
+                            builder.build_int_add(accum.into_int_value(), rhs.into_int_value(), "").into()
+                        } else if target_type.get_type_information().is_float() {
+                            builder.build_float_add(accum.into_float_value(), rhs.into_float_value(), "").into()
+                        } else {
+                            todo!()
+                        };
+                    };
+
+                    Ok(ExpressionValue::RValue(accum))
+                }
             }
         )
     ]);
