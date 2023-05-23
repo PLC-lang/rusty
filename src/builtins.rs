@@ -319,6 +319,24 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "ADD",
+            BuiltIn {
+                decl: "FUNCTION ADD<T: ANY_NUM> : T
+                VAR_INPUT
+                    args: T...;
+                END_VAR
+                END_FUNCTION                
+                ",
+                annotation: None,
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, location| {
+                    todo!()
+                }
+
+            }
+        )
     ]);
 }
 
@@ -548,4 +566,13 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
 /// Returns the requested functio from the builtin index or None
 pub fn get_builtin(name: &str) -> Option<&'static BuiltIn> {
     BUILTIN.get(name.to_uppercase().as_str())
+}
+
+pub extern "C" fn add_variadic<T>(argc: i32, argv: *const T) -> T 
+where
+    T : Default + Copy + std::ops::Add<Output = T>
+{    
+    (0..argc).fold(T::default(), |acc, i| {
+        acc + unsafe { *argv.add(i as usize) }
+    })
 }
