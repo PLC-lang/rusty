@@ -65,7 +65,7 @@ fn programs_state_is_stored_in_a_struct() {
                         name: "i",
                         qualified_name: "main_prg.i",
                         initial_value: None,
-                        variable_type: ByVal(
+                        argument_type: ByVal(
                             Input,
                         ),
                         is_constant: false,
@@ -85,7 +85,7 @@ fn programs_state_is_stored_in_a_struct() {
                         name: "io",
                         qualified_name: "main_prg.io",
                         initial_value: None,
-                        variable_type: ByRef(
+                        argument_type: ByRef(
                             InOut,
                         ),
                         is_constant: false,
@@ -105,7 +105,7 @@ fn programs_state_is_stored_in_a_struct() {
                         name: "o",
                         qualified_name: "main_prg.o",
                         initial_value: None,
-                        variable_type: ByVal(
+                        argument_type: ByVal(
                             Output,
                         ),
                         is_constant: false,
@@ -125,7 +125,7 @@ fn programs_state_is_stored_in_a_struct() {
                         name: "v",
                         qualified_name: "main_prg.v",
                         initial_value: None,
-                        variable_type: ByVal(
+                        argument_type: ByVal(
                             Local,
                         ),
                         is_constant: false,
@@ -145,7 +145,7 @@ fn programs_state_is_stored_in_a_struct() {
                         name: "vt",
                         qualified_name: "main_prg.vt",
                         initial_value: None,
-                        variable_type: ByVal(
+                        argument_type: ByVal(
                             Temp,
                         ),
                         is_constant: false,

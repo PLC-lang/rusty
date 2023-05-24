@@ -1,6 +1,6 @@
 use crate::{
     ast::AstStatement,
-    index::VariableType,
+    index::{ArgumentType, VariableType},
     lexer::IdProvider,
     resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, index_with_ids},
@@ -49,7 +49,7 @@ fn references_to_variables_are_annotated() {
             resulting_type: "SINT".into(),
             qualified_name: "prg.a".into(),
             constant: false,
-            variable_type: VariableType::Local,
+            argument_type: ArgumentType::ByVal(VariableType::Local),
             is_auto_deref: false
         }
     );
@@ -61,7 +61,7 @@ fn references_to_variables_are_annotated() {
             resulting_type: "INT".into(),
             qualified_name: "gX".into(),
             constant: true,
-            variable_type: VariableType::Global,
+            argument_type: ArgumentType::ByVal(VariableType::Global),
             is_auto_deref: false
         }
     );
@@ -102,11 +102,11 @@ fn different_types_of_annotations() {
     assert_eq!(
         annotations.get(&statements[0]),
         Some(&StatementAnnotation::Variable {
-            qualified_name: "POINT.x".into(),   // the qualified name of the target element
-            resulting_type: "SINT".into(),      // the variable's type
-            constant: false,                    // whether this variable is a constant or not
-            is_auto_deref: false, // whether this pointerType should be automatically dereferenced
-            variable_type: VariableType::Input  // the type of declaration
+            qualified_name: "POINT.x".into(), // the qualified name of the target element
+            resulting_type: "SINT".into(),    // the variable's type
+            constant: false,                  // whether this variable is a constant or not
+            is_auto_deref: false,             // whether this pointerType should be automatically dereferenced
+            argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
         })
     );
 
@@ -148,7 +148,7 @@ fn different_types_of_annotations() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-            variable_type: VariableType::Input
+            argument_type: ArgumentType::ByVal(VariableType::Input),
         })
     );
     // the qualified statement gets the annotation of the last segment (in this case "Main.in" of type INT)

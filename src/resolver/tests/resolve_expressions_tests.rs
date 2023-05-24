@@ -6,7 +6,7 @@ use crate::{
     ast::{
         self, flatten_expression_list, Array, AstLiteral, AstStatement, DataType, Pou, UserTypeDeclaration,
     },
-    index::{Index, VariableType},
+    index::{ArgumentType, Index, VariableType},
     lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
@@ -1029,7 +1029,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-            variable_type: VariableType::Return
+            argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         foo_annotation
     );
@@ -1207,7 +1207,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-            variable_type: VariableType::Input
+            argument_type: ArgumentType::ByVal(VariableType::Input),
         }),
         annotations.get(&statements[1])
     );
@@ -1434,7 +1434,7 @@ fn method_references_are_resolved() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-            variable_type: VariableType::Return
+            argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         annotation
     );
@@ -2411,7 +2411,7 @@ fn action_body_gets_resolved() {
                 resulting_type: "DINT".to_string(),
                 constant: false,
                 is_auto_deref: false,
-                variable_type: VariableType::Local
+                argument_type: ArgumentType::ByVal(VariableType::Local),
             }),
             a
         );
@@ -3047,7 +3047,7 @@ fn function_block_initialization_test() {
                 resulting_type: "TIME".into(),
                 qualified_name: "TON.PT".into(),
                 constant: false,
-                variable_type: VariableType::Input,
+                argument_type: ArgumentType::ByVal(VariableType::Input),
                 is_auto_deref: false
             }
         )
@@ -3177,7 +3177,7 @@ fn resolve_return_variable_in_nested_call() {
                             resulting_type: "DINT".to_string(),
                             qualified_name: "main.main".to_string(),
                             constant: false,
-                            variable_type: VariableType::Return,
+                            argument_type: ArgumentType::ByVal(VariableType::Return),
                             is_auto_deref: false
                         }
                     )

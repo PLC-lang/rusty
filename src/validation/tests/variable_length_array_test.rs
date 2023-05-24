@@ -154,7 +154,7 @@ mod assignment {
                     a : ARRAY[0..10] OF DINT;
                 END_VAR
 
-                VAR_INPUT {ref}
+                VAR_IN_OUT
                     vla : ARRAY[*] OF DINT;
                 END_VAR
 
@@ -174,7 +174,6 @@ mod assignment {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
         assert_validation_snapshot!(diagnostics);
     }
 }

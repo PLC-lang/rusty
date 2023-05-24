@@ -40,7 +40,7 @@ fn representation() {
                     name: "struct_vla_dint_1",
                     qualified_name: "__foo_arr.struct_vla_dint_1",
                     initial_value: None,
-                    variable_type: ByVal(
+                    argument_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -60,7 +60,7 @@ fn representation() {
                     name: "dimensions",
                     qualified_name: "__foo_arr.dimensions",
                     initial_value: None,
-                    variable_type: ByVal(
+                    argument_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -267,7 +267,7 @@ fn pass() {
                 name: "struct_vla_dint_1",
                 qualified_name: "__foo_arr.struct_vla_dint_1",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
@@ -287,7 +287,7 @@ fn pass() {
                 name: "dimensions",
                 qualified_name: "__foo_arr.dimensions",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
