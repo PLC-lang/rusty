@@ -16,7 +16,7 @@ fn demo() {
     insta::assert_debug_snapshot!(res);
 }
 
-trait PrototypingToString {
+pub(crate) trait PrototypingToString {
     fn to_string(self) -> Result<String, Error>;
 }
 
@@ -37,7 +37,7 @@ trait Parseable {
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
 }
 
-pub fn visit(content: &str) -> Result<Pou, Error> {
+fn visit(content: &str) -> Result<Pou, Error> {
     let mut reader = PeekableReader::new(content);
     loop {
         match reader.peek()? {
@@ -52,7 +52,7 @@ impl Parseable for Pou {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = extract_attributes(reader.next()?)?;
+        let attributes = reader.extract_attributes()?;
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
@@ -80,8 +80,7 @@ impl Parseable for Body {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        reader.consume()?;
-
+        let attributes = reader.extract_attributes()?;
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
@@ -89,7 +88,10 @@ impl Parseable for Body {
                         let fbd = FunctionBlockDiagram::visit(reader)?;
                         // consume
                         reader.consume_until(vec![b"body"])?;
-                        return Ok(Body { function_block_diagram: fbd });
+                        return Ok(Body {
+                            function_block_diagram: fbd,
+                            global_id: attributes.get("globalId").cloned(),
+                        });
                     }
                     _ => reader.consume()?,
                 },
@@ -105,7 +107,9 @@ impl Parseable for FunctionBlockVariable {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.next()?;
+        // peek next token to determine variable kind
+        // token will be consumed when extracting attributes later
+        let next = reader.peek()?;
         let kind = match &next {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
                 b"inVariable" => VariableKind::Input,
@@ -117,7 +121,7 @@ impl Parseable for FunctionBlockVariable {
             _ => unreachable!(),
         };
 
-        let mut attributes = extract_attributes(next)?;
+        let mut attributes = reader.extract_attributes()?;
         loop {
             match reader.peek()? {
                 Event::Text(tag) => {
@@ -159,6 +163,8 @@ impl Parseable for FunctionBlockDiagram {
         reader.consume()?;
         let mut blocks = Vec::new();
         let mut variables = Vec::new();
+        let mut jumps = Vec::new(); // TODO
+        let mut returns = Vec::new(); // TODO
 
         loop {
             match reader.peek()? {
@@ -176,7 +182,7 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        Ok(FunctionBlockDiagram { blocks, variables })
+        Ok(FunctionBlockDiagram { blocks, variables, jumps, returns })
     }
 }
 
@@ -184,7 +190,7 @@ impl Parseable for Block {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = extract_attributes(reader.next()?)?;
+        let attributes = reader.extract_attributes()?;
         let mut variables = Vec::new();
 
         loop {
@@ -205,6 +211,7 @@ impl Parseable for Block {
         }
 
         Ok(Block {
+            global_id: attributes.get("globalId").cloned(),
             local_id: attributes.get_or_error("localId")?,
             type_name: attributes.get_or_error("typeName")?,
             instance_name: attributes.get("instanceName").cloned(),
@@ -236,6 +243,9 @@ impl Parseable for BlockVariable {
                         formal_parameter: attributes.get_or_error("formalParameter")?,
                         negated: attributes.get_or_error("negated")?,
                         ref_local_id: attributes.get("refLocalId").cloned(),
+                        edge: attributes.get("edge").cloned(),
+                        storage: attributes.get("storage").cloned(),
+                        enable: attributes.get("enable").cloned(),
                     });
                 }
 
@@ -267,7 +277,7 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
     loop {
         match reader.peek()? {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(extract_attributes(reader.next()?)?),
+                b"variable" | b"connection" => attributes.extend(reader.extract_attributes()?),
                 _ => reader.consume()?,
             },
 
@@ -280,20 +290,6 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
     }
 
     Ok(attributes)
-}
-
-pub(crate) fn extract_attributes(event: Event) -> Result<HashMap<String, String>, Error> {
-    let tag = match event {
-        Event::Start(tag) | Event::Empty(tag) => tag,
-        _ => todo!(),
-    };
-
-    let mut hm = HashMap::new();
-    for it in tag.attributes().flatten() {
-        hm.insert(it.key.to_string()?, it.value.to_string()?);
-    }
-
-    Ok(hm)
 }
 
 trait GetOrErr {

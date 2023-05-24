@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use quick_xml::{events::Event, Reader};
 
-use crate::model::Error;
+use crate::{deserialize::PrototypingToString, model::Error};
 
 pub struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
@@ -19,7 +21,7 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
-    pub fn next(&mut self) -> Result<Event<'xml>, Error> {
+    pub(crate) fn next(&mut self) -> Result<Event<'xml>, Error> {
         if let Some(event) = self.peek.take() {
             return Ok(event);
         }
@@ -27,7 +29,7 @@ impl<'xml> PeekableReader<'xml> {
         self.reader.read_event().map_err(Error::ReadEvent)
     }
 
-    pub fn peek(&mut self) -> Result<&Event<'xml>, Error> {
+    pub(crate) fn peek(&mut self) -> Result<&Event<'xml>, Error> {
         if self.peek.is_none() {
             self.peek = Some(self.reader.read_event().map_err(Error::ReadEvent)?);
         }
@@ -38,7 +40,7 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
-    pub fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
+    pub(crate) fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
         loop {
             match self.next()? {
                 Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
@@ -51,9 +53,23 @@ impl<'xml> PeekableReader<'xml> {
     }
 
     /// Advances the reader consuming the event without returning it.
-    pub fn consume(&mut self) -> Result<(), Error> {
+    pub(crate) fn consume(&mut self) -> Result<(), Error> {
         self.next()?;
         Ok(())
+    }
+
+    pub(crate) fn extract_attributes(&mut self) -> Result<HashMap<String, String>, Error> {
+        let tag = match self.next()? {
+            Event::Start(tag) | Event::Empty(tag) => tag,
+            _ => todo!(),
+        };
+
+        let mut hm = HashMap::new();
+        for it in tag.attributes().flatten() {
+            hm.insert(it.key.to_string()?, it.value.to_string()?);
+        }
+
+        Ok(hm)
     }
 }
 

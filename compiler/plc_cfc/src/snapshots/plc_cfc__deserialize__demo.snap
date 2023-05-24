@@ -1,5 +1,5 @@
 ---
-source: compiler/plc_cfc/src/parser.rs
+source: compiler/plc_cfc/src/deserialize.rs
 expression: res
 ---
 Ok(
@@ -11,6 +11,7 @@ Ok(
                 blocks: [
                     Block {
                         local_id: "5",
+                        global_id: None,
                         type_name: "MyAdd",
                         instance_name: Some(
                             "local_add",
@@ -26,6 +27,9 @@ Ok(
                                 ref_local_id: Some(
                                     "6",
                                 ),
+                                edge: None,
+                                storage: None,
+                                enable: None,
                             },
                             BlockVariable {
                                 kind: Input,
@@ -34,12 +38,18 @@ Ok(
                                 ref_local_id: Some(
                                     "7",
                                 ),
+                                edge: None,
+                                storage: None,
+                                enable: None,
                             },
                             BlockVariable {
                                 kind: Output,
                                 formal_parameter: "c",
                                 negated: "false",
                                 ref_local_id: None,
+                                edge: None,
+                                storage: None,
+                                enable: None,
                             },
                         ],
                     },
@@ -72,7 +82,10 @@ Ok(
                         ref_local_id: None,
                     },
                 ],
+                jumps: [],
+                returns: [],
             },
+            global_id: None,
         },
     },
 )

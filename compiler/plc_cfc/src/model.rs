@@ -1,8 +1,7 @@
 use std::str::Utf8Error;
 
 #[derive(Debug)]
-pub enum Error {
-    // TODO: pass vector
+pub(crate) enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
     /// Indicates that the reader expected the new line to be ...
@@ -37,14 +36,41 @@ impl std::fmt::Display for Error {
 }
 
 #[derive(Debug)]
-pub struct FunctionBlockDiagram {
+pub(crate) struct FunctionBlockDiagram {
     pub blocks: Vec<Block>,
     pub variables: Vec<FunctionBlockVariable>,
+    pub jumps: Vec<Jump>,
+    pub returns: Vec<Return>,
 }
 
 #[derive(Debug)]
-pub struct Block {
+pub(crate) struct Jump {
+    pub kind: JumpKind,
+    pub name: String,
     pub local_id: String,
+    pub global_id: Option<String>,
+    pub ref_local_id: Option<String>,
+    pub execution_order_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub(crate) enum JumpKind {
+    Jump,
+    Label,
+}
+
+#[derive(Debug)]
+pub(crate) struct Return {
+    pub local_id: Option<String>,
+    pub global_id: Option<String>,
+    pub ref_local_id: Option<String>,
+    pub execution_order_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub(crate) struct Block {
+    pub local_id: String,
+    pub global_id: Option<String>,
     pub type_name: String,
     pub instance_name: Option<String>,
     pub execution_order_id: Option<String>,
@@ -52,22 +78,25 @@ pub struct Block {
 }
 
 #[derive(Debug)]
-pub struct BlockVariable {
+pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
     pub negated: String,
     pub ref_local_id: Option<String>,
+    pub edge: Option<String>,    // rising/falling/none: Enum vs boolean?
+    pub storage: Option<String>, // set-dominant/reset-dominant/none: Enum vs boolean?
+    pub enable: Option<String>,  // en/eno?
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum VariableKind {
+pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
 }
 
 #[derive(Debug)]
-pub struct FunctionBlockVariable {
+pub(crate) struct FunctionBlockVariable {
     pub kind: VariableKind,
     pub local_id: String,
     pub negated: String,
@@ -77,12 +106,13 @@ pub struct FunctionBlockVariable {
 }
 
 #[derive(Debug)]
-pub struct Body {
+pub(crate) struct Body {
     pub function_block_diagram: FunctionBlockDiagram,
+    pub global_id: Option<String>,
 }
 
 #[derive(Debug)]
-pub struct Pou {
+pub(crate) struct Pou {
     // TODO: interface
     pub name: String,
     pub pou_type: PouType,
@@ -90,7 +120,7 @@ pub struct Pou {
 }
 
 #[derive(Debug)]
-pub enum PouType {
+pub(crate) enum PouType {
     Program,
     Function,
     FunctionBlock,
