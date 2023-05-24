@@ -51,8 +51,9 @@ impl<'xml> PeekableReader<'xml> {
     }
 
     /// Advances the reader consuming the event without returning it.
-    pub fn consume(&mut self) {
-        self.next();
+    pub fn consume(&mut self) -> Result<(), Error> {
+        self.next()?;
+        Ok(())
     }
 }
 

@@ -43,7 +43,7 @@ pub fn visit(content: &str) -> Result<Pou, Error> {
         match reader.peek()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => return Pou::visit(&mut reader),
             Event::Eof => return Err(Error::UnexpectedEndOfFile),
-            _ => reader.consume(),
+            _ => reader.consume()?,
         }
     }
 }
@@ -67,10 +67,10 @@ impl Parseable for Pou {
                         });
                     }
 
-                    _ => reader.consume(),
+                    _ => reader.consume()?,
                 },
 
-                _ => reader.consume(),
+                _ => reader.consume()?,
             }
         }
     }
@@ -80,7 +80,7 @@ impl Parseable for Body {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        reader.consume();
+        reader.consume()?;
 
         loop {
             match reader.peek()? {
@@ -91,11 +91,11 @@ impl Parseable for Body {
                         reader.consume_until(vec![b"body"])?;
                         return Ok(Body { function_block_diagram: fbd });
                     }
-                    _ => reader.consume(),
+                    _ => reader.consume()?,
                 },
 
                 Event::Eof => todo!(),
-                _ => reader.consume(),
+                _ => reader.consume()?,
             }
         }
     }
@@ -126,18 +126,18 @@ impl Parseable for FunctionBlockVariable {
                         String::from_utf8(tag.as_ref().to_vec())
                             .map_err(|err| Error::Encoding(err.utf8_error()))?,
                     );
-                    reader.consume();
+                    reader.consume()?;
                 }
 
                 Event::End(tag) => match tag.name().as_ref() {
                     b"inVariable" | b"outVariable" => {
-                        reader.consume();
+                        reader.consume()?;
                         break;
                     }
-                    _ => reader.consume(),
+                    _ => reader.consume()?,
                 },
 
-                _ => reader.consume(),
+                _ => reader.consume()?,
             }
         }
 
@@ -156,7 +156,7 @@ impl Parseable for FunctionBlockDiagram {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        reader.consume();
+        reader.consume()?;
         let mut blocks = Vec::new();
         let mut variables = Vec::new();
 
@@ -165,14 +165,14 @@ impl Parseable for FunctionBlockDiagram {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"block" => blocks.push(Block::visit(reader)?),
                     b"inVariable" | b"outVariable" => variables.push(FunctionBlockVariable::visit(reader)?),
-                    _ => reader.consume(),
+                    _ => reader.consume()?,
                 },
 
                 Event::End(tag) if tag.name().as_ref() == b"FBD" => {
-                    reader.consume();
+                    reader.consume()?;
                     break;
                 }
-                _ => reader.consume(),
+                _ => reader.consume()?,
             }
         }
 
@@ -193,14 +193,14 @@ impl Parseable for Block {
                     b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
                         variables.extend(BlockVariable::visit(reader)?)
                     }
-                    _ => reader.consume(),
+                    _ => reader.consume()?,
                 },
 
                 Event::End(tag) if tag.name().as_ref() == b"block" => {
-                    reader.consume();
+                    reader.consume()?;
                     break;
                 }
-                _ => reader.consume(),
+                _ => reader.consume()?,
             }
         }
 
@@ -245,12 +245,12 @@ impl Parseable for BlockVariable {
                         b"inputVariables" | b"outputVariables" | b"inOutVariables"
                     ) =>
                 {
-                    reader.consume();
+                    reader.consume()?;
                     return Ok(res);
                 }
 
                 Event::Eof => return Err(Error::UnexpectedEndOfFile),
-                _ => reader.consume(),
+                _ => reader.consume()?,
             };
         }
     }
@@ -262,14 +262,14 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
         match reader.peek()? {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
                 b"variable" | b"connection" => attributes.extend(extract_attributes(reader.next()?)?),
-                _ => reader.consume(),
+                _ => reader.consume()?,
             },
 
             Event::End(tag) if tag.name().as_ref() == b"variable" => {
-                reader.consume();
+                reader.consume()?;
                 break;
             }
-            _ => reader.consume(),
+            _ => reader.consume()?,
         }
     }
 
