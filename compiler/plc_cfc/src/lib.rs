@@ -1,3 +1,3 @@
+mod deserialize;
 mod model;
-mod parser;
-mod peek;
+mod reader;

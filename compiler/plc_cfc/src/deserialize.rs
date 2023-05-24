@@ -7,7 +7,7 @@ use crate::{
         Block, BlockVariable, Body, Error, FunctionBlockDiagram, FunctionBlockVariable, Pou, PouType,
         VariableKind,
     },
-    peek::PeekableReader,
+    reader::PeekableReader,
 };
 
 #[test]
