@@ -42,7 +42,7 @@ pub fn visit(content: &str) -> Result<Pou, Error> {
     loop {
         match reader.peek()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => return Pou::visit(&mut reader),
-            Event::Eof => return Err(Error::UnexpectedEndOfFile),
+            Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
             _ => reader.consume()?,
         }
     }
@@ -249,7 +249,13 @@ impl Parseable for BlockVariable {
                     return Ok(res);
                 }
 
-                Event::Eof => return Err(Error::UnexpectedEndOfFile),
+                Event::Eof => {
+                    return Err(Error::UnexpectedEndOfFile(vec![
+                        b"inputVariables",
+                        b"outputVariables",
+                        b"inOutVariables",
+                    ]))
+                }
                 _ => reader.consume()?,
             };
         }

@@ -42,7 +42,7 @@ impl<'xml> PeekableReader<'xml> {
         loop {
             match self.next()? {
                 Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
-                Event::Eof => return Err(Error::UnexpectedEndOfFile),
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(tokens)),
                 _ => continue,
             }
         }
