@@ -1,4 +1,4 @@
-use std::{str::Utf8Error, string::FromUtf8Error};
+use std::str::Utf8Error;
 
 #[derive(Debug)]
 pub enum Error {
@@ -6,11 +6,11 @@ pub enum Error {
 
     UnexpectedElement(String),
 
-    EncodingError(Utf8Error),
+    Encoding(Utf8Error),
 
     MissingAttribute(String),
 
-    ReadEvent,
+    ReadEvent(quick_xml::Error),
 }
 
 impl std::error::Error for Error {}
@@ -18,10 +18,10 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::UnexpectedEndOfFile => write!(f, "{self:#?}"),
-            Error::MissingAttribute(key) => write!(f, "{self:#?}"),
-            Error::ReadEvent => write!(f, "{self:#?}"),
+            Error::MissingAttribute(key) => write!(f, "Expected attribute {key} but found none"),
+            Error::ReadEvent(why) => write!(f, "Failed to read XML; {why}"),
             Error::UnexpectedElement(element) => write!(f, "{element}"),
-            Error::EncodingError(why) => write!(f, "{why:#?}"),
+            Error::Encoding(why) => write!(f, "{why:#?}"),
         }
     }
 }
@@ -108,7 +108,7 @@ impl TryFrom<&[u8]> for VariableKind {
             b"outputVariables" | b"outVariable" => Ok(VariableKind::Output),
             b"inOutVariables" | b"inOutVariable" => Ok(VariableKind::InOut),
             _ => {
-                let value = std::str::from_utf8(value).map_err(|err| Error::EncodingError(err))?;
+                let value = std::str::from_utf8(value).map_err(Error::Encoding)?;
                 Err(Error::UnexpectedElement(value.to_string()))
             }
         }

@@ -1,7 +1,4 @@
-use quick_xml::{
-    events::{BytesStart, Event},
-    Reader,
-};
+use quick_xml::{events::Event, Reader};
 
 use crate::model::Error;
 
@@ -22,28 +19,28 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
-    pub fn next(&mut self) -> Event<'xml> {
+    pub fn next(&mut self) -> Result<Event<'xml>, Error> {
         if let Some(event) = self.peek.take() {
-            return event;
+            return Ok(event);
         }
 
-        self.reader.read_event().unwrap()
+        self.reader.read_event().map_err(Error::ReadEvent)
     }
 
-    pub fn peek(&mut self) -> &Event<'xml> {
+    pub fn peek(&mut self) -> Result<&Event<'xml>, Error> {
         if self.peek.is_none() {
-            self.peek = Some(self.reader.read_event().unwrap());
+            self.peek = Some(self.reader.read_event().map_err(Error::ReadEvent)?);
         }
 
         match self.peek.as_ref() {
-            Some(val) => val,
+            Some(val) => Ok(val),
             None => unreachable!(),
         }
     }
 
     pub fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
         loop {
-            match self.next() {
+            match self.next()? {
                 Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile),
                 _ => continue,
@@ -92,6 +89,6 @@ fn peek() {
     "#;
 
     let mut temp = PeekableReader::new(CONTENT);
-    assert_eq!(temp.peek(), &Event::Start(BytesStart::new("body")));
-    assert_eq!(temp.next(), Event::Start(BytesStart::new("body")));
+    assert_eq!(temp.peek().unwrap(), &Event::Start(quick_xml::events::BytesStart::new("body")));
+    assert_eq!(temp.next().unwrap(), Event::Start(quick_xml::events::BytesStart::new("body")));
 }

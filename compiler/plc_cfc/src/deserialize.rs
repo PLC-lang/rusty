@@ -22,13 +22,13 @@ trait PrototypingToString {
 
 impl<'a> PrototypingToString for QName<'a> {
     fn to_string(self) -> Result<String, Error> {
-        String::from_utf8(self.into_inner().to_vec()).map_err(|err| Error::EncodingError(err.utf8_error()))
+        String::from_utf8(self.into_inner().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 
 impl PrototypingToString for Cow<'_, [u8]> {
     fn to_string(self) -> Result<String, Error> {
-        String::from_utf8(self.to_vec()).map_err(|err| Error::EncodingError(err.utf8_error()))
+        String::from_utf8(self.to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 
@@ -40,7 +40,7 @@ trait Parseable {
 pub fn visit(content: &str) -> Result<Pou, Error> {
     let mut reader = PeekableReader::new(content);
     loop {
-        match reader.peek() {
+        match reader.peek()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => return Pou::visit(&mut reader),
             Event::Eof => return Err(Error::UnexpectedEndOfFile),
             _ => reader.consume(),
@@ -52,9 +52,9 @@ impl Parseable for Pou {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = extract_attributes(reader.next())?;
+        let attributes = extract_attributes(reader.next()?)?;
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"body" => {
                         let body = Body::visit(reader)?;
@@ -83,7 +83,7 @@ impl Parseable for Body {
         reader.consume();
 
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"FBD" => {
                         let fbd = FunctionBlockDiagram::visit(reader)?;
@@ -105,7 +105,7 @@ impl Parseable for FunctionBlockVariable {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.next();
+        let next = reader.next()?;
         let kind = match &next {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
                 b"inVariable" => VariableKind::Input,
@@ -119,12 +119,12 @@ impl Parseable for FunctionBlockVariable {
 
         let mut attributes = extract_attributes(next)?;
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Text(tag) => {
                     attributes.insert(
                         "expression".into(),
                         String::from_utf8(tag.as_ref().to_vec())
-                            .map_err(|err| Error::EncodingError(err.utf8_error()))?,
+                            .map_err(|err| Error::Encoding(err.utf8_error()))?,
                     );
                     reader.consume();
                 }
@@ -161,7 +161,7 @@ impl Parseable for FunctionBlockDiagram {
         let mut variables = Vec::new();
 
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"block" => blocks.push(Block::visit(reader)?),
                     b"inVariable" | b"outVariable" => variables.push(FunctionBlockVariable::visit(reader)?),
@@ -184,11 +184,11 @@ impl Parseable for Block {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = extract_attributes(reader.next())?;
+        let attributes = extract_attributes(reader.next()?)?;
         let mut variables = Vec::new();
 
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
                         variables.extend(BlockVariable::visit(reader)?)
@@ -218,7 +218,7 @@ impl Parseable for BlockVariable {
     type Item = Vec<Self>;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let kind = match reader.next() {
+        let kind = match reader.next()? {
             Event::Start(tag) | Event::Empty(tag) => VariableKind::try_from(tag.name().as_ref())?,
             _ => unreachable!(),
         };
@@ -226,13 +226,13 @@ impl Parseable for BlockVariable {
         let mut res = vec![];
 
         loop {
-            match reader.peek() {
+            match reader.peek()? {
                 Event::Start(tag) if tag.name().as_ref() == b"variable" => {
                     let attributes = visit_variable(reader)?;
                     // reader.consume_until(vec![b"variable"])?;
 
                     res.push(BlockVariable {
-                        kind: kind.clone(),
+                        kind,
                         formal_parameter: attributes.get_or_error("formalParameter")?,
                         negated: attributes.get_or_error("negated")?,
                         ref_local_id: attributes.get("refLocalId").cloned(),
@@ -259,9 +259,9 @@ impl Parseable for BlockVariable {
 fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>, Error> {
     let mut attributes = HashMap::new();
     loop {
-        match reader.peek() {
+        match reader.peek()? {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(extract_attributes(reader.next())?),
+                b"variable" | b"connection" => attributes.extend(extract_attributes(reader.next()?)?),
                 _ => reader.consume(),
             },
 
