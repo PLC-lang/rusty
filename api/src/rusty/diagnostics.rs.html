@@ -1226,6 +1226,16 @@
 <a href="#1226" id="1226">1226</a>
 <a href="#1227" id="1227">1227</a>
 <a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     error::Error,
@@ -1290,6 +1300,7 @@
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__assigning_to_var_input_ref,
     var__overflow,
 
     <span class="comment">//array related
@@ -2011,6 +2022,15 @@
             message: <span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {entity:?} instead&quot;</span>),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    <span class="kw">pub fn </span>var_input_ref_assignment(location: SourceRange) -&gt; Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message:
+                <span class="string">&quot;VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.&quot;
+                    </span>.into(),
+            range: <span class="macro">vec!</span>[location],
         }
     }
 

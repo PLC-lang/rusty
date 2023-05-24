@@ -913,6 +913,11 @@
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
 <a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -1186,12 +1191,12 @@
     <span class="comment">// unresolved reference
     </span><span class="kw">if </span>!context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
         <span class="comment">// check if we&#39;re accessing a private variable AND the variable&#39;s qualifier is not the
         // POU we&#39;re accessing it from
-        </span><span class="kw">if </span>variable_type.is_private()
+        </span><span class="kw">if </span>argument_type.is_private()
             &amp;&amp; context
                 .qualifier
                 .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -1359,15 +1364,15 @@
         <span class="comment">// we expect two input parameters and a return-parameter
         </span><span class="kw">if let </span>[VariableIndexEntry {
             data_type_name: type_name_1,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: type_name_2,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: return_type,
-            variable_type: ArgumentType::ByVal(VariableType::Return),
+            argument_type: ArgumentType::ByVal(VariableType::Return),
             ..
         }] = members
         {
@@ -1416,7 +1421,7 @@
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x =&gt; y)`). If neither is the case a diagnostic is generated.
 </span><span class="kw">fn </span>validate_call_by_ref(validator: <span class="kw-2">&amp;mut </span>Validator, param: <span class="kw-2">&amp;</span>VariableIndexEntry, arg: <span class="kw-2">&amp;</span>AstStatement) {
-    <span class="kw">let </span>ty = param.variable_type.get_variable_type();
+    <span class="kw">let </span>ty = param.argument_type.get_inner();
     <span class="kw">if </span>!<span class="macro">matches!</span>(ty, VariableType::Output | VariableType::InOut) {
         <span class="kw">return</span>;
     }
@@ -1447,22 +1452,27 @@
     context: <span class="kw-2">&amp;</span>ValidationContext,
 ) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
-        <span class="comment">// check if we assign to a constant variable
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        <span class="comment">// Check if we are assigning to a...
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
             context.annotations.get(left)
         {
-            <span class="kw">if </span><span class="kw-2">*</span>constant {
+            <span class="comment">// ...constant variable
+            </span><span class="kw">if </span><span class="kw-2">*</span>constant {
                 validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
             }
+
+            <span class="comment">// ...VAR_INPUT {ref} variable
+            </span><span class="kw">if </span><span class="macro">matches!</span>(argument_type, ArgumentType::ByRef(VariableType::Input)) {
+                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+            }
         }
 
-        <span class="comment">// If whatever we got is not assignable, output an error
+        <span class="comment">// ...or if whatever we got is not assignable, output an error
         </span><span class="kw">if </span>!left.can_be_assigned_to() {
-            <span class="comment">// we hit an assignment without a LValue to assign to
-            </span>validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+            validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
         }
     }
 

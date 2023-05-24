@@ -1453,23 +1453,6 @@
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
 <a href="#1455" id="1455">1455</a>
-<a href="#1456" id="1456">1456</a>
-<a href="#1457" id="1457">1457</a>
-<a href="#1458" id="1458">1458</a>
-<a href="#1459" id="1459">1459</a>
-<a href="#1460" id="1460">1460</a>
-<a href="#1461" id="1461">1461</a>
-<a href="#1462" id="1462">1462</a>
-<a href="#1463" id="1463">1463</a>
-<a href="#1464" id="1464">1464</a>
-<a href="#1465" id="1465">1465</a>
-<a href="#1466" id="1466">1466</a>
-<a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
-<a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::{
@@ -1505,7 +1488,7 @@
     <span class="doccomment">/// an optional initial value of this variable
     </span><span class="kw">pub </span>initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
     <span class="doccomment">/// the type of variable
-    </span><span class="kw">pub </span>variable_type: ArgumentType,
+    </span><span class="kw">pub </span>argument_type: ArgumentType,
     <span class="doccomment">/// true if this variable is a compile-time-constant
     </span>is_constant: bool,
     <span class="doccomment">/// the variable&#39;s datatype
@@ -1574,7 +1557,7 @@
         name: <span class="kw-2">&amp;</span>str,
         qualified_name: <span class="kw-2">&amp;</span>str,
         data_type_name: <span class="kw-2">&amp;</span>str,
-        variable_type: ArgumentType,
+        argument_type: ArgumentType,
         location_in_parent: u32,
         source_location: SymbolLocation,
     ) -&gt; <span class="self">Self </span>{
@@ -1582,7 +1565,7 @@
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: <span class="prelude-val">None</span>,
-            variable_type,
+            argument_type,
             is_constant: <span class="bool-val">false</span>,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
@@ -1603,7 +1586,7 @@
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: <span class="prelude-val">None</span>,
-            variable_type: ArgumentType::ByVal(VariableType::Global),
+            argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: <span class="bool-val">false</span>,
             data_type_name: data_type_name.to_string(),
             location_in_parent: <span class="number">0</span>,
@@ -1689,12 +1672,12 @@
         <span class="self">self</span>.linkage == LinkageType::External
     }
 
-    <span class="kw">pub fn </span>get_variable_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VariableType {
-        <span class="self">self</span>.variable_type.get_variable_type()
+    <span class="kw">pub fn </span>get_declaration_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArgumentType {
+        <span class="self">self</span>.argument_type
     }
 
-    <span class="kw">pub fn </span>get_declaration_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArgumentType {
-        <span class="self">self</span>.variable_type
+    <span class="kw">pub fn </span>get_variable_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VariableType {
+        <span class="self">self</span>.argument_type.get_inner()
     }
 
     <span class="kw">pub fn </span>has_hardware_binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1733,15 +1716,26 @@
 }
 
 <span class="kw">impl </span>ArgumentType {
-    <span class="kw">pub fn </span>get_variable_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VariableType {
+    <span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VariableType {
         <span class="kw">match </span><span class="self">self </span>{
             ArgumentType::ByVal(t) =&gt; <span class="kw-2">*</span>t,
             ArgumentType::ByRef(t) =&gt; <span class="kw-2">*</span>t,
         }
     }
 
+    <span class="kw">pub fn </span>get_inner_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>VariableType {
+        <span class="kw">match </span><span class="self">self </span>{
+            ArgumentType::ByRef(val) =&gt; val,
+            ArgumentType::ByVal(val) =&gt; val,
+        }
+    }
+
     <span class="kw">pub fn </span>is_by_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, ArgumentType::ByRef(..))
+    }
+
+    <span class="kw">pub fn </span>is_private(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.get_inner_ref(), VariableType::Temp | VariableType::Local)
     }
 }
 
@@ -1755,29 +1749,6 @@
     Global,
     Return,
 }
-
-<span class="doccomment">/// information regarding a variable
-</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
-</span><span class="kw">pub struct </span>VariableInformation {
-    <span class="doccomment">/// the type of variable
-    </span>variable_type: VariableType,
-    <span class="doccomment">/// true if this variable is a compile-time-constant
-    </span>is_constant: bool,
-    <span class="doccomment">/// the variable&#39;s datatype
-    </span>data_type_name: String,
-    <span class="doccomment">/// the variable&#39;s qualifier, None for global variables
-    </span>qualifier: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="doccomment">/// Location in the qualifier defautls to 0 (Single variables)
-    </span>location_in_parent: u32,
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub enum </span>DataTypeType {
-    Scalar,        <span class="comment">// built in types: INT, BOOL, WORD, ...
-    </span>Struct,        <span class="comment">// Struct-DataType
-    </span>FunctionBlock, <span class="comment">// a Functionblock instance
-    </span>AliasType,     <span class="comment">// a Custom-Alias-dataType
-</span>}
 
 <span class="attr">#[derive(Clone, PartialEq, Eq, Debug)]
 </span><span class="kw">pub enum </span>ImplementationType {
@@ -2936,11 +2907,6 @@
 <span class="doccomment">/// Returns a default initialization name for a variable or type
 </span><span class="kw">pub fn </span>get_initializer_name(name: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="macro">format!</span>(<span class="string">&quot;__{name}__init&quot;</span>)
-}
-<span class="kw">impl </span>VariableType {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_private(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, VariableType::Temp | VariableType::Local)
-    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

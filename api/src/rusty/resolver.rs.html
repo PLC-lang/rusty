@@ -1663,7 +1663,7 @@
         DataTypeDeclaration, Operator, Pou, StringValue, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{<span class="self">self</span>, BuiltIn},
-    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry},
     lexer::IdProvider,
     typesystem::{
         <span class="self">self</span>, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
@@ -1807,7 +1807,7 @@
         <span class="doccomment">/// denotes wheter this variable is declared as a constant
         </span>constant: bool,
         <span class="doccomment">/// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
-        </span>variable_type: VariableType,
+        </span>argument_type: ArgumentType,
         <span class="doccomment">/// denotes whether this variable-reference should be automatically dereferenced when accessed
         </span>is_auto_deref: bool,
     },
@@ -2875,10 +2875,10 @@
                     <span class="macro">unreachable!</span>(<span class="string">&quot;must be a reference to a VLA&quot;</span>)
                 };
 
-                <span class="kw">let </span><span class="prelude-val">Some</span>(variable_type) = <span class="self">self</span>.index.get_pou_members(pou)
+                <span class="kw">let </span><span class="prelude-val">Some</span>(argument_type) = <span class="self">self</span>.index.get_pou_members(pou)
                     .iter()
                     .filter(|it| it.get_name() == name)
-                    .map(|it| it.get_variable_type())
+                    .map(|it| it.get_declaration_type())
                     .next() <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     };
@@ -2887,7 +2887,7 @@
                     resulting_type: inner_type_name.to_owned(),
                     qualified_name: qualified_name.to_string(),
                     constant: <span class="bool-val">false</span>,
-                    variable_type,
+                    argument_type,
                     is_auto_deref: <span class="bool-val">false</span>,
                 };
                 <span class="self">self</span>.annotation_map.annotate_type_hint(statement, hint_annotation)
@@ -3229,7 +3229,7 @@
         qualified_name: v.get_qualified_name().into(),
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
-        variable_type: v.variable_type.get_variable_type(),
+        argument_type: v.get_declaration_type(),
         is_auto_deref,
     }
 }
