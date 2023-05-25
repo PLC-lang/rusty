@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use quick_xml::{events::Event, Reader};
 
-use crate::{deserialize::PrototypingToString, model::Error};
+use crate::{deserialize::PrototypingToString, error::Error};
 
 pub struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
@@ -58,7 +58,7 @@ impl<'xml> PeekableReader<'xml> {
         Ok(())
     }
 
-    pub(crate) fn extract_attributes(&mut self) -> Result<HashMap<String, String>, Error> {
+    pub(crate) fn attributes(&mut self) -> Result<HashMap<String, String>, Error> {
         let tag = match self.next()? {
             Event::Start(tag) | Event::Empty(tag) => tag,
             _ => todo!(),
@@ -66,7 +66,7 @@ impl<'xml> PeekableReader<'xml> {
 
         let mut hm = HashMap::new();
         for it in tag.attributes().flatten() {
-            hm.insert(it.key.to_string()?, it.value.to_string()?);
+            hm.insert(it.key.try_to_string()?, it.value.try_to_string()?);
         }
 
         Ok(hm)

@@ -3,31 +3,29 @@ use std::{borrow::Cow, collections::HashMap};
 use quick_xml::{events::Event, name::QName};
 
 use crate::{
-    model::{
-        Block, BlockVariable, Body, Error, FunctionBlockDiagram, FunctionBlockVariable, Pou, PouType,
-        VariableKind,
-    },
+    error::Error,
+    model::{Block, BlockVariable, Body, FunctionBlockDiagram, FunctionBlockVariable, Pou, VariableKind},
     reader::PeekableReader,
 };
 
-#[test]
-fn demo() {
-    let res = visit(CONTENT);
-    insta::assert_debug_snapshot!(res);
+pub(crate) trait PrototypingToString {
+    fn try_to_string(self) -> Result<String, Error>;
 }
 
-pub(crate) trait PrototypingToString {
-    fn to_string(self) -> Result<String, Error>;
+impl<'a> PrototypingToString for &'a [u8] {
+    fn try_to_string(self) -> Result<String, Error> {
+        String::from_utf8(self.as_ref().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
+    }
 }
 
 impl<'a> PrototypingToString for QName<'a> {
-    fn to_string(self) -> Result<String, Error> {
+    fn try_to_string(self) -> Result<String, Error> {
         String::from_utf8(self.into_inner().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 
 impl PrototypingToString for Cow<'_, [u8]> {
-    fn to_string(self) -> Result<String, Error> {
+    fn try_to_string(self) -> Result<String, Error> {
         String::from_utf8(self.to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
@@ -52,7 +50,7 @@ impl Parseable for Pou {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.extract_attributes()?;
+        let attributes = reader.attributes()?;
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
@@ -60,11 +58,7 @@ impl Parseable for Pou {
                         let body = Body::visit(reader)?;
                         // TODO: change in order to parse INTERFACE, ACTION etc..
                         reader.consume_until(vec![b"pou"])?;
-                        return Ok(Pou {
-                            name: attributes.get_or_error("name")?,
-                            pou_type: PouType::try_from(attributes.get_or_error("pouType")?.as_str())?,
-                            body,
-                        });
+                        return Pou::new(attributes, body);
                     }
 
                     _ => reader.consume()?,
@@ -80,18 +74,15 @@ impl Parseable for Body {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.extract_attributes()?;
+        let attributes = reader.attributes()?;
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"FBD" => {
                         let fbd = FunctionBlockDiagram::visit(reader)?;
-                        // consume
                         reader.consume_until(vec![b"body"])?;
-                        return Ok(Body {
-                            function_block_diagram: fbd,
-                            global_id: attributes.get("globalId").cloned(),
-                        });
+
+                        return Body::new(attributes, fbd);
                     }
                     _ => reader.consume()?,
                 },
@@ -121,15 +112,11 @@ impl Parseable for FunctionBlockVariable {
             _ => unreachable!(),
         };
 
-        let mut attributes = reader.extract_attributes()?;
+        let mut attributes = reader.attributes()?;
         loop {
             match reader.peek()? {
                 Event::Text(tag) => {
-                    attributes.insert(
-                        "expression".into(),
-                        String::from_utf8(tag.as_ref().to_vec())
-                            .map_err(|err| Error::Encoding(err.utf8_error()))?,
-                    );
+                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
                     reader.consume()?;
                 }
 
@@ -145,14 +132,7 @@ impl Parseable for FunctionBlockVariable {
             }
         }
 
-        Ok(FunctionBlockVariable {
-            kind,
-            local_id: attributes.get_or_error("localId")?,
-            negated: attributes.get_or_error("negated")?,
-            expression: attributes.get_or_error("expression")?,
-            execution_order_id: attributes.get("executionOrderId").cloned(),
-            ref_local_id: attributes.get("refLocalId").cloned(),
-        })
+        FunctionBlockVariable::new(attributes, kind)
     }
 }
 
@@ -190,7 +170,7 @@ impl Parseable for Block {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.extract_attributes()?;
+        let attributes = reader.attributes()?;
         let mut variables = Vec::new();
 
         loop {
@@ -210,14 +190,7 @@ impl Parseable for Block {
             }
         }
 
-        Ok(Block {
-            global_id: attributes.get("globalId").cloned(),
-            local_id: attributes.get_or_error("localId")?,
-            type_name: attributes.get_or_error("typeName")?,
-            instance_name: attributes.get("instanceName").cloned(),
-            variables,
-            execution_order_id: attributes.get("executionOrderId").cloned(),
-        })
+        Block::new(attributes, variables)
     }
 }
 
@@ -236,17 +209,7 @@ impl Parseable for BlockVariable {
             match reader.peek()? {
                 Event::Start(tag) if tag.name().as_ref() == b"variable" => {
                     let attributes = visit_variable(reader)?;
-                    // reader.consume_until(vec![b"variable"])?;
-
-                    res.push(BlockVariable {
-                        kind,
-                        formal_parameter: attributes.get_or_error("formalParameter")?,
-                        negated: attributes.get_or_error("negated")?,
-                        ref_local_id: attributes.get("refLocalId").cloned(),
-                        edge: attributes.get("edge").cloned(),
-                        storage: attributes.get("storage").cloned(),
-                        enable: attributes.get("enable").cloned(),
-                    });
+                    res.push(BlockVariable::new(attributes, kind)?);
                 }
 
                 Event::End(tag)
@@ -277,7 +240,7 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
     loop {
         match reader.peek()? {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(reader.extract_attributes()?),
+                b"variable" | b"connection" => attributes.extend(reader.attributes()?),
                 _ => reader.consume()?,
             },
 
@@ -377,3 +340,9 @@ const CONTENT: &str = r#"
     </body>
 </pou>
 "#;
+
+#[test]
+fn demo() {
+    let res = visit(CONTENT);
+    insta::assert_debug_snapshot!(res);
+}

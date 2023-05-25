@@ -10,22 +10,22 @@ Ok(
             function_block_diagram: FunctionBlockDiagram {
                 blocks: [
                     Block {
-                        local_id: "5",
+                        local_id: 5,
                         global_id: None,
                         type_name: "MyAdd",
                         instance_name: Some(
                             "local_add",
                         ),
                         execution_order_id: Some(
-                            "0",
+                            0,
                         ),
                         variables: [
                             BlockVariable {
                                 kind: Input,
                                 formal_parameter: "a",
-                                negated: "false",
+                                negated: false,
                                 ref_local_id: Some(
-                                    "6",
+                                    6,
                                 ),
                                 edge: None,
                                 storage: None,
@@ -34,9 +34,9 @@ Ok(
                             BlockVariable {
                                 kind: Input,
                                 formal_parameter: "b",
-                                negated: "false",
+                                negated: false,
                                 ref_local_id: Some(
-                                    "7",
+                                    7,
                                 ),
                                 edge: None,
                                 storage: None,
@@ -45,7 +45,7 @@ Ok(
                             BlockVariable {
                                 kind: Output,
                                 formal_parameter: "c",
-                                negated: "false",
+                                negated: false,
                                 ref_local_id: None,
                                 edge: None,
                                 storage: None,
@@ -57,27 +57,27 @@ Ok(
                 variables: [
                     FunctionBlockVariable {
                         kind: Input,
-                        local_id: "6",
-                        negated: "false",
+                        local_id: 6,
+                        negated: false,
                         expression: "local_a",
                         execution_order_id: None,
                         ref_local_id: None,
                     },
                     FunctionBlockVariable {
                         kind: Input,
-                        local_id: "7",
-                        negated: "false",
+                        local_id: 7,
+                        negated: false,
                         expression: "local_b",
                         execution_order_id: None,
                         ref_local_id: None,
                     },
                     FunctionBlockVariable {
                         kind: Output,
-                        local_id: "8",
-                        negated: "false",
+                        local_id: 8,
+                        negated: false,
                         expression: "local_c",
                         execution_order_id: Some(
-                            "1",
+                            1,
                         ),
                         ref_local_id: None,
                     },
