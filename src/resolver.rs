@@ -14,7 +14,7 @@ pub mod generics;
 
 use crate::{
     ast::{
-        flatten_expression_list, Array, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
+        self, flatten_expression_list, Array, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
         DataTypeDeclaration, Operator, Pou, StringValue, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
@@ -732,14 +732,15 @@ impl<'i> TypeAnnotator<'i> {
             }
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
+                let flattened = ast::flatten_expression_list(initializer);
+                // dbg!(&flattened);
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let flattened = crate::ast::flatten_expression_list(initializer);
                         let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
-                            todo!()
+                            continue;
                         };
-                        self.annotate_array_of_struct(data_type, right, ctx);
+                        self.annotate_array_of_struct(dbg!(data_type), dbg!(right), ctx);
                     }
                 }
             }
