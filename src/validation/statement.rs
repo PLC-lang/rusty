@@ -271,12 +271,12 @@ fn validate_reference(
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
-    } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
+    } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
         // check if we're accessing a private variable AND the variable's qualifier is not the
         // POU we're accessing it from
-        if variable_type.is_private()
+        if argument_type.is_private()
             && context
                 .qualifier
                 .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -444,15 +444,15 @@ fn compare_function_exists(type_name: &str, operator: &Operator, context: &Valid
         // we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {
             data_type_name: type_name_1,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: type_name_2,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: return_type,
-            variable_type: ArgumentType::ByVal(VariableType::Return),
+            argument_type: ArgumentType::ByVal(VariableType::Return),
             ..
         }] = members
         {
@@ -501,7 +501,7 @@ fn validate_unary_expression(
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
 fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstStatement) {
-    let ty = param.variable_type.get_variable_type();
+    let ty = param.argument_type.get_inner();
     if !matches!(ty, VariableType::Output | VariableType::InOut) {
         return;
     }
@@ -532,21 +532,26 @@ fn validate_assignment(
     context: &ValidationContext,
 ) {
     if let Some(left) = left {
-        // check if we assign to a constant variable
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        // Check if we are assigning to a...
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
             context.annotations.get(left)
         {
+            // ...constant variable
             if *constant {
                 validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
             }
+
+            // ...VAR_INPUT {ref} variable
+            if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
+                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+            }
         }
 
-        // If whatever we got is not assignable, output an error
+        // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            // we hit an assignment without a LValue to assign to
             validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
         }
     }

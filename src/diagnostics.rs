@@ -62,6 +62,7 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__assigning_to_var_input_ref,
     var__overflow,
 
     //array related
@@ -783,6 +784,15 @@ impl Diagnostic {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message:
+                "VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead."
+                    .into(),
+            range: vec![location],
         }
     }
 
