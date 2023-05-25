@@ -58,6 +58,7 @@ impl<'xml> PeekableReader<'xml> {
         Ok(())
     }
 
+    /// Advances the reader, consuming the event returning its attributes.
     pub(crate) fn attributes(&mut self) -> Result<HashMap<String, String>, Error> {
         let tag = match self.next()? {
             Event::Start(tag) | Event::Empty(tag) => tag,

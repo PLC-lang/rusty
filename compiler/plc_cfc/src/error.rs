@@ -1,6 +1,5 @@
-use std::{fmt::Display, num::ParseIntError, str::Utf8Error};
+use std::{num::ParseIntError, str::Utf8Error};
 
-#[derive(Debug)]
 pub enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
@@ -27,12 +26,6 @@ pub enum ParseErrorKind {
     Integer(ParseIntError),
 }
 
-impl Display for ParseErrorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
-    }
-}
-
 impl From<ParseIntError> for Error {
     fn from(value: ParseIntError) -> Self {
         Error::Parse(ParseErrorKind::Integer(value))
@@ -42,16 +35,25 @@ impl From<ParseIntError> for Error {
 impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:#?}")
+    }
+}
+
+impl std::fmt::Debug for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::UnexpectedEndOfFile(tokens) => {
-                let tokens = tokens.iter().map(|it| std::str::from_utf8(it).unwrap());
-                write!(f, "Expected token {tokens:#?} but reached end of file")
+            Self::UnexpectedEndOfFile(arg0) => {
+                let tokens = arg0
+                    .iter()
+                    .map(|it| std::str::from_utf8(it).unwrap().to_string())
+                    .collect::<Vec<String>>();
+                write!(f, "Expected token {tokens:?} but reached end of file")
             }
-            Error::MissingAttribute(key) => write!(f, "Expected attribute {key} but found none"),
-            Error::ReadEvent(why) => write!(f, "Failed to read XML; {why}"),
-            Error::UnexpectedElement(element) => write!(f, "{element}"),
-            Error::Encoding(why) => write!(f, "{why:#?}"),
-            Error::Parse(why) => write!(f, "Failed to parse string to other type; {why}"),
+            Self::MissingAttribute(key) => write!(f, "Expected attribute {key} but found none"),
+            Self::ReadEvent(why) => write!(f, "Failed to read XML; {why}"),
+            Self::UnexpectedElement(element) => write!(f, "{element}"),
+            Self::Encoding(why) => write!(f, "{why:#?}"),
+            Self::Parse(why) => write!(f, "Failed to parse string to other type; {why:#?}"),
         }
     }
 }

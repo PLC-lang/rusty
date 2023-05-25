@@ -18,28 +18,29 @@ pub(crate) struct FunctionBlockDiagram {
     pub blocks: Vec<Block>,
     pub variables: Vec<FunctionBlockVariable>,
     pub jumps: Vec<Jump>,
-    pub returns: Vec<Return>,
 }
 
 #[derive(Debug)]
 pub(crate) struct Jump {
     pub kind: JumpKind,
-    pub name: String,
+    pub name: Option<String>,
     pub local_id: usize,
     pub global_id: Option<usize>,
     pub ref_local_id: Option<usize>,
     pub execution_order_id: Option<usize>,
+    pub negated: bool,
 }
 
 impl Jump {
-    pub fn new(hm: HashMap<String, String>, kind: JumpKind) -> Result<Self, Error> {
+    pub fn new(mut hm: HashMap<String, String>, kind: JumpKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
-            name: hm.get_or_err("name")?,
+            name: hm.remove("label"),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
+            negated: hm.get("negated").map(|it| it == "true").unwrap_or(false),
         })
     }
 }
@@ -48,25 +49,7 @@ impl Jump {
 pub(crate) enum JumpKind {
     Jump,
     Label,
-}
-
-#[derive(Debug)]
-pub(crate) struct Return {
-    pub local_id: Option<usize>,
-    pub global_id: Option<usize>,
-    pub ref_local_id: Option<usize>,
-    pub execution_order_id: Option<usize>,
-}
-
-impl Return {
-    pub fn new(hm: HashMap<String, String>) -> Result<Self, Error> {
-        Ok(Self {
-            local_id: hm.get("localId").map(|it| it.parse()).transpose()?,
-            global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
-            ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
-            execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
-        })
-    }
+    Return,
 }
 
 #[derive(Debug)]
@@ -262,6 +245,19 @@ impl FromStr for PouType {
             "program" => Ok(PouType::Program),
             "function" => Ok(PouType::Function),
             "functionBlock" => Ok(PouType::FunctionBlock),
+            _ => Err(Error::UnexpectedElement(s.to_string())),
+        }
+    }
+}
+
+impl FromStr for JumpKind {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "jump" => Ok(JumpKind::Jump),
+            "label" => Ok(JumpKind::Label),
+            "return" => Ok(JumpKind::Return),
             _ => Err(Error::UnexpectedElement(s.to_string())),
         }
     }
