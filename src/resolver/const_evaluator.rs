@@ -4,106 +4,11 @@ use crate::{
     ast::literals::{Array, AstLiteral, StringValue},
     ast::{AstId, AstStatement, Operator, SourceRange},
     index::{
-        const_expressions::{ConstExpression, ConstId},
+        const_expressions::{ConstExpression, ConstId, UnresolvableKind},
         Index,
     },
-    typesystem::{
-        DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType, NativeIntType,
-        NativeLintType, NativeLwordType, NativeSintType, NativeWordType, StringEncoding, DINT_SIZE, INT_SIZE,
-        LINT_SIZE, SINT_SIZE, VOID_TYPE,
-    },
+    typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
-
-macro_rules! cannot_eval_error {
-    ($left:expr, $op_text:expr, $right:expr) => {
-        Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right))
-    };
-}
-
-macro_rules! arithmetic_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
-                    let rvalue = rvalue.parse::<f64>()
-                        .map_err(|err| err.to_string())?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                    let lvalue = lvalue.parse::<f64>()
-                        .map_err(|err| err.to_string())?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op *rvalue as f64).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
-                    let lvalue = lvalue.parse::<f64>()
-                        .map_err(|err| err.to_string())?;
-                    let rvalue = rvalue.parse::<f64>()
-                        .map_err(|err| err.to_string())?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    }
-}
-
-macro_rules! bitwise_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    };
-}
-
-macro_rules! compare_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
-                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) => {
-               Err("Cannot compare Reals without epsilon".into())
-            },
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
-            },
-            _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    }
-}
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -126,25 +31,6 @@ impl UnresolvableConstant {
 
     pub fn no_initial_value(id: &ConstId) -> Self {
         UnresolvableConstant::new(*id, "No initial value")
-    }
-}
-
-/// returns true, if the given expression needs to be evaluated.
-/// literals must not be further evaluated and can be known at
-/// compile time
-fn needs_evaluation(expr: &AstStatement) -> bool {
-    match expr {
-        AstStatement::Literal { kind, .. } => match &kind {
-            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match elements.as_ref() {
-                AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-                _ => needs_evaluation(elements.as_ref()),
-            },
-            _ => false,
-        },
-        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
-        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
-        _ => true,
     }
 }
 
@@ -191,7 +77,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     target_type,
                 );
 
-                match (initial_value_literal, candidates_type) {
+                match (initial_value_literal, &candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
                         Ok(Some(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
@@ -223,6 +109,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             &index.get_const_expressions().find_expression_target_type(&candidate),
                             &index,
                         );
+
                         do_resolve_candidate(&mut index, candidate, literal);
                         failed_tries = 0;
                     }
@@ -234,14 +121,13 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     }
 
                     // there was an error during evaluation
-                    (Err(err_msg), _) => {
+                    (Err(kind), _) => {
                         //error during resolving
+                        unresolvable.push(UnresolvableConstant::new(candidate, kind.get_reason()));
                         index
                             .get_mut_const_expressions()
-                            .mark_unresolvable(&candidate, err_msg.as_str())
+                            .mark_unresolvable(&candidate, kind)
                             .expect("unknown id for const-expression"); //panic if we dont know the id
-
-                        unresolvable.push(UnresolvableConstant::new(candidate, err_msg.as_str()))
                     }
                 }
             } else {
@@ -257,15 +143,34 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     (index, unresolvable)
 }
 
-fn do_resolve_candidate(
-    index: &mut Index,
-    candidate: generational_arena::Index,
-    new_statement: AstStatement,
-) {
+fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: AstStatement) {
     index
         .get_mut_const_expressions()
         .mark_resolved(&candidate, new_statement)
         .expect("unknown id for const-expression");
+}
+
+/// returns true, if the given expression needs to be evaluated.
+/// literals must not be further evaluated and can be known at
+/// compile time
+fn needs_evaluation(expr: &AstStatement) -> bool {
+    match expr {
+        AstStatement::Literal { kind, .. } => match &kind {
+            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match elements.as_ref() {
+                AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+                _ => needs_evaluation(elements.as_ref()),
+            },
+
+            // We want to check if literals will overflow, hence they'll need to be evaluated
+            AstLiteral::Integer(_) | AstLiteral::Real(_) => true,
+
+            _ => false,
+        },
+        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
+        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
+        _ => true,
+    }
 }
 
 /// generates an ast-statement that initializes the given type with the registered default values
@@ -274,7 +179,7 @@ fn get_default_initializer(
     target_type: &str,
     index: &Index,
     location: &SourceRange,
-) -> Result<Option<AstStatement>, String> {
+) -> Result<Option<AstStatement>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
         evaluate(init, None, index) //TODO do we ave a scope here?
     } else {
@@ -323,53 +228,87 @@ fn cast_if_necessary(
     target_type_name: &Option<&str>,
     index: &Index,
 ) -> AstStatement {
-    let data_type = target_type_name.and_then(|it| index.find_effective_type_by_name(it));
-    if let (Some(data_type), AstStatement::Literal { kind: literal, .. }) = (data_type, &statement) {
+    let Some(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) else {
+         return statement;
+    };
+
+    if let AstStatement::Literal { kind: literal, location, id } = &statement {
         match literal {
-            AstLiteral::Integer(value) => {
-                if data_type.get_type_information().is_float() {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_real(format!("{value}")),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+            AstLiteral::Integer(value) if dti.is_float() => {
+                return AstStatement::new_real(value.to_string(), *id, location.to_owned())
             }
-            AstLiteral::String(StringValue { value, is_wide: false }) => {
-                if matches!(
-                    data_type.get_type_information(),
-                    DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }
-                ) {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_string(value.clone(), true),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+
+            AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
+                return AstStatement::new_string(value, false, *id, location.to_owned())
             }
-            AstLiteral::String(StringValue { value, is_wide: true }) => {
-                if matches!(
-                    data_type.get_type_information(),
-                    DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }
-                ) {
-                    return AstStatement::new_literal(
-                        AstLiteral::new_string(value.clone(), false),
-                        statement.get_id(),
-                        statement.get_location(),
-                    );
-                }
+
+            AstLiteral::String(StringValue { value, is_wide: false }) if dti.is_string_utf16() => {
+                return AstStatement::new_string(value, true, *id, location.to_owned())
             }
-            _ => {}
+
+            _ => (),
         }
-    }
+    };
+
     statement
+}
+
+/// Checks if a literal integer or float overflows based on its value, and if so returns true.
+fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
+    let Some(dti) = dti else { return false };
+    let AstStatement::Literal { kind, .. } = literal else { return false };
+
+    if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
+        return false;
+    };
+
+    match &dti {
+        DataTypeInformation::Integer { signed, size, semantic_size, .. } => {
+            let size = semantic_size.as_ref().unwrap_or(size).to_owned();
+            match (kind, signed, size) {
+                // Signed
+                (AstLiteral::Integer(value), true, 8) => i8::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 16) => i16::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 32) => i32::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), true, 64) => i64::try_from(*value).is_err(),
+
+                // Unsigned
+                (AstLiteral::Integer(value), false, 8) => u8::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 16) => u16::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 32) => u32::try_from(*value).is_err(),
+                (AstLiteral::Integer(value), false, 64) => u64::try_from(*value).is_err(),
+
+                // We are dealing with e.g. booleans if we have a semantic size != 8, 16, 32 or 64
+                (AstLiteral::Integer(value), _, _) => {
+                    let min = if *signed { -(2_i128.pow(size - 1)) } else { 0 };
+                    let max = 2_i128.pow(size) - 1;
+
+                    *value < min || *value > max
+                }
+
+                // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
+                _ => false,
+            }
+        }
+
+        DataTypeInformation::Float { size, .. } => match (kind, size) {
+            (AstLiteral::Real(value), 32) => value.parse::<f32>().map(f32::is_infinite).unwrap_or(false),
+            (AstLiteral::Real(value), 64) => value.parse::<f64>().map(f64::is_infinite).unwrap_or(false),
+
+            // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
+            _ => false,
+        },
+
+        // Only interested in integers and floats
+        _ => false,
+    }
 }
 
 pub fn evaluate(
     initial: &AstStatement,
     scope: Option<&str>,
     index: &Index,
-) -> Result<Option<AstStatement>, String> {
+) -> Result<Option<AstStatement>, UnresolvableKind> {
     evaluate_with_target_hint(initial, scope, index, None)
 }
 
@@ -381,17 +320,57 @@ pub fn evaluate(
 /// ## Returns
 /// - returns an Err if resolving caused an internal error (e.g. number parsing)
 /// - returns None if the initializer cannot be resolved  (e.g. missing value)
-pub fn evaluate_with_target_hint(
+fn evaluate_with_target_hint(
     initial: &AstStatement,
     scope: Option<&str>,
     index: &Index,
     target_type: Option<&str>,
-) -> Result<Option<AstStatement>, String> {
+) -> Result<Option<AstStatement>, UnresolvableKind> {
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
 
     let literal = match initial {
+        AstStatement::Literal { kind, location, id } => match kind {
+            AstLiteral::Array(Array { elements: Some(elements) }) => {
+                let tt = target_type
+                    .and_then(|it| index.find_effective_type_info(it))
+                    .and_then(|it| it.get_inner_array_type_name())
+                    .or(target_type);
+
+                let inner_elements = AstStatement::get_as_list(elements)
+                    .iter()
+                    .map(|e| evaluate_with_target_hint(e, scope, index, tt))
+                    .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
+                    .into_iter()
+                    .collect::<Option<Vec<AstStatement>>>();
+
+                //return a new array, or return none if one was not resolvable
+                inner_elements.map(|ie| AstStatement::Literal {
+                    id: *id,
+                    kind: AstLiteral::new_array(Some(Box::new(AstStatement::ExpressionList {
+                        expressions: ie,
+                        id: *id,
+                    }))),
+                    location: location.clone(),
+                })
+            }
+
+            AstLiteral::Integer(_) | AstLiteral::Real(_) => {
+                let dti = target_type.and_then(|it| index.find_effective_type_info(it));
+                if does_overflow(initial, dti) {
+                    return Err(UnresolvableKind::Overflow(
+                        format!("This will overflow for type {}", dti.unwrap().get_name()),
+                        initial.get_location(),
+                    ));
+                }
+
+                return Ok(Some(initial.clone()));
+            }
+
+            _ => return Ok(Some(initial.clone())),
+        },
+
         AstStatement::DefaultValue { location, .. } => {
             return get_default_initializer(
                 initial.get_id(),
@@ -401,18 +380,26 @@ pub fn evaluate_with_target_hint(
             )
         }
         AstStatement::CastStatement { target, type_name, .. } => {
-            match index.find_effective_type_info(type_name) {
+            let dti = index.find_effective_type_info(type_name);
+            match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
                     if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
                         return index
                             .find_enum_element(enum_name, ref_name)
-                            .ok_or_else(|| format!("Cannot resolve constant enum {enum_name}#{ref_name}."))
+                            .ok_or_else(|| {
+                                UnresolvableKind::Misc(format!(
+                                    "Cannot resolve constant enum {enum_name}#{ref_name}."
+                                ))
+                            })
                             .and_then(|v| resolve_const_reference(v, ref_name, index));
                     } else {
-                        return Err("Cannot resolve unknown constant.".to_string());
+                        return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
                 }
-                _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+                _ => {
+                    evaluate_with_target_hint(target, scope, index, Some(type_name))?;
+                    Some(get_cast_statement_literal(target, type_name, scope, index)?)
+                }
             }
         }
         AstStatement::Reference { name, .. } => index
@@ -431,26 +418,28 @@ pub fn evaluate_with_target_hint(
                 {
                     return index
                         .find_member(pou_name, variable_name)
-                        .ok_or_else(|| "Cannot resolve unknown constant.".to_string())
+                        .ok_or_else(|| UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()))
                         .and_then(|variable| resolve_const_reference(variable, variable_name, index));
                 }
             }
-            return Err("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string());
+            return Err(UnresolvableKind::Misc("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string()));
         }
         AstStatement::BinaryExpression { left, right, operator, id, .. } => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
-                Some(match operator {
+                let evalualted = match operator {
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", *id)?,
                     Operator::Minus => arithmetic_expression!(left, -, right, "-", *id)?,
                     Operator::Multiplication => arithmetic_expression!(left, *, right, "*", *id)?,
-                    Operator::Division if is_zero(right) => {
-                        return Err("Attempt to divide by zero".to_string())
+                    Operator::Division if right.is_zero() => {
+                        return Err(UnresolvableKind::Misc("Attempt to divide by zero".to_string()))
                     }
                     Operator::Division => arithmetic_expression!(left, /, right, "/", *id)?,
-                    Operator::Modulo if is_zero(right) => {
-                        return Err("Attempt to calculate the remainder with a divisor of zero".to_string())
+                    Operator::Modulo if right.is_zero() => {
+                        return Err(UnresolvableKind::Misc(
+                            "Attempt to calculate the remainder with a divisor of zero".to_string(),
+                        ))
                     }
                     Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", *id)?,
                     Operator::Equal => compare_expression!(left, ==, right, "=", *id)?,
@@ -462,8 +451,15 @@ pub fn evaluate_with_target_hint(
                     Operator::And => bitwise_expression!(left, & , right, "AND", *id)?,
                     Operator::Or => bitwise_expression!(left, | , right, "OR", *id)?,
                     Operator::Xor => bitwise_expression!(left, ^, right, "XOR", *id)?,
-                    _ => return Err(format!("Cannot resolve operator {operator:?} in constant evaluation")),
-                })
+                    _ => {
+                        return Err(UnresolvableKind::Misc(format!(
+                            "Cannot resolve operator {operator:?} in constant evaluation"
+                        )))
+                    }
+                };
+
+                // We have to re-evaluate to detect overflows
+                evaluate_with_target_hint(&evalualted, scope, index, target_type)?
             } else {
                 None //not all operators can be resolved
             }
@@ -471,17 +467,19 @@ pub fn evaluate_with_target_hint(
 
         // NOT x
         AstStatement::UnaryExpression { operator: Operator::Not, value, .. } => {
-            match evaluate(value, scope, index)? {
+            let eval = evaluate(value, scope, index)?;
+            match eval.clone() {
                 Some(AstStatement::Literal { kind: AstLiteral::Bool(v), id, location }) => {
                     Some(AstStatement::Literal { kind: AstLiteral::Bool(!v), id, location })
                 }
                 Some(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) => {
+                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)?;
                     Some(AstStatement::Literal { kind: AstLiteral::Integer(!v), id, location })
                 }
                 None => {
                     None //not yet resolvable
                 }
-                _ => return Err(format!("Cannot resolve constant Not {value:?}")),
+                _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Not {value:?}"))),
             }
         }
         // - x
@@ -491,49 +489,28 @@ pub fn evaluate_with_target_hint(
                     Some(AstStatement::Literal { kind: AstLiteral::Integer(-v), id, location })
                 }
                 Some(AstStatement::Literal { kind: AstLiteral::Real(v), id, location }) => {
-                    Some(AstStatement::Literal {
+                    let lit = AstStatement::Literal {
                         kind: AstLiteral::new_real(format!(
                             "{:}",
-                            -(v.parse::<f64>()).map_err(|err| format!("{err:}: {v:}"))?
+                            -(v.parse::<f64>())
+                                .map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?
                         )),
                         id,
                         location,
-                    })
+                    };
+                    evaluate_with_target_hint(&lit, scope, index, target_type)?
                 }
                 None => {
                     None //not yet resolvable
                 }
-                _ => return Err(format!("Cannot resolve constant Minus {value:?}")),
+                _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
-        }
-        AstStatement::Literal {
-            id,
-            kind: AstLiteral::Array(Array { elements: Some(elements) }),
-            location,
-            ..
-        } => {
-            let inner_elements = AstStatement::get_as_list(elements)
-                .iter()
-                .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
-                .into_iter()
-                .collect::<Option<Vec<AstStatement>>>();
-
-            //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstStatement::Literal {
-                id: *id,
-                kind: AstLiteral::new_array(Some(Box::new(AstStatement::ExpressionList {
-                    expressions: ie,
-                    id: *id,
-                }))),
-                location: location.clone(),
-            })
         }
         AstStatement::ExpressionList { expressions, id } => {
             let inner_elements = expressions
                 .iter()
                 .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstStatement>>>();
 
@@ -544,7 +521,7 @@ pub fn evaluate_with_target_hint(
             let inner_elements = AstStatement::get_as_list(element.as_ref())
                 .iter()
                 .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstStatement>>>();
 
@@ -580,7 +557,7 @@ pub fn evaluate_with_target_hint(
             let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
             Some(AstStatement::RangeStatement { start, end, id: *id })
         }
-        _ => return Err(format!("Cannot resolve constant: {initial:#?}")),
+        _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)
 }
@@ -592,72 +569,52 @@ fn resolve_const_reference(
     variable: &crate::index::VariableIndexEntry,
     name: &str,
     index: &Index,
-) -> Result<Option<AstStatement>, String> {
-    if variable.is_constant() {
-        if let Some(ConstExpression::Resolved(statement)) = variable
-            .initial_value
-            .as_ref()
-            .and_then(|it| index.get_const_expressions().find_const_expression(it))
-        {
-            Ok(Some(statement.clone()))
-        } else {
-            Ok(None) //not resolved yet
-        }
+) -> Result<Option<AstStatement>, UnresolvableKind> {
+    if !variable.is_constant() {
+        return Err(UnresolvableKind::Misc(format!("'{name}' is no const reference")));
+    }
+
+    if let Some(ConstExpression::Resolved(statement)) =
+        variable.initial_value.as_ref().and_then(|it| index.get_const_expressions().find_const_expression(it))
+    {
+        Ok(Some(statement.clone()))
     } else {
-        //the referenced variabale is no const!
-        Err(format!("'{name}' is no const reference"))
+        Ok(None) //not resolved yet
     }
 }
 
-fn is_zero(v: &AstStatement) -> bool {
-    matches!(v, AstStatement::Literal { kind: AstLiteral::Integer(0), .. })
-}
-
-/// takes the given cast_statement transform it into a literal that better represents
-/// the data_type given by the `type_name`
-/// (e.g. WORD#FFFF ... =-1 vs. DINT#FFFF ... =0x0000_FFFF)
+/// Transforms the given `cast_statement` into a literal. For example `WORD#FFFF` will be a
+/// [`AstLiteral::Integer`] with value `65_535` whereas `INT#FFFF` will not evaluate because it overflows
+/// (see also [`does_overflow`] and [`evaluate_with_target_hint`]).
 fn get_cast_statement_literal(
     cast_statement: &AstStatement,
     type_name: &str,
     scope: Option<&str>,
     index: &Index,
-) -> Result<AstStatement, String> {
-    match index.find_effective_type_by_name(type_name).map(DataType::get_type_information) {
-        Some(&crate::typesystem::DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
-            let evaluated_initial = evaluate(cast_statement, scope, index)?
+) -> Result<AstStatement, UnresolvableKind> {
+    let dti = index.find_effective_type_info(type_name);
+    match dti {
+        Some(&DataTypeInformation::Integer { .. }) => {
+            let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
                 .as_ref()
                 .map(|v| {
                     if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = v {
                         Ok(*value)
                     } else {
-                        Err(format!("Expected integer value, found {v:?}"))
+                        Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
                     }
                 })
                 .transpose()?;
+
             if let Some(value) = evaluated_initial {
-                const SIGNED: bool = true;
-                const UNSIGNED: bool = false;
-                let value: i128 = match (signed, semantic_size.unwrap_or(size)) {
-                    //signed
-                    (SIGNED, SINT_SIZE) => (value as NativeSintType) as i128,
-                    (SIGNED, INT_SIZE) => (value as NativeIntType) as i128,
-                    (SIGNED, DINT_SIZE) => (value as NativeDintType) as i128,
-                    (SIGNED, LINT_SIZE) => (value as NativeLintType) as i128,
-                    //unsigned
-                    (UNSIGNED, SINT_SIZE) => (value as NativeByteType) as i128,
-                    (UNSIGNED, INT_SIZE) => (value as NativeWordType) as i128,
-                    (UNSIGNED, DINT_SIZE) => (value as NativeDwordType) as i128,
-                    (UNSIGNED, LINT_SIZE) => (value as NativeLwordType) as i128,
-                    _ => return Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")),
-                };
-                Ok(AstStatement::Literal {
+                return Ok(AstStatement::Literal {
                     kind: AstLiteral::new_integer(value),
                     id: cast_statement.get_id(),
                     location: cast_statement.get_location(),
-                })
-            } else {
-                Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}"))
+                });
             }
+
+            Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")))
         }
 
         Some(DataTypeInformation::Float { .. }) => {
@@ -667,11 +624,15 @@ fn get_cast_statement_literal(
                 Some(AstStatement::Literal { kind: AstLiteral::Real(value), .. }) => {
                     value.parse::<f64>().ok()
                 }
-                _ => return Err(format!("Expected floating point type, got: {evaluated:?}")),
+                _ => {
+                    return Err(UnresolvableKind::Misc(format!(
+                        "Expected floating point type, got: {evaluated:?}"
+                    )))
+                }
             };
 
             let Some(value) = value else {
-                return Err(format!("cannot resolve constant: {type_name}#{cast_statement:?}"))
+                return Err(UnresolvableKind::Misc(format!("cannot resolve constant: {type_name}#{cast_statement:?}")))
             };
 
             Ok(AstStatement::Literal {
@@ -681,6 +642,101 @@ fn get_cast_statement_literal(
             })
         }
 
-        _ => Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")),
+        _ => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}"))),
     }
 }
+
+macro_rules! cannot_eval_error {
+    ($left:expr, $op_text:expr, $right:expr) => {
+        Err(UnresolvableKind::Misc(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)))
+    };
+}
+use cannot_eval_error;
+
+macro_rules! arithmetic_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+                    let rvalue = rvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                    let lvalue = lvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op *rvalue as f64).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+                    let lvalue = lvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                    let rvalue = rvalue.parse::<f64>()
+                        .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op rvalue).to_string()), location: loc_left.span(loc_right)
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    }
+}
+use arithmetic_expression;
+
+macro_rules! bitwise_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    };
+}
+use bitwise_expression;
+
+macro_rules! compare_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
+        match ($left, $right) {
+            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                })
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
+                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) => {
+               Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
+            },
+            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
+                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
+                Ok(AstStatement::Literal{
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                })
+            },
+            _ => cannot_eval_error!($left, $op_text, $right),
+        }
+    }
+}
+use compare_expression;

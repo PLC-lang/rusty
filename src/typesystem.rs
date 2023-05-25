@@ -23,10 +23,10 @@ pub type NativeSintType = i8;
 pub type NativeIntType = i16;
 pub type NativeDintType = i32;
 pub type NativeLintType = i64;
-pub type NativeByteType = u8;
-pub type NativeWordType = u16;
-pub type NativeDwordType = u32;
-pub type NativeLwordType = u64;
+// pub type NativeByteType = u8;
+// pub type NativeWordType = u16;
+// pub type NativeDwordType = u32;
+// pub type NativeLwordType = u64;
 pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
 pub type NativePointerType = usize;
@@ -82,6 +82,7 @@ pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
+pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
 mod tests;
@@ -224,7 +225,7 @@ impl DataType {
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
             TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
-
+            TypeNature::__VLA => matches!(other.nature, TypeNature::__VLA),
             _ => false,
         }
     }
@@ -312,9 +313,19 @@ pub enum StructSource {
     Internal(InternalType),
 }
 
+impl StructSource {
+    pub fn get_type_nature(&self) -> TypeNature {
+        match self {
+            StructSource::Internal(InternalType::VariableLengthArray { .. }) => TypeNature::__VLA,
+            _ => TypeNature::Derived,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
+    __VLA, // used for error-reporting only
 }
 
 type TypeId = String;
@@ -394,6 +405,14 @@ impl DataTypeInformation {
 
     pub fn is_string(&self) -> bool {
         matches!(self, DataTypeInformation::String { .. })
+    }
+
+    pub fn is_string_utf8(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. })
+    }
+
+    pub fn is_string_utf16(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
     }
 
     pub fn is_character(&self) -> bool {
@@ -687,6 +706,17 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
+        },
+        DataType {
+            name: "__VLA".into(),
+            initial_value: None,
+            information: DataTypeInformation::Struct {
+                name: "VARIABLE LENGTH ARRAY".to_string(),
+                members: vec![],
+                source: StructSource::Internal(InternalType::__VLA),
+            },
+            nature: TypeNature::__VLA,
             location: SymbolLocation::internal(),
         },
         DataType {

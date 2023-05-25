@@ -7,7 +7,7 @@ expression: members
         name: "input1",
         qualified_name: "main.input1",
         initial_value: None,
-        variable_type: ByVal(
+        argument_type: ByVal(
             Input,
         ),
         is_constant: false,
@@ -27,7 +27,7 @@ expression: members
         name: "output1",
         qualified_name: "main.output1",
         initial_value: None,
-        variable_type: ByVal(
+        argument_type: ByVal(
             Output,
         ),
         is_constant: false,
@@ -47,7 +47,7 @@ expression: members
         name: "inout1",
         qualified_name: "main.inout1",
         initial_value: None,
-        variable_type: ByRef(
+        argument_type: ByRef(
             InOut,
         ),
         is_constant: false,

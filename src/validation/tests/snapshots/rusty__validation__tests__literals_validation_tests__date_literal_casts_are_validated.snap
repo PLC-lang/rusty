@@ -1,17 +1,17 @@
 ---
 source: src/validation/tests/literals_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Literal DATE_AND_TIME is not campatible to LINT", range: [SourceRange { range: 33..63 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not campatible to LINT", range: [SourceRange { range: 77..106 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not campatible to LINT", range: [SourceRange { range: 120..136 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not campatible to LINT", range: [SourceRange { range: 150..170 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE_AND_TIME is not campatible to ULINT", range: [SourceRange { range: 185..216 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not campatible to ULINT", range: [SourceRange { range: 230..260 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not campatible to ULINT", range: [SourceRange { range: 274..291 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not campatible to ULINT", range: [SourceRange { range: 305..326 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE_AND_TIME is not campatible to INT", range: [SourceRange { range: 341..370 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not campatible to INT", range: [SourceRange { range: 384..412 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not campatible to INT", range: [SourceRange { range: 426..441 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not campatible to INT", range: [SourceRange { range: 455..474 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to LINT", range: [SourceRange { range: 33..63 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to LINT", range: [SourceRange { range: 77..106 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to LINT", range: [SourceRange { range: 120..136 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to LINT", range: [SourceRange { range: 150..170 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to ULINT", range: [SourceRange { range: 185..216 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to ULINT", range: [SourceRange { range: 230..260 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to ULINT", range: [SourceRange { range: 274..291 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to ULINT", range: [SourceRange { range: 305..326 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to INT", range: [SourceRange { range: 341..370 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to INT", range: [SourceRange { range: 384..412 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to INT", range: [SourceRange { range: 426..441 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to INT", range: [SourceRange { range: 455..474 }], err_no: type__incompatible_literal_cast }
 

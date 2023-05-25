@@ -33,7 +33,7 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    pub variable_type: ArgumentType,
+    pub argument_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
@@ -102,7 +102,7 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        variable_type: ArgumentType,
+        argument_type: ArgumentType,
         location_in_parent: u32,
         source_location: SymbolLocation,
     ) -> Self {
@@ -110,7 +110,7 @@ impl VariableIndexEntry {
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: None,
-            variable_type,
+            argument_type,
             is_constant: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
@@ -131,7 +131,7 @@ impl VariableIndexEntry {
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: None,
-            variable_type: ArgumentType::ByVal(VariableType::Global),
+            argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
@@ -217,12 +217,12 @@ impl VariableIndexEntry {
         self.linkage == LinkageType::External
     }
 
-    pub fn get_variable_type(&self) -> VariableType {
-        self.variable_type.get_variable_type()
+    pub fn get_declaration_type(&self) -> ArgumentType {
+        self.argument_type
     }
 
-    pub fn get_declaration_type(&self) -> ArgumentType {
-        self.variable_type
+    pub fn get_variable_type(&self) -> VariableType {
+        self.argument_type.get_inner()
     }
 
     pub fn has_hardware_binding(&self) -> bool {
@@ -261,15 +261,26 @@ pub enum ArgumentType {
 }
 
 impl ArgumentType {
-    pub fn get_variable_type(&self) -> VariableType {
+    pub fn get_inner(&self) -> VariableType {
         match self {
             ArgumentType::ByVal(t) => *t,
             ArgumentType::ByRef(t) => *t,
         }
     }
 
+    pub fn get_inner_ref(&self) -> &VariableType {
+        match self {
+            ArgumentType::ByRef(val) => val,
+            ArgumentType::ByVal(val) => val,
+        }
+    }
+
     pub fn is_by_ref(&self) -> bool {
         matches!(self, ArgumentType::ByRef(..))
+    }
+
+    pub fn is_private(&self) -> bool {
+        matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
     }
 }
 
@@ -282,29 +293,6 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
-}
-
-/// information regarding a variable
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct VariableInformation {
-    /// the type of variable
-    variable_type: VariableType,
-    /// true if this variable is a compile-time-constant
-    is_constant: bool,
-    /// the variable's datatype
-    data_type_name: String,
-    /// the variable's qualifier, None for global variables
-    qualifier: Option<String>,
-    /// Location in the qualifier defautls to 0 (Single variables)
-    location_in_parent: u32,
-}
-
-#[derive(Debug)]
-pub enum DataTypeType {
-    Scalar,        // built in types: INT, BOOL, WORD, ...
-    Struct,        // Struct-DataType
-    FunctionBlock, // a Functionblock instance
-    AliasType,     // a Custom-Alias-dataType
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -1464,9 +1452,4 @@ impl Index {
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
-}
-impl VariableType {
-    pub(crate) fn is_private(&self) -> bool {
-        matches!(self, VariableType::Temp | VariableType::Local)
-    }
 }

@@ -30,68 +30,68 @@ fn representation() {
     // VLA with one dimension of type DINT.
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr").unwrap(), 
     @r###"
-        DataType {
+    DataType {
+        name: "__foo_arr",
+        initial_value: None,
+        information: Struct {
             name: "__foo_arr",
-            initial_value: None,
-            information: Struct {
-                name: "__foo_arr",
-                members: [
-                    VariableIndexEntry {
-                        name: "struct_vla_dint_1",
-                        qualified_name: "__foo_arr.struct_vla_dint_1",
-                        initial_value: None,
-                        variable_type: ByVal(
-                            Input,
-                        ),
-                        is_constant: false,
-                        data_type_name: "__ptr_to___arr_vla_1_dint",
-                        location_in_parent: 0,
-                        linkage: Internal,
-                        binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 0,
-                            source_range: SourceRange {
-                                range: 0..0,
-                            },
+            members: [
+                VariableIndexEntry {
+                    name: "struct_vla_dint_1",
+                    qualified_name: "__foo_arr.struct_vla_dint_1",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    data_type_name: "__ptr_to___arr_vla_1_dint",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SymbolLocation {
+                        line_number: 0,
+                        source_range: SourceRange {
+                            range: 0..0,
                         },
-                        varargs: None,
                     },
-                    VariableIndexEntry {
-                        name: "dimensions",
-                        qualified_name: "__foo_arr.dimensions",
-                        initial_value: None,
-                        variable_type: ByVal(
-                            Input,
-                        ),
-                        is_constant: false,
-                        data_type_name: "n_dims",
-                        location_in_parent: 1,
-                        linkage: Internal,
-                        binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 0,
-                            source_range: SourceRange {
-                                range: 0..0,
-                            },
-                        },
-                        varargs: None,
-                    },
-                ],
-                source: Internal(
-                    VariableLengthArray {
-                        inner_type_name: "DINT",
-                        ndims: 1,
-                    },
-                ),
-            },
-            nature: Derived,
-            location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 79..95,
+                    varargs: None,
                 },
+                VariableIndexEntry {
+                    name: "dimensions",
+                    qualified_name: "__foo_arr.dimensions",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    data_type_name: "__bounds___arr_vla_1_dint",
+                    location_in_parent: 1,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SymbolLocation {
+                        line_number: 0,
+                        source_range: SourceRange {
+                            range: 0..0,
+                        },
+                    },
+                    varargs: None,
+                },
+            ],
+            source: Internal(
+                VariableLengthArray {
+                    inner_type_name: "DINT",
+                    ndims: 1,
+                },
+            ),
+        },
+        nature: __VLA,
+        location: SymbolLocation {
+            line_number: 3,
+            source_range: SourceRange {
+                range: 79..95,
             },
-        }
+        },
+    }
     "###);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
@@ -131,7 +131,7 @@ fn representation() {
                 },
             ],
         },
-        nature: Any,
+        nature: __VLA,
         location: SymbolLocation {
             line_number: 4294967295,
             source_range: SourceRange {
@@ -142,39 +142,39 @@ fn representation() {
     "###);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("n_dims").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(), 
     @r###"
-        DataType {
-            name: "n_dims",
-            initial_value: None,
-            information: Array {
-                name: "n_dims",
-                inner_type_name: "DINT",
-                dimensions: [
-                    Dimension {
-                        start_offset: ConstExpression(
-                            Index {
-                                index: 0,
-                                generation: 0,
-                            },
-                        ),
-                        end_offset: ConstExpression(
-                            Index {
-                                index: 1,
-                                generation: 0,
-                            },
-                        ),
-                    },
-                ],
-            },
-            nature: Any,
-            location: SymbolLocation {
-                line_number: 0,
-                source_range: SourceRange {
-                    range: 0..0,
+    DataType {
+        name: "__bounds___arr_vla_1_dint",
+        initial_value: None,
+        information: Array {
+            name: "__bounds___arr_vla_1_dint",
+            inner_type_name: "DINT",
+            dimensions: [
+                Dimension {
+                    start_offset: ConstExpression(
+                        Index {
+                            index: 0,
+                            generation: 0,
+                        },
+                    ),
+                    end_offset: ConstExpression(
+                        Index {
+                            index: 1,
+                            generation: 0,
+                        },
+                    ),
                 },
+            ],
+        },
+        nature: Any,
+        location: SymbolLocation {
+            line_number: 0,
+            source_range: SourceRange {
+                range: 0..0,
             },
-        }
+        },
+    }
     "###);
 }
 
@@ -267,7 +267,7 @@ fn pass() {
                 name: "struct_vla_dint_1",
                 qualified_name: "__foo_arr.struct_vla_dint_1",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
@@ -287,11 +287,11 @@ fn pass() {
                 name: "dimensions",
                 qualified_name: "__foo_arr.dimensions",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
-                data_type_name: "n_dims",
+                data_type_name: "__bounds___arr_vla_1_dint",
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,

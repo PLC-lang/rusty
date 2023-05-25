@@ -9,18 +9,21 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
-        SourceRangeFactory,
+        self, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
+        LinkageType, SourceRange, SourceRangeFactory, TypeNature,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
+    index::Index,
     lexer::{self, IdProvider},
     parser,
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
-        AnnotationMap, TypeAnnotator, VisitorContext,
+        AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
+    typesystem,
+    validation::{Validator, Validators},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -36,6 +39,7 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -61,32 +65,40 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: Some(|annotator, operator, parameters, _| {
-                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
-                        // Get the input and annotate it with a pointer type
-                        if let [input] = flatten_expression_list(params)[..] {
-                            let input_type = annotator.annotation_map
-                                .get_type_or_void(input, annotator.index)
-                                .get_type_information()
-                                .get_name()
-                                .to_owned();
+                    // invalid amount of parameters is checked during validation
+                    let Some(params) = parameters else { return; };
+                    // Get the input and annotate it with a pointer type
+                    let input = flatten_expression_list(params);
+                    let Some(input) = input.get(0)  else { return; };
+                    let input_type = annotator.annotation_map
+                        .get_type_or_void(input, annotator.index)
+                        .get_type_information()
+                        .get_name()
+                        .to_owned();
 
-                            let ptr_type = resolver::add_pointer_type(
-                                &mut annotator.annotation_map.new_index,
-                                input_type
-                            );
+                    let ptr_type = resolver::add_pointer_type(
+                        &mut annotator.annotation_map.new_index,
+                        input_type
+                    );
 
-                            annotator.annotation_map.annotate(
-                                operator, resolver::StatementAnnotation::Function {
-                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
-                                }
-                            );
-
-                            Ok(())
-                        } else {
-                            unreachable!()
+                    annotator.annotation_map.annotate(
+                        operator, resolver::StatementAnnotation::Function {
+                            return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                         }
+                    );
+                }),
+                validation: Some(|validator, operator, parameters, _, _| {
+                    let Some(params) = parameters else {
+                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, 0, operator.get_location()));
+                        return;
+                    };
+
+                    let params = ast::flatten_expression_list(params);
+
+                    if params.len() > 1 {
+                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
                     }
-            ),
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -113,6 +125,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation : None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     let llvm = generator.llvm;
@@ -169,6 +182,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
@@ -211,6 +225,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
@@ -230,6 +245,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if let [reference] = params {
@@ -257,20 +273,240 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "LOWER_BOUND",
+            BuiltIn {
+                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
+                VAR_IN_OUT
+                    arr : U;
+                END_VAR
+                VAR_INPUT
+                    dim : T;
+                END_VAR
+                END_FUNCTION",
+                annotation: Some(|annotator, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, location| {
+                    generate_variable_length_array_bound_function(generator, params, true, location)
+                }
+            }
+        ),
+        (
+            "UPPER_BOUND",
+            BuiltIn {
+                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
+                VAR_IN_OUT
+                    arr : U;
+                END_VAR
+                VAR_INPUT
+                    dim : T;
+                END_VAR
+                END_FUNCTION",
+                annotation: Some(|annotator, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, location| {
+                    generate_variable_length_array_bound_function(generator, params, false, location)
+                }
+            }
+        ),
     ]);
 }
 
-type AnnotationFunction =
-    fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext) -> Result<(), Diagnostic>;
+fn annotate_variable_length_array_bound_function(
+    annotator: &mut TypeAnnotator,
+    parameters: Option<&AstStatement>,
+) {
+    let Some(parameters) = parameters else {
+        // caught during validation
+        return;
+    };
+    let params = ast::flatten_expression_list(parameters);
+    let Some(vla) = params.get(0) else {
+        // caught during validation
+        return;
+    };
+
+    // if the VLA parameter is a VLA struct, annotate it as such
+    let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+        vla_type.get_name()
+    } else {
+        // otherwise annotate it with an internal, reserved VLA type
+        typesystem::__VLA_TYPE
+    };
+
+    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
+}
+
+fn validate_variable_length_array_bound_function(
+    validator: &mut Validator,
+    operator: &AstStatement,
+    parameters: &Option<AstStatement>,
+    annotations: &AnnotationMapImpl,
+    index: &Index,
+) {
+    let Some(parameters) = parameters else {
+        validator.push_diagnostic(
+            Diagnostic::invalid_parameter_count(2, 0, operator.get_location())
+        );
+        // no params, nothing to validate
+        return;
+    };
+
+    let params = ast::flatten_expression_list(parameters);
+
+    if params.len() > 2 {
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+            2,
+            params.len(),
+            operator.get_location(),
+        ));
+    }
+
+    match (params.get(0), params.get(1)) {
+        (Some(vla), Some(idx)) => {
+            let idx_type = annotations.get_type_or_void(idx, index);
+
+            if !idx_type.has_nature(TypeNature::Int, index) {
+                validator.push_diagnostic(Diagnostic::invalid_type_nature(
+                    idx_type.get_name(),
+                    &format!("{:?}", TypeNature::Int),
+                    idx.get_location(),
+                ))
+            }
+
+            // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
+            if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
+                let dimension_idx = *dimension_idx as usize;
+
+                let Some(n_dimensions) = annotations.get_type_or_void(vla, index).get_type_information().get_dimensions() else {
+                    // not a vla, validated via type nature
+                    return;
+                };
+
+                if dimension_idx < 1 || dimension_idx > n_dimensions {
+                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(operator.get_location()))
+                }
+            };
+        }
+        (Some(_), None) => {
+            validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 1, operator.get_location()))
+        }
+        _ => unreachable!(),
+    }
+}
+
+/// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
+/// arguments are incorrect.
+fn generate_variable_length_array_bound_function<'ink>(
+    generator: &ExpressionCodeGenerator<'ink, '_>,
+    params: &[&AstStatement],
+    is_lower: bool,
+    location: SourceRange,
+) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    let llvm = generator.llvm;
+    let builder = &generator.llvm.builder;
+    let data_type_information =
+        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
+
+    // TODO: most of the codegen errors should already be caught during validation.
+    // once we abort codegen on critical errors, revisit and change to unreachable where possible
+    if !data_type_information.is_vla() {
+        return Err(Diagnostic::codegen_error(
+            &format!("Expected VLA type, received {}", data_type_information.get_name()),
+            location,
+        ));
+    };
+
+    let vla = generator.generate_element_pointer(params[0]).unwrap();
+    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+
+    let accessor = match params[1] {
+        // e.g. LOWER_BOUND(arr, 1)
+        AstStatement::Literal { kind, .. } => {
+            let AstLiteral::Integer(value) = kind else {
+                let Some(type_name) = kind.get_literal_actual_signed_type_name(false) else {
+                    unreachable!("type cannot be VOID")
+                };
+                return Err(Diagnostic::codegen_error(
+                    &format!("Invalid literal type. Expected INT type, received {type_name} type"),
+                    location,
+                ));
+            };
+            // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
+            // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
+            let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+            llvm.i32_type().const_int(offset, false)
+        }
+        AstStatement::CastStatement { target, .. } => {
+            let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
+                unreachable!()
+            };
+
+            if !value.is_int_value() {
+                return Err(Diagnostic::codegen_error(
+                    &format!("Expected INT value, found {}", value.get_type()),
+                    location,
+                ));
+            };
+
+            value.into_int_value()
+        }
+        // e.g. LOWER_BOUND(arr, idx + 3)
+        _ => {
+            let expression_value = generator.generate_expression(params[1])?;
+            if !expression_value.is_int_value() {
+                todo!()
+            };
+            // this operation mirrors the offset calculation of literal ints, but at runtime
+            let offset = builder.build_int_mul(
+                llvm.i32_type().const_int(2, false),
+                builder.build_int_sub(
+                    expression_value.into_int_value(),
+                    llvm.i32_type().const_int(1, false),
+                    "",
+                ),
+                "",
+            );
+            if !is_lower {
+                builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
+            } else {
+                offset
+            }
+        }
+    };
+
+    let gep_bound =
+        unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+    let bound = llvm.builder.build_load(gep_bound, "");
+
+    Ok(ExpressionValue::RValue(bound))
+}
+
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstStatement],
     SourceRange,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
+type ValidationFunction =
+    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &AnnotationMapImpl, &Index);
+
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
+    validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,
     code: CodegenFunction,
 }
@@ -290,6 +526,10 @@ impl BuiltIn {
 
     pub(crate) fn get_generic_name_resolver(&self) -> GenericNameResolver {
         self.generic_name_resolver
+    }
+
+    pub(crate) fn get_validation(&self) -> Option<ValidationFunction> {
+        self.validation
     }
 }
 

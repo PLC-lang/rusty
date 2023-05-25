@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: res
+---
+SemanticError { message: "This will overflow for type INT", range: [SourceRange { range: 36..41 }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type REAL", range: [SourceRange { range: 87..101 }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LREAL", range: [SourceRange { range: 147..170 }], err_no: var__overflow }
+

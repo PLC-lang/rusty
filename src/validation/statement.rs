@@ -6,6 +6,7 @@ use crate::{
         self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
         StringValue,
     },
+    builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
@@ -270,12 +271,12 @@ fn validate_reference(
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
-    } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
+    } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
         // check if we're accessing a private variable AND the variable's qualifier is not the
         // POU we're accessing it from
-        if variable_type.is_private()
+        if argument_type.is_private()
             && context
                 .qualifier
                 .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -443,15 +444,15 @@ fn compare_function_exists(type_name: &str, operator: &Operator, context: &Valid
         // we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {
             data_type_name: type_name_1,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: type_name_2,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: return_type,
-            variable_type: ArgumentType::ByVal(VariableType::Return),
+            argument_type: ArgumentType::ByVal(VariableType::Return),
             ..
         }] = members
         {
@@ -500,7 +501,7 @@ fn validate_unary_expression(
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
 fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstStatement) {
-    let ty = param.variable_type.get_variable_type();
+    let ty = param.argument_type.get_inner();
     if !matches!(ty, VariableType::Output | VariableType::InOut) {
         return;
     }
@@ -531,21 +532,26 @@ fn validate_assignment(
     context: &ValidationContext,
 ) {
     if let Some(left) = left {
-        // check if we assign to a constant variable
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        // Check if we are assigning to a...
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
             context.annotations.get(left)
         {
+            // ...constant variable
             if *constant {
                 validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
             }
+
+            // ...VAR_INPUT {ref} variable
+            if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
+                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+            }
         }
 
-        // If whatever we got is not assignable, output an error
+        // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            // we hit an assignment without a LValue to assign to
             validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
         }
     }
@@ -581,7 +587,8 @@ fn validate_assignment(
                 location.clone(),
             ));
         } else if !matches!(right, AstStatement::Literal { .. }) {
-            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+            // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -629,16 +636,10 @@ fn is_valid_assignment(
         // in this case return true and skip any other validation
         // because those would fail
         return true;
-    } else if is_invalid_pointer_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-        index,
-        location,
-        validator,
-    ) | is_invalid_char_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+    } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         return false;
@@ -671,7 +672,7 @@ fn is_valid_string_to_char_assignment(
     false
 }
 
-fn is_invalid_pointer_assignment(
+fn _is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
@@ -747,22 +748,28 @@ fn validate_call(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
+        // additional validation for builtin calls if necessary
+        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
-        let mut passed_params_idx = Vec::new();
         let mut are_implicit_parameters = true;
+        let mut variable_location_in_parent = vec![];
+
         // validate parameters
         for (i, p) in passed_parameters.iter().enumerate() {
-            if let Ok((location_in_parent, right, is_implicit)) =
+            if let Ok((parameter_location_in_parent, right, is_implicit)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
-                // safe index of passed parameter
-                passed_params_idx.push(location_in_parent);
-
-                let left = declared_parameters.get(location_in_parent);
+                let left = declared_parameters.get(parameter_location_in_parent);
                 if let Some(left) = left {
                     validate_call_by_ref(validator, left, p);
+                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    variable_location_in_parent.push(left.get_location_in_parent());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -785,13 +792,14 @@ fn validate_call(
 
         // for PROGRAM/FB we need special inout validation
         if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
-            let inouts: Vec<&&VariableIndexEntry> =
+            let declared_in_out_params: Vec<&&VariableIndexEntry> =
                 declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+
             // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-            if !inouts.is_empty() {
+            if !declared_in_out_params.is_empty() {
                 // check if all inouts were passed to the pou call
-                inouts.into_iter().for_each(|p| {
-                    if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
+                declared_in_out_params.into_iter().for_each(|p| {
+                    if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(Diagnostic::missing_inout_parameter(
                             p.get_name(),
                             operator.get_location(),
@@ -832,8 +840,10 @@ fn validate_case_statement(
         const_evaluator::evaluate(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
-                validator
-                    .push_diagnostic(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
+                validator.push_diagnostic(Diagnostic::non_constant_case_condition(
+                    err.get_reason(),
+                    condition.get_location(),
+                ))
             })
             .map(|v| {
                 // check for duplicates if we got a value
@@ -891,7 +901,7 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
     }
 }
 
-fn validate_assignment_type_sizes(
+fn _validate_assignment_type_sizes(
     validator: &mut Validator,
     left: &DataType,
     right: &DataType,
