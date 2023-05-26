@@ -17,12 +17,12 @@ impl GetOrErr for HashMap<String, String> {
 pub(crate) struct FunctionBlockDiagram {
     pub blocks: Vec<Block>,
     pub variables: Vec<FunctionBlockVariable>,
-    pub jumps: Vec<Jump>,
+    pub controls: Vec<Control>,
 }
 
 #[derive(Debug)]
-pub(crate) struct Jump {
-    pub kind: JumpKind,
+pub(crate) struct Control {
+    pub kind: ControlKind,
     pub name: Option<String>,
     pub local_id: usize,
     pub global_id: Option<usize>,
@@ -31,8 +31,8 @@ pub(crate) struct Jump {
     pub negated: bool,
 }
 
-impl Jump {
-    pub fn new(mut hm: HashMap<String, String>, kind: JumpKind) -> Result<Self, Error> {
+impl Control {
+    pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             name: hm.remove("label"),
@@ -46,7 +46,7 @@ impl Jump {
 }
 
 #[derive(Debug)]
-pub(crate) enum JumpKind {
+pub(crate) enum ControlKind {
     Jump,
     Label,
     Return,
@@ -250,14 +250,14 @@ impl FromStr for PouType {
     }
 }
 
-impl FromStr for JumpKind {
+impl FromStr for ControlKind {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "jump" => Ok(JumpKind::Jump),
-            "label" => Ok(JumpKind::Label),
-            "return" => Ok(JumpKind::Return),
+            "jump" => Ok(ControlKind::Jump),
+            "label" => Ok(ControlKind::Label),
+            "return" => Ok(ControlKind::Return),
             _ => Err(Error::UnexpectedElement(s.to_string())),
         }
     }

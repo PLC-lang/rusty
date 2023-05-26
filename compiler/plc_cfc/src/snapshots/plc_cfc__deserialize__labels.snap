@@ -90,8 +90,8 @@ Ok(
                         ref_local_id: None,
                     },
                 ],
-                jumps: [
-                    Jump {
+                controls: [
+                    Control {
                         kind: Jump,
                         name: Some(
                             "jumpy",
@@ -106,7 +106,7 @@ Ok(
                         ),
                         negated: false,
                     },
-                    Jump {
+                    Control {
                         kind: Label,
                         name: Some(
                             "jumpy",
@@ -119,7 +119,7 @@ Ok(
                         ),
                         negated: false,
                     },
-                    Jump {
+                    Control {
                         kind: Return,
                         name: None,
                         local_id: 11,

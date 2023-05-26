@@ -82,7 +82,7 @@ Ok(
                         ref_local_id: None,
                     },
                 ],
-                jumps: [],
+                controls: [],
             },
             global_id: None,
         },

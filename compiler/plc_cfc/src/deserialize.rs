@@ -5,7 +5,7 @@ use quick_xml::{events::Event, name::QName};
 use crate::{
     error::Error,
     model::{
-        Block, BlockVariable, Body, FunctionBlockDiagram, FunctionBlockVariable, Jump, JumpKind, Pou,
+        Block, BlockVariable, Body, Control, ControlKind, FunctionBlockDiagram, FunctionBlockVariable, Pou,
         VariableKind,
     },
     reader::PeekableReader,
@@ -146,13 +146,13 @@ impl Parseable for FunctionBlockDiagram {
         reader.consume()?;
         let mut blocks = Vec::new();
         let mut variables = Vec::new();
-        let mut jumps = Vec::new(); // TODO
+        let mut controls = Vec::new(); // TODO
 
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"block" => blocks.push(Block::visit(reader)?),
-                    b"jump" | b"label" | b"return" => jumps.push(Jump::visit(reader)?),
+                    b"jump" | b"label" | b"return" => controls.push(Control::visit(reader)?),
                     b"inVariable" | b"outVariable" => variables.push(FunctionBlockVariable::visit(reader)?),
                     _ => reader.consume()?,
                 },
@@ -165,16 +165,16 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        Ok(FunctionBlockDiagram { blocks, variables, jumps })
+        Ok(FunctionBlockDiagram { blocks, variables, controls })
     }
 }
 
-impl Parseable for Jump {
+impl Parseable for Control {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
         let kind = match reader.peek()? {
-            Event::Start(tag) | Event::Empty(tag) => JumpKind::from_str(&tag.name().try_to_string()?)?,
+            Event::Start(tag) | Event::Empty(tag) => ControlKind::from_str(&tag.name().try_to_string()?)?,
             _ => unreachable!(),
         };
         let mut attributes = reader.attributes()?;
@@ -197,7 +197,7 @@ impl Parseable for Jump {
             }
         }
 
-        Jump::new(attributes, kind)
+        Control::new(attributes, kind)
     }
 }
 
