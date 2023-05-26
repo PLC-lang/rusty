@@ -4,6 +4,7 @@ pub enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
     /// Indicates that the reader expected the new line to be ...
+    // TODO: This should also carry a vector of tokens
     UnexpectedElement(String),
 
     /// Indicates that converting a `[u8]` to a String failed due to encoding issues.
@@ -42,14 +43,17 @@ impl std::fmt::Display for Error {
 impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::UnexpectedEndOfFile(arg0) => {
-                let tokens = arg0
-                    .iter()
-                    .map(|it| std::str::from_utf8(it).unwrap().to_string())
-                    .collect::<Vec<String>>();
-                write!(f, "Expected token {tokens:?} but reached end of file")
+            Self::UnexpectedEndOfFile(tokens) => {
+                write!(
+                    f,
+                    "Expected token {:?} but reached end of file",
+                    tokens
+                        .iter()
+                        .map(|it| std::str::from_utf8(it).unwrap().to_string())
+                        .collect::<Vec<String>>()
+                )
             }
-            Self::MissingAttribute(key) => write!(f, "Expected attribute {key} but found none"),
+            Self::MissingAttribute(key) => write!(f, "Failed to find attribute '{key}'"),
             Self::ReadEvent(why) => write!(f, "Failed to read XML; {why}"),
             Self::UnexpectedElement(element) => write!(f, "{element}"),
             Self::Encoding(why) => write!(f, "{why:#?}"),
