@@ -4,7 +4,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{get_llvm_int_type, CastMeMaybe},
+        llvm_typesystem::{get_llvm_int_type, TypeCaster},
     },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{

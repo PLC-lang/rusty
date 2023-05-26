@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
-    codegen::{debug::Debug, llvm_typesystem::CastMeMaybe},
+    codegen::{debug::Debug, llvm_typesystem::TypeCaster},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},

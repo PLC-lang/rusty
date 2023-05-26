@@ -19,73 +19,6 @@ use super::{
     llvm_index::LlvmTypedIndex,
 };
 
-/// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
-/// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
-///
-/// This function provides no additional validation or safeguards for invalid casts, as such validation is expected to be
-/// performed at the validation stage prior to code-gen.
-/// Cast instructions for values other than IntValue, FloatValue and PointerValue will simply be ignored (and the value
-/// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
-///
-/// - `llvm` the llvm utilities to use for code-generation
-/// - `index` the current Index used for type-lookups
-/// - `llvm_type_index` the type index to lookup llvm generated types
-/// - `target_type` the expected target type of the value
-/// - `value_type` the current type of the given value
-/// - `value` the value to (maybe) cast
-pub trait CastMeMaybe<'ctx> {
-    fn cast_if_needed(
-        &self,
-        target_type: &DataType,
-        value_type: &DataType,
-        value: BasicValueEnum<'ctx>,
-        annotation: Option<&StatementAnnotation>,
-    ) -> BasicValueEnum<'ctx>;
-}
-
-// This trait allows borrowing fields from structs which implement this trait.
-trait Generator<'ctx, 'cast> {
-    type Output;
-    fn borrow(&self) -> Self::Output;
-}
-
-macro_rules! impl_generator {
-    (($out1:ty, $out2:ty, $out3:ty, $a:lifetime, $b:lifetime), [$($t:ty),+]) => {
-        $(impl<$a, $b> Generator<$a, $b> for $t {
-            type Output = (&$b$out1, &$b$out2, &$b$out3);
-            fn borrow(&self) -> Self::Output {
-                (self.index, self.llvm, self.llvm_index)
-            }
-        })*
-    }
-}
-
-impl_generator! {(Index, Llvm<'ctx>, LlvmTypedIndex<'ctx>, 'ctx, 'cast), [ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
-
-impl<'ctx, 'cast> CastMeMaybe<'ctx> for ExpressionCodeGenerator<'ctx, 'cast> {
-    fn cast_if_needed(
-        &self,
-        target_type: &DataType,
-        value_type: &DataType,
-        value: BasicValueEnum<'ctx>,
-        annotation: Option<&StatementAnnotation>,
-    ) -> BasicValueEnum<'ctx> {
-        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
-    }
-}
-
-impl<'ctx, 'cast> CastMeMaybe<'ctx> for StatementCodeGenerator<'ctx, 'cast> {
-    fn cast_if_needed(
-        &self,
-        target_type: &DataType,
-        value_type: &DataType,
-        value: BasicValueEnum<'ctx>,
-        annotation: Option<&StatementAnnotation>,
-    ) -> BasicValueEnum<'ctx> {
-        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
-    }
-}
-
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
     match size {
         1 => context.bool_type(),
@@ -106,9 +39,73 @@ pub fn get_llvm_float_type<'a>(context: &'a Context, size: u32, name: &str) -> F
     }
 }
 
-// llvm: &'cast Llvm<'ctx>,
-// index: &'cast Index,
-// llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
+pub trait TypeCaster<'ctx> {
+    /// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
+    /// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
+    ///
+    /// This function provides no additional validation or safeguards for invalid casts, as such validation is expected to be
+    /// performed at the validation stage prior to code-gen.
+    /// Cast instructions for values other than IntValue, FloatValue and PointerValue will simply be ignored (and the value
+    /// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
+    ///
+    /// - `self` the generator calling this function
+    /// - `llvm` the llvm utilities to use for code-generation
+    /// - `index` the current Index used for type-lookups
+    /// - `llvm_type_index` the type index to lookup llvm generated types
+    /// - `target_type` the expected target type of the value
+    /// - `value_type` the current type of the given value
+    /// - `value` the value to (maybe) cast
+    fn cast_if_needed(
+        &self,
+        target_type: &DataType,
+        value_type: &DataType,
+        value: BasicValueEnum<'ctx>,
+        annotation: Option<&StatementAnnotation>,
+    ) -> BasicValueEnum<'ctx>;
+}
+
+// Implementing this trait allows borrowing fields from structs when they are passed as generic arguments
+trait Borrower<'ctx, 'cast> {
+    type Output;
+    fn borrow(&self) -> Self::Output;
+}
+
+macro_rules! impl_borrow_for_generator {
+    (($out1:ty, $out2:ty, $out3:ty), [$($t:ty),+]) => {
+        $(impl<'ctx, 'cast> Borrower<'ctx, 'cast> for $t {
+            type Output = (&'cast $out1, &'cast $out2, &'cast $out3);
+            fn borrow(&self) -> Self::Output {
+                (self.index, self.llvm, self.llvm_index)
+            }
+        })*
+    }
+}
+
+impl_borrow_for_generator! {(Index, Llvm<'ctx>, LlvmTypedIndex<'ctx>), [ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
+
+impl<'ctx, 'cast> TypeCaster<'ctx> for ExpressionCodeGenerator<'ctx, 'cast> {
+    fn cast_if_needed(
+        &self,
+        target_type: &DataType,
+        value_type: &DataType,
+        value: BasicValueEnum<'ctx>,
+        annotation: Option<&StatementAnnotation>,
+    ) -> BasicValueEnum<'ctx> {
+        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
+    }
+}
+
+impl<'ctx, 'cast> TypeCaster<'ctx> for StatementCodeGenerator<'ctx, 'cast> {
+    fn cast_if_needed(
+        &self,
+        target_type: &DataType,
+        value_type: &DataType,
+        value: BasicValueEnum<'ctx>,
+        annotation: Option<&StatementAnnotation>,
+    ) -> BasicValueEnum<'ctx> {
+        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
+    }
+}
 
 struct CastInstructionGenerator<'ctx, 'cast> {
     llvm: &'cast Llvm<'ctx>,
@@ -127,8 +124,8 @@ impl<'ctx, 'cast> CastInstructionGenerator<'ctx, 'cast> {
         annotation: Option<&'cast StatementAnnotation>,
     ) -> CastInstructionGenerator<'ctx, 'cast>
     where
-        G: Generator<'ctx, 'cast, Output = (&'cast Index, &'cast Llvm<'ctx>, &'cast LlvmTypedIndex<'ctx>)>
-            + CastMeMaybe<'ctx>,
+        G: Borrower<'ctx, 'cast, Output = (&'cast Index, &'cast Llvm<'ctx>, &'cast LlvmTypedIndex<'ctx>)>
+            + TypeCaster<'ctx>,
     {
         let (index, llvm, llvm_type_index) = generator.borrow();
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
@@ -141,7 +138,6 @@ impl<'ctx, 'cast> CastInstructionGenerator<'ctx, 'cast> {
             } else {
                 target_type
             };
-
         CastInstructionGenerator { llvm, index, llvm_type_index, value_type, target_type, annotation }
     }
 }
@@ -164,6 +160,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
             BasicValueEnum::IntValue(val) => val.cast(generator),
             BasicValueEnum::FloatValue(val) => val.cast(generator),
             BasicValueEnum::PointerValue(val) => val.cast(generator),
+            BasicValueEnum::ArrayValue(val) => val.cast(generator),
             _ => self,
         }
     }
@@ -238,8 +235,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 .builder
                 .build_ptr_to_int(self, get_llvm_int_type(generator.llvm.context, *lsize, ""), "")
                 .into(),
-            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
-                // TODO: is void really needed here? no failing tests if omitted/do we ever cast to void?
+            DataTypeInformation::Pointer { .. } => {
                 let Ok(target_ptr_type) = generator.llvm_type_index.get_associated_type(generator.target_type.get_name()) else {
                         unreachable!("Target type of cast instruction does not exist: {}", generator.target_type.get_name())
                     };
@@ -256,7 +252,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = generator.llvm.builder.build_load(self, "auto_deref").cast(&generator);
+                let struct_val = generator.llvm.builder.build_load(self, "auto_deref").cast(generator);
 
                 // create a pointer to the generated StructValue
                 let struct_ptr = generator.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");

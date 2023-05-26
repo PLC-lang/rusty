@@ -3,7 +3,7 @@
 /// offers operations to generate global variables
 use crate::{
     ast::SourceRange,
-    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::CastMeMaybe},
+    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::TypeCaster},
     diagnostics::{Diagnostic, ErrNo},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations},
