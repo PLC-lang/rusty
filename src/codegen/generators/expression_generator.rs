@@ -4,7 +4,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
+        llvm_typesystem::{get_llvm_int_type, CastMeMaybe},
     },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
@@ -164,15 +164,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(v)
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
-        Ok(cast_if_needed(
-            self.llvm,
-            self.index,
-            self.llvm_index,
-            target_type,
-            actual_type,
-            v,
-            self.annotations.get(expression),
-        ))
+        Ok(self.cast_if_needed(target_type, actual_type, v, self.annotations.get(expression)))
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
@@ -384,16 +376,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             //being accessed.
             //The reason is that llvm expects a shift operation to happen on the same type, and
             //this is what the direct access will eventually end up in.
-            let reference = cast_if_needed(
-                self.llvm,
-                self.index,
-                self.llvm_index,
-                target_type,
-                self.get_type_hint_for(index)?,
-                reference,
-                None,
-            )
-            .into_int_value();
+            let reference = self
+                .cast_if_needed(target_type, self.get_type_hint_for(index)?, reference, None)
+                .into_int_value();
             // let reference = reference.into_int_value();
             //Multiply by the bitwitdh
             if access.get_bit_width() > 1 {
@@ -901,10 +886,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // XXX: Calling `cast_if_needed` will result in an `alloca` call for EVERY function call.
                 // LLVM might be able to optimize it away but ideally we find a solution for this at some
                 // point? For a more in-depth description see the `pass` function in `vla_adr.rs`
-                return Ok(cast_if_needed(
-                    self.llvm,
-                    self.index,
-                    self.llvm_index,
+                return Ok(self.cast_if_needed(
                     hint,
                     actual_type,
                     value.into(),
@@ -1451,10 +1433,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             access_value.into_int_value()
         };
         //turn it into i32 immediately
-        Ok(cast_if_needed(
-            self.llvm,
-            self.index,
-            self.llvm_index,
+        Ok(self.cast_if_needed(
             self.index.get_type(DINT_TYPE)?,
             self.get_type_hint_for(access_expression)?,
             result.as_basic_value_enum(),

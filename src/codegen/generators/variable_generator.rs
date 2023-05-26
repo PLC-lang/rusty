@@ -3,7 +3,7 @@
 /// offers operations to generate global variables
 use crate::{
     ast::SourceRange,
-    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
+    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::CastMeMaybe},
     diagnostics::{Diagnostic, ErrNo},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations},
@@ -99,7 +99,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             let value = expr_generator.generate_expression(initializer)?;
             let target_type = global_index.get_effective_type_or_void_by_name(type_name);
             let value_type = annotations.get_type_or_void(initializer, global_index);
-            Some(cast_if_needed(llvm, global_index, index, target_type, value_type, value, None))
+            Some(expr_generator.cast_if_needed(target_type, value_type, value, None))
         }
     } else {
         None

@@ -39,26 +39,28 @@ pub trait CastMeMaybe<'ctx> {
         target_type: &DataType,
         value_type: &DataType,
         value: BasicValueEnum<'ctx>,
+        annotation: Option<&StatementAnnotation>,
     ) -> BasicValueEnum<'ctx>;
 }
 
+// This trait allows borrowing fields from structs which implement this trait.
 trait Generator<'ctx, 'cast> {
     type Output;
-    fn borrow_ll(&self) -> Self::Output;
+    fn borrow(&self) -> Self::Output;
 }
 
 macro_rules! impl_generator {
-    (($out1:ty, $out2:ty, $out3:ty), [$($t:ty),+]) => {
-        $(impl<'ctx, 'cast> Generator<'ctx, 'cast> for $t {
-            type Output = ($out1, $out2, $out3);
-            fn borrow_ll(&self) -> Self::Output {
-                (&self.index, &self.llvm, &self.llvm_index)
+    (($out1:ty, $out2:ty, $out3:ty, $a:lifetime, $b:lifetime), [$($t:ty),+]) => {
+        $(impl<$a, $b> Generator<$a, $b> for $t {
+            type Output = (&$b$out1, &$b$out2, &$b$out3);
+            fn borrow(&self) -> Self::Output {
+                (self.index, self.llvm, self.llvm_index)
             }
         })*
     }
 }
 
-impl_generator! {(&'ctx Index, &'ctx Llvm<'ctx>, &'ctx LlvmTypedIndex<'ctx>), [ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
+impl_generator! {(Index, Llvm<'ctx>, LlvmTypedIndex<'ctx>, 'ctx, 'cast), [ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
 
 impl<'ctx, 'cast> CastMeMaybe<'ctx> for ExpressionCodeGenerator<'ctx, 'cast> {
     fn cast_if_needed(
@@ -72,16 +74,17 @@ impl<'ctx, 'cast> CastMeMaybe<'ctx> for ExpressionCodeGenerator<'ctx, 'cast> {
     }
 }
 
-// pub fn cast_if_needed<'ctx>(
-//     llvm: &Llvm<'ctx>,
-//     index: &Index,
-//     llvm_type_index: &LlvmTypedIndex<'ctx>,
-//     target_type: &DataType,
-//     value_type: &DataType,
-//     value: BasicValueEnum<'ctx>,
-// ) -> BasicValueEnum<'ctx> {
-//     value.cast(CastInstructionGenerator::new(llvm, index, llvm_type_index, value_type, target_type))
-// }
+impl<'ctx, 'cast> CastMeMaybe<'ctx> for StatementCodeGenerator<'ctx, 'cast> {
+    fn cast_if_needed(
+        &self,
+        target_type: &DataType,
+        value_type: &DataType,
+        value: BasicValueEnum<'ctx>,
+        annotation: Option<&StatementAnnotation>,
+    ) -> BasicValueEnum<'ctx> {
+        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
+    }
+}
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
     match size {
@@ -118,15 +121,16 @@ struct CastInstructionGenerator<'ctx, 'cast> {
 
 impl<'ctx, 'cast> CastInstructionGenerator<'ctx, 'cast> {
     fn new<G>(
-        generator: G,
+        generator: &G,
         value_type: &DataType,
         target_type: &DataType,
+        annotation: Option<&'cast StatementAnnotation>,
     ) -> CastInstructionGenerator<'ctx, 'cast>
     where
-        G: Generator<'ctx, 'cast, Output = (&'ctx Index, &'ctx Llvm<'ctx>, &'ctx LlvmTypedIndex<'ctx>)>
+        G: Generator<'ctx, 'cast, Output = (&'cast Index, &'cast Llvm<'ctx>, &'cast LlvmTypedIndex<'ctx>)>
             + CastMeMaybe<'ctx>,
     {
-        let (index, llvm, llvm_type_index) = generator.borrow_ll();
+        let (index, llvm, llvm_type_index) = generator.borrow();
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
@@ -138,24 +142,24 @@ impl<'ctx, 'cast> CastInstructionGenerator<'ctx, 'cast> {
                 target_type
             };
 
-        CastInstructionGenerator { llvm, index, llvm_type_index, value_type, target_type }
+        CastInstructionGenerator { llvm, index, llvm_type_index, value_type, target_type, annotation }
     }
 }
 
 trait Castable<'ctx, 'cast> {
-    fn cast(self, generator: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn cast(self, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Promotable<'ctx, 'cast> {
-    fn promote(self, lsize: u32, generator: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn promote(self, lsize: u32, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Truncatable<'ctx, 'cast> {
-    fn truncate(self, lsize: u32, generator: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn truncate(self, lsize: u32, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
-    fn cast(self, generator: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match self {
             BasicValueEnum::IntValue(val) => val.cast(generator),
             BasicValueEnum::FloatValue(val) => val.cast(generator),
@@ -166,7 +170,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
-    fn cast(self, generatr: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, generatr: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let lsize = generatr.target_type.get_size_in_bits(generatr.index);
         match generatr.target_type {
             DataTypeInformation::Integer { .. } => {
@@ -203,45 +207,45 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn cast(self, generatr: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        let rsize = &generatr.value_type.get_size_in_bits(generatr.index);
-        match generatr.target_type {
+    fn cast(self, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        let rsize = &generator.value_type.get_size_in_bits(generator.index);
+        match generator.target_type {
             DataTypeInformation::Float { size: lsize, .. } => {
                 if lsize < rsize {
-                    self.truncate(*lsize, generatr)
+                    self.truncate(*lsize, generator)
                 } else {
-                    self.promote(*lsize, generatr)
+                    self.promote(*lsize, generator)
                 }
             }
             DataTypeInformation::Integer { signed, size: lsize, .. } => {
-                let int_type = get_llvm_int_type(generatr.llvm.context, *lsize, "Integer");
+                let int_type = get_llvm_int_type(generator.llvm.context, *lsize, "Integer");
                 if *signed {
-                    generatr.llvm.builder.build_float_to_signed_int(self, int_type, "").into()
+                    generator.llvm.builder.build_float_to_signed_int(self, int_type, "").into()
                 } else {
-                    generatr.llvm.builder.build_float_to_unsigned_int(self, int_type, "").into()
+                    generator.llvm.builder.build_float_to_unsigned_int(self, int_type, "").into()
                 }
             }
-            _ => unreachable!("Cannot cast floating-point value to {}", generatr.target_type.get_name()),
+            _ => unreachable!("Cannot cast floating-point value to {}", generator.target_type.get_name()),
         }
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
-    fn cast(self, generatr: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        match &generatr.target_type {
-            DataTypeInformation::Integer { size: lsize, .. } => generatr
+    fn cast(self, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        match &generator.target_type {
+            DataTypeInformation::Integer { size: lsize, .. } => generator
                 .llvm
                 .builder
-                .build_ptr_to_int(self, get_llvm_int_type(generatr.llvm.context, *lsize, ""), "")
+                .build_ptr_to_int(self, get_llvm_int_type(generator.llvm.context, *lsize, ""), "")
                 .into(),
             DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
                 // TODO: is void really needed here? no failing tests if omitted/do we ever cast to void?
-                let Ok(target_ptr_type) = generatr.llvm_type_index.get_associated_type(generatr.target_type.get_name()) else {
-                        unreachable!("Target type of cast instruction does not exist: {}", generatr.target_type.get_name())
+                let Ok(target_ptr_type) = generator.llvm_type_index.get_associated_type(generator.target_type.get_name()) else {
+                        unreachable!("Target type of cast instruction does not exist: {}", generator.target_type.get_name())
                     };
                 if BasicValueEnum::from(self).get_type() != target_ptr_type {
                     // bit-cast necessary
-                    generatr.llvm.builder.build_bitcast(self, target_ptr_type, "")
+                    generator.llvm.builder.build_bitcast(self, target_ptr_type, "")
                 } else {
                     //this is ok, no cast required
                     self.into()
@@ -252,14 +256,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref").cast(cast_data);
+                let struct_val = generator.llvm.builder.build_load(self, "auto_deref").cast(&generator);
 
                 // create a pointer to the generated StructValue
-                let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
-                cast_data.llvm.builder.build_store(struct_ptr, struct_val);
+                let struct_ptr = generator.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
+                generator.llvm.builder.build_store(struct_ptr, struct_val);
                 struct_ptr.into()
             }
-            _ => unreachable!("Cannot cast pointer value to {}", generatr.target_type.get_name()),
+            _ => unreachable!("Cannot cast pointer value to {}", generator.target_type.get_name()),
         }
     }
 }
@@ -267,24 +271,24 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
     /// Generates a fat pointer struct for an array if the target type is a VLA,
     /// otherwise returns the value as is.
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        if !cast_data.target_type.is_vla() {
+    fn cast(self, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        if !generator.target_type.is_vla() {
             return self.into();
         }
-        let builder = &cast_data.llvm.builder;
-        let zero = cast_data.llvm.i32_type().const_zero();
+        let builder = &generator.llvm.builder;
+        let zero = generator.llvm.i32_type().const_zero();
 
-        let Ok(associated_type) = cast_data
+        let Ok(associated_type) = generator
             .llvm_type_index
-            .get_associated_type(cast_data.target_type.get_name()) else {
-                unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+            .get_associated_type(generator.target_type.get_name()) else {
+                unreachable!("Target type of cast instruction does not exist: {}", generator.target_type.get_name())
         };
 
         // Get array annotation from parent POU and get pointer to array
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
-            unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = generator.annotation  else {
+            unreachable!("Undefined reference: {}", generator.value_type.get_name())
         };
-        let array_pointer = cast_data
+        let array_pointer = generator
             .llvm_type_index
             .find_loaded_associated_variable_value(qualified_name.as_str())
             .unwrap_or_else(|| unreachable!("passed array must be in the llvm index"));
@@ -305,17 +309,17 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         };
 
         // -- Generate dimensions --
-        let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
+        let DataTypeInformation::Array { dimensions, .. } = generator.value_type else { unreachable!() };
         let mut dims = Vec::new();
         for dim in dimensions {
-            dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
-            dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
+            dims.push(dim.start_offset.as_int_value(generator.index).unwrap());
+            dims.push(dim.end_offset.as_int_value(generator.index).unwrap());
         }
 
         // Populate each array element
         let dimensions =
-            dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
-        let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
+            dims.iter().map(|it| generator.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
+        let array_value = generator.llvm.i32_type().const_array(&dimensions);
         builder.build_store(vla_dimensions_ptr, array_value);
 
         builder.build_store(vla_arr_ptr, arr_gep);
@@ -325,7 +329,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
-    fn promote(self, lsize: u32, generatr: CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, generatr: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let llvm_int_type = get_llvm_int_type(generatr.llvm.context, lsize, "Integer");
         if generatr.value_type.is_signed_int() {
             generatr.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
@@ -337,8 +341,8 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
+    fn promote(self, lsize: u32, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        generator
             .llvm
             .builder
             .build_float_ext(self, get_llvm_float_type(generator.llvm.context, lsize, "Float"), "")
@@ -347,8 +351,8 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
+    fn truncate(self, lsize: u32, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        generator
             .llvm
             .builder
             .build_int_truncate_or_bit_cast(
@@ -361,11 +365,11 @@ impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
+    fn truncate(self, lsize: u32, generator: &CastInstructionGenerator<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        generator
             .llvm
             .builder
-            .build_float_trunc(self, get_llvm_float_type(generatr.llvm.context, lsize, "Float"), "")
+            .build_float_trunc(self, get_llvm_float_type(generator.llvm.context, lsize, "Float"), "")
             .into()
     }
 }
