@@ -1,8 +1,8 @@
-type Attributes = Option<Vec<(&'static str, &'static str)>>;
+type Attributes = Vec<(&'static str, &'static str)>;
 
 struct Node {
     name: &'static str,
-    attributes: Option<Vec<(&'static str, &'static str)>>,
+    attributes: Attributes,
     nodes: Vec<Node>,
 }
 
@@ -35,20 +35,64 @@ impl Node {
     }
 }
 
+trait Inner {
+    fn get_inner(self) -> Node;
+    fn get_inner_ref(&self) -> &Node;
+    fn get_inner_ref_mut(&mut self) -> &mut Node;
+}
+
+macro_rules! types {
+    ($name:ident) => {
+        struct $name(Node);
+        impl $name {
+            pub fn new(attributes: Option<Attributes>) -> Self {
+                Self(Node {
+                    name: stringify!($name),
+                    attributes: if let Some(attributes) = attributes { attributes } else { vec![] },
+                    nodes: vec![],
+                })
+            }
+        }
+
+        impl Inner for $name {
+            fn get_inner(self) -> Node {
+                self.0
+            }
+
+            fn get_inner_ref(&self) -> &Node {
+                &self.0
+            }
+
+            fn get_inner_ref_mut(&mut self) -> &mut Node {
+                &mut self.0
+            }
+        }
+    };
+}
+
+types!(Pou);
+types!(Body);
+types!(FBD);
+types!(Block);
+
+impl Pou {
+    fn with_body(mut self, mut body: Body) -> Self {
+        body.get_inner_ref_mut().nodes.push(FBD::new(None).get_inner()); // A body must have some type of kind (SF, FBD, ...)
+        self.get_inner_ref_mut().nodes.push(body.get_inner());
+        self
+    }
+}
+
+impl Body {
+    fn with_block(mut self, block: Block) -> Self {
+        self.get_inner_ref_mut().nodes.push(block.get_inner());
+        self
+    }
+}
+
 #[test]
 fn demo() {
-    Node::with(
-        "pou",
-        Some(vec![("name", "foo")]),
-        Node::with(
-            "body",
-            None,
-            Node::with_nodes(
-                "variable",
-                None,
-                vec![Node::with_empty("foo", None), Node::with_empty("bar", None)],
-            ),
-        ),
-    )
-    .finalize(0);
+    let body = Body::new(None);
+    let block = Block::new(Some(vec![("localId", "3"), ("typeName", "MyAdd")]));
+    Pou::new(None).with_body(body.with_block(block)).get_inner().finalize(0);
 }
