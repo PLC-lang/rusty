@@ -80,29 +80,23 @@ macro_rules! impl_borrow_for_generator {
 
 impl_borrow_for_generator! {(Index, Llvm<'ctx>, LlvmTypedIndex<'ctx>), [ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
 
-impl<'ctx, 'cast> TypeCaster<'ctx> for ExpressionCodeGenerator<'ctx, 'cast> {
-    fn cast_if_needed(
-        &self,
-        target_type: &DataType,
-        value_type: &DataType,
-        value: BasicValueEnum<'ctx>,
-        annotation: Option<&StatementAnnotation>,
-    ) -> BasicValueEnum<'ctx> {
-        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
-    }
+macro_rules! impl_type_caster {
+    ([$($t:ty),+]) => {
+        $(impl<'ctx, 'cast> TypeCaster<'ctx> for $t {
+            fn cast_if_needed(
+                &self,
+                target_type: &DataType,
+                value_type: &DataType,
+                value: BasicValueEnum<'ctx>,
+                annotation: Option<&StatementAnnotation>,
+            ) -> BasicValueEnum<'ctx> {
+                value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
+            }
+        })*
+    };
 }
 
-impl<'ctx, 'cast> TypeCaster<'ctx> for StatementCodeGenerator<'ctx, 'cast> {
-    fn cast_if_needed(
-        &self,
-        target_type: &DataType,
-        value_type: &DataType,
-        value: BasicValueEnum<'ctx>,
-        annotation: Option<&StatementAnnotation>,
-    ) -> BasicValueEnum<'ctx> {
-        value.cast(&CastInstructionGenerator::new(self, value_type, target_type, annotation))
-    }
-}
+impl_type_caster! {[ExpressionCodeGenerator<'ctx, 'cast>, StatementCodeGenerator<'ctx, 'cast>]}
 
 struct CastInstructionGenerator<'ctx, 'cast> {
     llvm: &'cast Llvm<'ctx>,
