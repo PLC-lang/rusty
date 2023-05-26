@@ -17,6 +17,7 @@ jobs:
   check: 
     name: Check
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,15 +25,12 @@ jobs:
 
       - name: Run Check
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
-          ./scripts/build.sh --check --container --container-name=$IMAGE_ID
+         ./scripts/build.sh --check
 
   test-linux:
     name: Test Linux
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
     needs: check
     steps:
       - uses: actions/checkout@v3
@@ -40,32 +38,8 @@ jobs:
       - name: Cargo test
         shell: bash
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
-          echo "Build command : ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID"
-          ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID
-
-      - run: mkdir -p linux
-
-      - name: Move artifacts
-        env:
-          ARTIFACTS: "rustyc"
-          OUT_DIR: "linux"
-        run: |
-          import os
-          artifacts = os.environ['ARTIFACTS'].split()
-          for artifact in artifacts:
-            src = "target/debug/%s" % artifact
-            dst = os.environ['OUT_DIR'] + "/" + artifact
-            os.rename(src, dst)
-        shell: python
-
-      - uses: actions/upload-artifact@master
-        with:
-          name: linux-debug
-          path: linux
+          echo "Build command : ./scripts/build.sh --build --test"
+          ./scripts/build.sh --build --test
 
   test-windows:
     name: Test Windows
@@ -106,57 +80,59 @@ jobs:
         with:
           command: test
           args: integration -- --nocapture --test-threads=1
- 
-      - run: mkdir -p windows
-      - run: ls target/debug
 
-      - name: Move artifacts
-        env:
-          ARTIFACTS: "rustyc.exe rustyc.pdb"
-          OUT_DIR: "windows"
+      - name: Release Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+ 
+      - uses: actions/upload-artifact@master
+        with:
+          name: rustyc.exe
+          path: target/release/rustyc.exe
+
+  package-std:
+    name: Package std
+    runs-on: ubuntu-latest
+    needs: check
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Standard libs Build
         run: |
-          import os
-          artifacts = os.environ['ARTIFACTS'].split()
-          for artifact in artifacts:
-            src = "target/debug/%s" % artifact
-            dst = os.environ['OUT_DIR'] + "/" + artifact
-            os.rename(src, dst)
-        shell: python
+          ./libs/stdlib/scripts/build.sh --build --package \
+          --target x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu \
+          --release
 
       - uses: actions/upload-artifact@master
         with:
-          name: windows-debug
-          path: windows
+          name: stdlib
+          path: output
 
   style:
     name: Check Style
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
     needs: check
     steps:
       - uses: actions/checkout@v3
 
       - name: Run Checks
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
-          ./scripts/build.sh --check-style --container --container-name=$IMAGE_ID
+          ./scripts/build.sh --check-style
 
   coverage:
     name: Run Coverage 
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
     needs: check
     steps:
       - uses: actions/checkout@v3
 
       - name: Run Checks
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          docker pull $IMAGE_ID
-          ./scripts/build.sh --container --container-name=$IMAGE_ID --coverage
+          ./scripts/build.sh --coverage
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3

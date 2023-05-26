@@ -22,7 +22,7 @@ pub(crate) use deconstruct_assignment;
 
 macro_rules! deconstruct_call_statement {
     ($src:expr) => {{
-        if let AstStatement::CallStatement { operator, parameters, .. } = $src {
+        if let crate::ast::AstStatement::CallStatement { operator, parameters, .. } = $src {
             (
                 operator,
                 parameters.as_ref().as_ref().map(crate::ast::flatten_expression_list).unwrap_or_default(),

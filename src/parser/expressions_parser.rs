@@ -177,12 +177,12 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
 
         match (&operator, &expression) {
-            (Operator::Minus, AstStatement::LiteralInteger { value, .. }) => {
-                AstStatement::LiteralInteger { value: -value, location, id: lexer.next_id() }
+            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+                AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatement::LiteralInteger { value, .. }) => {
-                AstStatement::LiteralInteger { value: *value, location, id: lexer.next_id() }
+            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+                AstStatement::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
@@ -254,7 +254,6 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     } else {
         None
     };
-
     let literal_parse_result = match lexer.token {
         // Check if we're dealing with a number that has an explicit '+' or '-' sign...
         OperatorPlus | OperatorMinus => {
@@ -273,7 +272,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                 )),
             }
         }
-
+        OperatorMultiplication => parse_vla_range(lexer),
         // ...and if not then this token may be anything
         _ => match lexer.token {
             Identifier => parse_qualified_reference(lexer),
@@ -354,6 +353,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     }
 }
 
+fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    lexer.advance();
+    Ok(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+}
+
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
@@ -362,11 +366,12 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
     let end = lexer.range().end;
     lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
-    Ok(AstStatement::LiteralArray {
-        elements,
-        location: lexer.source_range_factory.create_range(start..end),
-        id: lexer.next_id(),
-    })
+
+    Ok(AstStatement::new_literal(
+        AstLiteral::new_array(elements),
+        lexer.next_id(),
+        lexer.source_range_factory.create_range(start..end),
+    ))
 }
 
 #[allow(clippy::unnecessary_wraps)]
@@ -374,7 +379,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
 fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     lexer.advance();
-    Ok(AstStatement::LiteralBool { value, location, id: lexer.next_id() })
+    Ok(AstStatement::new_literal(AstLiteral::new_bool(value), lexer.next_id(), location))
 }
 
 #[allow(clippy::unnecessary_wraps)]
@@ -382,13 +387,14 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<AstStatem
 fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     lexer.advance();
-    Ok(AstStatement::LiteralNull { location, id: lexer.next_id() })
+
+    Ok(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
-    while lexer.allow(&KeywordDot) {
+    while lexer.try_consume(&KeywordDot) {
         let segment = match lexer.token {
             //Is this an integer?
             LiteralInteger => {
@@ -417,9 +423,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
         }
     };
 
-    if lexer.allow(&KeywordParensOpen) {
+    if lexer.try_consume(&KeywordParensOpen) {
         // Call Statement
-        let call_statement = if lexer.allow(&KeywordParensClose) {
+        let call_statement = if lexer.try_consume(&KeywordParensClose) {
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
@@ -472,7 +478,7 @@ fn parse_access_modifiers(
     let mut reference = original_reference;
     //If (while) we hit a dereference, parse and append the dereference to the result
     while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
-        if lexer.allow(&KeywordSquareParensOpen) {
+        if lexer.try_consume(&KeywordSquareParensOpen) {
             let access = parse_expression(lexer);
             lexer.consume_or_report(KeywordSquareParensClose);
             reference = AstStatement::ArrayAccess {
@@ -480,7 +486,7 @@ fn parse_access_modifiers(
                 access: Box::new(access),
                 id: lexer.next_id(),
             };
-        } else if lexer.allow(&OperatorDeref) {
+        } else if lexer.try_consume(&OperatorDeref) {
             reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
         }
     }
@@ -502,7 +508,7 @@ fn parse_literal_number_with_modifier(
     // again, the parsed number can be safely unwrapped.
     let value = i128::from_str_radix(number_str.as_str(), radix).expect("valid i128");
     let value = if is_negative { -value } else { value };
-    Ok(AstStatement::LiteralInteger { value, location, id: lexer.next_id() })
+    Ok(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
 }
 
 fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<AstStatement, Diagnostic> {
@@ -514,12 +520,12 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     };
     let result = lexer.slice_and_advance();
     if result.to_lowercase().contains('e') {
-        let result = result.replace('_', "");
+        let value = result.replace('_', "");
         //Treat exponents as reals
-        return Ok(AstStatement::LiteralReal { value: result, location, id: lexer.next_id() });
-    } else if lexer.allow(&KeywordDot) {
+        return Ok(AstStatement::new_literal(AstLiteral::new_real(value), lexer.next_id(), location));
+    } else if lexer.try_consume(&KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
-    } else if lexer.allow(&KeywordParensOpen) {
+    } else if lexer.try_consume(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{e}").as_str(), location.clone()))?;
@@ -541,7 +547,7 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     let value = result.parse::<i128>().expect("valid i128");
     let value = if is_negative { -value } else { value };
 
-    Ok(AstStatement::LiteralInteger { value, location, id: lexer.next_id() })
+    Ok(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
 }
 
 /// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
@@ -555,7 +561,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
         Err(Diagnostic::unexpected_token_found("Integer", &format!("Exponent value: {result}"), location))
     } else {
         let value = result.parse::<i128>().expect("valid i128");
-        Ok(AstStatement::LiteralInteger { value, location, id: lexer.next_id() })
+        Ok(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
     }
 }
 
@@ -582,7 +588,7 @@ fn parse_date_from_string(text: &str, location: SourceRange, id: AstId) -> Resul
         .map(|s| parse_number::<u32>(s, &location))
         .expect("day-segment - tokenizer broken?")?;
 
-    Ok(AstStatement::LiteralDate { year, month, day, location, id })
+    Ok(AstStatement::new_literal(AstLiteral::new_date(year, month, day), id, location))
 }
 
 fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -605,17 +611,11 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
     let mut segments = time.split(':');
     let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
-    Ok(AstStatement::LiteralDateAndTime {
+    Ok(AstStatement::new_literal(
+        AstLiteral::new_date_and_time(year, month, day, hour, min, sec, nano),
+        lexer.next_id(),
         location,
-        year,
-        month,
-        day,
-        hour,
-        min,
-        sec,
-        nano,
-        id: lexer.next_id(),
-    })
+    ))
 }
 
 fn parse_literal_date(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -638,7 +638,11 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
     let mut segments = slice.split(':');
     let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
-    Ok(AstStatement::LiteralTimeOfDay { hour, min, sec, nano, location, id: lexer.next_id() })
+    Ok(AstStatement::new_literal(
+        AstLiteral::new_time_of_day(hour, min, sec, nano),
+        lexer.next_id(),
+        location,
+    ))
 }
 
 fn parse_time_of_day(
@@ -746,18 +750,20 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
         }
     }
 
-    Ok(AstStatement::LiteralTime {
-        day: values[POS_D].unwrap_or_default(),
-        hour: values[POS_H].unwrap_or_default(),
-        min: values[POS_M].unwrap_or_default(),
-        sec: values[POS_S].unwrap_or_default(),
-        milli: values[POS_MS].unwrap_or_default(),
-        micro: values[POS_US].unwrap_or_default(),
-        nano: values[POS_NS].map(|it| it as u32).unwrap_or(0u32),
-        negative: is_negative,
+    Ok(AstStatement::new_literal(
+        AstLiteral::Time(Time {
+            day: values[POS_D].unwrap_or_default(),
+            hour: values[POS_H].unwrap_or_default(),
+            min: values[POS_M].unwrap_or_default(),
+            sec: values[POS_S].unwrap_or_default(),
+            milli: values[POS_MS].unwrap_or_default(),
+            micro: values[POS_US].unwrap_or_default(),
+            nano: values[POS_NS].map(|it| it as u32).unwrap_or(0u32),
+            negative: is_negative,
+        }),
+        lexer.next_id(),
         location,
-        id: lexer.next_id(),
-    })
+    ))
 }
 
 fn trim_quotes(quoted_string: &str) -> String {
@@ -814,12 +820,12 @@ fn handle_special_chars(string: &str, is_wide: bool) -> String {
 fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<AstStatement, Diagnostic> {
     let result = lexer.slice();
     let location = lexer.location();
-    let string_literal = Ok(AstStatement::LiteralString {
-        value: handle_special_chars(&trim_quotes(result), is_wide),
-        is_wide,
+
+    let string_literal = Ok(AstStatement::new_literal(
+        AstLiteral::new_string(handle_special_chars(&trim_quotes(result), is_wide), is_wide),
+        lexer.next_id(),
         location,
-        id: lexer.next_id(),
-    });
+    ));
     lexer.advance();
     string_literal
 }
@@ -834,9 +840,10 @@ fn parse_literal_real(
         let start = integer_range.get_start();
         let end = lexer.range().end;
         let fractional = lexer.slice_and_advance();
-        let result = format!("{}{}.{}", if is_negative { "-" } else { "" }, integer, fractional);
+        let value = format!("{}{}.{}", if is_negative { "-" } else { "" }, integer, fractional);
         let new_location = lexer.source_range_factory.create_range(start..end);
-        Ok(AstStatement::LiteralReal { value: result, location: new_location, id: lexer.next_id() })
+
+        Ok(AstStatement::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
     } else {
         Err(Diagnostic::unexpected_token_found(
             "LiteralInteger or LiteralExponent",

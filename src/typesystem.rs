@@ -23,10 +23,10 @@ pub type NativeSintType = i8;
 pub type NativeIntType = i16;
 pub type NativeDintType = i32;
 pub type NativeLintType = i64;
-pub type NativeByteType = u8;
-pub type NativeWordType = u16;
-pub type NativeDwordType = u32;
-pub type NativeLwordType = u64;
+// pub type NativeByteType = u8;
+// pub type NativeWordType = u16;
+// pub type NativeDwordType = u32;
+// pub type NativeLwordType = u64;
 pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
 pub type NativePointerType = usize;
@@ -82,6 +82,7 @@ pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
+pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
 mod tests;
@@ -152,6 +153,10 @@ impl DataType {
         self.get_type_information().is_array()
     }
 
+    pub fn is_vla(&self) -> bool {
+        self.get_type_information().is_vla()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
@@ -220,6 +225,7 @@ impl DataType {
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
             TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
+            TypeNature::__VLA => matches!(other.nature, TypeNature::__VLA),
             _ => false,
         }
     }
@@ -260,10 +266,12 @@ impl StringEncoding {
     }
 }
 
+/// Enum for ranges and aggregate type sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
+    Undetermined,
 }
 
 impl TypeSize {
@@ -282,6 +290,7 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
+            TypeSize::Undetermined => Ok(POINTER_SIZE as i64),
         }
     }
 
@@ -291,6 +300,7 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
+            TypeSize::Undetermined => unreachable!(),
         }
     }
 }
@@ -300,6 +310,22 @@ impl TypeSize {
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
+    Internal(InternalType),
+}
+
+impl StructSource {
+    pub fn get_type_nature(&self) -> TypeNature {
+        match self {
+            StructSource::Internal(InternalType::VariableLengthArray { .. }) => TypeNature::__VLA,
+            _ => TypeNature::Derived,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InternalType {
+    VariableLengthArray { inner_type_name: String, ndims: usize },
+    __VLA, // used for error-reporting only
 }
 
 type TypeId = String;
@@ -381,6 +407,14 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::String { .. })
     }
 
+    pub fn is_string_utf8(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. })
+    }
+
+    pub fn is_string_utf16(&self) -> bool {
+        matches!(self, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
+    }
+
     pub fn is_character(&self) -> bool {
         match self {
             DataTypeInformation::Integer { name, .. } => name == WCHAR_TYPE || name == CHAR_TYPE,
@@ -421,6 +455,16 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Array { .. })
     }
 
+    pub fn is_vla(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+                ..
+            }
+        )
+    }
+
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,
@@ -428,6 +472,26 @@ impl DataTypeInformation {
                 | DataTypeInformation::Float { .. }
                 | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
+    }
+
+    pub fn get_dimensions(&self) -> Option<usize> {
+        match self {
+            DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { ndims, .. }),
+                ..
+            } => Some(*ndims),
+
+            _ => None,
+        }
+    }
+
+    pub fn get_vla_referenced_type(&self) -> Option<&str> {
+        let DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+            return None;
+        };
+
+        Some(inner_type_name)
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
@@ -607,6 +671,10 @@ impl Dimension {
         let end = self.end_offset.as_int_value(index)?;
         Ok(start..=end)
     }
+
+    pub fn is_undetermined(&self) -> bool {
+        matches!((self.start_offset, self.end_offset), (TypeSize::Undetermined, TypeSize::Undetermined))
+    }
 }
 
 pub trait DataTypeInformationProvider<'a>: Into<&'a DataTypeInformation> {
@@ -638,6 +706,17 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
+        },
+        DataType {
+            name: "__VLA".into(),
+            initial_value: None,
+            information: DataTypeInformation::Struct {
+                name: "VARIABLE LENGTH ARRAY".to_string(),
+                members: vec![],
+                source: StructSource::Internal(InternalType::__VLA),
+            },
+            nature: TypeNature::__VLA,
             location: SymbolLocation::internal(),
         },
         DataType {
@@ -1050,6 +1129,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::String { size, .. } => match size {
             TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
+            TypeSize::Undetermined => unreachable!("Strings will never have undetermined size"),
         },
         DataTypeInformation::Enum { referenced_type, .. } => {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)

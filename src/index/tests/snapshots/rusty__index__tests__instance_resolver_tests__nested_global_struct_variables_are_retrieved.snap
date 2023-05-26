@@ -15,7 +15,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "gStr",
             qualified_name: "gStr",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -47,7 +47,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "str.a",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -82,7 +82,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "c",
             qualified_name: "str2.c",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -117,7 +117,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "d",
             qualified_name: "str2.d",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -149,7 +149,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "str.b",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -184,7 +184,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "c",
             qualified_name: "str2.c",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -219,7 +219,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "d",
             qualified_name: "str2.d",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -248,7 +248,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "MainProg_instance",
             qualified_name: "MainProg",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -280,7 +280,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "pStr",
             qualified_name: "MainProg.pStr",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -315,7 +315,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "str.a",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -353,7 +353,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "c",
             qualified_name: "str2.c",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -391,7 +391,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "d",
             qualified_name: "str2.d",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -426,7 +426,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "str.b",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -464,7 +464,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "c",
             qualified_name: "str2.c",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,
@@ -502,7 +502,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "d",
             qualified_name: "str2.d",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Input,
             ),
             is_constant: false,

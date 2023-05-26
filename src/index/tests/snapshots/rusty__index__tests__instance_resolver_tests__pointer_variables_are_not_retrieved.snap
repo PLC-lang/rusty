@@ -15,7 +15,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "MainProg_instance",
             qualified_name: "MainProg",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -47,7 +47,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "rFb",
             qualified_name: "MainProg.rFb",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,

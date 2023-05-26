@@ -1,15 +1,19 @@
+use rusty_derive::Validators;
+
 use crate::{
     ast::{AstStatement, CompilationUnit},
-    index::{Index, PouIndexEntry},
+    index::{
+        const_expressions::{ConstExpression, UnresolvableKind},
+        Index, PouIndexEntry,
+    },
     resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
 
 use self::{
     global::GlobalValidator,
-    pou::{validate_action_container, visit_pou},
+    pou::{visit_implementation, visit_pou},
     recursive::RecursiveValidator,
-    statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
@@ -30,11 +34,17 @@ pub struct ValidationContext<'s> {
     index: &'s Index,
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
+    is_call: bool,
 }
 
 impl<'s> ValidationContext<'s> {
     fn with_qualifier(&self, qualifier: &'s str) -> ValidationContext<'s> {
-        ValidationContext { annotations: self.annotations, index: self.index, qualifier: Some(qualifier) }
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: Some(qualifier),
+            is_call: self.is_call,
+        }
     }
 
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
@@ -57,6 +67,19 @@ impl<'s> ValidationContext<'s> {
                 .and_then(|name| self.index.find_pou(name))
         })
     }
+
+    fn set_is_call(&self) -> ValidationContext<'s> {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: true,
+        }
+    }
+
+    fn is_call(&self) -> bool {
+        self.is_call
+    }
 }
 
 /// This trait should be implemented by any validator used by `validation::Validator`
@@ -66,21 +89,12 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
+#[derive(Validators)]
 pub struct Validator {
     //context: ValidationContext<'s>,
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-}
-
-impl Validators for Validator {
-    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
-    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
-        std::mem::take(&mut self.diagnostics)
-    }
 }
 
 impl Validator {
@@ -103,10 +117,20 @@ impl Validator {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
+
+        // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
+        //      function if another global check is introduced (including the overflow checks)?
+        // Find and report const-expressions that would overflow
+        for it in index.get_const_expressions().into_iter() {
+            let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
+            let ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr else { continue };
+
+            self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+        }
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
-        let context = ValidationContext { annotations, index, qualifier: None };
+        let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // validate POU and declared Variables
         for pou in &unit.units {
             visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
@@ -119,15 +143,12 @@ impl Validator {
 
         // validate global variables
         for gv in &unit.global_vars {
-            visit_variable_block(self, gv, &context);
+            visit_variable_block(self, None, gv, &context);
         }
 
         // validate implementations
         for implementation in &unit.implementations {
-            validate_action_container(self, implementation);
-            implementation.statements.iter().for_each(|s| {
-                visit_statement(self, s, &context.with_qualifier(implementation.name.as_str()))
-            });
+            visit_implementation(self, implementation, &context);
         }
     }
 }

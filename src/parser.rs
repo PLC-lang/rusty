@@ -227,7 +227,7 @@ fn parse_pou(
 }
 
 fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
-    if lexer.allow(&Token::OperatorLess) {
+    if lexer.try_consume(&Token::OperatorLess) {
         parse_any_in_region(lexer, vec![Token::OperatorGreater], |lexer| {
             let mut generics = vec![];
             loop {
@@ -242,7 +242,7 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
                     }
                 }
 
-                if !lexer.allow(&Token::KeywordComma) || lexer.allow(&Token::OperatorGreater) {
+                if !lexer.try_consume(&Token::KeywordComma) || lexer.try_consume(&Token::OperatorGreater) {
                     break;
                 }
             }
@@ -271,6 +271,7 @@ fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
         "ANY_STRING" => TypeNature::String,
         "ANY_CHAR" => TypeNature::Char,
         "ANY_DATE" => TypeNature::Date,
+        "__ANY_VLA" => TypeNature::__VLA,
         _ => {
             lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
             TypeNature::Any
@@ -283,9 +284,9 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
         PouType::Class | PouType::FunctionBlock | PouType::Method { .. } => {
             Some(
                 // See if the method/pou was declared FINAL or ABSTRACT
-                if lexer.allow(&KeywordFinal) {
+                if lexer.try_consume(&KeywordFinal) {
                     PolymorphismMode::Final
-                } else if lexer.allow(&KeywordAbstract) {
+                } else if lexer.try_consume(&KeywordAbstract) {
                     PolymorphismMode::Abstract
                 } else {
                     PolymorphismMode::None
@@ -298,7 +299,7 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
 
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
     let start_return_type = lexer.range().start;
-    if lexer.allow(&KeywordColon) {
+    if lexer.try_consume(&KeywordColon) {
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
@@ -350,7 +351,7 @@ fn parse_method(
         let access = Some(parse_access_modifier(lexer));
         let pou_type = PouType::Method { owner_class: class_name.into() };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
-        let overriding = lexer.allow(&KeywordOverride);
+        let overriding = lexer.try_consume(&KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
@@ -399,13 +400,13 @@ fn parse_method(
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
-    if lexer.allow(&KeywordAccessPublic) {
+    if lexer.try_consume(&KeywordAccessPublic) {
         AccessModifier::Public
-    } else if lexer.allow(&KeywordAccessPrivate) {
+    } else if lexer.try_consume(&KeywordAccessPrivate) {
         AccessModifier::Private
-    } else if lexer.allow(&KeywordAccessProtected) {
+    } else if lexer.try_consume(&KeywordAccessProtected) {
         AccessModifier::Protected
-    } else if lexer.allow(&KeywordAccessInternal) {
+    } else if lexer.try_consume(&KeywordAccessInternal) {
         AccessModifier::Internal
     } else {
         AccessModifier::Protected
@@ -536,8 +537,8 @@ fn parse_full_data_type_definition(
 ) -> Option<DataTypeWithInitializer> {
     let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
     parse_any_in_region(lexer, vec![end_keyword], |lexer| {
-        let sized = lexer.allow(&PropertySized);
-        if lexer.allow(&KeywordDotDotDot) {
+        let sized = lexer.try_consume(&PropertySized);
+        if lexer.try_consume(&KeywordDotDotDot) {
             Some((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::VarArgs { referenced_type: None, sized },
@@ -548,7 +549,7 @@ fn parse_full_data_type_definition(
             ))
         } else {
             parse_data_type_definition(lexer, name).map(|(type_def, initializer)| {
-                if lexer.allow(&KeywordDotDotDot) {
+                if lexer.try_consume(&KeywordDotDotDot) {
                     (
                         DataTypeDeclaration::DataTypeDefinition {
                             data_type: DataType::VarArgs { referenced_type: Some(Box::new(type_def)), sized },
@@ -571,7 +572,7 @@ fn parse_data_type_definition(
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
     let start = lexer.location().get_start();
-    if lexer.allow(&KeywordStruct) {
+    if lexer.try_consume(&KeywordStruct) {
         // Parse struct
         let variables = parse_variable_list(lexer);
         Some((
@@ -582,9 +583,9 @@ fn parse_data_type_definition(
             },
             None,
         ))
-    } else if lexer.allow(&KeywordArray) {
+    } else if lexer.try_consume(&KeywordArray) {
         parse_array_type_definition(lexer, name)
-    } else if lexer.allow(&KeywordPointer) {
+    } else if lexer.try_consume(&KeywordPointer) {
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
@@ -597,9 +598,9 @@ fn parse_data_type_definition(
             lexer.advance();
         }
         parse_pointer_definition(lexer, name, start_pos)
-    } else if lexer.allow(&KeywordRef) {
+    } else if lexer.try_consume(&KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start)
-    } else if lexer.allow(&KeywordParensOpen) {
+    } else if lexer.try_consume(&KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
@@ -642,7 +643,7 @@ fn parse_type_reference_type_definition(
     //Subrange
     let referenced_type = lexer.slice_and_advance();
 
-    let bounds = if lexer.allow(&KeywordParensOpen) {
+    let bounds = if lexer.try_consume(&KeywordParensOpen) {
         // INT (..) :=
         let bounds = parse_expression(lexer);
         expect_token!(lexer, KeywordParensClose, None);
@@ -652,7 +653,8 @@ fn parse_type_reference_type_definition(
         None
     };
 
-    let initial_value = if lexer.allow(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
+    let initial_value =
+        if lexer.try_consume(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
@@ -699,7 +701,7 @@ fn parse_type_reference_type_definition(
 
 fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstStatement> {
     let opening_token = lexer.token.clone();
-    if lexer.allow(&KeywordSquareParensOpen) || lexer.allow(&KeywordParensOpen) {
+    if lexer.try_consume(&KeywordSquareParensOpen) || lexer.try_consume(&KeywordParensOpen) {
         let opening_location = lexer.location().get_start();
         let closing_tokens = vec![KeywordSquareParensClose, KeywordParensClose];
         parse_any_in_region(lexer, closing_tokens, |lexer| {
@@ -747,7 +749,7 @@ fn parse_string_type_definition(
         scope: lexer.scope.clone(),
     })
     .or(Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
-    .zip(Some(lexer.allow(&KeywordAssignment).then(|| parse_expression(lexer))))
+    .zip(Some(lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer))))
 }
 
 fn parse_enum_type_definition(
@@ -793,9 +795,38 @@ fn parse_array_type_definition(
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
         let location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
+
+        let is_variable_length = match &range {
+            // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
+            AstStatement::RangeStatement { .. } => Some(false),
+            AstStatement::VlaRangeStatement { .. } => Some(true),
+
+            // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
+            AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
+                AstStatement::RangeStatement { .. } => Some(false),
+                AstStatement::VlaRangeStatement { .. } => Some(true),
+                _ => None,
+            },
+
+            _ => None,
+        };
+
+        let is_variable_length = match is_variable_length {
+            Some(val) => val,
+            None => {
+                Diagnostic::invalid_range_statement(&range, range.get_location());
+                false
+            }
+        };
+
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::ArrayType { name, bounds: range, referenced_type: Box::new(reference) },
+                data_type: DataType::ArrayType {
+                    name,
+                    bounds: range,
+                    referenced_type: Box::new(reference),
+                    is_variable_length,
+                },
                 location,
                 scope: lexer.scope.clone(),
             },
@@ -874,7 +905,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     let block_type = lexer.token.clone();
     //Consume the type token
     lexer.advance();
-    let argument_property = if lexer.allow(&PropertyByRef) {
+    let argument_property = if lexer.try_consume(&PropertyByRef) {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
@@ -901,10 +932,10 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     let location = lexer.location();
     let variable_block_type = parse_variable_block_type(lexer);
 
-    let constant = lexer.allow(&KeywordConstant);
+    let constant = lexer.try_consume(&KeywordConstant);
 
-    let retain = lexer.allow(&KeywordRetain);
-    lexer.allow(&KeywordNonRetain);
+    let retain = lexer.try_consume(&KeywordRetain);
+    lexer.try_consume(&KeywordNonRetain);
 
     let access = parse_access_modifier(lexer);
 
@@ -942,7 +973,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             break;
         }
 
-        if !lexer.allow(&KeywordComma) {
+        if !lexer.try_consume(&KeywordComma) {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
                 format!("{KeywordColon:?} or {KeywordComma:?}").as_str(),
@@ -952,7 +983,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     }
 
     //See if there's an AT keyword
-    let address = if lexer.allow(&KeywordAt) {
+    let address = if lexer.try_consume(&KeywordAt) {
         //Look for a hardware address
         if let HardwareAccess((direction, access_type)) = lexer.token {
             match parse_hardware_access(lexer, direction, access_type) {
@@ -971,7 +1002,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     };
 
     // colon has to come before the data type
-    if !lexer.allow(&KeywordColon) {
+    if !lexer.try_consume(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{KeywordColon:?}").as_str(),
             lexer.location(),
@@ -1008,7 +1039,7 @@ fn parse_hardware_access(
             loop {
                 let int = expressions_parser::parse_strict_literal_integer(lexer)?;
                 address.push(int);
-                if !lexer.allow(&KeywordDot) {
+                if !lexer.try_consume(&KeywordDot) {
                     break;
                 }
             }

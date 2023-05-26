@@ -13,7 +13,7 @@ use codespan_reporting::{
 use inkwell::support::LLVMString;
 
 use crate::{
-    ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
+    ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
     index::VariableType,
 };
 
@@ -53,6 +53,7 @@ pub enum ErrNo {
 
     // call
     call__invalid_parameter_type,
+    call__invalid_parameter_count,
 
     //variable related
     var__unresolved_constant,
@@ -61,9 +62,16 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+    var__assigning_to_var_input_ref,
+    var__overflow,
 
     //array related
     arr__invalid_array_assignment,
+
+    // VLA related
+    vla__invalid_container,
+    vla__invalid_array_access,
+    vla__dimension_idx_out_of_bounds,
 
     //reference related
     reference__unresolved,
@@ -343,7 +351,7 @@ impl Diagnostic {
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Literal {literal_type} is not campatible to {cast_type}"),
+            message: format!("Literal {literal_type} is not compatible to {cast_type}"),
             range: vec![location],
             err_no: ErrNo::type__incompatible_literal_cast,
         }
@@ -643,6 +651,16 @@ impl Diagnostic {
         }
     }
 
+    pub fn invalid_parameter_count(expected: usize, received: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
+            ),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_count,
+        }
+    }
+
     pub fn implicit_downcast(
         actual_type_name: &str,
         assigned_type_name: &str,
@@ -738,6 +756,55 @@ impl Diagnostic {
             message: format!("Recursive data structure `{path}` has infinite size"),
             range,
             err_no: ErrNo::pou__recursive_data_structure,
+        }
+    }
+
+    pub fn vla_by_val_warning(range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: "Variable Length Arrays are always by-ref, even when declared in a by-value block"
+                .to_string(),
+            range: vec![range],
+        }
+    }
+
+    pub fn invalid_vla_container(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
+    }
+
+    pub fn invalid_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Expected array access with {expected} dimensions, found {actual}"),
+            range: vec![range],
+            err_no: ErrNo::vla__invalid_array_access,
+        }
+    }
+
+    pub fn invalid_range_statement(entity: &AstStatement, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Expected a range statement, got {entity:?} instead"),
+            range: vec![range],
+            err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
+    pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message:
+                "VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead."
+                    .into(),
+            range: vec![location],
+        }
+    }
+
+    pub fn overflow(message: String, location: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![location], err_no: ErrNo::var__overflow }
+    }
+
+    pub fn index_out_of_bounds(range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Index out of bounds.".into(),
+            range: vec![range],
+            err_no: ErrNo::vla__dimension_idx_out_of_bounds,
         }
     }
 }

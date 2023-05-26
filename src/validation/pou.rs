@@ -1,14 +1,31 @@
-use super::{variable::visit_variable_block, ValidationContext, Validator, Validators};
+use super::{
+    statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
+};
 use crate::{
-    ast::{Implementation, Pou, PouType},
+    ast::{Implementation, LinkageType, Pou, PouType},
     Diagnostic,
 };
 
 pub fn visit_pou(validator: &mut Validator, pou: &Pou, context: &ValidationContext) {
-    validate_pou(validator, pou, context);
+    if pou.linkage != LinkageType::External {
+        validate_pou(validator, pou, context);
 
-    for block in &pou.variable_blocks {
-        visit_variable_block(validator, block, context);
+        for block in &pou.variable_blocks {
+            visit_variable_block(validator, Some(pou), block, context);
+        }
+    }
+}
+
+pub fn visit_implementation(
+    validator: &mut Validator,
+    implementation: &Implementation,
+    context: &ValidationContext,
+) {
+    if implementation.linkage != LinkageType::External {
+        validate_action_container(validator, implementation);
+        implementation.statements.iter().for_each(|s| {
+            visit_statement(validator, s, &context.with_qualifier(implementation.name.as_str()))
+        });
     }
 }
 

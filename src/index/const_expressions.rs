@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::AstStatement;
+use crate::ast::{AstLiteral, AstStatement, SourceRange};
 use generational_arena::{Arena, Iter};
 
 pub type ConstId = generational_arena::Index;
@@ -37,7 +37,7 @@ pub enum ConstExpression {
     Resolved(AstStatement),
     Unresolvable {
         statement: AstStatement,
-        reason: String,
+        reason: UnresolvableKind,
     },
 }
 
@@ -66,6 +66,31 @@ impl ConstExpression {
 
     pub(crate) fn is_default(&self) -> bool {
         matches!(self.get_statement(), AstStatement::DefaultValue { .. })
+    }
+}
+
+#[derive(Debug)]
+pub enum UnresolvableKind {
+    /// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
+    Misc(String),
+
+    /// Indicates that the const expression was not resolvable because it would yield an overflow.
+    Overflow(String, SourceRange),
+}
+
+impl UnresolvableKind {
+    pub fn get_reason(&self) -> &str {
+        match self {
+            UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
+        }
+    }
+
+    pub fn is_misc(&self) -> bool {
+        matches!(self, UnresolvableKind::Misc(..))
+    }
+
+    pub fn is_overflow(&self) -> bool {
+        matches!(self, UnresolvableKind::Overflow(..))
     }
 }
 
@@ -140,16 +165,14 @@ impl ConstExpressions {
 
     /// marks the const-expression represented by the given `id` as unresolvable with a given
     /// `reason`.
-    pub fn mark_unresolvable(&mut self, id: &ConstId, reason: &str) -> Result<(), String> {
+    pub fn mark_unresolvable(&mut self, id: &ConstId, reason: UnresolvableKind) -> Result<(), String> {
         let wrapper = self
             .expressions
             .get_mut(*id)
             .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
-        wrapper.expr = ConstExpression::Unresolvable {
-            statement: wrapper.get_statement().clone(),
-            reason: reason.to_string(),
-        };
+        wrapper.expr = ConstExpression::Unresolvable { statement: wrapper.get_statement().clone(), reason };
+
         Ok(())
     }
 
@@ -204,7 +227,7 @@ impl ConstExpressions {
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
             |it| match it {
-                AstStatement::LiteralInteger { value, .. } => Ok(*value),
+                AstStatement::Literal { kind: AstLiteral::Integer(i), .. } => Ok(*i),
                 _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )

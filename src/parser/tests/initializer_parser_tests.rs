@@ -146,6 +146,7 @@ fn array_initializer_can_be_parsed() {
             referenced_type: DataTypeReference {
                 referenced_type: "INT",
             },
+            is_variable_length: false,
         },
     },
     initializer: Some(
@@ -266,6 +267,7 @@ fn array_initializer_multiplier_can_be_parsed() {
             referenced_type: DataTypeReference {
                 referenced_type: "INT",
             },
+            is_variable_length: false,
         },
     },
     initializer: Some(

@@ -1,9 +1,10 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
+use crate::ast::AstLiteral;
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
@@ -339,87 +340,15 @@ fn visit_data_type(
     //names should not be empty
     match data_type {
         DataType::StructType { name: Some(name), variables } => {
-            let struct_name = name.as_str();
-
-            let members = variables
-                .iter()
-                .enumerate()
-                .map(|(count, var)| {
-                    if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } =
-                        &var.data_type_declaration
-                    {
-                        //first we need to handle the inner type
-                        visit_data_type(
-                            index,
-                            &UserTypeDeclaration {
-                                data_type: data_type.clone(),
-                                initializer: None,
-                                location: SourceRange::undefined(),
-                                scope: scope.clone(),
-                            },
-                            symbol_location_factory,
-                        )
-                    }
-
-                    let member_type = var.data_type_declaration.get_name().expect("named variable datatype");
-                    let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-                        var.initializer.clone(),
-                        member_type,
-                        scope.clone(),
-                    );
-
-                    let binding = var
-                        .address
-                        .as_ref()
-                        .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
-
-                    index.register_member_variable(
-                        MemberInfo {
-                            container_name: struct_name,
-                            variable_name: &var.name,
-                            variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
-                            variable_type_name: member_type,
-                            is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
-                            binding,
-                            varargs: None,
-                        },
-                        init,
-                        symbol_location_factory.create_symbol_location(&var.location),
-                        count as u32,
-                    )
-                })
-                .collect::<Vec<_>>();
-
-            let type_name = name.clone();
-            let information = DataTypeInformation::Struct {
-                name: type_name.clone(),
-                members,
-                source: StructSource::OriginalDeclaration,
-            };
-
-            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
-                type_name.as_str(),
-                scope.clone(),
+            visit_struct(
+                name,
+                variables,
+                index,
+                symbol_location_factory,
+                scope,
+                type_declaration,
+                StructSource::OriginalDeclaration,
             );
-            index.register_type(typesystem::DataType {
-                name: name.to_string(),
-                initial_value: init,
-                information,
-                nature: TypeNature::Derived,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
-            });
-            //Generate an initializer for the struct
-            let global_struct_name = crate::index::get_initializer_name(name);
-            let variable = VariableIndexEntry::create_global(
-                &global_struct_name,
-                &global_struct_name,
-                type_name.as_str(),
-                symbol_location_factory.create_symbol_location(&type_declaration.location),
-            )
-            .set_initial_value(init)
-            .set_constant(true);
-            index.register_global_initializer(&global_struct_name, variable);
         }
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {
@@ -488,73 +417,28 @@ fn visit_data_type(
                 location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
-        DataType::ArrayType { name: Some(name), referenced_type, bounds } => {
-            let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
-                .get_as_list()
-                .iter()
-                .map(|it| {
-                    if let AstStatement::RangeStatement { start, end, .. } = it {
-                        let constants = index.get_mut_const_expressions();
-                        Ok(Dimension {
-                            start_offset: TypeSize::from_expression(constants.add_constant_expression(
-                                *start.clone(),
-                                typesystem::INT_TYPE.to_string(),
-                                scope.clone(),
-                            )),
-                            end_offset: TypeSize::from_expression(constants.add_constant_expression(
-                                *end.clone(),
-                                typesystem::INT_TYPE.to_string(),
-                                scope.clone(),
-                            )),
-                        })
-                    } else {
-                        Err(Diagnostic::codegen_error(
-                            "Invalid array definition: RangeStatement expected",
-                            it.get_location(),
-                        ))
-                    }
-                })
-                .collect();
-            let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
-            let referenced_type_name = referenced_type.get_name().expect("named datatype");
-            let information = DataTypeInformation::Array {
-                name: name.clone(),
-                inner_type_name: referenced_type_name.to_string(),
-                dimensions,
-            };
-
-            let init1 = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
+        DataType::ArrayType { name: Some(name), referenced_type, bounds, is_variable_length }
+            if *is_variable_length =>
+        {
+            visit_variable_length_array(
+                bounds,
+                referenced_type,
                 name,
-                scope.clone(),
+                index,
+                type_declaration,
+                symbol_location_factory,
             );
-            // TODO unfortunately we cannot share const-expressions between multiple
-            // index-entries
-            let init2 = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
+        }
+        DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
+            visit_array(
+                bounds,
+                index,
+                scope,
+                referenced_type,
                 name,
-                scope.clone(),
+                type_declaration,
+                symbol_location_factory,
             );
-
-            index.register_type(typesystem::DataType {
-                name: name.to_string(),
-                initial_value: init1,
-                information,
-                nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
-            });
-            let global_init_name = crate::index::get_initializer_name(name);
-            if init2.is_some() {
-                let variable = VariableIndexEntry::create_global(
-                    global_init_name.as_str(),
-                    global_init_name.as_str(),
-                    name,
-                    symbol_location_factory.create_symbol_location(&type_declaration.location),
-                )
-                .set_constant(true)
-                .set_initial_value(init2);
-                index.register_global_initializer(&global_init_name, variable);
-            }
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
@@ -582,7 +466,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::LiteralInteger { value, .. }) => {
+                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
@@ -591,11 +475,11 @@ fn visit_data_type(
                         id: statement.get_id(),
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::LiteralInteger {
-                            id: statement.get_id(),
-                            location: statement.get_location(),
-                            value: 1,
-                        }),
+                        right: Box::new(AstStatement::new_literal(
+                            AstLiteral::new_integer(1),
+                            statement.get_id(),
+                            statement.get_location(),
+                        )),
                     };
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
@@ -652,4 +536,321 @@ fn visit_data_type(
 
         _ => { /* unnamed datatypes are ignored */ }
     };
+}
+
+/// Internally we create a fat pointer struct for VLAs, which consists of a pointer to the passed array plus
+/// its dimensions, such that `ARRAY[*, *, *] OF INT` becomes
+/// ```ignore
+/// STRUCT
+///     ptr       : REF_TO ARRAY[*] OF INT;
+///     dimensions: ARRAY[0..2, 0..1] OF DINT;
+///                       ^^^^       --> dimension index
+///                             ^^^^ --> start- & end-offset
+/// END_STRUCT
+/// ```
+fn visit_variable_length_array(
+    bounds: &AstStatement,
+    referenced_type: &DataTypeDeclaration,
+    name: &str,
+    index: &mut Index,
+    type_declaration: &UserTypeDeclaration,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
+    let ndims = match bounds {
+        AstStatement::VlaRangeStatement { .. } => 1,
+        AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+        _ => unreachable!("not a bounds statement"),
+    };
+
+    let referenced_type = referenced_type.get_name().expect("named datatype").to_string();
+    let struct_name = name.to_owned();
+
+    let dummy_array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
+    let member_array_name = format!("__ptr_to_{dummy_array_name}");
+    let member_dimensions_name = format!("__bounds_{dummy_array_name}");
+
+    // check the index if a dummy-array type matching the given VLA (eg. 1 dimension, type INT) already exists.
+    // if we find a type, we can use references to the internal types. otherwise, register the array in the index
+    // and declare internal member types.
+    let (vla_arr_type_declaration, dim_arr_type_declaration) =
+        if index.get_effective_type_by_name(&dummy_array_name).is_ok() {
+            (
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_array_name,
+                    location: SourceRange::undefined(),
+                },
+                DataTypeDeclaration::DataTypeReference {
+                    referenced_type: member_dimensions_name,
+                    location: SourceRange::undefined(),
+                },
+            )
+        } else {
+            // register dummy array type so it can later be annotated as a type hint
+            index.register_type(typesystem::DataType {
+                name: dummy_array_name.clone(),
+                initial_value: None,
+                information: DataTypeInformation::Array {
+                    name: dummy_array_name.clone(),
+                    inner_type_name: referenced_type.clone(),
+                    // dummy dimensions that will never actually be used
+                    dimensions: (0..ndims)
+                        .map(|_| Dimension {
+                            start_offset: TypeSize::Undetermined,
+                            end_offset: TypeSize::Undetermined,
+                        })
+                        .collect::<Vec<_>>(),
+                },
+                nature: TypeNature::__VLA,
+                location: SymbolLocation::internal(),
+            });
+
+            // define internal vla members
+            (
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::PointerType {
+                        name: Some(member_array_name),
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: dummy_array_name,
+                            location: SourceRange::undefined(),
+                        }),
+                    },
+                    location: SourceRange::undefined(),
+                    scope: None,
+                },
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::ArrayType {
+                        name: Some(member_dimensions_name),
+                        bounds: AstStatement::ExpressionList {
+                            expressions: (0..ndims)
+                                .map(|_| AstStatement::RangeStatement {
+                                    start: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(0),
+                                        0,
+                                        SourceRange::undefined(),
+                                    )),
+                                    end: Box::new(AstStatement::new_literal(
+                                        AstLiteral::new_integer(1),
+                                        0,
+                                        SourceRange::undefined(),
+                                    )),
+                                    id: 0,
+                                })
+                                .collect::<_>(),
+                            id: 0,
+                        },
+                        referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: DINT_TYPE.to_string(),
+                            location: SourceRange::undefined(),
+                        }),
+                        is_variable_length: false,
+                    },
+                    location: SourceRange::undefined(),
+                    scope: None,
+                },
+            )
+        };
+
+    // Create variable index entries for VLA struct members
+    let variables = vec![
+        // Pointer
+        Variable {
+            name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
+            data_type_declaration: vla_arr_type_declaration,
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+        // Dimensions Array
+        Variable {
+            name: "dimensions".to_string(),
+            data_type_declaration: dim_arr_type_declaration,
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+    ];
+
+    let struct_ty = DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
+    let type_dec = UserTypeDeclaration {
+        data_type: struct_ty,
+        initializer: None,
+        location: type_declaration.location.clone(),
+        scope: type_declaration.scope.clone(),
+    };
+
+    // visit the internally created struct type to also index its members
+    visit_struct(
+        &struct_name,
+        &variables,
+        index,
+        symbol_location_factory,
+        &type_declaration.scope,
+        &type_dec,
+        StructSource::Internal(InternalType::VariableLengthArray { inner_type_name: referenced_type, ndims }),
+    )
+}
+
+fn visit_array(
+    bounds: &AstStatement,
+    index: &mut Index,
+    scope: &Option<String>,
+    referenced_type: &DataTypeDeclaration,
+    name: &String,
+    type_declaration: &UserTypeDeclaration,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
+    let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
+        .get_as_list()
+        .iter()
+        .map(|it| match it {
+            AstStatement::RangeStatement { start, end, .. } => {
+                let constants = index.get_mut_const_expressions();
+                Ok(Dimension {
+                    start_offset: TypeSize::from_expression(constants.add_constant_expression(
+                        *start.clone(),
+                        typesystem::INT_TYPE.to_string(),
+                        scope.clone(),
+                    )),
+                    end_offset: TypeSize::from_expression(constants.add_constant_expression(
+                        *end.clone(),
+                        typesystem::INT_TYPE.to_string(),
+                        scope.clone(),
+                    )),
+                })
+            }
+
+            _ => Err(Diagnostic::codegen_error(
+                "Invalid array definition: RangeStatement expected",
+                it.get_location(),
+            )),
+        })
+        .collect();
+
+    // TODO(mhasel, volsa): This unwrap will panic with `ARRAY[0..5, 5] OF DINT;`
+    let dimensions = dimensions.unwrap();
+
+    //TODO hmm we need to talk about all this unwrapping :-/
+    let referenced_type_name = referenced_type.get_name().expect("named datatype");
+    let information = DataTypeInformation::Array {
+        name: name.clone(),
+        inner_type_name: referenced_type_name.to_string(),
+        dimensions,
+    };
+
+    let init1 = index.get_mut_const_expressions().maybe_add_constant_expression(
+        type_declaration.initializer.clone(),
+        name,
+        scope.clone(),
+    );
+    // TODO unfortunately we cannot share const-expressions between multiple
+    // index-entries
+    let init2 = index.get_mut_const_expressions().maybe_add_constant_expression(
+        type_declaration.initializer.clone(),
+        name,
+        scope.clone(),
+    );
+
+    index.register_type(typesystem::DataType {
+        name: name.to_string(),
+        initial_value: init1,
+        information,
+        nature: TypeNature::Any,
+        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+    });
+    let global_init_name = crate::index::get_initializer_name(name);
+    if init2.is_some() {
+        let variable = VariableIndexEntry::create_global(
+            global_init_name.as_str(),
+            global_init_name.as_str(),
+            name,
+            symbol_location_factory.create_symbol_location(&type_declaration.location),
+        )
+        .set_constant(true)
+        .set_initial_value(init2);
+        index.register_global_initializer(&global_init_name, variable);
+    }
+}
+
+fn visit_struct(
+    name: &str,
+    variables: &[Variable],
+    index: &mut Index,
+    symbol_location_factory: &SymbolLocationFactory,
+    scope: &Option<String>,
+    type_declaration: &UserTypeDeclaration,
+    source: StructSource,
+) {
+    let members = variables
+        .iter()
+        .enumerate()
+        .map(|(count, var)| {
+            if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } =
+                &var.data_type_declaration
+            {
+                //first we need to handle the inner type
+                visit_data_type(
+                    index,
+                    &UserTypeDeclaration {
+                        data_type: data_type.clone(),
+                        initializer: None,
+                        location: SourceRange::undefined(),
+                        scope: scope.clone(),
+                    },
+                    symbol_location_factory,
+                )
+            }
+
+            let member_type = var.data_type_declaration.get_name().expect("named variable datatype");
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                var.initializer.clone(),
+                member_type,
+                scope.clone(),
+            );
+
+            let binding =
+                var.address.as_ref().and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
+
+            index.register_member_variable(
+                MemberInfo {
+                    container_name: name,
+                    variable_name: &var.name,
+                    variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
+                    variable_type_name: member_type,
+                    is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                    binding,
+                    varargs: None,
+                },
+                init,
+                symbol_location_factory.create_symbol_location(&var.location),
+                count as u32,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let nature = source.get_type_nature();
+    let information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
+
+    let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+        type_declaration.initializer.clone(),
+        name,
+        scope.clone(),
+    );
+    index.register_type(typesystem::DataType {
+        name: name.to_string(),
+        initial_value: init,
+        information,
+        nature,
+        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+    });
+    //Generate an initializer for the struct
+    let global_struct_name = crate::index::get_initializer_name(name);
+    let variable = VariableIndexEntry::create_global(
+        &global_struct_name,
+        &global_struct_name,
+        name,
+        symbol_location_factory.create_symbol_location(&type_declaration.location),
+    )
+    .set_initial_value(init)
+    .set_constant(true);
+    index.register_global_initializer(&global_struct_name, variable);
 }

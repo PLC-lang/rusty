@@ -1,13 +1,18 @@
-use std::{collections::HashSet, convert::TryInto, mem::discriminant};
+use std::{collections::HashSet, mem::discriminant};
 
 use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
-    ast::{self, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange},
+    ast::{
+        self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
+        StringValue,
+    },
+    builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, BOOL_TYPE, POINTER_SIZE,
+        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
+        BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -35,11 +40,13 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
-        AstStatement::LiteralArray { elements: Some(elements), .. } => {
+        AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(elements), .. }), .. } => {
             visit_statement(validator, elements.as_ref(), context);
         }
         AstStatement::CastStatement { target, type_name, location, .. } => {
-            validate_cast_literal(validator, target, type_name, location, context);
+            if let AstStatement::Literal { kind: literal, .. } = target.as_ref() {
+                validate_cast_literal(validator, literal, statement, type_name, location, context);
+            }
         }
         AstStatement::MultipliedStatement { element, .. } => {
             visit_statement(validator, element, context);
@@ -86,7 +93,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
-            validate_call(validator, operator, parameters, context);
+            validate_call(validator, operator, parameters, &context.set_is_call());
         }
         AstStatement::IfStatement { blocks, else_block, .. } => {
             blocks.iter().for_each(|b| {
@@ -136,7 +143,8 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
 fn validate_cast_literal(
     // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     validator: &mut Validator,
-    literal: &AstStatement,
+    literal: &AstLiteral,
+    statement: &AstStatement,
     type_name: &str,
     location: &SourceRange,
     context: &ValidationContext,
@@ -145,8 +153,8 @@ fn validate_cast_literal(
     let literal_type = context.index.get_type_information_or_void(
         literal
             .get_literal_actual_signed_type_name(!cast_type.is_unsigned_int())
-            .or_else(|| context.annotations.get_type_hint(literal, context.index).map(DataType::get_name))
-            .unwrap_or_else(|| context.annotations.get_type_or_void(literal, context.index).get_name()),
+            .or_else(|| context.annotations.get_type_hint(statement, context.index).map(DataType::get_name))
+            .unwrap_or_else(|| context.annotations.get_type_or_void(statement, context.index).get_name()),
     );
 
     if !literal.is_cast_prefix_eligible() {
@@ -230,7 +238,7 @@ fn validate_access_index(
     location: &SourceRange,
 ) {
     match *access_index {
-        AstStatement::LiteralInteger { value, .. } => {
+        AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
             if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
@@ -263,12 +271,12 @@ fn validate_reference(
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
-    } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
+    } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
         // check if we're accessing a private variable AND the variable's qualifier is not the
         // POU we're accessing it from
-        if variable_type.is_private()
+        if argument_type.is_private()
             && context
                 .qualifier
                 .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -290,19 +298,49 @@ fn visit_array_access(
 ) {
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
-    if let DataTypeInformation::Array { dimensions, .. } = target_type {
-        if let AstStatement::ExpressionList { expressions, .. } = access {
-            for (i, exp) in expressions.iter().enumerate() {
-                validate_array_access(validator, exp, dimensions, i, context);
+    match target_type {
+        DataTypeInformation::Array { dimensions, .. } => match access {
+            AstStatement::ExpressionList { expressions, .. } => {
+                validate_array_access_dimensions(dimensions.len(), expressions.len(), validator, access);
+
+                for (i, exp) in expressions.iter().enumerate() {
+                    validate_array_access(validator, exp, dimensions, i, context);
+                }
             }
-        } else {
-            validate_array_access(validator, access, dimensions, 0, context);
+
+            _ => {
+                validate_array_access_dimensions(dimensions.len(), 1, validator, access);
+                validate_array_access(validator, access, dimensions, 0, context)
+            }
+        },
+
+        DataTypeInformation::Struct {
+            source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
+            ..
+        } => {
+            let dims = match access {
+                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+                _ => 1,
+            };
+
+            validate_array_access_dimensions(*ndims, dims, validator, access);
         }
-    } else {
-        validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
+
+        _ => validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
             target_type.get_name(),
             access.get_location(),
-        ));
+        )),
+    }
+}
+
+fn validate_array_access_dimensions(
+    ndims: usize,
+    dims: usize,
+    validator: &mut Validator,
+    access: &AstStatement,
+) {
+    if ndims != dims {
+        validator.push_diagnostic(Diagnostic::invalid_array_access(ndims, dims, access.get_location()))
     }
 }
 
@@ -313,7 +351,7 @@ fn validate_array_access(
     dimension_index: usize,
     context: &ValidationContext,
 ) {
-    if let AstStatement::LiteralInteger { value, .. } = access {
+    if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = access {
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
@@ -406,15 +444,15 @@ fn compare_function_exists(type_name: &str, operator: &Operator, context: &Valid
         // we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {
             data_type_name: type_name_1,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: type_name_2,
-            variable_type: ArgumentType::ByVal(VariableType::Input),
+            argument_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: return_type,
-            variable_type: ArgumentType::ByVal(VariableType::Return),
+            argument_type: ArgumentType::ByVal(VariableType::Return),
             ..
         }] = members
         {
@@ -463,7 +501,7 @@ fn validate_unary_expression(
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
 fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstStatement) {
-    let ty = param.variable_type.get_variable_type();
+    let ty = param.argument_type.get_inner();
     if !matches!(ty, VariableType::Output | VariableType::InOut) {
         return;
     }
@@ -494,21 +532,26 @@ fn validate_assignment(
     context: &ValidationContext,
 ) {
     if let Some(left) = left {
-        // check if we assign to a constant variable
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        // Check if we are assigning to a...
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
             context.annotations.get(left)
         {
+            // ...constant variable
             if *constant {
                 validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
             }
+
+            // ...VAR_INPUT {ref} variable
+            if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
+                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+            }
         }
 
-        // If whatever we got is not assignable, output an error
+        // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            // we hit an assignment without a LValue to assign to
             validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
         }
     }
@@ -526,17 +569,52 @@ fn validate_assignment(
             left_type
         };
 
-        if !left_type.is_compatible_with_type(right_type)
-            || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
+        // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
+        // are no longer allowed inside a POU body
+        if left_type.is_vla() && right_type.is_array() && context.is_call() {
+            // TODO: This could benefit from a better error message, tracked in
+            // https://github.com/PLC-lang/rusty/issues/118
+            validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
+            return;
+        }
+
+        if !(left_type.is_compatible_with_type(right_type)
+            && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type.get_type_information().get_name(),
                 left_type.get_type_information().get_name(),
                 location.clone(),
             ));
-        } else if !right.is_literal() {
-            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+        } else if !matches!(right, AstStatement::Literal { .. }) {
+            // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
+    }
+}
+
+fn validate_variable_length_array_assignment(
+    validator: &mut Validator,
+    context: &ValidationContext,
+    location: &SourceRange,
+    left_type: &DataType,
+    right_type: &DataType,
+) {
+    let left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
+    let right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
+
+    let left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
+    let right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
+
+    let left_dims = left_type.get_type_information().get_dimensions().unwrap();
+    let right_dims = right_type.get_type_information().get_dimensions().unwrap();
+
+    if left_dt != right_dt || left_dims != right_dims {
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            right_type.get_type_information().get_name(),
+            left_type.get_type_information().get_name(),
+            location.clone(),
+        ));
     }
 }
 
@@ -558,16 +636,10 @@ fn is_valid_assignment(
         // in this case return true and skip any other validation
         // because those would fail
         return true;
-    } else if is_invalid_pointer_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-        index,
-        location,
-        validator,
-    ) | is_invalid_char_assignment(
-        left_type.get_type_information(),
-        right_type.get_type_information(),
-    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+    } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         return false;
@@ -585,7 +657,7 @@ fn is_valid_string_to_char_assignment(
 ) -> bool {
     // TODO: casted literals and reference
     if left_type.is_compatible_char_and_string(right_type) {
-        if let AstStatement::LiteralString { value, .. } = right {
+        if let AstStatement::Literal { kind: AstLiteral::String(StringValue { value, .. }), .. } = right {
             if value.len() == 1 {
                 return true;
             } else {
@@ -600,7 +672,7 @@ fn is_valid_string_to_char_assignment(
     false
 }
 
-fn is_invalid_pointer_assignment(
+fn _is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
@@ -676,22 +748,28 @@ fn validate_call(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
+        // additional validation for builtin calls if necessary
+        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
+            validation(validator, operator, parameters, context.annotations, context.index)
+        }
+
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
         let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
-        let mut passed_params_idx = Vec::new();
         let mut are_implicit_parameters = true;
+        let mut variable_location_in_parent = vec![];
+
         // validate parameters
         for (i, p) in passed_parameters.iter().enumerate() {
-            if let Ok((location_in_parent, right, is_implicit)) =
+            if let Ok((parameter_location_in_parent, right, is_implicit)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
-                // safe index of passed parameter
-                passed_params_idx.push(location_in_parent);
-
-                let left = declared_parameters.get(location_in_parent);
+                let left = declared_parameters.get(parameter_location_in_parent);
                 if let Some(left) = left {
                     validate_call_by_ref(validator, left, p);
+                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    variable_location_in_parent.push(left.get_location_in_parent());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -714,13 +792,14 @@ fn validate_call(
 
         // for PROGRAM/FB we need special inout validation
         if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
-            let inouts: Vec<&&VariableIndexEntry> =
+            let declared_in_out_params: Vec<&&VariableIndexEntry> =
                 declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+
             // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-            if !inouts.is_empty() {
+            if !declared_in_out_params.is_empty() {
                 // check if all inouts were passed to the pou call
-                inouts.into_iter().for_each(|p| {
-                    if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
+                declared_in_out_params.into_iter().for_each(|p| {
+                    if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(Diagnostic::missing_inout_parameter(
                             p.get_name(),
                             operator.get_location(),
@@ -761,12 +840,14 @@ fn validate_case_statement(
         const_evaluator::evaluate(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
-                validator
-                    .push_diagnostic(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
+                validator.push_diagnostic(Diagnostic::non_constant_case_condition(
+                    err.get_reason(),
+                    condition.get_location(),
+                ))
             })
             .map(|v| {
                 // check for duplicates if we got a value
-                if let Some(AstStatement::LiteralInteger { value, .. }) = v {
+                if let Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) = v {
                     if !cases.insert(value) {
                         validator.push_diagnostic(Diagnostic::duplicate_case_condition(
                             &value,
@@ -820,7 +901,7 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
     }
 }
 
-fn validate_assignment_type_sizes(
+fn _validate_assignment_type_sizes(
     validator: &mut Validator,
     left: &DataType,
     right: &DataType,

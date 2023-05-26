@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: res
+---
+SemanticError { message: "This will overflow for type WORD", range: [SourceRange { range: 95..103 }], err_no: var__overflow }
+
