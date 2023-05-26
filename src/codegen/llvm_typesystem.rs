@@ -49,9 +49,6 @@ pub trait TypeCaster<'ctx> {
     /// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
     ///
     /// - `self` the generator calling this function
-    /// - `llvm` the llvm utilities to use for code-generation
-    /// - `index` the current Index used for type-lookups
-    /// - `llvm_type_index` the type index to lookup llvm generated types
     /// - `target_type` the expected target type of the value
     /// - `value_type` the current type of the given value
     /// - `value` the value to (maybe) cast
@@ -64,15 +61,15 @@ pub trait TypeCaster<'ctx> {
     ) -> BasicValueEnum<'ctx>;
 }
 
-// Implementing this trait allows borrowing fields from structs when they are passed as generic arguments
-trait Borrower<'ctx, 'cast> {
+/// Implementing this trait allows borrowing fields from structs when they are passed as generic arguments
+pub trait Lender<'ctx, 'cast> {
     type Output;
     fn borrow(&self) -> Self::Output;
 }
 
 macro_rules! impl_borrow_for_generator {
     (($out1:ty, $out2:ty, $out3:ty), [$($t:ty),+]) => {
-        $(impl<'ctx, 'cast> Borrower<'ctx, 'cast> for $t {
+        $(impl<'ctx, 'cast> Lender<'ctx, 'cast> for $t {
             type Output = (&'cast $out1, &'cast $out2, &'cast $out3);
             fn borrow(&self) -> Self::Output {
                 (self.index, self.llvm, self.llvm_index)
@@ -124,7 +121,7 @@ impl<'ctx, 'cast> CastInstructionGenerator<'ctx, 'cast> {
         annotation: Option<&'cast StatementAnnotation>,
     ) -> CastInstructionGenerator<'ctx, 'cast>
     where
-        G: Borrower<'ctx, 'cast, Output = (&'cast Index, &'cast Llvm<'ctx>, &'cast LlvmTypedIndex<'ctx>)>
+        G: Lender<'ctx, 'cast, Output = (&'cast Index, &'cast Llvm<'ctx>, &'cast LlvmTypedIndex<'ctx>)>
             + TypeCaster<'ctx>,
     {
         let (index, llvm, llvm_type_index) = generator.borrow();
