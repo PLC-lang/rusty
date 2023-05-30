@@ -1,7 +1,7 @@
 type Attributes = Vec<(&'static str, &'static str)>;
 
 /// Number of spaces to use when indenting XML
-const INDENT_SPACES: usize = 2;
+const INDENT_SPACES: usize = 4;
 
 struct Node {
     name: &'static str,
@@ -11,18 +11,6 @@ struct Node {
 }
 
 impl Node {
-    pub fn with(name: &'static str, attributes: Attributes, nodes: Node) -> Self {
-        Self { name, attributes, is_empty: false, nodes: vec![nodes] }
-    }
-
-    pub fn with_empty(name: &'static str, attributes: Attributes) -> Self {
-        Self { name, attributes, is_empty: false, nodes: vec![] }
-    }
-
-    pub fn with_nodes(name: &'static str, attributes: Attributes, nodes: Vec<Node>) -> Self {
-        Self { name, attributes, is_empty: false, nodes }
-    }
-
     fn attributes(&self) -> String {
         let mut fmt = String::new();
         for attr in &self.attributes {
@@ -73,15 +61,9 @@ impl Node {
     }
 }
 
-trait Inner {
-    fn get_inner(self) -> Node;
-    fn get_inner_ref(&self) -> &Node;
-    fn get_inner_ref_mut(&mut self) -> &mut Node;
-}
-
 macro_rules! types {
-    ($name:ident, $name_xml:expr) => {
-        struct $name(Node);
+    ($(($name:ident, $name_xml:expr)),+) => {
+        $(struct $name(Node);
         impl $name {
             pub fn new() -> Self {
                 Self(Node { name: $name_xml, attributes: vec![], is_empty: false, nodes: vec![] })
@@ -96,9 +78,7 @@ macro_rules! types {
                 self.0.is_empty = true;
                 self
             }
-        }
 
-        impl Inner for $name {
             fn get_inner(self) -> Node {
                 self.0
             }
@@ -110,54 +90,88 @@ macro_rules! types {
             fn get_inner_ref_mut(&mut self) -> &mut Node {
                 &mut self.0
             }
-        }
+        })*
     };
 }
 
+// For `extend! {Pou, (Body, with_body), ... }` the macro will expand to
+// impl Pou {
+//     fn with_body(arg: Body) -> Self {
+//         self.get_inner_ref_mut().nodes.push(arg.get_inner());
+//         self
+//     }
+//
+//     // ...
+// }
 macro_rules! extend {
-    ($ty:ident, $arg:ident, $fn_name:ident) => {
-        impl $ty {
-            fn $fn_name(mut self, value: $arg) -> Self {
+    ($($type:ty, $(($arg:ty, $fn_name:ident)),+); +) => {
+         $(impl $type {
+            $( fn $fn_name(mut self, value: $arg) -> Self {
                 self.get_inner_ref_mut().nodes.push(value.get_inner());
                 self
-            }
-        }
-    };
+            })*
+        })*
+    }
 }
 
-types!(Pou, "pou");
-types!(Body, "body");
-types!(Fbd, "FBD");
-types!(Block, "block");
-types!(InputVariables, "inputVariables");
-types!(OutputVariables, "outputVariables");
-types!(InOutVariables, "inOutVariables");
-types!(Variable, "variable");
-types!(RelPosition, "relPosition");
-types!(Connection, "connection");
-types!(ConnectionPointIn, "connectionPointIn");
-types!(ConnectionPointOut, "connectionPointOut");
-types!(InVariable, "inVariable");
-types!(Position, "position");
+extend! {
+    Pou,
+    (Body, with_body);
 
-extend!(Block, InOutVariables, with_inout_variables);
-extend!(Block, InputVariables, with_input_variables);
-extend!(Block, OutputVariables, with_output_variables);
-extend!(Body, Fbd, with_fbd);
-extend!(ConnectionPointIn, Connection, with_connection);
-extend!(ConnectionPointIn, RelPosition, with_rel_position);
-extend!(ConnectionPointOut, Connection, with_connection);
-extend!(ConnectionPointOut, RelPosition, with_rel_position);
-extend!(Fbd, Block, with_block);
-extend!(Fbd, InVariable, with_in_variable);
-extend!(InOutVariables, Variable, with_variable);
-extend!(InVariable, ConnectionPointOut, with_connection_point_out);
-extend!(InVariable, Position, with_position);
-extend!(InputVariables, Variable, with_variable);
-extend!(OutputVariables, Variable, with_variable);
-extend!(Pou, Body, with_body);
-extend!(Variable, ConnectionPointIn, with_connection_point_in);
-extend!(Variable, ConnectionPointOut, with_connection_point_out);
+    Block,
+    (InOutVariables, with_inout_variables),
+    (InputVariables, with_input_variables),
+    (OutputVariables, with_output_variables);
+
+    Body,
+    (Fbd, with_fbd);
+
+    ConnectionPointIn,
+    (Connection, with_connection),
+    (RelPosition, with_rel_position);
+
+    ConnectionPointOut,
+    (Connection, with_connection),
+    (RelPosition, with_rel_position);
+
+    Fbd,
+    (Block, with_block),
+    (InVariable, with_in_variable);
+
+    Variable,
+    (ConnectionPointIn, with_connection_in),
+    (ConnectionPointOut, with_connection_point_out);
+
+    InVariable,
+    (ConnectionPointOut, with_connection_point_out),
+    (Position, with_position);
+
+    InOutVariables,
+    (Variable, with_variable);
+
+    InputVariables,
+    (Variable, with_variable);
+
+    OutputVariables,
+    (Variable, with_variable)
+}
+
+types! {
+    (Pou, "pou"),
+    (Body, "body"),
+    (Fbd, "FBD"),
+    (Block, "block"),
+    (InputVariables, "inputVariables"),
+    (OutputVariables, "outputVariables"),
+    (InOutVariables, "inOutVariables"),
+    (Variable, "variable"),
+    (RelPosition, "relPosition"),
+    (Connection, "connection"),
+    (ConnectionPointIn, "connectionPointIn"),
+    (ConnectionPointOut, "connectionPointOut"),
+    (InVariable, "inVariable"),
+    (Position, "position")
+}
 
 impl Variable {
     fn init(name: &'static str, negated: bool) -> Self {
@@ -173,14 +187,31 @@ impl RelPosition {
     }
 }
 
-impl Connection {
-    fn init(name: Option<&'static str>, ref_local_id: &'static str) -> Self {
-        let connection = match name {
-            Some(name) => Connection::new().with_attribute("formalParameter", name),
-            None => Connection::new(),
-        };
+impl ConnectionPointIn {
+    fn with_ref(ref_local_id: &'static str) -> Self {
+        ConnectionPointIn::new()
+            .with_rel_position(RelPosition::init().as_empty())
+            .with_connection(Connection::new().with_attribute("refLocalId", ref_local_id).as_empty())
+    }
+}
 
-        connection.with_attribute("refLocalId", ref_local_id)
+impl ConnectionPointOut {
+    fn with_rel_pos() -> Self {
+        ConnectionPointOut::new().with_rel_position(RelPosition::init().as_empty())
+    }
+}
+
+impl InVariable {
+    fn init(local_id: &'static str, negated: bool) -> Self {
+        InVariable::new()
+            .with_attribute("localId", local_id)
+            .with_attribute("negated", if negated { "true" } else { "false" })
+    }
+}
+
+impl Block {
+    fn init(local_id: &'static str, type_name: &'static str) -> Self {
+        Block::new().with_attribute("localId", "5").with_attribute("typeName", "MyAdd")
     }
 }
 
@@ -190,56 +221,31 @@ fn demo() {
     let body = Body::new().with_fbd(
         Fbd::new()
             .with_block(
-                Block::new()
-                    .with_attribute("localId", "3")
-                    .with_attribute("typeName", "MyAdd")
+                Block::init("5", "MyAdd")
+                    .with_attribute("instanceName", "local_add")
                     .with_input_variables(
                         InputVariables::new()
                             .with_variable(
-                                Variable::init("a", false).with_connection_point_in(
-                                    ConnectionPointIn::new()
-                                        .with_rel_position(RelPosition::init().as_empty())
-                                        .with_connection(Connection::init(None, "2").as_empty()),
-                                ),
+                                Variable::init("a", false)
+                                    .with_connection_in(ConnectionPointIn::with_ref("6")),
                             )
                             .with_variable(
-                                Variable::init("a", false).with_connection_point_in(
-                                    ConnectionPointIn::new()
-                                        .with_rel_position(RelPosition::init().as_empty())
-                                        .with_connection(Connection::init(None, "2").as_empty()),
-                                ),
+                                Variable::init("b", false)
+                                    .with_connection_in(ConnectionPointIn::with_ref("7")),
                             ),
                     )
+                    .with_inout_variables(InOutVariables::new().as_empty())
                     .with_output_variables(
-                        OutputVariables::new()
-                            .with_variable(
-                                Variable::init("a", false).with_connection_point_in(
-                                    ConnectionPointIn::new()
-                                        .with_rel_position(RelPosition::init().as_empty())
-                                        .with_connection(Connection::init(None, "2").as_empty()),
-                                ),
-                            )
-                            .with_variable(
-                                Variable::init("a", false).with_connection_point_in(
-                                    ConnectionPointIn::new()
-                                        .with_rel_position(RelPosition::init().as_empty())
-                                        .with_connection(Connection::init(None, "2").as_empty()),
-                                ),
-                            ),
-                    )
-                    .with_inout_variables(InOutVariables::new().as_empty()),
+                        OutputVariables::new().with_variable(
+                            Variable::init("c", false)
+                                .with_connection_point_out(ConnectionPointOut::with_rel_pos()),
+                        ),
+                    ),
             )
             .with_in_variable(
-                InVariable::new()
-                    .with_attribute("localId", "0")
-                    .with_position(Position::new().as_empty())
-                    .with_connection_point_out(
-                        ConnectionPointOut::new()
-                            .with_rel_position(RelPosition::new().as_empty())
-                            .with_connection(Connection::init(Some("a"), "0").as_empty()),
-                    ),
+                InVariable::new().with_connection_point_out(ConnectionPointOut::with_rel_pos()),
             ),
     );
 
-    println!("{}", Pou::new().with_body(body).get_inner().finalize());
+    println!("{}", Pou::new().with_body(body).get_inner().finalize())
 }
