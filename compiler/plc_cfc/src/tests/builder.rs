@@ -54,6 +54,9 @@ impl Node {
             );
         }
 
+        #[cfg(feature = "debug")]
+        println!("{fmt}");
+
         fmt
     }
 }
