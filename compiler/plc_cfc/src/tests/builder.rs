@@ -61,6 +61,24 @@ impl Node {
     }
 }
 
+// For `declare_type_and_extend_if_needed! { (Pou, "pou", (Body, with_body)) }` the macro will expand to
+//
+// pub(crate) struct Pou(Node);
+//
+// impl Pou {
+//     pub fn new() -> Self {
+//         Self(Node { name: "pou", attributes: vec![], closed: false, nodes: vec![] })
+//     }
+//
+//     ... the remaining non-optional functions in the impl block ...
+//
+//     ... the optional extend method
+//     pub(crate) fn with_body(arg: Body) -> Self {
+//         self.get_inner_ref_mut().nodes.push(arg.get_inner());
+//         self
+//     }
+// }
+// TODO: revisit visiblity of functions
 macro_rules! declare_type_and_extend_if_needed {
     ($(($name:ident, $name_xml:expr, $(($arg:ty, $fn_name:ident)),*),) +) => {
         $(
@@ -94,7 +112,8 @@ macro_rules! declare_type_and_extend_if_needed {
                 }
 
                 // this part is optional.
-                $( pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
+                $(
+                    pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
                     self.get_inner_ref_mut().nodes.push(value.get_inner());
                     self
                 })*
@@ -119,7 +138,6 @@ declare_type_and_extend_if_needed! {
         (Fbd, with_fbd)
     ),
     (
-
         ConnectionPointIn, "connectionPointIn",
         (Connection, with_connection),
         (RelPosition, with_rel_position)
