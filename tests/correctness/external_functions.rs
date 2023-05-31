@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 use inkwell::targets::{InitializationConfig, Target};
-use rusty::runner::run_no_param;
+use rusty::codegen::CodegenContext;
 
 extern "C" fn times_two(val: i32) -> i32 {
     val * 2
@@ -24,17 +24,12 @@ fn test_external_function_called() {
     ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(prog, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("times_two", times_two as usize);
 
-    let fn_value = code_gen.module.get_function("times_two").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, times_two as usize);
-
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 200)
 
     //Call that function
@@ -81,17 +76,12 @@ fn sized_variadic_call() {
         ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("add", add as usize);
 
-    let fn_value = code_gen.module.get_function("add").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, add as usize);
-
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
 }
 
@@ -111,17 +101,12 @@ fn sized_pointer_variadic_call() {
         ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("add_ref", add_ref as usize);
 
-    let fn_value = code_gen.module.get_function("add_ref").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, add_ref as usize);
-
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
 }
 
@@ -175,17 +160,12 @@ fn string_sized_variadic_call() {
         ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("verify_string", verify_string as usize);
 
-    let fn_value = code_gen.module.get_function("verify_string").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, verify_string as usize);
-
-    let res: bool = run_no_param(&exec_engine, "main");
+    let res: bool = module.run_no_param("main");
     assert!(res)
 }
 
@@ -205,16 +185,45 @@ fn string_sized_pointer_variadic_call() {
         ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("verify_string_ref", verify_string_ref as usize);
 
-    let fn_value = code_gen.module.get_function("verify_string_ref").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, verify_string_ref as usize);
-
-    let res: bool = run_no_param(&exec_engine, "main");
+    let res: bool = module.run_no_param("main");
     assert!(res)
+}
+
+#[no_mangle]
+extern "C" fn echo__DINT(val: i32) -> i32 {
+    val
+}
+
+#[test]
+fn generic_external_function_having_same_name_as_local_variable() {
+    let src = "
+        {external}
+        FUNCTION echo <T: ANY_INT> : DINT
+            VAR_INPUT
+                val : T;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                echo : DINT;
+            END_VAR
+            echo := echo(12345);
+            main := echo;
+        END_FUNCTION
+    ";
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("echo__DINT", echo__DINT as usize);
+
+    let res: i32 = module.run_no_param("main");
+    assert_eq!(res, 12345)
 }

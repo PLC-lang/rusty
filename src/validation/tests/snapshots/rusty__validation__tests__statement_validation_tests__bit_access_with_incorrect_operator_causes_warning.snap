@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Could not resolve reference to n1", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 24, offset: 287 }..TextLocation { line: 11, column: 26, offset: 289 }) }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to directly access a bit/byte/word/.., use %X/%B/%Wn1 instead.", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 24, offset: 287 }..TextLocation { line: 11, column: 26, offset: 289 }) }] }
+

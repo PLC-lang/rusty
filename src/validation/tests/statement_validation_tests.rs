@@ -1,5 +1,8 @@
-use crate::test_utils::tests::parse_and_validate;
-use crate::{assert_validation_snapshot, Diagnostic};
+use insta::assert_snapshot;
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::assert_validation_snapshot;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn assign_pointer_to_too_small_type_result_in_an_error() {
@@ -9,7 +12,7 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
         "
         PROGRAM FOO
             VAR
-                ptr : POINTER TO INT;
+                ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
             
@@ -31,7 +34,7 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
         "
         PROGRAM FOO
             VAR
-                ptr : POINTER TO INT;
+                ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
             
@@ -53,7 +56,7 @@ fn assign_pointer_to_lword() {
         "
         PROGRAM FOO
             VAR
-                ptr : POINTER TO INT;
+                ptr : REF_TO INT;
                 address : LWORD;
             END_VAR
             
@@ -203,9 +206,9 @@ fn string_compare_function_cause_no_error_if_functions_exist() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         "
-        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
-        FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
-        FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
+        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR END_FUNCTION
+        FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR END_FUNCTION
+        FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR END_FUNCTION
 
         PROGRAM prg
             'a' =  'b'; // missing compare function :-(
@@ -228,7 +231,7 @@ fn string_compare_function_with_wrong_signature_causes_error() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         "
-        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a : STRING END_VAR END_FUNCTION
+        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a : STRING; END_VAR END_FUNCTION
 
         PROGRAM prg
             'a' =  'b'; // missing compare function :-(
@@ -267,9 +270,9 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-        FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
-        FUNCTION WSTRING_GREATER : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
-        FUNCTION WSTRING_LESS : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
+        FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a,b : WSTRING; END_VAR END_FUNCTION
+        FUNCTION WSTRING_GREATER : BOOL VAR_INPUT a,b : WSTRING; END_VAR END_FUNCTION
+        FUNCTION WSTRING_LESS : BOOL VAR_INPUT a,b : WSTRING; END_VAR END_FUNCTION
 
         PROGRAM prg
             "a" =  "b"; // missing compare function :-(
@@ -298,7 +301,7 @@ fn switch_case() {
 
 		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
 
-        PROGRAM
+        PROGRAM prog
 		VAR
 			input, res : DINT;
 		END_VAR
@@ -335,7 +338,7 @@ fn switch_case_duplicate_integer_non_const_var_reference() {
 			CONST : DINT := 8;
 		END_VAR
 
-        PROGRAM
+        PROGRAM prog
 		VAR
 			input, res, x, y : DINT;
 		END_VAR
@@ -375,7 +378,7 @@ fn switch_case_duplicate_integer() {
 
 		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
 
-        PROGRAM
+        PROGRAM prog
 		VAR
 			input, res : DINT;
 		END_VAR
@@ -1191,8 +1194,8 @@ fn assigning_to_rvalue_allowed_for_directaccess() {
         VAR
             x : INT;
         END_VAR
-            %Q1 := 1;
-            %Q1 := 1;
+            x.%X1 := 1;
+            x.%B1 := 1;
             x.1 := 1;
         END_PROGRAM
         "#,
@@ -1227,7 +1230,7 @@ fn allowed_assignable_types() {
 
 #[test]
 fn assignment_of_incompatible_types_is_reported() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     PROGRAM prog
     VAR
@@ -1242,18 +1245,7 @@ fn assignment_of_incompatible_types_is_reported() {
     END_PROGRAM
     "#,
     );
-
-    assert_eq!(diagnostics.len(), 4);
-
-    let ranges = &[(152..168), (199..216), (246..262), (293..310)];
-    let types =
-        &[("DINT", "STRING"), ("__prog_array_", "STRING"), ("STRING", "DINT"), ("STRING", "__prog_array_")];
-    for (idx, diag) in diagnostics.iter().enumerate() {
-        assert_eq!(
-            diag,
-            &Diagnostic::invalid_assignment(types[idx].0, types[idx].1, ranges[idx].to_owned().into())
-        )
-    }
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -1270,14 +1262,79 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
     END_PROGRAM
 
     FUNCTION foo : DINT
-    VAR_INPUT r : REAL END_VAR
+    VAR_INPUT r : REAL; END_VAR
     END_FUNCTION
 
     FUNCTION bar : DINT
-    VAR_INPUT i : LINT END_VAR
+    VAR_INPUT i : LINT; END_VAR
     END_FUNCTION
     "#,
     );
 
     assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn bit_access_with_incorrect_operator_causes_warning() {
+    let diagnostics = parse_and_validate(
+        "PROGRAM mainProg
+        VAR_INPUT
+            Input : STRUCT1;
+        END_VAR
+        VAR
+            access : STRUCT2;
+        END_VAR
+        VAR_OUTPUT
+            Output : STRUCT1;
+        END_VAR
+            Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
+            Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
+        END_PROGRAM
+        
+        TYPE STRUCT1 :
+        STRUCT
+            var1 : DWORD;
+        END_STRUCT
+        END_TYPE
+        
+        TYPE ENUM1 :
+        (
+            n1 := 1,
+            n2 := 2
+        );
+        END_TYPE
+        
+        TYPE STRUCT2 :
+        STRUCT
+            var1 : BOOL;
+        END_STRUCT
+        END_TYPE",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn invalid_cast_statement_causes_error() {
+    let diagnostics = parse_and_validate(
+        "PROGRAM mainProg
+            VAR_INPUT
+                s : STRUCT1;
+                i : INT;
+            END_VAR
+
+                i := INT#s.var1; // illegal, var1 cannot be found in INT
+                i := INT#i;      // ok
+                i := INT#4;      // ok
+        END_PROGRAM
+        
+        TYPE STRUCT1 :
+        STRUCT
+            var1 : DWORD;
+        END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    assert_validation_snapshot!(diagnostics);
 }

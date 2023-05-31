@@ -1,18 +1,7 @@
 // Copyright (c) 2022 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::{NewLines, SourceRange};
-use indexmap::IndexMap;
+use indexmap::{Equivalent, IndexMap};
 use std::hash::Hash;
-
-/// Location information of a Symbol in the index consisting of the line_number
-/// and the detailled SourceRange information consisting the file and the range inside the source-string
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
-pub struct SymbolLocation {
-    /// the line-number of this symbol in the source-file
-    pub line_number: u32,
-    /// the exact location of the symbol and the file_name
-    pub source_range: SourceRange,
-}
 
 /// A multi-map implementation with a stable order of elements. When iterating
 /// the keys or the values, the iterator reflects the order of insertion.
@@ -35,13 +24,19 @@ where
 {
     /// returns the first element associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+    where
+        Q: Hash + Equivalent<K>,
+    {
         self.get_all(key).and_then(|it| it.get(0))
     }
 
     /// returns all elements associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get_all(&self, key: &K) -> Option<&Vec<V>> {
+    pub fn get_all<Q: ?Sized>(&self, key: &Q) -> Option<&Vec<V>>
+    where
+        Q: Hash + Equivalent<K>,
+    {
         self.inner_map.get(key)
     }
 
@@ -97,42 +92,6 @@ where
     /// return `true` if an equivalent to key exists in the map.
     pub fn contains_key(&self, key: &K) -> bool {
         self.inner_map.contains_key(key)
-    }
-}
-
-impl SymbolLocation {
-    const INTERNAL_LINE: u32 = u32::max_value();
-    /// creates a SymbolLocation with undefined source_range used for
-    /// symbols that are created by the compiler on-the-fly.
-    pub fn internal() -> SymbolLocation {
-        SymbolLocation { line_number: SymbolLocation::INTERNAL_LINE, source_range: SourceRange::undefined() }
-    }
-
-    pub fn is_internal(&self) -> bool {
-        self.line_number == SymbolLocation::INTERNAL_LINE && self.source_range.is_undefined()
-    }
-}
-
-/// a factory to create SymbolLocations from SourceRanges, that automatically resolves
-/// the line-nr attribute
-pub struct SymbolLocationFactory<'a> {
-    new_lines: &'a NewLines,
-}
-
-impl<'a> SymbolLocationFactory<'a> {
-    /// creates a new SymbolLocationFactory with the given NewLines
-    pub fn new(new_lines: &'a NewLines) -> SymbolLocationFactory<'a> {
-        SymbolLocationFactory { new_lines }
-    }
-
-    /// creats a new SymbolLocation for the given source_range and automatically calculates
-    /// the resulting line-number usign the source_range's start and the factory's
-    /// NewLines
-    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
-        SymbolLocation {
-            source_range: source_range.clone(),
-            line_number: self.new_lines.get_line_nr(source_range.get_start()),
-        }
     }
 }
 

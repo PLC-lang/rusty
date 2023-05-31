@@ -15,7 +15,7 @@ use num::PrimInt;
 /// Works on raw pointers, inherently unsafe.
 /// May return an incorrect value if passed an
 /// array filled with (non-zero) garbage values.
-pub unsafe fn get_null_terminated_len<T: num::PrimInt>(src: *const T) -> usize {
+pub unsafe fn get_null_terminated_len<T: PrimInt>(src: *const T) -> usize {
     if src.is_null() {
         return 0;
     }
@@ -32,7 +32,7 @@ pub unsafe fn get_null_terminated_len<T: num::PrimInt>(src: *const T) -> usize {
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-pub unsafe fn ptr_to_slice<'a, T: num::PrimInt>(src: *const T) -> &'a [T] {
+pub unsafe fn ptr_to_slice<'a, T: PrimInt>(src: *const T) -> &'a [T] {
     let nbytes = get_null_terminated_len(src);
     std::slice::from_raw_parts(src, nbytes)
 }
@@ -972,7 +972,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡϗ he", string)
         }
     }
@@ -984,7 +984,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!(
                 "     this is   a  very   long           sentence   with plenty  of    characters and ",
                 string
@@ -999,7 +999,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕ\"Ϛ\"ϡϗ", string)
         }
     }
@@ -1011,7 +1011,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡϗ hello", string)
         }
     }
@@ -1034,7 +1034,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("hello", string)
         }
     }
@@ -1046,7 +1046,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("xϗ wϕrld", string)
         }
     }
@@ -1059,7 +1059,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϡxϗ wϕ", string)
         }
     }
@@ -1072,7 +1072,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡxϗ wϕrld", string)
         }
     }
@@ -1094,7 +1094,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), 6, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡxϗ brave new wϕrld", string)
         }
     }
@@ -1106,7 +1106,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), 0, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡxϗ new hello world", string)
         }
     }
@@ -1118,7 +1118,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), (base.len() - 1) as i32, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("hello worldϕϚϡxϗ new ", string)
         }
     }
@@ -1151,7 +1151,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 9, 3, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚ", string)
         }
     }
@@ -1162,7 +1162,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 11, 1, dest.as_mut_ptr());
-            let c_str: &CStr = CStr::from_ptr(dest.as_mut_ptr() as *const i8);
+            let c_str: &CStr = CStr::from_ptr(dest.as_mut_ptr() as *const _);
             let string: &str = c_str.to_str().unwrap();
             assert_eq!("", string)
         }
@@ -1174,7 +1174,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 1, 11, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("ϕϚϡxϗ wϕrl", string)
         }
     }
@@ -1185,7 +1185,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 1, 1, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("Ϛϡxϗ wϕrld", string)
         }
     }
@@ -1227,7 +1227,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 6, 1, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("brϡxϗ new wϕrld", string)
         }
     }
@@ -1239,7 +1239,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 3, 5, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("hellbrϡxϗ newϕrld", string)
         }
     }
@@ -1251,7 +1251,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 4, 8, dest.as_mut_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("hællø waldø, how are you😀", string)
         }
     }
@@ -1309,7 +1309,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("hællø wørlÞhello world𝄞music", string)
         }
     }
@@ -1321,7 +1321,7 @@ mod test {
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
-            let string = CStr::from_ptr(dest.as_ptr() as *const i8).to_str().unwrap();
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
             assert_eq!("", string)
         }
     }

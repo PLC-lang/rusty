@@ -1,0 +1,93 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_enum_type
+---
+EnumType {
+    name: Some(
+        "__foo_inline_enum",
+    ),
+    numeric_type: "DINT",
+    elements: ExpressionList {
+        expressions: [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "a",
+                        },
+                    ),
+                    base: None,
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Cast(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo_inline_enum",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "c",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Cast(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo_inline_enum",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+        ],
+    },
+}

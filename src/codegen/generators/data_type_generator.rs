@@ -1,20 +1,8 @@
-use std::collections::{HashMap, VecDeque};
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-/// the data_type_generator generates user defined data-types
-/// - Structures
-/// - Enum types
-/// - SubRange types
-/// - Alias types
-/// - sized Strings
-use crate::ast::SourceRange;
 use crate::codegen::debug::Debug;
-use crate::diagnostics::Diagnostician;
 use crate::index::{Index, VariableIndexEntry, VariableType};
-use crate::resolver::AstAnnotations;
-use crate::typesystem::{Dimension, StringEncoding, StructSource};
-use crate::Diagnostic;
-use crate::{ast::literals::AstLiteral, ast::AstStatement, typesystem::DataTypeInformation};
+use crate::resolver::{AstAnnotations, Dependency};
+use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
 use crate::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -23,11 +11,24 @@ use crate::{
     },
     typesystem::DataType,
 };
+use indexmap::IndexSet;
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
+use plc_ast::ast::{AstNode, AstStatement};
+use plc_ast::literals::AstLiteral;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::errno::ErrNo;
+use plc_source::source_location::SourceLocation;
+/// the data_type_generator generates user defined data-types
+/// - Structures
+/// - Enum types
+/// - SubRange types
+/// - Alias types
+/// - sized Strings
+use std::collections::{HashMap, VecDeque};
 
 use super::ADDRESS_SPACE_GENERIC;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
@@ -50,28 +51,35 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-    diagnostician: &Diagnostician,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    let mut types = vec![];
+    let mut pou_types = vec![];
+
+    // Always add the builtin types
+    let builtins = typesystem::get_builtin_types();
+    for builtin in &builtins {
+        types.push((builtin.get_name(), builtin));
+    }
+
+    for dep in dependencies {
+        if let Dependency::Datatype(name) = dep {
+            if let Some(pou) = index.find_pou(name) {
+                if !pou.is_generic() && !pou.is_action() {
+                    pou_types.push((name.as_str(), pou.get_instance_struct_type_or_void(index)));
+                }
+            } else if let Some(datatype) = index.find_type(name) {
+                if !datatype.get_type_information().is_generic(index) {
+                    types.push((name, datatype))
+                }
+            }
+        }
+    }
+
     let mut generator =
         DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
-
-    let types = generator
-        .index
-        .get_types()
-        .elements()
-        .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
-        .map(|(a, b)| (a.as_str(), b))
-        .collect::<Vec<(&str, &DataType)>>();
-    let pou_types = generator
-        .index
-        .get_pous()
-        .values()
-        .filter(|pou| !pou.is_generic() && !pou.is_action()) //actions dont get an own datatype, they use the one from their parent
-        .map(|pou| pou.get_instance_struct_type_or_void(generator.index))
-        .map(|it| (it.get_name(), it))
-        .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -146,19 +154,17 @@ pub fn generate_data_types<'ink>(
             .into_iter()
             .map(|(name, ty)| {
                 errors
-                    .get(name)
-                    .map(|diag| diag.with_extra_ranges(&[ty.location.source_range.clone()]))
-                    .unwrap_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(name, ty.location.source_range.clone())
-                    })
+                    .remove(name)
+                    .map(|diag| diag.with_extra_ranges(&[ty.location.clone()]))
+                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        diagnostician.handle(diags);
         //Report the operation failure
-        return Err(Diagnostic::codegen_error(
-            "Some initial values were not generated",
-            SourceRange::undefined(),
-        ));
+        return Err(Diagnostic::CombinedDiagnostic {
+            message: "Some initial values were not generated".to_string(),
+            err_no: ErrNo::codegen__general,
+            inner_diagnostics: diags,
+        });
     }
     Ok(generator.types_index)
 }
@@ -227,7 +233,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     Err(Diagnostic::invalid_type_nature(
                         effective_type.get_name(),
                         "ANY_INT",
-                        SourceRange::undefined(),
+                        SourceLocation::undefined(),
                     ))
                 }
             }
@@ -243,7 +249,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
 
                 let string_size = size
                     .as_int_value(self.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))?
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))?
                     as u32;
                 Ok(base_type.array_type(string_size).into())
             }
@@ -304,12 +310,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::Array { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatement::Literal(AstLiteral::Array { .. })),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::String { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatement::Literal(AstLiteral::String { .. })),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {
@@ -358,7 +364,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_initializer(
         &mut self,
         qualified_name: &str,
-        initializer: Option<&AstStatement>,
+        initializer: Option<&AstNode>,
         data_type_name: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) = initializer {
@@ -383,7 +389,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_array_initializer(
         &self,
         data_type: &DataType,
-        predicate: fn(&AstStatement) -> bool,
+        predicate: fn(&AstNode) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) =
@@ -424,12 +430,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .map(|dimension| {
                 dimension
                     .get_length(self.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))
             })
             .collect::<Result<Vec<u32>, Diagnostic>>()?
             .into_iter()
             .reduce(|a, b| a * b)
-            .ok_or_else(|| Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined()))?;
+            .ok_or_else(|| {
+                Diagnostic::codegen_error("Invalid array dimensions", SourceLocation::undefined())
+            })?;
 
         let result = match inner_type {
             BasicTypeEnum::IntType(ty) => ty.array_type(len),

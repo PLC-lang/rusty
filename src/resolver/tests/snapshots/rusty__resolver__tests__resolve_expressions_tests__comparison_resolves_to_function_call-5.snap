@@ -1,0 +1,75 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: "format!(\"{annotation:#?}\")"
+---
+Some(
+    ReplacementAst {
+        statement: BinaryExpression {
+            operator: Or,
+            left: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "STRING_EQUAL",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "b",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ],
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "STRING_GREATER",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "b",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ],
+                    },
+                ),
+            },
+        },
+    },
+)

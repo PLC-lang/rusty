@@ -15,7 +15,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "a",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -23,11 +23,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceRange {
-                    range: 20..21,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 4,
+                        offset: 20,
+                    }..TextLocation {
+                        line: 2,
+                        column: 5,
+                        offset: 21,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -44,7 +51,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "b",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -52,11 +59,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceRange {
-                    range: 22..23,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 6,
+                        offset: 22,
+                    }..TextLocation {
+                        line: 2,
+                        column: 7,
+                        offset: 23,
+                    },
+                ),
             },
             varargs: None,
         },

@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: res
+---
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 21, offset: 291 }..TextLocation { line: 10, column: 24, offset: 294 }) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.water", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 21, offset: 334 }..TextLocation { line: 11, column: 25, offset: 338 }) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 21, offset: 377 }..TextLocation { line: 12, column: 30, offset: 386 }) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 21, offset: 420 }..TextLocation { line: 13, column: 22, offset: 421 }) }], err_no: var__invalid_enum_variant }
+

@@ -315,3 +315,10 @@ The expression `z := x + y` is annotated like this:
 
 With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily.
 The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.
+
+## Dependencies
+
+When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
+This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
+This information can then be used during the [codegen](./codegen.md) period to only generated types and variables that are relevant to the unit.
+

@@ -2,7 +2,7 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Missing inout parameter: myOtherInOut", range: [SourceRange { range: 218..220 }], err_no: pou__missing_action_container }
-SyntaxError { message: "Expected a reference for parameter myInOut because their type is InOut", range: [SourceRange { range: 286..290 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Missing inout parameter: myOtherInOut", range: [SourceRange { range: 280..282 }], err_no: pou__missing_action_container }
+SyntaxError { message: "Missing inout parameter: myOtherInOut", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 8, offset: 218 }..TextLocation { line: 8, column: 10, offset: 220 }) }], err_no: pou__missing_action_container }
+SyntaxError { message: "Expected a reference for parameter myInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 14, offset: 286 }..TextLocation { line: 9, column: 18, offset: 290 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Missing inout parameter: myOtherInOut", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 8, offset: 280 }..TextLocation { line: 9, column: 10, offset: 282 }) }], err_no: pou__missing_action_container }
 

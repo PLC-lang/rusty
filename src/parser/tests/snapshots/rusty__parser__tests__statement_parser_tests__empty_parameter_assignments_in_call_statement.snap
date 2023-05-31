@@ -89,11 +89,31 @@ CompilationUnit {
             linkage: Internal,
             pou_type: Function,
             statements: [],
-            location: SourceRange {
-                range: 150..162,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 2,
+                        offset: 150,
+                    }..TextLocation {
+                        line: 11,
+                        column: 14,
+                        offset: 162,
+                    },
+                ),
             },
-            name_location: SourceRange {
-                range: 18..21,
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 17,
+                        offset: 18,
+                    }..TextLocation {
+                        line: 1,
+                        column: 20,
+                        offset: 21,
+                    },
+                ),
             },
             overriding: false,
             generic: false,
@@ -106,27 +126,47 @@ CompilationUnit {
             pou_type: Program,
             statements: [
                 CallStatement {
-                    operator: Reference {
-                        name: "foo",
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
                     },
                     parameters: Some(
                         ExpressionList {
                             expressions: [
                                 Assignment {
-                                    left: Reference {
-                                        name: "input1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "input1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },
                                 OutputAssignment {
-                                    left: Reference {
-                                        name: "output1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "output1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },
                                 OutputAssignment {
-                                    left: Reference {
-                                        name: "inout1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "inout1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },
@@ -135,11 +175,31 @@ CompilationUnit {
                     ),
                 },
             ],
-            location: SourceRange {
-                range: 215..270,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 17,
+                        column: 2,
+                        offset: 215,
+                    }..TextLocation {
+                        line: 18,
+                        column: 13,
+                        offset: 270,
+                    },
+                ),
             },
-            name_location: SourceRange {
-                range: 174..178,
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 13,
+                        column: 10,
+                        offset: 174,
+                    }..TextLocation {
+                        line: 13,
+                        column: 14,
+                        offset: 178,
+                    },
+                ),
             },
             overriding: false,
             generic: false,
@@ -148,28 +208,4 @@ CompilationUnit {
     ],
     user_types: [],
     file_name: "test.st",
-    new_lines: NewLines {
-        line_breaks: [
-            1,
-            28,
-            40,
-            57,
-            67,
-            80,
-            98,
-            108,
-            121,
-            138,
-            148,
-            163,
-            164,
-            179,
-            185,
-            203,
-            213,
-            257,
-            271,
-            280,
-        ],
-    },
 }

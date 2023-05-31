@@ -1,0 +1,7 @@
+---
+source: src/parser/tests/function_parser_tests.rs
+expression: prg.return_type.as_ref().unwrap()
+---
+DataTypeReference {
+    referenced_type: "INT",
+}

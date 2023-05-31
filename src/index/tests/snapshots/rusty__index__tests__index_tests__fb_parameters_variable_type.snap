@@ -7,7 +7,7 @@ expression: members
         name: "input1",
         qualified_name: "fb.input1",
         initial_value: None,
-        variable_type: ByVal(
+        argument_type: ByVal(
             Input,
         ),
         is_constant: false,
@@ -15,11 +15,18 @@ expression: members
         location_in_parent: 0,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 36..42,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 3,
+                    offset: 36,
+                }..TextLocation {
+                    line: 3,
+                    column: 9,
+                    offset: 42,
+                },
+            ),
         },
         varargs: None,
     },
@@ -27,7 +34,7 @@ expression: members
         name: "output1",
         qualified_name: "fb.output1",
         initial_value: None,
-        variable_type: ByVal(
+        argument_type: ByVal(
             Output,
         ),
         is_constant: false,
@@ -35,11 +42,18 @@ expression: members
         location_in_parent: 1,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 6,
-            source_range: SourceRange {
-                range: 76..83,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 6,
+                    column: 3,
+                    offset: 76,
+                }..TextLocation {
+                    line: 6,
+                    column: 10,
+                    offset: 83,
+                },
+            ),
         },
         varargs: None,
     },
@@ -47,7 +61,7 @@ expression: members
         name: "inout1",
         qualified_name: "fb.inout1",
         initial_value: None,
-        variable_type: ByRef(
+        argument_type: ByRef(
             InOut,
         ),
         is_constant: false,
@@ -55,11 +69,18 @@ expression: members
         location_in_parent: 2,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 9,
-            source_range: SourceRange {
-                range: 117..123,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 9,
+                    column: 3,
+                    offset: 117,
+                }..TextLocation {
+                    line: 9,
+                    column: 9,
+                    offset: 123,
+                },
+            ),
         },
         varargs: None,
     },

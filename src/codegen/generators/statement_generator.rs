@@ -1,24 +1,32 @@
+use std::collections::HashMap;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
-    pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{self, DataTypeInformation},
 };
 use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    values::{BasicValueEnum, FunctionValue},
+    values::{BasicValueEnum, FunctionValue, PointerValue},
 };
+use plc_ast::{
+    ast::{
+        flatten_expression_list, AstFactory, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
+        ReferenceAccess, ReferenceExpr,
+    },
+    control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
+};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {
@@ -26,8 +34,8 @@ pub struct FunctionContext<'ink, 'b> {
     pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
     pub function: FunctionValue<'ink>,
-    /// The new lines marker for the compilation unit containing the POU
-    pub new_lines: &'b NewLines,
+    /// The blocks/labels this function can use
+    pub blocks: HashMap<String, BasicBlock<'ink>>,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -35,7 +43,6 @@ pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
-    pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a, 'b>,
 
@@ -56,7 +63,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm: &'b Llvm<'a>,
         index: &'b Index,
         annotations: &'b AstAnnotations,
-        pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
         debug: &'b DebugBuilderEnum<'a>,
@@ -65,7 +71,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             llvm,
             index,
             annotations,
-            pou_generator,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -89,7 +94,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates a list of statements
-    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
+    pub fn generate_body(&self, statements: &[AstNode]) -> Result<(), Diagnostic> {
         for s in statements {
             self.generate_statement(s)?;
         }
@@ -110,35 +115,70 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// genertes a single statement
     ///
     /// - `statement` the statement to be generated
-    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
-        match statement {
-            AstStatement::EmptyStatement { .. } => {
+    pub fn generate_statement(&self, statement: &AstNode) -> Result<(), Diagnostic> {
+        match statement.get_stmt() {
+            AstStatement::EmptyStatement(..) => {
                 //nothing to generate
             }
-            AstStatement::Assignment { left, right, .. } => {
-                self.generate_assignment_statement(left, right)?;
+            AstStatement::Assignment(data, ..) => {
+                self.generate_assignment_statement(&data.left, &data.right)?;
             }
-            AstStatement::ForLoopStatement { start, end, counter, body, by_step, .. } => {
-                self.generate_for_statement(counter, start, end, by_step, body)?;
+
+            AstStatement::ControlStatement(ctl_statement, ..) => {
+                self.generate_control_statement(ctl_statement)?
             }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.generate_repeat_statement(condition, body)?;
+            AstStatement::ReturnStatement(ReturnStatement { condition }) => match condition {
+                Some(condition) => {
+                    self.register_debug_location(statement);
+                    self.generate_conditional_return(condition)?;
+                }
+                None => {
+                    self.register_debug_location(statement);
+                    self.generate_return_statement()?;
+                    self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
+                }
+            },
+            AstStatement::LabelStatement(LabelStatement { name }) => {
+                if let Some(block) = self.function_context.blocks.get(name) {
+                    //unconditionally jump to the label
+                    self.register_debug_location(statement);
+                    self.llvm.builder.build_unconditional_branch(*block);
+                    //Place the current instert block at the label statement
+                    self.llvm.builder.position_at_end(*block);
+                }
             }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.generate_while_statement(condition, body)?;
-            }
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                self.generate_if_statement(blocks, else_block)?;
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.generate_case_statement(selector, case_blocks, else_block)?;
-            }
-            AstStatement::ReturnStatement { .. } => {
+            AstStatement::JumpStatement(JumpStatement { condition, .. }) => {
+                //Find the label to jump to
+                let Some(then_block) = self.annotations.get(statement).and_then(|label| {
+                    if let StatementAnnotation::Label { name } = label {
+                        self.function_context.blocks.get(name)
+                    } else {
+                        None
+                    }
+                }) else {
+                    return Err(Diagnostic::codegen_error(
+                        "Could not find label for {statement:?}",
+                        statement.get_location(),
+                    ));
+                };
+                //Set current location as else block
+                let current_block = self.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+                let else_block = self.llvm.context.insert_basic_block_after(current_block, "else_block");
+
+                self.register_debug_location(condition);
+                let expression_generator = self.create_expr_generator();
+                let condition = expression_generator.generate_expression(condition)?;
+
                 self.register_debug_location(statement);
-                self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
-                self.generate_buffer_block();
+                self.llvm.builder.build_conditional_branch(
+                    condition.into_int_value(),
+                    *then_block,
+                    else_block,
+                );
+                // Make sure further code is at the else block
+                self.llvm.builder.position_at_end(else_block);
             }
-            AstStatement::ExitStatement { location, .. } => {
+            AstStatement::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block);
@@ -146,18 +186,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 } else {
                     return Err(Diagnostic::codegen_error(
                         "Cannot break out of loop when not inside a loop",
-                        location.clone(),
+                        statement.get_location(),
                     ));
                 }
             }
-            AstStatement::ContinueStatement { location, .. } => {
+            AstStatement::ContinueStatement(_) => {
                 if let Some(cont_block) = &self.current_loop_continue {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
                 } else {
                     return Err(Diagnostic::codegen_error(
                         "Cannot continue loop when not inside a loop",
-                        location.clone(),
+                        statement.get_location(),
                     ));
                 }
             }
@@ -168,14 +208,39 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// genertes a single statement
+    ///
+    /// - `statement` the control statement to be generated
+    pub fn generate_control_statement(&self, statement: &AstControlStatement) -> Result<(), Diagnostic> {
+        match statement {
+            AstControlStatement::If(ifstmt) => self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block),
+            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
+                &for_stmt.counter,
+                &for_stmt.start,
+                &for_stmt.end,
+                &for_stmt.by_step,
+                &for_stmt.body,
+            ),
+            AstControlStatement::WhileLoop(stmt) => {
+                self.generate_while_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::RepeatLoop(stmt) => {
+                self.generate_repeat_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::Case(stmt) => {
+                self.generate_case_statement(&stmt.selector, &stmt.case_blocks, &stmt.else_block)
+            }
+        }
+    }
+
     /// generates an assignment statement _left_ := _right_
     ///
     /// `left_statement` the left side of the assignment
     /// `right_statement` the right side of the assignment
     pub fn generate_assignment_statement(
         &self,
-        left_statement: &AstStatement,
-        right_statement: &AstStatement,
+        left_statement: &AstNode,
+        right_statement: &AstNode,
     ) -> Result<(), Diagnostic> {
         //Register any debug info for the store
         self.register_debug_location(left_statement);
@@ -184,11 +249,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return self.generate_direct_access_assignment(left_statement, right_statement);
         }
         //TODO: Also hacky but for now we cannot generate assignments for hardware access
-        if matches!(left_statement, AstStatement::HardwareAccess { .. }) {
+        if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
             return Ok(());
         }
         let exp_gen = self.create_expr_generator();
-        let left = exp_gen.generate_element_pointer(left_statement)?;
+        let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
+            it.get_basic_value_enum().try_into().map_err(|err| {
+                Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement.get_location())
+            })
+        })?;
+
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
@@ -205,54 +275,64 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn register_debug_location(&self, statement: &AstStatement) {
-        let line = self.function_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = self.function_context.new_lines.get_column(line, statement.get_location().get_start());
+    fn register_debug_location(&self, statement: &AstNode) {
+        let line = statement.get_location().get_line();
+        let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
 
     fn generate_direct_access_assignment(
         &self,
-        left_statement: &AstStatement,
-        right_statement: &AstStatement,
+        left_statement: &AstNode,
+        right_statement: &AstNode,
     ) -> Result<(), Diagnostic> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
-        if let AstStatement::QualifiedReference { elements, .. } = left_statement {
-            //Target
-            let target: Vec<AstStatement> = elements
-                .iter()
-                .take_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. }))
-                .cloned()
-                .collect();
-            let id = target.last().unwrap().get_id();
-            let target = AstStatement::QualifiedReference { elements: target.to_vec(), id };
 
-            //Access
-            let direct_access: Vec<&AstStatement> =
-                elements.iter().skip_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. })).collect();
-            let left_type = exp_gen.get_type_hint_for(&target)?;
-            let right_type = exp_gen.get_type_hint_for(right_statement)?;
+        // given a complex direct-access assignemnt: a.b.c.%W3,%X1
+        // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
+        else {
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+        };
 
-            //special case if we deal with a single bit, then we need to switch to a faked u1 type
-            let right_type =
-                if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
-                    *right_type.get_type_information()
-                {
-                    self.index.get_type_or_panic(typesystem::U1_TYPE)
-                } else {
-                    right_type
-                };
+        let left_type = exp_gen.get_type_hint_for(target)?;
+        let right_type = exp_gen.get_type_hint_for(right_statement)?;
 
-            //Left pointer
-            let left = exp_gen.generate_element_pointer(&target)?;
-            let left_value = self.llvm.load_pointer(&left, "").into_int_value();
-            //Build index
-            if let Some((element, direct_access)) = direct_access.split_first() {
-                let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
+        //special case if we deal with a single bit, then we need to switch to a faked u1 type
+        let right_type =
+            if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
+                *right_type.get_type_information()
+            {
+                self.index.get_type_or_panic(typesystem::U1_TYPE)
+            } else {
+                right_type
+            };
+
+        //Left pointer
+        let left_expression_value = exp_gen.generate_expression_value(target)?;
+        let left_value = left_expression_value.as_r_value(self.llvm, None).into_int_value();
+        let left = left_expression_value.get_basic_value_enum().into_pointer_value();
+        //Build index
+        if let Some((element, direct_access)) = access_sequence.split_first() {
+            let mut rhs = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+                exp_gen.generate_direct_access_index(
+                    &data.access,
+                    &data.index,
+                    right_type.get_type_information(),
+                    left_type,
+                )
+            } else {
+                Err(Diagnostic::syntax_error(
+                    &format!("{element:?} not a direct access"),
+                    element.get_location(),
+                ))
+            }?;
+            for element in direct_access {
+                let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
                     exp_gen.generate_direct_access_index(
-                        access,
-                        index,
+                        &data.access,
+                        &data.index,
                         right_type.get_type_information(),
                         left_type,
                     )
@@ -262,61 +342,34 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         element.get_location(),
                     ))
                 }?;
-                for element in direct_access {
-                    let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element {
-                        exp_gen.generate_direct_access_index(
-                            access,
-                            index,
-                            right_type.get_type_information(),
-                            left_type,
-                        )
-                    } else {
-                        Err(Diagnostic::syntax_error(
-                            &format!("{element:?} not a direct access"),
-                            element.get_location(),
-                        ))
-                    }?;
-                    rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
-                }
-                //Build mask for the index
-                //Get the target bit type as all ones
-                let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
-                let ones = rhs_type.const_all_ones();
-                //Extend the mask to the target type
-                let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
-                //Position the ones in their correct locations
-                let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
-                //Invert the mask
-                let mask = self.llvm.builder.build_not(shifted_mask, "invert");
-                //And the result with the mask to erase the set bits at the target location
-                let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
-
-                //Generate an expression for the right size
-                let right = exp_gen.generate_expression(right_statement)?;
-                //Cast the right side to the left side type
-                let lhs = cast_if_needed(
-                    self.llvm,
-                    self.index,
-                    self.llvm_index,
-                    left_type,
-                    right_type,
-                    right,
-                    None,
-                )
-                .into_int_value();
-                //Shift left by the direct access
-                let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
-
-                //OR the result and store it in the left side
-                let or_value = self.llvm.builder.build_or(and_value, value, "or");
-                self.llvm.builder.build_store(left, or_value);
-            } else {
-                unreachable!();
+                rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
-        } else {
-            unreachable!()
-        }
+            //Build mask for the index
+            //Get the target bit type as all ones
+            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
+            let ones = rhs_type.const_all_ones();
+            //Extend the mask to the target type
+            let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
+            //Position the ones in their correct locations
+            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
+            //Invert the mask
+            let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+            //And the result with the mask to erase the set bits at the target location
+            let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
+            //Generate an expression for the right size
+            let right = exp_gen.generate_expression(right_statement)?;
+            //Cast the right side to the left side type
+            let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
+            //Shift left by the direct access
+            let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
+
+            //OR the result and store it in the left side
+            let or_value = self.llvm.builder.build_or(and_value, value, "or");
+            self.llvm.builder.build_store(left, or_value);
+        } else {
+            unreachable!();
+        }
         Ok(())
     }
 
@@ -331,11 +384,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `body` the statements inside the for-loop
     fn generate_for_statement(
         &self,
-        counter: &AstStatement,
-        start: &AstStatement,
-        end: &AstStatement,
-        by_step: &Option<Box<AstStatement>>,
-        body: &[AstStatement],
+        counter: &AstNode,
+        start: &AstNode,
+        end: &AstNode,
+        by_step: &Option<Box<AstNode>>,
+        body: &[AstNode],
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         self.generate_assignment_statement(counter, start)?;
@@ -375,7 +428,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let step_by_value = by_step.as_ref().map_or_else(
-            || self.llvm.create_const_numeric(&counter_statement.get_type(), "1", SourceRange::undefined()),
+            || {
+                self.llvm.create_const_numeric(
+                    &counter_statement.get_type(),
+                    "1",
+                    SourceLocation::undefined(),
+                )
+            },
             |step| {
                 self.register_debug_location(step);
                 expression_generator.generate_expression(step)
@@ -388,7 +447,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator.generate_element_pointer(counter)?;
+        let ptr = expression_generator.generate_lvalue(counter)?;
         builder.build_store(ptr, next);
 
         //Loop back
@@ -402,53 +461,42 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_compare_expression(
         &'a self,
-        counter: &AstStatement,
-        end: &AstStatement,
-        start: &AstStatement,
+        counter: &AstNode,
+        end: &AstNode,
+        start: &AstNode,
         exp_gen: &'a ExpressionCodeGenerator,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let counter_end_ge = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        let counter_start_ge = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        let counter_end_le = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        let counter_start_le = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        let and_1 = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_le),
-            right: Box::new(counter_start_ge),
-        };
-        let and_2 = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_ge),
-            right: Box::new(counter_start_le),
-        };
-        let or = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::Or,
-            left: Box::new(and_1),
-            right: Box::new(and_2),
-        };
+        let bool_id = self.annotations.get_bool_id();
+        let counter_end_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        let counter_start_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        let counter_end_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        let counter_start_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        let and_1 =
+            AstFactory::create_binary_expression(counter_end_le, Operator::And, counter_start_ge, bool_id);
+        let and_2 =
+            AstFactory::create_binary_expression(counter_end_ge, Operator::And, counter_start_le, bool_id);
+        let or = AstFactory::create_binary_expression(and_1, Operator::Or, and_2, bool_id);
+
         self.register_debug_location(&or);
         let or_eval = exp_gen.generate_expression(&or)?;
         Ok(or_eval)
@@ -466,10 +514,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `else_body` the statements in the else-block
     fn generate_case_statement(
         &self,
-        selector: &AstStatement,
+        selector: &AstNode,
         conditional_blocks: &[ConditionalBlock],
-        else_body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+        else_body: &[AstNode],
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -490,14 +538,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&conditional_block.condition);
             for s in expressions {
-                if let AstStatement::RangeStatement { start, end, .. } = s {
+                if let AstStatement::RangeStatement(data, ..) = s.get_stmt() {
                     //if this is a range statement, we generate an if (x >= start && x <= end) then the else-section
                     builder.position_at_end(current_else_block);
                     // since the if's generate additional blocks, we use the last one as the else-section
                     current_else_block = self.generate_case_range_condition(
                         selector,
-                        start.as_ref(),
-                        end.as_ref(),
+                        data.start.as_ref(),
+                        data.end.as_ref(),
                         case_block,
                     )?;
                 } else {
@@ -525,7 +573,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// returns the new block to use as else
@@ -533,9 +581,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     fn generate_case_range_condition(
         &self,
-        selector: &AstStatement,
-        start: &AstStatement,
-        end: &AstStatement,
+        selector: &AstNode,
+        start: &AstNode,
+        end: &AstNode,
         match_block: BasicBlock,
     ) -> Result<BasicBlock, Diagnostic> {
         let (builder, _, context) = self.get_llvm_deps();
@@ -582,11 +630,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// - `condition` the while's condition
     /// - `body` the while's body statements
-    fn generate_while_statement(
-        &self,
-        condition: &AstStatement,
-        body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    fn generate_while_statement(&self, condition: &AstNode, body: &[AstNode]) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) = self.generate_base_while_statement(condition, body)?;
@@ -597,7 +641,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(condition_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// generates a repeat statement
@@ -609,16 +653,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// - `condition` the repeat's condition
     /// - `body` the repeat's body statements
-    fn generate_repeat_statement(
-        &self,
-        condition: &AstStatement,
-        body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    fn generate_repeat_statement(&self, condition: &AstNode, body: &[AstNode]) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         // for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        let condition = crate::ast::create_not_expression(condition.clone(), condition.get_location());
+        let condition = AstFactory::create_not_expression(
+            condition.clone(),
+            condition.get_location(),
+            condition.get_id(),
+        );
         let (_, while_block) = self.generate_base_while_statement(&condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
@@ -627,14 +671,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(while_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// utility method for while and repeat loops
     fn generate_base_while_statement(
         &self,
-        condition: &AstStatement,
-        body: &[AstStatement],
+        condition: &AstNode,
+        body: &[AstNode],
     ) -> Result<(BasicBlock, BasicBlock), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
@@ -676,7 +720,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_if_statement(
         &self,
         conditional_blocks: &[ConditionalBlock],
-        else_body: &[AstStatement],
+        else_body: &[AstNode],
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
@@ -730,7 +774,87 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
+    ///
+    /// a function returns the value of the local variable that has the function's name
+    pub fn generate_return_statement(&self) -> Result<(), Diagnostic> {
+        if let Some(ret_v) =
+            self.index.find_return_variable(self.function_context.linking_context.get_type_name())
+        {
+            if self
+                .index
+                .find_effective_type_by_name(ret_v.get_type_name())
+                .map(|it| it.is_aggregate_type())
+                .unwrap_or(false)
+            {
+                //generate return void
+                self.llvm.builder.build_return(None);
+            } else {
+                // renerate return statement
+                let call_name = self.function_context.linking_context.get_call_name();
+                let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
+                let ret_name = ret_v.get_qualified_name();
+                let value_ptr =
+                    self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            &format!("Cannot generate return variable for {call_name:}"),
+                            SourceLocation::undefined(),
+                        )
+                    })?;
+                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
+                self.llvm.builder.build_return(Some(&loaded_value));
+            }
+        } else {
+            self.llvm.builder.build_return(None);
+        }
+        Ok(())
+    }
+
+    /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
+    /// does nothing otherwise.
+    pub fn generate_conditional_return(&'a self, condition: &AstNode) -> Result<(), Diagnostic> {
+        let expression_generator = self.create_expr_generator();
+        let condition = expression_generator.generate_expression(condition)?;
+
+        let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
+        let else_block = self.llvm.context.append_basic_block(self.function_context.function, "else_block");
+
+        self.llvm.builder.build_conditional_branch(
+            to_i1(condition.into_int_value(), &self.llvm.builder),
+            then_block,
+            else_block,
+        );
+
+        self.llvm.builder.position_at_end(then_block);
+        self.generate_return_statement()?;
+
+        self.llvm.builder.position_at_end(else_block);
+
+        Ok(())
+    }
+
     fn get_llvm_deps(&self) -> (&Builder, FunctionValue, &Context) {
         (&self.llvm.builder, self.function_context.function, self.llvm.context)
     }
+}
+
+/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
+/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
+/// of direct-access commands (vec![%W3, %X2])
+fn collect_base_and_direct_access_for_assignment(
+    left_statement: &AstNode,
+) -> Option<(&AstNode, Vec<&AstNode>)> {
+    let mut current = Some(left_statement);
+    let mut access_sequence = Vec::new();
+    while let Some(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
+        current.map(|it| it.get_stmt())
+    {
+        if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
+            access_sequence.insert(0, m.as_ref());
+            current = base.as_deref();
+        } else {
+            break;
+        }
+    }
+    current.zip(Some(access_sequence))
 }

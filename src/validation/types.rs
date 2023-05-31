@@ -1,27 +1,30 @@
+use plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
+
 use crate::{
-    ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration},
     index::Index,
+    resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},
-    Diagnostic,
 };
 
 use super::{variable::visit_variable, ValidationContext, Validator, Validators};
 
-pub fn visit_data_type_declaration(
+pub fn visit_data_type_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     declaration: &DataTypeDeclaration,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
         visit_data_type(validator, data_type, location, context);
     }
 }
 
-pub fn visit_data_type(
+pub fn visit_data_type<T: AnnotationMap>(
     validator: &mut Validator,
     data_type: &DataType,
-    location: &SourceRange,
-    context: &ValidationContext,
+    location: &SourceLocation,
+    context: &ValidationContext<T>,
 ) {
     validate_data_type(validator, data_type, location);
 
@@ -39,16 +42,17 @@ pub fn visit_data_type(
     }
 }
 
-fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceRange) {
+fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceLocation) {
     match data_type {
         DataType::StructType { variables, .. } => {
             if variables.is_empty() {
                 validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
             }
         }
-        DataType::EnumType { elements: AstStatement::ExpressionList { expressions, .. }, .. }
-            if expressions.is_empty() =>
-        {
+        DataType::EnumType {
+            elements: AstNode { stmt: AstStatement::ExpressionList(expressions), .. },
+            ..
+        } if expressions.is_empty() => {
             validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
         }
         DataType::VarArgs { referenced_type: None, sized: true } => {
@@ -61,10 +65,10 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
     }
 }
 
-pub fn visit_user_type_declaration(
+pub fn visit_user_type_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     user_type: &UserTypeDeclaration,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     visit_data_type(validator, &user_type.data_type, &user_type.location, context);
 }

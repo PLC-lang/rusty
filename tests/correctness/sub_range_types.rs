@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+
+use crate::compile_and_run;
+
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(PartialEq, Debug)]

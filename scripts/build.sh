@@ -5,7 +5,6 @@ vendor=0
 offline=0
 check=0
 check_style=0
-metrics=0
 build=0
 doc=0
 test=0
@@ -15,15 +14,15 @@ debug=0
 container=0
 assume_linux=0
 junit=0
-ci=0
+package=0
+target=""
 
 CONTAINER_NAME='rust-llvm'
 
 source "${BASH_SOURCE%/*}/common.sh"
 
 function set_cargo_options() {
-	CARGO_OPTIONS="--workspace"
-
+	CARGO_OPTIONS=""
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
 	fi
@@ -77,21 +76,54 @@ function run_build() {
 	fi
 }
 
+# Builds with set targets, useful for standard functions
+function run_std_build() {
+	CARGO_OPTIONS=$(set_cargo_options)
+
+	# if the targets are set, we will build once per target
+
+	# Run cargo build with release or debug flags
+	echo "Build starting"
+	echo "-----------------------------------"
+	cmd="cargo build $CARGO_OPTIONS -p iec61131std" 
+	if [[ ! -z $target ]]; then
+		for val in ${target//,/ }
+		do
+			new_cmd="$cmd --target=$val" 
+			log "Running $new_cmd" 
+			eval "$new_cmd"
+			echo "-----------------------------------"
+			if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+				echo "Build $val failed"
+				exit 1
+			else
+				echo "Build $val done"
+			fi
+		done
+	else
+		log "Running $cmd" 
+		eval "$cmd"
+		echo "-----------------------------------"
+		if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+			echo "Build failed"
+			exit 1
+		else
+			echo "Build done"
+		fi
+	fi
+}
+
 function run_check() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo check"
-	cargo check $CARGO_OPTIONS 
-}
 
-function run_metrics() {
-	log "Running cargo xtask metrics"
-	cargo xtask metrics
+	cargo check $CARGO_OPTIONS --workspace
 }
 
 function run_doc() {
 	CARGO_OPTIONS=$(set_cargo_options)
-	log "Running cargo doc"
-	cargo doc $CARGO_OPTIONS 
+	log "Running cargo doc --workspace $CARGO_OPTIONS"
+	cargo doc --workspace $CARGO_OPTIONS 
 	log "Building book"
 	cd book && mdbook build && mdbook test
 }
@@ -99,7 +131,7 @@ function run_doc() {
 function run_check_style() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo clippy"
-	cargo clippy $CARGO_OPTIONS -- -Dwarnings
+	cargo clippy $CARGO_OPTIONS --workspace -- -Dwarnings
 	log "Running cargo fmt check"
 	cargo fmt -- --check
 }
@@ -111,18 +143,39 @@ function run_test() {
 		#Delete the test results if they exist
 		rm -rf "$project_location/test_results"
 		make_dir "$project_location/test_results"
-		cargo test $CARGO_OPTIONS --lib -- --format=junit \
+		# JUnit test should run on nightly
+		log "cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
 			-Zunstable-options \
 		 | split -l1 - "$project_location"/test_results/unit_tests \
 		 -d --additional-suffix=.xml
+		"
+		cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
+			-Zunstable-options \
+		 | split -l1 - "$project_location"/test_results/unit_tests \
+		 -d --additional-suffix=.xml
+
 		# Run only the integration tests
 		#https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
-		cargo test $CARGO_OPTIONS --test '*' -- --format=junit \
+		log "cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/integration_tests \
+		 -d --additional-suffix=.xml"
+		cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
 		 -Zunstable-options  \
 		 | split -l1 - "$project_location"/test_results/integration_tests \
 		 -d --additional-suffix=.xml
+
+		# Run the std integration
+		log "cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/std_integration_tests \
+		 -d --additional-suffix=.xml"
+		cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/std_integration_tests \
+		 -d --additional-suffix=.xml
 	else
-		cargo test $CARGO_OPTIONS
+		cargo test $CARGO_OPTIONS --workspace
 	fi
 }
 
@@ -144,6 +197,79 @@ function set_offline() {
 	fi
 }
 
+function run_package_std() {
+	cc=$(get_compiler)
+	log "Packaging Standard functions"
+	log "Removing previous output folder"
+	rm -rf $OUTPUT_DIR
+	target_dir="$project_location/target"
+	include_dir=$OUTPUT_DIR/include 
+	make_dir $include_dir
+	#Copy the iec61131-st folder
+	cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
+
+	if [[ ! -z $target ]]; then
+		for val in ${target//,/ }
+		do
+			lib_dir=$OUTPUT_DIR/$val/lib
+			make_dir $lib_dir
+			rel_dir="$target_dir/$val"
+			if [[ $release -ne 0 ]]; then
+				rel_dir="$rel_dir/release"
+			else 
+				rel_dir="$rel_dir/debug"
+			fi
+			if [[ ! -d "$rel_dir" ]]; then
+				echo "Compilation directory $rel_dir not found"
+				exit 1
+			fi
+			cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files" 
+			# Create an SO file from the copied a file
+			log "Creating a shared library from the compiled static library"
+			log "Running : $cc --shared -L$lib_dir \
+				-Wl,--whole-archive -liec61131std \
+				-o $lib_dir/out.so -Wl,--no-whole-archive \
+				-lm \
+				-fuse-ld=lld \
+				--target=$val"
+			$cc --shared -L"$lib_dir" \
+				-Wl,--whole-archive -liec61131std \
+				-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+				-lm \
+				-fuse-ld=lld \
+				--target="$val"
+			
+			mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+		done
+	else
+		lib_dir=$OUTPUT_DIR/lib
+		make_dir $lib_dir
+		if [[ $release -ne 0 ]]; then
+			rel_dir="$target_dir/release"
+		else 
+			rel_dir="$target_dir/debug"
+		fi
+		cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
+		# Create an SO file from the copied a file
+		log "Creating a shared library from the compiled static library"
+		log "Running : $cc --shared -L"$lib_dir" \
+			-Wl,--whole-archive -liec61131std \
+			-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+			-lm \
+			-fuse-ld=lld "
+		$cc --shared -L"$lib_dir" \
+			-Wl,--whole-archive -liec61131std \
+			-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+			-lm \
+			-fuse-ld=lld 
+		mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+	fi
+	
+	log "Enabling read/write on the output folder"
+	chmod a+rw $OUTPUT_DIR -R
+
+}
+
 function run_in_container() {
 	container_engine=$(get_container_engine)
 	params=""
@@ -160,9 +286,6 @@ function run_in_container() {
 	fi
 	if [[ $check_style -ne 0 ]]; then
 		params="$params --check-style"
-	fi
-	if [[ $metrics -ne 0 ]]; then
-		params="$params --metrics"
 	fi
 	if [[ $build -ne 0 ]]; then
 		params="$params --build"
@@ -182,8 +305,11 @@ function run_in_container() {
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
-	if [[ $ci -ne 0 ]]; then
-		options="$options --env=CI_RUN=true"
+	if [[ $package -ne 0 ]]; then
+		params="$params --package"
+	fi
+	if [[ ! -z $target ]]; then
+		params="$params --target $target"
 	fi
 
 	volume_target="/build"
@@ -212,7 +338,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -258,12 +384,6 @@ while true; do
 			--check)
 				  check=1
 					;;
-			--metrics)
-				  metrics=1
-					;;
-			--ci)
-				  ci=1
-					;;
 			-b|--build)
 				  build=1
 					;;
@@ -275,6 +395,13 @@ while true; do
 					;;
 			--coverage)
 					coverage=1
+					;;
+			--package)
+					package=1
+					;;
+			--target)
+					shift
+					target=$1
 					;;
 			--)
 					shift
@@ -292,15 +419,15 @@ project_location=$(find_project_root)
 log "Moving to project level directory $project_location"
 cd "$project_location"
 
-
-if [[ $ci -ne 0 ]]; then
-	export CI_RUN=true
-fi
-
 if [[ $container -ne 0 ]]; then
 	log "Container Build"
 	run_in_container
 	exit 0
+fi
+
+if [[ $package -ne 0 ]]; then
+	OUTPUT_DIR=$project_location/output
+	make_dir "$OUTPUT_DIR"
 fi
 
 if [[ $vendor -ne 0 ]]; then
@@ -324,12 +451,14 @@ if [[ $check_style -ne 0 ]]; then
 	run_check_style
 fi
 
-if [[ $metrics -ne 0 ]]; then
-	run_metrics
-fi
-
 if [[ $build -ne 0 ]]; then
 	run_build
+	#Build the standard functions
+	run_std_build
+fi
+
+if [[ $package -ne 0 ]]; then
+	run_package_std
 fi
 
 if [[ $test -ne 0 ]]; then

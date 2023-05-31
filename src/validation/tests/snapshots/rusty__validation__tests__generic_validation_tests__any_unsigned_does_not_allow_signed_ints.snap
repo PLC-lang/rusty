@@ -2,8 +2,8 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no Unsigned.", range: [SourceRange { range: 136..137 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no Unsigned.", range: [SourceRange { range: 209..210 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Unsigned.", range: [SourceRange { range: 277..278 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no Unsigned.", range: [SourceRange { range: 345..346 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. SINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 51, offset: 136 }..TextLocation { line: 2, column: 52, offset: 137 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. INT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 56, offset: 209 }..TextLocation { line: 3, column: 57, offset: 210 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 277 }..TextLocation { line: 4, column: 52, offset: 278 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 51, offset: 345 }..TextLocation { line: 5, column: 52, offset: 346 }) }], err_no: type__invalid_nature }
 

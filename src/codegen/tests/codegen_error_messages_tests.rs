@@ -1,10 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::SourceRange,
-    diagnostics::Diagnostic,
-    test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap},
-};
-use pretty_assertions::assert_eq;
+use crate::test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap};
+use insta::assert_snapshot;
 
 #[test]
 fn unknown_reference_should_be_reported_with_line_number() {
@@ -19,7 +15,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::unresolved_reference("y", (100..101).into()), msg);
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -38,10 +34,7 @@ fn exit_not_in_loop() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot break out of loop when not inside a loop", (95..99).into()),
-            msg
-        );
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -60,10 +53,7 @@ fn continue_not_in_loop() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot continue loop when not inside a loop", (95..103).into()),
-            msg
-        );
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -92,7 +82,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::unresolved_reference("MyStruct.c", (264..265).into()), msg);
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -113,7 +103,7 @@ fn invalid_array_access_should_be_reported_with_line_number() {
     if let Err(msg) = result {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
-        assert_eq!(Diagnostic::codegen_error("Invalid array access", (97..98).into()), msg);
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -139,7 +129,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::codegen_error("Invalid array access", (228..229).into()), msg);
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -160,7 +150,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
-        assert_eq!(Diagnostic::unresolved_reference("INT.a", (114..115).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -182,7 +172,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
-        assert_eq!(Diagnostic::unresolved_reference("INT.index", (139..144).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -190,14 +180,14 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
 
 #[test]
 fn invalid_initial_constant_values_in_pou_variables() {
-    let result = codegen_debug_without_unwrap(
+    let err = codegen_debug_without_unwrap(
         r#"
         VAR_GLOBAL CONSTANT
             MAX_LEN : INT := 99;
         END_VAR
 
         VAR_GLOBAL
-            LEN := MAX_LEN - 2;
+            LEN : DINT := MAX_LEN - 2;
         END_VAR
  
         PROGRAM prg
@@ -208,21 +198,9 @@ fn invalid_initial_constant_values_in_pou_variables() {
  
         "#,
         crate::DebugLevel::None,
-    );
-
-    if let Err((diagnostics, msg)) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Some initial values were not generated", SourceRange::undefined()),
-            msg
-        );
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            &diagnostics[0].message,
-            "Cannot generate literal initializer for 'prg.my_len': Value cannot be derived"
-        );
-    } else {
-        panic!("expected code-gen error but got none")
-    }
+    )
+    .unwrap_err();
+    assert_snapshot!(err);
 }
 
 #[test]
@@ -237,7 +215,7 @@ fn recursive_initial_constant_values() {
     );
 
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::codegen_error("Cannot propagate constant value for 'b'", (52..53).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -258,10 +236,7 @@ fn assigning_string_literal_to_int_variable_results_in_casting_error() {
     );
     // THEN result shoud be a casting error
     if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot generate String-Literal for type INT", (51..54).into(),),
-            msg
-        )
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -282,7 +257,7 @@ fn assigning_empty_string_literal_to_char_results_in_error() {
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::cannot_generate_from_empty_literal("CHAR", (52..54).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -303,7 +278,7 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::cannot_generate_from_empty_literal("WCHAR", (53..55).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -323,7 +298,7 @@ fn pointer_binary_expression_adding_two_pointers() {
 	END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::codegen_error("'+' operation must contain one int type", (88..97).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -343,7 +318,7 @@ fn pointer_binary_expression_multiplication() {
 	END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::codegen_error("Operator '*' unimplemented for pointers", (88..97).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -363,7 +338,7 @@ fn pointer_binary_expression_division() {
 	END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_eq!(Diagnostic::codegen_error("Operator '/' unimplemented for pointers", (88..97).into()), msg)
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -383,10 +358,7 @@ fn pointer_binary_expression_modulo() {
 	END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Operator 'MOD' unimplemented for pointers", (88..99).into()),
-            msg
-        )
+        assert_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -408,9 +380,7 @@ fn assigning_to_rvalue() {
         "#,
     );
 
-    let Err(msg) = result else {
-        panic!("expected code-gen error but got none")
-    };
+    let Err(msg) = result else { panic!("expected code-gen error but got none") };
 
-    assert_eq!(msg, Diagnostic::reference_expected((149..155).into()))
+    assert_snapshot!(msg)
 }

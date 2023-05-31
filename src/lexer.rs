@@ -1,19 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::ops::Range;
-use logos::Filter;
-use logos::Lexer;
-use logos::Logos;
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
+use logos::{Filter, Lexer, Logos};
+use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
+use plc_ast::provider::IdProvider;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 pub use tokens::Token;
-
-use crate::ast::AstId;
-use crate::ast::DirectAccessType;
-use crate::ast::HardwareAccessType;
-use crate::ast::SourceRange;
-use crate::ast::SourceRangeFactory;
-use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
@@ -29,8 +21,8 @@ pub struct ParseSession<'a> {
     /// the range of the `last_token`
     pub last_range: Range<usize>,
     pub parse_progress: usize,
-    id_provider: IdProvider,
-    pub source_range_factory: SourceRangeFactory,
+    pub id_provider: IdProvider,
+    pub source_range_factory: SourceLocationFactory,
     pub scope: Option<String>,
 }
 
@@ -52,7 +44,7 @@ impl<'a> ParseSession<'a> {
     pub fn new(
         l: Lexer<'a, Token>,
         id_provider: IdProvider,
-        source_range_factory: SourceRangeFactory,
+        source_range_factory: SourceLocationFactory,
     ) -> ParseSession<'a> {
         let mut lexer = ParseSession {
             lexer: l,
@@ -163,11 +155,11 @@ impl<'a> ParseSession<'a> {
         self.lexer.slice()
     }
 
-    pub fn location(&self) -> SourceRange {
+    pub fn location(&self) -> SourceLocation {
         self.source_range_factory.create_range(self.range())
     }
 
-    pub fn last_location(&self) -> SourceRange {
+    pub fn last_location(&self) -> SourceLocation {
         self.source_range_factory.create_range(self.last_range.clone())
     }
 
@@ -210,17 +202,17 @@ impl<'a> ParseSession<'a> {
 
     pub fn recover_until_close(&mut self) {
         let mut hit = self.get_close_region_level(&self.token);
-        let start = self.location();
-        let mut end = self.location().get_end();
+        let start = self.range();
+        let mut end = self.range().end;
         while self.token != Token::End && hit.is_none() {
-            end = self.location().get_end();
+            end = self.range().end;
             self.advance();
             hit = self.closing_keywords.iter().rposition(|it| it.contains(&self.token));
         }
 
         //Did we recover in the while loop above?
-        if start.get_end() != self.location().get_end() {
-            let range = start.get_start()..end;
+        if start.end != self.range().end {
+            let range = start.start..end;
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
                 format!(
                     "{:?}",
@@ -303,11 +295,11 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
         .chars()
         .nth(1)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccessType::Bit),
-            'b' => Some(crate::ast::DirectAccessType::Byte),
-            'w' => Some(crate::ast::DirectAccessType::Word),
-            'd' => Some(crate::ast::DirectAccessType::DWord),
-            'l' => Some(crate::ast::DirectAccessType::LWord),
+            'x' => Some(DirectAccessType::Bit),
+            'b' => Some(DirectAccessType::Byte),
+            'w' => Some(DirectAccessType::Word),
+            'd' => Some(DirectAccessType::DWord),
+            'l' => Some(DirectAccessType::LWord),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -322,10 +314,10 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
         .chars()
         .nth(1)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'i' => Some(crate::ast::HardwareAccessType::Input),
-            'q' => Some(crate::ast::HardwareAccessType::Output),
-            'm' => Some(crate::ast::HardwareAccessType::Memory),
-            'g' => Some(crate::ast::HardwareAccessType::Global),
+            'i' => Some(HardwareAccessType::Input),
+            'q' => Some(HardwareAccessType::Output),
+            'm' => Some(HardwareAccessType::Memory),
+            'g' => Some(HardwareAccessType::Global),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -335,12 +327,12 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
         .chars()
         .nth(2)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccessType::Bit),
-            'b' => Some(crate::ast::DirectAccessType::Byte),
-            'w' => Some(crate::ast::DirectAccessType::Word),
-            'd' => Some(crate::ast::DirectAccessType::DWord),
-            'l' => Some(crate::ast::DirectAccessType::LWord),
-            '*' => Some(crate::ast::DirectAccessType::Template),
+            'x' => Some(DirectAccessType::Bit),
+            'b' => Some(DirectAccessType::Byte),
+            'w' => Some(DirectAccessType::Word),
+            'd' => Some(DirectAccessType::DWord),
+            'l' => Some(DirectAccessType::LWord),
+            '*' => Some(DirectAccessType::Template),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -348,51 +340,15 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
     Some((hardware_type, access))
 }
 
-#[derive(Clone)]
-pub struct IdProvider {
-    current_id: Arc<AtomicUsize>,
-}
-
-impl IdProvider {
-    pub fn next_id(&mut self) -> AstId {
-        self.current_id.fetch_add(1, Ordering::Relaxed)
-    }
-}
-
-impl Default for IdProvider {
-    fn default() -> Self {
-        IdProvider { current_id: Arc::new(AtomicUsize::new(1)) }
-    }
-}
-
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal(source))
 }
 
 pub fn lex_with_ids(
     source: &str,
     id_provider: IdProvider,
-    location_factory: SourceRangeFactory,
+    location_factory: SourceLocationFactory,
 ) -> ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
-}
-
-#[cfg(test)]
-mod id_tests {
-    use super::IdProvider;
-
-    #[test]
-    fn id_provider_generates_unique_ids_over_clones() {
-        let mut id1 = IdProvider::default();
-
-        assert_eq!(id1.next_id(), 1);
-
-        let mut id2 = id1.clone();
-        assert_eq!(id2.next_id(), 2);
-
-        assert_eq!(id1.next_id(), 3);
-
-        assert_eq!(id2.next_id(), 4);
-    }
 }

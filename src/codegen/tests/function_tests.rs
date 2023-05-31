@@ -347,3 +347,26 @@ fn function_with_ref_sized_string_varargs_called_in_program() {
     // Function call with 3 as first parameter (size) and the arguments array as pointer
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn return_variable_in_nested_call() {
+    // GIVEN a call statement where we take the adr of the return-variable
+    let src = "
+        FUNCTION main : DINT
+            VAR
+                x1, x2 : DINT;
+            END_VAR
+            x1 := SMC_Read(
+                        ValAddr := ADR(main));
+        END_FUNCTION
+
+        FUNCTION SMC_Read : DINT
+            VAR_INPUT
+                ValAddr : LWORD;
+            END_VAR
+        END_FUNCTION
+          ";
+
+    // we want a call passing the return-variable as apointer (actually the adress as a LWORD)
+    insta::assert_snapshot!(codegen(src));
+}

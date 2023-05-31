@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_int' to '__fn_arr'", range: [SourceRange { range: 436..445 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_float' to '__fn_arr'", range: [SourceRange { range: 467..478 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_string' to '__fn_arr'", range: [SourceRange { range: 500..512 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_local_int' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 19, offset: 436 }..TextLocation { line: 14, column: 28, offset: 445 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_local_float' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 19, offset: 467 }..TextLocation { line: 15, column: 30, offset: 478 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_local_string' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 19, offset: 500 }..TextLocation { line: 16, column: 31, offset: 512 }) }], err_no: var__invalid_assignment }
 

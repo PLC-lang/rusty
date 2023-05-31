@@ -1,6 +1,8 @@
+use plc_ast::ast::{Operator, TypeNature};
+use plc_source::source_location::SourceLocation;
+
 use crate::{
-    ast::{Operator, TypeNature},
-    index::{symbol::SymbolLocation, Index},
+    index::Index,
     test_utils::tests::index,
     typesystem::{
         self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE, CHAR_TYPE,
@@ -161,7 +163,7 @@ fn get_bigger_size_string_test() {
         },
 
         nature: TypeNature::String,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     let string_30 = typesystem::DataType {
         name: "STRING_30".into(),
@@ -171,7 +173,7 @@ fn get_bigger_size_string_test() {
             encoding: typesystem::StringEncoding::Utf8,
         },
         nature: TypeNature::String,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //The string with the bigger length is the bigger string
     assert_eq!(&string_1024, typesystem::get_bigger_type(&string_1024, &string_30, &index));
@@ -197,7 +199,7 @@ fn get_bigger_size_array_test_returns_first() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     let array_30 = typesystem::DataType {
         name: "ARRAY_30".into(),
@@ -211,7 +213,7 @@ fn get_bigger_size_array_test_returns_first() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //The array with the most elements is bigger
     assert_eq!(&array_1024, typesystem::get_bigger_type(&array_1024, &array_30, &index));
@@ -233,7 +235,7 @@ fn get_bigger_size_mixed_test_no_() {
             encoding: typesystem::StringEncoding::Utf8,
         },
         nature: TypeNature::String,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     let wstring_1024 = typesystem::DataType {
         name: "WSTRING_1024".into(),
@@ -243,7 +245,7 @@ fn get_bigger_size_mixed_test_no_() {
             encoding: typesystem::StringEncoding::Utf16,
         },
         nature: TypeNature::String,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //Array of string
     let array_string_30 = typesystem::DataType {
@@ -258,7 +260,7 @@ fn get_bigger_size_mixed_test_no_() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //Array of int
     let array_30 = typesystem::DataType {
@@ -273,7 +275,7 @@ fn get_bigger_size_mixed_test_no_() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //2-dim array of int
     let array_30_30 = typesystem::DataType {
@@ -294,7 +296,7 @@ fn get_bigger_size_mixed_test_no_() {
             ],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
 
     //Given two incompatible types
@@ -532,7 +534,7 @@ fn array_size_single_dim_tests() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(320, array_20.get_type_information().get_size_in_bits(&index));
@@ -560,7 +562,7 @@ fn array_size_multi_dim_tests() {
             ],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(6400, array_20_20.get_type_information().get_size_in_bits(&index));
@@ -582,7 +584,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
     index.register_type(array_20);
     let nested_array = typesystem::DataType {
@@ -597,7 +599,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
+        location: SourceLocation::internal(),
     };
 
     //the size of the array is 20*size(int)

@@ -1,0 +1,11 @@
+---
+source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
+expression: diagnostics
+---
+error: Unexpected token: expected KeywordParensClose but found 'c'
+  ┌─ <internal>:3:29
+  │
+3 │                     buz(a,b c);
+  │                             ^ Unexpected token: expected KeywordParensClose but found 'c'
+
+

@@ -1,13 +1,13 @@
-use rusty_derive::Validators;
+use plc_ast::ast::{AstNode, CompilationUnit};
+use plc_derive::Validators;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
-    ast::{AstStatement, CompilationUnit},
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
     },
-    resolver::{AnnotationMap, AnnotationMapImpl},
-    Diagnostic,
+    resolver::AnnotationMap,
 };
 
 use self::{
@@ -18,6 +18,7 @@ use self::{
     variable::visit_variable_block,
 };
 
+mod array;
 mod global;
 mod pou;
 mod recursive;
@@ -29,16 +30,16 @@ mod variable;
 mod tests;
 
 #[derive(Clone)]
-pub struct ValidationContext<'s> {
-    annotations: &'s AnnotationMapImpl,
+pub struct ValidationContext<'s, T: AnnotationMap> {
+    annotations: &'s T,
     index: &'s Index,
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
     is_call: bool,
 }
 
-impl<'s> ValidationContext<'s> {
-    fn with_qualifier(&self, qualifier: &'s str) -> ValidationContext<'s> {
+impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
+    fn with_qualifier(&self, qualifier: &'s str) -> Self {
         ValidationContext {
             annotations: self.annotations,
             index: self.index,
@@ -47,15 +48,8 @@ impl<'s> ValidationContext<'s> {
         }
     }
 
-    fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
-        match stmt {
-            AstStatement::Reference { name, .. } => Some(name.as_str()),
-            AstStatement::QualifiedReference { elements, .. } => {
-                elements.last().and_then(|it| self.annotations.get_call_name(it))
-            }
-            _ => None,
-        }
-        .and_then(|pou_name| {
+    fn find_pou(&self, stmt: &AstNode) -> Option<&PouIndexEntry> {
+        self.annotations.get_call_name(stmt).and_then(|pou_name| {
             self.index
                 // check if this is an instance of a function block and get the type name
                 .find_callable_instance_variable(self.qualifier, &[pou_name])
@@ -68,7 +62,7 @@ impl<'s> ValidationContext<'s> {
         })
     }
 
-    fn set_is_call(&self) -> ValidationContext<'s> {
+    fn set_is_call(&self) -> Self {
         ValidationContext {
             annotations: self.annotations,
             index: self.index,
@@ -97,6 +91,12 @@ pub struct Validator {
     recursive_validator: RecursiveValidator,
 }
 
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Validator {
     pub fn new() -> Validator {
         Validator {
@@ -123,13 +123,18 @@ impl Validator {
         // Find and report const-expressions that would overflow
         for it in index.get_const_expressions().into_iter() {
             let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
-            let ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr else { continue };
+            let ConstExpression::Unresolvable {
+                reason: UnresolvableKind::Overflow(reason, location), ..
+            } = expr
+            else {
+                continue;
+            };
 
             self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
         }
     }
 
-    pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
+    pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // validate POU and declared Variables
         for pou in &unit.units {
@@ -151,51 +156,4 @@ impl Validator {
             visit_implementation(self, implementation, &context);
         }
     }
-}
-
-/// Finds and reports invalid `ARRAY` assignments where parentheses are missing yielding invalid ASTs.
-/// Specifically an invalid assignment such as `x := (var1 := 1, var2 := 3, 4);` where `var2` is missing a
-/// `(` will generate `ExpressionList { Assignment {..}, ...}` as the AST where each item after
-/// the first one would be handled as a seperate statement whereas the correct AST should have been
-/// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
-/// - https://github.com/PLC-lang/rusty/issues/707 and
-/// - `array_validation_test.rs/array_initialization_validation`
-pub fn validate_for_array_assignment(
-    validator: &mut Validator,
-    expressions: &[AstStatement],
-    context: &ValidationContext,
-) {
-    let mut array_assignment = false;
-    expressions.iter().for_each(|e| {
-        if array_assignment {
-            // now we cannot be sure where the following values belong to
-            validator
-                .push_diagnostic(Diagnostic::array_expected_identifier_or_round_bracket(e.get_location()));
-        }
-        match e {
-            AstStatement::Assignment { left, right, .. } => {
-                let left_type =
-                    context.annotations.get_type_or_void(left, context.index).get_type_information();
-                let right_type =
-                    context.annotations.get_type_or_void(right, context.index).get_type_information();
-
-                if left_type.is_array()
-				// if we try to assign an `ExpressionList` to an ARRAY
-				// we can expect that `()` were used and we got a valid parse result
-				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
-                 && !right_type.is_array()
-                {
-                    // otherwise we are definitely in an invalid assignment
-                    array_assignment = true;
-                    validator
-                        .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));
-                }
-            }
-            AstStatement::ExpressionList { expressions, .. } => {
-                // e.g. ARRAY OF STRUCT can have multiple `ExpressionList`s
-                validate_for_array_assignment(validator, expressions, context);
-            }
-            _ => {} // do nothing
-        }
-    })
 }

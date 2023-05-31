@@ -1,11 +1,11 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Could not resolve reference to field10", range: [SourceRange { range: 694..701 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field20", range: [SourceRange { range: 721..728 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field30", range: [SourceRange { range: 748..755 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceRange { range: 955..965 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceRange { range: 989..999 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceRange { range: 1023..1033 }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field10", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 18, offset: 694 }..TextLocation { line: 27, column: 25, offset: 701 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field20", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 18, offset: 721 }..TextLocation { line: 28, column: 25, offset: 728 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field30", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 18, offset: 748 }..TextLocation { line: 29, column: 25, offset: 755 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceLocation { span: Range(TextLocation { line: 37, column: 22, offset: 955 }..TextLocation { line: 37, column: 32, offset: 965 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 22, offset: 989 }..TextLocation { line: 38, column: 32, offset: 999 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 22, offset: 1023 }..TextLocation { line: 39, column: 32, offset: 1033 }) }], err_no: reference__unresolved }
 

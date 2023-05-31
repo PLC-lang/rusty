@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'CHAR'", range: [SourceRange { range: 138..139 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Chars.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'CHAR'", range: [SourceRange { range: 213..214 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Chars.", range: [SourceRange { range: 213..214 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 56, offset: 138 }..TextLocation { line: 2, column: 57, offset: 139 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 56, offset: 138 }..TextLocation { line: 2, column: 57, offset: 139 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 213 }..TextLocation { line: 3, column: 59, offset: 214 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 213 }..TextLocation { line: 3, column: 59, offset: 214 }) }], err_no: type__invalid_nature }
 

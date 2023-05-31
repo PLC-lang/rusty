@@ -2,13 +2,12 @@ use std::time::Duration;
 
 use common::compile_with_native;
 use iec61131std::timers::TimerParams;
-use inkwell::context::Context;
-use rusty::runner::run;
 
 // Import common functionality into the integration tests
 mod common;
 
 use common::add_std;
+use plc::codegen::CodegenContext;
 /*
  * ┌───────────────────────────────────────────────────────┐   ┌────────────────────────────────────────────────────────────┐     ┌────────────────────────────────────────────────────────────┐
  * │ TP                                                    │   │ TON                                                        │     │ TOF                                                        │
@@ -71,32 +70,32 @@ fn tp_true_for_time() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 5ms, out is true, et is 5ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
     //At 10ms, out is true, et is 10ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     //After 15ms, out is false, et is 10/
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     //After 20ms, input is off, out remains off, et set to 0
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
 }
@@ -119,27 +118,27 @@ fn tp_does_not_retrigger_on_consecutive_input() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
 
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //At 10ms, out is true, et is 10ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     //After 15ms, out is false, et is 10/
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     //After 20ms, out is false, et is 10/
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
 }
@@ -161,12 +160,12 @@ fn tp_not_interrupted_by_signal_change() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
 
     //On first call with true, out is true, et is 0
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
 
@@ -174,7 +173,7 @@ fn tp_not_interrupted_by_signal_change() {
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(1));
     //call timer with false
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     //Verify that the timer is still running
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 1_000_000);
@@ -182,7 +181,7 @@ fn tp_not_interrupted_by_signal_change() {
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(1));
     //call timer with true
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     //assert that the signal was not interrupted
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 2_000_000);
@@ -205,35 +204,35 @@ fn ton_returns_true_after_time_preset() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     // Value true After 5ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
     // Value true After 10ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     // Value true After 15ms -> true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 10_000_000);
     // Value false after 20ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
 }
@@ -255,23 +254,23 @@ fn ton_counts_elapsed_time_while_waiting() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true, counter starts at 0
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     // Value true after 5ms counter at 5ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
     // Value false after 6ms counter at 0ms (stopped)
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(1));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
 }
@@ -293,41 +292,41 @@ fn ton_waits_again_after_turining_off() {
     "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     // Value true After 5ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
     // Value true After 10ms -> true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 9_000_000);
     // Value false After 15ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     // Value true after 20ms -> false
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     // Value true after 30ms -> true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 9_000_000);
 }
@@ -349,22 +348,22 @@ fn toff_starts_timer_after_input_is_off() {
 "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
     //Turn off after 10ms -> Timer kicks in, output remains true
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 15 ms, output still true, time elapsed is 5ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
 }
@@ -386,22 +385,22 @@ fn toff_runs_for_preset_time() {
 "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
     //Turn off after 10ms -> Timer kicks in, output remains true
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 20ms, output is turned off, time elapsed is equal to tp (9ms)
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 9_000_000);
 
@@ -409,7 +408,7 @@ fn toff_runs_for_preset_time() {
     // Value true First call -> true
     main_inst.value = true;
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
 }
@@ -431,39 +430,39 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
 "#;
 
     let source = add_std!(prog, "timers.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //Turn off after 10ms -> Timer kicks in, output remains true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(10));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 15 ms, output still true, time elapsed is 5ms
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
     //After 16ms, the input becomes true again, the timer stops, et is set to 0 but the signal remains true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(1));
     main_inst.value = true;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 20ms, the input turns off, the timer starts again
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(4));
     main_inst.value = false;
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 0);
     //After 25ms, the input is still off, the timer's elapsed time is 5ms, the output is true
     iec61131std::timers::test_time_helpers::MockClock::advance(Duration::from_millis(5));
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
 }

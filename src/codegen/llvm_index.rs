@@ -1,8 +1,9 @@
-use crate::diagnostics::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::SourceRange;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
+use plc_util::convention::qualified_name;
 use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
@@ -97,7 +98,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         variable_name: &str,
         target_value: PointerValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        let qualified_name = format!("{container_name}.{variable_name}");
+        let qualified_name = qualified_name(container_name, variable_name);
         self.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
         Ok(())
     }
@@ -126,12 +127,12 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     pub fn get_associated_pou_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_pou_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {
@@ -147,7 +148,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
         self.global_values.insert(variable_name.to_lowercase(), global_variable);
-        //TODO  : Remove this and replace it with a lookup into globals where needed
         self.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
         Ok(())
@@ -194,8 +194,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.constants.get(qualified_name).copied()
     }
 
-    pub fn associate_utf08_literal(&mut self, literal: String, literal_variable: GlobalValue<'ink>) {
-        self.utf08_literals.insert(literal, literal_variable);
+    pub fn associate_utf08_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
+        self.utf08_literals.insert(literal.to_string(), literal_variable);
     }
 
     pub fn find_utf08_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {
@@ -204,8 +204,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_utf08_literal_string(literal)))
     }
 
-    pub fn associate_utf16_literal(&mut self, literal: String, literal_variable: GlobalValue<'ink>) {
-        self.utf16_literals.insert(literal, literal_variable);
+    pub fn associate_utf16_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
+        self.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
     pub fn find_utf16_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {

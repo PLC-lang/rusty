@@ -1,24 +1,24 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'STRING'", range: [SourceRange { range: 548..567 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceRange { range: 584..604 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceRange { range: 621..640 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceRange { range: 657..677 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceRange { range: 694..712 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceRange { range: 729..748 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceRange { range: 765..783 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceRange { range: 800..826 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'STRING'", range: [SourceRange { range: 843..861 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'STRING'", range: [SourceRange { range: 878..902 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 1028..1049 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 1066..1095 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 1112..1133 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceRange { range: 1150..1168 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceRange { range: 1185..1205 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceRange { range: 1222..1239 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceRange { range: 1256..1280 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1297..1318 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1376..1401 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 4, offset: 548 }..TextLocation { line: 30, column: 23, offset: 567 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 31, column: 4, offset: 584 }..TextLocation { line: 31, column: 24, offset: 604 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 32, column: 4, offset: 621 }..TextLocation { line: 32, column: 23, offset: 640 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 33, column: 4, offset: 657 }..TextLocation { line: 33, column: 24, offset: 677 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 34, column: 4, offset: 694 }..TextLocation { line: 34, column: 22, offset: 712 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 35, column: 4, offset: 729 }..TextLocation { line: 35, column: 23, offset: 748 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 36, column: 4, offset: 765 }..TextLocation { line: 36, column: 22, offset: 783 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 37, column: 4, offset: 800 }..TextLocation { line: 37, column: 30, offset: 826 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 843 }..TextLocation { line: 38, column: 22, offset: 861 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 878 }..TextLocation { line: 39, column: 28, offset: 902 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 43, column: 4, offset: 1028 }..TextLocation { line: 43, column: 25, offset: 1049 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 44, column: 4, offset: 1066 }..TextLocation { line: 44, column: 33, offset: 1095 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 45, column: 4, offset: 1112 }..TextLocation { line: 45, column: 25, offset: 1133 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1150 }..TextLocation { line: 46, column: 22, offset: 1168 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 4, offset: 1185 }..TextLocation { line: 47, column: 24, offset: 1205 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1222 }..TextLocation { line: 48, column: 21, offset: 1239 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 49, column: 4, offset: 1256 }..TextLocation { line: 49, column: 28, offset: 1280 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 50, column: 4, offset: 1297 }..TextLocation { line: 50, column: 26, offset: 1319 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 52, column: 4, offset: 1376 }..TextLocation { line: 52, column: 30, offset: 1402 }) }], err_no: var__invalid_assignment }
 

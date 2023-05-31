@@ -4,7 +4,6 @@
 //! either a INPUT, OUTPUT or INOUT variable block thereby accepts a 1D array of type DINT as an argument.
 
 use crate::{
-    lexer::IdProvider,
     resolver::AnnotationMap,
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     tests::adr::util_macros::{annotate, deconstruct_call_statement},
@@ -40,7 +39,7 @@ fn representation() {
                     name: "struct_vla_dint_1",
                     qualified_name: "__foo_arr.struct_vla_dint_1",
                     initial_value: None,
-                    variable_type: ByVal(
+                    argument_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -48,11 +47,8 @@ fn representation() {
                     location_in_parent: 0,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceRange {
-                            range: 0..0,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -60,7 +56,7 @@ fn representation() {
                     name: "dimensions",
                     qualified_name: "__foo_arr.dimensions",
                     initial_value: None,
-                    variable_type: ByVal(
+                    argument_type: ByVal(
                         Input,
                     ),
                     is_constant: false,
@@ -68,11 +64,8 @@ fn representation() {
                     location_in_parent: 1,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceRange {
-                            range: 0..0,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -85,11 +78,18 @@ fn representation() {
             ),
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 79..95,
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 22,
+                    offset: 79,
+                }..TextLocation {
+                    line: 3,
+                    column: 38,
+                    offset: 95,
+                },
+            ),
         },
     }
     "###);
@@ -97,22 +97,19 @@ fn representation() {
     // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(), 
     @r###"
-        DataType {
+    DataType {
+        name: "__ptr_to___arr_vla_1_dint",
+        initial_value: None,
+        information: Pointer {
             name: "__ptr_to___arr_vla_1_dint",
-            initial_value: None,
-            information: Pointer {
-                name: "__ptr_to___arr_vla_1_dint",
-                inner_type_name: "__arr_vla_1_dint",
-                auto_deref: false,
-            },
-            nature: Any,
-            location: SymbolLocation {
-                line_number: 0,
-                source_range: SourceRange {
-                    range: 0..0,
-                },
-            },
-        }
+            inner_type_name: "__arr_vla_1_dint",
+            auto_deref: false,
+        },
+        nature: Any,
+        location: SourceLocation {
+            span: None,
+        },
+    }
     "###);
 
     // ...an array of type DINT with its dimensions unknown at compile time
@@ -132,11 +129,8 @@ fn representation() {
             ],
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 4294967295,
-            source_range: SourceRange {
-                range: 0..0,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -168,11 +162,8 @@ fn representation() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 0,
-            source_range: SourceRange {
-                range: 0..0,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -220,7 +211,7 @@ fn pass() {
     let (_, local) = deconstruct_call_statement!(&statements[0]);
 
     // `local` is defined as an array of type DINT...
-    insta::assert_debug_snapshot!(annotations.get_type(&local[0], &index).unwrap(), 
+    insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(), 
     @r###"
     DataType {
         name: "__main_local",
@@ -246,18 +237,25 @@ fn pass() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 70..89,
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 24,
+                    offset: 70,
+                }..TextLocation {
+                    line: 3,
+                    column: 43,
+                    offset: 89,
+                },
+            ),
         },
     }
     "###);
 
     // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
     // result in wrapping arrays into structs.
-    let hint = annotations.get_type_hint(&local[0], &index).unwrap();
+    let hint = annotations.get_type_hint(local[0], &index).unwrap();
     insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information), 
     @r###"
     Struct {
@@ -267,7 +265,7 @@ fn pass() {
                 name: "struct_vla_dint_1",
                 qualified_name: "__foo_arr.struct_vla_dint_1",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
@@ -275,11 +273,8 @@ fn pass() {
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceRange {
-                        range: 0..0,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },
@@ -287,7 +282,7 @@ fn pass() {
                 name: "dimensions",
                 qualified_name: "__foo_arr.dimensions",
                 initial_value: None,
-                variable_type: ByVal(
+                argument_type: ByVal(
                     Input,
                 ),
                 is_constant: false,
@@ -295,11 +290,8 @@ fn pass() {
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceRange {
-                        range: 0..0,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },

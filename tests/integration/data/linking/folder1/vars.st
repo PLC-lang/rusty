@@ -1,0 +1,4 @@
+VAR_GLOBAL CONSTANT
+	myValue : BOOL := TRUE;
+END_VAR
+

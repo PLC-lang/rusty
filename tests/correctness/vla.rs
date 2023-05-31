@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use rusty::runner::compile_and_run;
+use crate::compile_and_run;
 
 #[test]
 fn variable_length_array_single_dimension_access() {
@@ -602,7 +602,7 @@ mod builtins {
     // TODO: defining VLAs inside a VAR_INPUT {ref} block seems to break codegen...
     // (tested with two different dimensions)
 
-    use rusty::runner::compile_and_run;
+    use driver::runner::compile_and_run;
 
     #[test]
     fn variable_length_array_literal_access_1d() {

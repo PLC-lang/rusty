@@ -1,0 +1,42 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: "parse(content::RETURN_TO_CONNECTION).0.implementations[0].statements"
+---
+[
+    ReturnStatement {
+        condition: Some(
+            BinaryExpression {
+                operator: Less,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
+            },
+        ),
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "positiveOrZero",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    },
+]

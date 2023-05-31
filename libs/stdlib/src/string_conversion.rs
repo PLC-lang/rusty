@@ -48,8 +48,7 @@ pub unsafe extern "C" fn STRING_TO_WSTRING_EXT(src: *const u8, dest: *mut u16) -
 #[no_mangle]
 pub extern "C" fn WCHAR_TO_CHAR(input: u16) -> u8 {
     let u16_arr = [input];
-    let mut res_iter =
-        char::decode_utf16(u16_arr.into_iter()).map(|r| r.unwrap_or(std::char::REPLACEMENT_CHARACTER));
+    let mut res_iter = char::decode_utf16(u16_arr).map(|r| r.unwrap_or(std::char::REPLACEMENT_CHARACTER));
     let mut res_arr = [u8::MAX; 80];
     if let Some(res) = res_iter.next() {
         if res_iter.next().is_none() {

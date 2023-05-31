@@ -859,3 +859,88 @@ fn implicit_action_downcasts_are_validated() {
 
     assert_validation_snapshot!(&diagnostics);
 }
+
+#[test]
+fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
+    let diagnostics = parse_and_validate(
+            "
+            FUNCTION fn : DINT
+                VAR_INPUT
+                    a : DINT;
+                END_VAR
+
+                VAR_INPUT {ref}
+                    b : REAL;
+                    c : REAL;
+                END_VAR
+
+                VAR_IN_OUT
+                    d : LREAL;
+                END_VAR
+
+                a := 1;
+                b := 1.0;   // This should trigger an improvment suggestion, because we are assigning a value
+                c;          // This should NOT trigger an improvment suggestion, because we are NOT assigning a value
+                d := 1.0;
+            END_FUNCTION
+
+            FUNCTION main : DINT
+                VAR
+                    a : DINT := 3;
+                    b : REAL := 3.14;
+                    c : REAL := 3.14;
+                    d : LREAL := 3.14;
+                END_VAR
+
+                fn(a, b, c, d);
+            END_FUNCTION
+            ",
+        );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn enum_variants_mismatch() {
+    let diagnostics = parse_and_validate(
+        "
+        TYPE Animal: (Dog, Cat, Horse); END_TYPE
+        
+        PROGRAM main
+        VAR
+            color: (red, green, blue);
+            water: (still, medium, sparkling);
+        END_VAR
+            color := green;     // ok
+            water := sparkling; // ok
+            color := Dog;       // warning
+            water := blue;      // warning
+            color := sparkling; // warning
+            color := 2;         // warning
+        END_PROGRAM",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn string_type_alias_assignment_can_be_validated() {
+    let diagnostics = parse_and_validate(
+        "
+        TYPE MY_STR : STRING; END_TYPE
+        TYPE MY_OTHER_STR: STRING[256]; END_TYPE
+
+        PROGRAM main
+        VAR
+            my_str : MY_STR;
+            my_other_str: MY_OTHER_STR;
+            i : INT;
+        END_VAR
+            my_str := i;
+            my_other_str := i;
+        END_PROGRAM
+        ",
+    );
+
+    assert_validation_snapshot!(diagnostics)
+}

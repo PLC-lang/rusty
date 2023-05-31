@@ -1,8 +1,9 @@
 use itertools::Itertools;
+use plc_ast::ast::PouType;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use crate::{
-    ast::{PouType, SourceRange},
-    diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
 };
@@ -30,7 +31,7 @@ impl GlobalValidator {
     fn report_name_conflict(
         &mut self,
         name: &str,
-        locations: &[&SourceRange],
+        locations: &[&SourceLocation],
         additional_text: Option<&str>,
     ) {
         for (idx, v) in locations.iter().enumerate() {
@@ -82,12 +83,12 @@ impl GlobalValidator {
     /// - member-variables
     /// - enums
     fn validate_unique_variables(&mut self, index: &Index) {
-        let globals = index.get_globals().values().map(|g| (g.get_name(), &g.source_location.source_range));
+        let globals = index.get_globals().values().map(|g| (g.get_name(), &g.source_location));
         let prgs = index
             .get_pous()
             .values()
             .filter(|pou| matches!(pou, PouIndexEntry::Program { .. }))
-            .map(|p| (p.get_name(), &p.get_location().source_range));
+            .map(|p| (p.get_name(), p.get_location()));
 
         self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
@@ -97,22 +98,21 @@ impl GlobalValidator {
                 if let Some(first) = vars.next() {
                     if let Some(second) = vars.next() {
                         //Collect remaining
-                        let mut locations: Vec<_> = vars.map(|it| &it.source_location.source_range).collect();
-                        locations.push(&first.source_location.source_range);
-                        locations.push(&second.source_location.source_range);
+                        let mut locations: Vec<_> = vars.map(|it| &it.source_location).collect();
+                        locations.push(&first.source_location);
+                        locations.push(&second.source_location);
                         self.report_name_conflict(first.get_qualified_name(), locations.as_slice(), None)
                     }
                 }
             }
         }
         //check enums
-        let duplication_enums = index
-            .get_global_qualified_enums()
-            .entries()
-            .filter(|(_, vars)| vars.len() > 1)
-            .map(|(_, variables)| {
-                (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location.source_range))
-            });
+        let duplication_enums =
+            index.get_global_qualified_enums().entries().filter(|(_, vars)| vars.len() > 1).map(
+                |(_, variables)| {
+                    (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location))
+                },
+            );
 
         for (name, locations) in duplication_enums {
             self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
@@ -121,13 +121,12 @@ impl GlobalValidator {
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)
     fn validate_unique_datatypes(&mut self, index: &Index) {
-        let all_declared_types =
-            index.get_types().values().map(|dt| (dt.get_name(), &dt.location.source_range));
+        let all_declared_types = index.get_types().values().map(|dt| (dt.get_name(), &dt.location));
         let all_function_blocks = index
             .get_pous()
             .values()
             .filter(|p| p.is_function_block() || p.is_class())
-            .map(|p| (p.get_name(), &p.get_location().source_range));
+            .map(|p| (p.get_name(), p.get_location()));
         self.check_uniqueness_of_cluster(
             all_declared_types.chain(all_function_blocks),
             Some("Ambiguous datatype."),
@@ -153,7 +152,7 @@ impl GlobalValidator {
                     })
                     .unwrap_or(false)
             })
-            .map(|it| (it.get_name(), &it.source_location.source_range));
+            .map(|it| (it.get_name(), &it.source_location));
         let all_prgs_and_funcs = index
             .get_pous()
             .values()
@@ -166,7 +165,7 @@ impl GlobalValidator {
                         | PouIndexEntry::Action { .. }
                 )
             })
-            .map(|it| (it.get_name(), &it.get_location().source_range));
+            .map(|it| (it.get_name(), it.get_location()));
 
         self.check_uniqueness_of_cluster(
             all_fb_instances.chain(all_prgs_and_funcs),
@@ -187,10 +186,7 @@ impl GlobalValidator {
             .entries()
             .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
             .map(|(name, pous)| {
-                (
-                    name.as_str(),
-                    pous.iter().filter(only_toplevel_pous).map(|p| &p.get_location().source_range),
-                )
+                (name.as_str(), pous.iter().filter(only_toplevel_pous).map(|p| p.get_location()))
             });
 
         for (name, cluster) in pou_clusters {
@@ -200,9 +196,9 @@ impl GlobalValidator {
 
     fn check_uniqueness_of_cluster<'a, T>(&mut self, cluster: T, additional_text: Option<&str>)
     where
-        T: Iterator<Item = (&'a str, &'a SourceRange)>,
+        T: Iterator<Item = (&'a str, &'a SourceLocation)>,
     {
-        let mut cluster_map: SymbolMap<&str, &SourceRange> = SymbolMap::default();
+        let mut cluster_map: SymbolMap<&str, &SourceLocation> = SymbolMap::default();
         for (name, loc) in cluster {
             cluster_map.insert(name, loc);
         }

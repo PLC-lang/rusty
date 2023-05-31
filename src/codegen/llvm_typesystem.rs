@@ -13,6 +13,8 @@ use crate::{
 
 use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 
+/// A convenience macro to call the `cast` function with fewer parameters.
+///
 /// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
 /// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
 ///
@@ -21,23 +23,28 @@ use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 /// Cast instructions for values other than IntValue, FloatValue and PointerValue will simply be ignored (and the value
 /// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
 ///
-/// - `llvm` the llvm utilities to use for code-generation
-/// - `index` the current Index used for type-lookups
-/// - `llvm_type_index` the type index to lookup llvm generated types
+/// - `generator` the generator to use. must contain the following fields:
+///     - `llvm` the llvm utilities to use for code-generation
+///     - `index` the current Index used for type-lookups
+///     - `llvm_type_index` the type index to lookup llvm generated types
 /// - `target_type` the expected target type of the value
 /// - `value_type` the current type of the given value
 /// - `value` the value to (maybe) cast
-pub fn cast_if_needed<'ctx>(
-    llvm: &Llvm<'ctx>,
-    index: &Index,
-    llvm_type_index: &LlvmTypedIndex<'ctx>,
-    target_type: &DataType,
-    value_type: &DataType,
-    value: BasicValueEnum<'ctx>,
-    annotation: Option<&StatementAnnotation>,
-) -> BasicValueEnum<'ctx> {
-    value.cast(&CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
+macro_rules! cast_if_needed {
+    ($generator:expr, $target_type:expr, $value_type:expr, $value:expr, $annotation:expr) => {
+        crate::codegen::llvm_typesystem::cast(
+            $generator.llvm,
+            $generator.index,
+            $generator.llvm_index,
+            $target_type,
+            $value_type,
+            $value,
+            $annotation,
+        )
+    };
 }
+
+pub(crate) use cast_if_needed;
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
     match size {
@@ -57,6 +64,32 @@ pub fn get_llvm_float_type<'a>(context: &'a Context, size: u32, name: &str) -> F
         64 => context.f64_type(),
         _ => unreachable!("Invalid size for type : '{name}' at {size}"),
     }
+}
+
+/// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
+/// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
+///
+/// This function provides no additional validation or safeguards for invalid casts, as such validation is expected to be
+/// performed at the validation stage prior to code-gen.
+/// Cast instructions for values other than IntValue, FloatValue and PointerValue will simply be ignored (and the value
+/// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
+///
+/// - `llvm` the llvm utilities to use for code-generation
+/// - `index` the current Index used for type-lookups
+/// - `llvm_type_index` the type index to lookup llvm generated types
+/// - `target_type` the expected target type of the value
+/// - `value_type` the current type of the given value
+/// - `value` the value to (maybe) cast
+pub fn cast<'ctx>(
+    llvm: &Llvm<'ctx>,
+    index: &Index,
+    llvm_type_index: &LlvmTypedIndex<'ctx>,
+    target_type: &DataType,
+    value_type: &DataType,
+    value: BasicValueEnum<'ctx>,
+    annotation: Option<&StatementAnnotation>,
+) -> BasicValueEnum<'ctx> {
+    value.cast(&CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
 }
 
 struct CastInstructionData<'ctx, 'cast> {
@@ -140,11 +173,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
                 }
             }
             DataTypeInformation::Pointer { .. } => {
-                let Ok(associated_type) = cast_data
-                    .llvm_type_index
-                    .get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-                    };
+                let Ok(associated_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                else {
+                    unreachable!(
+                        "Target type of cast instruction does not exist: {}",
+                        cast_data.target_type.get_name()
+                    )
+                };
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
             }
@@ -186,9 +222,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")
                 .into(),
             DataTypeInformation::Pointer { .. } => {
-                let Ok(target_ptr_type) = cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-                    };
+                let Ok(target_ptr_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                else {
+                    unreachable!(
+                        "Target type of cast instruction does not exist: {}",
+                        cast_data.target_type.get_name()
+                    )
+                };
                 if BasicValueEnum::from(self).get_type() != target_ptr_type {
                     // bit-cast necessary
                     cast_data.llvm.builder.build_bitcast(self, target_ptr_type, "")
@@ -224,14 +265,17 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let builder = &cast_data.llvm.builder;
         let zero = cast_data.llvm.i32_type().const_zero();
 
-        let Ok(associated_type) = cast_data
-            .llvm_type_index
-            .get_associated_type(cast_data.target_type.get_name()) else {
-                unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+        let Ok(associated_type) =
+            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+        else {
+            unreachable!(
+                "Target type of cast instruction does not exist: {}",
+                cast_data.target_type.get_name()
+            )
         };
 
         // Get array annotation from parent POU and get pointer to array
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation else {
             unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
         };
         let array_pointer = cast_data

@@ -1,12 +1,17 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use insta::assert_debug_snapshot;
+use plc_ast::ast::{
+    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
+};
+use plc_ast::provider::IdProvider;
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use pretty_assertions::assert_eq;
 
-use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
-use crate::lexer::IdProvider;
+use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
 use crate::typesystem::{InternalType, StructSource, TypeSize, INT_TYPE, VOID_TYPE};
-use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
+use crate::{index::VariableType, typesystem::DataTypeInformation};
 
 #[test]
 fn index_not_case_sensitive() {
@@ -561,14 +566,8 @@ fn pre_processing_generates_inline_enums_global() {
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.global_vars[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__global_inline_enum".to_string(),
-            location: (46..53).into(),
-        },
-        var_data_type
-    );
-    assert_eq!(src[var_data_type.get_location().to_range()].to_string(), "(a,b,c)".to_string());
+    assert_debug_snapshot!(var_data_type);
+    assert_eq!(src[var_data_type.get_location().to_range().unwrap()].to_string(), "(a,b,c)".to_string());
 
     assert_eq!(
         &"__global_inline_enum".to_string(),
@@ -589,39 +588,10 @@ fn pre_processing_generates_inline_structs_global() {
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
     let new_struct_type = &ast.user_types[0].data_type;
-
-    if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, (54..55).into());
-    } else {
-        panic!("expected struct")
-    }
-
-    assert_eq!(
-        &DataType::StructType {
-            name: Some("__global_inline_struct".to_string()),
-            variables: vec![Variable {
-                name: "a".to_string(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
-                    location: (57..60).into(),
-                },
-                location: (54..55).into(),
-                initializer: None,
-                address: None,
-            },],
-        },
-        new_struct_type
-    );
-
+    assert_debug_snapshot!(new_struct_type);
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.global_vars[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__global_inline_struct".to_string(),
-            location: (47..72).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -640,13 +610,7 @@ fn pre_processing_generates_inline_enums() {
     //
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_enum".to_string(),
-            location: (59..66).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 
     // THEN an implicit datatype should have been generated for the enum
     let new_enum_type = &ast.user_types[0].data_type;
@@ -669,38 +633,11 @@ fn pre_processing_generates_inline_structs() {
     //THEN an implicit datatype should have been generated for the struct
 
     let new_struct_type = &ast.user_types[0].data_type;
-    if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, (67..68).into());
-    } else {
-        panic!("expected struct")
-    }
-
-    assert_eq!(
-        &DataType::StructType {
-            name: Some("__foo_inline_struct".to_string()),
-            variables: vec![Variable {
-                name: "a".to_string(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
-                    location: (70..73).into(),
-                },
-                location: (67..68).into(),
-                initializer: None,
-                address: None,
-            }],
-        },
-        new_struct_type
-    );
+    assert_debug_snapshot!(new_struct_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_struct".to_string(),
-            location: (60..85).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -718,29 +655,11 @@ fn pre_processing_generates_inline_pointers() {
     //Pointer
     //THEN an implicit datatype should have been generated for the array
     let new_pointer_type = &ast.user_types[0];
-
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::PointerType {
-            name: Some("__foo_inline_pointer".to_string()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
+    assert_debug_snapshot!(new_pointer_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    let expected = &DataTypeDeclaration::DataTypeReference {
-        referenced_type: "__foo_inline_pointer".to_string(),
-        location: SourceRange::undefined(),
-    };
-
-    assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -756,35 +675,10 @@ fn pre_processing_generates_pointer_to_pointer_type() {
 
     // POINTER TO INT
     let new_pointer_type = &ast.user_types[1];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::PointerType {
-            name: Some("__pointer_to_pointer".to_string()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
-
+    assert_debug_snapshot!(new_pointer_type);
     // AND the original variable should now point to the new DataType
     let original = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::PointerType {
-            name: Some("pointer_to_pointer".to_string()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__pointer_to_pointer".to_string(),
-                location: SourceRange::undefined(),
-            }),
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{original:?}"));
+    assert_debug_snapshot!(original);
 }
 
 #[test]
@@ -804,44 +698,15 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
 
     // POINTER TO INT
     let new_pointer_type = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::PointerType {
-            name: Some("__foo_inline_pointer_".to_string()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
+    assert_debug_snapshot!(new_pointer_type);
 
     // Pointer OF Pointer
     let new_pointer_type = &ast.user_types[1];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::PointerType {
-            name: Some("__foo_inline_pointer".to_string()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_pointer_".to_string(),
-                location: SourceRange::undefined(),
-            }),
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
+    assert_debug_snapshot!(new_pointer_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-
-    let expected = &DataTypeDeclaration::DataTypeReference {
-        referenced_type: "__foo_inline_pointer".to_string(),
-        location: SourceRange::undefined(),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -859,44 +724,11 @@ fn pre_processing_generates_inline_arrays() {
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
     let new_array_type = &ast.user_types[0];
-
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..77).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
-            location: (59..77).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -916,58 +748,15 @@ fn pre_processing_generates_inline_array_of_array() {
 
     // ARRAY OF INT
     let new_array_type = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array_".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(literal_int(0)),
-                end: Box::new(literal_int(1)),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..92).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.user_types[1];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(literal_int(0)),
-                end: Box::new(literal_int(1)),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array_".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..92).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    println!("{:#?}", var_data_type.get_location());
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
-            location: (59..92).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -979,47 +768,11 @@ fn pre_processing_generates_array_of_array_type() {
     let (ast, ..) = parse_and_preprocess(src);
 
     let new_type = &ast.user_types[1];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__arr_arr".to_string()),
-            bounds: AstStatement::RangeStatement {
-                id: 0,
-                start: Box::new(literal_int(0)),
-                end: Box::new(literal_int(1)),
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_type:?}"));
+    assert_debug_snapshot!(new_type);
 
     // AND the original variable should now point to the new DataType
     let original = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("arr_arr".to_string()),
-            bounds: AstStatement::RangeStatement {
-                id: 0,
-                start: Box::new(literal_int(0)),
-                end: Box::new(literal_int(1)),
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__arr_arr".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        location: SourceRange::undefined(),
-        initializer: None,
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{original:?}"));
+    assert_debug_snapshot!(original);
 }
 
 #[test]
@@ -1045,55 +798,10 @@ fn pre_processing_nested_array_in_struct() {
 
     // Struct Type
     let new_array_type = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::StructType {
-            name: Some("MyStruct".to_string()),
-            variables: vec![Variable {
-                name: "field1".to_string(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "__MyStruct_field1".to_string(),
-                    location: SourceRange::undefined(),
-                },
-                location: SourceRange::undefined(),
-                initializer: None,
-                address: None,
-            }],
-        },
-        initializer: None,
-        location: (14..97).into(),
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
-
+    assert_debug_snapshot!(new_array_type);
     // ARRAY OF INT
     let new_array_type = &ast.user_types[1];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__MyStruct_field1".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(4),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..77).into(),
-        scope: None,
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 }
 
 #[test]
@@ -1113,103 +821,19 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 
     // ARRAY OF INT
     let new_array_type = &ast.user_types[0];
-    let expected = &UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array__".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (74..107).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.user_types[1];
-    let expected = UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array_".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array__".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..107).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.user_types[2];
-    let expected = UserTypeDeclaration {
-        data_type: DataType::ArrayType {
-            name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
-                id: 0,
-            },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array_".to_string(),
-                location: SourceRange::undefined(),
-            }),
-            is_variable_length: false,
-        },
-        initializer: None,
-        location: (59..107).into(),
-        scope: Some("foo".into()),
-    };
-    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
+    assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
-            location: (59..107).into(),
-        },
-        var_data_type
-    );
+    assert_debug_snapshot!(var_data_type);
 }
 
 #[test]
@@ -1234,7 +858,7 @@ fn pre_processing_generates_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         scope: Some("myFunc".into()),
     };
 
@@ -1268,7 +892,7 @@ fn pre_processing_generates_nested_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         scope: Some("myFunc".into()),
     };
 
@@ -1329,12 +953,12 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1371,12 +995,12 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1407,12 +1031,12 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
@@ -1434,12 +1058,12 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
@@ -1464,12 +1088,12 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     assert_eq!(
         format!(
             "{:#?}",
-            AstStatement::BinaryExpression {
-                id: 0,
-                operator: Operator::Minus,
-                left: Box::new(crate::parser::tests::ref_to("LEN")),
-                right: Box::new(crate::parser::tests::literal_int(1))
-            }
+            AstFactory::create_binary_expression(
+                crate::parser::tests::ref_to("LEN"),
+                Operator::Minus,
+                crate::parser::tests::literal_int(1),
+                0
+            )
         ),
         format!("{end_0:#?}")
     );
@@ -1504,12 +1128,12 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the string-len
@@ -1526,12 +1150,12 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         assert_eq!(
             format!(
                 "{:#?}",
-                &AstStatement::BinaryExpression {
-                    id: actual_len_expression.get_id(),
-                    left: Box::new(actual_len_expression.clone()),
-                    operator: Operator::Plus,
-                    right: Box::new(crate::parser::tests::literal_int(1))
-                }
+                AstFactory::create_binary_expression(
+                    actual_len_expression.clone(),
+                    Operator::Plus,
+                    literal_int(1),
+                    actual_len_expression.get_id()
+                )
             ),
             format!("{:#?}", index.get_const_expressions().get_constant_statement(expr).unwrap())
         );
@@ -1715,6 +1339,7 @@ fn a_program_pou_is_indexed() {
             END_ACTION
         END_ACTIONS
     "#;
+    let source_location_factory = SourceLocationFactory::for_source(&src.into());
 
     // WHEN the code is indexed
     let (_, index) = index(src);
@@ -1725,21 +1350,21 @@ fn a_program_pou_is_indexed() {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
             linkage: LinkageType::Internal,
-            location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
+            location: source_location_factory.create_range(17..26),
 
-            instance_variable: VariableIndexEntry {
+            instance_variable: Box::new(VariableIndexEntry {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
                 initial_value: None,
-                variable_type: ArgumentType::ByVal(VariableType::Global),
+                argument_type: ArgumentType::ByVal(VariableType::Global),
                 is_constant: false,
                 data_type_name: "myProgram".into(),
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
+                source_location: source_location_factory.create_range(17..26),
                 varargs: None,
-            }
+            })
         }),
         index.find_pou("myProgram"),
     );
@@ -1751,7 +1376,7 @@ fn a_program_pou_is_indexed() {
             generics: [GenericBinding { name: "A".into(), nature: TypeNature::Int }].to_vec(),
             return_type: "INT".into(),
             is_variadic: false,
-            location: SymbolLocation { source_range: (65..75).into(), line_number: 4 },
+            location: source_location_factory.create_range(65..75),
             is_generated: false,
         }),
         index.find_pou("myFunction"),
@@ -1762,7 +1387,8 @@ fn a_program_pou_is_indexed() {
             name: "myFunctionBlock".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myFunctionBlock".into(),
-            location: SymbolLocation { source_range: (139..154).into(), line_number: 7 },
+            location: source_location_factory.create_range(139..154),
+            super_class: None,
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1772,7 +1398,8 @@ fn a_program_pou_is_indexed() {
             name: "myClass".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myClass".into(),
-            location: SymbolLocation { source_range: (197..204).into(), line_number: 10 },
+            location: source_location_factory.create_range(197..204),
+            super_class: None,
         }),
         index.find_pou("myClass"),
     );
@@ -1783,7 +1410,7 @@ fn a_program_pou_is_indexed() {
             parent_pou_name: "myProgram".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myProgram".into(),
-            location: SymbolLocation { source_range: (269..272).into(), line_number: 14 },
+            location: source_location_factory.create_range(269..272),
         }),
         index.find_pou("myProgram.act"),
     );
@@ -1980,7 +1607,6 @@ fn global_variables_duplicates_are_indexed() {
 #[test]
 fn internal_vla_struct_type_is_indexed_correctly() {
     let id_provider = IdProvider::default();
-
     let (_, index) = index_with_ids(
         r"
         FUNCTION foo : DINT
@@ -2000,26 +1626,26 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     name: "struct_vla_int_1".to_string(),
                     qualified_name: "__foo_arr.struct_vla_int_1".to_string(),
                     initial_value: None,
-                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
                     data_type_name: "__ptr_to___arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    source_location: SourceLocation::undefined(),
                     varargs: None
                 },
                 VariableIndexEntry {
                     name: "dimensions".to_string(),
                     qualified_name: "__foo_arr.dimensions".to_string(),
                     initial_value: None,
-                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
                     data_type_name: "__bounds___arr_vla_1_int".to_string(),
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    source_location: SourceLocation::undefined(),
                     varargs: None
                 }
             ],
@@ -2029,4 +1655,28 @@ fn internal_vla_struct_type_is_indexed_correctly() {
             })
         }
     );
+}
+
+#[test]
+fn string_type_alias_without_size_is_indexed() {
+    let (_, index) = index(
+        r"
+            TYPE MyString : STRING; END_TYPE
+            TYPE MyWideString: WSTRING; END_TYPE
+        ",
+    );
+
+    let my_alias = index.get_type("MyString").unwrap();
+    assert_eq!("MyString", my_alias.get_name());
+
+    let my_alias = "MyString";
+    let dt = index.find_effective_type_by_name(my_alias).unwrap();
+    assert_eq!("STRING", dt.get_name());
+
+    let my_alias = index.get_type("MyWideString").unwrap();
+    assert_eq!("MyWideString", my_alias.get_name());
+
+    let my_alias = "MyWideString";
+    let dt = index.find_effective_type_by_name(my_alias).unwrap();
+    assert_eq!("WSTRING", dt.get_name());
 }

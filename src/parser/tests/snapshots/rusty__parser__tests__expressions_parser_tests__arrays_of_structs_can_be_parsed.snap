@@ -1,0 +1,30 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+ReferenceExpr {
+    kind: Member(
+        Identifier {
+            name: "y",
+        },
+    ),
+    base: Some(
+        ReferenceExpr {
+            kind: Index(
+                LiteralInteger {
+                    value: 1,
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    ),
+}

@@ -1,0 +1,24 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: "parse(content::SINK_TO_SOURCE).0.implementations[0].statements"
+---
+[
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "myConnection",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    },
+]

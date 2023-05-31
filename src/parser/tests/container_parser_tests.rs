@@ -1,4 +1,5 @@
-use crate::{test_utils::tests::parse, Diagnostic};
+use crate::test_utils::tests::parse;
+use insta::assert_debug_snapshot;
 use pretty_assertions::*;
 
 #[test]
@@ -76,10 +77,7 @@ fn actions_with_no_container_inherits_previous_pou() {
 fn actions_with_invalid_token() {
     let src = "ACTIONS LIMA BRAVO END_ACTIONS";
     let errors = parse(src).1;
-    assert_eq!(
-        errors.first().unwrap(),
-        &Diagnostic::unexpected_token_found("KeywordAction", "BRAVO", (13..18).into())
-    );
+    assert_debug_snapshot!(errors.first().unwrap());
 }
 
 #[test]

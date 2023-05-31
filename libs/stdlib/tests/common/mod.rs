@@ -1,15 +1,8 @@
 use std::path::PathBuf;
 
-use inkwell::{
-    context::Context,
-    execution_engine::ExecutionEngine,
-    targets::{InitializationConfig, Target},
-};
-use rusty::{
-    compile_module,
-    runner::{run, run_no_param, Compilable},
-    CompileOptions, FilePath, SourceCode, SourceContainer,
-};
+use plc::codegen::{CodegenContext, GeneratedModule};
+use plc_driver::runner::compile;
+use plc_source::{Compilable, SourceCode, SourceContainer};
 
 #[allow(unused_macros)] //This is actually used in subtests
 macro_rules! add_std {
@@ -54,13 +47,12 @@ pub fn get_st_file(name: &str) -> SourceCode {
 
     assert!(data_path.exists());
 
-    let path: FilePath = data_path.display().to_string().into();
-    path.load_source(None).expect("Could not load source")
+    data_path.load_source(None).expect("Could not load source")
 }
 
 /// Compiles code with all native functions included
 /// Should be updated for each native function we add
-pub fn compile_with_native<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
+pub fn compile_with_native<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule {
     let functions = vec![
         ("ROUND__REAL", iec61131std::numerical_functions::ROUND__REAL as usize),
         ("ROUND__LREAL", iec61131std::numerical_functions::ROUND__LREAL as usize),
@@ -580,29 +572,19 @@ pub fn compile_with_native<T: Compilable>(context: &Context, source: T) -> Execu
         ("E_REAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_REAL) as usize),
         ("E_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_LREAL) as usize),
     ];
-    Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let compile_options = CompileOptions { error_format: rusty::ErrorFormat::Rich, ..Default::default() };
-    let (_, code_gen) = compile_module(context, source.containers(), vec![], None, &compile_options).unwrap();
-    #[cfg(feature = "debug")]
-    code_gen.module.print_to_stderr();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+
+    let module = compile(context, source);
+    log::debug!("{}", module.persist_to_string());
+
     for (fn_name, fn_addr) in functions {
-        if let Some(fn_value) = code_gen.module.get_function(fn_name) {
-            exec_engine.add_global_mapping(&fn_value, fn_addr);
-        } else {
-            #[cfg(feature = "debug")]
-            eprintln!("No definition for {} in test", fn_name)
-        }
+        module.add_global_function_mapping(fn_name, fn_addr);
     }
+
     for (var_name, var_address) in variables {
-        if let Some(var_value) = code_gen.module.get_global(var_name) {
-            exec_engine.add_global_mapping(&var_value, var_address);
-        } else {
-            #[cfg(feature = "debug")]
-            eprintln!("No definition for {} in test", var_name)
-        }
+        module.add_global_variable_mapping(var_name, var_address);
     }
-    exec_engine
+
+    module
 }
 
 ///
@@ -610,9 +592,9 @@ pub fn compile_with_native<T: Compilable>(context: &Context, source: T) -> Execu
 ///
 #[allow(dead_code)] //Not all test modules call the compile and run
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
-    run::<T, U>(&exec_engine, "main", params)
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
+    module.run::<T, U>("main", params)
 }
 
 ///
@@ -620,7 +602,7 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
 ///
 #[allow(dead_code)] //Not all test modules call the compile and run
 pub fn compile_and_run_no_params<T, S: Compilable>(source: S) -> T {
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
-    run_no_param::<T>(&exec_engine, "main")
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
+    module.run_no_param::<T>("main")
 }

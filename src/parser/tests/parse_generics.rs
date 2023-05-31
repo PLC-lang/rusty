@@ -1,4 +1,6 @@
-use crate::ast::{DataTypeDeclaration, GenericBinding, TypeNature, Variable};
+use insta::assert_debug_snapshot;
+use plc_ast::ast::{GenericBinding, TypeNature};
+
 use crate::test_utils::tests::parse;
 
 #[test]
@@ -79,31 +81,7 @@ fn generic_parameters_are_datatypes() {
     let (parse_result, _) = parse(src);
     let function = &parse_result.units[0];
     let variables = &function.variable_blocks[0].variables;
-    assert_eq!(
-        &vec![
-            Variable {
-                name: "x".into(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "T".into(),
-                    location: (53..54).into(),
-                },
-                initializer: None,
-                address: None,
-                location: (49..50).into(),
-            },
-            Variable {
-                name: "y".into(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "R".into(),
-                    location: (60..61).into(),
-                },
-                initializer: None,
-                address: None,
-                location: (56..57).into(),
-            },
-        ],
-        variables
-    );
+    assert_debug_snapshot!(variables);
 }
 
 #[test]
@@ -113,30 +91,5 @@ fn generic_method_parameters_are_datatypes() {
     let (parse_result, _) = parse(src);
     let function = &parse_result.units[1];
     let variables = &function.variable_blocks[0].variables;
-    assert_eq!(
-        &vec![
-            Variable {
-                name: "x".into(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "T".into(),
-                    location: (61..62).into(),
-                },
-                initializer: None,
-                address: None,
-                location: (57..58).into(),
-            },
-            Variable {
-                name: "y".into(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "R".into(),
-                    location: (68..69).into(),
-                },
-                initializer: None,
-                address: None,
-
-                location: (64..65).into(),
-            },
-        ],
-        variables
-    );
+    assert_debug_snapshot!(variables);
 }

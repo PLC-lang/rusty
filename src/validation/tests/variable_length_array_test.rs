@@ -4,7 +4,7 @@ static SOURCE: &str = "
     <POU_TYPE> fn : DINT
         VAR_<VAR_TYPE>
             arr : ARRAY[*] OF DINT;
-        END_<VAR_TYPE>
+        END_VAR
     END_<POU_TYPE>
 
     FUNCTION main : DINT
@@ -154,7 +154,7 @@ mod assignment {
                     a : ARRAY[0..10] OF DINT;
                 END_VAR
 
-                VAR_INPUT {ref}
+                VAR_IN_OUT
                     vla : ARRAY[*] OF DINT;
                 END_VAR
 
@@ -174,7 +174,6 @@ mod assignment {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
         assert_validation_snapshot!(diagnostics);
     }
 }
@@ -264,7 +263,7 @@ mod builtins {
             foo(arr);
         END_FUNCTION
 
-        TYPE MyType : INT END_TYPE;
+        TYPE MyType : INT; END_TYPE
 
         FUNCTION foo : DINT
         VAR_IN_OUT
@@ -300,7 +299,7 @@ mod builtins {
             foo(arr);
         END_FUNCTION
 
-        TYPE MyType : INT END_TYPE;
+        TYPE MyType : INT; END_TYPE
 
         FUNCTION foo : DINT
         VAR_IN_OUT

@@ -10,6 +10,11 @@ source_filename = "main"
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
+define void @MyClass(%MyClass* %0) {
+entry:
+  ret void
+}
+
 define i16 @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0

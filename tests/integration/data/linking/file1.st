@@ -1,4 +1,4 @@
-@EXTERNAL
+{external}
 FUNCTION func2 : DINT
 END_FUNCTION
 

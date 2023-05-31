@@ -1,0 +1,87 @@
+---
+source: compiler/plc_xml/src/model/action.rs
+expression: "xml_parser::visit(src).unwrap()"
+---
+Project {
+    pous: [
+        Pou {
+            name: "program_0",
+            pou_type: Program,
+            body: Body {
+                function_block_diagram: FunctionBlockDiagram {
+                    nodes: {},
+                },
+            },
+            actions: [
+                Action {
+                    name: "newAction",
+                    type_name: "program_0",
+                    body: Body {
+                        function_block_diagram: FunctionBlockDiagram {
+                            nodes: {
+                                1: Block(
+                                    Block {
+                                        local_id: 1,
+                                        type_name: "foo",
+                                        instance_name: None,
+                                        execution_order_id: Some(
+                                            0,
+                                        ),
+                                        variables: [
+                                            BlockVariable {
+                                                kind: Input,
+                                                formal_parameter: "IN1",
+                                                negated: false,
+                                                ref_local_id: None,
+                                                edge: None,
+                                                storage: None,
+                                                enable: None,
+                                            },
+                                            BlockVariable {
+                                                kind: Input,
+                                                formal_parameter: "IN2",
+                                                negated: false,
+                                                ref_local_id: None,
+                                                edge: None,
+                                                storage: None,
+                                                enable: None,
+                                            },
+                                            BlockVariable {
+                                                kind: Output,
+                                                formal_parameter: "OUT",
+                                                negated: false,
+                                                ref_local_id: None,
+                                                edge: None,
+                                                storage: None,
+                                                enable: None,
+                                            },
+                                        ],
+                                    },
+                                ),
+                            },
+                        },
+                    },
+                },
+                Action {
+                    name: "newAction2",
+                    type_name: "program_0",
+                    body: Body {
+                        function_block_diagram: FunctionBlockDiagram {
+                            nodes: {},
+                        },
+                    },
+                },
+            ],
+            interface: Some(
+                Interface {
+                    add_data: Some(
+                        Data {
+                            content: "PROGRAM program_0\nVAR\n\ta : DINT;\nEND_VAR\nEND_PROGRAM",
+                            handle: Implementation,
+                        },
+                    ),
+                },
+            ),
+        },
+    ],
+}

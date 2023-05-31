@@ -1,0 +1,84 @@
+---
+source: src/codegen/tests/multifile_codegen_tests.rs
+expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+---
+; ModuleID = 'func.st'
+source_filename = "func.st"
+
+define i32 @func() {
+entry:
+  %func = alloca i32, align 4
+  store i32 0, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+; ModuleID = 'fb.st'
+source_filename = "fb.st"
+
+%fb = type {}
+
+@__fb__init = unnamed_addr constant %fb zeroinitializer
+
+define void @fb(%fb* %0) {
+entry:
+  ret void
+}
+
+; ModuleID = 'prg.st'
+source_filename = "prg.st"
+
+%prg = type { i32 }
+
+@prg_instance = global %prg zeroinitializer
+
+define void @prg(%prg* %0) {
+entry:
+  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  ret void
+}
+
+; ModuleID = 'prg2.st'
+source_filename = "prg2.st"
+
+%prg2 = type { i32 }
+
+@prg2_instance = global %prg2 zeroinitializer
+
+define void @prg2(%prg2* %0) {
+entry:
+  %b = getelementptr inbounds %prg2, %prg2* %0, i32 0, i32 0
+  ret void
+}
+
+; ModuleID = 'prog.st'
+source_filename = "prog.st"
+
+%prog = type { %fb.4 }
+%fb.4 = type {}
+%prg.5 = type { i32 }
+%prg2.6 = type { i32 }
+
+@prog_instance = global %prog zeroinitializer
+@__fb__init = external global %fb.4
+@prg_instance = external global %prg.5
+@prg2_instance = external global %prg2.6
+
+define void @prog(%prog* %0) {
+entry:
+  %myFb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %load_a = load i32, i32* getelementptr inbounds (%prg.5, %prg.5* @prg_instance, i32 0, i32 0), align 4
+  call void @prg2(%prg2.6* @prg2_instance)
+  %call = call i32 @func()
+  call void @fb(%fb.4* %myFb)
+  ret void
+}
+
+declare void @fb(%fb.4*)
+
+declare void @prg(%prg.5*)
+
+declare void @prg2(%prg2.6*)
+
+declare i32 @func()
+

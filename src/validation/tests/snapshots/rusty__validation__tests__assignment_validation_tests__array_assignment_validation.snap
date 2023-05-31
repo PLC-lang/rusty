@@ -2,22 +2,21 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_sized_string2' to '__main_v_arr_sized_string'", range: [SourceRange { range: 761..802 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_2' to '__main_v_arr_int_3'", range: [SourceRange { range: 819..845 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_4' to '__main_v_arr_int_3'", range: [SourceRange { range: 903..929 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_real_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 946..973 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_string_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 990..1019 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_char_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 1036..1063 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 1080..1091 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1098..1099 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1101..1102 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1104..1105 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1384..1410 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1427..1460 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1477..1503 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1520..1544 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1561..1587 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1647..1677 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to '__main_v_arr_int_3'", range: [SourceRange { range: 1695..1716 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_3' to 'DINT'", range: [SourceRange { range: 1733..1754 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_sized_string2' to '__main_v_arr_sized_string'", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 4, offset: 761 }..TextLocation { line: 29, column: 45, offset: 802 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_2' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 4, offset: 819 }..TextLocation { line: 30, column: 30, offset: 845 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_4' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 32, column: 4, offset: 903 }..TextLocation { line: 32, column: 30, offset: 929 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_real_3' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 33, column: 4, offset: 946 }..TextLocation { line: 33, column: 31, offset: 973 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_string_3' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 34, column: 4, offset: 990 }..TextLocation { line: 34, column: 33, offset: 1019 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_char_3' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 35, column: 4, offset: 1036 }..TextLocation { line: 35, column: 31, offset: 1063 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceLocation { span: Range(TextLocation { line: 36, column: 19, offset: 1095 }..TextLocation { line: 36, column: 20, offset: 1096 }) }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceLocation { span: Range(TextLocation { line: 37, column: 20, offset: 1138 }..TextLocation { line: 37, column: 30, offset: 1148 }) }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 20, offset: 1180 }..TextLocation { line: 38, column: 36, offset: 1196 }) }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 43, column: 4, offset: 1384 }..TextLocation { line: 43, column: 30, offset: 1410 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 44, column: 4, offset: 1427 }..TextLocation { line: 44, column: 37, offset: 1460 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 45, column: 4, offset: 1477 }..TextLocation { line: 45, column: 30, offset: 1503 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1520 }..TextLocation { line: 46, column: 28, offset: 1544 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 4, offset: 1561 }..TextLocation { line: 47, column: 30, offset: 1587 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 49, column: 4, offset: 1647 }..TextLocation { line: 49, column: 35, offset: 1678 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to '__main_v_arr_int_3'", range: [SourceLocation { span: Range(TextLocation { line: 50, column: 4, offset: 1695 }..TextLocation { line: 50, column: 25, offset: 1716 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_3' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 51, column: 4, offset: 1733 }..TextLocation { line: 51, column: 25, offset: 1754 }) }], err_no: var__invalid_assignment }
 

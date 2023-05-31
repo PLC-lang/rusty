@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "POU Type Class does not support a return type. Did you mean Function?", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 18, offset: 19 }..TextLocation { line: 1, column: 23, offset: 24 }) }], err_no: pou__unexpected_return_type }
+SyntaxError { message: "A class cannot have a return type", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 14, offset: 15 }..TextLocation { line: 1, column: 17, offset: 18 }) }], err_no: syntax__generic_error }
+

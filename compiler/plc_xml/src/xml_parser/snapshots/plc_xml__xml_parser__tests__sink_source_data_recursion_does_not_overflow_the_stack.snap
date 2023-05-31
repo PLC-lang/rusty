@@ -1,0 +1,54 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: s3 -> s2 -> s1 -> s3",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 23,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: s1 -> s3 -> s2 -> s1",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 24,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: s2 -> s1 -> s3 -> s2",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 26,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+]

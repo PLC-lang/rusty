@@ -1,20 +1,23 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-        SourceRange, TypeNature,
-    },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
-    diagnostics::Diagnostic,
     typesystem::{self, *},
 };
 use indexmap::IndexMap;
+use itertools::Itertools;
+use plc_ast::ast::{
+    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+    TypeNature,
+};
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
+use plc_util::convention::qualified_name;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
-    symbol::{SymbolLocation, SymbolMap},
+    symbol::SymbolMap,
 };
 
 pub mod const_expressions;
@@ -23,6 +26,25 @@ pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
+
+/// A label represents a possible jump point in the source.
+/// It can be referenced by jump elements in the same unit
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct Label {
+    pub id: AstId,
+    pub name: String,
+    pub location: SourceLocation,
+}
+
+impl From<&AstNode> for Label {
+    fn from(value: &AstNode) -> Self {
+        Label {
+            id: value.get_id(),
+            name: value.get_label_name().unwrap_or_default().to_string(),
+            location: value.get_location(),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct VariableIndexEntry {
@@ -33,7 +55,7 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    pub variable_type: ArgumentType,
+    pub argument_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
@@ -45,7 +67,7 @@ pub struct VariableIndexEntry {
     /// A binding to a hardware or external location
     binding: Option<HardwareBinding>,
     /// the location in the original source-file
-    pub source_location: SymbolLocation,
+    pub source_location: SourceLocation,
     /// Variadic information placeholder for the variable, if any
     varargs: Option<VarArgs>,
 }
@@ -59,16 +81,17 @@ pub struct HardwareBinding {
     /// A list of entries that form this binding
     pub entries: Vec<ConstId>,
     /// The location in the original source-file
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl HardwareBinding {
-    fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
-        if let AstStatement::HardwareAccess { access, address, direction, location, .. } = it {
+    fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess(data) = it.get_stmt() {
             Some(HardwareBinding {
-                access: *access,
-                direction: *direction,
-                entries: address
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
                     .iter()
                     .map(|expr| {
                         index.constant_expressions.add_constant_expression(
@@ -78,7 +101,7 @@ impl HardwareBinding {
                         )
                     })
                     .collect(),
-                location: location.clone(),
+                location: it.get_location(),
             })
         } else {
             None
@@ -102,15 +125,15 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        variable_type: ArgumentType,
+        argument_type: ArgumentType,
         location_in_parent: u32,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: None,
-            variable_type,
+            argument_type,
             is_constant: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
@@ -125,13 +148,13 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: None,
-            variable_type: ArgumentType::ByVal(VariableType::Global),
+            argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
@@ -175,7 +198,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: format!("{container}.{name}"),
+            qualified_name: qualified_name(container, name),
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
@@ -217,12 +240,20 @@ impl VariableIndexEntry {
         self.linkage == LinkageType::External
     }
 
-    pub fn get_variable_type(&self) -> VariableType {
-        self.variable_type.get_variable_type()
+    pub fn get_declaration_type(&self) -> ArgumentType {
+        self.argument_type
     }
 
-    pub fn get_declaration_type(&self) -> ArgumentType {
-        self.variable_type
+    pub fn get_linkage(&self) -> LinkageType {
+        self.linkage
+    }
+
+    pub fn is_in_unit(&self, unit: &str) -> bool {
+        self.source_location.is_in_unit(unit)
+    }
+
+    pub fn get_variable_type(&self) -> VariableType {
+        self.argument_type.get_inner()
     }
 
     pub fn has_hardware_binding(&self) -> bool {
@@ -252,6 +283,11 @@ impl VariableIndexEntry {
     pub fn get_varargs(&self) -> Option<&VarArgs> {
         self.varargs.as_ref()
     }
+
+    fn has_parent(&self, context: &str) -> bool {
+        let name = qualified_name(context, &self.name);
+        self.qualified_name.eq_ignore_ascii_case(&name)
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -261,15 +297,26 @@ pub enum ArgumentType {
 }
 
 impl ArgumentType {
-    pub fn get_variable_type(&self) -> VariableType {
+    pub fn get_inner(&self) -> VariableType {
         match self {
             ArgumentType::ByVal(t) => *t,
             ArgumentType::ByRef(t) => *t,
         }
     }
 
+    pub fn get_inner_ref(&self) -> &VariableType {
+        match self {
+            ArgumentType::ByRef(val) => val,
+            ArgumentType::ByVal(val) => val,
+        }
+    }
+
     pub fn is_by_ref(&self) -> bool {
         matches!(self, ArgumentType::ByRef(..))
+    }
+
+    pub fn is_private(&self) -> bool {
+        matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
     }
 }
 
@@ -284,27 +331,18 @@ pub enum VariableType {
     Return,
 }
 
-/// information regarding a variable
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct VariableInformation {
-    /// the type of variable
-    variable_type: VariableType,
-    /// true if this variable is a compile-time-constant
-    is_constant: bool,
-    /// the variable's datatype
-    data_type_name: String,
-    /// the variable's qualifier, None for global variables
-    qualifier: Option<String>,
-    /// Location in the qualifier defautls to 0 (Single variables)
-    location_in_parent: u32,
-}
-
-#[derive(Debug)]
-pub enum DataTypeType {
-    Scalar,        // built in types: INT, BOOL, WORD, ...
-    Struct,        // Struct-DataType
-    FunctionBlock, // a Functionblock instance
-    AliasType,     // a Custom-Alias-dataType
+impl std::fmt::Display for VariableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VariableType::Local => write!(f, "Local"),
+            VariableType::Temp => write!(f, "Temp"),
+            VariableType::Input => write!(f, "Input"),
+            VariableType::Output => write!(f, "Output"),
+            VariableType::InOut => write!(f, "InOut"),
+            VariableType::Global => write!(f, "Global"),
+            VariableType::Return => write!(f, "Return"),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -324,7 +362,7 @@ pub struct ImplementationIndexEntry {
     pub(crate) associated_class: Option<String>,
     pub(crate) implementation_type: ImplementationType,
     pub(crate) generic: bool,
-    pub(crate) location: SymbolLocation,
+    pub(crate) location: SourceLocation,
 }
 
 impl ImplementationIndexEntry {
@@ -345,8 +383,12 @@ impl ImplementationIndexEntry {
         self.generic
     }
 
-    pub fn get_location(&self) -> &SymbolLocation {
+    pub fn get_location(&self) -> &SourceLocation {
         &self.location
+    }
+
+    pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
+        self.get_location().is_in_unit(unit)
     }
 }
 
@@ -368,15 +410,16 @@ pub enum PouIndexEntry {
     Program {
         name: String,
         instance_struct_name: String,
-        instance_variable: VariableIndexEntry,
+        instance_variable: Box<VariableIndexEntry>,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
     FunctionBlock {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
+        super_class: Option<String>,
     },
     Function {
         name: String,
@@ -384,14 +427,15 @@ pub enum PouIndexEntry {
         generics: Vec<GenericBinding>,
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
         is_generated: bool, // true if this entry was added automatically (e.g. by generics)
     },
     Class {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
+        super_class: Option<String>,
     },
     Method {
         name: String,
@@ -399,14 +443,14 @@ pub enum PouIndexEntry {
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
     Action {
         name: String,
         parent_pou_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
 }
 
@@ -419,12 +463,12 @@ impl PouIndexEntry {
         pou_name: &str,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
-            instance_variable,
+            instance_variable: Box::new(instance_variable),
             linkage,
             location,
         }
@@ -437,13 +481,15 @@ impl PouIndexEntry {
     pub fn create_function_block_entry(
         pou_name: &str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
+        super_class: Option<&str>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class: super_class.map(|s| s.to_owned()),
         }
     }
 
@@ -454,7 +500,7 @@ impl PouIndexEntry {
         generic_names: &[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -475,7 +521,7 @@ impl PouIndexEntry {
         generic_names: &[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -496,7 +542,7 @@ impl PouIndexEntry {
         qualified_name: &str,
         pou_name: &str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
@@ -513,13 +559,15 @@ impl PouIndexEntry {
     pub fn create_class_entry(
         pou_name: &str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
+        super_class: Option<String>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class,
         }
     }
 
@@ -533,7 +581,7 @@ impl PouIndexEntry {
         return_type: &str,
         owner_class: &str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
@@ -554,6 +602,16 @@ impl PouIndexEntry {
             | PouIndexEntry::Method { name, .. }
             | PouIndexEntry::Action { name, .. }
             | PouIndexEntry::Class { name, .. } => name,
+        }
+    }
+
+    /// returns the super class of this pou if supported
+    pub fn get_super_class(&self) -> Option<&str> {
+        match self {
+            PouIndexEntry::Class { super_class, .. } | PouIndexEntry::FunctionBlock { super_class, .. } => {
+                super_class.as_deref()
+            }
+            _ => None,
         }
     }
 
@@ -657,7 +715,7 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Method { .. })
     }
 
-    pub fn get_location(&self) -> &SymbolLocation {
+    pub fn get_location(&self) -> &SourceLocation {
         match self {
             PouIndexEntry::Program { location, .. }
             | PouIndexEntry::FunctionBlock { location, .. }
@@ -695,7 +753,7 @@ impl Default for TypeIndex {
                 initial_value: None,
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
-                location: SymbolLocation::internal(),
+                location: SourceLocation::internal(),
             },
         }
     }
@@ -719,7 +777,8 @@ impl TypeIndex {
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
-        self.find_type(type_name).ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+        self.find_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -766,6 +825,9 @@ pub struct Index {
 
     /// Type layout for the target
     data_layout: DataLayout,
+
+    /// The labels contained in each pou
+    labels: IndexMap<String, SymbolMap<String, Label>>,
 }
 
 impl Index {
@@ -876,6 +938,9 @@ impl Index {
             }
         }
 
+        //labels
+        self.labels.extend(other.labels);
+
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
     }
@@ -956,10 +1021,26 @@ impl Index {
     }
 
     /// returns the `VariableIndexEntry` of the global variable with the given name
-    pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_qualified_global_variable(
+        &self,
+        context: Option<&str>,
+        name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.global_variables
-            .get(&name.to_lowercase())
-            .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
+            .get_all(&name.to_lowercase())
+            .or_else(|| self.enum_global_variables.get_all(&name.to_lowercase()))
+            .and_then(|it| {
+                if let Some(context) = context.filter(|it| !it.is_empty()) {
+                    it.iter().find(|it| it.has_parent(context)).or_else(|| it.first())
+                } else {
+                    it.first()
+                }
+            })
+    }
+
+    /// returns the `VariableIndexEntry` of the global variable with the given name
+    pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
+        self.find_qualified_global_variable(None, name)
     }
 
     /// returns the `VariableIndexEntry` of the global initializer with the given name
@@ -968,7 +1049,11 @@ impl Index {
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
-    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_local_member(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
             //check qualifier
             container_name
@@ -978,16 +1063,41 @@ impl Index {
         })
     }
 
+    /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
+    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+        // Find pou in index
+        self.find_local_member(container_name, variable_name).or_else(|| {
+            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                self.find_member(class, variable_name)
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Searches for method names in the given container, if not found, attempts to search for it in super class
+    pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
+        if let Some(local_method) = self.find_pou(&qualified_name(container_name, method_name)) {
+            Some(local_method)
+        } else if let Some(super_method) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            self.find_method(super_method, method_name)
+        } else {
+            None
+        }
+    }
+
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
     /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     pub fn find_fully_qualified_variable(&self, fully_qualified_name: &str) -> Option<&VariableIndexEntry> {
         let segments: Vec<&str> = fully_qualified_name.split('.').collect();
         let (q, segments) = if segments.len() > 1 {
-            (Some(segments[0]), segments.iter().skip(1).copied().collect::<Vec<&str>>())
+            // the last segment is th ename, everything before ist qualifier
+            // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
+            (Some(segments.iter().take(segments.len() - 1).join(".")), vec![*segments.last().unwrap()])
         } else {
             (None, segments)
         };
-        self.find_variable(q, &segments[..])
+        self.find_variable(q.as_deref(), &segments[..])
     }
 
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
@@ -996,11 +1106,12 @@ impl Index {
         }
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
-            Some(context) => {
-                self.find_member(context, segments[0]).or_else(|| self.find_global_variable(segments[0]))
-            }
+            Some(context) => self
+                .find_member(context, segments[0])
+                .or_else(|| self.find_qualified_global_variable(Some(context), segments[0])),
             None => self.find_global_variable(segments[0]),
         };
+
         segments
             .iter()
             .skip(1)
@@ -1018,7 +1129,7 @@ impl Index {
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&format!("{enum_name}.{element_name}").to_lowercase())
+        self.enum_qualified_variables.get(&qualified_name(enum_name, element_name).to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1087,7 +1198,7 @@ impl Index {
     pub fn get_effective_type_by_name(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
@@ -1123,13 +1234,17 @@ impl Index {
         self.type_index.get_type(type_name)
     }
 
+    pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
+        self.type_index.find_type(type_name)
+    }
+
     /// expect a built-in type
     /// This only returns types, not POUs as it is meant for builtins only
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
         self.get_types().get(&type_name.to_lowercase()).unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
-    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstNode> {
         self.get_const_expressions().maybe_get_constant_statement(id)
     }
 
@@ -1147,7 +1262,7 @@ impl Index {
     /// Returns the initioal value registered for the given data_type.
     /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
     /// this method tries to obtain the default value from the referenced type.
-    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstNode> {
         let mut dt = self.type_index.find_type(type_name);
         let mut initial_value = dt.and_then(|it| it.initial_value);
 
@@ -1199,7 +1314,7 @@ impl Index {
         self.pous
             .values()
             .filter_map(|p| match p {
-                PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable),
+                PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable.as_ref()),
                 _ => None,
             })
             .collect()
@@ -1229,7 +1344,7 @@ impl Index {
         associated_class_name: Option<&String>,
         impl_type: ImplementationType,
         generic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) {
         self.implementations.insert(
             call_name.to_lowercase(),
@@ -1248,9 +1363,9 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
+    pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
         let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone())
+            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
@@ -1283,7 +1398,7 @@ impl Index {
         &mut self,
         member_info: MemberInfo,
         initial_value: Option<ConstId>,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
         location: u32,
     ) -> VariableIndexEntry {
         let container_name = member_info.container_name;
@@ -1291,7 +1406,7 @@ impl Index {
         let variable_type = member_info.variable_linkage;
         let data_type_name = member_info.variable_type_name;
 
-        let qualified_name = format!("{container_name}.{variable_name}");
+        let qualified_name = qualified_name(container_name, variable_name);
 
         VariableIndexEntry::new(
             variable_name,
@@ -1312,9 +1427,9 @@ impl Index {
         element_name: &str,
         enum_type_name: &str,
         initial_value: Option<ConstId>,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) {
-        let qualified_name = format!("{enum_type_name}.{element_name}");
+        let qualified_name = qualified_name(enum_type_name, element_name);
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)
@@ -1459,14 +1574,23 @@ impl Index {
             _ => None,
         }
     }
+
+    /// Adds a label definition for the POU
+    pub fn add_label(&mut self, pou_name: &str, label: Label) {
+        let labels = self.labels.entry(pou_name.to_string()).or_default();
+        labels.insert(label.name.clone(), label);
+    }
+
+    pub fn get_label(&self, pou_name: &str, label_name: &str) -> Option<&Label> {
+        self.labels.get(pou_name).and_then(|it| it.get(label_name))
+    }
+
+    pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
+        self.labels.get(pou_name)
+    }
 }
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
-}
-impl VariableType {
-    pub(crate) fn is_private(&self) -> bool {
-        matches!(self, VariableType::Temp | VariableType::Local)
-    }
 }

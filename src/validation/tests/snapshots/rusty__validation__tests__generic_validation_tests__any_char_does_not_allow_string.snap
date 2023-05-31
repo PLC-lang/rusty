@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 141..142 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Char.", range: [SourceRange { range: 141..142 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'CHAR'", range: [SourceRange { range: 218..219 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WSTRING is no Char.", range: [SourceRange { range: 218..219 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 60, offset: 141 }..TextLocation { line: 2, column: 61, offset: 142 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. STRING is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 60, offset: 141 }..TextLocation { line: 2, column: 61, offset: 142 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 60, offset: 218 }..TextLocation { line: 3, column: 61, offset: 219 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WSTRING is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 60, offset: 218 }..TextLocation { line: 3, column: 61, offset: 219 }) }], err_no: type__invalid_nature }
 

@@ -2,28 +2,32 @@ use std::collections::HashMap;
 
 use inkwell::{
     basic_block::BasicBlock,
-    builder::Builder,
     types::BasicType,
-    values::{BasicValue, BasicValueEnum, FloatValue, IntValue},
+    values::{BasicValue, BasicValueEnum, IntValue},
 };
 use lazy_static::lazy_static;
+use plc_ast::{
+    ast::{
+        self, flatten_expression_list, AstStatement, CompilationUnit, GenericBinding,
+        LinkageType, Operator, TypeNature, AstNode,
+    },
+    literals::AstLiteral,
+    provider::IdProvider,
+};
+use plc_ast::ast::pre_process;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
-    ast::{
-        self, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, Operator, SourceRange, SourceRangeFactory, TypeNature,
-    },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::Diagnostic,
     index::Index,
-    lexer::{self, IdProvider},
-    parser,
+    lexer, parser,
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
-        AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
+        AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, DataType},
+    typesystem::{self, get_literal_actual_signed_type_name, get_bigger_type},
     validation::{Validator, Validators},
 };
 
@@ -45,7 +49,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } else {
                         Err(Diagnostic::codegen_error(
@@ -82,7 +86,7 @@ lazy_static! {
                         input_type
                     );
 
-                    annotator.annotation_map.annotate(
+                    annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                         }
@@ -94,7 +98,7 @@ lazy_static! {
                         return;
                     };
 
-                    let params = ast::flatten_expression_list(params);
+                    let params = flatten_expression_list(params);
 
                     if params.len() > 1 {
                         validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
@@ -104,7 +108,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
@@ -327,7 +331,7 @@ lazy_static! {
                 VAR_INPUT
                     args: T...;
                 END_VAR
-                END_FUNCTION                
+                END_FUNCTION
                 ",
                 annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
@@ -351,7 +355,7 @@ lazy_static! {
                 VAR_INPUT
                     args: T...;
                 END_VAR
-                END_FUNCTION                
+                END_FUNCTION
                 ",
                 annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
@@ -376,7 +380,7 @@ lazy_static! {
                     IN1 : T1;
                     IN2 : T2;
                 END_VAR
-                END_FUNCTION                
+                END_FUNCTION
                 ",
                 annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
@@ -401,7 +405,7 @@ lazy_static! {
                     IN1 : T1;
                     IN2 : T2;
                 END_VAR
-                END_FUNCTION                
+                END_FUNCTION
                 ",
                 annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
@@ -426,7 +430,7 @@ lazy_static! {
                     IN1 : T1;
                     IN2 : T2;
                 END_VAR
-                END_FUNCTION                
+                END_FUNCTION
                 ",
                 annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
@@ -449,8 +453,8 @@ lazy_static! {
     ]);
 }
 
-fn annotate_arithmetic_function(annotator: &mut TypeAnnotator, parameters: &AstStatement) {
-    let params = ast::flatten_expression_list(parameters);
+fn annotate_arithmetic_function(annotator: &mut TypeAnnotator, node: &AstNode) {
+    let params = ast::flatten_expression_list(node);
 
     // find biggest type and annotate it as type hint.
     // getting the biggest type is done in a closure so the annotator can be borrowed immutably, otherwise
@@ -477,9 +481,9 @@ fn annotate_arithmetic_function(annotator: &mut TypeAnnotator, parameters: &AstS
 
 fn validate_arithmetic_function(
     validator: &mut Validator,
-    operator: &AstStatement,
-    parameters: &Option<AstStatement>,
-    annotations: &AnnotationMapImpl,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
     index: &Index,
 ) {
     // TODO
@@ -487,10 +491,12 @@ fn validate_arithmetic_function(
 
 fn generate_arithmetic_function<'ink, 'b>(
     generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-    params: &[&AstStatement],
+    params: &[&AstNode],
     operator: Operator,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+
     // generate the accumulator from the initial parameter and
+    // todo: default to float values if any value is float
     let mut accum = generator.generate_expression(params.get(0).expect("must have this parameter"))?;
     let generate_binary_expr = match accum {
         BasicValueEnum::IntValue(_) => ExpressionCodeGenerator::create_llvm_int_binary_expression,
@@ -506,7 +512,7 @@ fn generate_arithmetic_function<'ink, 'b>(
 
 fn annotate_variable_length_array_bound_function(
     annotator: &mut TypeAnnotator,
-    parameters: Option<&AstStatement>,
+    parameters: Option<&AstNode>,
 ) {
     let Some(parameters) = parameters else {
         // caught during validation
@@ -532,15 +538,13 @@ fn annotate_variable_length_array_bound_function(
 
 fn validate_variable_length_array_bound_function(
     validator: &mut Validator,
-    operator: &AstStatement,
-    parameters: &Option<AstStatement>,
-    annotations: &AnnotationMapImpl,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
     index: &Index,
 ) {
     let Some(parameters) = parameters else {
-        validator.push_diagnostic(
-            Diagnostic::invalid_parameter_count(2, 0, operator.get_location())
-        );
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
         // no params, nothing to validate
         return;
     };
@@ -568,10 +572,12 @@ fn validate_variable_length_array_bound_function(
             }
 
             // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
-            if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
+            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = idx.get_stmt() {
                 let dimension_idx = *dimension_idx as usize;
 
-                let Some(n_dimensions) = annotations.get_type_or_void(vla, index).get_type_information().get_dimensions() else {
+                let Some(n_dimensions) =
+                    annotations.get_type_or_void(vla, index).get_type_information().get_dimensions()
+                else {
                     // not a vla, validated via type nature
                     return;
                 };
@@ -592,9 +598,9 @@ fn validate_variable_length_array_bound_function(
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
-    params: &[&AstStatement],
+    params: &[&AstNode],
     is_lower: bool,
-    location: SourceRange,
+    location: SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
@@ -610,14 +616,14 @@ fn generate_variable_length_array_bound_function<'ink>(
         ));
     };
 
-    let vla = generator.generate_element_pointer(params[0]).unwrap();
+    let vla = generator.generate_lvalue(params[0]).unwrap();
     let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
-    let accessor = match params[1] {
+    let accessor = match params[1].get_stmt() {
         // e.g. LOWER_BOUND(arr, 1)
-        AstStatement::Literal { kind, .. } => {
+        AstStatement::Literal(kind) => {
             let AstLiteral::Integer(value) = kind else {
-                let Some(type_name) = kind.get_literal_actual_signed_type_name(false) else {
+                let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
                     unreachable!("type cannot be VOID")
                 };
                 return Err(Diagnostic::codegen_error(
@@ -630,8 +636,8 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatement::CastStatement { target, .. } => {
-            let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
+        AstStatement::CastStatement(data) => {
+            let ExpressionValue::RValue(value) = generator.generate_expression_value(&data.target)? else {
                 unreachable!()
             };
 
@@ -675,15 +681,14 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext);
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
-    &[&AstStatement],
-    SourceRange,
+    &[&AstNode],
+    SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
-type ValidationFunction =
-    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &AnnotationMapImpl, &Index);
+type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
     decl: &'static str,
@@ -697,8 +702,8 @@ impl BuiltIn {
     pub fn codegen<'ink, 'b>(
         &self,
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-        params: &[&AstStatement],
-        location: SourceRange,
+        params: &[&AstNode],
+        location: SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         (self.code)(generator, params, location)
     }
@@ -718,16 +723,17 @@ impl BuiltIn {
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
     let src = BUILTIN.iter().map(|(_, it)| it.decl).collect::<Vec<&str>>().join(" ");
     let mut unit = parser::parse(
-        lexer::lex_with_ids(&src, id_provider.clone(), SourceRangeFactory::internal()),
+        lexer::lex_with_ids(&src, id_provider.clone(), SourceLocationFactory::internal(&src)),
         LinkageType::BuiltIn,
         "<builtin>",
     )
     .0;
-    crate::ast::pre_process(&mut unit, id_provider);
+
+    pre_process(&mut unit, id_provider);
     unit
 }
 
-/// Returns the requested functio from the builtin index or None
+/// Returns the requested function from the builtin index or None
 pub fn get_builtin(name: &str) -> Option<&'static BuiltIn> {
     BUILTIN.get(name.to_uppercase().as_str())
 }

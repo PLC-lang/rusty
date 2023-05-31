@@ -1,6 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::SourceRange;
-use crate::diagnostics::Diagnostic;
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 use inkwell::types::ArrayType;
 use inkwell::{
@@ -11,6 +9,8 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use super::ADDRESS_SPACE_GENERIC;
 
@@ -22,6 +22,7 @@ pub struct Llvm<'a> {
 
 pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
+    fn make_private(self) -> Self;
     fn make_external(self) -> Self;
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
@@ -33,8 +34,12 @@ impl<'ink> GlobalValueExt for GlobalValue<'ink> {
         self
     }
 
+    fn make_private(self) -> Self {
+        self.set_linkage(Linkage::Private);
+        self
+    }
+
     fn make_external(self) -> Self {
-        // self.set_linkage(Linkage::AvailableExternally);
         self.set_linkage(Linkage::External);
         self
     }
@@ -71,7 +76,6 @@ impl<'a> Llvm<'a> {
     ) -> GlobalValue<'a> {
         let global = module.add_global(data_type, None, name);
         global.set_thread_local_mode(None);
-        global.set_linkage(Linkage::External);
         global
     }
 
@@ -125,7 +129,7 @@ impl<'a> Llvm<'a> {
         pointer_to_struct_instance: PointerValue<'a>,
         member_index: u32,
         name: &str,
-        offset: &SourceRange,
+        offset: &SourceLocation,
     ) -> Result<PointerValue<'a>, Diagnostic> {
         self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
             Diagnostic::codegen_error(
@@ -175,7 +179,7 @@ impl<'a> Llvm<'a> {
         &self,
         target_type: &BasicTypeEnum<'a>,
         value: &str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => int_type
@@ -258,7 +262,7 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_i8_char(
         &self,
         value: &str,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let arr = value.as_bytes();
         if let [first, ..] = arr {
@@ -275,7 +279,7 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_i16_char(
         &self,
         value: &str,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         match value.encode_utf16().next() {
             Some(first) => {

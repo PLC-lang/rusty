@@ -10,6 +10,7 @@ source_filename = "main"
 %main = type {}
 
 @global1 = global %STRUCT_params zeroinitializer
+@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
 @global2 = global %STRUCT_params zeroinitializer
 @global3 = global %STRUCT_params zeroinitializer
 @global4 = global i32 0
@@ -17,7 +18,6 @@ source_filename = "main"
 @global6 = global float 0.000000e+00
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
 
 define void @prog(%prog* %0) {
 entry:

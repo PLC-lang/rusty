@@ -5,7 +5,7 @@ use std::process::Command;
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let mut args = vec![
-        "rustyc".to_owned(),
+        "plc".to_owned(),
         "iec61131-st/*.st".to_owned(),
         "-c".to_owned(),
         "-o".to_owned(),
@@ -23,7 +23,10 @@ fn main() {
             args.push("none".to_owned());
         }
     }
-    rusty::build_with_params(rusty::cli::CompileParameters::parse(&args).unwrap()).unwrap();
+    #[cfg(target_os = "windows")]
+    args.push("--single-module".to_owned());
+
+    plc_driver::compile(&args).unwrap();
     #[cfg(not(target_os = "windows"))]
     Command::new("ar").args(["crs", "libst.a", "st.o"]).current_dir(Path::new(&out_dir)).status().unwrap();
     #[cfg(target_os = "windows")]
@@ -32,7 +35,7 @@ fn main() {
     //link the object file
     println!("cargo:rustc-link-search=native={out_dir}");
     println!("cargo:rustc-link-lib=static=st");
-    println!("cargo:rerun-if-changed=iec61131-st/*");
+    println!("cargo:rerun-if-changed=iec61131-st/");
 
     //We can link against the st lib gernerated, but this will only be reflected in static libs.
     // The shared lib still has to be generated later.

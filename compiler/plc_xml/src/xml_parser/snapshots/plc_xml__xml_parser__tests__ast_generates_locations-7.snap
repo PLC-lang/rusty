@@ -1,0 +1,72 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: impl1
+---
+Implementation {
+    name: "foo",
+    type_name: "foo",
+    linkage: Internal,
+    pou_type: Program,
+    statements: [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "ADD",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "a",
+                                },
+                            ),
+                            base: None,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+    location: SourceLocation {
+        span: None,
+        file: Some(
+            "<internal>.cfc",
+        ),
+    },
+    name_location: SourceLocation {
+        span: None,
+        file: Some(
+            "<internal>.cfc",
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

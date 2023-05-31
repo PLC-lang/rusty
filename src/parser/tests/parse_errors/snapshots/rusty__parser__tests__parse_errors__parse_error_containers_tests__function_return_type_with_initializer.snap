@@ -1,0 +1,11 @@
+---
+source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
+expression: diagnostics
+---
+error: Return types cannot have a default value
+  ┌─ <internal>:2:35
+  │
+2 │             FUNCTION foo : INT := 3
+  │                                   ^ Return types cannot have a default value
+
+

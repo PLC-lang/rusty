@@ -1,7 +1,12 @@
-use inkwell::targets::{InitializationConfig, Target};
+use crate::{compile, compile_and_run, new_cstr};
+use inkwell::{
+    context::Context,
+    targets::{InitializationConfig, Target},
+};
+use plc_source::SourceCode;
 use pretty_assertions::assert_eq;
+use rusty::codegen::CodegenContext;
 
-use super::super::*;
 use std::ffi::CStr;
 
 #[test]
@@ -373,13 +378,9 @@ fn string_as_function_parameters_internal() {
     let mut main_type: [u8; 81] = [0; 81];
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
-
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let _context: Context = Context::create();
+    let source = SourceCode::new(src, "string_test.st");
+    let _: i32 = compile_and_run(source, &mut main_type);
     let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
@@ -405,17 +406,12 @@ fn string_as_function_parameters() {
     let mut main_type: [u8; 81] = [0; 81];
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "string_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("func", string_id as usize);
 
-    let fn_value = code_gen.module.get_function("func").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, string_id as usize);
-
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let _: i32 = module.run("main", &mut main_type);
     let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
@@ -447,17 +443,12 @@ fn wstring_as_function_parameters() {
     let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(src, "string_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("func", wstring_id as usize);
 
-    let fn_value = code_gen.module.get_function("func").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, wstring_id as usize);
-
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let _: i32 = module.run("main", &mut main_type);
 
     let res = String::from_utf16_lossy(&main_type.res[..5]);
     assert_eq!(res, "hello");
@@ -490,17 +481,11 @@ fn string_as_function_parameters_cast() {
     let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
-
-    let fn_value = code_gen.module.get_function("func").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, string_id as usize);
-
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let source = SourceCode::new(src, "string_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("func", string_id as usize);
+    let _: i32 = module.run("main", &mut main_type);
     let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
@@ -532,17 +517,11 @@ fn wstring_as_function_parameters_cast() {
     let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
-
-    let fn_value = code_gen.module.get_function("func").unwrap();
-
-    exec_engine.add_global_mapping(&fn_value, wstring_id as usize);
-
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let source = SourceCode::new(src, "string_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("func", wstring_id as usize);
+    let _: i32 = module.run("main", &mut main_type);
 
     let res = String::from_utf16_lossy(&main_type.res[..5]);
     assert_eq!(res, "hello");

@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 #[allow(dead_code)]
 #[repr(C)]
 struct MainType {
@@ -1311,6 +1311,44 @@ fn initial_value_of_function_return_struct() {
 }
 
 #[test]
+fn initial_value_of_enums() {
+    let src = "
+    VAR_GLOBAL
+        x_gl : (red, yellow, green) := 2;
+    END_VAR
+
+    PROGRAM main
+    VAR
+        a, b, c, d : DINT;
+    END_VAR
+    VAR_TEMP
+        x : (redy := 1, yellowy := 2, greeny := 3) := redy;
+        y : (x1 := redy, x2 := yellowy, x3 := greeny) := x1;
+        z : (x5, x6, x7) := yellowy;
+    END_VAR
+        a := x;
+        b := y;
+        c := z;
+        d := x_gl;
+    END_FUNCTION";
+
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+    }
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(1, maintype.a);
+    assert_eq!(1, maintype.b);
+    assert_eq!(2, maintype.c);
+    assert_eq!(2, maintype.d);
+}
+
+#[test]
 fn initial_value_in_array_of_struct() {
     let function = "
 	TYPE myStruct : STRUCT
@@ -1320,12 +1358,12 @@ fn initial_value_in_array_of_struct() {
 	END_TYPE
 
 	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := (70, 80));
+		str : myStruct := (a := 50, b := 60, c := [70, 80]);
 	END_VAR
 
 	PROGRAM main
 	VAR_TEMP
-		arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), str);
+		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
 	END_VAR
 	VAR
 		a, b, c, d : DINT;
@@ -1362,4 +1400,68 @@ fn initial_value_in_array_of_struct() {
         [10, 20, 30, 40, 50, 60, 70, 80],
         [maintype.a, maintype.b, maintype.c, maintype.d, maintype.e, maintype.f, maintype.g, maintype.h]
     );
+}
+
+#[test]
+fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initialized() {
+    let function = "
+        TYPE STRUCT1 : STRUCT
+                myInt : DINT;
+                myArr : ARRAY[0..4] OF STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+                x1 : DINT;
+                x2 : DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM target
+            VAR
+                str : ARRAY[0..4] OF STRUCT1 := [
+                    (myInt := 1, myArr := [(x1 := 0, x2 := 128), (x1 := 1, x2 := 1024)]),
+                    (myInt := 2, myArr := [(x1 := 0, x2 := 256), (x1 := 1, x2 := 2048)])
+                ];
+            END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                a0, b0, c0, d0, e0 : DINT;
+                a1, b1, c1, d1, e1 : DINT;
+            END_VAR
+
+            a0 := target.str[0].myInt;
+            b0 := target.str[0].myArr[0].x1;
+            c0 := target.str[0].myArr[0].x2;
+            d0 := target.str[0].myArr[1].x1;
+            e0 := target.str[0].myArr[1].x2;
+
+            a1 := target.str[1].myInt;
+            b1 := target.str[1].myArr[0].x1;
+            c1 := target.str[1].myArr[0].x2;
+            d1 := target.str[1].myArr[1].x1;
+            e1 := target.str[1].myArr[1].x2;
+        END_PROGRAM
+       ";
+
+    #[derive(Default)]
+    struct MainType {
+        a0: i32,
+        b0: i32,
+        c0: i32,
+        d0: i32,
+        e0: i32,
+
+        a1: i32,
+        b1: i32,
+        c1: i32,
+        d1: i32,
+        e1: i32,
+    }
+
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([1, 0, 128, 1, 1024], [maintype.a0, maintype.b0, maintype.c0, maintype.d0, maintype.e0]);
+    assert_eq!([2, 0, 256, 1, 2048], [maintype.a1, maintype.b1, maintype.c1, maintype.d1, maintype.e1]);
 }

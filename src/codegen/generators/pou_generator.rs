@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
@@ -7,16 +8,15 @@ use super::{
     ADDRESS_SPACE_GENERIC,
 };
 use crate::{
-    ast::{AstStatement, NewLines},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
-    resolver::AstAnnotations,
+    resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
 };
+use std::collections::HashMap;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -25,10 +25,8 @@ use crate::{
 /// - declares a global instance if the POU is a PROGRAM
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 
-use crate::{
-    ast::{Implementation, PouType, SourceRange},
-    index::Index,
-};
+use crate::index::Index;
+use indexmap::{IndexMap, IndexSet};
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -39,6 +37,9 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
+use plc_ast::ast::{AstNode, Implementation, PouType};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceLocation;
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -52,6 +53,7 @@ pub struct PouGenerator<'ink, 'cg> {
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
@@ -59,7 +61,17 @@ pub fn generate_implementation_stubs<'ink>(
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
-    for (name, implementation) in index.get_implementations() {
+    let implementations = dependencies
+        .into_iter()
+        .filter_map(|it| {
+            if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+                index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
+            } else {
+                None
+            }
+        })
+        .collect::<IndexMap<_, _>>();
+    for (name, implementation) in implementations {
         if !implementation.is_generic() {
             let curr_f =
                 pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
@@ -77,12 +89,21 @@ pub fn generate_implementation_stubs<'ink>(
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: &Llvm<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
+    location: &str,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut local_llvm_index = LlvmTypedIndex::default();
-    for implementation in index.get_implementations().values() {
+    let implementations = dependencies.into_iter().filter_map(|it| {
+        if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+            index.find_implementation_by_name(name).filter(|it| it.is_in_unit(location))
+        } else {
+            None
+        }
+    });
+    for implementation in implementations {
         let type_name = implementation.get_type_name();
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
@@ -213,7 +234,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 pou,
                 return_type,
                 parameter_types.as_slice(),
-                implementation.get_location().line_number,
+                implementation.get_location().get_line(),
             );
         }
         Ok(curr_f)
@@ -260,7 +281,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &Implementation,
         debug: &DebugBuilderEnum<'ink>,
-        new_lines: &NewLines,
     ) -> Result<(), Diagnostic> {
         let context = self.llvm.context;
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
@@ -277,20 +297,24 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let (line, column) = implementation
             .statements
             .first()
-            .map(|it| it.get_location().get_start())
-            .or_else(|| Some(implementation.location.get_start()))
-            .map(|offset| {
-                let line = new_lines.get_line_nr(offset);
-                let column = new_lines.get_column(line, offset);
-                (line, column)
-            })
+            .map(|it| (it.get_location().get_line(), it.get_location().get_column()))
+            .or_else(|| Some((implementation.location.get_line(), implementation.location.get_column())))
+            // .or_else(|| Some(implementation.location.get_start()))
             .unwrap();
         debug.set_debug_location(&self.llvm, &current_function, line, column);
 
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
+
+        //Create all labels this function will have
+        let mut blocks = HashMap::new();
+        if let Some(labels) = self.index.get_labels(&implementation.name) {
+            for name in labels.keys() {
+                blocks.insert(name.to_string(), self.llvm.context.append_basic_block(current_function, name));
+            }
+        }
         self.llvm.builder.position_at_end(block);
-        //Set debug location
+        blocks.insert("entry".into(), block);
 
         let function_context = FunctionContext {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
@@ -302,7 +326,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 },
             )?,
             function: current_function,
-            new_lines,
+            blocks,
         };
 
         let mut param_index = 0;
@@ -357,16 +381,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &self.llvm,
                 self.index,
                 self.annotations,
-                self,
                 &local_index,
                 &function_context,
                 debug,
             );
-            statement_gen.generate_body(&implementation.statements)?
+            statement_gen.generate_body(&implementation.statements)?;
+            statement_gen.generate_return_statement()?;
         }
-
-        // generate return statement
-        self.generate_return_statement(&function_context, &local_index)?;
 
         Ok(())
     }
@@ -409,7 +430,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
                 &format!("Unsupported return type {return_type:?}"),
-                SourceRange::undefined(),
+                SourceLocation::undefined(),
             )),
         }
     }
@@ -436,9 +457,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .is_some()
             {
                 // function return is handled by an out-pointer
-                let parameter = params_iter.next().ok_or_else(|| {
-                    Diagnostic::missing_function(ret_v.source_location.source_range.clone())
-                })?;
+                let parameter = params_iter
+                    .next()
+                    .ok_or_else(|| Diagnostic::missing_function(ret_v.source_location.clone()))?;
 
                 // remove the out-param so the loop below will not see it again
                 // generate special accessor for aggrate function output (out-ptr)
@@ -462,7 +483,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let (name, variable) = if m.is_parameter() {
                 let ptr_value = params_iter
                     .next()
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.source_range.clone()))?;
+                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
                 let ptr = self
                     .llvm
@@ -474,11 +495,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         ptr,
                         function_context.function,
                         block,
-                        m.source_location.line_number,
-                        function_context.new_lines.get_column(
-                            m.source_location.line_number,
-                            m.source_location.source_range.get_start(),
-                        ),
+                        m.source_location.get_line(),
+                        m.source_location.get_column(),
                     );
                 }
                 self.llvm.builder.build_store(ptr, ptr_value);
@@ -504,7 +522,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
         function_context: &FunctionContext<'ink, '_>,
-        location: &SourceRange,
+        location: &SourceLocation,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         let members = self.index.get_pou_members(type_name);
@@ -515,15 +533,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .ok_or_else(|| Diagnostic::missing_function(location.clone()))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
-            let line = function_context.new_lines.get_line_nr(location.get_start());
-            let column = function_context.new_lines.get_column(line, location.get_start());
             debug.add_variable_declaration(
                 type_name,
                 param_pointer,
                 function_context.function,
                 block,
-                line,
-                column,
+                location.get_line(),
+                location.get_column(),
             );
         }
         //Generate reference to parameter
@@ -584,11 +600,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         left,
                         function_context.function,
                         block,
-                        variable.source_location.line_number,
-                        function_context.new_lines.get_column(
-                            variable.source_location.line_number,
-                            variable.source_location.source_range.get_start(),
-                        ),
+                        variable.source_location.get_line(),
+                        variable.source_location.get_column(),
                     );
                 }
                 let right_stmt =
@@ -597,7 +610,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.source_range.clone(),
+                    variable.source_location.clone(),
                 ));
             }
         }
@@ -611,19 +624,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         variable: &&VariableIndexEntry,
         variable_to_initialize: PointerValue,
-        initializer_statement: Option<&AstStatement>,
+        initializer_statement: Option<&AstNode>,
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
         let variable_llvm_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.source_range.clone()))?;
+            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
 
         let type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error(
-                "Couldn't determine type size",
-                variable.source_location.source_range.clone(),
-            )
+            Diagnostic::codegen_error("Couldn't determine type size", variable.source_location.clone())
         });
 
         // initialize the variable with the initial_value
@@ -691,50 +701,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 unreachable!("initializing an array should be memcpy-able or memset-able");
             };
-            init_result.map_err(|msg| {
-                Diagnostic::codegen_error(msg, variable.source_location.source_range.clone())
-            })?;
+            init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
         } else {
             self.llvm.builder.build_store(variable_to_initialize, value);
-        }
-        Ok(())
-    }
-
-    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
-    ///
-    /// a function returns the value of the local variable that has the function's name
-    pub fn generate_return_statement<'a>(
-        &'a self,
-        function_context: &'a FunctionContext<'ink, 'a>,
-        local_index: &'a LlvmTypedIndex<'ink>,
-    ) -> Result<(), Diagnostic> {
-        if let Some(ret_v) = self.index.find_return_variable(function_context.linking_context.get_type_name())
-        {
-            if self
-                .index
-                .find_effective_type_by_name(ret_v.get_type_name())
-                .map(|it| it.is_aggregate_type())
-                .unwrap_or(false)
-            {
-                //generate return void
-                self.llvm.builder.build_return(None);
-            } else {
-                // renerate return statement
-                let call_name = function_context.linking_context.get_call_name();
-                let var_name = format!("{call_name}_ret");
-                let ret_name = ret_v.get_qualified_name();
-                let value_ptr =
-                    local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
-                            SourceRange::undefined(),
-                        )
-                    })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-                self.llvm.builder.build_return(Some(&loaded_value));
-            }
-        } else {
-            self.llvm.builder.build_return(None);
         }
         Ok(())
     }

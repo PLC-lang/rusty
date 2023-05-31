@@ -1,4 +1,6 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate, Diagnostic};
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
 #[test]
 fn int_literal_casts_max_values_are_validated() {
@@ -98,7 +100,9 @@ fn literal_cast_with_non_literal() {
     let diagnostics = parse_and_validate(
         "PROGRAM exp 
             INT#[x]; 
-        END_PROGRAM",
+        END_PROGRAM
+        
+        VAR_GLOBAL x : INT; END_VAR",
     );
     assert_validation_snapshot!(&diagnostics);
 }

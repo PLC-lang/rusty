@@ -5,13 +5,13 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo = type { i32, i32, %fb }
 %fb = type { i32 }
+%foo = type { i32, i32, %fb }
 %prg = type { i32 }
 
+@__fb__init = unnamed_addr constant %fb zeroinitializer
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
-@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:
@@ -30,12 +30,12 @@ entry:
 define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %load_ = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
-  store i32 %load_, i32* %x, align 4
-  %load_1 = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 4
-  store i32 %load_1, i32* %x, align 4
-  %load_2 = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 2, i32 0), align 4
-  store i32 %load_2, i32* %x, align 4
+  %load_x = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
+  store i32 %load_x, i32* %x, align 4
+  %load_y = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 4
+  store i32 %load_y, i32* %x, align 4
+  %load_x1 = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 2, i32 0), align 4
+  store i32 %load_x1, i32* %x, align 4
   ret void
 }
 

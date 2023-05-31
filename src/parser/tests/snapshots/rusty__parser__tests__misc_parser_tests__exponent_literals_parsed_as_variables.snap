@@ -1,0 +1,28 @@
+---
+source: src/parser/tests/misc_parser_tests.rs
+expression: pou
+---
+POU {
+    name: "E1",
+    variable_blocks: [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "E3",
+                    data_type: DataTypeReference {
+                        referenced_type: "E4",
+                    },
+                },
+            ],
+            variable_block_type: Input(
+                ByVal,
+            ),
+        },
+    ],
+    pou_type: Function,
+    return_type: Some(
+        DataTypeReference {
+            referenced_type: "E2",
+        },
+    ),
+}

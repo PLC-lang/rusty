@@ -1,13 +1,65 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 314..318 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 325..326 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 449..453 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 460..461 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 497..500 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 507..508 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 603..607 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 614..615 }], err_no: arr__invalid_array_assignment }
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:5:35
+  │
+5 │       arr2    : ARRAY[1..2] OF DINT := 1, 2;                        // Missing `[`
+  │                                        ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:6:40
+  │
+6 │       arr3    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2)));  // Missing `[`
+  │                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:6:74
+  │
+6 │       arr3    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2)));  // Missing `[`
+  │                                                                               ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:7:40
+  │
+7 │       arr4    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2));    // Missing `[`
+  │                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:7:73
+  │
+7 │       arr4    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2));    // Missing `[`
+  │                                                                              ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:8:39
+  │
+8 │       arr_init  : ARRAY[1..2] OF DINT := (1, 2);                      // Missing `[`
+  │                                           ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:10:43
+   │
+10 │       y     : myStruct := (var1 := 1, var2 := 3, 4);                  // Missing `[`
+   │                                               ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:12:11
+   │
+12 │       arr := 1, 2;                                      // Missing `[`
+   │              ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:13:12
+   │
+13 │       arr := (1, 2);                                      // Missing `[`
+   │               ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:15:29
+   │
+15 │       x := (var1 := 1, var2 := 3, 4);                             // Missing `[`
+   │                                ^ Array assignments must be surrounded with `[]`
+
 

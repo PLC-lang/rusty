@@ -1,0 +1,11 @@
+---
+source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
+expression: diagnostics
+---
+error: Unexpected token: expected KeywordEndProgram but found ''
+  ┌─ <internal>:1:13
+  │
+1 │ PROGRAM buz 
+  │             ^ Unexpected token: expected KeywordEndProgram but found ''
+
+

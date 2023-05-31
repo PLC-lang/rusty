@@ -1,0 +1,15 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+CallStatement {
+    operator: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "fn",
+            },
+        ),
+        base: None,
+    },
+    parameters: None,
+}

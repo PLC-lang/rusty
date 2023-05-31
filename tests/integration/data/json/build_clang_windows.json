@@ -1,15 +1,15 @@
 {
+    "name" : "clang_proj",
     "files" : [
         "program_with_variables.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",
-    "output" : "clang_proj.so",
     "error_format": "Rich",
     "libraries" : [
         {
             "name" : "test",
-            "path" : "$DIRPATH",
+            "path" : ".",
             "package" : "System",
             "include_path" : [
                 "program_with_expressions.st"

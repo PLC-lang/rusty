@@ -2,9 +2,8 @@ use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
 mod common;
 use common::add_std;
 use common::{compile_and_run, compile_and_run_no_params, compile_with_native};
-use inkwell::context::Context;
 use num::PrimInt;
-use rusty::runner::run;
+use plc::codegen::CodegenContext;
 
 const STR_SIZE: usize = 81;
 struct MainType<T: PrimInt> {
@@ -1745,21 +1744,21 @@ fn test_time() {
         "extra_functions.st",
         "numerical_functions.st"
     );
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, sources);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, sources);
 
     MockClock::set_time(23 * 3600 + 59 * 60 + 30);
-    let now = run::<_, i64>(&exec_engine, "main", &mut MainType::default());
+    let now = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 30) * 1e9 as i64 + 100;
     assert_eq!(expected, now);
 
     MockClock::advance(29);
-    let later = run::<_, i64>(&exec_engine, "main", &mut MainType::default());
+    let later = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 59) * 1e9 as i64 + 100;
     assert_eq!(expected, later);
 
     MockClock::advance(2);
-    let new_day = run::<_, i64>(&exec_engine, "main", &mut MainType::default());
+    let new_day = module.run::<_, i64>("main", &mut MainType);
     let expected = 1e9 as i64 + 100;
     assert_eq!(expected, new_day);
 }

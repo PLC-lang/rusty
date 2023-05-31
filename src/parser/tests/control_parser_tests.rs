@@ -1,6 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::AstStatement;
 use crate::test_utils::tests::parse;
+use insta::assert_debug_snapshot;
+use plc_ast::{
+    ast::AstStatement,
+    control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
+};
+
 use pretty_assertions::*;
 
 #[test]
@@ -38,7 +43,7 @@ fn test_return_statement() {
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
-    assert_eq!(format!("{stmt:?}"), "ReturnStatement");
+    assert_eq!(format!("{stmt:?}"), "ReturnStatement { condition: None }");
 }
 
 #[test]
@@ -76,28 +81,7 @@ fn if_else_statement_with_expressions() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"IfStatement {
-    blocks: [
-        ConditionalBlock {
-            condition: LiteralBool {
-                value: true,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-    ],
-    else_block: [
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -119,48 +103,7 @@ fn if_elsif_elsif_else_statement_with_expressions() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"IfStatement {
-    blocks: [
-        ConditionalBlock {
-            condition: LiteralBool {
-                value: true,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-        ConditionalBlock {
-            condition: Reference {
-                name: "y",
-            },
-            body: [
-                Reference {
-                    name: "z",
-                },
-            ],
-        },
-        ConditionalBlock {
-            condition: Reference {
-                name: "w",
-            },
-            body: [
-                Reference {
-                    name: "v",
-                },
-            ],
-        },
-    ],
-    else_block: [
-        Reference {
-            name: "u",
-        },
-    ],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -175,22 +118,7 @@ fn for_with_literals_statement() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"ForLoopStatement {
-    counter: Reference {
-        name: "y",
-    },
-    start: Reference {
-        name: "x",
-    },
-    end: LiteralInteger {
-        value: 10,
-    },
-    by_step: None,
-    body: [],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -205,26 +133,7 @@ fn for_with_step_statement() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"ForLoopStatement {
-    counter: Reference {
-        name: "x",
-    },
-    start: LiteralInteger {
-        value: 1,
-    },
-    end: LiteralInteger {
-        value: 10,
-    },
-    by_step: Some(
-        LiteralInteger {
-            value: 7,
-        },
-    ),
-    body: [],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -239,22 +148,7 @@ fn for_with_reference_statement() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"ForLoopStatement {
-    counter: Reference {
-        name: "z",
-    },
-    start: Reference {
-        name: "x",
-    },
-    end: Reference {
-        name: "y",
-    },
-    by_step: None,
-    body: [],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -272,28 +166,7 @@ fn for_with_body_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"ForLoopStatement {
-    counter: Reference {
-        name: "z",
-    },
-    start: Reference {
-        name: "x",
-    },
-    end: Reference {
-        name: "y",
-    },
-    by_step: None,
-    body: [
-        Reference {
-            name: "x",
-        },
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -331,21 +204,7 @@ fn while_with_expression() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"WhileLoopStatement {
-    condition: BinaryExpression {
-        operator: Less,
-        left: Reference {
-            name: "x",
-        },
-        right: LiteralInteger {
-            value: 7,
-        },
-    },
-    body: [],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -362,23 +221,7 @@ fn while_with_body_statement() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"WhileLoopStatement {
-    condition: LiteralBool {
-        value: true,
-    },
-    body: [
-        Reference {
-            name: "x",
-        },
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -418,21 +261,7 @@ fn repeat_with_expression() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RepeatLoopStatement {
-    condition: BinaryExpression {
-        operator: Greater,
-        left: Reference {
-            name: "x",
-        },
-        right: LiteralInteger {
-            value: 7,
-        },
-    },
-    body: [],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -451,22 +280,7 @@ fn repeat_with_body_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RepeatLoopStatement {
-    condition: LiteralBool {
-        value: true,
-    },
-    body: [
-        Reference {
-            name: "x",
-        },
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -483,27 +297,7 @@ fn case_statement_with_one_condition() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 1,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-    ],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -521,28 +315,7 @@ fn case_statement_with_one_condition_with_trailling_comma() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 1,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-    ],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -558,17 +331,7 @@ fn case_statement_with_else_and_no_condition() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -583,17 +346,7 @@ fn case_statement_with_no_conditions() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -612,31 +365,7 @@ fn case_statement_with_one_condition_and_an_else() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 1,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-    ],
-    else_block: [
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -655,27 +384,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 1,
-            },
-            body: [],
-        },
-    ],
-    else_block: [
-        Reference {
-            name: "y",
-        },
-    ],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -694,53 +403,7 @@ fn case_statement_with_multiple_conditions() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 1,
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 2,
-            },
-            body: [
-                Reference {
-                    name: "y",
-                },
-                Reference {
-                    name: "yy",
-                },
-                Reference {
-                    name: "yyy",
-                },
-            ],
-        },
-        ConditionalBlock {
-            condition: LiteralInteger {
-                value: 3,
-            },
-            body: [
-                Reference {
-                    name: "z",
-                },
-            ],
-        },
-    ],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -757,60 +420,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"CaseStatement {
-    selector: Reference {
-        name: "StateMachine",
-    },
-    case_blocks: [
-        ConditionalBlock {
-            condition: ExpressionList {
-                expressions: [
-                    LiteralInteger {
-                        value: 1,
-                    },
-                    LiteralInteger {
-                        value: 2,
-                    },
-                    LiteralInteger {
-                        value: 3,
-                    },
-                ],
-            },
-            body: [
-                Reference {
-                    name: "x",
-                },
-            ],
-        },
-        ConditionalBlock {
-            condition: ExpressionList {
-                expressions: [
-                    RangeStatement {
-                        start: LiteralInteger {
-                            value: 4,
-                        },
-                        end: LiteralInteger {
-                            value: 5,
-                        },
-                    },
-                    LiteralInteger {
-                        value: 6,
-                    },
-                ],
-            },
-            body: [
-                Reference {
-                    name: "y",
-                },
-            ],
-        },
-    ],
-    else_block: [],
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -830,7 +440,7 @@ fn if_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "IF a > 4 THEN
         a + b;
     ELSIF x < 2 THEN
@@ -838,12 +448,14 @@ fn if_stmnt_location_test() {
     END_IF"
     );
 
-    if let AstStatement::IfStatement { blocks, .. } = &unit.statements[0] {
+    if let AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. }), ..) =
+        &unit.statements[0].get_stmt()
+    {
         let if_location = blocks[0].condition.as_ref().get_location();
-        assert_eq!(source[if_location.get_start()..if_location.get_end()].to_string(), "a > 4");
+        assert_eq!(source[if_location.to_range().unwrap()].to_string(), "a > 4");
 
         let elsif_location = blocks[1].condition.as_ref().get_location();
-        assert_eq!(source[elsif_location.get_start()..elsif_location.get_end()].to_string(), "x < 2");
+        assert_eq!(source[elsif_location.to_range().unwrap()].to_string(), "x < 2");
     }
 }
 
@@ -862,24 +474,28 @@ fn for_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "FOR x := 3 TO 9 BY 2 DO
         a + b;
     END_FOR"
     );
 
-    if let AstStatement::ForLoopStatement { counter, start, end, by_step, .. } = &unit.statements[0] {
+    if let AstStatement::ControlStatement(
+        AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, .. }),
+        ..,
+    ) = &unit.statements[0].get_stmt()
+    {
         let counter_location = counter.as_ref().get_location();
-        assert_eq!(source[counter_location.get_start()..counter_location.get_end()].to_string(), "x");
+        assert_eq!(source[counter_location.to_range().unwrap()].to_string(), "x");
 
         let start_location = start.as_ref().get_location();
-        assert_eq!(source[start_location.get_start()..start_location.get_end()].to_string(), "3");
+        assert_eq!(source[start_location.to_range().unwrap()].to_string(), "3");
 
         let end_location = end.as_ref().get_location();
-        assert_eq!(source[end_location.get_start()..end_location.get_end()].to_string(), "9");
+        assert_eq!(source[end_location.to_range().unwrap()].to_string(), "9");
 
         let by_location = by_step.as_ref().map(|it| it.as_ref().get_location()).unwrap();
-        assert_eq!(source[by_location.get_start()..by_location.get_end()].to_string(), "2");
+        assert_eq!(source[by_location.to_range().unwrap()].to_string(), "2");
     } else {
         panic!("expected ForLoopStatement")
     }
@@ -900,7 +516,7 @@ fn while_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "WHILE a < 2 DO
         a := a - 1;
     END_WHILE"
@@ -925,7 +541,7 @@ fn case_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "CASE a OF
     1:
         a := a - 1;
@@ -947,17 +563,13 @@ fn call_stmnt_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "foo(a:=3, b:=4)");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "foo(a:=3, b:=4)");
 
-    if let AstStatement::CallStatement { operator, parameters, .. } = &unit.statements[0] {
-        let operator_location = operator.as_ref().get_location();
-        assert_eq!(source[operator_location.get_start()..operator_location.get_end()].to_string(), "foo");
+    if let AstStatement::CallStatement(data) = &unit.statements[0].get_stmt() {
+        assert_eq!(source[data.operator.get_location().to_range().unwrap()].to_string(), "foo");
 
-        let parameters_statement = parameters.as_ref().as_ref();
+        let parameters_statement = data.parameters.as_deref();
         let parameters_location = parameters_statement.map(|it| it.get_location()).unwrap();
-        assert_eq!(
-            source[parameters_location.get_start()..parameters_location.get_end()].to_string(),
-            "a:=3, b:=4"
-        );
+        assert_eq!(source[parameters_location.to_range().unwrap()].to_string(), "a:=3, b:=4");
     }
 }

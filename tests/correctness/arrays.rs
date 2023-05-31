@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+
+use crate::compile_and_run;
+
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Debug)]
@@ -153,7 +155,7 @@ fn three_dim_array_math() {
         END_FUNCTION
         ";
 
-    let mut maintype = rusty::runner::MainType::default();
+    let mut maintype = crate::MainType::default();
     let res: i16 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(res, 15);
 }
@@ -598,4 +600,83 @@ fn access_arrays_by_ref() {
     assert_eq!(maintype.a1, 2);
     assert_eq!(maintype.b0, 5);
     assert_eq!(maintype.b1, 6);
+}
+
+#[test]
+fn initialize_array_with_struct_elements() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        a0: u16,
+        b0: u16,
+        c0: u16,
+        d0: u16,
+    }
+
+    let function = r#"
+        TYPE myStruct : STRUCT
+            x : INT;
+            y : INT;
+        END_STRUCT END_TYPE
+
+        PROGRAM target
+            VAR
+                bracket : ARRAY[0..1] OF myStruct := [(x := 2, y := 4), (x := 6, y := 8)];
+            END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                a0, b0, c0, d0 : INT;
+            END_VAR
+
+            a0 := target.bracket[0].x;
+            b0 := target.bracket[0].y;
+            c0 := target.bracket[1].x;
+            d0 := target.bracket[1].y;
+        END_PROGRAM
+    "#;
+
+    let mut maintype = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(maintype.a0, 2);
+    assert_eq!(maintype.b0, 4);
+    assert_eq!(maintype.c0, 6);
+    assert_eq!(maintype.d0, 8);
+}
+
+#[test]
+fn struct_initialization_with_array_initializer_using_multiplied_statement() {
+    #[repr(C)]
+    struct MainType {
+        arr: [u16; 64],
+        idx: u16,
+    }
+
+    let source = "
+		TYPE myStruct : STRUCT
+			arr : ARRAY[0..63] OF INT;
+			idx : INT;
+		END_STRUCT END_TYPE
+        PROGRAM target
+			VAR
+				val : myStruct := (arr := [64(111)], idx := 222);
+            END_VAR
+        END_PROGRAM
+		PROGRAM main
+            VAR
+                arr : ARRAY[0..63] OF INT;
+                idx : INT := 0;
+			END_VAR
+            arr := target.val.arr;
+            idx := target.val.idx;
+		END_PROGRAM
+		"
+    .to_string();
+
+    let mut maintype = MainType { arr: [0; 64], idx: 0 };
+    let _: i32 = compile_and_run(source, &mut maintype);
+    assert_eq!(maintype.arr, [111; 64]);
+    assert_eq!(maintype.idx, 222);
 }

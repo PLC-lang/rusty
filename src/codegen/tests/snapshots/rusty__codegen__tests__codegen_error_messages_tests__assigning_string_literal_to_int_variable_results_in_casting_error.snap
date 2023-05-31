@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/codegen_error_messages_tests.rs
+expression: msg
+---
+error: Cannot generate String-Literal for type INT
+  ┌─ <internal>:6:8
+  │
+6 │     x := 'A';
+  │          ^^^ Cannot generate String-Literal for type INT
+
+

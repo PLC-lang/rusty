@@ -1,19 +1,20 @@
-use crate::{
-    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::ConstExpression,
-    Diagnostic,
-};
+use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
+    array::{validate_array_assignment, Wrapper},
+    statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
-    validate_for_array_assignment, ValidationContext, Validator, Validators,
+    ValidationContext, Validator, Validators,
 };
 
-pub fn visit_variable_block(
+pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
     pou: Option<&Pou>,
     block: &VariableBlock,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     validate_variable_block(validator, block);
 
@@ -36,7 +37,11 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
     }
 }
 
-pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
+pub fn visit_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
     validate_variable(validator, variable, context);
 
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
@@ -51,8 +56,8 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(Diagnostic::invalid_vla_container(
                 "VLAs can not be defined as global variables".to_string(),
-                variable.location.clone())
-            )
+                variable.location.clone(),
+            ))
         }
 
         return;
@@ -86,14 +91,22 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     }
 }
 
-fn validate_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
+fn validate_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
     if let Some(v_entry) = context
         .qualifier
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-            validate_for_array_assignment(validator, expressions, context);
+        if let Some(initializer) = &variable.initializer {
+            // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
+            // assignment as a whole whereas the second function call (`visit_statement`) validates the
+            // initializer in case it has further sub-assignments.
+            validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            visit_statement(validator, initializer, context);
         }
 
         match v_entry
@@ -121,7 +134,20 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
                     variable.location.clone(),
                 ));
             }
-            _ => {}
+            _ => {
+                if let Some(rhs) = variable.initializer.as_ref() {
+                    validate_enum_variant_assignment(
+                        validator,
+                        context
+                            .index
+                            .get_effective_type_or_void_by_name(v_entry.get_type_name())
+                            .get_type_information(),
+                        context.annotations.get_type_or_void(rhs, context.index).get_type_information(),
+                        v_entry.get_qualified_name(),
+                        rhs.get_location(),
+                    )
+                }
+            }
         }
 
         // check if we declared a constant fb-instance or class-instance
@@ -135,12 +161,13 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::test_utils::tests::parse_and_validate;
-    use crate::Diagnostic;
+    use insta::assert_snapshot;
+
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn validate_empty_struct_declaration() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         TYPE the_struct : STRUCT END_STRUCT END_TYPE
             
@@ -152,19 +179,12 @@ mod variable_validator_tests {
         END_PROGRAM
         ",
         );
-
-        assert_eq!(
-            diagnostics,
-            vec![
-                Diagnostic::empty_variable_block((14..24).into()),
-                Diagnostic::empty_variable_block((131..164).into())
-            ]
-        );
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn validate_empty_enum_declaration() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         TYPE my_enum : (); END_TYPE
             
@@ -175,13 +195,27 @@ mod variable_validator_tests {
         END_PROGRAM
         ",
         );
+        assert_snapshot!(diagnostics);
+    }
 
-        assert_eq!(
-            diagnostics,
-            vec![
-                Diagnostic::empty_variable_block((14..21).into()),
-                Diagnostic::empty_variable_block((112..114).into())
-            ]
+    #[test]
+    fn validate_enum_variant_initializer() {
+        let diagnostics = parse_and_validate_buffered(
+            "VAR_GLOBAL
+                x : (red, yellow, green) := 2; // error
+            END_VAR
+    
+            PROGRAM  main
+            VAR
+                y : (metallic := 1, matte := 2, neon := 3) := red; // error
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow; // error
+                var2 : (x5, x6, x7) := neon; // error
+                var3 : (a, b, c) := 7; // error
+            END_VAR
+            END_PROGRAM",
         );
+        assert_snapshot!(diagnostics);
     }
 }

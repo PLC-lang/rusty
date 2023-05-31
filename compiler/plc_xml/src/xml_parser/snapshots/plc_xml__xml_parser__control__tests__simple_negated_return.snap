@@ -1,0 +1,16 @@
+---
+source: compiler/plc_xml/src/xml_parser/control.rs
+expression: "Control::visit(reader).unwrap()"
+---
+Control {
+    kind: Return,
+    name: None,
+    local_id: 1,
+    ref_local_id: Some(
+        3,
+    ),
+    execution_order_id: Some(
+        2,
+    ),
+    negated: true,
+}

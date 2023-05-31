@@ -1,0 +1,22 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Source 's1' is not connected.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 1,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__unconnected_source,
+    },
+]

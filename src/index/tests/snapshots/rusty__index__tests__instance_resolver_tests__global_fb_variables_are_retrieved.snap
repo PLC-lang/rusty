@@ -15,7 +15,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "gFb",
             qualified_name: "gFb",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -23,11 +23,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 7,
-                source_range: SourceRange {
-                    range: 110..113,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 8,
+                        offset: 110,
+                    }..TextLocation {
+                        line: 7,
+                        column: 11,
+                        offset: 113,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -47,7 +54,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "fb.a",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -55,11 +62,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 40..41,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 8,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 3,
+                        column: 9,
+                        offset: 41,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -79,7 +93,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "fb.b",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -87,11 +101,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 42..43,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 10,
+                        offset: 42,
+                    }..TextLocation {
+                        line: 3,
+                        column: 11,
+                        offset: 43,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -108,7 +129,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "MainProg_instance",
             qualified_name: "MainProg",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Global,
             ),
             is_constant: false,
@@ -116,11 +137,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 9,
-                source_range: SourceRange {
-                    range: 144..152,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 9,
+                        column: 12,
+                        offset: 144,
+                    }..TextLocation {
+                        line: 9,
+                        column: 20,
+                        offset: 152,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -140,7 +168,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "pFb",
             qualified_name: "MainProg.pFb",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -148,11 +176,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 11,
-                source_range: SourceRange {
-                    range: 169..172,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 8,
+                        offset: 169,
+                    }..TextLocation {
+                        line: 11,
+                        column: 11,
+                        offset: 172,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -175,7 +210,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "fb.a",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -183,11 +218,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 40..41,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 8,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 3,
+                        column: 9,
+                        offset: 41,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -210,7 +252,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "fb.b",
             initial_value: None,
-            variable_type: ByVal(
+            argument_type: ByVal(
                 Local,
             ),
             is_constant: false,
@@ -218,11 +260,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 42..43,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 10,
+                        offset: 42,
+                    }..TextLocation {
+                        line: 3,
+                        column: 11,
+                        offset: 43,
+                    },
+                ),
             },
             varargs: None,
         },

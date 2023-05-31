@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "A program cannot use EXTEND", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 16, offset: 54 }..TextLocation { line: 4, column: 20, offset: 58 }) }], err_no: syntax__generic_error }
+

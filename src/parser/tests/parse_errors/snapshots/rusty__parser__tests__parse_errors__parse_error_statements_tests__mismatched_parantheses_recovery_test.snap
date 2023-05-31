@@ -1,0 +1,17 @@
+---
+source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
+expression: diagnostics
+---
+error: Missing expected Token [KeywordParensClose]
+  ┌─ <internal>:3:19
+  │
+3 │             (1 + 2;
+  │                   ^ Missing expected Token [KeywordParensClose]
+
+error: Unexpected token: expected KeywordParensClose but found ';'
+  ┌─ <internal>:3:19
+  │
+3 │             (1 + 2;
+  │                   ^ Unexpected token: expected KeywordParensClose but found ';'
+
+

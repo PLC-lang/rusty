@@ -1,42 +1,41 @@
-use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-use crate::ast::AstLiteral;
-use crate::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
-};
-use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
+use plc_ast::ast::{
+    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
+};
+use plc_ast::literals::AstLiteral;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
+use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
-    //Create the typesystem
-    let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
-
     //Create user defined datatypes
     for user_type in &unit.user_types {
-        visit_data_type(&mut index, user_type, &symbol_location_factory);
+        visit_data_type(&mut index, user_type);
     }
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        visit_global_var_block(&mut index, global_vars, &symbol_location_factory);
+        visit_global_var_block(&mut index, global_vars);
     }
 
     //Create types and variables for POUs
     for pou in &unit.units {
-        visit_pou(&mut index, pou, &symbol_location_factory);
+        visit_pou(&mut index, pou);
     }
 
     for implementation in &unit.implementations {
-        visit_implementation(&mut index, implementation, &symbol_location_factory);
+        visit_implementation(&mut index, implementation);
     }
     index
 }
 
-pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
+pub fn visit_pou(index: &mut Index, pou: &Pou) {
     let mut members = vec![];
 
     //register the pou's member variables
@@ -64,41 +63,40 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            if let Some(var_type_name) = var.data_type_declaration.get_name() {
-                let type_name = if block_type.is_by_ref() {
-                    //register a pointer type for argument
-                    register_byref_pointer_type_for(index, var_type_name)
-                } else {
-                    var_type_name.to_string()
-                };
-                let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    type_name.as_str(),
-                    Some(pou.name.clone()),
-                );
-
-                let binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
-
-                let entry = index.register_member_variable(
-                    MemberInfo {
-                        container_name: &pou.name,
-                        variable_name: &var.name,
-                        variable_linkage: block_type,
-                        variable_type_name: &type_name,
-                        is_constant: block.constant,
-                        binding,
-                        varargs,
-                    },
-                    initial_value,
-                    symbol_location_factory.create_symbol_location(&var.location),
-                    count,
-                );
-                members.push(entry);
-                count += 1;
+            let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
+            let type_name = if block_type.is_by_ref() {
+                //register a pointer type for argument
+                register_byref_pointer_type_for(index, var_type_name)
+            } else {
+                var_type_name.to_string()
             };
+            let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
+                var.initializer.clone(),
+                type_name.as_str(),
+                Some(pou.name.clone()),
+            );
+
+            let binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
+
+            let entry = index.register_member_variable(
+                MemberInfo {
+                    container_name: &pou.name,
+                    variable_name: &var.name,
+                    variable_linkage: block_type,
+                    variable_type_name: &type_name,
+                    is_constant: block.constant,
+                    binding,
+                    varargs,
+                },
+                initial_value,
+                var.location.clone(),
+                count,
+            );
+            members.push(entry);
+            count += 1;
         }
     }
 
@@ -116,7 +114,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 varargs: None,
             },
             None,
-            symbol_location_factory.create_symbol_location(&pou.name_location),
+            pou.name_location.clone(),
             count,
         );
         members.push(entry);
@@ -132,16 +130,12 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
-        location: symbol_location_factory.create_symbol_location(&pou.name_location),
+        location: pou.name_location.clone(),
     };
 
     match &pou.pou_type {
         PouType::Program => {
-            index.register_program(
-                &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
-                pou.linkage,
-            );
+            index.register_program(&pou.name, pou.name_location.clone(), pou.linkage);
             index.register_pou_type(datatype);
         }
         PouType::FunctionBlock => {
@@ -150,14 +144,15 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_function_block_entry(
                 &pou.name,
                 pou.linkage,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
+                pou.super_class.clone().as_deref(),
             ));
             index.register_pou_type(datatype);
         }
@@ -167,14 +162,15 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(
                 &pou.name,
                 pou.linkage,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
+                pou.super_class.clone(),
             ));
             index.register_pou_type(datatype);
         }
@@ -185,7 +181,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.generics,
                 pou.linkage,
                 has_varargs,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
             ));
             index.register_pou_type(datatype);
         }
@@ -195,7 +191,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 return_type_name,
                 owner_class,
                 pou.linkage,
-                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.name_location.clone(),
             ));
             index.register_pou_type(datatype);
         }
@@ -221,11 +217,7 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
     }
 }
 
-fn visit_implementation(
-    index: &mut Index,
-    implementation: &Implementation,
-    symbol_location_factory: &SymbolLocationFactory,
-) {
+fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     let pou_type = &implementation.pou_type;
     let start_location = implementation
         .statements
@@ -233,7 +225,7 @@ fn visit_implementation(
         .map(|it| it.get_location())
         .as_ref()
         .or(Some(&implementation.location))
-        .map(|it| symbol_location_factory.create_symbol_location(it))
+        .map(Clone::clone)
         .unwrap();
     index.register_implementation(
         &implementation.name,
@@ -253,14 +245,14 @@ fn visit_implementation(
                 referenced_type: implementation.type_name.clone(),
             },
             nature: TypeNature::Derived,
-            location: symbol_location_factory.create_symbol_location(&implementation.name_location),
+            location: implementation.name_location.clone(),
         };
 
         index.register_pou(PouIndexEntry::create_action_entry(
             implementation.name.as_str(),
             implementation.type_name.as_str(),
-            ast::LinkageType::Internal, //TODO: where do I get correct linkage from?
-            symbol_location_factory.create_symbol_location(&implementation.name_location),
+            implementation.linkage,
+            implementation.name_location.clone(),
         ));
         index.register_pou_type(datatype);
     }
@@ -269,7 +261,7 @@ fn visit_implementation(
 /// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
-    let type_name = typesystem::create_internal_type_name("auto_pointer_to_", inner_type_name);
+    let type_name = internal_type_name("auto_pointer_to_", inner_type_name);
 
     //check if type was already created
     if index.find_effective_type_by_name(type_name.as_str()).is_none() {
@@ -283,18 +275,14 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
                 auto_deref: true,
             },
             nature: TypeNature::Any,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
 
     type_name
 }
 
-fn visit_global_var_block(
-    index: &mut Index,
-    block: &VariableBlock,
-    symbol_location_factory: &SymbolLocationFactory,
-) {
+fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
     let linkage = block.linkage;
     for var in &block.variables {
         let target_type = var.data_type_declaration.get_name().unwrap_or_default();
@@ -307,7 +295,7 @@ fn visit_global_var_block(
             &var.name,
             &var.name,
             var.data_type_declaration.get_name().expect("named variable datatype"),
-            symbol_location_factory.create_symbol_location(&var.location),
+            var.location.clone(),
         )
         .set_initial_value(initializer)
         .set_constant(block.constant)
@@ -330,25 +318,13 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     }
 }
 
-fn visit_data_type(
-    index: &mut Index,
-    type_declaration: &UserTypeDeclaration,
-    symbol_location_factory: &SymbolLocationFactory,
-) {
+fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
     let data_type = &type_declaration.data_type;
     let scope = &type_declaration.scope;
     //names should not be empty
     match data_type {
         DataType::StructType { name: Some(name), variables } => {
-            visit_struct(
-                name,
-                variables,
-                index,
-                symbol_location_factory,
-                scope,
-                type_declaration,
-                StructSource::OriginalDeclaration,
-            );
+            visit_struct(name, variables, index, scope, type_declaration, StructSource::OriginalDeclaration);
         }
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {
@@ -362,18 +338,13 @@ fn visit_data_type(
 
             for ele in ast::flatten_expression_list(elements) {
                 let element_name = ast::get_enum_element_name(ele);
-                if let AstStatement::Assignment { right, .. } = ele {
+                if let AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                     let init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
                     );
-                    index.register_enum_element(
-                        &element_name,
-                        enum_name,
-                        Some(init),
-                        symbol_location_factory.create_symbol_location(&ele.get_location()),
-                    )
+                    index.register_enum_element(&element_name, enum_name, Some(init), ele.get_location())
                 } else {
                     unreachable!("the preprocessor should have provided explicit assignments for enum values")
                 }
@@ -389,12 +360,14 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: type_declaration.location.clone(),
             });
         }
 
         DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
-            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds {
+            let information = if let Some(AstStatement::RangeStatement(RangeStatement { start, end })) =
+                bounds.as_ref().map(|it| it.get_stmt())
+            {
                 DataTypeInformation::SubRange {
                     name: name.into(),
                     referenced_type: referenced_type.into(),
@@ -414,31 +387,16 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: type_declaration.location.clone(),
             });
         }
         DataType::ArrayType { name: Some(name), referenced_type, bounds, is_variable_length }
             if *is_variable_length =>
         {
-            visit_variable_length_array(
-                bounds,
-                referenced_type,
-                name,
-                index,
-                type_declaration,
-                symbol_location_factory,
-            );
+            visit_variable_length_array(bounds, referenced_type, name, index, type_declaration);
         }
         DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
-            visit_array(
-                bounds,
-                index,
-                scope,
-                referenced_type,
-                name,
-                type_declaration,
-                symbol_location_factory,
-            );
+            visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
@@ -458,7 +416,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: type_declaration.location.clone(),
             });
         }
         DataType::StringType { name: Some(name), size, is_wide, .. } => {
@@ -466,21 +424,21 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
-                    let len_plus_1 = AstStatement::BinaryExpression {
-                        id: statement.get_id(),
-                        left: Box::new(statement.clone()),
-                        operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::new_literal(
+                    let len_plus_1 = AstFactory::create_binary_expression(
+                        statement.clone(),
+                        ast::Operator::Plus,
+                        AstNode::new_literal(
                             AstLiteral::new_integer(1),
                             statement.get_id(),
                             statement.get_location(),
-                        )),
-                    };
+                        ),
+                        statement.get_id(),
+                    );
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
                         len_plus_1,
@@ -501,7 +459,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::String,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: type_declaration.location.clone(),
             });
 
             if init.is_some() {
@@ -511,7 +469,7 @@ fn visit_data_type(
                     global_init_name.as_str(),
                     global_init_name.as_str(),
                     name,
-                    symbol_location_factory.create_symbol_location(&type_declaration.location),
+                    type_declaration.location.clone(),
                 )
                 .set_constant(true)
                 .set_initial_value(init);
@@ -530,7 +488,7 @@ fn visit_data_type(
                 initial_value: None,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: type_declaration.location.clone(),
             });
         }
 
@@ -549,16 +507,15 @@ fn visit_data_type(
 /// END_STRUCT
 /// ```
 fn visit_variable_length_array(
-    bounds: &AstStatement,
+    bounds: &AstNode,
     referenced_type: &DataTypeDeclaration,
     name: &str,
     index: &mut Index,
     type_declaration: &UserTypeDeclaration,
-    symbol_location_factory: &SymbolLocationFactory,
 ) {
-    let ndims = match bounds {
-        AstStatement::VlaRangeStatement { .. } => 1,
-        AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+    let ndims = match bounds.get_stmt() {
+        AstStatement::VlaRangeStatement => 1,
+        AstStatement::ExpressionList(expressions) => expressions.len(),
         _ => unreachable!("not a bounds statement"),
     };
 
@@ -577,11 +534,11 @@ fn visit_variable_length_array(
             (
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_array_name,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_dimensions_name,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             )
         } else {
@@ -601,7 +558,7 @@ fn visit_variable_length_array(
                         .collect::<Vec<_>>(),
                 },
                 nature: TypeNature::__VLA,
-                location: SymbolLocation::internal(),
+                location: SourceLocation::internal(),
             });
 
             // define internal vla members
@@ -611,40 +568,45 @@ fn visit_variable_length_array(
                         name: Some(member_array_name),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: dummy_array_name,
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         }),
                     },
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     scope: None,
                 },
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::ArrayType {
                         name: Some(member_dimensions_name),
-                        bounds: AstStatement::ExpressionList {
-                            expressions: (0..ndims)
-                                .map(|_| AstStatement::RangeStatement {
-                                    start: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(0),
-                                        0,
-                                        SourceRange::undefined(),
-                                    )),
-                                    end: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(1),
-                                        0,
-                                        SourceRange::undefined(),
-                                    )),
-                                    id: 0,
-                                })
-                                .collect::<_>(),
-                            id: 0,
-                        },
+                        bounds: AstNode::new(
+                            AstStatement::ExpressionList(
+                                (0..ndims)
+                                    .map(|_| {
+                                        AstFactory::create_range_statement(
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(0),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(1),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            0,
+                                        )
+                                    })
+                                    .collect::<_>(),
+                            ),
+                            0,
+                            SourceLocation::undefined(),
+                        ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         }),
                         is_variable_length: false,
                     },
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     scope: None,
                 },
             )
@@ -658,7 +620,7 @@ fn visit_variable_length_array(
             data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         },
         // Dimensions Array
         Variable {
@@ -666,7 +628,7 @@ fn visit_variable_length_array(
             data_type_declaration: dim_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         },
     ];
 
@@ -683,7 +645,6 @@ fn visit_variable_length_array(
         &struct_name,
         &variables,
         index,
-        symbol_location_factory,
         &type_declaration.scope,
         &type_dec,
         StructSource::Internal(InternalType::VariableLengthArray { inner_type_name: referenced_type, ndims }),
@@ -691,19 +652,18 @@ fn visit_variable_length_array(
 }
 
 fn visit_array(
-    bounds: &AstStatement,
+    bounds: &AstNode,
     index: &mut Index,
     scope: &Option<String>,
     referenced_type: &DataTypeDeclaration,
     name: &String,
     type_declaration: &UserTypeDeclaration,
-    symbol_location_factory: &SymbolLocationFactory,
 ) {
     let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
         .get_as_list()
         .iter()
-        .map(|it| match it {
-            AstStatement::RangeStatement { start, end, .. } => {
+        .map(|it| match it.get_stmt() {
+            AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 let constants = index.get_mut_const_expressions();
                 Ok(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(
@@ -755,7 +715,7 @@ fn visit_array(
         initial_value: init1,
         information,
         nature: TypeNature::Any,
-        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+        location: type_declaration.location.clone(),
     });
     let global_init_name = crate::index::get_initializer_name(name);
     if init2.is_some() {
@@ -763,7 +723,7 @@ fn visit_array(
             global_init_name.as_str(),
             global_init_name.as_str(),
             name,
-            symbol_location_factory.create_symbol_location(&type_declaration.location),
+            type_declaration.location.clone(),
         )
         .set_constant(true)
         .set_initial_value(init2);
@@ -775,7 +735,6 @@ fn visit_struct(
     name: &str,
     variables: &[Variable],
     index: &mut Index,
-    symbol_location_factory: &SymbolLocationFactory,
     scope: &Option<String>,
     type_declaration: &UserTypeDeclaration,
     source: StructSource,
@@ -793,10 +752,9 @@ fn visit_struct(
                     &UserTypeDeclaration {
                         data_type: data_type.clone(),
                         initializer: None,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: scope.clone(),
                     },
-                    symbol_location_factory,
                 )
             }
 
@@ -821,7 +779,7 @@ fn visit_struct(
                     varargs: None,
                 },
                 init,
-                symbol_location_factory.create_symbol_location(&var.location),
+                var.location.clone(),
                 count as u32,
             )
         })
@@ -840,7 +798,7 @@ fn visit_struct(
         initial_value: init,
         information,
         nature,
-        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+        location: type_declaration.location.clone(),
     });
     //Generate an initializer for the struct
     let global_struct_name = crate::index::get_initializer_name(name);
@@ -848,7 +806,7 @@ fn visit_struct(
         &global_struct_name,
         &global_struct_name,
         name,
-        symbol_location_factory.create_symbol_location(&type_declaration.location),
+        type_declaration.location.clone(),
     )
     .set_initial_value(init)
     .set_constant(true);

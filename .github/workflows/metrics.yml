@@ -2,8 +2,9 @@ name: Metrics
 
 on:
   push:
-    branches:
-    - master
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,17 +17,23 @@ jobs:
   metrics:
     name: Metrics
     runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        ref: master
-
-    - name: Collect metrics
+    - uses: actions/checkout@v3
+    
+    - name: Update git permissions
       run: |
-        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
-        # Change all uppercase to lowercase
-        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-        docker pull $IMAGE_ID
-        ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID --ci
+        git config --global --add safe.directory /__w/rusty/rusty
+
+    - name: Collect metrics (Git)
+      shell: bash
+      if: github.ref_name == 'master'
+      run: |
+        cargo metrics --reporter=git
+
+    - name: Collect metrics (Local)
+      shell: bash
+      if: github.ref_name != 'master'
+      run: |
+        cargo metrics

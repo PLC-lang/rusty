@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
+use insta::assert_snapshot;
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -515,7 +517,7 @@ fn date_comparisons() {
 
 #[test]
 fn date_invalid_declaration() {
-    let (diagnostics, _) = codegen_debug_without_unwrap(
+    let msg = codegen_debug_without_unwrap(
         r#"PROGRAM prg
         VAR
           a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
@@ -524,12 +526,7 @@ fn date_invalid_declaration() {
         crate::DebugLevel::None,
     )
     .unwrap_err();
-
-    assert_eq!(diagnostics.len(), 1);
-    assert_eq!(
-        "Cannot generate literal initializer for 'prg.a': Value cannot be derived",
-        &diagnostics[0].message
-    );
+    assert_snapshot!(msg);
 }
 
 #[test]
@@ -2172,6 +2169,37 @@ fn typed_enums_are_generated() {
 }
 
 #[test]
+fn typed_enums_are_used_properly() {
+    let result = codegen(
+        "
+        TYPE MyEnum: BYTE(red := 5, yellow, green);
+        END_TYPE
+
+        TYPE MyEnum2: UINT(red := 15, yellow, green);
+        END_TYPE
+        
+        TYPE MyEnum3: DINT(red := 25, yellow, green);
+        END_TYPE
+
+        PROGRAM prg
+            VAR 
+                x: BYTE;
+                y: UINT;
+                z: DINT;
+            END_VAR
+
+            x := MyEnum#yellow;
+            y := MyEnum2#yellow;
+            z := MyEnum3#yellow;
+
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn typed_enums_with_initializers_are_generated() {
     let result = codegen(
         "
@@ -3224,4 +3252,65 @@ fn function_and_struct_with_same_names() {
     );
 
     insta::assert_snapshot!(result);
+}
+
+#[test]
+fn array_of_struct_as_member_of_another_struct_is_initialized() {
+    let res = codegen(
+        "
+        PROGRAM mainProg
+        VAR
+            var_str1 : STRUCT1 := ((myInt := 10), (myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]);
+        END_VAR
+        END_PROGRAM
+
+        TYPE STRUCT1 :
+            STRUCT
+                myInt : INT;
+                myArr : ARRAY[0..10] OF STRUCT2;
+            END_STRUCT
+        END_TYPE
+
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : DINT;
+            END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initialized() {
+    let res = codegen(
+        "
+        PROGRAM mainProg
+        VAR
+            var_str1 : ARRAY[1..5] OF STRUCT1 := [
+                (myInt := 1, myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]),
+                (myInt := 2, myArr := [(x1 := TRUE, x2 := 256), (x1 := FALSE, x2 := 2048)])
+            ];
+        END_VAR
+        END_PROGRAM
+
+        TYPE STRUCT1 :
+            STRUCT
+                myInt : INT;
+                myArr : ARRAY[0..4] OF STRUCT2;
+            END_STRUCT
+        END_TYPE
+
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : DINT;
+            END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    insta::assert_snapshot!(res);
 }
