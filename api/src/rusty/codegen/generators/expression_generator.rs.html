@@ -2755,25 +2755,6 @@
 <a href="#2755" id="2755">2755</a>
 <a href="#2756" id="2756">2756</a>
 <a href="#2757" id="2757">2757</a>
-<a href="#2758" id="2758">2758</a>
-<a href="#2759" id="2759">2759</a>
-<a href="#2760" id="2760">2760</a>
-<a href="#2761" id="2761">2761</a>
-<a href="#2762" id="2762">2762</a>
-<a href="#2763" id="2763">2763</a>
-<a href="#2764" id="2764">2764</a>
-<a href="#2765" id="2765">2765</a>
-<a href="#2766" id="2766">2766</a>
-<a href="#2767" id="2767">2767</a>
-<a href="#2768" id="2768">2768</a>
-<a href="#2769" id="2769">2769</a>
-<a href="#2770" id="2770">2770</a>
-<a href="#2771" id="2771">2771</a>
-<a href="#2772" id="2772">2772</a>
-<a href="#2773" id="2773">2773</a>
-<a href="#2774" id="2774">2774</a>
-<a href="#2775" id="2775">2775</a>
-<a href="#2776" id="2776">2776</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::{<span class="self">self</span>, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
@@ -2940,15 +2921,7 @@
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(v)
         };
         <span class="kw">let </span>actual_type = <span class="self">self</span>.annotations.get_type_or_void(expression, <span class="self">self</span>.index);
-        <span class="prelude-val">Ok</span>(cast_if_needed(
-            <span class="self">self</span>.llvm,
-            <span class="self">self</span>.index,
-            <span class="self">self</span>.llvm_index,
-            target_type,
-            actual_type,
-            v,
-            <span class="self">self</span>.annotations.get(expression),
-        ))
+        <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_type, actual_type, v, <span class="self">self</span>.annotations.get(expression)))
     }
 
     <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) {
@@ -3160,16 +3133,9 @@
             //being accessed.
             //The reason is that llvm expects a shift operation to happen on the same type, and
             //this is what the direct access will eventually end up in.
-            </span><span class="kw">let </span>reference = cast_if_needed(
-                <span class="self">self</span>.llvm,
-                <span class="self">self</span>.index,
-                <span class="self">self</span>.llvm_index,
-                target_type,
-                <span class="self">self</span>.get_type_hint_for(index)<span class="question-mark">?</span>,
-                reference,
-                <span class="prelude-val">None</span>,
-            )
-            .into_int_value();
+            </span><span class="kw">let </span>reference =
+                <span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_type, <span class="self">self</span>.get_type_hint_for(index)<span class="question-mark">?</span>, reference, <span class="prelude-val">None</span>)
+                    .into_int_value();
             <span class="comment">// let reference = reference.into_int_value();
             //Multiply by the bitwitdh
             </span><span class="kw">if </span>access.get_bit_width() &gt; <span class="number">1 </span>{
@@ -3677,14 +3643,12 @@
                 <span class="comment">// XXX: Calling `cast_if_needed` will result in an `alloca` call for EVERY function call.
                 // LLVM might be able to optimize it away but ideally we find a solution for this at some
                 // point? For a more in-depth description see the `pass` function in `vla_adr.rs`
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(cast_if_needed(
-                    <span class="self">self</span>.llvm,
-                    <span class="self">self</span>.index,
-                    <span class="self">self</span>.llvm_index,
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(
+                    <span class="self">self</span>,
                     hint,
                     actual_type,
                     value.into(),
-                    <span class="self">self</span>.annotations.get(argument),
+                    <span class="self">self</span>.annotations.get(argument)
                 ));
             };
 
@@ -4227,15 +4191,13 @@
             access_value.into_int_value()
         };
         <span class="comment">//turn it into i32 immediately
-        </span><span class="prelude-val">Ok</span>(cast_if_needed(
-            <span class="self">self</span>.llvm,
-            <span class="self">self</span>.index,
-            <span class="self">self</span>.llvm_index,
+        </span><span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(
+            <span class="self">self</span>,
             <span class="self">self</span>.index.get_type(DINT_TYPE)<span class="question-mark">?</span>,
             <span class="self">self</span>.get_type_hint_for(access_expression)<span class="question-mark">?</span>,
             result.as_basic_value_enum(),
-            <span class="prelude-val">None</span>,
-        ))
+            <span class="prelude-val">None
+        </span>))
     }
 
     <span class="doccomment">/// generates a gep statement for a array-reference with an optional qualifier
