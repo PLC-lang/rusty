@@ -2,13 +2,13 @@
 *
 * This operator returns the value of adding up the operands.
 *
-*********************)
-FUNCTION ADD <T1: ANY, T2: ANY> : T1
-VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
-END_VAR
-END_FUNCTION
+******************** *)
+// FUNCTION ADD <T1: ANY, T2: ANY> : T1
+// VAR_INPUT
+// 	IN1 : T1;
+// 	IN2 : T2;
+// END_VAR
+// END_FUNCTION
 
 (* Specialized implementation of ADD for TIME *)
 FUNCTION ADD__TIME__TIME : TIME
@@ -23,7 +23,7 @@ END_FUNCTION
 *
 * This operator returns the value of adding up two TIME operands.
 *
-*********************)
+******************** *)
 {external}
 FUNCTION ADD_TIME : TIME
 VAR_INPUT
@@ -36,7 +36,7 @@ END_FUNCTION
 *
 * This operator returns the value of adding up two LTIME operands.
 *
-*********************)
+******************** *)
 FUNCTION ADD_LTIME : LTIME
 VAR_INPUT
 	IN1 : LTIME;
@@ -59,7 +59,7 @@ END_FUNCTION
 * This operator returns the value of adding up TOD and TIME.
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION ADD_TOD_TIME : TOD
 VAR_INPUT
@@ -73,7 +73,7 @@ END_FUNCTION
 * This operator returns the value of adding up LTOD and LTIME.
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION ADD_LTOD_LTIME : LTOD
 VAR_INPUT
 	IN1 : LTOD;
@@ -96,7 +96,7 @@ END_FUNCTION
 * This operator returns the value of adding up DT and TIME.
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION ADD_DT_TIME : DT
 VAR_INPUT
@@ -110,7 +110,7 @@ END_FUNCTION
 * This operator returns the value of adding up LDT and LTIME.
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION ADD_LDT_LTIME : LDT
 VAR_INPUT
 	IN1 : LDT;
@@ -123,13 +123,13 @@ END_FUNCTION
 *
 * This operator produces the subtraction of the operands.
 *
-*********************)
-FUNCTION SUB <T1: ANY, T2: ANY> : T1
-VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
-END_VAR
-END_FUNCTION
+******************** *)
+// FUNCTION SUB < T1 : ANY, T2 : ANY > : T1
+// VAR_INPUT
+// 	IN1 : T1;
+// 	IN2 : T2;
+// END_VAR
+// END_FUNCTION
 
 (* Specialized implementation of SUB for TIME *)
 FUNCTION SUB__TIME__TIME : TIME
@@ -144,7 +144,7 @@ END_FUNCTION
 *
 * This operator produces the subtraction of two TIME operands
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_TIME : TIME
 VAR_INPUT
@@ -157,7 +157,7 @@ END_FUNCTION
 *
 * This operator produces the subtraction of two LTIME operands
 *
-*********************)
+******************** *)
 FUNCTION SUB_LTIME : LTIME
 VAR_INPUT
 	IN1 : LTIME;
@@ -180,7 +180,7 @@ END_FUNCTION
 * This operator produces the subtraction of two DATE operands returning TIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_DATE_DATE : TIME
 VAR_INPUT
@@ -194,7 +194,7 @@ END_FUNCTION
 * This operator produces the subtraction of two LDATE operands returning LTIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION SUB_LDATE_LDATE : LTIME
 VAR_INPUT
 	IN1 : LDATE;
@@ -217,7 +217,7 @@ END_FUNCTION
 * This operator produces the subtraction of TOD and TIME returning TOD
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_TOD_TIME : TOD
 VAR_INPUT
@@ -231,7 +231,7 @@ END_FUNCTION
 * This operator produces the subtraction of LTOD and LTIME returning LTOD
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION SUB_LTOD_LTIME : LTOD
 VAR_INPUT
 	IN1 : LTOD;
@@ -254,7 +254,7 @@ END_FUNCTION
 * This operator produces the subtraction of two TOD operands returning TIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_TOD_TOD : TIME
 VAR_INPUT
@@ -268,7 +268,7 @@ END_FUNCTION
 * This operator produces the subtraction of two LTOD operands returning LTIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION SUB_LTOD_LTOD : LTIME
 VAR_INPUT
 	IN1 : LTOD;
@@ -291,7 +291,7 @@ END_FUNCTION
 * This operator produces the subtraction of DT and TIME returning DT
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_DT_TIME : DT
 VAR_INPUT
@@ -305,7 +305,7 @@ END_FUNCTION
 * This operator produces the subtraction of LDT and LTIME returning LDT
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION SUB_LDT_LTIME : LDT
 VAR_INPUT
 	IN1 : LDT;
@@ -328,7 +328,7 @@ END_FUNCTION
 * This operator produces the subtraction of two DT operands returning TIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 {external}
 FUNCTION SUB_DT_DT : TIME
 VAR_INPUT
@@ -342,7 +342,7 @@ END_FUNCTION
 * This operator produces the subtraction of two LDT operands returning LTIME
 * Panic on overflow
 *
-*********************)
+******************** *)
 FUNCTION SUB_LDT_LDT : LTIME
 VAR_INPUT
 	IN1 : LDT;
@@ -355,20 +355,20 @@ END_FUNCTION
 *
 * This operator produces the multiplication of the operands.
 *
-*********************)
-FUNCTION MUL <T1: ANY, T2: ANY> : T1
-VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
-END_VAR
-END_FUNCTION
+******************** *)
+// FUNCTION MUL < T1 : ANY, T2 : ANY > : T1
+// VAR_INPUT
+// 	IN1 : T1;
+// 	IN2 : T2;
+// END_VAR
+// END_FUNCTION
 
 (********************
 *
 * This operator produces the multiplication of TIME and ANY_NUM.
 *
-*********************)
-FUNCTION MUL_TIME <T: ANY_NUM> : TIME
+******************** *)
+FUNCTION MUL_TIME < T : ANY_NUM > : TIME
 VAR_INPUT
 	IN1 : TIME;
 	IN2 : T;
@@ -379,8 +379,8 @@ END_FUNCTION
 *
 * This operator produces the multiplication of LTIME and ANY_NUM.
 *
-*********************)
-FUNCTION MUL_LTIME <T: ANY_NUM> : LTIME
+******************** *)
+FUNCTION MUL_LTIME < T : ANY_NUM > : LTIME
 VAR_INPUT
 	IN1 : LTIME;
 	IN2 : T;
@@ -391,20 +391,20 @@ END_FUNCTION
 *
 * This operator produces the division of the operands.
 *
-*********************)
-FUNCTION DIV <T1: ANY, T2: ANY> : T1
-VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
-END_VAR
-END_FUNCTION
+******************** *)
+// FUNCTION DIV < T1 : ANY, T2 : ANY > : T1
+// VAR_INPUT
+// 	IN1 : T1;
+// 	IN2 : T2;
+// END_VAR
+// END_FUNCTION
 
 (********************
 *
 * This operator produces the division of TIME and ANY_NUM.
 *
-*********************)
-FUNCTION DIV_TIME <T: ANY_NUM> : TIME
+******************** *)
+FUNCTION DIV_TIME < T : ANY_NUM > : TIME
 VAR_INPUT
 	IN1 : TIME;
 	IN2 : T;
@@ -415,8 +415,8 @@ END_FUNCTION
 *
 * This operator produces the division of LTIME and ANY_NUM.
 *
-*********************)
-FUNCTION DIV_LTIME <T: ANY_NUM> : LTIME
+******************** *)
+FUNCTION DIV_LTIME < T : ANY_NUM > : LTIME
 VAR_INPUT
 	IN1 : LTIME;
 	IN2 : T;

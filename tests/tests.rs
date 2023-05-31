@@ -26,10 +26,17 @@ mod correctness {
     mod strings;
     mod sub_range_types;
     mod math_operators {
-        mod addition;
+        pub(crate) mod addition;
         mod division;
         mod mixed;
         mod multiplication;
+        mod substraction;
+    }
+    mod arithmetic_functions {
+        mod addition;
+        mod division;
+        mod multiplication;
+        // mod mixed;
         mod substraction;
     }
     mod vla;

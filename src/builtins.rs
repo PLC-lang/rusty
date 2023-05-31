@@ -2,15 +2,16 @@ use std::collections::HashMap;
 
 use inkwell::{
     basic_block::BasicBlock,
+    builder::Builder,
     types::BasicType,
-    values::{BasicValue, IntValue},
+    values::{BasicValue, BasicValueEnum, FloatValue, IntValue},
 };
 use lazy_static::lazy_static;
 
 use crate::{
     ast::{
         self, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, SourceRange, SourceRangeFactory, TypeNature,
+        LinkageType, Operator, SourceRange, SourceRangeFactory, TypeNature,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
@@ -22,7 +23,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type},
+    typesystem::{self, get_bigger_type, DataType},
     validation::{Validator, Validators},
 };
 
@@ -322,80 +323,185 @@ lazy_static! {
         (
             "ADD",
             BuiltIn {
-                decl: "FUNCTION ADD<T: ANY_NUM> : T
+                decl: "FUNCTION ADD<T: ANY_MAGNITUDE> : T
                 VAR_INPUT
                     args: T...;
                 END_VAR
                 END_FUNCTION                
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, _, parameters, _| {
                     let Some(params) = parameters else {
-                        todo!()
+                        unreachable!("must have parameters")
                     };
-
-                    // find biggest type and annotate it as type hint
-                    let params = ast::flatten_expression_list(params);
-
-                    let mut left_type = annotator.annotation_map.get_type_or_void(params.get(0).expect("must have parameters"), annotator.index);
-                    
-                    for param in params.iter().skip(1) {
-                        let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
-                        left_type = get_bigger_type(left_type, right_type, annotator.index);
-                    }
-
-                    // TODO: is annotating the first param sufficient?
-                    annotator.annotation_map.annotate_type_hint(params[0], StatementAnnotation::value(left_type.get_name()));
+                    annotate_arithmetic_function(annotator, params);
                 }),
-                validation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, params, location| {
-                    let llvm = generator.llvm;
-                    let context = llvm.context;
-                    let builder = &llvm.builder;
-
-                    // let function_context = generator.get_function_context(params.get(0).expect("Param 0 exists"))?;
-                    let first = params.get(0).unwrap();
-                    let hint = generator.annotations.get_hint(first);
-        
-                    let Some(StatementAnnotation::Value { resulting_type }) = hint else {
-                        todo!()
-                    };
-                    let target_type = generator.index.get_effective_type_or_void_by_name(resulting_type);
-            
-                    let mut accum = crate::codegen::llvm_typesystem::cast_if_needed(
-                        llvm, 
-                        generator.index, 
-                        generator.llvm_index, 
-                        target_type, 
-                        generator.index.get_effective_type_or_void_by_name(typesystem::DINT_TYPE),
-                        generator.generate_expression(first).unwrap(),
-                        hint
-                    );
-
-                    for param in params.iter().skip(1) {
-                        let rhs = crate::codegen::llvm_typesystem::cast_if_needed(
-                            llvm, 
-                            generator.index, 
-                            generator.llvm_index, 
-                            target_type, 
-                            generator.index.get_effective_type_or_void_by_name(typesystem::DINT_TYPE),
-                            generator.generate_expression(param).unwrap(),
-                            hint
-                        );
-                        accum = if target_type.get_type_information().is_int() {
-                            builder.build_int_add(accum.into_int_value(), rhs.into_int_value(), "").into()
-                        } else if target_type.get_type_information().is_float() {
-                            builder.build_float_add(accum.into_float_value(), rhs.into_float_value(), "").into()
-                        } else {
-                            todo!()
-                        };
-                    };
-
-                    Ok(ExpressionValue::RValue(accum))
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Plus)
                 }
             }
-        )
+        ),
+        (
+            "MUL",
+            BuiltIn {
+                decl: "FUNCTION MUL<T: ANY_MAGNITUDE> : T
+                VAR_INPUT
+                    args: T...;
+                END_VAR
+                END_FUNCTION                
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Multiplication)
+                }
+            }
+        ),
+        (
+            "SUB",
+            BuiltIn {
+                decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION                
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Minus)
+                }
+            }
+        ),
+        (
+            "DIV",
+            BuiltIn {
+                decl: "FUNCTION DIV<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION                
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Division)
+                }
+            }
+        ),
+        (
+            "MOD",
+            BuiltIn {
+                decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION                
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Minus)
+                }
+            }
+        ),
+        // expt?
+
+
     ]);
+}
+
+fn annotate_arithmetic_function(annotator: &mut TypeAnnotator, parameters: &AstStatement) {
+    let params = ast::flatten_expression_list(parameters);
+
+    // find biggest type and annotate it as type hint.
+    // getting the biggest type is done in a closure so the annotator can be borrowed immutably, otherwise
+    // the borrow-checker will throw a tantrum when calling `annotate_type_hint` later
+    let find_biggest_param_type = |annotator: &TypeAnnotator| {
+        let mut bigger = annotator
+            .annotation_map
+            .get_type_or_void(params.get(0).expect("must have this parameter"), &annotator.index);
+
+        for param in params.iter().skip(1) {
+            let right_type = annotator.annotation_map.get_type_or_void(param, &annotator.index);
+            bigger = get_bigger_type(bigger, right_type, &annotator.index);
+        }
+
+        bigger.get_name().to_owned()
+    };
+
+    let bigger_type = find_biggest_param_type(annotator);
+
+    for param in params.iter() {
+        annotator.annotation_map.annotate_type_hint(param, StatementAnnotation::value(&bigger_type));
+    }
+}
+
+fn validate_arithmetic_function(
+    validator: &mut Validator,
+    operator: &AstStatement,
+    parameters: &Option<AstStatement>,
+    annotations: &AnnotationMapImpl,
+    index: &Index,
+) {
+    // TODO
+}
+
+fn generate_arithmetic_function<'ink, 'b>(
+    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
+    params: &[&AstStatement],
+    operator: Operator,
+) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    // generate the accumulator from the initial parameter and
+    let mut accum = generator.generate_expression(params.get(0).expect("must have this parameter"))?;
+    let generate_binary_expr = match accum {
+        BasicValueEnum::IntValue(_) => ExpressionCodeGenerator::create_llvm_int_binary_expression,
+        BasicValueEnum::FloatValue(_) => ExpressionCodeGenerator::create_llvm_float_binary_expression,
+        BasicValueEnum::PointerValue(_) => todo!(), // pointer arithmetic?
+        _ => unreachable!(),
+    };
+    for param in params.iter().skip(1) {
+        accum = generate_binary_expr(generator, &operator, accum, generator.generate_expression(param)?)
+    }
+    Ok(ExpressionValue::RValue(accum))
 }
 
 fn annotate_variable_length_array_bound_function(
@@ -624,13 +730,4 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
 /// Returns the requested functio from the builtin index or None
 pub fn get_builtin(name: &str) -> Option<&'static BuiltIn> {
     BUILTIN.get(name.to_uppercase().as_str())
-}
-
-pub extern "C" fn add_variadic<T>(argc: i32, argv: *const T) -> T 
-where
-    T : Default + Copy + std::ops::Add<Output = T>
-{    
-    (0..argc).fold(T::default(), |acc, i| {
-        acc + unsafe { *argv.add(i as usize) }
-    })
 }

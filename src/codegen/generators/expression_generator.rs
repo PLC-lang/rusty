@@ -1764,7 +1764,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `left_value` the left side of the binary expression, needs to be a float-value
     /// - `right_value` the right side of the binary expression, needs to be a float-value
     /// - `target_type` the resulting type
-    fn create_llvm_float_binary_expression(
+    pub fn create_llvm_float_binary_expression(
         &self,
         operator: &Operator,
         lvalue: BasicValueEnum<'ink>,
