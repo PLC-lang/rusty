@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use quick_xml::{events::Event, Reader};
 
-use crate::{deserialize::PrototypingToString, error::Error};
+use crate::{deserializer::PrototypingToString, error::Error};
 
 pub struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
-    peek: Option<Event<'xml>>,
+    peeked: Option<Event<'xml>>,
 }
 
 impl<'xml> PeekableReader<'xml> {
@@ -17,12 +17,12 @@ impl<'xml> PeekableReader<'xml> {
                 reader.trim_text(true);
                 reader
             },
-            peek: None,
+            peeked: None,
         }
     }
 
     pub(crate) fn next(&mut self) -> Result<Event<'xml>, Error> {
-        if let Some(event) = self.peek.take() {
+        if let Some(event) = self.peeked.take() {
             return Ok(event);
         }
 
@@ -30,11 +30,11 @@ impl<'xml> PeekableReader<'xml> {
     }
 
     pub(crate) fn peek(&mut self) -> Result<&Event<'xml>, Error> {
-        if self.peek.is_none() {
-            self.peek = Some(self.reader.read_event().map_err(Error::ReadEvent)?);
+        if self.peeked.is_none() {
+            self.peeked = Some(self.reader.read_event().map_err(Error::ReadEvent)?);
         }
 
-        match self.peek.as_ref() {
+        match self.peeked.as_ref() {
             Some(val) => Ok(val),
             None => unreachable!(),
         }

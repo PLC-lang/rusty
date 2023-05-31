@@ -1,6 +1,6 @@
 ---
-source: compiler/plc_cfc/src/deserialize.rs
-expression: visit(CONTENT_WITH_LABELS)
+source: compiler/plc_cfc/src/tests/xml.rs
+expression: "deserialize::visit(CONTENT)"
 ---
 Ok(
     Pou {
@@ -10,7 +10,7 @@ Ok(
             function_block_diagram: FunctionBlockDiagram {
                 blocks: [
                     Block {
-                        local_id: 1,
+                        local_id: 5,
                         global_id: None,
                         type_name: "MyAdd",
                         instance_name: Some(
@@ -25,7 +25,7 @@ Ok(
                                 formal_parameter: "a",
                                 negated: false,
                                 ref_local_id: Some(
-                                    2,
+                                    6,
                                 ),
                                 edge: None,
                                 storage: None,
@@ -36,7 +36,7 @@ Ok(
                                 formal_parameter: "b",
                                 negated: false,
                                 ref_local_id: Some(
-                                    3,
+                                    7,
                                 ),
                                 edge: None,
                                 storage: None,
@@ -57,82 +57,32 @@ Ok(
                 variables: [
                     FunctionBlockVariable {
                         kind: Input,
-                        local_id: 2,
+                        local_id: 6,
                         negated: false,
-                        expression: "local_a + 1",
+                        expression: "local_a",
                         execution_order_id: None,
                         ref_local_id: None,
                     },
                     FunctionBlockVariable {
                         kind: Input,
-                        local_id: 3,
+                        local_id: 7,
                         negated: false,
                         expression: "local_b",
                         execution_order_id: None,
                         ref_local_id: None,
                     },
                     FunctionBlockVariable {
-                        kind: Input,
-                        local_id: 12,
-                        negated: false,
-                        expression: "local_bool",
-                        execution_order_id: None,
-                        ref_local_id: None,
-                    },
-                    FunctionBlockVariable {
                         kind: Output,
-                        local_id: 17,
+                        local_id: 8,
                         negated: false,
                         expression: "local_c",
                         execution_order_id: Some(
-                            5,
+                            1,
                         ),
                         ref_local_id: None,
                     },
                 ],
-                controls: [
-                    Control {
-                        kind: Jump,
-                        name: Some(
-                            "jumpy",
-                        ),
-                        local_id: 9,
-                        global_id: None,
-                        ref_local_id: Some(
-                            12,
-                        ),
-                        execution_order_id: Some(
-                            2,
-                        ),
-                        negated: false,
-                    },
-                    Control {
-                        kind: Label,
-                        name: Some(
-                            "jumpy",
-                        ),
-                        local_id: 10,
-                        global_id: None,
-                        ref_local_id: None,
-                        execution_order_id: Some(
-                            3,
-                        ),
-                        negated: false,
-                    },
-                    Control {
-                        kind: Return,
-                        name: None,
-                        local_id: 11,
-                        global_id: None,
-                        ref_local_id: Some(
-                            15,
-                        ),
-                        execution_order_id: Some(
-                            4,
-                        ),
-                        negated: false,
-                    },
-                ],
+                controls: [],
             },
             global_id: None,
         },

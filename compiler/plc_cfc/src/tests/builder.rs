@@ -6,7 +6,7 @@ const INDENT_SPACES: usize = 4;
 struct Node {
     name: &'static str,
     attributes: Attributes,
-    is_empty: bool, // TODO: Rename
+    closed: bool,
     nodes: Vec<Node>,
 }
 
@@ -20,10 +20,11 @@ impl Node {
         fmt
     }
 
-    pub fn _finalize(self, level: usize) -> String {
+    // TODO: ✨ Beautify ✨ this
+    fn finalize(self, level: usize) -> String {
         let mut fmt = String::new();
 
-        if self.is_empty {
+        if self.closed {
             fmt = format!(
                 "{indent}<{name} {attributes} />\n",
                 indent = " ".repeat(level * INDENT_SPACES),
@@ -32,7 +33,7 @@ impl Node {
             );
         }
 
-        if !self.is_empty {
+        if !self.closed {
             fmt = format!(
                 "{indent}<{name} {attributes}>\n",
                 indent = " ".repeat(level * INDENT_SPACES),
@@ -42,10 +43,10 @@ impl Node {
         }
 
         for node in self.nodes {
-            fmt = format!("{fmt}{}", node._finalize(level + 1));
+            fmt = format!("{fmt}{}", node.finalize(level + 1));
         }
 
-        if !self.is_empty {
+        if !self.closed {
             fmt = format!(
                 "{fmt}{indent}</{name}>\n",
                 indent = " ".repeat(level * INDENT_SPACES),
@@ -55,18 +56,15 @@ impl Node {
 
         fmt
     }
-
-    pub fn finalize(self) -> String {
-        self._finalize(0)
-    }
 }
 
+// TODO: Merge `types!` and `extend!`
 macro_rules! types {
     ($(($name:ident, $name_xml:expr)),+) => {
-        $(struct $name(Node);
+        $(pub(crate) struct $name(Node);
         impl $name {
             pub fn new() -> Self {
-                Self(Node { name: $name_xml, attributes: vec![], is_empty: false, nodes: vec![] })
+                Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![] })
             }
 
             pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
@@ -74,9 +72,13 @@ macro_rules! types {
                 self
             }
 
-            pub fn as_empty(mut self) -> Self {
-                self.0.is_empty = true;
+            pub fn close(mut self) -> Self {
+                self.0.closed = true;
                 self
+            }
+
+            pub fn finalize(self) -> String {
+                self.0.finalize(0)
             }
 
             fn get_inner(self) -> Node {
@@ -106,7 +108,7 @@ macro_rules! types {
 macro_rules! extend {
     ($($type:ty, $(($arg:ty, $fn_name:ident)),+); +) => {
          $(impl $type {
-            $( fn $fn_name(mut self, value: $arg) -> Self {
+            $( pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
                 self.get_inner_ref_mut().nodes.push(value.get_inner());
                 self
             })*
@@ -174,7 +176,7 @@ types! {
 }
 
 impl Variable {
-    fn init(name: &'static str, negated: bool) -> Self {
+    pub(crate) fn init(name: &'static str, negated: bool) -> Self {
         Variable::new()
             .with_attribute("formalParameter", name)
             .with_attribute("negated", if negated { "true" } else { "false" })
@@ -182,27 +184,27 @@ impl Variable {
 }
 
 impl RelPosition {
-    fn init() -> Self {
+    pub(crate) fn init() -> Self {
         RelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
     }
 }
 
 impl ConnectionPointIn {
-    fn with_ref(ref_local_id: &'static str) -> Self {
+    pub(crate) fn with_ref(ref_local_id: &'static str) -> Self {
         ConnectionPointIn::new()
-            .with_rel_position(RelPosition::init().as_empty())
-            .with_connection(Connection::new().with_attribute("refLocalId", ref_local_id).as_empty())
+            .with_rel_position(RelPosition::init().close())
+            .with_connection(Connection::new().with_attribute("refLocalId", ref_local_id).close())
     }
 }
 
 impl ConnectionPointOut {
-    fn with_rel_pos() -> Self {
-        ConnectionPointOut::new().with_rel_position(RelPosition::init().as_empty())
+    pub(crate) fn with_rel_pos() -> Self {
+        ConnectionPointOut::new().with_rel_position(RelPosition::init().close())
     }
 }
 
 impl InVariable {
-    fn init(local_id: &'static str, negated: bool) -> Self {
+    pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
         InVariable::new()
             .with_attribute("localId", local_id)
             .with_attribute("negated", if negated { "true" } else { "false" })
@@ -210,8 +212,8 @@ impl InVariable {
 }
 
 impl Block {
-    fn init(local_id: &'static str, type_name: &'static str) -> Self {
-        Block::new().with_attribute("localId", "5").with_attribute("typeName", "MyAdd")
+    pub(crate) fn init(local_id: &'static str, type_name: &'static str) -> Self {
+        Block::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
     }
 }
 
@@ -234,7 +236,7 @@ fn demo() {
                                     .with_connection_in(ConnectionPointIn::with_ref("7")),
                             ),
                     )
-                    .with_inout_variables(InOutVariables::new().as_empty())
+                    .with_inout_variables(InOutVariables::new().close())
                     .with_output_variables(
                         OutputVariables::new().with_variable(
                             Variable::init("c", false)
@@ -247,5 +249,5 @@ fn demo() {
             ),
     );
 
-    println!("{}", Pou::new().with_body(body).get_inner().finalize())
+    println!("{}", Pou::new().with_body(body).finalize())
 }

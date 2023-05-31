@@ -1,8 +1,13 @@
 // TODO: Remove
 #![allow(dead_code)]
 
-pub mod builder;
-mod deserialize;
+mod deserializer;
 pub mod error;
 mod model;
 mod reader;
+
+mod tests {
+    mod builder;
+    mod variables;
+    mod xml;
+}
