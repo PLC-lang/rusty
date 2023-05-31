@@ -21,7 +21,7 @@ mod tests {
                     .with_variable(Variable::init("d", true)),
             )
             .with_inout_variables(InOutVariables::new().close())
-            .finalize();
+            .serialize();
 
         let mut reader = PeekableReader::new(&content);
         insta::assert_debug_snapshot!(model::Block::visit(&mut reader));

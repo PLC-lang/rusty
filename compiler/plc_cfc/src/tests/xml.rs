@@ -23,7 +23,8 @@ const CONTENT: &str = r#"
                             local_b : DINT := 2;
                             local_c : DINT := 0;
                             local_add : MyAdd;
-                            END_VAR</content>
+                            END_VAR
+                        </content>
                     </textDeclaration>
                 </data>
             </addData>
@@ -61,7 +62,10 @@ const CONTENT: &str = r#"
                     <connectionPointOut>
                         <relPosition x="82" y="10" />
                     </connectionPointOut>
-                    <expression>local_a</expression>
+                    <expression>
+                        local_a
+                    <!-- comment -->
+                    </expression>
                 </inVariable>
                 <inVariable localId="7" height="20" width="82" negated="false">
                     <position x="340" y="190" />

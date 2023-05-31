@@ -21,7 +21,7 @@ impl Node {
     }
 
     // TODO: ✨ Beautify ✨ this
-    fn finalize(self, level: usize) -> String {
+    fn serialize(self, level: usize) -> String {
         let mut fmt = String::new();
 
         if self.closed {
@@ -43,7 +43,7 @@ impl Node {
         }
 
         for node in self.nodes {
-            fmt = format!("{fmt}{}", node.finalize(level + 1));
+            fmt = format!("{fmt}{}", node.serialize(level + 1));
         }
 
         if !self.closed {
@@ -61,123 +61,109 @@ impl Node {
     }
 }
 
-// TODO: Merge `types!` and `extend!`
-macro_rules! types {
-    ($(($name:ident, $name_xml:expr)),+) => {
-        $(pub(crate) struct $name(Node);
-        impl $name {
-            pub fn new() -> Self {
-                Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![] })
-            }
+macro_rules! declare_type_and_extend_if_needed {
+    ($(($name:ident, $name_xml:expr, $(($arg:ty, $fn_name:ident)),*),) +) => {
+        $(
+            // will be implemented for every $name
+            pub(crate) struct $name(Node);
+            impl $name {
+                pub fn new() -> Self {
+                    Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![] })
+                }
 
-            pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
-                self.0.attributes.push((key, value));
-                self
-            }
+                pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
+                    self.0.attributes.push((key, value));
+                    self
+                }
 
-            pub fn close(mut self) -> Self {
-                self.0.closed = true;
-                self
-            }
+                pub fn close(mut self) -> Self {
+                    self.0.closed = true;
+                    self
+                }
 
-            pub fn finalize(self) -> String {
-                self.0.finalize(0)
-            }
+                pub fn serialize(self) -> String {
+                    self.0.serialize(0)
+                }
 
-            fn get_inner(self) -> Node {
-                self.0
-            }
+                fn get_inner(self) -> Node {
+                    self.0
+                }
 
-            fn get_inner_ref(&self) -> &Node {
-                &self.0
-            }
+                fn get_inner_ref_mut(&mut self) -> &mut Node {
+                    &mut self.0
+                }
 
-            fn get_inner_ref_mut(&mut self) -> &mut Node {
-                &mut self.0
-            }
-        })*
-    };
-}
-
-// For `extend! {Pou, (Body, with_body), ... }` the macro will expand to
-// impl Pou {
-//     fn with_body(arg: Body) -> Self {
-//         self.get_inner_ref_mut().nodes.push(arg.get_inner());
-//         self
-//     }
-//
-//     // ...
-// }
-macro_rules! extend {
-    ($($type:ty, $(($arg:ty, $fn_name:ident)),+); +) => {
-         $(impl $type {
-            $( pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
-                self.get_inner_ref_mut().nodes.push(value.get_inner());
-                self
-            })*
+                // this part is optional.
+                $( pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
+                    self.get_inner_ref_mut().nodes.push(value.get_inner());
+                    self
+                })*
         })*
     }
 }
 
-extend! {
-    Pou,
-    (Body, with_body);
+declare_type_and_extend_if_needed! {
+    (
+        Pou, "pou",
+        (Body, with_body)
+    ),
+    (
+        Block, "block",
+        (InOutVariables, with_inout_variables),
+        (InputVariables, with_input_variables),
+        (OutputVariables, with_output_variables)
+    ),
+    (
 
-    Block,
-    (InOutVariables, with_inout_variables),
-    (InputVariables, with_input_variables),
-    (OutputVariables, with_output_variables);
+        Body, "body",
+        (Fbd, with_fbd)
+    ),
+    (
 
-    Body,
-    (Fbd, with_fbd);
+        ConnectionPointIn, "connectionPointIn",
+        (Connection, with_connection),
+        (RelPosition, with_rel_position)
+    ),
+    (
+        ConnectionPointOut, "connectionPointOut",
+        (Connection, with_connection),
+        (RelPosition, with_rel_position)
+    ),
+    (
+        Fbd, "FBD",
+        (Block, with_block),
+        (InVariable, with_in_variable)
+    ),
+    (
+        Variable, "variable",
+        (ConnectionPointIn, with_connection_in),
+        (ConnectionPointOut, with_connection_point_out)
+    ),
+    (
+        InVariable, "inVariable",
+        (ConnectionPointOut, with_connection_point_out),
+        (Position, with_position)
+    ),
+    (
+        InOutVariables, "inOutVariables",
+        (Variable, with_variable)
+    ),
+    (
+        InputVariables, "inputVariables",
+        (Variable, with_variable)
+    ),
+    (
+        OutputVariables, "outputVariables",
+        (Variable, with_variable)
+    ),
 
-    ConnectionPointIn,
-    (Connection, with_connection),
-    (RelPosition, with_rel_position);
-
-    ConnectionPointOut,
-    (Connection, with_connection),
-    (RelPosition, with_rel_position);
-
-    Fbd,
-    (Block, with_block),
-    (InVariable, with_in_variable);
-
-    Variable,
-    (ConnectionPointIn, with_connection_in),
-    (ConnectionPointOut, with_connection_point_out);
-
-    InVariable,
-    (ConnectionPointOut, with_connection_point_out),
-    (Position, with_position);
-
-    InOutVariables,
-    (Variable, with_variable);
-
-    InputVariables,
-    (Variable, with_variable);
-
-    OutputVariables,
-    (Variable, with_variable)
+    // these are not being extended:
+    (Position, "position",),
+    (RelPosition, "relPosition",),
+    (Connection, "connection",),
 }
 
-types! {
-    (Pou, "pou"),
-    (Body, "body"),
-    (Fbd, "FBD"),
-    (Block, "block"),
-    (InputVariables, "inputVariables"),
-    (OutputVariables, "outputVariables"),
-    (InOutVariables, "inOutVariables"),
-    (Variable, "variable"),
-    (RelPosition, "relPosition"),
-    (Connection, "connection"),
-    (ConnectionPointIn, "connectionPointIn"),
-    (ConnectionPointOut, "connectionPointOut"),
-    (InVariable, "inVariable"),
-    (Position, "position")
-}
-
+// convenience methods to reduce amount of boiler-plate-code
 impl Variable {
     pub(crate) fn init(name: &'static str, negated: bool) -> Self {
         Variable::new()
@@ -252,5 +238,5 @@ fn demo() {
             ),
     );
 
-    println!("{}", Pou::new().with_body(body).finalize())
+    println!("{}", Pou::new().with_body(body).serialize())
 }
