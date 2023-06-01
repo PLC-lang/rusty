@@ -298,3 +298,34 @@ fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
 
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
+    let diagnostics = parse_and_validate(
+        "
+		PROGRAM mainProg
+        VAR
+            var_str1 : STRUCT1 := (myArr := (x1 := FALSE, x2 := TRUE));
+        END_VAR
+        END_PROGRAM
+
+        TYPE STRUCT1 :
+            STRUCT
+                myArr : ARRAY[0..10] OF STRUCT2;
+            END_STRUCT
+        END_TYPE
+
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : BOOL;
+                x3 : DINT;
+                x4 : DINT;
+            END_STRUCT
+        END_TYPE
+
+       ",
+    );
+
+    assert_eq!(diagnostics, vec![]);
+}
