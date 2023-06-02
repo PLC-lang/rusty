@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_cfc/src/tests/xml.rs
-expression: "deserialize::visit(CONTENT)"
+expression: "crate::deserializer::visit(CONTENT)"
 ---
 Ok(
     Pou {
@@ -83,6 +83,7 @@ Ok(
                     },
                 ],
                 controls: [],
+                connectors: [],
             },
             global_id: None,
         },

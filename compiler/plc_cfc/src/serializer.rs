@@ -26,10 +26,10 @@ impl Node {
 
         if self.closed {
             fmt = format!(
-                "{indent}<{name} {attributes} />\n",
+                "{indent}<{name} {attributes}/>\n",
                 indent = " ".repeat(level * INDENT_SPACES),
                 name = self.name,
-                attributes = self.attributes()
+                attributes = self.attributes().len()
             );
         }
 
@@ -150,7 +150,9 @@ declare_type_and_extend_if_needed! {
     (
         Fbd, "FBD",
         (Block, with_block),
-        (InVariable, with_in_variable)
+        (InVariable, with_in_variable),
+        (Continuation, with_continuation),
+        (Connector, with_connector)
     ),
     (
         Variable, "variable",
@@ -179,7 +181,67 @@ declare_type_and_extend_if_needed! {
     (Position, "position",),
     (RelPosition, "relPosition",),
     (Connection, "connection",),
+
+    (
+        Continuation, "continuation",
+        (Position, with_position),
+        (ConnectionPointOut, with_connection_point_out)
+    ),
+    (
+        Connector, "connector",
+        (Position, with_position),
+        (ConnectionPointIn, with_connection_point_in)
+    ),
 }
+
+#[test]
+fn demoo() {
+    let xml = Continuation::new()
+        .with_attribute("name", "abc")
+        .with_attribute("localId", "1")
+        .with_position(Position::new().close())
+        .with_connection_point_out(ConnectionPointOut::with_rel_pos().close())
+        .serialize();
+
+    println!("{xml}");
+    let mut reader = crate::reader::PeekableReader::new(&xml);
+    dbg!(<crate::model::Connector as crate::deserializer::Parseable>::visit(&mut reader).unwrap());
+
+    let xml = Connector::new()
+        .with_attribute("name", "abc")
+        .with_attribute("localId", "1")
+        .with_position(Position::new().close())
+        .with_connection_point_in(
+            ConnectionPointIn::new().with_rel_position(RelPosition::init()).with_connection(
+                Connection::new()
+                    .with_attribute("refLocalId", "11")
+                    .with_attribute("formalParameter", "function_0")
+                    .close(),
+            ),
+        )
+        .serialize();
+
+    let mut reader = crate::reader::PeekableReader::new(&xml);
+    dbg!(<crate::model::Connector as crate::deserializer::Parseable>::visit(&mut reader).unwrap());
+}
+/*
+<continuation name="label" localId="12" height="20" width="85">
+    <position x="730" y="250"/>
+    <connectionPointOut>
+        <relPosition x="85" y="10"/>
+    </connectionPointOut>
+</continuation>
+ */
+
+/*
+<connector name="label" localId="8" height="20" width="82">
+    <position x="730" y="180"/>
+    <connectionPointIn>
+        <relPosition x="0" y="10"/>
+        <connection refLocalId="11" formalParameter="function_0"/>
+    </connectionPointIn>
+</connector>
+ */
 
 // convenience methods to reduce amount of boiler-plate-code
 impl Variable {

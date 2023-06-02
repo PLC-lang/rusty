@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_cfc/src/tests/xml.rs
-expression: "deserialize::visit(CONTENT_WITH_LABELS)"
+expression: "crate::deserializer::visit(CONTENT_WITH_LABELS)"
 ---
 Ok(
     Pou {
@@ -131,6 +131,26 @@ Ok(
                             4,
                         ),
                         negated: false,
+                    },
+                ],
+                connectors: [
+                    Connector {
+                        kind: Source,
+                        name: "wifi",
+                        local_id: 15,
+                        ref_local_id: None,
+                        global_id: None,
+                        formal_parameter: None,
+                    },
+                    Connector {
+                        kind: Sink,
+                        name: "wifi",
+                        local_id: 16,
+                        ref_local_id: Some(
+                            12,
+                        ),
+                        global_id: None,
+                        formal_parameter: None,
                     },
                 ],
             },

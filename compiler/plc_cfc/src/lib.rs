@@ -5,9 +5,9 @@ mod deserializer;
 pub mod error;
 mod model;
 mod reader;
+mod serializer;
 
 mod tests {
-    mod builder;
     mod variables;
     mod xml;
 }

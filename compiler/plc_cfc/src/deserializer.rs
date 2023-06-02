@@ -5,8 +5,8 @@ use quick_xml::{events::Event, name::QName};
 use crate::{
     error::Error,
     model::{
-        Block, BlockVariable, Body, Control, ControlKind, FunctionBlockDiagram, FunctionBlockVariable, Pou,
-        VariableKind,
+        Block, BlockVariable, Body, Connector, ConnectorKind, Control, ControlKind, FunctionBlockDiagram,
+        FunctionBlockVariable, Pou, VariableKind,
     },
     reader::PeekableReader,
 };
@@ -147,6 +147,7 @@ impl Parseable for FunctionBlockDiagram {
         let mut blocks = Vec::new();
         let mut variables = Vec::new();
         let mut controls = Vec::new(); // TODO
+        let mut connectors = Vec::new(); // TODO
 
         loop {
             match reader.peek()? {
@@ -154,6 +155,7 @@ impl Parseable for FunctionBlockDiagram {
                     b"block" => blocks.push(Block::visit(reader)?),
                     b"jump" | b"label" | b"return" => controls.push(Control::visit(reader)?),
                     b"inVariable" | b"outVariable" => variables.push(FunctionBlockVariable::visit(reader)?),
+                    b"continuation" | b"connector" => connectors.push(Connector::visit(reader)?),
                     _ => reader.consume()?,
                 },
 
@@ -165,7 +167,7 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        Ok(FunctionBlockDiagram { blocks, variables, controls })
+        Ok(FunctionBlockDiagram { blocks, variables, controls, connectors })
     }
 }
 
@@ -290,6 +292,42 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
     }
 
     Ok(attributes)
+}
+
+impl Parseable for Connector {
+    type Item = Self;
+
+    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
+        let next = reader.peek()?;
+        let kind = match &next {
+            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
+                b"connector" => ConnectorKind::Sink,
+                b"continuation" => ConnectorKind::Source,
+                _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
+            },
+
+            _ => unreachable!(),
+        };
+
+        let mut attributes = reader.attributes()?;
+        loop {
+            match reader.peek()? {
+                Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
+                    b"connection" => attributes.extend(reader.attributes()?),
+                    _ => reader.consume()?,
+                },
+
+                Event::End(tag) if matches!(tag.name().as_ref(), b"connector" | b"continuation") => {
+                    reader.consume()?;
+                    break;
+                }
+
+                _ => reader.consume()?,
+            }
+        }
+
+        Connector::new(attributes, kind)
+    }
 }
 
 trait GetOrErr {

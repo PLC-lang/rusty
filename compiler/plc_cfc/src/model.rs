@@ -18,6 +18,17 @@ pub(crate) struct FunctionBlockDiagram {
     pub blocks: Vec<Block>,
     pub variables: Vec<FunctionBlockVariable>,
     pub controls: Vec<Control>,
+    pub connectors: Vec<Connector>,
+}
+
+#[derive(Debug)]
+pub(crate) struct Connector {
+    pub kind: ConnectorKind,
+    pub name: String,
+    pub local_id: usize,
+    pub ref_local_id: Option<usize>,
+    pub global_id: Option<usize>,
+    pub formal_parameter: Option<String>,
 }
 
 #[derive(Debug)]
@@ -30,6 +41,25 @@ pub(crate) struct Control {
     pub execution_order_id: Option<usize>,
     pub negated: bool,
 }
+
+impl Connector {
+    pub fn new(mut hm: HashMap<String, String>, kind: ConnectorKind) -> Result<Self, Error> {
+        Ok(Self {
+            kind,
+            name: hm.get_or_err("name")?,
+            local_id: hm.get_or_err("localId").map(|it| it.parse())??,
+            ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
+            global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
+            formal_parameter: hm.remove("formalParameter"),
+        })
+    }
+}
+
+// impl Continuation {
+//     pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
+//         Ok(Self {})
+//     }
+// }
 
 impl Control {
     pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
@@ -50,6 +80,12 @@ pub(crate) enum ControlKind {
     Jump,
     Label,
     Return,
+}
+
+#[derive(Debug)]
+pub(crate) enum ConnectorKind {
+    Source,
+    Sink,
 }
 
 #[derive(Debug)]

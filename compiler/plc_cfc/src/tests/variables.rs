@@ -4,7 +4,7 @@ mod tests {
         deserializer::Parseable,
         model,
         reader::PeekableReader,
-        tests::builder::{Block, InOutVariables, InputVariables, OutputVariables, Variable},
+        serializer::{Block, InOutVariables, InputVariables, OutputVariables, Variable},
     };
 
     #[test]
