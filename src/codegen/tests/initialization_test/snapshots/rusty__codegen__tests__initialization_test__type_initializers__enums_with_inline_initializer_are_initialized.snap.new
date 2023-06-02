@@ -1,0 +1,42 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+assertion_line: 665
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i32 2
+@redy = unnamed_addr constant i32 1
+@yellowy = unnamed_addr constant i32 2
+@greeny = unnamed_addr constant i32 3
+@x1 = unnamed_addr constant i32 1
+@x2 = unnamed_addr constant i32 2
+@x3 = unnamed_addr constant i32 3
+@x5 = unnamed_addr constant i32 0
+@x6 = unnamed_addr constant i32 1
+@x7 = unnamed_addr constant i32 2
+@red = unnamed_addr constant i32 0
+@yellow = unnamed_addr constant i32 1
+@green = unnamed_addr constant i32 2
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  %y = alloca i32, align 4
+  %var1 = alloca i32, align 4
+  %var2 = alloca i32, align 4
+  store i32 2, i32* %y, align 4
+  store i32 1, i32* %var1, align 4
+  store i32 2, i32* %var2, align 4
+  store i32 0, i32* %main, align 4
+  store i32 1, i32* %y, align 4
+  store i32 2, i32* %y, align 4
+  store i32 2, i32* @x, align 4
+  store i32 0, i32* @x, align 4
+  store i32 1, i32* %var1, align 4
+  store i32 1, i32* %var2, align 4
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+
