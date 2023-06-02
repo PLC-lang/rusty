@@ -9,6 +9,9 @@ struct Node {
     name: &'static str,
     attributes: Attributes,
     closed: bool,
+    // TODO: Data can only exist if nodes is empty and vice-versa, update such that this behavior is reflected
+    // (e.g. with an enum)
+    data: Option<&'static str>,
     nodes: Vec<Node>,
 }
 
@@ -26,34 +29,43 @@ impl Node {
     fn serialize(self, level: usize) -> String {
         let mut fmt = String::new();
 
-        if self.closed {
+        if let Some(data) = &self.data {
             fmt = format!(
-                "{indent}<{name} {attributes}/>\n",
-                indent = " ".repeat(level * INDENT_SPACES),
-                name = self.name,
-                attributes = self.attributes().len()
-            );
-        }
-
-        if !self.closed {
-            fmt = format!(
-                "{indent}<{name} {attributes}>\n",
+                "{indent}<{name} {attributes}>{data}</{name}>\n",
                 indent = " ".repeat(level * INDENT_SPACES),
                 name = self.name,
                 attributes = self.attributes()
             );
-        }
+        } else {
+            if self.closed {
+                fmt = format!(
+                    "{indent}<{name} {attributes}/>\n",
+                    indent = " ".repeat(level * INDENT_SPACES),
+                    name = self.name,
+                    attributes = self.attributes()
+                );
+            }
 
-        for node in self.nodes {
-            fmt = format!("{fmt}{}", node.serialize(level + 1));
-        }
+            if !self.closed {
+                fmt = format!(
+                    "{indent}<{name} {attributes}>\n",
+                    indent = " ".repeat(level * INDENT_SPACES),
+                    name = self.name,
+                    attributes = self.attributes()
+                );
+            }
 
-        if !self.closed {
-            fmt = format!(
-                "{fmt}{indent}</{name}>\n",
-                indent = " ".repeat(level * INDENT_SPACES),
-                name = &self.name
-            );
+            for node in self.nodes {
+                fmt = format!("{fmt}{}", node.serialize(level + 1));
+            }
+
+            if !self.closed {
+                fmt = format!(
+                    "{fmt}{indent}</{name}>\n",
+                    indent = " ".repeat(level * INDENT_SPACES),
+                    name = &self.name
+                );
+            }
         }
 
         #[cfg(feature = "debug")]
@@ -88,11 +100,16 @@ macro_rules! declare_type_and_extend_if_needed {
             pub(crate) struct $name(Node);
             impl $name {
                 pub fn new() -> Self {
-                    Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![] })
+                    Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![], data: None })
                 }
 
                 pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
                     self.0.attributes.push((key, value));
+                    self
+                }
+
+                pub fn with_data(mut self, data: &'static str) -> Self {
+                    self.0.data = Some(data);
                     self
                 }
 
@@ -167,6 +184,12 @@ declare_type_and_extend_if_needed! {
         (Position, with_position)
     ),
     (
+        OutVariable, "outVariable",
+        (Position, with_position),
+        (ConnectionPointIn, with_connection_point_in),
+        (Expression, with_expression)
+    ),
+    (
         InOutVariables, "inOutVariables",
         (Variable, with_variable)
     ),
@@ -183,6 +206,7 @@ declare_type_and_extend_if_needed! {
     (Position, "position",),
     (RelPosition, "relPosition",),
     (Connection, "connection",),
+    (Expression, "expression",),
 
     (
         Continuation, "continuation",

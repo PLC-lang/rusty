@@ -138,6 +138,10 @@ impl Parseable for FunctionBlockVariable {
         let mut attributes = reader.attributes()?;
         loop {
             match reader.peek()? {
+                Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(reader.attributes()?);
+                }
+
                 Event::Text(tag) => {
                     attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
                     reader.consume()?;

@@ -1,4 +1,126 @@
 #[test]
+fn simple() {
+    insta::assert_debug_snapshot!(crate::deserializer::visit(SIMPLE));
+
+    let _src = r#"
+    FUNCTION function_1 : DINT
+    VAR_INPUT
+        elem: DINT;
+    END_VAR
+        function_1 := elem + 1;
+    END_FUNCTION
+    "#;
+    /*
+    name: "function_1",
+    type_name: "function_1",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        Assignment {
+            left: Reference {
+                name: "function_1",
+            },
+            right: BinaryExpression {
+                operator: Plus,
+                left: Reference {
+                    name: "elem",
+                },
+                right: LiteralInteger {
+                    value: 1,
+                },
+            },
+        },
+    ]
+     */
+
+    /*
+    Pou {
+        name: "function_1",
+        pou_type: Function,
+        body: Body {
+            function_block_diagram: FunctionBlockDiagram {
+                blocks: [
+                    Block {
+                        local_id: 1,
+                        global_id: None,
+                        type_name: "ADD",
+                        instance_name: None,
+                        execution_order_id: Some(
+                            1,
+                        ),
+                        variables: [
+                            BlockVariable {
+                                kind: Input,
+                                formal_parameter: "",
+                                negated: false,
+                                ref_local_id: Some(
+                                    2,
+                                ),
+                                edge: None,
+                                storage: None,
+                                enable: None,
+                            },
+                            BlockVariable {
+                                kind: Input,
+                                formal_parameter: "",
+                                negated: false,
+                                ref_local_id: Some(
+                                    3,
+                                ),
+                                edge: None,
+                                storage: None,
+                                enable: None,
+                            },
+                            BlockVariable {
+                                kind: Output,
+                                formal_parameter: "",
+                                negated: false,
+                                ref_local_id: None,
+                                edge: None,
+                                storage: None,
+                                enable: None,
+                            },
+                        ],
+                    },
+                ],
+                variables: [
+                    FunctionBlockVariable {
+                        kind: Input,
+                        local_id: 2,
+                        negated: false,
+                        expression: "elem",
+                        execution_order_id: None,
+                        ref_local_id: None,
+                    },
+                    FunctionBlockVariable {
+                        kind: Input,
+                        local_id: 3,
+                        negated: false,
+                        expression: "1",
+                        execution_order_id: None,
+                        ref_local_id: None,
+                    },
+                    FunctionBlockVariable {
+                        kind: Output,
+                        local_id: 7,
+                        negated: false,
+                        expression: "elem",
+                        execution_order_id: Some(
+                            2,
+                        ),
+                        ref_local_id: None,
+                    },
+                ],
+                controls: [],
+                connectors: [],
+            },
+            global_id: None,
+        },
+    },
+     */
+}
+
+#[test]
 fn demo() {
     insta::assert_debug_snapshot!(crate::deserializer::visit(CONTENT));
 }
@@ -7,6 +129,82 @@ fn demo() {
 fn labels() {
     insta::assert_debug_snapshot!(crate::deserializer::visit(CONTENT_WITH_LABELS));
 }
+
+const SIMPLE: &str = r#"
+<?xml version="1.0" encoding="UTF-8"?>
+<pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="function_1" pouType="function">
+    <interface>
+        <localVars/>
+        <addData>
+            <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                <textDeclaration>
+                    <content>
+                        FUNCTION function_1 : DINT
+                        VAR_INPUT
+                            elem: DINT;
+                        END_VAR
+
+                        VAR
+
+                        END_VAR
+                    </content>
+                </textDeclaration>
+            </data>
+        </addData>
+    </interface>
+    <body>
+        <FBD>
+            <block localId="1" width="62" height="60" typeName="ADD" executionOrderId="1">
+                <position x="280" y="170"/>
+                <inputVariables>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="30"/>
+                            <connection refLocalId="2"/>
+                        </connectionPointIn>
+                    </variable>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="50"/>
+                            <connection refLocalId="3"/>
+                        </connectionPointIn>
+                    </variable>
+                </inputVariables>
+                <inOutVariables/>
+                <outputVariables>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointOut>
+                            <relPosition x="62" y="30"/>
+                        </connectionPointOut>
+                    </variable>
+                </outputVariables>
+            </block>
+            <inVariable localId="2" height="20" width="80" negated="false">
+                <position x="120" y="190"/>
+                <connectionPointOut>
+                    <relPosition x="80" y="10"/>
+                </connectionPointOut>
+                <expression>elem</expression>
+            </inVariable>
+            <inVariable localId="3" height="20" width="80" negated="false">
+                <position x="120" y="210"/>
+                <connectionPointOut>
+                    <relPosition x="80" y="10"/>
+                </connectionPointOut>
+                <expression>1</expression>
+            </inVariable>
+            <outVariable localId="7" height="20" width="80" executionOrderId="2" negated="false" storage="none">
+                <position x="400" y="190"/>
+                <connectionPointIn>
+                    <relPosition x="0" y="10"/>
+                    <connection refLocalId="1"/>
+                </connectionPointIn>
+                <expression>elem</expression>
+            </outVariable>
+        </FBD>
+    </body>
+</pou>
+"#;
 
 const CONTENT: &str = r#"
     <?xml version="1.0" encoding="UTF-8"?>
