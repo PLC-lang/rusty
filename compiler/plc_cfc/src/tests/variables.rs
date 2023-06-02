@@ -2,7 +2,6 @@
 mod tests {
     use crate::{
         deserializer::Parseable,
-        model,
         reader::PeekableReader,
         serializer::{Block, InOutVariables, InputVariables, OutputVariables, Variable},
     };
@@ -24,6 +23,6 @@ mod tests {
             .serialize();
 
         let mut reader = PeekableReader::new(&content);
-        insta::assert_debug_snapshot!(model::Block::visit(&mut reader));
+        insta::assert_debug_snapshot!(crate::model::block::Block::visit(&mut reader));
     }
 }

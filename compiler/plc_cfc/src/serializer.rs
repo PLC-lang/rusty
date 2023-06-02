@@ -1,3 +1,5 @@
+use crate::deserializer::Parseable;
+
 type Attributes = Vec<(&'static str, &'static str)>;
 
 /// Number of spaces to use when indenting XML
@@ -205,7 +207,7 @@ fn demoo() {
 
     println!("{xml}");
     let mut reader = crate::reader::PeekableReader::new(&xml);
-    dbg!(<crate::model::Connector as crate::deserializer::Parseable>::visit(&mut reader).unwrap());
+    dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
 
     let xml = Connector::new()
         .with_attribute("name", "abc")
@@ -222,7 +224,7 @@ fn demoo() {
         .serialize();
 
     let mut reader = crate::reader::PeekableReader::new(&xml);
-    dbg!(<crate::model::Connector as crate::deserializer::Parseable>::visit(&mut reader).unwrap());
+    dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
 }
 /*
 <continuation name="label" localId="12" height="20" width="85">
