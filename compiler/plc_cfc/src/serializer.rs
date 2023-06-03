@@ -1,3 +1,4 @@
+
 use crate::deserializer::Parseable;
 
 type Attributes = Vec<(&'static str, &'static str)>;
@@ -5,14 +6,81 @@ type Attributes = Vec<(&'static str, &'static str)>;
 /// Number of spaces to use when indenting XML
 const INDENT_SPACES: usize = 4;
 
+#[derive(Debug)]
+enum Content {
+    Node(Vec<Node>),
+    Data(&'static str),
+    Empty
+}
+
+impl Default for Content {
+    fn default() -> Self {
+        Content::Empty
+    }
+}
+
+impl<'b> Content {
+    fn push(&mut self, node: Node) {
+        let mut nodes = match self.take() {
+            Content::Node(nodes) => nodes,
+            Content::Empty => vec![],
+            _ => unreachable!("cannot push onto data field")
+        };
+
+        nodes.push(node);
+
+        self.replace(Content::Node(nodes));
+    }
+
+    fn replace(&'b mut self, other: Content) -> Content {
+        std::mem::replace(self, other)
+    }
+
+    fn take(&'b mut self) -> Content {
+        std::mem::take(self)
+    }
+
+    fn iter(self) -> impl Iterator<Item=Node>{
+        match self {
+            Content::Node(nodes) => nodes,
+            _ => vec![],
+        }.into_iter()
+  }
+}
+
+// impl<'b> IntoIterator for &'b Content {
+//     type Item = &'b Node;
+//     type IntoIter = std::slice::Iter<'b, Node>;
+
+//     fn into_iter(self) -> Self::IntoIter {
+//         match self {
+//             Content::Node(nodes) => nodes.as_slice(),
+//             _ => &[],
+//         }.into_iter()
+//     }
+// }
+
+// impl IntoIterator for Content {
+//     type Item = Node;
+//     type IntoIter = std::vec::IntoIter<Node>;
+
+//     fn into_iter(mut self) -> Self::IntoIter {
+//         match self.take() {
+//             Content::Node(nodes) => nodes,
+//             _ => vec![]
+//         }.into_iter()
+//     }
+    
+// }
+
+#[derive(Debug)]
 struct Node {
     name: &'static str,
     attributes: Attributes,
     closed: bool,
     // TODO: Data can only exist if nodes is empty and vice-versa, update such that this behavior is reflected
     // (e.g. with an enum)
-    data: Option<&'static str>,
-    nodes: Vec<Node>,
+    content: Content,
 }
 
 impl Node {
@@ -27,47 +95,49 @@ impl Node {
 
     // TODO: ✨ Beautify ✨ this
     fn serialize(self, level: usize) -> String {
-        let mut fmt = String::new();
-
-        if let Some(data) = &self.data {
-            fmt = format!(
-                "{indent}<{name} {attributes}>{data}</{name}>\n",
-                indent = " ".repeat(level * INDENT_SPACES),
-                name = self.name,
-                attributes = self.attributes()
+        let (indent, name, attributes) = (
+            " ".repeat(level * INDENT_SPACES),
+                self.name,
+                self.attributes()
             );
-        } else {
-            if self.closed {
-                fmt = format!(
-                    "{indent}<{name} {attributes}/>\n",
-                    indent = " ".repeat(level * INDENT_SPACES),
-                    name = self.name,
-                    attributes = self.attributes()
-                );
+        let mut fmt = String::new();
+        match self.content {
+            Content::Data(data) =>  fmt = format!(
+                "{indent}<{name} {attributes}>{data}</{name}>\n",                
+            ),
+            _ => {
+                if self.closed {
+                    fmt = format!(
+                        "{indent}<{name} {attributes}/>\n",
+                        indent = " ".repeat(level * INDENT_SPACES),
+                        name = self.name,
+                        attributes = self.attributes()
+                    );
+                }
+    
+                if !self.closed {
+                    fmt = format!(
+                        "{indent}<{name} {attributes}>\n",
+                        indent = " ".repeat(level * INDENT_SPACES),
+                        name = self.name,
+                        attributes = self.attributes()
+                    );
+                }
+    
+                for node in self.content.iter() {
+                    fmt = format!("{fmt}{}", node.serialize(level + 1));
+                }
+    
+                if !self.closed {
+                    fmt = format!(
+                        "{fmt}{indent}</{name}>\n",
+                        indent = " ".repeat(level * INDENT_SPACES),
+                        name = &self.name
+                    );
+                }
             }
-
-            if !self.closed {
-                fmt = format!(
-                    "{indent}<{name} {attributes}>\n",
-                    indent = " ".repeat(level * INDENT_SPACES),
-                    name = self.name,
-                    attributes = self.attributes()
-                );
-            }
-
-            for node in self.nodes {
-                fmt = format!("{fmt}{}", node.serialize(level + 1));
-            }
-
-            if !self.closed {
-                fmt = format!(
-                    "{fmt}{indent}</{name}>\n",
-                    indent = " ".repeat(level * INDENT_SPACES),
-                    name = &self.name
-                );
-            }
-        }
-
+        };
+               
         #[cfg(feature = "debug")]
         println!("{fmt}");
 
@@ -97,10 +167,11 @@ macro_rules! declare_type_and_extend_if_needed {
     ($(($name:ident, $name_xml:expr, $(($arg:ty, $fn_name:ident)),*),) +) => {
         $(
             // will be implemented for every $name
+            #[derive(Debug)]
             pub(crate) struct $name(Node);
             impl $name {
                 pub fn new() -> Self {
-                    Self(Node { name: $name_xml, attributes: vec![], closed: false, nodes: vec![], data: None })
+                    Self(Node { name: $name_xml, attributes: vec![], closed: false, content: Content::Empty })
                 }
 
                 pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
@@ -109,7 +180,7 @@ macro_rules! declare_type_and_extend_if_needed {
                 }
 
                 pub fn with_data(mut self, data: &'static str) -> Self {
-                    self.0.data = Some(data);
+                    self.0.content = Content::Data(data);
                     self
                 }
 
@@ -133,7 +204,7 @@ macro_rules! declare_type_and_extend_if_needed {
                 // this part is optional.
                 $(
                     pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
-                    self.get_inner_ref_mut().nodes.push(value.get_inner());
+                    self.get_inner_ref_mut().content.push(value.get_inner());
                     self
                 })*
         })*
