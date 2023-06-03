@@ -77,7 +77,9 @@ Ok(
                         execution_order_id: Some(
                             2,
                         ),
-                        ref_local_id: None,
+                        ref_local_id: Some(
+                            1,
+                        ),
                     },
                 ],
                 controls: [],
