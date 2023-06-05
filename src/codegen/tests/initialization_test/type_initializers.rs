@@ -618,12 +618,12 @@ fn enums_with_inline_initializer_do_not_report_errors() {
     let diagnostics = parse_and_validate(
         r#"            
         VAR_GLOBAL
-              x : (red, yellow, green) := 2;
+              x : (red, yellow, green) := red;
         END_VAR
 
         FUNCTION main : DINT
             VAR
-                y : (redy := 1, yellowy := 2, greeny := 3) := 2;
+                y : (redy := 1, yellowy := 2, greeny := 3) := greeny;
             END_VAR
             VAR
                 var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;

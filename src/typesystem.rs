@@ -465,6 +465,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_enum(&self) -> bool {
+        matches!(self, DataTypeInformation::Enum { .. })
+    }
+
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,
