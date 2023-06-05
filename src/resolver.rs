@@ -14,7 +14,7 @@ pub mod generics;
 
 use crate::{
     ast::{
-        flatten_expression_list, Array, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
+        self, flatten_expression_list, Array, AstId, AstLiteral, AstStatement, CompilationUnit, DataType,
         DataTypeDeclaration, Operator, Pou, StringValue, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
@@ -594,8 +594,8 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::Assignment { left, right, .. } => {
-                //struct initialization (left := right)
-                //find out left's type and update a type hint for right
+                // struct initialization (left := right)
+                // find out left's type and update a type hint for right
                 if let (
                     typesystem::DataTypeInformation::Struct { name: qualifier, .. },
                     AstStatement::Reference { name: variable_name, .. },
@@ -700,27 +700,51 @@ impl<'i> TypeAnnotator<'i> {
                 self.update_expected_types(expected_type, initializer);
 
                 // handle annotation for array of struct
-                if let DataTypeInformation::Array { inner_type_name, .. } =
-                    expected_type.get_type_information()
-                {
-                    let struct_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
-                    if struct_type.get_type_information().is_struct() {
-                        if let AstStatement::ExpressionList { expressions, .. } = initializer {
-                            let ctx = ctx.with_qualifier(struct_type.get_name().to_string());
-                            for e in expressions {
-                                // annotate with the arrays inner_type
-                                self.annotation_map.annotate_type_hint(
-                                    e,
-                                    StatementAnnotation::Value {
-                                        resulting_type: struct_type.get_name().to_string(),
-                                    },
-                                );
-                                self.visit_statement(&ctx, e);
-                            }
+                self.annotate_array_of_struct(expected_type, initializer, &ctx);
+            }
+        }
+    }
+
+    fn annotate_array_of_struct(
+        &mut self,
+        expected_type: &typesystem::DataType,
+        initializer: &AstStatement,
+        ctx: &VisitorContext,
+    ) {
+        match expected_type.get_type_information() {
+            DataTypeInformation::Array { inner_type_name, .. } => {
+                let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
+                let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+                if inner_type.get_type_information().is_struct() {
+                    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                        for e in expressions {
+                            // annotate with the arrays inner_type
+                            self.annotation_map.annotate_type_hint(
+                                e,
+                                StatementAnnotation::Value {
+                                    resulting_type: inner_type.get_name().to_string(),
+                                },
+                            );
+                            self.visit_statement(&ctx, e);
                         }
                     }
                 }
             }
+            // the array of struct might be a member of another struct
+            DataTypeInformation::Struct { members, .. } => {
+                let flattened = ast::flatten_expression_list(initializer);
+                // dbg!(&flattened);
+                for (idx, member) in members.iter().enumerate() {
+                    let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
+                    if data_type.is_array() {
+                        let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
+                            continue;
+                        };
+                        self.annotate_array_of_struct(dbg!(data_type), dbg!(right), ctx);
+                    }
+                }
+            }
+            _ => (),
         }
     }
 
