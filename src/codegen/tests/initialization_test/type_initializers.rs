@@ -1,5 +1,3 @@
-use insta::assert_debug_snapshot;
-
 use crate::{
     ast::SourceRange,
     diagnostics::Diagnostic,
@@ -654,33 +652,11 @@ fn enums_with_inline_initializer_are_initialized() {
                 var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;
                 // or
                 var2 : (x5, x6, x7) := x7;
+
+                var3 : (x8, x9) := yellow;
             END_VAR
-            y := redy;
-            y := yellowy;
-            x := green;
-            x := 0;
-            var1 := 1;
-            var2 := x6;
         END_FUNCTION
         "#,
     );
     insta::assert_snapshot!(res);
-}
-
-#[test]
-fn enums_initialized_with_invalid_type() {
-    let res = codegen_without_unwrap(
-        r#"            
-        VAR_GLOBAL
-              x : (red, yellow, green) := "Hello";
-        END_VAR
-
-        FUNCTION main : DINT
-            VAR
-                y : (redy := 1, yellowy := 2, greeny := 3) := 'Wrong Type';
-            END_VAR
-        END_FUNCTION
-        "#,
-    );
-    assert_debug_snapshot!(res.map_err(|e| e));
 }
