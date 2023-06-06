@@ -326,7 +326,8 @@ impl AnnotatedProject {
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir)?
                         } else if unit_location.has_root() {
-                            unit_location.strip_prefix("/").expect("Name has root")
+                            let root = Path::new("/").canonicalize()?;
+                            unit_location.strip_prefix(root).expect("Name has root")
                         } else {
                             unit_location.as_path()
                         };
