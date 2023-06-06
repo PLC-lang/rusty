@@ -385,22 +385,17 @@ pub trait AnnotationMap {
         index: &'a Index,
         annotation: &StatementAnnotation,
     ) -> Option<&'a typesystem::DataType> {
-        self.get_type_name_for_annotation(index, annotation)
-            .and_then(|type_name| index.get_type(type_name).ok())
+        self.get_type_name_for_annotation(annotation).and_then(|type_name| index.get_type(type_name).ok())
     }
 
-    fn get_type_name_for_annotation<'a>(
-        &'a self,
-        index: &'a Index,
-        annotation: &'a StatementAnnotation,
-    ) -> Option<&'a str> {
+    fn get_type_name_for_annotation<'a>(&'a self, annotation: &'a StatementAnnotation) -> Option<&'a str> {
         match annotation {
             StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
             StatementAnnotation::ReplacementAst { statement } => self
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
-                .and_then(|it| self.get_type_name_for_annotation(index, it)),
+                .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Function { .. }
             | StatementAnnotation::Type { .. }
             | StatementAnnotation::Program { .. } => None,

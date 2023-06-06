@@ -26,7 +26,6 @@ pub struct CompileParameters {
     pub output_shared_obj: bool,
 
     #[clap(long = "pic", group = "format", help = "Equivalent to --shared")]
-    #[deprecated]
     pub output_pic_obj: bool,
 
     #[clap(long = "static", group = "format", help = "Emit an object as output")]
@@ -142,6 +141,14 @@ pub struct CompileParameters {
     )]
     pub threads: Option<Threads>,
 
+    #[clap(
+        name = "single-module",
+        long,
+        help = "Build the application as a single LLVM module",
+        global = true
+    )]
+    pub single_module: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -202,7 +209,7 @@ fn get_parallel_threads(thread_count: &str) -> Result<Threads, ParseIntError> {
     if thread_count.is_empty() {
         Ok(Threads::Full)
     } else {
-        let count = thread_count.parse::<i32>()?;
+        let count = thread_count.parse::<usize>()?;
         Ok(Threads::Fix(count))
     }
 }
@@ -247,7 +254,9 @@ impl CompileParameters {
             Some(FormatOption::Bitcode)
         } else if self.output_ir {
             Some(FormatOption::IR)
-        } else if self.output_pic_obj || self.output_shared_obj {
+        } else if self.output_pic_obj {
+            Some(FormatOption::PIC)
+        } else if self.output_shared_obj {
             Some(FormatOption::Shared)
         } else if self.compile_only {
             Some(FormatOption::Object)
@@ -452,7 +461,7 @@ mod cli_tests {
         assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
         let parameters = CompileParameters::parse(vec_of_strings!("charlie", "--pic")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static")).unwrap();

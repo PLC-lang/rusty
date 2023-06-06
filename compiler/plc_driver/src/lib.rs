@@ -17,7 +17,8 @@ use std::{
 
 use cli::CompileParameters;
 use diagnostics::{Diagnostic, Diagnostician};
-use plc::{lexer::IdProvider, output::FormatOption};
+use log::{debug, info};
+use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;
@@ -31,6 +32,36 @@ mod tests;
 pub mod runner;
 
 pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+
+#[derive(Debug)]
+pub struct CompileOptions {
+    /// Default project location (where the plc.json is defined, or where we are currently
+    /// compiling)
+    pub root: Option<PathBuf>,
+    /// The location where the build would happen. This is None if the build subcommand was not
+    /// used
+    pub build_location: Option<PathBuf>,
+    /// The name of the resulting compiled file
+    pub output: String,
+    pub output_format: FormatOption,
+    pub optimization: OptimizationLevel,
+    pub error_format: ErrorFormat,
+    pub debug_level: DebugLevel,
+}
+
+impl Default for CompileOptions {
+    fn default() -> Self {
+        CompileOptions {
+            root: None,
+            build_location: None,
+            output: String::new(),
+            output_format: Default::default(),
+            optimization: OptimizationLevel::None,
+            error_format: ErrorFormat::None,
+            debug_level: DebugLevel::None,
+        }
+    }
+}
 
 #[derive(Clone, Default, Debug)]
 pub struct LinkOptions {
@@ -47,19 +78,41 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
     if let Some(location) = &location {
+        debug!("PROJECT_ROOT={}", location.to_string_lossy());
         env::set_var("PROJECT_ROOT", location);
     }
     let build_location = compile_parameters.get_build_location();
     if let Some(location) = &build_location {
+        debug!("BUILD_LOCATION={}", location.to_string_lossy());
         env::set_var("BUILD_LOCATION", location);
     }
     let lib_location = compile_parameters.get_lib_location();
     if let Some(location) = &lib_location {
+        debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
     let id_provider = IdProvider::default();
-    let mut diagnostician = Diagnostician::default(); //TODO
-                                                      // 1 : Parse
+    let mut diagnostician = match compile_parameters.error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+        ErrorFormat::None => Diagnostician::null_diagnostician(),
+    };
+
+    //Set the global thread count
+    let thread_pool = rayon::ThreadPoolBuilder::new();
+    let global_pool = if let Some(Threads::Fix(threads)) = compile_parameters.threads {
+        info!("Using {threads} parallel threads");
+        thread_pool.num_threads(threads)
+    } else {
+        thread_pool
+    }
+    .build_global();
+    if let Err(err) = global_pool {
+        // Ignore the error here as the global threadpool might have been initialized
+        info!("{err}")
+    }
+
+    // 1 : Parse
     let annotated_project = pipelines::ParsedProject::parse(
         &project,
         compile_parameters.encoding,
@@ -72,14 +125,22 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     .annotate(id_provider, &diagnostician)?;
     // 4 : Validate and Codegen (parallel)
     annotated_project.validate(&diagnostician)?;
-    let res = annotated_project.codegen(
-        location.as_deref(),
-        compile_parameters.get_build_location().as_deref(),
-        compile_parameters.optimization,
-        compile_parameters.debug_level(),
+    let compile_options = CompileOptions {
+        root: location,
+        build_location: compile_parameters.get_build_location(),
+        output: project.get_output_name(),
         output_format,
-        &compile_parameters.target,
-    )?;
+        optimization: compile_parameters.optimization,
+        error_format: compile_parameters.error_format,
+        debug_level: compile_parameters.debug_level(),
+    };
+
+    let res = if compile_parameters.single_module {
+        info!("Using single module mode");
+        annotated_project.codegen_single_module(compile_options, &compile_parameters.target)?
+    } else {
+        annotated_project.codegen(compile_options, &compile_parameters.target)?
+    };
     // 5 : Link
     let libraries =
         project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
@@ -105,7 +166,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     if let Some((location, format)) =
         compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
     {
-        annotated_project.generate_hardware_information(format, &location)?;
+        annotated_project.generate_hardware_information(format, location)?;
     }
 
     // Copy libraries

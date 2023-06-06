@@ -97,6 +97,12 @@ pub struct Validator {
     recursive_validator: RecursiveValidator,
 }
 
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Validator {
     pub fn new() -> Validator {
         Validator {

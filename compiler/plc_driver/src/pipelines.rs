@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::LinkOptions;
+use crate::{CompileOptions, LinkOptions};
 use ast::{CompilationUnit, SourceRange};
 use diagnostics::{Diagnostic, Diagnostician};
 use encoding_rs::Encoding;
@@ -18,7 +18,7 @@ use plc::{
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
     validation::Validator,
-    ConfigFormat, DebugLevel, OptimizationLevel, Target,
+    ConfigFormat, Target,
 };
 use project::{
     object::Object,
@@ -116,7 +116,7 @@ impl ParsedProject {
     pub fn index(self, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
         let indexed_units = self
             .0
-            .into_iter()
+            .into_par_iter()
             .map(|mut unit| {
                 //Preprocess
                 ast::pre_process(&mut unit, id_provider.clone());
@@ -169,7 +169,7 @@ impl IndexedProject {
 
         let result = self
             .units
-            .into_iter()
+            .into_par_iter()
             .map(|unit| {
                 let (annotation, dependencies, literals) =
                     TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
@@ -215,39 +215,24 @@ impl AnnotatedProject {
         Ok(())
     }
 
-    pub fn codegen_to_string(
-        &self,
-        root: Option<&Path>,
-        optimization: OptimizationLevel,
-        debug_level: DebugLevel,
-    ) -> Result<Vec<String>, Diagnostic> {
+    pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
         self.units
             .iter()
             .map(|(unit, dependencies, literals)| {
                 let context = CodegenContext::create();
-                self.generate_module(&context, root, unit, dependencies, literals, optimization, debug_level)
+                self.generate_module(&context, compile_options, unit, dependencies, literals)
                     .map(|it| it.persist_to_string())
             })
             .collect()
     }
 
-    pub fn codegen_to_single_module<'ctx>(
+    pub fn generate_single_module<'ctx>(
         &self,
         context: &'ctx CodegenContext,
-        root: Option<&Path>,
-        optimization: OptimizationLevel,
-        debug_level: DebugLevel,
+        compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
         let Some(module) = self.units.iter().map(|(unit, dependencies, literals)| {
-            // FIXME: `generate_module` inlined because of borrowing rules: The test runner thinks that
-            // self is being borrowed by the internal method
-            let mut code_generator =
-                plc::codegen::CodeGen::new(context, root, &unit.file_name, optimization, debug_level);
-            //Create a types codegen, this contains all the type declarations
-            //Associate the index type with LLVM types
-            let llvm_index =
-                code_generator.generate_llvm_index(context, &self.annotations, literals, dependencies, &self.index)?;
-            code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
+            self.generate_module(context, compile_options, unit, dependencies, literals)
         }).reduce(|a,b| {
             let a = a?;
             let b = b?;
@@ -261,15 +246,18 @@ impl AnnotatedProject {
     fn generate_module<'ctx>(
         &self,
         context: &'ctx CodegenContext,
-        root: Option<&Path>,
+        compile_options: &CompileOptions,
         unit: &CompilationUnit,
         dependencies: &IndexSet<Dependency>,
         literals: &StringLiterals,
-        optimization: OptimizationLevel,
-        debug_level: DebugLevel,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
-        let mut code_generator =
-            plc::codegen::CodeGen::new(context, root, &unit.file_name, optimization, debug_level);
+        let mut code_generator = plc::codegen::CodeGen::new(
+            context,
+            compile_options.root.as_deref(),
+            &unit.file_name,
+            compile_options.optimization,
+            compile_options.debug_level,
+        );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
         let llvm_index = code_generator.generate_llvm_index(
@@ -281,34 +269,29 @@ impl AnnotatedProject {
         )?;
         code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
     }
-    pub fn codegen_single_thread<'ctx>(
+
+    pub fn codegen_single_module<'ctx>(
         &'ctx self,
-        root: Option<&Path>,
-        build_location: Option<&Path>,
-        optimization: OptimizationLevel,
-        debug_level: DebugLevel,
-        format: FormatOption,
+        compile_options: CompileOptions,
         targets: &'ctx [Target],
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
-        let compile_directory = build_location.map(|it| it.to_path_buf()).unwrap_or_else(|| {
+        let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
             let tempdir = tempfile::tempdir().unwrap();
             tempdir.into_path()
         });
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
-        let module = self.codegen_to_single_module(&context, root, optimization, debug_level)?.unwrap();
-        let unit_location = PathBuf::from("XXXX");
-        let output_name = unit_location.file_name().expect("Unit has a filename");
+        let module = self.generate_single_module(&context, &compile_options)?.unwrap();
         let mut result = vec![];
         for target in targets {
             let obj: Object = module
                 .persist(
                     Some(&compile_directory),
-                    &output_name.to_string_lossy(),
-                    format,
+                    &compile_options.output,
+                    compile_options.output_format,
                     target,
-                    optimization,
+                    compile_options.optimization,
                 )
                 .map(Into::into)?;
 
@@ -320,14 +303,10 @@ impl AnnotatedProject {
 
     pub fn codegen<'ctx>(
         &'ctx self,
-        root: Option<&Path>,
-        build_location: Option<&Path>,
-        optimization: OptimizationLevel,
-        debug_level: DebugLevel,
-        format: FormatOption,
+        compile_options: CompileOptions,
         targets: &'ctx [Target],
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
-        let compile_directory = build_location.map(|it| it.to_path_buf()).unwrap_or_else(|| {
+        let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
             let tempdir = tempfile::tempdir().unwrap();
             tempdir.into_path()
         });
@@ -341,7 +320,7 @@ impl AnnotatedProject {
                     .par_iter()
                     .map(|(unit, dependencies, literals)| {
                         let current_dir = env::current_dir()?;
-                        let current_dir = root.unwrap_or(&current_dir);
+                        let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
                         let unit_location = std::fs::canonicalize(unit_location)?;
                         let output_name = if unit_location.starts_with(current_dir) {
@@ -352,29 +331,22 @@ impl AnnotatedProject {
                             unit_location.as_path()
                         };
 
-                        let output_name = match format {
+                        let output_name = match compile_options.output_format {
                             FormatOption::IR => output_name.with_extension("ll"),
                             FormatOption::Bitcode => output_name.with_extension("bc"),
                             _ => output_name.with_extension("o"),
                         };
 
                         let context = CodegenContext::create(); //Create a build location for the generated object files
-                        let module = self.generate_module(
-                            &context,
-                            root,
-                            unit,
-                            dependencies,
-                            literals,
-                            optimization,
-                            debug_level,
-                        )?;
+                        let module =
+                            self.generate_module(&context, &compile_options, unit, dependencies, literals)?;
                         module
                             .persist(
                                 Some(&compile_directory),
                                 &output_name.to_string_lossy(),
-                                format,
+                                compile_options.output_format,
                                 target,
-                                optimization,
+                                compile_options.optimization,
                             )
                             .map(Into::into)
                             // Not needed here but might be a good idea for consistency
@@ -457,7 +429,9 @@ impl GeneratedProject<'_> {
 
         let output_location = match link_options.format {
             FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
-            FormatOption::Shared => linker.build_shared_obj(output_location).map_err(Into::into),
+            FormatOption::Shared | FormatOption::PIC => {
+                linker.build_shared_obj(output_location).map_err(Into::into)
+            }
             FormatOption::Object | FormatOption::Relocatable => {
                 linker.build_relocatable(output_location).map_err(Into::into)
             }

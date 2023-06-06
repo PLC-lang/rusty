@@ -154,34 +154,6 @@ impl FromStr for ConfigFormat {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CompileOptions {
-    /// Default project location (where the plc.json is defined, or where we are currently
-    /// compiling)
-    pub root: Option<PathBuf>,
-    /// The location where the build would happen. This is None if the build subcommand was not
-    /// used
-    pub build_location: Option<PathBuf>,
-    /// The name of the resulting compiled file
-    pub output: String,
-    pub optimization: OptimizationLevel,
-    pub error_format: ErrorFormat,
-    pub debug_level: DebugLevel,
-}
-
-impl Default for CompileOptions {
-    fn default() -> Self {
-        CompileOptions {
-            root: None,
-            build_location: None,
-            output: String::new(),
-            optimization: OptimizationLevel::None,
-            error_format: ErrorFormat::None,
-            debug_level: DebugLevel::None,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
 pub enum ErrorFormat {
     #[default]
@@ -193,7 +165,7 @@ pub enum ErrorFormat {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Threads {
     Full,
-    Fix(i32),
+    Fix(usize),
     #[default]
     None,
 }

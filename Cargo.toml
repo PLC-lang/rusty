@@ -33,9 +33,10 @@ lazy_static = "1.4.0"
 shell-words = "1.1.0"
 itertools = "0.10.5"
 rusty-derive = { path = "rusty-derive" }
-inkwell.workspace = true
 lld_rs = "140.0.0"
 which = "4.2.5"
+log.workspace = true
+inkwell.workspace = true
 
 [dev-dependencies]
 num = "0.4"
@@ -74,3 +75,4 @@ inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", feat
 ] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
+log = "0.4"

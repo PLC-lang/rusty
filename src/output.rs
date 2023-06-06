@@ -7,6 +7,8 @@ pub enum FormatOption {
     /// Indicates that the output format will be linked statically (i.e. Executable)
     #[default]
     Static,
+    /// Indicates that the linked object will be Position Independant
+    PIC,
     /// Indicates that the linked object will be shared and position independent
     Shared,
     /// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
@@ -19,6 +21,9 @@ pub enum FormatOption {
 
 impl FormatOption {
     pub fn should_link(self) -> bool {
-        matches!(self, FormatOption::Static | FormatOption::Shared | FormatOption::Relocatable)
+        matches!(
+            self,
+            FormatOption::Static | FormatOption::Shared | FormatOption::PIC | FormatOption::Relocatable
+        )
     }
 }

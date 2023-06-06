@@ -9,7 +9,7 @@ pub mod tests {
         ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        diagnostics::{Diagnostic, DiagnosticReporter, Diagnostician, ResolvedDiagnostics},
+        diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics},
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
@@ -37,20 +37,6 @@ pub mod tests {
             // at least provide some unique ids
             self.last_id += 1;
             self.last_id
-        }
-    }
-
-    /// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
-    #[cfg(test)]
-    pub fn list_based_diagnostician(diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>) -> Diagnostician {
-        use std::collections::HashMap;
-
-        use crate::diagnostics::DefaultDiagnosticAssessor;
-
-        Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            reporter: Box::new(ListBasedDiagnosticReporter { diagnostics, ..Default::default() }),
-            filename_fileid_mapping: HashMap::new(),
         }
     }
 
@@ -243,17 +229,6 @@ pub mod tests {
             .into_iter()
             .map(|module| module.persist_to_string())
             .collect()
-    }
-
-    pub fn codegen_into_single_module<T: Compilable>(sources: T, debug_level: DebugLevel) -> String
-    where
-        SourceCode: From<<T as Compilable>::T>,
-    {
-        let context = CodegenContext::create();
-        let module = codegen_into_modules(&context, sources, debug_level)
-            .map(|it| it.into_iter().reduce(|module1, module2| module1.merge(module2).unwrap()).unwrap())
-            .unwrap();
-        module.persist_to_string()
     }
 
     pub fn generate_with_empty_program(src: &str) -> String {

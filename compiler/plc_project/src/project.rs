@@ -39,7 +39,7 @@ pub enum Library<T: SourceContainer> {
 /// A Compiled library to be included in the project
 #[derive(Debug, Clone)]
 pub struct CompiledLibrary<T: SourceContainer> {
-    name: String,
+    // TODO: name: String,
     //TODO: Version
     /// Location of the header files to be included in the project
     headers: Vec<T>,
@@ -101,10 +101,7 @@ impl<T: SourceContainer> LibraryInformation<T> {
     }
 
     pub fn should_copy(&self) -> bool {
-        match self.linkage {
-            Linkage::Shared(Package::Local) => true,
-            _ => false,
-        }
+        matches!(self.linkage, Linkage::Shared(Package::Local))
     }
 }
 
@@ -148,7 +145,6 @@ impl Project<PathBuf> {
                     objects.push(lib_file.into());
                 }
                 let compiled_library = CompiledLibrary {
-                    name: conf.name.clone(),
                     objects,
                     headers: resolve_file_paths(Some(&lib_path), conf.include_path)?,
                 };
@@ -241,11 +237,7 @@ impl<S: SourceContainer> Project<S> {
                 name: library.to_string(),
                 location: None,
                 linkage: Linkage::Shared(Package::System),
-                library: Library::Compiled(CompiledLibrary {
-                    name: library.to_string(),
-                    headers: vec![],
-                    objects: vec![],
-                }),
+                library: Library::Compiled(CompiledLibrary { headers: vec![], objects: vec![] }),
             });
         }
         proj
@@ -280,7 +272,7 @@ impl<S: SourceContainer> Project<S> {
             match self.format {
                 FormatOption::Object | FormatOption::Relocatable => format!("{input}.o"),
                 FormatOption::Static => input.to_string(),
-                FormatOption::Shared => format!("{input}.so"),
+                FormatOption::Shared | FormatOption::PIC => format!("{input}.so"),
                 FormatOption::Bitcode => format!("{input}.bc"),
                 FormatOption::IR => format!("{input}.ll"),
             }

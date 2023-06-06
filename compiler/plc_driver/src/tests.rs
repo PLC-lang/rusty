@@ -5,7 +5,7 @@ use plc::{lexer::IdProvider, DebugLevel};
 use project::project::Project;
 use source_code::SourceContainer;
 
-use crate::pipelines;
+use crate::{pipelines, CompileOptions};
 
 mod external_files;
 mod multi_files;
@@ -39,11 +39,17 @@ where
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
     //Parse
     let id_provider = IdProvider::default();
+    let compile_options = CompileOptions {
+        root: path,
+        debug_level,
+        optimization: plc::OptimizationLevel::None,
+        ..Default::default()
+    };
     pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
         //Index
         .index(id_provider.clone())?
         //Resolve
         .annotate(id_provider, &diagnostician)?
         //Codegen
-        .codegen_to_string(path.as_deref(), plc::OptimizationLevel::None, debug_level)
+        .codegen_to_string(&compile_options)
 }

@@ -913,20 +913,20 @@ fn validate_type_nature<T: AnnotationMap>(
     }
 }
 
-fn validate_assignment_type_sizes<T: AnnotationMap>(
-    validator: &mut Validator,
-    left: &DataType,
-    right: &DataType,
-    location: &SourceRange,
-    context: &ValidationContext<T>,
-) {
-    if left.get_type_information().get_size(context.index)
-        < right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(Diagnostic::implicit_downcast(
-            left.get_name(),
-            right.get_name(),
-            location.clone(),
-        ))
-    }
-}
+// fn validate_assignment_type_sizes<T: AnnotationMap>(
+//     validator: &mut Validator,
+//     left: &DataType,
+//     right: &DataType,
+//     location: &SourceRange,
+//     context: &ValidationContext<T>,
+// ) {
+//     if left.get_type_information().get_size(context.index)
+//         < right.get_type_information().get_size(context.index)
+//     {
+//         validator.push_diagnostic(Diagnostic::implicit_downcast(
+//             left.get_name(),
+//             right.get_name(),
+//             location.clone(),
+//         ))
+//     }
+// }

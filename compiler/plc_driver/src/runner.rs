@@ -1,4 +1,4 @@
-use crate::pipelines::ParsedProject;
+use crate::{pipelines::ParsedProject, CompileOptions};
 
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -34,10 +34,13 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
         ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician).unwrap();
     let indexed_project = parsed_project.index(id_provider.clone()).unwrap();
     let annotated_project = indexed_project.annotate(id_provider, &diagnostician).unwrap();
-    annotated_project
-        .codegen_to_single_module(context, None, plc::OptimizationLevel::None, plc::DebugLevel::None)
-        .unwrap()
-        .unwrap()
+    let compile_options = CompileOptions {
+        optimization: plc::OptimizationLevel::None,
+        debug_level: plc::DebugLevel::None,
+        ..Default::default()
+    };
+
+    annotated_project.generate_single_module(context, &compile_options).unwrap().unwrap()
 }
 
 ///

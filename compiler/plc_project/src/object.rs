@@ -6,7 +6,7 @@ use plc::Target;
 pub struct Object {
     path: PathBuf,
     target: Target,
-    format: ObjectFormat,
+    // TODO: format: ObjectFormat,
 }
 
 /// Representation of a binary file
@@ -30,16 +30,16 @@ pub enum ObjectFormat {
 
 impl From<PathBuf> for Object {
     fn from(path: PathBuf) -> Self {
-        let format = match path.extension().and_then(|it| it.to_str()) {
-            Some("o") => ObjectFormat::Object,
-            Some("bc") => ObjectFormat::Bitcode,
-            Some("ir") => ObjectFormat::IR,
-            Some("so") => ObjectFormat::Shared,
-            Some("a") => ObjectFormat::Archive,
-            Some(_) => ObjectFormat::Unknown,
-            None => ObjectFormat::Executable,
-        };
-        Object { path, target: Target::System, format }
+        // let format = match path.extension().and_then(|it| it.to_str()) {
+        //     Some("o") => ObjectFormat::Object,
+        //     Some("bc") => ObjectFormat::Bitcode,
+        //     Some("ir") => ObjectFormat::IR,
+        //     Some("so") => ObjectFormat::Shared,
+        //     Some("a") => ObjectFormat::Archive,
+        //     Some(_) => ObjectFormat::Unknown,
+        //     None => ObjectFormat::Executable,
+        // };
+        Object { path, target: Target::System }
     }
 }
 

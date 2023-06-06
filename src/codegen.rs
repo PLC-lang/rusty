@@ -13,7 +13,7 @@ use self::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
         pou_generator::{self, PouGenerator},
-        variable_generator,
+        variable_generator::VariableGenerator,
     },
     llvm_index::LlvmTypedIndex,
 };
@@ -117,17 +117,12 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
+        let mut variable_generator =
+            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+
         //Generate global variables
-        let llvm_gv_index = variable_generator::generate_global_variables(
-            &self.module,
-            &llvm,
-            &mut self.debug,
-            dependencies,
-            global_index,
-            annotations,
-            &index,
-            &self.module_location,
-        )?;
+        let llvm_gv_index =
+            variable_generator.generate_global_variables(dependencies, &self.module_location)?;
         index.merge(llvm_gv_index);
 
         //Generate opaque functions for implementations and associate them with their types
@@ -279,7 +274,8 @@ impl<'ink> GeneratedModule<'ink> {
             FormatOption::Object | FormatOption::Static | FormatOption::Relocatable => {
                 self.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::Shared => self.persist_to_shared_pic_object(output, target, optimization_level),
+            FormatOption::PIC => self.persist_to_shared_pic_object(output, target, optimization_level),
+            FormatOption::Shared => self.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
         }

@@ -4,6 +4,7 @@
 use which::which;
 
 use crate::diagnostics::Diagnostic;
+use log::debug;
 use std::{
     error::Error,
     path::{Path, PathBuf},
@@ -156,8 +157,7 @@ impl LinkerInterface for CcLinker {
         let linker_location = which(&self.linker)
             .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
 
-        #[cfg(feature = "debug")]
-        println!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
+        debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
 
         let status = Command::new(linker_location).args(&self.args).status()?;
         if status.success() {
