@@ -9,7 +9,7 @@ impl Task for Oscat {
         sh.create_dir("./benchmark/oscat/include")?;
 
         cmd!(sh, "cargo b --release").run()?;
-        sh.copy_file("./target/release/rustyc", "./benchmark/oscat")?;
+        sh.copy_file("./target/release/plc", "./benchmark/oscat")?;
         sh.copy_file("./target/release/libiec61131std.so", "./benchmark/oscat/lib")?;
 
         for file in sh.read_dir("libs/stdlib/iec61131-st")? {
@@ -23,10 +23,10 @@ impl Task for Oscat {
         let _oscat = sh.push_dir("./benchmark/oscat");
 
         for flag in ["none", "less", "default", "aggressive"] {
-            cmd!(sh, "./rustyc -O{flag} build").ignore_stderr().benchmark(metrics, "oscat", flag)?;
+            cmd!(sh, "./plc -O{flag} build").ignore_stderr().benchmark(metrics, "oscat", flag)?;
         }
 
-        cmd!(sh, "./rustyc check oscat.st")
+        cmd!(sh, "./plc check oscat.st")
             .ignore_status()
             .ignore_stderr()
             .benchmark(metrics, "check", "oscat")?;

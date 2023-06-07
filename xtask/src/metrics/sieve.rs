@@ -5,7 +5,7 @@ pub struct Sieve;
 impl Task for Sieve {
     fn prepare(&self, sh: &xshell::Shell) -> anyhow::Result<()> {
         cmd!(sh, "cargo b --release").run()?;
-        sh.copy_file("./target/release/rustyc", "./benchmark")?;
+        sh.copy_file("./target/release/plc", "./benchmark")?;
         sh.copy_file("./xtask/res/sieve.st", "./benchmark")?;
         sh.copy_file("./xtask/res/sieve.c", "./benchmark")?;
 
@@ -16,7 +16,7 @@ impl Task for Sieve {
         let _path = sh.push_dir("./benchmark");
 
         for flag in ["none", "less", "default", "aggressive"] {
-            cmd!(sh, "./rustyc --linker=clang -O{flag} sieve.st").run()?;
+            cmd!(sh, "./plc --linker=clang -O{flag} sieve.st").run()?;
             cmd!(sh, "./sieve").ignore_status().benchmark(metrics, "sieve-st", flag)?;
         }
 

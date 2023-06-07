@@ -29,10 +29,6 @@ trait LinkerInterface {
 
 impl Linker {
     pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
-        let [platform, target_os] = target.split('-').collect::<Vec<&str>>()[1..=2] else {
-            return Err(LinkerError::Target(target.into()));
-        };
-
         Ok(Linker {
             errors: Vec::default(),
             linker: match linker {
@@ -40,13 +36,18 @@ impl Linker {
 
                 // TODO: Linker for Windows is missing, see also:
                 // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
-                None => match (platform, target_os) {
-                    (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
-                        return Err(LinkerError::Target(target_os.into()))
-                    }
+                None => {
+                    let [platform, target_os] = target.split('-').collect::<Vec<&str>>()[1..=2] else {
+                        return Err(LinkerError::Target(target.into()));
+                    };
+                    match (platform, target_os) {
+                        (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
+                            return Err(LinkerError::Target(target_os.into()))
+                        }
 
-                    _ => Box::new(LdLinker::new()),
-                },
+                        _ => Box::new(LdLinker::new()),
+                    }
+                }
             },
         })
     }

@@ -13,7 +13,7 @@ fn ir_generation_full_pass() {
 
     let mut temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    compile(&["rustyc", file.as_str(), "-o", &path, "--ir"]).unwrap();
+    compile(&["plc", file.as_str(), "-o", &path, "--ir"]).unwrap();
 
     //Verify file content
     let mut content = String::new();
@@ -32,7 +32,7 @@ fn hardware_conf_full_pass_json() {
 
     let temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    compile(&["rustyc", file.as_str(), "-o", &path, "--ir", "--hardware-conf", "json"]).unwrap();
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", "--hardware-conf", "json"]).unwrap();
 
     let mut f = File::open("json").expect("file named 'json' should have been generated");
     let mut content = String::new();
@@ -50,7 +50,7 @@ fn hardware_conf_full_pass_toml() {
 
     let temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    compile(&["rustyc", file.as_str(), "-o", &path, "--ir", "--hardware-conf", "toml"]).unwrap();
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", "--hardware-conf", "toml"]).unwrap();
 
     let mut f = File::open("toml").expect("file named 'toml' should have been generated");
     let mut content = String::new();

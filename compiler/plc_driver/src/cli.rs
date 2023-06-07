@@ -342,7 +342,7 @@ mod cli_tests {
         }
     }
     macro_rules! vec_of_strings {
-        ($($x:expr),*) => (&["rustyc", $($x),*]);
+        ($($x:expr),*) => (&["plc", $($x),*]);
     }
 
     #[test]

@@ -6,7 +6,7 @@ use driver::compile;
 fn build_to_temp() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_to_temp.json"),
         "--target",
@@ -28,7 +28,7 @@ fn build_to_temp() {
 fn exports_env_variable() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_to_temp.json"),
         "--target",
@@ -41,7 +41,7 @@ fn exports_env_variable() {
     assert_eq!(std::env::var("ARCH").unwrap(), "x86_64-linux-gnu");
 
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_to_temp.json"),
         "--target",
@@ -60,7 +60,7 @@ fn build_with_separate_lib_folder() {
     let dir = tempfile::tempdir().unwrap();
     let lib_dir = tempfile::tempdir().unwrap();
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/separate_build_and_lib.json"),
         "--target",
@@ -82,7 +82,7 @@ fn build_with_separate_lib_folder() {
 fn build_with_target_but_without_sysroot() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_without_sysroot.json"),
         "--target",
@@ -100,7 +100,7 @@ fn build_with_target_but_without_sysroot() {
 fn build_for_multiple_targets_and_sysroots() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/multi_target_and_sysroot.json"),
         "--target",
@@ -134,7 +134,7 @@ fn build_with_cc_linker() {
     };
 
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_cc_linker.json"),
         "--target",
@@ -157,13 +157,13 @@ fn build_with_clang_linker_windows() {
     let test_lib = dir.path().join("test.lib");
 
     let first_parameters =
-        &["rustyc", "-c", &get_test_file("json/simple_program.st"), "-o", &test_lib.to_string_lossy()];
+        &["plc", "-c", &get_test_file("json/simple_program.st"), "-o", &test_lib.to_string_lossy()];
     compile(first_parameters).unwrap();
 
     assert!(dir.path().join("test.lib").is_file());
 
     let parameters = &[
-        "rustyc",
+        "plc",
         "build",
         &get_test_file("json/build_clang_windows.json"),
         "--build-location",
