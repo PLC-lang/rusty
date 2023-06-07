@@ -402,40 +402,12 @@ impl GeneratedProject<'_> {
         output: &str,
         link_options: LinkOptions,
     ) -> Result<Object, Diagnostic> {
-        let target_triple = self.target.get_target_triple();
-        let mut linker =
-            plc::linker::Linker::new(target_triple.as_str().to_str()?, link_options.linker.as_deref())?;
-        for obj in &self.objects {
-            linker.add_obj(&obj.get_path().to_string_lossy());
-        }
-        for obj in objects {
-            linker.add_obj(&obj.get_path().to_string_lossy());
-        }
-        for lib_path in &link_options.library_pathes {
-            linker.add_lib_path(&lib_path.to_string_lossy());
-        }
-        for lib in &link_options.libraries {
-            linker.add_lib(lib);
-        }
-        if let Some(sysroot) = self.target.get_sysroot() {
-            linker.add_sysroot(sysroot);
-        }
-        //Include the current directory in lib search
-        linker.add_lib_path(".");
-
         let output_location = build_location
             .map(|it| self.target.append_to(it))
             .map(|it| it.join(output))
             .unwrap_or_else(|| PathBuf::from(output));
 
         let output_location = match link_options.format {
-            FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
-            FormatOption::Shared | FormatOption::PIC => {
-                linker.build_shared_obj(output_location).map_err(Into::into)
-            }
-            FormatOption::Object | FormatOption::Relocatable => {
-                linker.build_relocatable(output_location).map_err(Into::into)
-            }
             FormatOption::Bitcode => {
                 let context = CodegenContext::create();
                 let codegen = self
@@ -467,6 +439,42 @@ impl GeneratedProject<'_> {
                         Diagnostic::codegen_error("Could not create ir", SourceRange::undefined())
                     })??;
                 codegen.persist_to_ir(output_location)
+            }
+            _ => {
+                // Only initialize a linker if we need to use it
+                let target_triple = self.target.get_target_triple();
+                let mut linker = plc::linker::Linker::new(
+                    target_triple.as_str().to_str()?,
+                    link_options.linker.as_deref(),
+                )?;
+                for obj in &self.objects {
+                    linker.add_obj(&obj.get_path().to_string_lossy());
+                }
+                for obj in objects {
+                    linker.add_obj(&obj.get_path().to_string_lossy());
+                }
+                for lib_path in &link_options.library_pathes {
+                    linker.add_lib_path(&lib_path.to_string_lossy());
+                }
+                for lib in &link_options.libraries {
+                    linker.add_lib(lib);
+                }
+                if let Some(sysroot) = self.target.get_sysroot() {
+                    linker.add_sysroot(sysroot);
+                }
+                //Include the current directory in lib search
+                linker.add_lib_path(".");
+
+                match link_options.format {
+                    FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
+                    FormatOption::Shared | FormatOption::PIC => {
+                        linker.build_shared_obj(output_location).map_err(Into::into)
+                    }
+                    FormatOption::Object | FormatOption::Relocatable => {
+                        linker.build_relocatable(output_location).map_err(Into::into)
+                    }
+                    _ => unreachable!("Already handled in previous match"),
+                }
             }
         }?;
 

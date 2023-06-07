@@ -29,7 +29,9 @@ trait LinkerInterface {
 
 impl Linker {
     pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
-        let target_os = target.split('-').collect::<Vec<&str>>()[2];
+        let [platform, target_os] = target.split('-').collect::<Vec<&str>>()[1..=2] else {
+            return Err(LinkerError::Target(target.into()));
+        };
 
         Ok(Linker {
             errors: Vec::default(),
@@ -38,8 +40,10 @@ impl Linker {
 
                 // TODO: Linker for Windows is missing, see also:
                 // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
-                None => match target_os {
-                    "win32" | "windows" => return Err(LinkerError::Target(target_os.into())),
+                None => match (platform, target_os) {
+                    (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
+                        return Err(LinkerError::Target(target_os.into()))
+                    }
 
                     _ => Box::new(LdLinker::new()),
                 },
@@ -257,10 +261,16 @@ fn windows_target_triple_should_result_in_error() {
     for target in &[
         "x86_64-pc-windows-gnu",
         "x86_64-pc-win32-gnu",
+        "x86_64-windows-gnu",
+        "x86_64-win32-gnu",
         "aarch64-pc-windows-gnu",
         "aarch64-pc-win32-gnu",
+        "aarch64-windows-gnu",
+        "aarch64-win32-gnu",
         "i686-pc-windows-gnu",
         "i686-pc-win32-gnu",
+        "i686-windows-gnu",
+        "i686-win32-gnu",
     ] {
         assert!(Linker::new(target, None).is_err());
     }
@@ -268,7 +278,9 @@ fn windows_target_triple_should_result_in_error() {
 
 #[test]
 fn non_windows_target_triple_should_result_in_ok() {
-    for target in &["x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"] {
+    for target in
+        &["x86_64-linux-gnu", "x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"]
+    {
         assert!(Linker::new(target, None).is_ok());
     }
 }
