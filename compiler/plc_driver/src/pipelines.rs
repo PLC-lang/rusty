@@ -440,6 +440,13 @@ impl GeneratedProject<'_> {
                     })??;
                 codegen.persist_to_ir(output_location)
             }
+            FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
+                //Just copy over the object file, no need for a linker
+                for obj in &self.objects {
+                    std::fs::copy(obj.get_path(), &output_location)?;
+                }
+                Ok(output_location)
+            }
             _ => {
                 // Only initialize a linker if we need to use it
                 let target_triple = self.target.get_target_triple();
