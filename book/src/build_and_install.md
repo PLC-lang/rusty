@@ -13,7 +13,7 @@ however, you will need some additional dependencies namely:
 The next sections cover how to install these dependencies on different platforms, if you already have them
 however, RuSTy can be build using the `cargo` command. For debug builds this can be accomplished by executing
 `cargo build` and for release builds (smaller & faster) you would execute `cargo build --release`. The 
-resulting binaries can be found at `target/debug/rustyc` and `target/release/rustyc` respectively.
+resulting binaries can be found at `target/debug/plc` and `target/release/plc` respectively.
 
 ## Ubuntu
 

@@ -156,8 +156,15 @@ fn build_with_clang_linker_windows() {
     let dir = tempfile::tempdir().unwrap();
     let test_lib = dir.path().join("test.lib");
 
-    let first_parameters =
-        &["plc", "-c", &get_test_file("json/simple_program.st"), "-o", &test_lib.to_string_lossy()];
+    let first_parameters = &[
+        "plc",
+        "-c",
+        &get_test_file("json/simple_program.st"),
+        "-o",
+        &test_lib.to_string_lossy(),
+        "--linker",
+        "clang",
+    ];
     compile(first_parameters).unwrap();
 
     assert!(dir.path().join("test.lib").is_file());
