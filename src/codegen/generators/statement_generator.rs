@@ -6,8 +6,8 @@ use super::{
 };
 use crate::{
     ast::{
-        control_statements::AstControlStatement, flatten_expression_list, AstStatement, ConditionalBlock,
-        NewLines, Operator, SourceRange,
+        control_statements::{AstControlStatement, ConditionalBlock},
+        flatten_expression_list, AstStatement, NewLines, Operator, SourceRange,
     },
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
@@ -125,9 +125,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::ControlStatement { kind: ctl_statement, .. } => {
                 self.generate_control_statement(ctl_statement)?
             }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.generate_case_statement(selector, case_blocks, else_block)?;
-            }
             AstStatement::ReturnStatement { .. } => {
                 self.register_debug_location(statement);
                 self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
@@ -183,6 +180,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstControlStatement::RepeatLoop(stmt) => {
                 self.generate_repeat_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::Case(stmt) => {
+                self.generate_case_statement(&stmt.selector, &stmt.case_blocks, &stmt.else_block)
             }
         }
     }
@@ -479,7 +479,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         selector: &AstStatement,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -535,7 +535,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// returns the new block to use as else

@@ -1003,8 +1003,10 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(ctx, by_step);
                 }
                 //Hint annotate start, end and step with the counter's real type
-                if let Some(type_name) =
-                    self.annotation_map.get_type(&stmt.counter, self.index).map(typesystem::DataType::get_name)
+                if let Some(type_name) = self
+                    .annotation_map
+                    .get_type(&stmt.counter, self.index)
+                    .map(typesystem::DataType::get_name)
                 {
                     let annotation = StatementAnnotation::value(type_name);
                     self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
@@ -1015,22 +1017,22 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }  |
-            AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } => {
+            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }
+            | AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } => {
                 self.visit_statement(ctx, &stmt.condition);
                 stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.visit_statement(ctx, selector);
-                let selector_type = self.annotation_map.get_type(selector, self.index).cloned();
-                case_blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::Case(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.selector);
+                let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
+                stmt.case_blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     if let Some(selector_type) = &selector_type {
                         self.update_expected_types(selector_type, b.condition.as_ref());
                     }
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
             }
             AstStatement::CaseCondition { condition, .. } => self.visit_statement(ctx, condition),
             _ => {

@@ -1,4 +1,6 @@
-use super::{AstId, AstStatement, ConditionalBlock, SourceRange};
+use std::fmt::{Debug, Formatter, Result};
+
+use super::{AstId, AstStatement, SourceRange};
 
 #[derive(Clone, PartialEq)]
 pub struct IfStatement {
@@ -23,11 +25,34 @@ pub struct LoopStatement {
 }
 
 #[derive(Clone, PartialEq)]
+pub struct CaseStatement {
+    pub selector: Box<AstStatement>,
+    pub case_blocks: Vec<ConditionalBlock>,
+    pub else_block: Vec<AstStatement>,
+}
+
+#[derive(Clone, PartialEq)]
 pub enum AstControlStatement {
     IfStatement(IfStatement),
     ForLoop(ForLoopStatement),
     WhileLoop(LoopStatement),
     RepeatLoop(LoopStatement),
+    Case(CaseStatement),
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ConditionalBlock {
+    pub condition: Box<AstStatement>,
+    pub body: Vec<AstStatement>,
+}
+
+impl Debug for ConditionalBlock {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.debug_struct("ConditionalBlock")
+            .field("condition", &self.condition)
+            .field("body", &self.body)
+            .finish()
+    }
 }
 
 impl AstControlStatement {
@@ -87,6 +112,24 @@ impl AstControlStatement {
     ) -> AstStatement {
         AstStatement::ControlStatement {
             kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    pub fn case_statement(
+        selector: AstStatement,
+        case_blocks: Vec<ConditionalBlock>,
+        else_block: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::Case(CaseStatement {
+                selector: Box::new(selector),
+                case_blocks,
+                else_block,
+            }),
             id,
             location,
         }

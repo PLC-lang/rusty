@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{control_statements::AstControlStatement, *},
+    ast::{
+        control_statements::{AstControlStatement, ConditionalBlock},
+        *,
+    },
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
@@ -159,7 +162,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
-    let selector = Box::new(parse_expression(lexer));
+    let selector = parse_expression(lexer);
 
     expect_token!(
         lexer,
@@ -211,11 +214,11 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     };
 
     let end = lexer.last_range.end;
-    AstStatement::CaseStatement {
+    AstControlStatement::case_statement(
         selector,
         case_blocks,
         else_block,
-        location: lexer.source_range_factory.create_range(start..end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..end),
+        lexer.next_id(),
+    )
 }

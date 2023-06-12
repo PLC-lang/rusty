@@ -933,26 +933,35 @@ fn test_case_body_with_missing_semicolon() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::CaseStatement {
-                selector: Box::new(ref_to("x")),
-                case_blocks: vec![ConditionalBlock {
-                    condition: Box::new(ref_to("y")),
-                    body: vec![AstStatement::Assignment {
-                        left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("z")),
-                        id: 0
-                    }],
-                },],
-                else_block: vec![],
-                location: SourceRange::undefined(),
-                id: 0
-            }]
-        )
-    );
+        @r###"
+    [
+        CaseStatement {
+            selector: Reference {
+                name: "x",
+            },
+            case_blocks: [
+                ConditionalBlock {
+                    condition: Reference {
+                        name: "y",
+                    },
+                    body: [
+                        Assignment {
+                            left: Reference {
+                                name: "y",
+                            },
+                            right: Reference {
+                                name: "z",
+                            },
+                        },
+                    ],
+                },
+            ],
+            else_block: [],
+        },
+    ]
+    "###);
 }
 
 #[test]

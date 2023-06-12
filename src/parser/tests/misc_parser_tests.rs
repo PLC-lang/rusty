@@ -415,7 +415,17 @@ fn ids_are_assigned_to_case_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        AstStatement::CaseStatement { case_blocks, else_block, selector, .. } => {
+        AstStatement::ControlStatement {
+            kind:
+                AstControlStatement::Case(control_statements::CaseStatement {
+                    case_blocks,
+                    else_block,
+                    selector,
+                    ..
+                }),
+            location,
+            id,
+        } => {
             //1st case block
             assert_eq!(selector.get_id(), 1);
             assert_eq!(case_blocks[0].condition.get_id(), 2);
@@ -487,14 +497,7 @@ fn id_implementation_for_all_statements() {
     );
     assert_eq!(AstStatement::CaseCondition { condition: Box::new(empty_stmt()), id: 7 }.get_id(), 7);
     assert_eq!(
-        AstStatement::CaseStatement {
-            selector: Box::new(empty_stmt()),
-            case_blocks: vec![],
-            else_block: vec![],
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
+        AstControlStatement::case_statement(empty_stmt(), vec![], vec![], (1..5).into(), 7).get_id(),
         7
     );
     assert_eq!(AstStatement::EmptyStatement { location: (1..5).into(), id: 7 }.get_id(), 7);
@@ -597,14 +600,7 @@ fn location_implementation_for_all_statements() {
         (2..4).into()
     );
     assert_eq!(
-        AstStatement::CaseStatement {
-            selector: Box::new(empty_stmt()),
-            case_blocks: vec![],
-            else_block: vec![],
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
+        AstControlStatement::case_statement(empty_stmt(), vec![], vec![], (1..5).into(), 7).get_location(),
         (1..5).into()
     );
     assert_eq!(AstStatement::EmptyStatement { location: (1..5).into(), id: 7 }.get_location(), (1..5).into());

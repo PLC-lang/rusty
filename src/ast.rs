@@ -17,7 +17,7 @@ use std::{
     unimplemented, vec,
 };
 
-use self::control_statements::{AstControlStatement, IfStatement, LoopStatement};
+use self::control_statements::{AstControlStatement, CaseStatement, IfStatement, LoopStatement};
 
 pub mod control_statements;
 pub mod literals;
@@ -726,21 +726,6 @@ fn replace_reference(
 }
 
 #[derive(Clone, PartialEq)]
-pub struct ConditionalBlock {
-    pub condition: Box<AstStatement>,
-    pub body: Vec<AstStatement>,
-}
-
-impl Debug for ConditionalBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("ConditionalBlock")
-            .field("condition", &self.condition)
-            .field("body", &self.body)
-            .finish()
-    }
-}
-
-#[derive(Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement {
         location: SourceRange,
@@ -852,13 +837,6 @@ pub enum AstStatement {
         id: AstId,
     },
 
-    CaseStatement {
-        selector: Box<AstStatement>,
-        case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
     CaseCondition {
         condition: Box<AstStatement>,
         id: AstId,
@@ -948,7 +926,10 @@ impl Debug for AstStatement {
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::Case(CaseStatement { selector, case_blocks, else_block, .. }),
+                ..
+            } => f
                 .debug_struct("CaseStatement")
                 .field("selector", selector)
                 .field("case_blocks", case_blocks)
@@ -1037,7 +1018,6 @@ impl AstStatement {
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::ControlStatement { location, .. } => location.clone(),
-            AstStatement::CaseStatement { location, .. } => location.clone(),
             AstStatement::ArrayAccess { reference, access, .. } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
@@ -1076,7 +1056,6 @@ impl AstStatement {
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
             AstStatement::ControlStatement { id, .. } => *id,
-            AstStatement::CaseStatement { id, .. } => *id,
             AstStatement::CaseCondition { id, .. } => *id,
             AstStatement::ReturnStatement { id, .. } => *id,
             AstStatement::ContinueStatement { id, .. } => *id,

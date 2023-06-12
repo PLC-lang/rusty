@@ -3,8 +3,8 @@ use std::{collections::HashSet, mem::discriminant};
 use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
     ast::{
-        self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
-        StringValue,
+        self, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,
+        Operator, SourceRange, StringValue,
     },
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -99,13 +99,7 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::CallStatement { operator, parameters, .. } => {
             validate_call(validator, operator, parameters, &context.set_is_call());
         }
-        AstStatement::ControlStatement { kind, .. } => {
-            validate_control_statement(validator, kind, context)
-        }
-        
-        AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-            validate_case_statement(validator, selector, case_blocks, else_block, context);
-        }
+        AstStatement::ControlStatement { kind, .. } => validate_control_statement(validator, kind, context),
         AstStatement::CaseCondition { condition, .. } => {
             // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
@@ -144,11 +138,14 @@ fn validate_control_statement<T: AnnotationMap>(
             }
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
-        ast::control_statements::AstControlStatement::WhileLoop(stmt) |
-        ast::control_statements::AstControlStatement::RepeatLoop(stmt) => {
-             visit_statement(validator, &stmt.condition, context);
+        ast::control_statements::AstControlStatement::WhileLoop(stmt)
+        | ast::control_statements::AstControlStatement::RepeatLoop(stmt) => {
+            visit_statement(validator, &stmt.condition, context);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
-        },
+        }
+        ast::control_statements::AstControlStatement::Case(stmt) => {
+            validate_case_statement(validator, &stmt.selector, &stmt.case_blocks, &stmt.else_block, context);
+        }
     }
 }
 
