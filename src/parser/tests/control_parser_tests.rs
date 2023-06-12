@@ -840,8 +840,7 @@ fn if_stmnt_location_test() {
     );
 
     if let AstStatement::ControlStatement {
-        kind: AstControlStatement::IfStatement(IfStatement { blocks, .. }),
-        ..
+        kind: AstControlStatement::If(IfStatement { blocks, .. }), ..
     } = &unit.statements[0]
     {
         let if_location = blocks[0].condition.as_ref().get_location();

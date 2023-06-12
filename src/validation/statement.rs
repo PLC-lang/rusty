@@ -124,7 +124,7 @@ fn validate_control_statement<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     match control_statement {
-        ast::control_statements::AstControlStatement::IfStatement(stmt) => {
+        ast::control_statements::AstControlStatement::If(stmt) => {
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));

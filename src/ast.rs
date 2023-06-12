@@ -893,7 +893,7 @@ impl Debug for AstStatement {
                 .field("parameters", parameters)
                 .finish(),
             AstStatement::ControlStatement {
-                kind: AstControlStatement::IfStatement(IfStatement { blocks, else_block, .. }),
+                kind: AstControlStatement::If(IfStatement { blocks, else_block, .. }),
                 ..
             } => {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()

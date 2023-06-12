@@ -990,7 +990,7 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::ControlStatement { kind: AstControlStatement::IfStatement(stmt), .. } => {
+            AstStatement::ControlStatement { kind: AstControlStatement::If(stmt), .. } => {
                 stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));

@@ -75,7 +75,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let end = lexer.last_range.end;
 
-    control_statements::AstControlStatement::if_statement(
+    control_statements::AstControlStatement::new_if_statement(
         conditional_blocks,
         else_block,
         lexer.source_range_factory.create_range(start..end),
@@ -113,7 +113,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
 
     lexer.consume_or_report(KeywordDo); // DO
 
-    AstControlStatement::for_loop(
+    AstControlStatement::new_for_loop(
         counter_expression,
         start_expression,
         end_expression,
@@ -131,7 +131,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     let condition = parse_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
-    AstControlStatement::while_statement(
+    AstControlStatement::new_while_statement(
         condition,
         parse_body_in_region(lexer, vec![KeywordEndWhile]),
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
@@ -150,7 +150,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
         AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     };
 
-    AstControlStatement::repeat_statement(
+    AstControlStatement::new_repeat_statement(
         condition,
         body,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
@@ -214,7 +214,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     };
 
     let end = lexer.last_range.end;
-    AstControlStatement::case_statement(
+    AstControlStatement::new_case_statement(
         selector,
         case_blocks,
         else_block,

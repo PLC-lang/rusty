@@ -1,12 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::control_statements::*,
-    ast::*,
-    lexer::Token,
-    parser::tests::{empty_stmt, ref_to},
-    test_utils::tests::parse,
-    Diagnostic,
-};
+use crate::{ast::*, lexer::Token, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 /*

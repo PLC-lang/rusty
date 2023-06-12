@@ -165,9 +165,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `statement` the control statement to be generated
     pub fn generate_control_statement(&self, statement: &AstControlStatement) -> Result<(), Diagnostic> {
         match statement {
-            AstControlStatement::IfStatement(ifstmt) => {
-                self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block)
-            }
+            AstControlStatement::If(ifstmt) => self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block),
             AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
                 &for_stmt.counter,
                 &for_stmt.start,

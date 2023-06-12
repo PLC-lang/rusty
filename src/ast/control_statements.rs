@@ -33,7 +33,7 @@ pub struct CaseStatement {
 
 #[derive(Clone, PartialEq)]
 pub enum AstControlStatement {
-    IfStatement(IfStatement),
+    If(IfStatement),
     ForLoop(ForLoopStatement),
     WhileLoop(LoopStatement),
     RepeatLoop(LoopStatement),
@@ -56,20 +56,20 @@ impl Debug for ConditionalBlock {
 }
 
 impl AstControlStatement {
-    pub fn if_statement(
+    pub fn new_if_statement(
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
-            kind: AstControlStatement::IfStatement(IfStatement { blocks, else_block }),
+            kind: AstControlStatement::If(IfStatement { blocks, else_block }),
             location,
             id,
         }
     }
 
-    pub fn for_loop(
+    pub fn new_for_loop(
         counter: AstStatement,
         start: AstStatement,
         end: AstStatement,
@@ -91,7 +91,7 @@ impl AstControlStatement {
         }
     }
 
-    pub fn while_statement(
+    pub fn new_while_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
         location: SourceRange,
@@ -104,7 +104,7 @@ impl AstControlStatement {
         }
     }
 
-    pub fn repeat_statement(
+    pub fn new_repeat_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
         location: SourceRange,
@@ -117,7 +117,7 @@ impl AstControlStatement {
         }
     }
 
-    pub fn case_statement(
+    pub fn new_case_statement(
         selector: AstStatement,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
