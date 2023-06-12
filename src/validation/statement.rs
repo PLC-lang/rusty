@@ -542,20 +542,23 @@ fn validate_assignment(
                     qualified_name.as_str(),
                     left.get_location(),
                 ));
-            }
-
-            // ...enum where the RHS does not match its variants
-            let left_dt = context.annotations.get_type_or_void(left, context.index).get_type_information();
-            if left_dt.is_enum()
-                && left_dt.get_name()
-                    != context
-                        .annotations
-                        .get_type_or_void(right, context.index)
-                        .get_type_information()
-                        .get_name()
-            {
-                validator
-                    .push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, right.get_location()))
+            } else {
+                // ...enum variable where the RHS does not match its variants
+                let left_dt =
+                    context.annotations.get_type_or_void(left, context.index).get_type_information();
+                if left_dt.is_enum()
+                    && dbg!(left_dt.get_name())
+                        != context
+                            .annotations
+                            .get_type_or_void(right, context.index)
+                            .get_type_information()
+                            .get_name()
+                {
+                    validator.push_diagnostic(Diagnostic::enum_variant_mismatch(
+                        qualified_name,
+                        right.get_location(),
+                    ))
+                }
             }
 
             // ...VAR_INPUT {ref} variable
