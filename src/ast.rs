@@ -1,11 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
+    ast::control_statements::ForLoopStatement,
     index::Index,
     lexer::IdProvider,
     typesystem::{
         DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
         USINT_TYPE, VOID_TYPE,
-    }, ast::control_statements::ForLoopStatement,
+    },
 };
 pub use literals::*;
 use serde::{Deserialize, Serialize};
@@ -16,7 +17,7 @@ use std::{
     unimplemented, vec,
 };
 
-use self::control_statements::{AstControlStatement, IfStatement};
+use self::control_statements::{AstControlStatement, IfStatement, LoopStatement};
 
 pub mod control_statements;
 pub mod literals;
@@ -850,19 +851,7 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
-    
-    WhileLoopStatement {
-        condition: Box<AstStatement>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
-    RepeatLoopStatement {
-        condition: Box<AstStatement>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
+
     CaseStatement {
         selector: Box<AstStatement>,
         case_blocks: Vec<ConditionalBlock>,
@@ -932,7 +921,10 @@ impl Debug for AstStatement {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
             }
             AstStatement::ControlStatement {
-                kind: AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }), ..} => f
+                kind:
+                    AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
+                ..
+            } => f
                 .debug_struct("ForLoopStatement")
                 .field("counter", counter)
                 .field("start", start)
@@ -940,12 +932,18 @@ impl Debug for AstStatement {
                 .field("by_step", by_step)
                 .field("body", body)
                 .finish(),
-            AstStatement::WhileLoopStatement { condition, body, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+                ..
+            } => f
                 .debug_struct("WhileLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::RepeatLoopStatement { condition, body, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+                ..
+            } => f
                 .debug_struct("RepeatLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
@@ -1039,8 +1037,6 @@ impl AstStatement {
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::ControlStatement { location, .. } => location.clone(),
-            AstStatement::WhileLoopStatement { location, .. } => location.clone(),
-            AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
             AstStatement::CaseStatement { location, .. } => location.clone(),
             AstStatement::ArrayAccess { reference, access, .. } => {
                 let reference_loc = reference.get_location();
@@ -1080,8 +1076,6 @@ impl AstStatement {
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
             AstStatement::ControlStatement { id, .. } => *id,
-            AstStatement::WhileLoopStatement { id, .. } => *id,
-            AstStatement::RepeatLoopStatement { id, .. } => *id,
             AstStatement::CaseStatement { id, .. } => *id,
             AstStatement::CaseCondition { id, .. } => *id,
             AstStatement::ReturnStatement { id, .. } => *id,

@@ -528,33 +528,41 @@ fn test_repeat_with_missing_semicolon_in_body() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![
-                AstStatement::RepeatLoopStatement {
-                    body: vec![AstStatement::Assignment {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::new_integer(3),
-                            location: SourceRange::undefined(),
-                            id: 0
-                        }),
-                        id: 0
-                    }],
-                    condition: Box::new(AstStatement::BinaryExpression {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(ref_to("y")),
-                        operator: crate::ast::Operator::Equal,
-                        id: 0
-                    }),
-                    location: SourceRange::undefined(),
-                    id: 0
+        @r###"
+    [
+        RepeatLoopStatement {
+            condition: BinaryExpression {
+                operator: Equal,
+                left: Reference {
+                    name: "x",
                 },
-                AstStatement::Assignment { left: Box::new(ref_to("y")), right: Box::new(ref_to("x")), id: 0 }
-            ]
-        )
+                right: Reference {
+                    name: "y",
+                },
+            },
+            body: [
+                Assignment {
+                    left: Reference {
+                        name: "x",
+                    },
+                    right: LiteralInteger {
+                        value: 3,
+                    },
+                },
+            ],
+        },
+        Assignment {
+            left: Reference {
+                name: "y",
+            },
+            right: Reference {
+                name: "x",
+            },
+        },
+    ]
+    "###
     );
 }
 
@@ -579,34 +587,39 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::RepeatLoopStatement {
-                body: vec![
-                    AstStatement::RepeatLoopStatement {
-                        body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
-                            id: 0
-                        }),
-                        location: SourceRange::undefined(),
-                        id: 0
+        @r###"
+    [
+        RepeatLoopStatement {
+            condition: EmptyStatement,
+            body: [
+                RepeatLoopStatement {
+                    condition: BinaryExpression {
+                        operator: Equal,
+                        left: Reference {
+                            name: "x",
+                        },
+                        right: Reference {
+                            name: "y",
+                        },
                     },
-                    AstStatement::Assignment {
-                        left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x")),
-                        id: 0
-                    }
-                ],
-                condition: Box::new(empty_stmt()),
-                location: SourceRange::undefined(),
-                id: 0
-            },]
-        )
+                    body: [
+                        EmptyStatement,
+                    ],
+                },
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: Reference {
+                        name: "x",
+                    },
+                },
+            ],
+        },
+    ]
+    "###
     );
 }
 
@@ -633,34 +646,39 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::RepeatLoopStatement {
-                body: vec![
-                    AstStatement::RepeatLoopStatement {
-                        body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
-                            id: 0
-                        }),
-                        location: SourceRange::undefined(),
-                        id: 0
+        @r###"
+    [
+        RepeatLoopStatement {
+            condition: EmptyStatement,
+            body: [
+                RepeatLoopStatement {
+                    condition: BinaryExpression {
+                        operator: Equal,
+                        left: Reference {
+                            name: "x",
+                        },
+                        right: Reference {
+                            name: "y",
+                        },
                     },
-                    AstStatement::Assignment {
-                        left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x")),
-                        id: 0
-                    }
-                ],
-                condition: Box::new(empty_stmt()),
-                location: SourceRange::undefined(),
-                id: 0
-            },]
-        )
+                    body: [
+                        EmptyStatement,
+                    ],
+                },
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: Reference {
+                        name: "x",
+                    },
+                },
+            ],
+        },
+    ]
+    "###
     );
 }
 
@@ -686,39 +704,47 @@ fn test_nested_repeat_with_missing_end_repeat() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::RepeatLoopStatement {
-                body: vec![
-                    AstStatement::RepeatLoopStatement {
-                        body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
-                            id: 0
-                        }),
-                        location: SourceRange::undefined(),
-                        id: 0
+        @r###"
+    [
+        RepeatLoopStatement {
+            condition: BinaryExpression {
+                operator: Equal,
+                left: Reference {
+                    name: "x",
+                },
+                right: Reference {
+                    name: "y",
+                },
+            },
+            body: [
+                RepeatLoopStatement {
+                    condition: BinaryExpression {
+                        operator: Equal,
+                        left: Reference {
+                            name: "x",
+                        },
+                        right: Reference {
+                            name: "y",
+                        },
                     },
-                    AstStatement::Assignment {
-                        left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x")),
-                        id: 0
-                    }
-                ],
-                condition: Box::new(AstStatement::BinaryExpression {
-                    left: Box::new(ref_to("x")),
-                    right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal,
-                    id: 0
-                }),
-                location: SourceRange::undefined(),
-                id: 0
-            },]
-        )
+                    body: [
+                        EmptyStatement,
+                    ],
+                },
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: Reference {
+                        name: "x",
+                    },
+                },
+            ],
+        },
+    ]
+    "###
     );
 }
 
@@ -742,33 +768,41 @@ fn test_while_with_missing_semicolon_in_body() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![
-                AstStatement::WhileLoopStatement {
-                    body: vec![AstStatement::Assignment {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::new_integer(3),
-                            location: SourceRange::undefined(),
-                            id: 0
-                        }),
-                        id: 0
-                    }],
-                    condition: Box::new(AstStatement::BinaryExpression {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(ref_to("y")),
-                        operator: crate::ast::Operator::Equal,
-                        id: 0
-                    }),
-                    location: SourceRange::undefined(),
-                    id: 0
+        @r###"
+    [
+        WhileLoopStatement {
+            condition: BinaryExpression {
+                operator: Equal,
+                left: Reference {
+                    name: "x",
                 },
-                AstStatement::Assignment { left: Box::new(ref_to("y")), right: Box::new(ref_to("x")), id: 0 }
-            ]
-        )
+                right: Reference {
+                    name: "y",
+                },
+            },
+            body: [
+                Assignment {
+                    left: Reference {
+                        name: "x",
+                    },
+                    right: LiteralInteger {
+                        value: 3,
+                    },
+                },
+            ],
+        },
+        Assignment {
+            left: Reference {
+                name: "y",
+            },
+            right: Reference {
+                name: "x",
+            },
+        },
+    ]
+    "###
     );
 }
 
@@ -793,39 +827,47 @@ fn test_nested_while_with_missing_end_while() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::WhileLoopStatement {
-                body: vec![
-                    AstStatement::WhileLoopStatement {
-                        body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
-                            id: 0
-                        }),
-                        location: SourceRange::undefined(),
-                        id: 0
+        @r###"
+    [
+        WhileLoopStatement {
+            condition: BinaryExpression {
+                operator: Equal,
+                left: Reference {
+                    name: "x",
+                },
+                right: Reference {
+                    name: "y",
+                },
+            },
+            body: [
+                WhileLoopStatement {
+                    condition: BinaryExpression {
+                        operator: Equal,
+                        left: Reference {
+                            name: "x",
+                        },
+                        right: Reference {
+                            name: "y",
+                        },
                     },
-                    AstStatement::Assignment {
-                        left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x")),
-                        id: 0
-                    }
-                ],
-                condition: Box::new(AstStatement::BinaryExpression {
-                    left: Box::new(ref_to("x")),
-                    right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal,
-                    id: 0
-                }),
-                location: SourceRange::undefined(),
-                id: 0
-            },]
-        )
+                    body: [
+                        EmptyStatement,
+                    ],
+                },
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: Reference {
+                        name: "x",
+                    },
+                },
+            ],
+        },
+    ]
+    "###
     );
 }
 
@@ -842,26 +884,33 @@ fn test_while_with_missing_do() {
 
     assert_eq!(diagnostics, vec![Diagnostic::missing_token("KeywordDo", (55..56).into()),]);
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::WhileLoopStatement {
-                body: vec![AstStatement::Assignment {
-                    left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x")),
-                    id: 0
-                }],
-                condition: Box::new(AstStatement::BinaryExpression {
-                    left: Box::new(ref_to("x")),
-                    right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal,
-                    id: 0
-                }),
-                location: SourceRange::undefined(),
-                id: 0
-            }]
-        )
+        @r###"
+    [
+        WhileLoopStatement {
+            condition: BinaryExpression {
+                operator: Equal,
+                left: Reference {
+                    name: "x",
+                },
+                right: Reference {
+                    name: "y",
+                },
+            },
+            body: [
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: Reference {
+                        name: "x",
+                    },
+                },
+            ],
+        },
+    ]
+    "###
     );
 }
 

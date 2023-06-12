@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
+    ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement, LoopStatement},
     Diagnostic,
 };
 use core::panic;
@@ -358,7 +358,10 @@ fn ids_are_assigned_to_while_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        AstStatement::WhileLoopStatement { condition, body, .. } => {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+            ..
+        } => {
             assert_eq!(condition.get_id(), 1);
             assert_eq!(body[0].get_id(), 2);
             assert_eq!(body[1].get_id(), 3);
@@ -381,7 +384,10 @@ fn ids_are_assigned_to_repeat_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        AstStatement::RepeatLoopStatement { condition, body, .. } => {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+            ..
+        } => {
             assert_eq!(body[0].get_id(), 1);
             assert_eq!(body[1].get_id(), 2);
             assert_eq!(condition.get_id(), 3);
@@ -536,16 +542,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::Reference { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_id(),
         7
     );
-    assert_eq!(
-        AstStatement::RepeatLoopStatement {
-            body: vec![],
-            condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
+    assert_eq!(AstControlStatement::repeat_statement(empty_stmt(), vec![], (1..5).into(), 7).get_id(), 7);
     assert_eq!(
         AstStatement::UnaryExpression {
             operator: Operator::Minus,
@@ -556,16 +553,7 @@ fn id_implementation_for_all_statements() {
         .get_id(),
         7
     );
-    assert_eq!(
-        AstStatement::WhileLoopStatement {
-            body: vec![],
-            condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
+    assert_eq!(AstControlStatement::while_statement(empty_stmt(), vec![], (1..5).into(), 7).get_id(), 7);
 }
 
 fn at(location: Range<usize>) -> AstStatement {
@@ -674,13 +662,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::RepeatLoopStatement {
-            body: vec![],
-            condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
+        AstControlStatement::repeat_statement(empty_stmt(), vec![], (1..5).into(), 7).get_location(),
         (1..5).into()
     );
     assert_eq!(
@@ -694,13 +676,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::WhileLoopStatement {
-            body: vec![],
-            condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
-        .get_location(),
+        AstControlStatement::while_statement(empty_stmt(), vec![], (1..5).into(), 7).get_location(),
         (1..5).into()
     );
 }

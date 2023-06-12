@@ -102,14 +102,7 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::ControlStatement { kind, .. } => {
             validate_control_statement(validator, kind, context)
         }
-        AstStatement::WhileLoopStatement { condition, body, .. } => {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::RepeatLoopStatement { condition, body, .. } => {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
+        
         AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
             validate_case_statement(validator, selector, case_blocks, else_block, context);
         }
@@ -151,6 +144,11 @@ fn validate_control_statement<T: AnnotationMap>(
             }
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
+        ast::control_statements::AstControlStatement::WhileLoop(stmt) |
+        ast::control_statements::AstControlStatement::RepeatLoop(stmt) => {
+             visit_statement(validator, &stmt.condition, context);
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
+        },
     }
 }
 

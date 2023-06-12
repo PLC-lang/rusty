@@ -121,13 +121,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment { left, right, .. } => {
                 self.generate_assignment_statement(left, right)?;
             }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.generate_repeat_statement(condition, body)?;
-            }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.generate_while_statement(condition, body)?;
-            }
-            AstStatement::ControlStatement{kind: ctl_statement, ..} => {
+
+            AstStatement::ControlStatement { kind: ctl_statement, .. } => {
                 self.generate_control_statement(ctl_statement)?
             }
             AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
@@ -176,8 +171,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstControlStatement::IfStatement(ifstmt) => {
                 self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block)
             }
-            AstControlStatement::ForLoop(for_stmt) => 
-            self.generate_for_statement(&for_stmt.counter, &for_stmt.start, &for_stmt.end, &for_stmt.by_step, &for_stmt.body),
+            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
+                &for_stmt.counter,
+                &for_stmt.start,
+                &for_stmt.end,
+                &for_stmt.by_step,
+                &for_stmt.body,
+            ),
+            AstControlStatement::WhileLoop(stmt) => {
+                self.generate_while_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::RepeatLoop(stmt) => {
+                self.generate_repeat_statement(&stmt.condition, &stmt.body)
+            }
         }
     }
 
@@ -590,7 +596,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) = self.generate_base_while_statement(condition, body)?;
@@ -601,7 +607,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(condition_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// generates a repeat statement
@@ -617,7 +623,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
@@ -631,7 +637,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(while_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// utility method for while and repeat loops

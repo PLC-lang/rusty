@@ -16,9 +16,18 @@ pub struct ForLoopStatement {
 }
 
 #[derive(Clone, PartialEq)]
+/// used for While and Repeat loops
+pub struct LoopStatement {
+    pub condition: Box<AstStatement>,
+    pub body: Vec<AstStatement>,
+}
+
+#[derive(Clone, PartialEq)]
 pub enum AstControlStatement {
     IfStatement(IfStatement),
     ForLoop(ForLoopStatement),
+    WhileLoop(LoopStatement),
+    RepeatLoop(LoopStatement),
 }
 
 impl AstControlStatement {
@@ -54,6 +63,32 @@ impl AstControlStatement {
             }),
             location,
             id,
+        }
+    }
+
+    pub fn while_statement(
+        condition: AstStatement,
+        body: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::WhileLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    pub fn repeat_statement(
+        condition: AstStatement,
+        body: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
         }
     }
 }

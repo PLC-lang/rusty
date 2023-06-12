@@ -1,9 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        control_statements::{AstControlStatement},
-        *,
-    },
+    ast::{control_statements::AstControlStatement, *},
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
@@ -131,12 +128,12 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     let condition = parse_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
-    AstStatement::WhileLoopStatement {
-        condition: Box::new(condition),
-        body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
-        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        id: lexer.next_id(),
-    }
+    AstControlStatement::while_statement(
+        condition,
+        parse_body_in_region(lexer, vec![KeywordEndWhile]),
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -150,12 +147,12 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
         AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     };
 
-    AstStatement::RepeatLoopStatement {
-        condition: Box::new(condition),
+    AstControlStatement::repeat_statement(
+        condition,
         body,
-        location: lexer.source_range_factory.create_range(start..lexer.range().end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {

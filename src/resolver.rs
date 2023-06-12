@@ -1015,13 +1015,10 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
-            }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }  |
+            AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.condition);
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
             AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
                 self.visit_statement(ctx, selector);
