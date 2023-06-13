@@ -41,7 +41,6 @@ pub fn generate_global_variables<'ctx, 'b>(
     let programs = global_index
         .get_pous()
         .values()
-        .into_iter()
         .filter_map(|p| match p {
             PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable),
             _ => None,
