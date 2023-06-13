@@ -26,6 +26,12 @@ impl Pou {
             body,
         })
     }
+
+    pub fn sort_by_execution_order(mut self) -> Self {
+        self.body.function_block_diagram.sort_by_execution_order();
+
+        self
+    }
 }
 
 #[derive(Debug)]

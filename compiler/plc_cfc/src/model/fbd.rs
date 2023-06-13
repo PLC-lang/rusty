@@ -43,3 +43,10 @@ impl Parseable for FunctionBlockDiagram {
         Ok(FunctionBlockDiagram { blocks, variables, controls, connectors })
     }
 }
+
+impl FunctionBlockDiagram {
+    pub fn sort_by_execution_order(&mut self) {
+        self.blocks.sort_by_key(|it| it.execution_order_id);
+        self.variables.sort_by_key(|it| it.execution_order_id);
+    }
+}

@@ -1,6 +1,7 @@
 // TODO: Remove
 #![allow(dead_code)]
 
+mod cfc_parser;
 mod deserializer;
 pub mod error;
 pub(crate) mod model {
