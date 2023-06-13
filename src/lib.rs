@@ -216,7 +216,7 @@ pub enum ErrorFormat {
     None,
 }
 
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Default)]
 pub enum OptimizationLevel {
     None,
     Less,
