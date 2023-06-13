@@ -3,9 +3,9 @@ mod tests {
     use plc_derive::Validators;
     #[derive(PartialEq, Eq, Debug, Clone)]
     pub enum Diagnostic {
-        SomeError,
-        SomeOtherError,
-        SomeWarning,
+        Error,
+        OtherError,
+        Warning,
     }
     pub trait Validators {
         fn push_diagnostic(&mut self, diagnostic: Diagnostic);
@@ -22,11 +22,11 @@ mod tests {
     fn derive_validators_implements_trait_functions_correctly() {
         let mut validator = MockValidator::default();
 
-        validator.push_diagnostic(Diagnostic::SomeError);
-        validator.push_diagnostic(Diagnostic::SomeOtherError);
-        validator.push_diagnostic(Diagnostic::SomeWarning);
+        validator.push_diagnostic(Diagnostic::Error);
+        validator.push_diagnostic(Diagnostic::OtherError);
+        validator.push_diagnostic(Diagnostic::Warning);
 
-        let expected = vec![Diagnostic::SomeError, Diagnostic::SomeOtherError, Diagnostic::SomeWarning];
+        let expected = vec![Diagnostic::Error, Diagnostic::OtherError, Diagnostic::Warning];
         assert_eq!(expected, validator.diagnostics);
 
         let mut all_diagnostics = vec![];
