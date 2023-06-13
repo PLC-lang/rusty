@@ -8,10 +8,6 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-  
-env:
-  IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 14-1.67
 
 jobs:
   check: 
@@ -46,7 +42,7 @@ jobs:
     runs-on: windows-2022
     needs: check
     env:
-      toolchain-version: 1.67.0
+      toolchain-version: 1.7.0
       llvm-version: 14.0.6
     steps:
 
