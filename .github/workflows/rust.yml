@@ -42,7 +42,7 @@ jobs:
     runs-on: windows-2022
     needs: check
     env:
-      toolchain-version: 1.7.0
+      toolchain-version: 1.70.0
       llvm-version: 14.0.6
     steps:
 
