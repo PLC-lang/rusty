@@ -1150,21 +1150,6 @@
 <a href="#1150" id="1150">1150</a>
 <a href="#1151" id="1151">1151</a>
 <a href="#1152" id="1152">1152</a>
-<a href="#1153" id="1153">1153</a>
-<a href="#1154" id="1154">1154</a>
-<a href="#1155" id="1155">1155</a>
-<a href="#1156" id="1156">1156</a>
-<a href="#1157" id="1157">1157</a>
-<a href="#1158" id="1158">1158</a>
-<a href="#1159" id="1159">1159</a>
-<a href="#1160" id="1160">1160</a>
-<a href="#1161" id="1161">1161</a>
-<a href="#1162" id="1162">1162</a>
-<a href="#1163" id="1163">1163</a>
-<a href="#1164" id="1164">1164</a>
-<a href="#1165" id="1165">1165</a>
-<a href="#1166" id="1166">1166</a>
-<a href="#1167" id="1167">1167</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="doccomment">//! A St&amp;ructured Text LLVM Frontent
 //!
@@ -1288,7 +1273,7 @@
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+<span class="attr">#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 </span><span class="kw">pub enum </span>FormatOption {
     <span class="doccomment">/// Indicates that the result will be an object file (e.g. No Linking)
     </span>Object,
@@ -1305,13 +1290,8 @@
     <span class="doccomment">/// Indicates that the compile result will be LLVM IR
     </span>IR,
     <span class="doccomment">/// Indicates that no output will be generated (Check only)
+    </span><span class="attr">#[default]
     </span><span class="prelude-val">None</span>,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>FormatOption {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        FormatOption::None
-    }
 }
 
 <span class="kw">impl </span>FormatOption {
@@ -1380,24 +1360,20 @@
     output: String,
 }
 
-<span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize)]
+<span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
 </span><span class="kw">pub enum </span>ErrorFormat {
-    Rich,
+    <span class="attr">#[default]
+    </span>Rich,
     Clang,
     <span class="prelude-val">None</span>,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>ErrorFormat {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        ErrorFormat::Rich
-    }
-}
-
-<span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
+<span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Default)]
 </span><span class="kw">pub enum </span>OptimizationLevel {
     <span class="prelude-val">None</span>,
     Less,
-    Default,
+    <span class="attr">#[default]
+    </span>Default,
     Aggressive,
 }
 
@@ -1437,12 +1413,6 @@
 
     <span class="kw">fn </span>is_optimized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="macro">matches!</span>(<span class="self">self</span>, OptimizationLevel::None)
-    }
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>OptimizationLevel {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        OptimizationLevel::Default
     }
 }
 
