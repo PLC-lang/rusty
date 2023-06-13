@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rusty_derive::Validators;
+    use rusty_derive::{GetAstId, Validators};
     #[derive(PartialEq, Eq, Debug, Clone)]
     pub enum Diagnostic {
         Error,
@@ -33,5 +33,26 @@ mod tests {
         all_diagnostics.append(&mut validator.take_diagnostics());
 
         assert_eq!(expected, all_diagnostics);
+    }
+
+    type AstId = usize;
+    #[derive(GetAstId)]
+    #[allow(dead_code)]
+    enum AstStatement {
+        A { id: usize, truth: bool },
+        B { id: usize, words: String },
+        C { id: usize, mirror: Box<AstStatement> },
+    }
+    #[test]
+    fn foo() {
+        let (a, b, c) = (
+            AstStatement::A { id: 27, truth: true },
+            AstStatement::B { id: 200, words: String::from("hello") },
+            AstStatement::C { id: 111, mirror: Box::new(AstStatement::A { id: 12, truth: false }) },
+        );
+
+        let expected = (27, 200, 111);
+        let result = (a.get_id(), b.get_id(), c.get_id());
+        assert_eq!(expected, result);
     }
 }

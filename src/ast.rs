@@ -8,6 +8,7 @@ use crate::{
     },
 };
 pub use literals::*;
+use rusty_derive::GetAstId;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -736,7 +737,7 @@ impl Debug for ConditionalBlock {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, GetAstId)]
 pub enum AstStatement {
     EmptyStatement {
         location: SourceRange,
@@ -1059,39 +1060,6 @@ impl AstStatement {
             AstStatement::ContinueStatement { location, .. } => location.clone(),
             AstStatement::ExitStatement { location, .. } => location.clone(),
             AstStatement::CastStatement { location, .. } => location.clone(),
-        }
-    }
-
-    pub fn get_id(&self) -> AstId {
-        match self {
-            AstStatement::EmptyStatement { id, .. } => *id,
-            AstStatement::DefaultValue { id, .. } => *id,
-            AstStatement::Literal { id, .. } => *id,
-            AstStatement::MultipliedStatement { id, .. } => *id,
-            AstStatement::QualifiedReference { id, .. } => *id,
-            AstStatement::Reference { id, .. } => *id,
-            AstStatement::ArrayAccess { id, .. } => *id,
-            AstStatement::PointerAccess { id, .. } => *id,
-            AstStatement::DirectAccess { id, .. } => *id,
-            AstStatement::HardwareAccess { id, .. } => *id,
-            AstStatement::BinaryExpression { id, .. } => *id,
-            AstStatement::UnaryExpression { id, .. } => *id,
-            AstStatement::ExpressionList { id, .. } => *id,
-            AstStatement::RangeStatement { id, .. } => *id,
-            AstStatement::VlaRangeStatement { id, .. } => *id,
-            AstStatement::Assignment { id, .. } => *id,
-            AstStatement::OutputAssignment { id, .. } => *id,
-            AstStatement::CallStatement { id, .. } => *id,
-            AstStatement::IfStatement { id, .. } => *id,
-            AstStatement::ForLoopStatement { id, .. } => *id,
-            AstStatement::WhileLoopStatement { id, .. } => *id,
-            AstStatement::RepeatLoopStatement { id, .. } => *id,
-            AstStatement::CaseStatement { id, .. } => *id,
-            AstStatement::CaseCondition { id, .. } => *id,
-            AstStatement::ReturnStatement { id, .. } => *id,
-            AstStatement::ContinueStatement { id, .. } => *id,
-            AstStatement::ExitStatement { id, .. } => *id,
-            AstStatement::CastStatement { id, .. } => *id,
         }
     }
 
