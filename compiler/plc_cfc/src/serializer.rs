@@ -1,21 +1,15 @@
-use crate::deserializer::Parseable;
-
 type Attributes = Vec<(&'static str, &'static str)>;
 
 /// Number of spaces to use when indenting XML
 const INDENT_SPACES: usize = 4;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 enum Content {
     Node(Vec<Node>),
     Data(&'static str),
-    Empty,
-}
 
-impl Default for Content {
-    fn default() -> Self {
-        Content::Empty
-    }
+    #[default]
+    Empty,
 }
 
 impl<'b> Content {
@@ -48,38 +42,11 @@ impl<'b> Content {
     }
 }
 
-// impl<'b> IntoIterator for &'b Content {
-//     type Item = &'b Node;
-//     type IntoIter = std::slice::Iter<'b, Node>;
-
-//     fn into_iter(self) -> Self::IntoIter {
-//         match self {
-//             Content::Node(nodes) => nodes.as_slice(),
-//             _ => &[],
-//         }.into_iter()
-//     }
-// }
-
-// impl IntoIterator for Content {
-//     type Item = Node;
-//     type IntoIter = std::vec::IntoIter<Node>;
-
-//     fn into_iter(mut self) -> Self::IntoIter {
-//         match self.take() {
-//             Content::Node(nodes) => nodes,
-//             _ => vec![]
-//         }.into_iter()
-//     }
-
-// }
-
 #[derive(Debug)]
 struct Node {
     name: &'static str,
     attributes: Attributes,
     closed: bool,
-    // TODO: Data can only exist if nodes is empty and vice-versa, update such that this behavior is reflected
-    // (e.g. with an enum)
     content: Content,
 }
 
@@ -285,76 +252,90 @@ declare_type_and_extend_if_needed! {
     ),
 }
 
-#[test]
-fn demoo() {
-    let xml = XContinuation::new()
-        .with_attribute("name", "abc")
-        .with_attribute("localId", "1")
-        .with_position(XPosition::new().close())
-        .with_connection_point_out(XConnectionPointOut::with_rel_pos().close())
-        .serialize();
+#[cfg(test)]
+mod tests {
 
-    println!("{xml}");
-    let mut reader = crate::reader::PeekableReader::new(&xml);
-    dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
+    use crate::{
+        deserializer::Parseable,
+        serializer::{
+            XConnection, XConnectionPointIn, XConnectionPointOut, XConnector, XContinuation, XPosition,
+            XRelPosition,
+        },
+    };
 
-    let xml = XConnector::new()
-        .with_attribute("name", "abc")
-        .with_attribute("localId", "1")
-        .with_position(XPosition::new().close())
-        .with_connection_point_in(
-            XConnectionPointIn::new().with_rel_position(XRelPosition::init()).with_connection(
-                XConnection::new()
-                    .with_attribute("refLocalId", "11")
-                    .with_attribute("formalParameter", "function_0")
-                    .close(),
-            ),
-        )
-        .serialize();
+    use super::{XBlock, XInVariable, XVariable};
 
-    let mut reader = crate::reader::PeekableReader::new(&xml);
-    dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
-}
+    #[test]
+    fn demoo() {
+        let xml = XContinuation::new()
+            .with_attribute("name", "abc")
+            .with_attribute("localId", "1")
+            .with_position(XPosition::new().close())
+            .with_connection_point_out(XConnectionPointOut::with_rel_pos().close())
+            .serialize();
 
-// convenience methods to reduce amount of boiler-plate-code
-impl XVariable {
-    pub(crate) fn init(name: &'static str, negated: bool) -> Self {
-        XVariable::new()
-            .with_attribute("formalParameter", name)
-            .with_attribute("negated", if negated { "true" } else { "false" })
+        println!("{xml}");
+        let mut reader = crate::reader::PeekableReader::new(&xml);
+        dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
+
+        let xml = XConnector::new()
+            .with_attribute("name", "abc")
+            .with_attribute("localId", "1")
+            .with_position(XPosition::new().close())
+            .with_connection_point_in(
+                XConnectionPointIn::new().with_rel_position(XRelPosition::init()).with_connection(
+                    XConnection::new()
+                        .with_attribute("refLocalId", "11")
+                        .with_attribute("formalParameter", "function_0")
+                        .close(),
+                ),
+            )
+            .serialize();
+
+        let mut reader = crate::reader::PeekableReader::new(&xml);
+        dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
     }
-}
 
-impl XRelPosition {
-    pub(crate) fn init() -> Self {
-        XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
+    // convenience methods to reduce amount of boiler-plate-code
+    impl XVariable {
+        pub(crate) fn init(name: &'static str, negated: bool) -> Self {
+            XVariable::new()
+                .with_attribute("formalParameter", name)
+                .with_attribute("negated", if negated { "true" } else { "false" })
+        }
     }
-}
 
-impl XConnectionPointIn {
-    pub(crate) fn with_ref(ref_local_id: &'static str) -> Self {
-        XConnectionPointIn::new()
-            .with_rel_position(XRelPosition::init().close())
-            .with_connection(XConnection::new().with_attribute("refLocalId", ref_local_id).close())
+    impl XRelPosition {
+        pub(crate) fn init() -> Self {
+            XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
+        }
     }
-}
 
-impl XConnectionPointOut {
-    pub(crate) fn with_rel_pos() -> Self {
-        XConnectionPointOut::new().with_rel_position(XRelPosition::init().close())
+    impl XConnectionPointIn {
+        pub(crate) fn with_ref(ref_local_id: &'static str) -> Self {
+            XConnectionPointIn::new()
+                .with_rel_position(XRelPosition::init().close())
+                .with_connection(XConnection::new().with_attribute("refLocalId", ref_local_id).close())
+        }
     }
-}
 
-impl XInVariable {
-    pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
-        XInVariable::new()
-            .with_attribute("localId", local_id)
-            .with_attribute("negated", if negated { "true" } else { "false" })
+    impl XConnectionPointOut {
+        pub(crate) fn with_rel_pos() -> Self {
+            XConnectionPointOut::new().with_rel_position(XRelPosition::init().close())
+        }
     }
-}
 
-impl XBlock {
-    pub(crate) fn init(local_id: &'static str, type_name: &'static str) -> Self {
-        XBlock::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
+    impl XInVariable {
+        pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
+            XInVariable::new()
+                .with_attribute("localId", local_id)
+                .with_attribute("negated", if negated { "true" } else { "false" })
+        }
+    }
+
+    impl XBlock {
+        pub(crate) fn init(local_id: &'static str, type_name: &'static str) -> Self {
+            XBlock::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
+        }
     }
 }
