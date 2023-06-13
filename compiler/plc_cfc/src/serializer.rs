@@ -1,4 +1,3 @@
-
 use crate::deserializer::Parseable;
 
 type Attributes = Vec<(&'static str, &'static str)>;
@@ -10,7 +9,7 @@ const INDENT_SPACES: usize = 4;
 enum Content {
     Node(Vec<Node>),
     Data(&'static str),
-    Empty
+    Empty,
 }
 
 impl Default for Content {
@@ -24,7 +23,7 @@ impl<'b> Content {
         let mut nodes = match self.take() {
             Content::Node(nodes) => nodes,
             Content::Empty => vec![],
-            _ => unreachable!("cannot push onto data field")
+            _ => unreachable!("cannot push onto data field"),
         };
 
         nodes.push(node);
@@ -40,12 +39,13 @@ impl<'b> Content {
         std::mem::take(self)
     }
 
-    fn iter(self) -> impl Iterator<Item=Node>{
+    fn iter(self) -> impl Iterator<Item = Node> {
         match self {
             Content::Node(nodes) => nodes,
             _ => vec![],
-        }.into_iter()
-  }
+        }
+        .into_iter()
+    }
 }
 
 // impl<'b> IntoIterator for &'b Content {
@@ -70,7 +70,7 @@ impl<'b> Content {
 //             _ => vec![]
 //         }.into_iter()
 //     }
-    
+
 // }
 
 #[derive(Debug)]
@@ -95,16 +95,10 @@ impl Node {
 
     // TODO: ✨ Beautify ✨ this
     fn serialize(self, level: usize) -> String {
-        let (indent, name, attributes) = (
-            " ".repeat(level * INDENT_SPACES),
-                self.name,
-                self.attributes()
-            );
+        let (indent, name, attributes) = (" ".repeat(level * INDENT_SPACES), self.name, self.attributes());
         let mut fmt = String::new();
         match self.content {
-            Content::Data(data) =>  fmt = format!(
-                "{indent}<{name} {attributes}>{data}</{name}>\n",                
-            ),
+            Content::Data(data) => fmt = format!("{indent}<{name} {attributes}>{data}</{name}>\n",),
             _ => {
                 if self.closed {
                     fmt = format!(
@@ -114,7 +108,7 @@ impl Node {
                         attributes = self.attributes()
                     );
                 }
-    
+
                 if !self.closed {
                     fmt = format!(
                         "{indent}<{name} {attributes}>\n",
@@ -123,11 +117,11 @@ impl Node {
                         attributes = self.attributes()
                     );
                 }
-    
+
                 for node in self.content.iter() {
                     fmt = format!("{fmt}{}", node.serialize(level + 1));
                 }
-    
+
                 if !self.closed {
                     fmt = format!(
                         "{fmt}{indent}</{name}>\n",
@@ -137,7 +131,7 @@ impl Node {
                 }
             }
         };
-               
+
         #[cfg(feature = "debug")]
         println!("{fmt}");
 
@@ -213,104 +207,104 @@ macro_rules! declare_type_and_extend_if_needed {
 
 declare_type_and_extend_if_needed! {
     (
-        Pou, "pou",
-        (Body, with_body)
+        XPou, "pou",
+        (XBody, with_body)
     ),
     (
-        Block, "block",
-        (InOutVariables, with_inout_variables),
-        (InputVariables, with_input_variables),
-        (OutputVariables, with_output_variables)
+        XBlock, "block",
+        (XInOutVariables, with_inout_variables),
+        (XInputVariables, with_input_variables),
+        (XOutputVariables, with_output_variables)
     ),
     (
 
-        Body, "body",
-        (Fbd, with_fbd)
+        XBody, "body",
+        (XFbd, with_fbd)
     ),
     (
-        ConnectionPointIn, "connectionPointIn",
-        (Connection, with_connection),
-        (RelPosition, with_rel_position)
+        XConnectionPointIn, "connectionPointIn",
+        (XConnection, with_connection),
+        (XRelPosition, with_rel_position)
     ),
     (
-        ConnectionPointOut, "connectionPointOut",
-        (Connection, with_connection),
-        (RelPosition, with_rel_position)
+        XConnectionPointOut, "connectionPointOut",
+        (XConnection, with_connection),
+        (XRelPosition, with_rel_position)
     ),
     (
-        Fbd, "FBD",
-        (Block, with_block),
-        (InVariable, with_in_variable),
-        (Continuation, with_continuation),
-        (Connector, with_connector)
+        XFbd, "FBD",
+        (XBlock, with_block),
+        (XInVariable, with_in_variable),
+        (XContinuation, with_continuation),
+        (XConnector, with_connector)
     ),
     (
-        Variable, "variable",
-        (ConnectionPointIn, with_connection_in),
-        (ConnectionPointOut, with_connection_point_out)
+        XVariable, "variable",
+        (XConnectionPointIn, with_connection_in),
+        (XConnectionPointOut, with_connection_point_out)
     ),
     (
-        InVariable, "inVariable",
-        (ConnectionPointOut, with_connection_point_out),
-        (Position, with_position)
+        XInVariable, "inVariable",
+        (XConnectionPointOut, with_connection_point_out),
+        (XPosition, with_position)
     ),
     (
-        OutVariable, "outVariable",
-        (Position, with_position),
-        (ConnectionPointIn, with_connection_point_in),
-        (Expression, with_expression)
+        XOutVariable, "outVariable",
+        (XPosition, with_position),
+        (XConnectionPointIn, with_connection_point_in),
+        (XExpression, with_expression)
     ),
     (
-        InOutVariables, "inOutVariables",
-        (Variable, with_variable)
+        XInOutVariables, "inOutVariables",
+        (XVariable, with_variable)
     ),
     (
-        InputVariables, "inputVariables",
-        (Variable, with_variable)
+        XInputVariables, "inputVariables",
+        (XVariable, with_variable)
     ),
     (
-        OutputVariables, "outputVariables",
-        (Variable, with_variable)
+        XOutputVariables, "outputVariables",
+        (XVariable, with_variable)
     ),
 
     // these are not being extended:
-    (Position, "position",),
-    (RelPosition, "relPosition",),
-    (Connection, "connection",),
-    (Expression, "expression",),
+    (XPosition, "position",),
+    (XRelPosition, "relPosition",),
+    (XConnection, "connection",),
+    (XExpression, "expression",),
 
     (
-        Continuation, "continuation",
-        (Position, with_position),
-        (ConnectionPointOut, with_connection_point_out)
+        XContinuation, "continuation",
+        (XPosition, with_position),
+        (XConnectionPointOut, with_connection_point_out)
     ),
     (
-        Connector, "connector",
-        (Position, with_position),
-        (ConnectionPointIn, with_connection_point_in)
+        XConnector, "connector",
+        (XPosition, with_position),
+        (XConnectionPointIn, with_connection_point_in)
     ),
 }
 
 #[test]
 fn demoo() {
-    let xml = Continuation::new()
+    let xml = XContinuation::new()
         .with_attribute("name", "abc")
         .with_attribute("localId", "1")
-        .with_position(Position::new().close())
-        .with_connection_point_out(ConnectionPointOut::with_rel_pos().close())
+        .with_position(XPosition::new().close())
+        .with_connection_point_out(XConnectionPointOut::with_rel_pos().close())
         .serialize();
 
     println!("{xml}");
     let mut reader = crate::reader::PeekableReader::new(&xml);
     dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
 
-    let xml = Connector::new()
+    let xml = XConnector::new()
         .with_attribute("name", "abc")
         .with_attribute("localId", "1")
-        .with_position(Position::new().close())
+        .with_position(XPosition::new().close())
         .with_connection_point_in(
-            ConnectionPointIn::new().with_rel_position(RelPosition::init()).with_connection(
-                Connection::new()
+            XConnectionPointIn::new().with_rel_position(XRelPosition::init()).with_connection(
+                XConnection::new()
                     .with_attribute("refLocalId", "11")
                     .with_attribute("formalParameter", "function_0")
                     .close(),
@@ -321,99 +315,46 @@ fn demoo() {
     let mut reader = crate::reader::PeekableReader::new(&xml);
     dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
 }
-/*
-<continuation name="label" localId="12" height="20" width="85">
-    <position x="730" y="250"/>
-    <connectionPointOut>
-        <relPosition x="85" y="10"/>
-    </connectionPointOut>
-</continuation>
- */
-
-/*
-<connector name="label" localId="8" height="20" width="82">
-    <position x="730" y="180"/>
-    <connectionPointIn>
-        <relPosition x="0" y="10"/>
-        <connection refLocalId="11" formalParameter="function_0"/>
-    </connectionPointIn>
-</connector>
- */
 
 // convenience methods to reduce amount of boiler-plate-code
-impl Variable {
+impl XVariable {
     pub(crate) fn init(name: &'static str, negated: bool) -> Self {
-        Variable::new()
+        XVariable::new()
             .with_attribute("formalParameter", name)
             .with_attribute("negated", if negated { "true" } else { "false" })
     }
 }
 
-impl RelPosition {
+impl XRelPosition {
     pub(crate) fn init() -> Self {
-        RelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
+        XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
     }
 }
 
-impl ConnectionPointIn {
+impl XConnectionPointIn {
     pub(crate) fn with_ref(ref_local_id: &'static str) -> Self {
-        ConnectionPointIn::new()
-            .with_rel_position(RelPosition::init().close())
-            .with_connection(Connection::new().with_attribute("refLocalId", ref_local_id).close())
+        XConnectionPointIn::new()
+            .with_rel_position(XRelPosition::init().close())
+            .with_connection(XConnection::new().with_attribute("refLocalId", ref_local_id).close())
     }
 }
 
-impl ConnectionPointOut {
+impl XConnectionPointOut {
     pub(crate) fn with_rel_pos() -> Self {
-        ConnectionPointOut::new().with_rel_position(RelPosition::init().close())
+        XConnectionPointOut::new().with_rel_position(XRelPosition::init().close())
     }
 }
 
-impl InVariable {
+impl XInVariable {
     pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
-        InVariable::new()
+        XInVariable::new()
             .with_attribute("localId", local_id)
             .with_attribute("negated", if negated { "true" } else { "false" })
     }
 }
 
-impl Block {
+impl XBlock {
     pub(crate) fn init(local_id: &'static str, type_name: &'static str) -> Self {
-        Block::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
+        XBlock::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
     }
-}
-
-#[test]
-fn demo() {
-    // TODO: Create convenience methods for all variable related things to make the code below less nested
-    let body = Body::new().with_fbd(
-        Fbd::new()
-            .with_block(
-                Block::init("5", "MyAdd")
-                    .with_attribute("instanceName", "local_add")
-                    .with_input_variables(
-                        InputVariables::new()
-                            .with_variable(
-                                Variable::init("a", false)
-                                    .with_connection_in(ConnectionPointIn::with_ref("6")),
-                            )
-                            .with_variable(
-                                Variable::init("b", false)
-                                    .with_connection_in(ConnectionPointIn::with_ref("7")),
-                            ),
-                    )
-                    .with_inout_variables(InOutVariables::new().close())
-                    .with_output_variables(
-                        OutputVariables::new().with_variable(
-                            Variable::init("c", false)
-                                .with_connection_point_out(ConnectionPointOut::with_rel_pos()),
-                        ),
-                    ),
-            )
-            .with_in_variable(
-                InVariable::new().with_connection_point_out(ConnectionPointOut::with_rel_pos()),
-            ),
-    );
-
-    println!("{}", Pou::new().with_body(body).serialize())
 }
