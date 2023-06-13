@@ -121,7 +121,7 @@ where
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum FormatOption {
     /// Indicates that the result will be an object file (e.g. No Linking)
     Object,
@@ -138,13 +138,8 @@ pub enum FormatOption {
     /// Indicates that the compile result will be LLVM IR
     IR,
     /// Indicates that no output will be generated (Check only)
+    #[default]
     None,
-}
-
-impl Default for FormatOption {
-    fn default() -> Self {
-        FormatOption::None
-    }
 }
 
 impl FormatOption {
@@ -213,23 +208,19 @@ pub struct ConfigurationOptions {
     output: String,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
 pub enum ErrorFormat {
+    #[default]
     Rich,
     Clang,
     None,
 }
 
-impl Default for ErrorFormat {
-    fn default() -> Self {
-        ErrorFormat::Rich
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Default)]
 pub enum OptimizationLevel {
     None,
     Less,
+    #[default]
     Default,
     Aggressive,
 }
@@ -270,12 +261,6 @@ impl OptimizationLevel {
 
     fn is_optimized(&self) -> bool {
         !matches!(self, OptimizationLevel::None)
-    }
-}
-
-impl Default for OptimizationLevel {
-    fn default() -> Self {
-        OptimizationLevel::Default
     }
 }
 

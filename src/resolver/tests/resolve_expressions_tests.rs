@@ -3944,7 +3944,7 @@ fn vla_call_statement() {
     let param = parameters.as_ref().clone().unwrap();
     let statement = ast::flatten_expression_list(&param)[0];
 
-    assert_type_and_hint!(&annotations, &index, &statement, "__main_arr", Some("__foo_vla"));
+    assert_type_and_hint!(&annotations, &index, statement, "__main_arr", Some("__foo_vla"));
 }
 
 #[test]
@@ -3979,7 +3979,7 @@ fn vla_call_statement_with_nested_arrays() {
     let param = parameters.as_ref().clone().unwrap();
     let statement = ast::flatten_expression_list(&param)[0];
 
-    assert_type_and_hint!(&annotations, &index, &statement, "__main_arr_", Some("__foo_vla"));
+    assert_type_and_hint!(&annotations, &index, statement, "__main_arr_", Some("__foo_vla"));
 }
 
 #[test]
