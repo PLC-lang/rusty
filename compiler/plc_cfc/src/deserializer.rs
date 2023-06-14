@@ -4,15 +4,11 @@ use quick_xml::{events::Event, name::QName};
 
 use crate::{error::Error, model::pou::Pou, reader::PeekableReader};
 
-// TODO: data block
 pub(crate) fn visit(content: &str) -> Result<Pou, Error> {
     let mut reader = PeekableReader::new(content);
     loop {
         match reader.peek()? {
-            Event::Start(tag) if tag.name().as_ref() == b"pou" => {
-                return Pou::visit(&mut reader);
-                // return Pou::visit(&mut reader).map(|it| it.sort_by_execution_order());
-            }
+            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Pou::visit(&mut reader),
             Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
             _ => reader.consume()?,
         }

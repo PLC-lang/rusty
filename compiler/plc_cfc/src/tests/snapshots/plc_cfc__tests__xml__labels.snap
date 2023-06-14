@@ -172,6 +172,6 @@ Ok(
             },
             global_id: None,
         },
-        declaration: "\n    PROGRAM program_0\n    VAR\n        local_a : DINT := 1;\n        local_b : DINT := 2;\n        local_c:  DINT;\n        local_bool : BOOL := TRUE;\n        local_add : MyAdd;\n    END_VAR",
+        declaration: "\n    PROGRAM program_0\n    VAR\n        local_a : DINT := 1;\n        local_b : DINT := 2;\n        local_c:  DINT;\n        local_bool : BOOL := TRUE;\n        local_add : MyAdd;\n    END_VAR\nEND_PROGRAM",
     },
 )

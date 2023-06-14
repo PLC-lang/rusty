@@ -1,18 +1,50 @@
-use std::collections::HashMap;
+use logos::Logos;
 
-use crate::{
-    deserializer,
-    model::{
-        fbd::Node,
-        variables::{FunctionBlockVariable, VariableKind},
-    },
+use plc::{
+    ast::{AstStatement, CompilationUnit, LinkageType, SourceRangeFactory},
+    diagnostics::Diagnostic,
+    lexer::{IdProvider, ParseSession, Token},
+    parser::{expressions_parser::parse_expression, ParsedAst},
 };
+
+use crate::model::pou::Pou;
+
+pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
+    todo!()
+}
+
+pub(crate) fn parse_cfc_model(pou: Pou) {
+    todo!()
+}
+
+fn parse_cfc_expression(expr: &str) -> AstStatement {
+    parse_expression(&mut ParseSession::new(
+        Token::lexer(&expr),
+        IdProvider::default(),
+        SourceRangeFactory::internal(),
+    ))
+}
+
+impl Pou {
+    fn parse_declaration(&self) -> (CompilationUnit, Vec<Diagnostic>) {
+        let parse_session = ParseSession::new(
+            Token::lexer(&self.declaration),
+            IdProvider::default(),
+            SourceRangeFactory::internal(),
+        );
+
+        dbg!(parse(parse_session, LinkageType::Internal, &self.name))
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use plc::ast::{AstStatement, Operator};
 
-    use crate::{cfc_parser::ASSIGNMENT_A_B, deserializer};
+    use crate::{cfc_parser::ASSIGNMENT_A_B, deserializer, serializer};
+
+    use super::{parse_cfc_expression, parse_cfc_model};
 
     #[test]
     fn variable_assignment() {
@@ -79,6 +111,23 @@ mod tests {
         "#;
 
         assert_debug_snapshot!(deserializer::visit(src).unwrap());
+    }
+
+    #[test]
+    fn expression_can_be_parsed() {
+        let expression = "a + b * 3";
+        // let expected = AstStatement::BinaryExpression {
+        //     operator: Operator::Plus,
+        //     left: AstStatement::Reference { name: "a".to_string(), location: (0..1).into(), id: () },
+        //     right: todo!(),
+        //     id: todo!(),
+        // };
+        dbg!(parse_cfc_expression(expression));
+    }
+
+    #[test]
+    fn declaration_can_be_parsed() {
+        deserializer::visit(ASSIGNMENT_A_B).unwrap().parse_declaration();
     }
 }
 

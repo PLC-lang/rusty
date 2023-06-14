@@ -93,6 +93,6 @@ Ok(
             },
             global_id: None,
         },
-        declaration: "\n                            PROGRAM program_0\n                            VAR\n                            local_a : DINT := 1;\n                            local_b : DINT := 2;\n                            local_c : DINT := 0;\n                            local_add : MyAdd;\n                            END_VAR\n                        ",
+        declaration: "\n                            PROGRAM program_0\n                            VAR\n                            local_a : DINT := 1;\n                            local_b : DINT := 2;\n                            local_c : DINT := 0;\n                            local_add : MyAdd;\n                            END_VAR\n                        \nEND_PROGRAM",
     },
 )

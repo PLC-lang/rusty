@@ -13,7 +13,7 @@ use self::{
 };
 
 mod control_parser;
-mod expressions_parser;
+pub mod expressions_parser;
 
 #[cfg(test)]
 pub mod tests;

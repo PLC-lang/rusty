@@ -36,5 +36,5 @@ Pou {
         },
         global_id: None,
     },
-    declaration: "\n        PROGRAM thistimereallyeasy\n        VAR\n            a, b : DINT;\n        END_VAR\n                            ",
+    declaration: "\n        PROGRAM thistimereallyeasy\n        VAR\n            a, b : DINT;\n        END_VAR\n                            \nEND_PROGRAM",
 }

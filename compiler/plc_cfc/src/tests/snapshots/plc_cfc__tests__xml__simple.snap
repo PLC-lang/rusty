@@ -91,6 +91,6 @@ Ok(
             },
             global_id: None,
         },
-        declaration: "\n                        FUNCTION function_1 : DINT\n                        VAR_INPUT\n                            elem: DINT;\n                        END_VAR\n\n                        VAR\n\n                        END_VAR\n                    ",
+        declaration: "\n                        FUNCTION function_1 : DINT\n                        VAR_INPUT\n                            elem: DINT;\n                        END_VAR\n\n                        VAR\n\n                        END_VAR\n                    \nEND_FUNCTION",
     },
 )

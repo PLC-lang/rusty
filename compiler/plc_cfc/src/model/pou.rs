@@ -43,6 +43,16 @@ pub(crate) enum PouType {
     FunctionBlock,
 }
 
+impl std::fmt::Display for PouType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PouType::Program => write!(f, "PROGRAM"),
+            PouType::Function => write!(f, "FUNCTION"),
+            PouType::FunctionBlock => write!(f, "FUNCTION_BLOCK"),
+        }
+    }
+}
+
 impl TryFrom<&str> for PouType {
     type Error = Error;
 
@@ -76,7 +86,12 @@ impl Parseable for Pou {
                         let body = Body::visit(reader)?;
                         // TODO: change in order to parse INTERFACE, ACTION etc..
                         reader.consume_until(vec![b"pou"])?;
-                        return Pou::new(attributes, body, declaration);
+                        let mut pou = Pou::new(attributes, body, declaration)?;
+
+                        // XXX: Should we explicitly check if the declaration variable is empty or not
+                        // We have to append a END_... to the declaration as it is missing by default
+                        pou.declaration = format!("{}END_{}", pou.declaration, pou.pou_type.to_string());
+                        return Ok(pou);
                     }
 
                     _ => reader.consume()?,

@@ -877,7 +877,9 @@ version = "0.1.0"
 dependencies = [
  "indexmap",
  "insta",
+ "logos",
  "quick-xml",
+ "rusty",
  "serde",
  "serde_json",
  "xmltojson",
