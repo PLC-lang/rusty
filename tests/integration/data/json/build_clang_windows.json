@@ -9,7 +9,7 @@
     "libraries" : [
         {
             "name" : "test",
-            "path" : "$DIRPATH",
+            "path" : ".",
             "package" : "System",
             "include_path" : [
                 "program_with_expressions.st"

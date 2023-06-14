@@ -900,7 +900,7 @@ impl<'i> TypeAnnotator<'i> {
                         let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
                             continue;
                         };
-                        self.annotate_array_of_struct(dbg!(data_type), dbg!(right), ctx);
+                        self.annotate_array_of_struct(data_type, right, ctx);
                     }
                 }
             }

@@ -23,6 +23,8 @@ fn main() {
             args.push("none".to_owned());
         }
     }
+    #[cfg(target_os = "windows")]
+    args.push("--single-module".to_owned());
 
     plc_driver::compile(&args).unwrap();
     #[cfg(not(target_os = "windows"))]

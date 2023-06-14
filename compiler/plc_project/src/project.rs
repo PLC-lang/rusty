@@ -160,7 +160,6 @@ impl Project<PathBuf> {
         let current_dir = env::current_dir()?;
         let location = config.parent().map(Path::to_path_buf).or(Some(current_dir));
         let sources = resolve_file_paths(location.as_deref(), project_config.files)?;
-
         Ok(Project {
             name: project_config.name,
             location,

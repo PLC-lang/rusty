@@ -159,7 +159,13 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     let output_name = project.get_output_name();
     res.into_par_iter()
         .map(|res| {
-            res.link(project.get_objects(), build_location.as_deref(), &output_name, linker_options.clone())
+            res.link(
+                project.get_objects(),
+                build_location.as_deref(),
+                lib_location.as_deref(),
+                &output_name,
+                linker_options.clone(),
+            )
         })
         .collect::<Result<Vec<_>, _>>()?;
     //Generate hardware configuration

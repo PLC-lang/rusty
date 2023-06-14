@@ -389,6 +389,7 @@ fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(
 
 /// A project that has been transformed into a binary representation
 /// Can be linked to generate a usable application
+#[derive(Debug)]
 pub struct GeneratedProject<'ctx> {
     target: &'ctx Target,
     objects: Vec<Object>,
@@ -399,6 +400,7 @@ impl GeneratedProject<'_> {
         &self,
         objects: &[Object],
         build_location: Option<&Path>,
+        lib_location: Option<&Path>,
         output: &str,
         link_options: LinkOptions,
     ) -> Result<Object, Diagnostic> {
@@ -442,8 +444,11 @@ impl GeneratedProject<'_> {
             }
             FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
                 //Just copy over the object file, no need for a linker
-                for obj in &self.objects {
-                    std::fs::copy(obj.get_path(), &output_location)?;
+                if let [obj] = &self.objects[..] {
+                    if obj.get_path() != output_location {
+                        // If we already generated to the target path, don't copy
+                        std::fs::copy(obj.get_path(), &output_location)?;
+                    }
                 }
                 Ok(output_location)
             }
@@ -471,6 +476,12 @@ impl GeneratedProject<'_> {
                 }
                 //Include the current directory in lib search
                 linker.add_lib_path(".");
+                if let Some(loc) = build_location {
+                    linker.add_lib_path(&loc.to_string_lossy());
+                }
+                if let Some(loc) = lib_location {
+                    linker.add_lib_path(&loc.to_string_lossy());
+                }
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
