@@ -8,7 +8,7 @@ use crate::{
     reader::PeekableReader,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Connector {
     pub kind: ConnectorKind,
     pub name: String,
@@ -31,7 +31,7 @@ impl Connector {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum ConnectorKind {
     Source,
     Sink,

@@ -10,7 +10,7 @@ use crate::{
 
 use super::variables::BlockVariable;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Block {
     pub local_id: usize,
     pub global_id: Option<usize>,

@@ -8,7 +8,7 @@ use crate::{
 };
 use std::{collections::HashMap, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
@@ -19,13 +19,13 @@ pub(crate) struct BlockVariable {
     pub enable: Option<bool>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Edge {
     Falling,
     Rising,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Storage {
     Set,
     Reset,
@@ -45,14 +45,14 @@ impl BlockVariable {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct FunctionBlockVariable {
     pub kind: VariableKind,
     pub local_id: usize,

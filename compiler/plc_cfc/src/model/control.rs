@@ -8,7 +8,7 @@ use crate::{
     reader::PeekableReader,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Control {
     pub kind: ControlKind,
     pub name: Option<String>,
@@ -33,7 +33,7 @@ impl Control {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum ControlKind {
     Jump,
     Label,

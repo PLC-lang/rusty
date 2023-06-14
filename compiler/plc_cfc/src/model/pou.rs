@@ -27,11 +27,11 @@ impl Pou {
         })
     }
 
-    pub fn sort_by_execution_order(mut self) -> Self {
-        self.body.function_block_diagram.sort_by_execution_order();
+    // pub fn sort_by_execution_order(mut self) -> Self {
+    //     self.body.function_block_diagram.sort_by_execution_order();
 
-        self
-    }
+    //     self
+    // }
 }
 
 #[derive(Debug)]
