@@ -123,6 +123,8 @@ function run_test() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo test"
 	if [[ $junit -ne 0 ]]; then
+		# Switch to nightly
+		rustup default nightly
 		#Delete the test results if they exist
 		rm -rf "$project_location/test_results"
 		make_dir "$project_location/test_results"
@@ -133,6 +135,8 @@ function run_test() {
 		 -Zunstable-options | tail -n +2 | \
 		 split -l1 - "$project_location"/test_results/std_integration_tests \
 		 -d --additional-suffix=.xml
+		# Switch to stable
+		rustup default stable
 	else
 		cargo test $CARGO_OPTIONS
 	fi
