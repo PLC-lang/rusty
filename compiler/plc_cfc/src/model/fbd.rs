@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
+use indexmap::IndexMap;
 use quick_xml::events::Event;
 
 use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
@@ -8,7 +9,7 @@ use super::{block::Block, connector::Connector, control::Control, variables::Fun
 
 #[derive(Debug)]
 pub(crate) struct FunctionBlockDiagram {
-    pub nodes: HashMap<usize, Node>,
+    pub nodes: IndexMap<usize, Node>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -17,6 +18,42 @@ pub(crate) enum Node {
     FunctionBlockVariable(FunctionBlockVariable),
     Control(Control),
     Connector(Connector),
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let left = self.get_exec_id();
+        let right = other.get_exec_id();
+
+        match (left, right) {
+            (None, None) => Some(Ordering::Equal),
+            (None, Some(_)) => Some(Ordering::Greater),
+            (Some(_), None) => Some(Ordering::Less),
+            (Some(left), Some(right)) => Some(left.cmp(&right)),
+        }
+    }
+}
+
+#[derive(PartialEq)]
+struct Temp(Option<usize>);
+
+impl PartialOrd for Temp {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl Node {
+    pub fn get_exec_id(&self) -> Option<usize> {
+        match self {
+            Node::Block(val) => val.execution_order_id,
+            Node::FunctionBlockVariable(val) => val.execution_order_id,
+            Node::Control(val) => val.execution_order_id,
+
+            // This variant does not have a execution order id
+            Node::Connector(_) => None,
+        }
+    }
 }
 
 impl Parseable for FunctionBlockDiagram {
@@ -28,7 +65,7 @@ impl Parseable for FunctionBlockDiagram {
         // let mut variables = Vec::new();
         // let mut controls = Vec::new(); // TODO
         // let mut connectors = Vec::new(); // TODO
-        let mut nodes = HashMap::new();
+        let mut nodes = IndexMap::new();
 
         loop {
             match reader.peek()? {

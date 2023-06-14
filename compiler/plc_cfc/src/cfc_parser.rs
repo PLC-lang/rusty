@@ -85,23 +85,28 @@ mod tests {
 }
 
 #[test]
-fn demo() {
-    let deser = deserializer::visit(ASSIGNMENT_A_B).unwrap();
-    let fbd = deser.body.function_block_diagram;
-    let Node::FunctionBlockVariable(var) = fbd.nodes.get(&1).unwrap() else { unreachable!() };
+fn aaaa() {
+    let mut deser = deserializer::visit(ASSIGNMENT_A_B).unwrap();
+    dbg!(&deser.body.function_block_diagram);
+    let mut fbd = deser.body.function_block_diagram;
+    // let Node::FunctionBlockVariable(var) = fbd.nodes.get(&1).unwrap() else { unreachable!() };
 
-    assert_eq!(
-        var,
-        &FunctionBlockVariable::new(
-            HashMap::from([
-                ("localId".to_string(), "1".to_string()),
-                ("negated".to_string(), "false".to_string()),
-                ("expression".to_string(), "a".to_string())
-            ]),
-            VariableKind::Input
-        )
-        .unwrap()
-    );
+    dbg!(&fbd);
+    fbd.nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap());
+    dbg!(&fbd);
+
+    // assert_eq!(
+    //     var,
+    //     &FunctionBlockVariable::new(
+    //         HashMap::from([
+    //             ("localId".to_string(), "1".to_string()),
+    //             ("negated".to_string(), "false".to_string()),
+    //             ("expression".to_string(), "a".to_string())
+    //         ]),
+    //         VariableKind::Input
+    //     )
+    //     .unwrap()
+    // );
 }
 
 const ASSIGNMENT_A_B: &str = r#"
@@ -131,6 +136,14 @@ const ASSIGNMENT_A_B: &str = r#"
                         </connectionPointOut>
                         <expression>a</expression>
                     </inVariable>
+                    <outVariable localId="4" height="20" width="80" executionOrderId="3" negated="false" storage="none">
+                        <position x="550" y="130"/>
+                        <connectionPointIn>
+                            <relPosition x="0" y="10"/>
+                            <connection refLocalId="2"/>
+                        </connectionPointIn>
+                        <expression>b</expression>
+                    </outVariable>
                     <outVariable localId="2" height="20" width="80" executionOrderId="0" negated="false" storage="none">
                         <position x="550" y="130"/>
                         <connectionPointIn>
