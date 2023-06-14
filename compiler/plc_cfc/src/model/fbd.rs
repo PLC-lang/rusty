@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::cmp::Ordering;
 
 use indexmap::IndexMap;
 use quick_xml::events::Event;

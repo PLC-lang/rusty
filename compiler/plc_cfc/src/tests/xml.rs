@@ -1,15 +1,6 @@
 #[test]
 fn simple() {
     insta::assert_debug_snapshot!(crate::deserializer::visit(SIMPLE));
-
-    let _src = r#"
-    FUNCTION function_1 : DINT
-    VAR_INPUT
-        elem: DINT;
-    END_VAR
-        function_1 := elem + 1;
-    END_FUNCTION
-    "#;
 }
 
 #[test]
@@ -101,7 +92,7 @@ const SIMPLE: &str = r#"
 const CONTENT: &str = r#"
     <?xml version="1.0" encoding="UTF-8"?>
     <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-        <!-- <interface>
+        <interface>
             <localVars />
             <addData>
                 <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
@@ -118,7 +109,7 @@ const CONTENT: &str = r#"
                     </textDeclaration>
                 </data>
             </addData>
-        </interface> -->
+        </interface>
         <body>
             <FBD>
                 <block localId="5" width="82" height="60" typeName="MyAdd" instanceName="local_add"

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use quick_xml::{events::Event, Reader};
+use quick_xml::{events::Event, name::QName, Reader};
 
 use crate::{deserializer::PrototypingToString, error::Error};
 
@@ -40,12 +40,26 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
+    // advances the reader until it sees one of the defined token and stops after consuming it
     pub(crate) fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
         loop {
             match self.next()? {
                 Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(tokens)),
                 _ => continue,
+            }
+        }
+
+        Ok(())
+    }
+
+    // advances the reader until it sees the defined token and stops without consuming it
+    pub(crate) fn consume_until_start(&mut self, token: &'static [u8]) -> Result<(), Error> {
+        loop {
+            match self.peek()? {
+                Event::Start(tag) if token == tag.name().as_ref() => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![token])),
+                _ => self.consume()?,
             }
         }
 
@@ -71,6 +85,10 @@ impl<'xml> PeekableReader<'xml> {
         }
 
         Ok(hm)
+    }
+
+    pub fn read_text(&mut self, name: QName) -> Result<String, Error> {
+        Ok(self.reader.read_text(name).map_err(Error::ReadEvent)?.to_string())
     }
 }
 

@@ -16,14 +16,16 @@ pub(crate) struct Pou {
     pub name: String,
     pub pou_type: PouType,
     pub body: Body,
+    pub declaration: String,
 }
 
 impl Pou {
-    pub fn new(hm: HashMap<String, String>, body: Body) -> Result<Self, Error> {
+    pub fn new(hm: HashMap<String, String>, body: Body, declaration: String) -> Result<Self, Error> {
         Ok(Self {
             name: hm.get_or_err("name")?,
             pou_type: hm.get_or_err("pouType").map(|it| it.parse())??,
             body,
+            declaration,
         })
     }
 
@@ -59,14 +61,22 @@ impl Parseable for Pou {
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
         let attributes = reader.attributes()?;
+        let mut declaration = String::new();
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
+                    b"interface" => {
+                        reader.consume_until_start(b"content")?;
+                        match reader.next()? {
+                            Event::Start(tag) => declaration = reader.read_text(tag.name())?,
+                            _ => reader.consume()?,
+                        }
+                    }
                     b"body" => {
                         let body = Body::visit(reader)?;
                         // TODO: change in order to parse INTERFACE, ACTION etc..
                         reader.consume_until(vec![b"pou"])?;
-                        return Pou::new(attributes, body);
+                        return Pou::new(attributes, body, declaration);
                     }
 
                     _ => reader.consume()?,

@@ -8,155 +8,170 @@ Ok(
         pou_type: Program,
         body: Body {
             function_block_diagram: FunctionBlockDiagram {
-                blocks: [
-                    Block {
-                        local_id: 1,
-                        global_id: None,
-                        type_name: "MyAdd",
-                        instance_name: Some(
-                            "local_add",
-                        ),
-                        execution_order_id: Some(
-                            0,
-                        ),
-                        variables: [
-                            BlockVariable {
-                                kind: Input,
-                                formal_parameter: "a",
-                                negated: false,
-                                ref_local_id: Some(
-                                    2,
-                                ),
-                                edge: None,
-                                storage: None,
-                                enable: None,
-                            },
-                            BlockVariable {
-                                kind: Input,
-                                formal_parameter: "b",
-                                negated: false,
-                                ref_local_id: Some(
-                                    3,
-                                ),
-                                edge: None,
-                                storage: None,
-                                enable: None,
-                            },
-                            BlockVariable {
-                                kind: Output,
-                                formal_parameter: "c",
-                                negated: false,
-                                ref_local_id: None,
-                                edge: None,
-                                storage: None,
-                                enable: None,
-                            },
-                        ],
-                    },
-                ],
-                variables: [
-                    FunctionBlockVariable {
-                        kind: Input,
-                        local_id: 2,
-                        negated: false,
-                        expression: "local_a + 1",
-                        execution_order_id: None,
-                        ref_local_id: None,
-                    },
-                    FunctionBlockVariable {
-                        kind: Input,
-                        local_id: 3,
-                        negated: false,
-                        expression: "local_b",
-                        execution_order_id: None,
-                        ref_local_id: None,
-                    },
-                    FunctionBlockVariable {
-                        kind: Input,
-                        local_id: 12,
-                        negated: false,
-                        expression: "local_bool",
-                        execution_order_id: None,
-                        ref_local_id: None,
-                    },
-                    FunctionBlockVariable {
-                        kind: Output,
-                        local_id: 17,
-                        negated: false,
-                        expression: "local_c",
-                        execution_order_id: Some(
-                            5,
-                        ),
-                        ref_local_id: Some(
-                            1,
-                        ),
-                    },
-                ],
-                controls: [
-                    Control {
-                        kind: Jump,
-                        name: Some(
-                            "jumpy",
-                        ),
-                        local_id: 9,
-                        global_id: None,
-                        ref_local_id: Some(
-                            12,
-                        ),
-                        execution_order_id: Some(
-                            2,
-                        ),
-                        negated: false,
-                    },
-                    Control {
-                        kind: Label,
-                        name: Some(
-                            "jumpy",
-                        ),
-                        local_id: 10,
-                        global_id: None,
-                        ref_local_id: None,
-                        execution_order_id: Some(
-                            3,
-                        ),
-                        negated: false,
-                    },
-                    Control {
-                        kind: Return,
-                        name: None,
-                        local_id: 11,
-                        global_id: None,
-                        ref_local_id: Some(
-                            15,
-                        ),
-                        execution_order_id: Some(
-                            4,
-                        ),
-                        negated: false,
-                    },
-                ],
-                connectors: [
-                    Connector {
-                        kind: Source,
-                        name: "wifi",
-                        local_id: 15,
-                        ref_local_id: None,
-                        global_id: None,
-                        formal_parameter: None,
-                    },
-                    Connector {
-                        kind: Sink,
-                        name: "wifi",
-                        local_id: 16,
-                        ref_local_id: Some(
-                            12,
-                        ),
-                        global_id: None,
-                        formal_parameter: None,
-                    },
-                ],
+                nodes: {
+                    1: Block(
+                        Block {
+                            local_id: 1,
+                            global_id: None,
+                            type_name: "MyAdd",
+                            instance_name: Some(
+                                "local_add",
+                            ),
+                            execution_order_id: Some(
+                                0,
+                            ),
+                            variables: [
+                                BlockVariable {
+                                    kind: Input,
+                                    formal_parameter: "a",
+                                    negated: false,
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                                BlockVariable {
+                                    kind: Input,
+                                    formal_parameter: "b",
+                                    negated: false,
+                                    ref_local_id: Some(
+                                        3,
+                                    ),
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                                BlockVariable {
+                                    kind: Output,
+                                    formal_parameter: "c",
+                                    negated: false,
+                                    ref_local_id: None,
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                            ],
+                        },
+                    ),
+                    2: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Input,
+                            local_id: 2,
+                            negated: false,
+                            expression: "local_a + 1",
+                            execution_order_id: None,
+                            ref_local_id: None,
+                        },
+                    ),
+                    3: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Input,
+                            local_id: 3,
+                            negated: false,
+                            expression: "local_b",
+                            execution_order_id: None,
+                            ref_local_id: None,
+                        },
+                    ),
+                    9: Control(
+                        Control {
+                            kind: Jump,
+                            name: Some(
+                                "jumpy",
+                            ),
+                            local_id: 9,
+                            global_id: None,
+                            ref_local_id: Some(
+                                12,
+                            ),
+                            execution_order_id: Some(
+                                2,
+                            ),
+                            negated: false,
+                        },
+                    ),
+                    10: Control(
+                        Control {
+                            kind: Label,
+                            name: Some(
+                                "jumpy",
+                            ),
+                            local_id: 10,
+                            global_id: None,
+                            ref_local_id: None,
+                            execution_order_id: Some(
+                                3,
+                            ),
+                            negated: false,
+                        },
+                    ),
+                    11: Control(
+                        Control {
+                            kind: Return,
+                            name: None,
+                            local_id: 11,
+                            global_id: None,
+                            ref_local_id: Some(
+                                15,
+                            ),
+                            execution_order_id: Some(
+                                4,
+                            ),
+                            negated: false,
+                        },
+                    ),
+                    12: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Input,
+                            local_id: 12,
+                            negated: false,
+                            expression: "local_bool",
+                            execution_order_id: None,
+                            ref_local_id: None,
+                        },
+                    ),
+                    15: Connector(
+                        Connector {
+                            kind: Source,
+                            name: "wifi",
+                            local_id: 15,
+                            ref_local_id: None,
+                            global_id: None,
+                            formal_parameter: None,
+                        },
+                    ),
+                    16: Connector(
+                        Connector {
+                            kind: Sink,
+                            name: "wifi",
+                            local_id: 16,
+                            ref_local_id: Some(
+                                12,
+                            ),
+                            global_id: None,
+                            formal_parameter: None,
+                        },
+                    ),
+                    17: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Output,
+                            local_id: 17,
+                            negated: false,
+                            expression: "local_c",
+                            execution_order_id: Some(
+                                5,
+                            ),
+                            ref_local_id: Some(
+                                1,
+                            ),
+                        },
+                    ),
+                },
             },
             global_id: None,
         },
+        declaration: "\n    PROGRAM program_0\n    VAR\n        local_a : DINT := 1;\n        local_b : DINT := 2;\n        local_c:  DINT;\n        local_bool : BOOL := TRUE;\n        local_add : MyAdd;\n    END_VAR",
     },
 )
