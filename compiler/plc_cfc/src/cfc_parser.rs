@@ -1,41 +1,83 @@
 use logos::Logos;
 
 use plc::{
-    ast::{AstStatement, CompilationUnit, LinkageType, SourceRangeFactory},
-    diagnostics::Diagnostic,
-    lexer::{IdProvider, ParseSession, Token},
+    ast::{AstStatement, CompilationUnit, LinkageType, SourceRange, SourceRangeFactory},
+    diagnostics::{Diagnostic, Diagnostician},
+    lexer::{self, IdProvider},
     parser::expressions_parser::parse_expression,
 };
 
-use crate::model::pou::Pou;
+use crate::{deserializer::visit, model::pou::Pou};
 
-pub fn parse_xml(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> CompilationUnit {
-    todo!()
+pub fn parse_file(
+    source: &str,
+    location: &'static str,
+    linkage: LinkageType,
+    id_provider: IdProvider,
+    diagnostician: &mut Diagnostician,
+) -> CompilationUnit {
+    let (unit, errors) = parse(source, location, linkage, id_provider);
+    //Register the source file with the diagnostician
+    diagnostician.register_file(location.to_string(), source.to_string());
+    diagnostician.handle(errors);
+    unit
 }
 
-pub(crate) fn parse_cfc_model(pou: Pou) {
-    todo!()
+fn parse<'source>(
+    source: &'source str,
+    location: &'static str,
+    linkage: LinkageType,
+    id_provider: IdProvider,
+) -> (CompilationUnit, Vec<Diagnostic>) {
+    let parser = CfcParser::new(source, location, id_provider);
+
+    // parse the declaration data field
+    let (unit, diagnostics) = parser.parse_declaration(linkage);
+
+    let ast = parser.transform();
+
+    (unit, diagnostics)
 }
 
-fn parse_cfc_expression(expr: &str) -> AstStatement {
-    parse_expression(&mut ParseSession::new(
-        Token::lexer(&expr),
-        IdProvider::default(),
-        SourceRangeFactory::internal(),
-    ))
+struct CfcParser<'parse> {
+    source: &'parse str,
+    id_provider: IdProvider,
+    location: &'static str,
+    model: Pou,
 }
 
-// impl Pou {
-//     fn parse_declaration(&self) -> (CompilationUnit, Vec<Diagnostic>) {
-//         let parse_session = ParseSession::new(
-//             Token::lexer(&self.declaration),
-//             IdProvider::default(),
-//             SourceRangeFactory::internal(),
-//         );
+impl<'parse> CfcParser<'parse> {
+    fn new(source: &'parse str, location: &'static str, id_provider: IdProvider) -> Self {
+        let Ok(model) = visit(source) else {
+            unimplemented!("cfc errors need to be transformed into diagnostics")
+        };
+        CfcParser { source, id_provider, location, model }
+    }
 
-//         dbg!(parse(parse_session, LinkageType::Internal, &self.name))
-//     }
-// }
+    fn parse_declaration(&self, linkage: LinkageType) -> (CompilationUnit, Vec<Diagnostic>) {
+        plc::parser::parse(
+            lexer::lex_with_ids(
+                &self.model.declaration,
+                self.id_provider.clone(),
+                self.build_range_factory(),
+            ),
+            linkage,
+            self.location,
+        )
+    }
+
+    fn parse_expression(&self, expr: &str) -> AstStatement {
+        parse_expression(&mut lexer::lex_with_ids(expr, self.id_provider.clone(), self.build_range_factory()))
+    }
+
+    fn transform(&self) -> AstStatement {
+        AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 }
+    }
+
+    fn build_range_factory(&self) -> SourceRangeFactory {
+        SourceRangeFactory::for_file(self.location)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -43,8 +85,6 @@ mod tests {
     use plc::ast::{AstStatement, Operator};
 
     use crate::{cfc_parser::ASSIGNMENT_A_B, deserializer, serializer};
-
-    use super::{parse_cfc_expression, parse_cfc_model};
 
     #[test]
     fn variable_assignment() {
@@ -122,7 +162,7 @@ mod tests {
         //     right: todo!(),
         //     id: todo!(),
         // };
-        dbg!(parse_cfc_expression(expression));
+        // dbg!(parse_cfc_expression(expression));
     }
 
     // #[test]
