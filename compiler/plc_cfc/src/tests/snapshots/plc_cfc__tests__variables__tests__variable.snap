@@ -1,0 +1,51 @@
+---
+source: compiler/plc_cfc/src/tests/variables.rs
+expression: "model::Block::visit(&mut reader)"
+---
+Ok(
+    Block {
+        local_id: 1,
+        global_id: None,
+        type_name: "bar",
+        instance_name: None,
+        execution_order_id: None,
+        variables: [
+            BlockVariable {
+                kind: Input,
+                formal_parameter: "a",
+                negated: false,
+                ref_local_id: None,
+                edge: None,
+                storage: None,
+                enable: None,
+            },
+            BlockVariable {
+                kind: Input,
+                formal_parameter: "b",
+                negated: false,
+                ref_local_id: None,
+                edge: None,
+                storage: None,
+                enable: None,
+            },
+            BlockVariable {
+                kind: Output,
+                formal_parameter: "c",
+                negated: true,
+                ref_local_id: None,
+                edge: None,
+                storage: None,
+                enable: None,
+            },
+            BlockVariable {
+                kind: Output,
+                formal_parameter: "d",
+                negated: true,
+                ref_local_id: None,
+                edge: None,
+                storage: None,
+                enable: None,
+            },
+        ],
+    },
+)

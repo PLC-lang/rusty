@@ -1,0 +1,18 @@
+---
+source: compiler/plc_cfc/src/tests/variables.rs
+expression: "crate::model::variables::FunctionBlockVariable::visit(&mut reader)"
+---
+Ok(
+    FunctionBlockVariable {
+        kind: Output,
+        local_id: 7,
+        negated: false,
+        expression: "foo",
+        execution_order_id: Some(
+            2,
+        ),
+        ref_local_id: Some(
+            1,
+        ),
+    },
+)

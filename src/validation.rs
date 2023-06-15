@@ -1,4 +1,4 @@
-use rusty_derive::Validators;
+use plc_derive::Validators;
 
 use crate::{
     ast::{AstStatement, CompilationUnit},

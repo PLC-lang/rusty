@@ -1,0 +1,96 @@
+---
+source: compiler/plc_cfc/src/tests/xml.rs
+expression: "crate::deserializer::visit(SIMPLE)"
+---
+Ok(
+    Pou {
+        name: "function_1",
+        pou_type: Function,
+        body: Body {
+            function_block_diagram: FunctionBlockDiagram {
+                nodes: {
+                    1: Block(
+                        Block {
+                            local_id: 1,
+                            global_id: None,
+                            type_name: "ADD",
+                            instance_name: None,
+                            execution_order_id: Some(
+                                1,
+                            ),
+                            variables: [
+                                BlockVariable {
+                                    kind: Input,
+                                    formal_parameter: "",
+                                    negated: false,
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                                BlockVariable {
+                                    kind: Input,
+                                    formal_parameter: "",
+                                    negated: false,
+                                    ref_local_id: Some(
+                                        3,
+                                    ),
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                                BlockVariable {
+                                    kind: Output,
+                                    formal_parameter: "",
+                                    negated: false,
+                                    ref_local_id: None,
+                                    edge: None,
+                                    storage: None,
+                                    enable: None,
+                                },
+                            ],
+                        },
+                    ),
+                    2: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Input,
+                            local_id: 2,
+                            negated: false,
+                            expression: "elem",
+                            execution_order_id: None,
+                            ref_local_id: None,
+                        },
+                    ),
+                    3: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Input,
+                            local_id: 3,
+                            negated: false,
+                            expression: "1",
+                            execution_order_id: None,
+                            ref_local_id: None,
+                        },
+                    ),
+                    7: FunctionBlockVariable(
+                        FunctionBlockVariable {
+                            kind: Output,
+                            local_id: 7,
+                            negated: false,
+                            expression: "elem",
+                            execution_order_id: Some(
+                                2,
+                            ),
+                            ref_local_id: Some(
+                                1,
+                            ),
+                        },
+                    ),
+                },
+            },
+            global_id: None,
+        },
+        declaration: "\n                        FUNCTION function_1 : DINT\n                        VAR_INPUT\n                            elem: DINT;\n                        END_VAR\n\n                        VAR\n\n                        END_VAR\n                    \nEND_FUNCTION",
+    },
+)

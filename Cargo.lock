@@ -907,6 +907,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_cfc"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "insta",
+ "logos",
+ "quick-xml",
+ "rusty",
+ "serde",
+ "serde_json",
+ "xmltojson",
+]
+
+[[package]]
+name = "plc_derive"
+version = "0.1.0"
+dependencies = [
+ "quote 0.6.13",
+ "syn 0.15.44",
+]
+
+[[package]]
 name = "pretty_assertions"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -958,6 +980,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6aeca18b86b413c660b781aa319e4e2648a3e6f9eadc9b47e9038e6fe9f3451b"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.28.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ce5e73202a820a31f8a0ee32ada5e21029c81fd9e3ebf668a40832e4219d9d1"
+dependencies = [
+ "memchr",
+ "serde",
 ]
 
 [[package]]
@@ -1065,12 +1097,12 @@ dependencies = [
  "log",
  "logos",
  "num",
+ "plc_derive",
  "plc_driver",
  "plc_project",
  "plc_source",
  "pretty_assertions",
  "regex",
- "rusty-derive",
  "serde",
  "serde_json",
  "serial_test",
@@ -1079,14 +1111,6 @@ dependencies = [
  "thiserror",
  "toml",
  "which",
-]
-
-[[package]]
-name = "rusty-derive"
-version = "0.1.0"
-dependencies = [
- "quote 0.6.13",
- "syn 0.15.44",
 ]
 
 [[package]]
@@ -1578,6 +1602,18 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[package]]
+name = "xmltojson"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35c6ef73dae3b7a4a94270d84e70e8ac63134d47106a7283450137bee3439bbb"
+dependencies = [
+ "log",
+ "quick-xml",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "xshell"
