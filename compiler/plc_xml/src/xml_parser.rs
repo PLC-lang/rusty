@@ -1,13 +1,13 @@
 use plc::{
-    ast::{AstStatement, CompilationUnit, Implementation, LinkageType, SourceRangeFactory},
+    ast::{AstStatement, CompilationUnit, Implementation, LinkageType, SourceRangeFactory, PouType as AstPouType, SourceRange},
     diagnostics::{Diagnostic, Diagnostician},
     lexer::{self, IdProvider},
     parser::expressions_parser::parse_expression,
 };
 
 use crate::{
-    deserializer::visit,
-    model::{interface::Interface, pou::Pou},
+    deserializer::{visit, Parseable},
+    model::{interface::Interface, project::Project, pou::{PouType, Pou}, action::Action},
 };
 
 pub fn parse_file(
@@ -31,39 +31,26 @@ fn parse<'source>(
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
     // create a new parse session
-    let parser = CfcParseSession::new(source, location, id_provider);
+    let parser = CfcParseSession::new(source, location, id_provider, linkage);
 
     // transform the xml file to a data model
-    let Ok(model) = visit(source) else {
+    let Ok(project) = visit(source) else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
 
-    // parse the declaration data field
-    let Some((unit, diagnostics)) = parser.try_parse_declaration(linkage, &model.interface) else {
+    // try to parse a declaration data field
+    let Some((unit, diagnostics)) = parser.try_parse_declaration(linkage, &project) else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
 
     // transform the data model to rusty AST
-    let statements = parser.parse_model(model);
+    let implementations = parser.parse_model(project);
 
-    let ast = Implementation {
-        name: todo!(),
-        type_name: todo!(),
-        linkage,
-        pou_type: todo!(),
-        statements: todo!(),
-        location: todo!(),
-        name_location: todo!(),
-        overriding: todo!(),
-        generic: todo!(),
-        access: todo!(),
-    };
     // todo: map ast to Implementation
     let compilation_unit = CompilationUnit {
         global_vars: unit.global_vars,
         units: unit.units,
-        //
-        implementations: vec![ast],
+        implementations,
         user_types: unit.user_types,
         file_name: unit.file_name,
         new_lines: unit.new_lines,
@@ -76,11 +63,12 @@ struct CfcParseSession<'parse> {
     source: &'parse str,
     id_provider: IdProvider,
     location: &'static str,
+    linkage: LinkageType,
 }
 
 impl<'parse> CfcParseSession<'parse> {
-    fn new(source: &'parse str, location: &'static str, id_provider: IdProvider) -> Self {
-        CfcParseSession { source, id_provider, location }
+    fn new(source: &'parse str, location: &'static str, id_provider: IdProvider, linkage: LinkageType) -> Self {
+        CfcParseSession { source, id_provider, location, linkage }
     }
 
     fn build_range_factory(&self) -> SourceRangeFactory {
@@ -90,9 +78,17 @@ impl<'parse> CfcParseSession<'parse> {
     fn try_parse_declaration(
         &self,
         linkage: LinkageType,
-        interface: &Option<Interface>,
+        project: &Project,
     ) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
-        let Some(content) = interface.as_ref().and_then(|it| it.get_data_content()) else {
+        let Some(content) = project.pous
+            .first()
+            .and_then(|it| 
+                it.interface
+                    .as_ref()
+                    .and_then(|it| 
+                        it.get_data_content()
+                    )
+        ) else {
             return None
         };
 
@@ -109,22 +105,77 @@ impl<'parse> CfcParseSession<'parse> {
         parse_expression(&mut lexer::lex_with_ids(expr, self.id_provider.clone(), self.build_range_factory()))
     }
 
-    fn parse_model(&self, model: Pou) -> Vec<Implementation> {
-        /*
-            Implementation {
-                name: todo!(),
-                type_name: todo!(),
-                linkage,
-                pou_type: todo!(),
-                statements: todo!(),
-                location: todo!(),
-                name_location: todo!(),
-                overriding: todo!(),
-                generic: todo!(),
-                access: todo!(),
-            };
-        */
-        vec![]
+    fn parse_model(&self, project: Project) -> Vec<Implementation> {
+        let mut implementations = vec![];
+        for pou in project.pous {            
+            // transform body
+            implementations.push(pou.build_implementation(self.linkage));
+            // transform actions
+            pou.actions.iter().for_each(|action| 
+                implementations.push(action.build_implementation(self.linkage))
+            );
+        }
+        implementations
+    }
+
+}
+
+trait Transformable {
+    fn transform(&self) -> Vec<AstStatement>;
+    fn build_implementation(&self, linkage: LinkageType) -> Implementation;
+}
+
+impl Transformable for Pou {
+    fn transform(&self) -> Vec<AstStatement> {
+        todo!()
+    }
+
+    // TODO: sourcerange
+    fn build_implementation(&self, linkage: LinkageType) -> Implementation {
+        Implementation {
+            name: self.name.to_owned(),
+            type_name: self.name.to_owned(),
+            linkage: linkage,
+            pou_type: self.pou_type.into(),
+            statements: self.transform(),
+            location: SourceRange::undefined(),
+            name_location: SourceRange::undefined(),
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+    }
+}
+
+impl Transformable for Action {
+    fn transform(&self) -> Vec<AstStatement> {
+        todo!()
+    }
+
+    // TODO: sourcerange
+    fn build_implementation(&self, linkage: LinkageType) -> Implementation {
+        Implementation {
+            name: self.name.to_owned(),
+            type_name: self.type_name.to_owned(),
+            linkage: linkage,
+            pou_type: AstPouType::Action,
+            statements: self.transform(),
+            location: SourceRange::undefined(),
+            name_location: SourceRange::undefined(),
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+    }
+}
+
+impl From<PouType> for AstPouType {
+    fn from(value: PouType) -> Self {
+        match value {
+            PouType::Program => AstPouType::Program,
+            PouType::Function => AstPouType::Function,
+            PouType::FunctionBlock => AstPouType::FunctionBlock,
+        }
     }
 }
 

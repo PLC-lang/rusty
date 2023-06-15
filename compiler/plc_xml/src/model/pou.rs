@@ -10,11 +10,6 @@ use crate::{
 
 use super::{action::Action, body::Body, interface::Interface};
 
-/*
-    PLCopen schema:
-    root -> project -> types -> datatypes, pous, ..
-*/
-
 // todo: change declaration string to interface
 #[derive(Debug, Default)]
 pub(crate) struct Pou {
@@ -37,7 +32,7 @@ impl Pou {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub(crate) enum PouType {
     #[default]
     Program,

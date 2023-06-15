@@ -13,6 +13,7 @@ pub(crate) mod model {
     pub(crate) mod fbd;
     pub(crate) mod interface;
     pub(crate) mod pou;
+    pub(crate) mod project;
     pub(crate) mod variables;
 }
 mod reader;

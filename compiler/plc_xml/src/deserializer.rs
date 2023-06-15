@@ -2,13 +2,14 @@ use std::{borrow::Cow, collections::HashMap};
 
 use quick_xml::{events::Event, name::QName};
 
-use crate::{error::Error, model::pou::Pou, reader::PeekableReader};
+use crate::{error::Error, model::project::Project, reader::PeekableReader};
 
-pub(crate) fn visit(content: &str) -> Result<Pou, Error> {
+pub(crate) fn visit(content: &str) -> Result<Project, Error> {
     let mut reader = PeekableReader::new(content);
     loop {
         match reader.peek()? {
-            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Pou::visit(&mut reader),
+            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
+            Event::Start(tag) if tag.name().as_ref() == b"project" => return Project::visit(&mut reader),
             Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
             _ => reader.consume()?,
         }
