@@ -5,7 +5,7 @@ use quick_xml::events::Event;
 use super::fbd::FunctionBlockDiagram;
 use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct Body {
     pub function_block_diagram: FunctionBlockDiagram,
     // pub global_id: Option<usize>,

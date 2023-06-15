@@ -854,17 +854,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "plc_cfc"
-version = "0.1.0"
-dependencies = [
- "indexmap",
- "insta",
- "logos",
- "quick-xml",
- "rusty",
-]
-
-[[package]]
 name = "plc_derive"
 version = "0.1.0"
 dependencies = [
@@ -891,10 +880,10 @@ dependencies = [
  "insta",
  "log",
  "plc_ast",
- "plc_cfc",
  "plc_diagnostics",
  "plc_project",
  "plc_source",
+ "plc_xml",
  "pretty_assertions",
  "rayon",
  "rusty",
@@ -924,6 +913,17 @@ version = "0.1.0"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
+]
+
+[[package]]
+name = "plc_xml"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "insta",
+ "logos",
+ "quick-xml",
+ "rusty",
 ]
 
 [[package]]

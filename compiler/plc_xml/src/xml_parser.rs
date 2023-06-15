@@ -1,13 +1,14 @@
-use logos::Logos;
-
 use plc::{
-    ast::{AstStatement, CompilationUnit, LinkageType, SourceRange, SourceRangeFactory},
+    ast::{AstStatement, CompilationUnit, Implementation, LinkageType, SourceRangeFactory},
     diagnostics::{Diagnostic, Diagnostician},
     lexer::{self, IdProvider},
     parser::expressions_parser::parse_expression,
 };
 
-use crate::{deserializer::visit, model::pou::Pou};
+use crate::{
+    deserializer::visit,
+    model::{interface::Interface, pou::Pou},
+};
 
 pub fn parse_file(
     source: &str,
@@ -29,53 +30,101 @@ fn parse<'source>(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
-    let parser = CfcParser::new(source, location, id_provider);
+    // create a new parse session
+    let parser = CfcParseSession::new(source, location, id_provider);
+
+    // transform the xml file to a data model
+    let Ok(model) = visit(source) else {
+        todo!("cfc errors need to be transformed into diagnostics")
+    };
 
     // parse the declaration data field
-    let (unit, diagnostics) = parser.parse_declaration(linkage);
+    let Some((unit, diagnostics)) = parser.try_parse_declaration(linkage, &model.interface) else {
+        unimplemented!("XML schemas without text declarations are not yet supported")
+    };
 
-    let ast = parser.transform();
+    // transform the data model to rusty AST
+    let statements = parser.parse_model(model);
 
-    (unit, diagnostics)
+    let ast = Implementation {
+        name: todo!(),
+        type_name: todo!(),
+        linkage,
+        pou_type: todo!(),
+        statements: todo!(),
+        location: todo!(),
+        name_location: todo!(),
+        overriding: todo!(),
+        generic: todo!(),
+        access: todo!(),
+    };
+    // todo: map ast to Implementation
+    let compilation_unit = CompilationUnit {
+        global_vars: unit.global_vars,
+        units: unit.units,
+        //
+        implementations: vec![ast],
+        user_types: unit.user_types,
+        file_name: unit.file_name,
+        new_lines: unit.new_lines,
+    };
+
+    (compilation_unit, diagnostics)
 }
 
-struct CfcParser<'parse> {
+struct CfcParseSession<'parse> {
     source: &'parse str,
     id_provider: IdProvider,
     location: &'static str,
-    model: Pou,
 }
 
-impl<'parse> CfcParser<'parse> {
+impl<'parse> CfcParseSession<'parse> {
     fn new(source: &'parse str, location: &'static str, id_provider: IdProvider) -> Self {
-        let Ok(model) = visit(source) else {
-            unimplemented!("cfc errors need to be transformed into diagnostics")
-        };
-        CfcParser { source, id_provider, location, model }
+        CfcParseSession { source, id_provider, location }
     }
 
-    fn parse_declaration(&self, linkage: LinkageType) -> (CompilationUnit, Vec<Diagnostic>) {
-        plc::parser::parse(
-            lexer::lex_with_ids(
-                &self.model.declaration,
-                self.id_provider.clone(),
-                self.build_range_factory(),
-            ),
+    fn build_range_factory(&self) -> SourceRangeFactory {
+        SourceRangeFactory::for_file(self.location)
+    }
+
+    fn try_parse_declaration(
+        &self,
+        linkage: LinkageType,
+        interface: &Option<Interface>,
+    ) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
+        let Some(content) = interface.as_ref().and_then(|it| it.get_data_content()) else {
+            return None
+        };
+
+        //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
+        // the necessary data. for now, we will assume to always have a text declaration
+        Some(plc::parser::parse(
+            lexer::lex_with_ids(&content, self.id_provider.clone(), self.build_range_factory()),
             linkage,
             self.location,
-        )
+        ))
     }
 
     fn parse_expression(&self, expr: &str) -> AstStatement {
         parse_expression(&mut lexer::lex_with_ids(expr, self.id_provider.clone(), self.build_range_factory()))
     }
 
-    fn transform(&self) -> AstStatement {
-        AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 }
-    }
-
-    fn build_range_factory(&self) -> SourceRangeFactory {
-        SourceRangeFactory::for_file(self.location)
+    fn parse_model(&self, model: Pou) -> Vec<Implementation> {
+        /*
+            Implementation {
+                name: todo!(),
+                type_name: todo!(),
+                linkage,
+                pou_type: todo!(),
+                statements: todo!(),
+                location: todo!(),
+                name_location: todo!(),
+                overriding: todo!(),
+                generic: todo!(),
+                access: todo!(),
+            };
+        */
+        vec![]
     }
 }
 
@@ -84,7 +133,7 @@ mod tests {
     use insta::assert_debug_snapshot;
     use plc::ast::{AstStatement, Operator};
 
-    use crate::{cfc_parser::ASSIGNMENT_A_B, deserializer, serializer};
+    use crate::{deserializer, serializer, xml_parser::ASSIGNMENT_A_B};
 
     #[test]
     fn variable_assignment() {

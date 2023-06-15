@@ -8,36 +8,38 @@ use crate::{
     reader::PeekableReader,
 };
 
-use super::body::Body;
+use super::{action::Action, body::Body, interface::Interface};
 
-#[derive(Debug)]
+/*
+    PLCopen schema:
+    root -> project -> types -> datatypes, pous, ..
+*/
+
+// todo: change declaration string to interface
+#[derive(Debug, Default)]
 pub(crate) struct Pou {
-    // TODO: interface, action
     pub name: String,
     pub pou_type: PouType,
     pub body: Body,
-    pub declaration: String,
+    pub actions: Vec<Action>,
+    pub interface: Option<Interface>,
 }
 
 impl Pou {
-    pub fn new(hm: HashMap<String, String>, body: Body, declaration: String) -> Result<Self, Error> {
-        Ok(Self {
-            name: hm.get_or_err("name")?,
-            pou_type: hm.get_or_err("pouType").map(|it| it.parse())??,
-            body,
-            declaration,
+    fn with_attributes(self, attributes: HashMap<String, String>) -> Result<Self, Error> {
+        Ok(Pou {
+            name: attributes.get_or_err("name")?,
+            pou_type: attributes.get_or_err("pouType").map(|it| it.parse())??,
+            body: self.body,
+            actions: self.actions,
+            interface: self.interface,
         })
     }
-
-    // pub fn sort_by_execution_order(mut self) -> Self {
-    //     self.body.function_block_diagram.sort_by_execution_order();
-
-    //     self
-    // }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) enum PouType {
+    #[default]
     Program,
     Function,
     FunctionBlock,
@@ -70,27 +72,24 @@ impl Parseable for Pou {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.attributes()?;
-        let mut declaration = String::new();
+        let mut pou = Pou::default().with_attributes(reader.attributes()?)?;
         loop {
             match reader.peek()? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"interface" => {
+                        // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
                         reader.consume_until_start(b"content")?;
                         match reader.next()? {
-                            Event::Start(tag) => declaration = reader.read_text(tag.name())?,
+                            Event::Start(tag) => {
+                                pou.interface = Some(Interface::new(&reader.read_text(tag.name())?))
+                            }
                             _ => reader.consume()?,
                         }
                     }
                     b"body" => {
-                        let body = Body::visit(reader)?;
+                        pou.body = Body::visit(reader)?;
                         // TODO: change in order to parse INTERFACE, ACTION etc..
                         reader.consume_until(vec![b"pou"])?;
-                        let mut pou = Pou::new(attributes, body, declaration)?;
-
-                        // XXX: Should we explicitly check if the declaration variable is empty or not
-                        // We have to append a END_... to the declaration as it is missing by default
-                        pou.declaration = format!("{}END_{}", pou.declaration, pou.pou_type.to_string());
                         return Ok(pou);
                     }
 

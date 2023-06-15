@@ -1,5 +1,5 @@
 [package]
-name = "plc_cfc"
+name = "plc_xml"
 version = "0.1.0"
 edition = "2021"
 

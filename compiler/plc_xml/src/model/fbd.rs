@@ -7,7 +7,7 @@ use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
 
 use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram {
     pub nodes: IndexMap<usize, Node>,
 }
