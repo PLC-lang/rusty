@@ -8,14 +8,14 @@ use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
 #[derive(Debug)]
 pub(crate) struct Body {
     pub function_block_diagram: FunctionBlockDiagram,
-    pub global_id: Option<usize>,
+    // pub global_id: Option<usize>,
 }
 
 impl Body {
     pub fn new(hm: HashMap<String, String>, fbd: FunctionBlockDiagram) -> Result<Self, Error> {
         Ok(Self {
             function_block_diagram: fbd,
-            global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
+            // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
         })
     }
 }
@@ -41,5 +41,25 @@ impl Parseable for Body {
                 _ => reader.consume()?,
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+
+    use crate::{
+        deserializer::Parseable,
+        model::body::Body,
+        reader::PeekableReader,
+        serializer::{XBody, XFbd},
+    };
+
+    #[test]
+    fn empty() {
+        let content = XBody::new().with_fbd(XFbd::new()).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
     }
 }

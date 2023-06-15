@@ -208,7 +208,7 @@ declare_type_and_extend_if_needed! {
     (
         XVariable, "variable",
         (XConnectionPointIn, with_connection_in),
-        (XConnectionPointOut, with_connection_point_out)
+        (XConnectionPointOut, with_connection_out)
     ),
     (
         XInVariable, "inVariable",
@@ -255,46 +255,9 @@ declare_type_and_extend_if_needed! {
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        deserializer::Parseable,
-        serializer::{
-            XConnection, XConnectionPointIn, XConnectionPointOut, XConnector, XContinuation, XPosition,
-            XRelPosition,
-        },
-    };
+    use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
     use super::{XBlock, XInVariable, XVariable};
-
-    #[test]
-    fn demoo() {
-        let xml = XContinuation::new()
-            .with_attribute("name", "abc")
-            .with_attribute("localId", "1")
-            .with_position(XPosition::new().close())
-            .with_connection_point_out(XConnectionPointOut::with_rel_pos().close())
-            .serialize();
-
-        println!("{xml}");
-        let mut reader = crate::reader::PeekableReader::new(&xml);
-        dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
-
-        let xml = XConnector::new()
-            .with_attribute("name", "abc")
-            .with_attribute("localId", "1")
-            .with_position(XPosition::new().close())
-            .with_connection_point_in(
-                XConnectionPointIn::new().with_rel_position(XRelPosition::init()).with_connection(
-                    XConnection::new()
-                        .with_attribute("refLocalId", "11")
-                        .with_attribute("formalParameter", "function_0")
-                        .close(),
-                ),
-            )
-            .serialize();
-
-        let mut reader = crate::reader::PeekableReader::new(&xml);
-        dbg!(crate::model::connector::Connector::visit(&mut reader).unwrap());
-    }
 
     // convenience methods to reduce amount of boiler-plate-code
     impl XVariable {
@@ -302,6 +265,20 @@ mod tests {
             XVariable::new()
                 .with_attribute("formalParameter", name)
                 .with_attribute("negated", if negated { "true" } else { "false" })
+        }
+
+        pub(crate) fn with_connection_in_initialized(self, ref_lid: &'static str) -> Self {
+            self.with_connection_in(
+                XConnectionPointIn::new()
+                    .with_rel_position(XRelPosition::init().close())
+                    .with_connection(XConnection::new().with_attribute("refLocalId", ref_lid).close()),
+            )
+        }
+
+        pub(crate) fn with_connection_out_initialized(self) -> Self {
+            self.with_connection_out(
+                XConnectionPointOut::new().with_rel_position(XRelPosition::init().close()),
+            )
         }
     }
 
@@ -334,8 +311,11 @@ mod tests {
     }
 
     impl XBlock {
-        pub(crate) fn init(local_id: &'static str, type_name: &'static str) -> Self {
-            XBlock::new().with_attribute("localId", local_id).with_attribute("typeName", type_name)
+        pub(crate) fn init(local_id: &'static str, type_name: &'static str, exec_id: &'static str) -> Self {
+            XBlock::new()
+                .with_attribute("localId", local_id)
+                .with_attribute("typeName", type_name)
+                .with_attribute("executionOrderId", exec_id)
         }
     }
 }
