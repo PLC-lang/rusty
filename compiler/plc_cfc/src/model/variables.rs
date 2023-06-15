@@ -223,3 +223,70 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
 
     Ok(attributes)
 }
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+
+    use crate::{
+        deserializer::Parseable,
+        model::variables::{visit_variable, BlockVariable},
+        reader::PeekableReader,
+        serializer::{
+            XConnectionPointIn, XConnectionPointOut, XInputVariables, XOutputVariables, XRelPosition,
+            XVariable,
+        },
+    };
+
+    #[test]
+    fn variable() {
+        let content = XVariable::init("", false).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+
+    #[test]
+    fn negated_variable() {
+        let content = XVariable::init("", true).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+
+    #[test]
+    fn block_input_variable() {
+        let content = XInputVariables::new().with_variable(XVariable::init("", false)).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+    }
+
+    #[test]
+    fn block_output_variable() {
+        let content = XOutputVariables::new().with_variable(XVariable::init("", false)).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+    }
+
+    #[test]
+    fn variable_with_connection_point_in() {
+        let content = XVariable::init("", false)
+            .with_connection_in(XConnectionPointIn::new().with_rel_position(XRelPosition::init()))
+            .serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+
+    #[test]
+    fn variable_with_connection_point_out() {
+        let content = XVariable::init("", false)
+            .with_connection_out(XConnectionPointOut::new().with_rel_position(XRelPosition::init()))
+            .serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+}

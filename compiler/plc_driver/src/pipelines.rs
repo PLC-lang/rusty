@@ -57,7 +57,7 @@ impl ParsedProject {
                 })?;
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
-                    source_code::SourceType::Xml => cfc::cfc_parser::parse_xml,
+                    source_code::SourceType::Xml => todo!(),
                     source_code::SourceType::Unknown => unreachable!(),
                 };
                 Ok(parse_file(
