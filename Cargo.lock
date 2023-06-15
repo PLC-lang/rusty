@@ -854,6 +854,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_cfc"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "insta",
+ "logos",
+ "quick-xml",
+ "rusty",
+ "serde",
+ "serde_json",
+ "xmltojson",
+]
+
+[[package]]
+name = "plc_derive"
+version = "0.1.0"
+dependencies = [
+ "quote 0.6.13",
+ "syn 0.15.44",
+]
+
+[[package]]
 name = "plc_diagnostics"
 version = "0.1.0"
 dependencies = [
@@ -904,28 +926,6 @@ version = "0.1.0"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
-]
-
-[[package]]
-name = "plc_cfc"
-version = "0.1.0"
-dependencies = [
- "indexmap",
- "insta",
- "logos",
- "quick-xml",
- "rusty",
- "serde",
- "serde_json",
- "xmltojson",
-]
-
-[[package]]
-name = "plc_derive"
-version = "0.1.0"
-dependencies = [
- "quote 0.6.13",
- "syn 0.15.44",
 ]
 
 [[package]]
