@@ -894,6 +894,7 @@ dependencies = [
  "insta",
  "log",
  "plc_ast",
+ "plc_cfc",
  "plc_diagnostics",
  "plc_project",
  "plc_source",

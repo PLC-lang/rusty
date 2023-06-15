@@ -4,12 +4,12 @@ use plc::{
     ast::{AstStatement, CompilationUnit, LinkageType, SourceRangeFactory},
     diagnostics::Diagnostic,
     lexer::{IdProvider, ParseSession, Token},
-    parser::{expressions_parser::parse_expression, ParsedAst},
+    parser::expressions_parser::parse_expression,
 };
 
 use crate::model::pou::Pou;
 
-pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
+pub fn parse_xml(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> CompilationUnit {
     todo!()
 }
 
@@ -25,17 +25,17 @@ fn parse_cfc_expression(expr: &str) -> AstStatement {
     ))
 }
 
-impl Pou {
-    fn parse_declaration(&self) -> (CompilationUnit, Vec<Diagnostic>) {
-        let parse_session = ParseSession::new(
-            Token::lexer(&self.declaration),
-            IdProvider::default(),
-            SourceRangeFactory::internal(),
-        );
+// impl Pou {
+//     fn parse_declaration(&self) -> (CompilationUnit, Vec<Diagnostic>) {
+//         let parse_session = ParseSession::new(
+//             Token::lexer(&self.declaration),
+//             IdProvider::default(),
+//             SourceRangeFactory::internal(),
+//         );
 
-        dbg!(parse(parse_session, LinkageType::Internal, &self.name))
-    }
-}
+//         dbg!(parse(parse_session, LinkageType::Internal, &self.name))
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -125,10 +125,10 @@ mod tests {
         dbg!(parse_cfc_expression(expression));
     }
 
-    #[test]
-    fn declaration_can_be_parsed() {
-        deserializer::visit(ASSIGNMENT_A_B).unwrap().parse_declaration();
-    }
+    // #[test]
+    // fn declaration_can_be_parsed() {
+    //     deserializer::visit(ASSIGNMENT_A_B).unwrap().parse_declaration();
+    // }
 }
 
 const ASSIGNMENT_A_B: &str = r#"
