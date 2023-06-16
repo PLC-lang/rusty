@@ -1,0 +1,56 @@
+---
+source: compiler/plc_xml/src/xml_parser.rs
+assertion_line: 208
+expression: pou
+---
+Project {
+    pous: [
+        Pou {
+            name: "thistimereallyeasy",
+            pou_type: Program,
+            body: Body {
+                function_block_diagram: Some(
+                    FunctionBlockDiagram {
+                        nodes: {
+                            2: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 2,
+                                    negated: false,
+                                    expression: "b",
+                                    execution_order_id: Some(
+                                        0,
+                                    ),
+                                    ref_local_id: Some(
+                                        1,
+                                    ),
+                                },
+                            ),
+                            1: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 1,
+                                    negated: false,
+                                    expression: "a",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                        },
+                    },
+                ),
+            },
+            actions: [],
+            interface: Some(
+                Interface {
+                    add_data: Some(
+                        Data {
+                            content: "\n        PROGRAM thistimereallyeasy\n        VAR\n            a, b : DINT;\n        END_VAR\n                            ",
+                            handle: Implementation,
+                        },
+                    ),
+                },
+            ),
+        },
+    ],
+}

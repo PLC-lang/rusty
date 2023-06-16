@@ -1,6 +1,6 @@
 use plc::{
     ast::{
-        AstStatement, CompilationUnit, Implementation, LinkageType, Operator, PouType as AstPouType,
+        AstId, AstStatement, CompilationUnit, Implementation, LinkageType, Operator, PouType as AstPouType,
         SourceRange, SourceRangeFactory,
     },
     diagnostics::{Diagnostic, Diagnostician},
@@ -117,6 +117,10 @@ impl<'parse> CfcParseSession<'parse> {
         }
         implementations
     }
+
+    fn next_id(&mut self) -> AstId {
+        self.id_provider.next_id()
+    }
 }
 
 trait Transformable {
@@ -124,7 +128,7 @@ trait Transformable {
 }
 
 impl Transformable for Pou {
-    fn transform(&self, mut parser: &mut CfcParseSession) -> Vec<AstStatement> {
+    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
             return vec![]
@@ -132,7 +136,7 @@ impl Transformable for Pou {
 
         let mut statements = vec![];
         for (id, _) in &fbd.nodes {
-            statements.push(handle_node(id, &mut parser, &fbd));
+            statements.push(handle_node(id, parser, &fbd));
         }
 
         statements
@@ -141,14 +145,14 @@ impl Transformable for Pou {
 
 fn handle_node(
     node_id: &usize,
-    mut parser: &mut CfcParseSession<'_>,
+    parser: &mut CfcParseSession<'_>,
     fbd: &FunctionBlockDiagram,
 ) -> AstStatement {
     match fbd.nodes.get(node_id) {
         Some(Node::Block(_)) => todo!(),
         Some(Node::FunctionBlockVariable(var)) => {
             // statements.append(&mut var.transform(parser))
-            let stmt = var.transform(&mut parser).into_iter().next().unwrap();
+            let stmt = var.transform(parser).into_iter().next().unwrap();
 
             // if we are not being assigned to, we can return here
             let Some(ref_id) = var.ref_local_id else {
@@ -199,13 +203,13 @@ trait Implementable {
 
 impl Implementable for Pou {
     // TODO: sourcerange
-    fn build_implementation(&self, mut parser: &mut CfcParseSession) -> Implementation {
+    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation {
         Implementation {
             name: self.name.to_owned(),
             type_name: self.name.to_owned(),
             linkage: parser.linkage,
             pou_type: self.pou_type.into(),
-            statements: self.transform(&mut parser),
+            statements: self.transform(parser),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
