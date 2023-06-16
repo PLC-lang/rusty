@@ -1,13 +1,20 @@
 use plc::{
-    ast::{AstStatement, CompilationUnit, Implementation, LinkageType, SourceRangeFactory, PouType as AstPouType, SourceRange},
+    ast::{
+        AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType, SourceRange,
+        SourceRangeFactory,
+    },
     diagnostics::{Diagnostic, Diagnostician},
     lexer::{self, IdProvider},
     parser::expressions_parser::parse_expression,
 };
 
 use crate::{
-    deserializer::{visit, Parseable},
-    model::{interface::Interface, project::Project, pou::{PouType, Pou}, action::Action},
+    deserializer::visit,
+    model::{
+        action::Action,
+        pou::{Pou, PouType},
+        project::Project,
+    },
 };
 
 pub fn parse_file(
@@ -24,8 +31,8 @@ pub fn parse_file(
     unit
 }
 
-fn parse<'source>(
-    source: &'source str,
+fn parse(
+    source: &str,
     location: &'static str,
     linkage: LinkageType,
     id_provider: IdProvider,
@@ -43,11 +50,8 @@ fn parse<'source>(
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
 
-    // transform the data model into rusty AST statements and add them to the compilation unit  
-    (
-        unit.with_implementations(parser.parse_model(project)), 
-        diagnostics
-    )
+    // transform the data model into rusty AST statements and add them to the compilation unit
+    (dbg!(unit.with_implementations(parser.parse_model(project))), diagnostics)
 }
 
 struct CfcParseSession<'parse> {
@@ -58,7 +62,12 @@ struct CfcParseSession<'parse> {
 }
 
 impl<'parse> CfcParseSession<'parse> {
-    fn new(source: &'parse str, location: &'static str, id_provider: IdProvider, linkage: LinkageType) -> Self {
+    fn new(
+        source: &'parse str,
+        location: &'static str,
+        id_provider: IdProvider,
+        linkage: LinkageType,
+    ) -> Self {
         CfcParseSession { source, id_provider, location, linkage }
     }
 
@@ -73,10 +82,10 @@ impl<'parse> CfcParseSession<'parse> {
     ) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
         let Some(content) = project.pous
             .first()
-            .and_then(|it| 
+            .and_then(|it|
                 it.interface
                     .as_ref()
-                    .and_then(|it| 
+                    .and_then(|it|
                         it.get_data_content()
                     )
         ) else {
@@ -86,7 +95,7 @@ impl<'parse> CfcParseSession<'parse> {
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration
         Some(plc::parser::parse(
-            lexer::lex_with_ids(&content, self.id_provider.clone(), self.build_range_factory()),
+            lexer::lex_with_ids(content, self.id_provider.clone(), self.build_range_factory()),
             linkage,
             self.location,
         ))
@@ -98,13 +107,13 @@ impl<'parse> CfcParseSession<'parse> {
 
     fn parse_model(&self, project: Project) -> Vec<Implementation> {
         let mut implementations = vec![];
-        for pou in project.pous {            
+        for pou in project.pous {
             // transform body
             implementations.push(pou.build_implementation(self.linkage));
             // transform actions
-            pou.actions.iter().for_each(|action| 
-                implementations.push(action.build_implementation(self.linkage))
-            );
+            pou.actions
+                .iter()
+                .for_each(|action| implementations.push(action.build_implementation(self.linkage)));
         }
         implementations
     }
@@ -117,8 +126,6 @@ trait Transformable {
 
 impl Transformable for Pou {
     fn transform(&self) -> Vec<AstStatement> {
-
-
         vec![]
     }
 
@@ -127,7 +134,7 @@ impl Transformable for Pou {
         Implementation {
             name: self.name.to_owned(),
             type_name: self.name.to_owned(),
-            linkage: linkage,
+            linkage,
             pou_type: self.pou_type.into(),
             statements: self.transform(),
             location: SourceRange::undefined(),
@@ -149,7 +156,7 @@ impl Transformable for Action {
         Implementation {
             name: self.name.to_owned(),
             type_name: self.type_name.to_owned(),
-            linkage: linkage,
+            linkage,
             pou_type: AstPouType::Action,
             statements: self.transform(),
             location: SourceRange::undefined(),
@@ -192,9 +199,8 @@ impl From<PouType> for AstPouType {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use plc::ast::{AstStatement, Operator};
 
-    use crate::{deserializer, serializer, xml_parser::ASSIGNMENT_A_B};
+    use crate::{deserializer, xml_parser::ASSIGNMENT_A_B};
 
     #[test]
     fn variable_assignment() {

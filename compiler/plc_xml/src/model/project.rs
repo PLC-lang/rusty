@@ -20,7 +20,7 @@ pub(crate) struct Project {
 impl Parseable for Project {
     type Item = Self;
 
-    fn visit(reader: &mut crate::reader::PeekableReader) -> Result<Self::Item, crate::error::Error> {
+    fn visit(_reader: &mut crate::reader::PeekableReader) -> Result<Self::Item, crate::error::Error> {
         unimplemented!()
     }
 }

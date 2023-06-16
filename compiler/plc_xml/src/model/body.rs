@@ -12,7 +12,7 @@ pub(crate) struct Body {
 }
 
 impl Body {
-    fn new(hm: HashMap<String, String>, fbd: Option<FunctionBlockDiagram>) -> Result<Self, Error> {
+    fn new(_hm: HashMap<String, String>, fbd: Option<FunctionBlockDiagram>) -> Result<Self, Error> {
         Ok(Self {
             function_block_diagram: fbd,
             // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
@@ -62,6 +62,7 @@ mod tests {
     #[test]
     fn empty() {
         let content = XBody::new().with_fbd(XFbd::new()).serialize();
+        todo!("an empty body actually does not have an FDB inside it");
 
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
