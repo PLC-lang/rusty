@@ -49,9 +49,7 @@ impl Node {
             Node::Block(val) => val.execution_order_id,
             Node::FunctionBlockVariable(val) => val.execution_order_id,
             Node::Control(val) => val.execution_order_id,
-
-            // This variant does not have a execution order id
-            Node::Connector(_) => None,
+            _ => None,
         }
     }
 }

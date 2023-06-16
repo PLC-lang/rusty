@@ -1,7 +1,7 @@
 use plc::{
     ast::{
-        AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType, SourceRange,
-        SourceRangeFactory,
+        AstStatement, CompilationUnit, Implementation, LinkageType, Operator, PouType as AstPouType,
+        SourceRange, SourceRangeFactory,
     },
     diagnostics::{Diagnostic, Diagnostician},
     lexer::{self, IdProvider},
@@ -12,8 +12,10 @@ use crate::{
     deserializer::visit,
     model::{
         action::Action,
+        fbd::{FunctionBlockDiagram, Node},
         pou::{Pou, PouType},
         project::Project,
+        variables::FunctionBlockVariable,
     },
 };
 
@@ -38,7 +40,7 @@ fn parse(
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
     // create a new parse session
-    let parser = CfcParseSession::new(source, location, id_provider, linkage);
+    let mut parser = CfcParseSession::new(source, location, id_provider, linkage);
 
     // transform the xml file to a data model
     let Ok(project) = visit(source) else {
@@ -51,7 +53,7 @@ fn parse(
     };
 
     // transform the data model into rusty AST statements and add them to the compilation unit
-    (dbg!(unit.with_implementations(parser.parse_model(project))), diagnostics)
+    (unit.with_implementations(parser.parse_model(project)), diagnostics)
 }
 
 struct CfcParseSession<'parse> {
@@ -105,38 +107,105 @@ impl<'parse> CfcParseSession<'parse> {
         parse_expression(&mut lexer::lex_with_ids(expr, self.id_provider.clone(), self.build_range_factory()))
     }
 
-    fn parse_model(&self, project: Project) -> Vec<Implementation> {
+    fn parse_model(&mut self, project: Project) -> Vec<Implementation> {
         let mut implementations = vec![];
         for pou in project.pous {
             // transform body
-            implementations.push(pou.build_implementation(self.linkage));
+            implementations.push(pou.build_implementation(self));
             // transform actions
-            pou.actions
-                .iter()
-                .for_each(|action| implementations.push(action.build_implementation(self.linkage)));
+            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(self)));
         }
         implementations
     }
 }
 
 trait Transformable {
-    fn transform(&self) -> Vec<AstStatement>;
-    fn build_implementation(&self, linkage: LinkageType) -> Implementation;
+    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement>;
 }
 
 impl Transformable for Pou {
-    fn transform(&self) -> Vec<AstStatement> {
-        vec![]
-    }
+    fn transform(&self, mut parser: &mut CfcParseSession) -> Vec<AstStatement> {
+        let Some(fbd) = &self.body.function_block_diagram else {
+            // empty body
+            return vec![]
+        };
 
+        let mut statements = vec![];
+        for (id, _) in &fbd.nodes {
+            statements.push(handle_node(id, &mut parser, &fbd));
+        }
+
+        statements
+    }
+}
+
+fn handle_node(
+    node_id: &usize,
+    mut parser: &mut CfcParseSession<'_>,
+    fbd: &FunctionBlockDiagram,
+) -> AstStatement {
+    match fbd.nodes.get(node_id) {
+        Some(Node::Block(_)) => todo!(),
+        Some(Node::FunctionBlockVariable(var)) => {
+            // statements.append(&mut var.transform(parser))
+            let stmt = var.transform(&mut parser).into_iter().next().unwrap();
+
+            // if we are not being assigned to, we can return here
+            let Some(ref_id) = var.ref_local_id else {
+                return stmt;
+            };
+
+            let rhs = handle_node(&ref_id, parser, fbd);
+
+            AstStatement::Assignment {
+                left: Box::new(stmt),
+                right: Box::new(rhs),
+                id: parser.id_provider.next_id(),
+            }
+        }
+        Some(Node::Control(_)) => todo!(),
+        Some(Node::Connector(_)) => todo!(),
+        _ => unreachable!("ID must have matching node!"),
+    }
+}
+
+impl Transformable for FunctionBlockVariable {
+    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+        let stmt = if self.negated {
+            let ident = parser.parse_expression(&self.expression);
+            AstStatement::UnaryExpression {
+                operator: Operator::Not,
+                value: Box::new(ident.clone()),
+                location: ident.get_location(),
+                id: parser.id_provider.next_id(),
+            }
+        } else {
+            parser.parse_expression(&self.expression)
+        };
+
+        vec![stmt]
+    }
+}
+
+impl Transformable for Action {
+    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+        todo!()
+    }
+}
+
+trait Implementable {
+    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation;
+}
+
+impl Implementable for Pou {
     // TODO: sourcerange
-    fn build_implementation(&self, linkage: LinkageType) -> Implementation {
+    fn build_implementation(&self, mut parser: &mut CfcParseSession) -> Implementation {
         Implementation {
             name: self.name.to_owned(),
             type_name: self.name.to_owned(),
-            linkage,
+            linkage: parser.linkage,
             pou_type: self.pou_type.into(),
-            statements: self.transform(),
+            statements: self.transform(&mut parser),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
@@ -146,19 +215,15 @@ impl Transformable for Pou {
     }
 }
 
-impl Transformable for Action {
-    fn transform(&self) -> Vec<AstStatement> {
-        todo!()
-    }
-
+impl Implementable for Action {
     // TODO: sourcerange
-    fn build_implementation(&self, linkage: LinkageType) -> Implementation {
+    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation {
         Implementation {
             name: self.name.to_owned(),
             type_name: self.type_name.to_owned(),
-            linkage,
+            linkage: parser.linkage,
             pou_type: AstPouType::Action,
-            statements: self.transform(),
+            statements: self.transform(parser),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,

@@ -4,7 +4,9 @@ VAR
     y : DINT := 33333;
     assign : assignment;
 END_VAR
-    // y := x
-    assign(x, y);
+    assign.a := x;
+    assign.b := y;
+    assign();
+    // b := a
     main := assign.b;
 END_FUNCTION
