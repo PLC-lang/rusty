@@ -43,20 +43,11 @@ fn parse<'source>(
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
 
-    // transform the data model to rusty AST
-    let implementations = parser.parse_model(project);
-
-    // todo: map ast to Implementation
-    let compilation_unit = CompilationUnit {
-        global_vars: unit.global_vars,
-        units: unit.units,
-        implementations,
-        user_types: unit.user_types,
-        file_name: unit.file_name,
-        new_lines: unit.new_lines,
-    };
-
-    (compilation_unit, diagnostics)
+    // transform the data model into rusty AST statements and add them to the compilation unit  
+    (
+        unit.with_implementations(parser.parse_model(project)), 
+        diagnostics
+    )
 }
 
 struct CfcParseSession<'parse> {
@@ -117,7 +108,6 @@ impl<'parse> CfcParseSession<'parse> {
         }
         implementations
     }
-
 }
 
 trait Transformable {
@@ -127,7 +117,9 @@ trait Transformable {
 
 impl Transformable for Pou {
     fn transform(&self) -> Vec<AstStatement> {
-        todo!()
+
+
+        vec![]
     }
 
     // TODO: sourcerange
@@ -169,6 +161,24 @@ impl Transformable for Action {
     }
 }
 
+trait CompilationUnitExt {
+    fn with_implementations(self, implementations: Vec<Implementation>) -> Self;
+}
+
+impl CompilationUnitExt for CompilationUnit {
+    fn with_implementations(self, implementations: Vec<Implementation>) -> Self {
+        CompilationUnit {
+            global_vars: self.global_vars,
+            units: self.units,
+            implementations,
+            user_types: self.user_types,
+            file_name: self.file_name,
+            new_lines: self.new_lines,
+        }
+    }
+}
+
+// XXX: that seems redundant.. we only need our own enum because we impl Display
 impl From<PouType> for AstPouType {
     fn from(value: PouType) -> Self {
         match value {
