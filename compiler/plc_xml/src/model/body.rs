@@ -7,16 +7,20 @@ use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
 
 #[derive(Debug, Default)]
 pub(crate) struct Body {
-    pub function_block_diagram: FunctionBlockDiagram,
+    pub function_block_diagram: Option<FunctionBlockDiagram>,
     // pub global_id: Option<usize>,
 }
 
 impl Body {
-    pub fn new(hm: HashMap<String, String>, fbd: FunctionBlockDiagram) -> Result<Self, Error> {
+    fn new(hm: HashMap<String, String>, fbd: Option<FunctionBlockDiagram>) -> Result<Self, Error> {
         Ok(Self {
             function_block_diagram: fbd,
             // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
         })
+    }
+
+    fn empty() -> Result<Self, Error> {
+        Ok(Self { function_block_diagram: None })
     }
 }
 
@@ -32,12 +36,12 @@ impl Parseable for Body {
                         let fbd = FunctionBlockDiagram::visit(reader)?;
                         reader.consume_until(vec![b"body"])?;
 
-                        return Body::new(attributes, fbd);
+                        return Body::new(attributes, Some(fbd));
                     }
                     _ => reader.consume()?,
                 },
-
-                Event::Eof => todo!(),
+                Event::Empty(tag) if tag.name().as_ref() == b"FBD" => return Body::empty(),
+                Event::Eof => todo!("error-handling"),
                 _ => reader.consume()?,
             }
         }
