@@ -13,7 +13,7 @@ keywords = ["iec61131", "st", "Structued_Text"]
 categories = ["development-tools::build-utils"]
 
 [features]
-default = []
+default = ["debug"]
 debug = []
 verify = []
 

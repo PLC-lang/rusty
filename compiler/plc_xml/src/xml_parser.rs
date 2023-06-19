@@ -169,7 +169,7 @@ impl FunctionBlockDiagram {
 
     fn transform_node(&self, id: NodeId, session: &mut ParseSession) -> AstStatement {
         match self.nodes.get(&id) {
-            Some(Node::Block(block)) => block.transform(session),
+            Some(Node::Block(block)) => block.transform(session, &self.nodes),
             Some(Node::FunctionBlockVariable(var)) => {
                 let stmt = var.transform(session);
 
@@ -234,7 +234,7 @@ impl FunctionBlockVariable {
 }
 
 impl Block {
-    fn transform(&self, session: &mut ParseSession) -> AstStatement {
+    fn transform(&self, session: &mut ParseSession, index: &NodeIndex) -> AstStatement {
         let operator = Box::new(AstStatement::Reference {
             name: self.type_name.clone(),
             location: SourceRange::undefined(),
@@ -243,7 +243,7 @@ impl Block {
 
         let parameters = if self.variables.len() > 0 {
             Box::new(Some(AstStatement::ExpressionList {
-                expressions: self.variables.iter().map(|var| var.transform(session)).collect(),
+                expressions: self.variables.iter().filter_map(|var| var.transform(session, index)).collect(),
                 id: session.next_id(),
             }))
         } else {
@@ -260,8 +260,26 @@ impl Block {
 }
 
 impl BlockVariable {
-    fn transform(&self, session: &mut ParseSession) -> AstStatement {
-        todo!()
+    fn transform(&self, session: &mut ParseSession, index: &NodeIndex) -> Option<AstStatement> {
+        let Some(ref_id) = self.ref_local_id else {
+            // param not provided/passed
+            return None
+        };
+
+        let Some(ref_node) = index.get(&ref_id) else {
+            unreachable!()
+        };
+
+        match ref_node {
+            Node::Block(block) => {
+                // let name = block.instance_name.as_ref().unwrap_or(&block.type_name).as_str();
+                // dbg!(Some(session.parse_expression(name)))
+                None
+            }
+            Node::FunctionBlockVariable(var) => Some(session.parse_expression(&var.expression)),
+            Node::Control(_) => todo!(),
+            Node::Connector(_) => todo!(),
+        }
     }
 }
 

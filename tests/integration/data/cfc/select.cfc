@@ -21,7 +21,7 @@ END_VAR
     </interface>
     <body>
         <FBD>
-            <block localId="1" width="80" height="80" typeName="SEL" executionOrderId="4">
+            <block localId="1" width="80" height="80" typeName="SEL" executionOrderId="0">
                 <position x="540" y="220"/>
                 <inputVariables>
                     <variable formalParameter="" negated="false">
@@ -73,7 +73,7 @@ END_VAR
                 </connectionPointOut>
                 <expression>b</expression>
             </inVariable>
-            <outVariable localId="5" height="20" width="96" executionOrderId="5" negated="false" storage="none">
+            <outVariable localId="5" height="20" width="96" executionOrderId="1" negated="false" storage="none">
                 <position x="720" y="240"/>
                 <connectionPointIn>
                     <relPosition x="0" y="10"/>
