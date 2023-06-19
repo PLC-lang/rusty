@@ -13,7 +13,7 @@ use crate::{
     model::{
         action::Action,
         block::Block,
-        fbd::{FunctionBlockDiagram, Node, NodeIndex},
+        fbd::{FunctionBlockDiagram, Node, NodeId, NodeIndex},
         pou::{Pou, PouType},
         project::Project,
         variables::{BlockVariable, FunctionBlockVariable},
@@ -40,50 +40,49 @@ fn parse(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
-    // create a new parse session
-    let mut parser = CfcParseSession::new(source, location, id_provider, linkage);
-
     // transform the xml file to a data model
     let Ok(project) = visit(source) else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
 
+    // create a new parse session
+    let mut parser = ParseSession::new(&project, location, id_provider, linkage);
+
     // try to parse a declaration data field
-    let Some((unit, diagnostics)) = parser.try_parse_declaration(linkage, &project) else {
+    let Some((unit, diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
 
     // transform the data model into rusty AST statements and add them to the compilation unit
-    (unit.with_implementations(parser.parse_model(project)), diagnostics)
+    (unit.with_implementations(parser.parse_model()), diagnostics)
 }
 
-struct CfcParseSession<'parse> {
-    source: &'parse str,
+struct ParseSession<'parse> {
+    project: &'parse Project,
     id_provider: IdProvider,
-    location: &'static str,
     linkage: LinkageType,
+    file_name: &'static str,
+    range_factory: SourceRangeFactory,
 }
 
-impl<'parse> CfcParseSession<'parse> {
+impl<'parse> ParseSession<'parse> {
     fn new(
-        source: &'parse str,
-        location: &'static str,
+        project: &'parse Project,
+        file_name: &'static str,
         id_provider: IdProvider,
         linkage: LinkageType,
     ) -> Self {
-        CfcParseSession { source, id_provider, location, linkage }
+        ParseSession {
+            project,
+            id_provider,
+            linkage,
+            file_name,
+            range_factory: SourceRangeFactory::for_file(file_name),
+        }
     }
 
-    fn build_range_factory(&self) -> SourceRangeFactory {
-        SourceRangeFactory::for_file(self.location)
-    }
-
-    fn try_parse_declaration(
-        &self,
-        linkage: LinkageType,
-        project: &Project,
-    ) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
-        let Some(content) = project.pous
+    fn try_parse_declaration(&self) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
+        let Some(content) = self.project.pous
             .first()
             .and_then(|it|
                 it.interface
@@ -98,19 +97,27 @@ impl<'parse> CfcParseSession<'parse> {
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration
         Some(plc::parser::parse(
-            lexer::lex_with_ids(content, self.id_provider.clone(), self.build_range_factory()),
-            linkage,
-            self.location,
+            lexer::lex_with_ids(
+                content,
+                self.id_provider.clone(),
+                SourceRangeFactory::for_file(self.file_name),
+            ),
+            self.linkage,
+            self.file_name,
         ))
     }
 
     fn parse_expression(&self, expr: &str) -> AstStatement {
-        parse_expression(&mut lexer::lex_with_ids(expr, self.id_provider.clone(), self.build_range_factory()))
+        parse_expression(&mut lexer::lex_with_ids(
+            expr,
+            self.id_provider.clone(),
+            SourceRangeFactory::for_file(self.file_name),
+        ))
     }
 
-    fn parse_model(&mut self, project: Project) -> Vec<Implementation> {
+    fn parse_model(&mut self) -> Vec<Implementation> {
         let mut implementations = vec![];
-        for pou in project.pous {
+        for pou in &self.project.pous {
             // transform body
             implementations.push(pou.build_implementation(self));
             // transform actions
@@ -122,112 +129,61 @@ impl<'parse> CfcParseSession<'parse> {
     fn next_id(&mut self) -> AstId {
         self.id_provider.next_id()
     }
+
+    fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
+        self.range_factory.create_range(range)
+    }
 }
 
-// TODO: find better names for these traits...
-trait TransformContainer {
-    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement>;
-}
-
-impl TransformContainer for Pou {
-    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+impl Pou {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
             return vec![]
         };
 
-        fbd.into_statements(parser)
+        fbd.transform(session)
     }
-}
 
-impl TransformContainer for FunctionBlockDiagram {
-    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
-        self.nodes.iter().map(|(id, _)| self.nodes.into_statement(*id, parser)).collect()
-    }
-}
-
-impl TransformContainer for Action {
-    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
-        todo!()
-    }
-}
-
-trait Transform {
-    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement;
-}
-
-impl Transform for FunctionBlockVariable {
-    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
-        let stmt = if self.negated {
-            let ident = parser.parse_expression(&self.expression);
-            AstStatement::UnaryExpression {
-                operator: Operator::Not,
-                value: Box::new(ident.clone()),
-                location: ident.get_location(),
-                id: parser.id_provider.next_id(),
-            }
-        } else {
-            parser.parse_expression(&self.expression)
-        };
-
-        stmt
-    }
-}
-
-impl Transform for Block {
-    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
-        let operator = Box::new(AstStatement::Reference {
-            name: self.type_name.clone(),
+    // TODO: sourcerange
+    fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
+        Implementation {
+            name: self.name.to_owned(),
+            type_name: self.name.to_owned(),
+            linkage: session.linkage,
+            pou_type: self.pou_type.into(),
+            statements: self.transform(session),
             location: SourceRange::undefined(),
-            id: parser.next_id(),
-        });
-
-        let parameters = if self.variables.len() > 0 {
-            Box::new(Some(AstStatement::ExpressionList {
-                expressions: self.variables.iter().map(|var| var.into_statement(parser)).collect(),
-                id: parser.next_id(),
-            }))
-        } else {
-            Box::new(None)
-        };
-
-        AstStatement::CallStatement {
-            operator,
-            parameters,
-            location: SourceRange::undefined(),
-            id: parser.next_id(),
+            name_location: SourceRange::undefined(),
+            overriding: false,
+            generic: false,
+            access: None,
         }
     }
 }
 
-impl Transform for BlockVariable {
-    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
-        todo!()
+impl FunctionBlockDiagram {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+        self.nodes.iter().map(|(id, _)| self.transform_node(*id, session)).collect()
     }
-}
 
-trait TransformNode {
-    fn into_statement(&self, node_id: usize, parser: &mut CfcParseSession<'_>) -> AstStatement;
-}
-
-impl TransformNode for NodeIndex {
-    fn into_statement(&self, node_id: usize, parser: &mut CfcParseSession<'_>) -> AstStatement {
-        match self.get(&node_id) {
-            Some(Node::Block(block)) => block.into_statement(parser),
+    fn transform_node(&self, id: NodeId, session: &mut ParseSession) -> AstStatement {
+        match self.nodes.get(&id) {
+            Some(Node::Block(block)) => block.transform(session),
             Some(Node::FunctionBlockVariable(var)) => {
-                let stmt = var.into_statement(parser);
+                let stmt = var.transform(session);
 
                 // if we are not being assigned to, we can return here
                 let Some(ref_id) = var.ref_local_id else {
                     return stmt;
                 };
 
-                let rhs = self.into_statement(ref_id, parser);
+                let rhs = self.transform_node(ref_id, session);
 
                 AstStatement::Assignment {
                     left: Box::new(stmt),
                     right: Box::new(rhs),
-                    id: parser.id_provider.next_id(),
+                    id: session.id_provider.next_id(),
                 }
             }
             Some(Node::Control(_)) => todo!(),
@@ -237,19 +193,19 @@ impl TransformNode for NodeIndex {
     }
 }
 
-trait Implementable {
-    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation;
-}
+impl Action {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+        todo!()
+    }
 
-impl Implementable for Pou {
     // TODO: sourcerange
-    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation {
+    fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
         Implementation {
             name: self.name.to_owned(),
-            type_name: self.name.to_owned(),
-            linkage: parser.linkage,
-            pou_type: self.pou_type.into(),
-            statements: self.into_statements(parser),
+            type_name: self.type_name.to_owned(),
+            linkage: session.linkage,
+            pou_type: AstPouType::Action,
+            statements: self.transform(session),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
@@ -259,21 +215,53 @@ impl Implementable for Pou {
     }
 }
 
-impl Implementable for Action {
-    // TODO: sourcerange
-    fn build_implementation(&self, parser: &mut CfcParseSession) -> Implementation {
-        Implementation {
-            name: self.name.to_owned(),
-            type_name: self.type_name.to_owned(),
-            linkage: parser.linkage,
-            pou_type: AstPouType::Action,
-            statements: self.into_statements(parser),
+impl FunctionBlockVariable {
+    fn transform(&self, session: &mut ParseSession) -> AstStatement {
+        let stmt = if self.negated {
+            let ident = session.parse_expression(&self.expression);
+            AstStatement::UnaryExpression {
+                operator: Operator::Not,
+                value: Box::new(ident.clone()),
+                location: ident.get_location(),
+                id: session.id_provider.next_id(),
+            }
+        } else {
+            session.parse_expression(&self.expression)
+        };
+
+        stmt
+    }
+}
+
+impl Block {
+    fn transform(&self, session: &mut ParseSession) -> AstStatement {
+        let operator = Box::new(AstStatement::Reference {
+            name: self.type_name.clone(),
             location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
-            overriding: false,
-            generic: false,
-            access: None,
+            id: session.next_id(),
+        });
+
+        let parameters = if self.variables.len() > 0 {
+            Box::new(Some(AstStatement::ExpressionList {
+                expressions: self.variables.iter().map(|var| var.transform(session)).collect(),
+                id: session.next_id(),
+            }))
+        } else {
+            Box::new(None)
+        };
+
+        AstStatement::CallStatement {
+            operator,
+            parameters,
+            location: SourceRange::undefined(),
+            id: session.next_id(),
         }
+    }
+}
+
+impl BlockVariable {
+    fn transform(&self, session: &mut ParseSession) -> AstStatement {
+        todo!()
     }
 }
 
