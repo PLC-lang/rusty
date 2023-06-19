@@ -12,10 +12,11 @@ use crate::{
     deserializer::visit,
     model::{
         action::Action,
-        fbd::{FunctionBlockDiagram, Node},
+        block::Block,
+        fbd::{FunctionBlockDiagram, Node, NodeIndex},
         pou::{Pou, PouType},
         project::Project,
-        variables::FunctionBlockVariable,
+        variables::{BlockVariable, FunctionBlockVariable},
     },
 };
 
@@ -123,58 +124,40 @@ impl<'parse> CfcParseSession<'parse> {
     }
 }
 
-trait Transformable {
-    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement>;
+// TODO: find better names for these traits...
+trait TransformContainer {
+    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement>;
 }
 
-impl Transformable for Pou {
-    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+impl TransformContainer for Pou {
+    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
             return vec![]
         };
 
-        let mut statements = vec![];
-        for (id, _) in &fbd.nodes {
-            statements.push(handle_node(id, parser, &fbd));
-        }
-
-        statements
+        fbd.into_statements(parser)
     }
 }
 
-fn handle_node(
-    node_id: &usize,
-    parser: &mut CfcParseSession<'_>,
-    fbd: &FunctionBlockDiagram,
-) -> AstStatement {
-    match fbd.nodes.get(node_id) {
-        Some(Node::Block(_)) => todo!(),
-        Some(Node::FunctionBlockVariable(var)) => {
-            // statements.append(&mut var.transform(parser))
-            let stmt = var.transform(parser).into_iter().next().unwrap();
-
-            // if we are not being assigned to, we can return here
-            let Some(ref_id) = var.ref_local_id else {
-                return stmt;
-            };
-
-            let rhs = handle_node(&ref_id, parser, fbd);
-
-            AstStatement::Assignment {
-                left: Box::new(stmt),
-                right: Box::new(rhs),
-                id: parser.id_provider.next_id(),
-            }
-        }
-        Some(Node::Control(_)) => todo!(),
-        Some(Node::Connector(_)) => todo!(),
-        _ => unreachable!("ID must have matching node!"),
+impl TransformContainer for FunctionBlockDiagram {
+    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+        self.nodes.iter().map(|(id, _)| self.nodes.into_statement(*id, parser)).collect()
     }
 }
 
-impl Transformable for FunctionBlockVariable {
-    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+impl TransformContainer for Action {
+    fn into_statements(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+        todo!()
+    }
+}
+
+trait Transform {
+    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement;
+}
+
+impl Transform for FunctionBlockVariable {
+    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
         let stmt = if self.negated {
             let ident = parser.parse_expression(&self.expression);
             AstStatement::UnaryExpression {
@@ -187,13 +170,70 @@ impl Transformable for FunctionBlockVariable {
             parser.parse_expression(&self.expression)
         };
 
-        vec![stmt]
+        stmt
     }
 }
 
-impl Transformable for Action {
-    fn transform(&self, parser: &mut CfcParseSession) -> Vec<AstStatement> {
+impl Transform for Block {
+    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
+        let operator = Box::new(AstStatement::Reference {
+            name: self.type_name.clone(),
+            location: SourceRange::undefined(),
+            id: parser.next_id(),
+        });
+
+        let parameters = if self.variables.len() > 0 {
+            Box::new(Some(AstStatement::ExpressionList {
+                expressions: self.variables.iter().map(|var| var.into_statement(parser)).collect(),
+                id: parser.next_id(),
+            }))
+        } else {
+            Box::new(None)
+        };
+
+        AstStatement::CallStatement {
+            operator,
+            parameters,
+            location: SourceRange::undefined(),
+            id: parser.next_id(),
+        }
+    }
+}
+
+impl Transform for BlockVariable {
+    fn into_statement(&self, parser: &mut CfcParseSession) -> AstStatement {
         todo!()
+    }
+}
+
+trait TransformNode {
+    fn into_statement(&self, node_id: usize, parser: &mut CfcParseSession<'_>) -> AstStatement;
+}
+
+impl TransformNode for NodeIndex {
+    fn into_statement(&self, node_id: usize, parser: &mut CfcParseSession<'_>) -> AstStatement {
+        match self.get(&node_id) {
+            Some(Node::Block(block)) => block.into_statement(parser),
+            Some(Node::FunctionBlockVariable(var)) => {
+                let stmt = var.into_statement(parser);
+
+                // if we are not being assigned to, we can return here
+                let Some(ref_id) = var.ref_local_id else {
+                    return stmt;
+                };
+
+                let rhs = self.into_statement(ref_id, parser);
+
+                AstStatement::Assignment {
+                    left: Box::new(stmt),
+                    right: Box::new(rhs),
+                    id: parser.id_provider.next_id(),
+                }
+            }
+            Some(Node::Control(_)) => todo!(),
+            Some(Node::Connector(_)) => todo!(),
+            _ => unreachable!("ID must have matching node!"),
+        }
     }
 }
 
@@ -209,7 +249,7 @@ impl Implementable for Pou {
             type_name: self.name.to_owned(),
             linkage: parser.linkage,
             pou_type: self.pou_type.into(),
-            statements: self.transform(parser),
+            statements: self.into_statements(parser),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
@@ -227,7 +267,7 @@ impl Implementable for Action {
             type_name: self.type_name.to_owned(),
             linkage: parser.linkage,
             pou_type: AstPouType::Action,
-            statements: self.transform(parser),
+            statements: self.into_statements(parser),
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
