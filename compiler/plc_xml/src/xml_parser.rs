@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use plc::{
     ast::{
         AstId, AstStatement, CompilationUnit, Implementation, LinkageType, Operator, PouType as AstPouType,
@@ -63,6 +64,7 @@ struct ParseSession<'parse> {
     linkage: LinkageType,
     file_name: &'static str,
     range_factory: SourceRangeFactory,
+    references: IndexMap<NodeId, Vec<NodeId>>,
 }
 
 impl<'parse> ParseSession<'parse> {
@@ -78,6 +80,7 @@ impl<'parse> ParseSession<'parse> {
             linkage,
             file_name,
             range_factory: SourceRangeFactory::for_file(file_name),
+            references: IndexMap::new(),
         }
     }
 
@@ -133,6 +136,10 @@ impl<'parse> ParseSession<'parse> {
     fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
         self.range_factory.create_range(range)
     }
+
+    fn get_referencing_ids(&self, id: NodeId) -> Vec<&NodeId> {
+        self.references.iter().filter(|(_, v)| v.contains(&id)).map(|(k, _)| k).collect()
+    }
 }
 
 impl Pou {
@@ -169,32 +176,68 @@ impl Pou {
 
 impl FunctionBlockDiagram {
     fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
-        self.nodes.iter().map(|(id, _)| self.transform_node(*id, session)).collect()
+        // self.build_reference_table(session);
+        let mut ast_association = IndexMap::new();
+        self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
+        ast_association
+            .into_iter()
+            .filter(|(k, _)| self.nodes.get(k).is_some_and(|it| it.get_exec_id().is_some()))
+            .map(|(_, v)| v)
+            .collect()
     }
 
-    fn transform_node(&self, id: NodeId, session: &mut ParseSession) -> AstStatement {
-        match self.nodes.get(&id) {
-            Some(Node::Block(block)) => block.transform(session, &self.nodes),
-            Some(Node::FunctionBlockVariable(var)) => {
+    fn transform_node(
+        &self,
+        id: NodeId,
+        session: &mut ParseSession,
+        ast_association: &mut IndexMap<NodeId, AstStatement>,
+    ) {
+        let Some(current_node) = self.nodes.get(&id) else {
+            unreachable!()
+        };
+        match current_node {
+            Node::Block(block) => block.transform(session, &self.nodes, ast_association),
+            Node::FunctionBlockVariable(var) => {
                 let stmt = var.transform(session);
 
                 // if we are not being assigned to, we can return here
                 let Some(ref_id) = var.ref_local_id else {
-                    return stmt;
+                    ast_association.insert(id, stmt);
+                    return;
                 };
 
-                let rhs = self.transform_node(ref_id, session);
+                let rhs = if let Some(rhs) = ast_association.remove(&ref_id) {
+                    rhs
+                } else {
+                    // that is awkward
+                    self.transform_node(ref_id, session, ast_association);
+                    let Some(entry) = ast_association.remove(&ref_id) else {
+                        return;
+                    };
+                    entry
+                };
 
-                AstStatement::Assignment {
-                    left: Box::new(stmt),
-                    right: Box::new(rhs),
-                    id: session.id_provider.next_id(),
-                }
+                ast_association.insert(
+                    id,
+                    AstStatement::Assignment {
+                        left: Box::new(stmt),
+                        right: Box::new(rhs),
+                        id: session.id_provider.next_id(),
+                    },
+                );
             }
-            Some(Node::Control(_)) => todo!(),
-            Some(Node::Connector(_)) => todo!(),
-            _ => unreachable!("ID must have matching node!"),
+            Node::Control(_) => todo!(),
+            Node::Connector(_) => todo!(),
         }
+    }
+
+    fn build_reference_table(&self, session: &mut ParseSession) {
+        session.references.clear();
+        let _ = self
+            .nodes
+            .iter()
+            .map(|(id, node)| session.references.insert(*id, node.get_ref_ids()))
+            .collect::<Vec<_>>();
     }
 }
 
@@ -224,10 +267,11 @@ impl FunctionBlockVariable {
     fn transform(&self, session: &mut ParseSession) -> AstStatement {
         let stmt = if self.negated {
             let ident = session.parse_expression(&self.expression);
+            let location = ident.get_location();
             AstStatement::UnaryExpression {
                 operator: Operator::Not,
-                value: Box::new(ident.clone()),
-                location: ident.get_location(),
+                value: Box::new(ident),
+                location,
                 id: session.id_provider.next_id(),
             }
         } else {
@@ -239,7 +283,12 @@ impl FunctionBlockVariable {
 }
 
 impl Block {
-    fn transform(&self, session: &mut ParseSession, index: &NodeIndex) -> AstStatement {
+    fn transform(
+        &self,
+        session: &mut ParseSession,
+        index: &NodeIndex,
+        ast_association: &mut IndexMap<usize, AstStatement>,
+    ) {
         let operator = Box::new(AstStatement::Reference {
             name: self.type_name.clone(),
             location: SourceRange::undefined(),
@@ -255,12 +304,15 @@ impl Block {
             Box::new(None)
         };
 
-        AstStatement::CallStatement {
-            operator,
-            parameters,
-            location: SourceRange::undefined(),
-            id: session.next_id(),
-        }
+        ast_association.insert(
+            self.local_id,
+            AstStatement::CallStatement {
+                operator,
+                parameters,
+                location: SourceRange::undefined(),
+                id: session.next_id(),
+            },
+        );
     }
 }
 

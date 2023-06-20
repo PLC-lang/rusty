@@ -36,22 +36,31 @@ impl PartialOrd for Node {
     }
 }
 
-#[derive(PartialEq)]
-struct Temp(Option<usize>);
-
-impl PartialOrd for Temp {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
-    }
-}
-
 impl Node {
-    pub fn get_exec_id(&self) -> Option<usize> {
+    pub fn get_exec_id(&self) -> Option<NodeId> {
         match self {
             Node::Block(val) => val.execution_order_id,
             Node::FunctionBlockVariable(val) => val.execution_order_id,
             Node::Control(val) => val.execution_order_id,
             _ => None,
+        }
+    }
+
+    pub fn get_ref_ids(&self) -> Vec<NodeId> {
+        match self {
+            Node::Block(val) => val.get_variable_references(),
+            Node::FunctionBlockVariable(val) => val.ref_local_id.map_or(vec![], |it| vec![it]),
+            Node::Control(val) => val.ref_local_id.map_or(vec![], |it| vec![it]),
+            _ => vec![],
+        }
+    }
+
+    pub fn get_id(&self) -> NodeId {
+        match self {
+            Node::Block(val) => val.local_id,
+            Node::FunctionBlockVariable(val) => val.local_id,
+            Node::Control(val) => val.local_id,
+            Node::Connector(val) => val.local_id,
         }
     }
 }
@@ -101,10 +110,3 @@ impl Parseable for FunctionBlockDiagram {
         Ok(FunctionBlockDiagram { nodes })
     }
 }
-
-// impl FunctionBlockDiagram {
-//     pub fn sort_by_execution_order(&mut self) {
-//         self.blocks.sort_by_key(|it| it.execution_order_id);
-//         self.variables.sort_by_key(|it| it.execution_order_id);
-//     }
-// }

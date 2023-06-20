@@ -31,6 +31,10 @@ impl Block {
             variables,
         })
     }
+
+    pub fn get_variable_references(&self) -> Vec<usize> {
+        self.variables.iter().filter_map(|var| var.ref_local_id).collect()
+    }
 }
 
 impl Parseable for Block {
