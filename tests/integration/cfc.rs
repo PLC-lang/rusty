@@ -39,11 +39,23 @@ fn select_call_in_function_block_with_input_variables() {
 
 #[test]
 fn custom_function_call_in_function_block() {
-    // GIVEN a CFC program which assigns a variable
+    // GIVEN a CFC program which calls a subroutine
     let st_file = get_test_file("cfc/my_add.st");
     let cfc_file = get_test_file("cfc/my_add.cfc");
-    // WHEN assigning values to them and then calling the program
+    // WHEN calling the
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
     // THEN the second variable will have the value of the first variable
     assert_eq!(res, 4);
+}
+
+#[test]
+// TODO: block to block assigments, i.e. chained call statements
+fn chained_calls() {
+    // GIVEN a CFC program which assigns a variable
+    let st_file = get_test_file("cfc/chained_calls.st");
+    let cfc_file = get_test_file("cfc/chained_calls.cfc");
+    // WHEN assigning values to them and then calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the second variable will have the value of the first variable
+    assert_eq!(res, 10);
 }
