@@ -1,6 +1,6 @@
 use crate::task::Task;
 use anyhow::Result;
-use reporter::BenchmarkReport;
+use reporter::{sysout::SysoutReporter, BenchmarkReport, Reporter, ReporterType};
 use task::{compile::Compile, run::Run};
 use xshell::{cmd, Shell};
 
@@ -12,14 +12,6 @@ struct Parameters {
     action: Action,
     directory: Option<String>,
     reporter: ReporterType,
-}
-
-#[derive(Default)]
-pub enum ReporterType {
-    SQL,
-    Git,
-    #[default]
-    Sysout,
 }
 
 #[derive(Default)]
@@ -36,7 +28,14 @@ fn main() -> anyhow::Result<()> {
     let compiler = std::env::var("COMPILER")?;
     let params = parse_args(&args);
     //Create Reporter
-    let reporter = reporter::from_type(params.reporter);
+
+    // To avoid accidental persists of dry runs, assign a [`SysoutReporter`]
+    // if the environment variable `CI_RUN` can not be found
+    let reporter = match std::env::var("CI_RUN") {
+        Ok(_) => reporter::from_type(params.reporter),
+        Err(_) => Box::new(SysoutReporter),
+    };
+
     //Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     match &params.action {

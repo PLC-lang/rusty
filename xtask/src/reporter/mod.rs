@@ -8,12 +8,23 @@ use anyhow::Result;
 use serde::Serialize;
 use xshell::{cmd, Shell};
 
-mod git;
-mod sysout;
-
-use crate::ReporterType;
+pub(crate) mod git;
+pub(crate) mod sysout;
 
 use self::sysout::SysoutReporter;
+
+pub trait Reporter {
+    /// Persists the benchmark data into a database
+    fn persist(&self, report: BenchmarkReport) -> Result<()>;
+}
+
+#[derive(Default)]
+pub enum ReporterType {
+    SQL,
+    Git,
+    #[default]
+    Sysout,
+}
 
 #[derive(Serialize)]
 pub struct BenchmarkReport {
@@ -67,11 +78,6 @@ impl BenchmarkReport {
             metrics,
         })
     }
-}
-
-pub trait Reporter {
-    /// Persists the benchmark data into a database
-    fn persist(&self, report: BenchmarkReport) -> Result<()>;
 }
 
 pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
