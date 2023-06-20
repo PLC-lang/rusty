@@ -1,6 +1,8 @@
+use anyhow::Result;
 use std::time::Duration;
 
-use anyhow::Result;
+pub(crate) mod compile;
+pub(crate) mod run;
 
 pub(crate) trait Task {
     /// Returns the name of the task being benchmarked

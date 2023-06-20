@@ -8,9 +8,12 @@ use anyhow::Result;
 use serde::Serialize;
 use xshell::{cmd, Shell};
 
+mod git;
+mod sysout;
+
 use crate::ReporterType;
 
-mod git_reporter;
+use self::sysout::SysoutReporter;
 
 #[derive(Serialize)]
 pub struct BenchmarkReport {
@@ -75,14 +78,5 @@ pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
         _ => todo!(),
-    }
-}
-
-pub struct SysoutReporter;
-
-impl Reporter for SysoutReporter {
-    fn persist(&self, report: BenchmarkReport) -> Result<()> {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-        Ok(())
     }
 }

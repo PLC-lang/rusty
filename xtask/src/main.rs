@@ -1,13 +1,10 @@
-use crate::compile::Compile;
-use crate::run::Run;
 use crate::task::Task;
 use anyhow::Result;
 use reporter::BenchmarkReport;
+use task::{compile::Compile, run::Run};
 use xshell::{cmd, Shell};
 
-mod compile;
 mod reporter;
-mod run;
 mod task;
 
 #[derive(Default)]
