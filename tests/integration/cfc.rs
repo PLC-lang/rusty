@@ -27,12 +27,23 @@ fn simple_assignment() {
 }
 
 #[test]
-fn select_call_in_function_block() {
-    // GIVEN a CFC program which assigns a variable
+fn select_call_in_function_block_with_input_variables() {
+    // GIVEN a CFC program which selects a variable based on a predicate
     let st_file = get_test_file("cfc/select.st");
     let cfc_file = get_test_file("cfc/select.cfc");
     // WHEN assigning values to them and then calling the program
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
-    // THEN the second variable will have the value of the first variable
+    // THEN the correct value is selected
     assert_eq!(res, 1);
+}
+
+#[test]
+fn custom_function_call_in_function_block() {
+    // GIVEN a CFC program which assigns a variable
+    let st_file = get_test_file("cfc/my_add.st");
+    let cfc_file = get_test_file("cfc/my_add.cfc");
+    // WHEN assigning values to them and then calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the second variable will have the value of the first variable
+    assert_eq!(res, 4);
 }

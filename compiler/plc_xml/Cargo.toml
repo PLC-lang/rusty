@@ -11,3 +11,7 @@ quick-xml = { version = "0.28", features = ["serialize"] }
 insta = "1.20"
 indexmap = "1.9"
 plc = { path = "../..", package = "rusty" }
+
+[features]
+default = ["debug"]
+debug = []

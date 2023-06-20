@@ -142,7 +142,12 @@ impl Pou {
             return vec![]
         };
 
-        fbd.transform(session)
+        let statements = fbd.transform(session);
+
+        #[cfg(feature = "debug")]
+        println!("{statements:#?}");
+
+        statements
     }
 
     // TODO: sourcerange
@@ -271,12 +276,13 @@ impl BlockVariable {
         };
 
         match ref_node {
-            Node::Block(block) => {
+            Node::Block(_) => {
                 // let name = block.instance_name.as_ref().unwrap_or(&block.type_name).as_str();
                 // dbg!(Some(session.parse_expression(name)))
                 None
             }
-            Node::FunctionBlockVariable(var) => Some(session.parse_expression(&var.expression)),
+            // result assignment happens here
+            Node::FunctionBlockVariable(var) => Some(var.transform(session)),
             Node::Control(_) => todo!(),
             Node::Connector(_) => todo!(),
         }
