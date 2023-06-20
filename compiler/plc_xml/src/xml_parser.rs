@@ -109,7 +109,7 @@ impl<'parse> ParseSession<'parse> {
 
     fn parse_expression(&self, expr: &str) -> AstStatement {
         parse_expression(&mut lexer::lex_with_ids(
-            expr,
+            html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
             SourceRangeFactory::for_file(self.file_name),
         ))

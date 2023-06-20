@@ -10,6 +10,7 @@ logos = "0.12"
 quick-xml = { version = "0.28", features = ["serialize"] }
 insta = "1.20"
 indexmap = "1.9"
+html-escape = "0.2"
 plc = { path = "../..", package = "rusty" }
 
 [features]
