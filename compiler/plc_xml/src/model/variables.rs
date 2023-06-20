@@ -233,8 +233,8 @@ mod tests {
         model::variables::{visit_variable, BlockVariable},
         reader::PeekableReader,
         serializer::{
-            XConnectionPointIn, XConnectionPointOut, XInputVariables, XOutputVariables, XRelPosition,
-            XVariable,
+            XConnectionPointIn, XConnectionPointOut, XFbd, XInOutVariables, XInVariable, XInputVariables,
+            XOutVariable, XOutputVariables, XRelPosition, XVariable,
         },
     };
 
@@ -271,6 +271,14 @@ mod tests {
     }
 
     #[test]
+    fn block_inout_variable() {
+        let content = XInOutVariables::new().with_variable(XVariable::init("", false)).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+    }
+
+    #[test]
     fn variable_with_connection_point_in() {
         let content = XVariable::init("", false)
             .with_connection_in(XConnectionPointIn::new().with_rel_position(XRelPosition::init()))
@@ -285,6 +293,22 @@ mod tests {
         let content = XVariable::init("", false)
             .with_connection_out(XConnectionPointOut::new().with_rel_position(XRelPosition::init()))
             .serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+
+    #[test]
+    fn fbd_in_variable() {
+        let content = XInVariable::init("0", false).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(visit_variable(&mut reader));
+    }
+
+    #[test]
+    fn fbd_out_variable() {
+        let content = dbg!(XOutVariable::init("0", false).serialize());
 
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(visit_variable(&mut reader));

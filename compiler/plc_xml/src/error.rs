@@ -55,7 +55,7 @@ impl std::fmt::Debug for Error {
             }
             Self::MissingAttribute(key) => write!(f, "Failed to find attribute '{key}'"),
             Self::ReadEvent(why) => write!(f, "Failed to read XML; {why}"),
-            Self::UnexpectedElement(element) => write!(f, "{element}"),
+            Self::UnexpectedElement(element) => write!(f, "Found an unexpected element '{element}'"),
             Self::Encoding(why) => write!(f, "{why:#?}"),
             Self::Parse(why) => write!(f, "Failed to parse string to other type; {why:#?}"),
         }
