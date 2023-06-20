@@ -61,10 +61,6 @@ impl Parseable for FunctionBlockDiagram {
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
         reader.consume()?;
-        // let mut blocks = Vec::new();
-        // let mut variables = Vec::new();
-        // let mut controls = Vec::new(); // TODO
-        // let mut connectors = Vec::new(); // TODO
         let mut nodes = IndexMap::new();
 
         loop {
@@ -102,9 +98,67 @@ impl Parseable for FunctionBlockDiagram {
     }
 }
 
-// impl FunctionBlockDiagram {
-//     pub fn sort_by_execution_order(&mut self) {
-//         self.blocks.sort_by_key(|it| it.execution_order_id);
-//         self.variables.sort_by_key(|it| it.execution_order_id);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+
+    use crate::{
+        deserializer::Parseable,
+        model::fbd::FunctionBlockDiagram,
+        reader::PeekableReader,
+        serializer::{
+            XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
+            XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
+        },
+    };
+
+    #[test]
+    fn add_block() {
+        let content = XFbd::new()
+            .with_block(
+                XBlock::init("1", "ADD", "0")
+                    .with_input_variables(
+                        XInputVariables::new()
+                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
+                            .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
+                    )
+                    .with_inout_variables(XInOutVariables::new().close())
+                    .with_output_variables(
+                        XOutputVariables::new()
+                            .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
+                    ),
+            )
+            .with_in_variable(
+                XInVariable::init("2", false)
+                    .with_position(XPosition::new().close())
+                    .with_connection_point_out(
+                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
+                    )
+                    .with_expression(XExpression::new().with_data("a")),
+            )
+            .with_in_variable(
+                XInVariable::init("3", false)
+                    .with_position(XPosition::new().close())
+                    .with_connection_point_out(
+                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
+                    )
+                    .with_expression(XExpression::new().with_data("b")),
+            )
+            .with_out_variable(
+                XOutVariable::init("4", false)
+                    .with_position(XPosition::new().close())
+                    .with_attribute("executionOrderId", "1")
+                    .with_connection_point_in(
+                        XConnectionPointIn::new()
+                            .with_rel_position(XRelPosition::init())
+                            .with_connection(XConnection::new().with_attribute("refLocalId", "1")),
+                    )
+                    .with_expression(XExpression::new().with_data("c")),
+            )
+            .serialize();
+
+        // FIXME: This test is currently wrong, because refLocalId isn't parsed, i.e. it's None in the snapshot
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
+    }
+}

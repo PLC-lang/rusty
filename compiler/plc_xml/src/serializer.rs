@@ -175,7 +175,8 @@ macro_rules! declare_type_and_extend_if_needed {
 declare_type_and_extend_if_needed! {
     (
         XPou, "pou",
-        (XBody, with_body)
+        (XBody, with_body),
+        (XInterface, with_interface)
     ),
     (
         XBlock, "block",
@@ -202,6 +203,7 @@ declare_type_and_extend_if_needed! {
         XFbd, "FBD",
         (XBlock, with_block),
         (XInVariable, with_in_variable),
+        (XOutVariable, with_out_variable),
         (XContinuation, with_continuation),
         (XConnector, with_connector)
     ),
@@ -213,7 +215,8 @@ declare_type_and_extend_if_needed! {
     (
         XInVariable, "inVariable",
         (XConnectionPointOut, with_connection_point_out),
-        (XPosition, with_position)
+        (XPosition, with_position),
+        (XExpression, with_expression)
     ),
     (
         XOutVariable, "outVariable",
@@ -233,6 +236,25 @@ declare_type_and_extend_if_needed! {
         XOutputVariables, "outputVariables",
         (XVariable, with_variable)
     ),
+    (
+        XInterface, "interface",
+        (XLocalVars, with_local_vars),
+        (XAddData, with_add_data)
+    ),
+    (XLocalVars, "localVars",),
+    (
+        XAddData, "addData",
+        (XData, with_data_data)
+    ),
+    (
+        XData, "data",
+        (XTextDeclaration, with_text_declaration)
+    ),
+    (
+        XTextDeclaration, "textDeclaration",
+        (XContent, with_content)
+    ),
+    (XContent, "content",),
 
     // these are not being extended:
     (XPosition, "position",),
@@ -257,7 +279,7 @@ mod tests {
 
     use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
-    use super::{XBlock, XInVariable, XVariable};
+    use super::{XBlock, XInVariable, XOutVariable, XVariable};
 
     // convenience methods to reduce amount of boiler-plate-code
     impl XVariable {
@@ -284,7 +306,7 @@ mod tests {
 
     impl XRelPosition {
         pub(crate) fn init() -> Self {
-            XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0")
+            XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0").close()
         }
     }
 
@@ -305,6 +327,14 @@ mod tests {
     impl XInVariable {
         pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
             XInVariable::new()
+                .with_attribute("localId", local_id)
+                .with_attribute("negated", if negated { "true" } else { "false" })
+        }
+    }
+
+    impl XOutVariable {
+        pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
+            XOutVariable::new()
                 .with_attribute("localId", local_id)
                 .with_attribute("negated", if negated { "true" } else { "false" })
         }

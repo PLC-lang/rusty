@@ -13,10 +13,7 @@ pub(crate) struct Body {
 
 impl Body {
     fn new(_hm: HashMap<String, String>, fbd: Option<FunctionBlockDiagram>) -> Result<Self, Error> {
-        Ok(Self {
-            function_block_diagram: fbd,
-            // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
-        })
+        Ok(Self { function_block_diagram: fbd })
     }
 
     fn empty() -> Result<Self, Error> {
@@ -56,13 +53,41 @@ mod tests {
         deserializer::Parseable,
         model::body::Body,
         reader::PeekableReader,
-        serializer::{XBody, XFbd},
+        serializer::{XBlock, XBody, XFbd, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
     };
 
     #[test]
     fn empty() {
-        let content = XBody::new().with_fbd(XFbd::new()).serialize();
-        todo!("an empty body actually does not have an FDB inside it");
+        let content = XBody::new().with_fbd(XFbd::new().close()).serialize();
+
+        let mut reader = PeekableReader::new(&content);
+        assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
+    }
+
+    // TODO: Add two add blocks
+    #[test]
+    fn fbd_with_add_block() {
+        let content = XBody::new()
+            .with_fbd(
+                XFbd::new().with_block(
+                    XBlock::init("1", "ADD", "0")
+                        .with_input_variables(
+                            XInputVariables::new()
+                                .with_variable(
+                                    XVariable::init("a", false).with_connection_in_initialized("1"),
+                                )
+                                .with_variable(
+                                    XVariable::init("b", false).with_connection_in_initialized("2"),
+                                ),
+                        )
+                        .with_inout_variables(XInOutVariables::new().close())
+                        .with_output_variables(
+                            XOutputVariables::new()
+                                .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
+                        ),
+                ),
+            )
+            .serialize();
 
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
