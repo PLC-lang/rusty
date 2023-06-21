@@ -179,9 +179,9 @@ impl FunctionBlockDiagram {
         // self.build_reference_table(session);
         let mut ast_association = IndexMap::new();
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
-        dbg!(ast_association)
+        ast_association
             .into_iter()
-            .filter(|(k, _)| self.nodes.get(k).is_some_and(|it| it.get_exec_id().is_some()))
+            .filter(|(k, _)| self.nodes.get(k).map(|it| it.get_exec_id()).is_some())
             .map(|(_, v)| v)
             .collect()
     }
@@ -206,16 +206,11 @@ impl FunctionBlockDiagram {
                     return;
                 };
 
-                let rhs = if let Some(rhs) = ast_association.remove(&ref_id) {
-                    // rhs.clone()
-                    rhs
-                } else {
-                    // this is awkward
-                    self.transform_node(ref_id, session, ast_association);
-                    let Some(entry) = ast_association.remove(&ref_id) else {
-                        return;
-                    };
-                    entry
+                let Some(rhs) = ast_association.remove(&ref_id).or_else(|| { 
+                    self.transform_node(id, session, ast_association); 
+                    ast_association.remove(&ref_id)
+                }) else {
+                    unreachable!()
                 };
 
                 let Some(lhs) = ast_association.remove(&id) else {

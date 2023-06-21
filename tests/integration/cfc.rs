@@ -58,3 +58,14 @@ fn chained_calls() {
     // THEN the second variable will have the value of the first variable
     assert_eq!(res, 10);
 }
+
+#[test]
+fn chained_calls_galore() {
+    // GIVEN a CFC program which assigns a variable
+    let st_file = get_test_file("cfc/chained_calls_galore.st");
+    let cfc_file = get_test_file("cfc/chained_calls_galore.cfc");
+    // WHEN assigning values to them and then calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the second variable will have the value of the first variable
+    assert_eq!(res, 88);
+}
