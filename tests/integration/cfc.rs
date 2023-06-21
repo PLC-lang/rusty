@@ -49,7 +49,6 @@ fn custom_function_call_in_function_block() {
 }
 
 #[test]
-// TODO: block to block assigments, i.e. chained call statements
 fn chained_calls() {
     // GIVEN a CFC program which assigns a variable
     let st_file = get_test_file("cfc/chained_calls.st");

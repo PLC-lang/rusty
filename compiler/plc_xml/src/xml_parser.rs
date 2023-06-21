@@ -179,7 +179,7 @@ impl FunctionBlockDiagram {
         // self.build_reference_table(session);
         let mut ast_association = IndexMap::new();
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
-        ast_association
+        dbg!(ast_association)
             .into_iter()
             .filter(|(k, _)| self.nodes.get(k).is_some_and(|it| it.get_exec_id().is_some()))
             .map(|(_, v)| v)
@@ -198,18 +198,19 @@ impl FunctionBlockDiagram {
         match current_node {
             Node::Block(block) => block.transform(session, &self.nodes, ast_association),
             Node::FunctionBlockVariable(var) => {
-                let stmt = var.transform(session);
+                var.transform(session, ast_association);
 
                 // if we are not being assigned to, we can return here
                 let Some(ref_id) = var.ref_local_id else {
-                    ast_association.insert(id, stmt);
+                    // ast_association.insert(id, stmt, ast_association);
                     return;
                 };
 
                 let rhs = if let Some(rhs) = ast_association.remove(&ref_id) {
+                    // rhs.clone()
                     rhs
                 } else {
-                    // that is awkward
+                    // this is awkward
                     self.transform_node(ref_id, session, ast_association);
                     let Some(entry) = ast_association.remove(&ref_id) else {
                         return;
@@ -217,10 +218,14 @@ impl FunctionBlockDiagram {
                     entry
                 };
 
+                let Some(lhs) = ast_association.remove(&id) else {
+                    unreachable!()
+                };
+
                 ast_association.insert(
                     id,
                     AstStatement::Assignment {
-                        left: Box::new(stmt),
+                        left: Box::new(lhs),
                         right: Box::new(rhs),
                         id: session.id_provider.next_id(),
                     },
@@ -264,7 +269,7 @@ impl Action {
 }
 
 impl FunctionBlockVariable {
-    fn transform(&self, session: &mut ParseSession) -> AstStatement {
+    fn transform(&self, session: &mut ParseSession, ast_association: &mut IndexMap<usize, AstStatement>) {
         let stmt = if self.negated {
             let ident = session.parse_expression(&self.expression);
             let location = ident.get_location();
@@ -278,7 +283,7 @@ impl FunctionBlockVariable {
             session.parse_expression(&self.expression)
         };
 
-        stmt
+        ast_association.insert(self.local_id, stmt);
     }
 }
 
@@ -297,7 +302,20 @@ impl Block {
 
         let parameters = if self.variables.len() > 0 {
             Box::new(Some(AstStatement::ExpressionList {
-                expressions: self.variables.iter().filter_map(|var| var.transform(session, index)).collect(),
+                // TODO: if input variables point to a block, we have chained calls
+                expressions: self
+                    .variables
+                    .iter()
+                    .filter_map(|var| {
+                        var.transform(session, index, ast_association);
+                        if let Some(ref_id) = var.ref_local_id {
+                            // ast_association.get(&ref_id).map(|it| it.clone()).or_else(|| None)
+                            ast_association.remove(&ref_id)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect(),
                 id: session.next_id(),
             }))
         } else {
@@ -317,26 +335,32 @@ impl Block {
 }
 
 impl BlockVariable {
-    fn transform(&self, session: &mut ParseSession, index: &NodeIndex) -> Option<AstStatement> {
-        let Some(ref_id) = self.ref_local_id else {
+    fn transform(
+        &self,
+        session: &mut ParseSession,
+        index: &NodeIndex,
+        ast_association: &mut IndexMap<usize, AstStatement>,
+    ) {
+        let Some(ref_id) = &self.ref_local_id else {
             // param not provided/passed
-            return None
+            return;
         };
 
-        let Some(ref_node) = index.get(&ref_id) else {
-            unreachable!()
-        };
+        if ast_association.get(ref_id).is_some() {
+            // we have already transformed the referenced element
+            return;
+        }
 
-        match ref_node {
-            Node::Block(_) => {
-                // let name = block.instance_name.as_ref().unwrap_or(&block.type_name).as_str();
-                // dbg!(Some(session.parse_expression(name)))
-                None
+        match index.get(ref_id) {
+            Some(Node::Block(block)) => {
+                // XXX: chaining blocks happens here. we might solve this with
+                // temp variables in future
+                block.transform(session, index, ast_association);
             }
-            // result assignment happens here
-            Node::FunctionBlockVariable(var) => Some(var.transform(session)),
-            Node::Control(_) => todo!(),
-            Node::Connector(_) => todo!(),
+            Some(Node::FunctionBlockVariable(var)) => var.transform(session, ast_association),
+            Some(Node::Control(_)) => todo!(),
+            Some(Node::Connector(_)) => todo!(),
+            None => unreachable!(),
         }
     }
 }
