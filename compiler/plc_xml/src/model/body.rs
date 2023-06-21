@@ -19,6 +19,10 @@ impl Body {
     fn empty() -> Result<Self, Error> {
         Ok(Self { function_block_diagram: None })
     }
+
+    pub fn with_temp_vars(mut self) -> Self {
+        Body { function_block_diagram: self.function_block_diagram.map(|it| it.with_temp_vars()) }
+    }
 }
 
 impl Parseable for Body {

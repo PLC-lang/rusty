@@ -30,6 +30,16 @@ impl Pou {
             interface: self.interface,
         })
     }
+
+    pub fn with_temp_vars(mut self) -> Self {
+        Pou {
+            name: self.name,
+            pou_type: self.pou_type,
+            body: self.body.with_temp_vars(),
+            actions: self.actions, // TODO: also create temp vars where needed,
+            interface: self.interface,
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]

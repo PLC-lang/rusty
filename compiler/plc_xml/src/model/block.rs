@@ -8,7 +8,10 @@ use crate::{
     reader::PeekableReader,
 };
 
-use super::variables::BlockVariable;
+use super::{
+    fbd::NodeId,
+    variables::{BlockVariable, VariableKind},
+};
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Block {
@@ -32,7 +35,8 @@ impl Block {
         })
     }
 
-    pub fn get_variable_references(&self) -> Vec<usize> {
+    pub fn get_referenced_out_vars(&self) -> Vec<NodeId> {
+        // if the ref_local_id is pointing to a block,
         self.variables.iter().filter_map(|var| var.ref_local_id).collect()
     }
 }

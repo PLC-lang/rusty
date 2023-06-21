@@ -358,6 +358,10 @@ impl IdProvider {
     pub fn next_id(&mut self) -> AstId {
         self.current_id.fetch_add(1, Ordering::Relaxed)
     }
+
+    pub fn with_offset(offset: usize) -> Self {
+        IdProvider { current_id: Arc::new(AtomicUsize::new(offset)) }
+    }
 }
 
 impl Default for IdProvider {

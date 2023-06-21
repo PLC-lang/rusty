@@ -17,7 +17,7 @@ use crate::{
         fbd::{FunctionBlockDiagram, Node, NodeId, NodeIndex},
         pou::{Pou, PouType},
         project::Project,
-        variables::{BlockVariable, FunctionBlockVariable},
+        variables::{BlockVariable, FunctionBlockVariable, VariableKind},
     },
 };
 
@@ -45,6 +45,10 @@ fn parse(
     let Ok(project) = visit(source) else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
+
+    let project = project.with_temp_vars();
+
+    dbg!(&project);
 
     // create a new parse session
     let mut parser = ParseSession::new(&project, location, id_provider, linkage);
@@ -80,7 +84,7 @@ impl<'parse> ParseSession<'parse> {
             linkage,
             file_name,
             range_factory: SourceRangeFactory::for_file(file_name),
-            references: IndexMap::new(),
+            references: IndexMap::new(), // not really needed, but sometimes nice to have during development
         }
     }
 
@@ -135,10 +139,6 @@ impl<'parse> ParseSession<'parse> {
 
     fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
         self.range_factory.create_range(range)
-    }
-
-    fn get_referencing_ids(&self, id: NodeId) -> Vec<&NodeId> {
-        self.references.iter().filter(|(_, v)| v.contains(&id)).map(|(k, _)| k).collect()
     }
 }
 
@@ -230,15 +230,6 @@ impl FunctionBlockDiagram {
             Node::Connector(_) => todo!(),
         }
     }
-
-    fn build_reference_table(&self, session: &mut ParseSession) {
-        session.references.clear();
-        let _ = self
-            .nodes
-            .iter()
-            .map(|(id, node)| session.references.insert(*id, node.get_ref_ids()))
-            .collect::<Vec<_>>();
-    }
 }
 
 impl Action {
@@ -297,18 +288,14 @@ impl Block {
 
         let parameters = if self.variables.len() > 0 {
             Box::new(Some(AstStatement::ExpressionList {
-                // TODO: if input variables point to a block, we have chained calls
+                // if block-variables point to another block, we are dealing with chained calls
+                // TODO: create temp variables
                 expressions: self
                     .variables
                     .iter()
                     .filter_map(|var| {
                         var.transform(session, index, ast_association);
-                        if let Some(ref_id) = var.ref_local_id {
-                            // ast_association.get(&ref_id).map(|it| it.clone()).or_else(|| None)
-                            ast_association.remove(&ref_id)
-                        } else {
-                            None
-                        }
+                        var.as_param(self.local_id, session, index, ast_association)
                     })
                     .collect(),
                 id: session.next_id(),
@@ -327,6 +314,7 @@ impl Block {
             },
         );
     }
+    
 }
 
 impl BlockVariable {
@@ -356,6 +344,37 @@ impl BlockVariable {
             Some(Node::Control(_)) => todo!(),
             Some(Node::Connector(_)) => todo!(),
             None => unreachable!(),
+        }
+    }
+
+    fn as_param(
+        &self, 
+        block_id: NodeId,
+        session: &mut ParseSession,
+        index: &IndexMap<usize, Node>, 
+        ast_association: &mut IndexMap<NodeId, AstStatement>
+    ) -> Option<AstStatement> {
+        
+        if let Some(ref_id) = self.ref_local_id {        
+            let param = if matches!(index.get(&ref_id).unwrap(), Node::Block(_)) {
+                // we are directly chaining blocks -> temp var needed
+                if let Some(previous) = ast_association.get(&ref_id) {
+                    let temp_var = if matches!(previous, AstStatement::Reference { .. }) {
+                        previous.clone()
+                    } else {
+                        AstStatement::Reference { name: format!("__{}", previous.get_id()), location: SourceRange::undefined(), id: session.next_id() }
+                    };
+                } else {
+                    panic!("unhandled missing block")
+                };
+                todo!()
+            } else {
+                ast_association.remove(&ref_id)
+            };
+
+            param
+        } else {
+            None
         }
     }
 }

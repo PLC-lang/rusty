@@ -50,6 +50,7 @@ pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
+    Temp,
 }
 
 #[derive(Debug, PartialEq)]

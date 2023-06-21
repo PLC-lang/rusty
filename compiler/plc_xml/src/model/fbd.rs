@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use indexmap::IndexMap;
+use plc::lexer::IdProvider;
 use quick_xml::events::Event;
 
 use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
@@ -12,6 +13,44 @@ pub(crate) type NodeIndex = IndexMap<NodeId, Node>;
 #[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram {
     pub nodes: NodeIndex,
+}
+
+impl FunctionBlockDiagram {
+    pub fn with_temp_vars(mut self) -> Self {
+        // get an id provider set to the last node id in the collection
+        let mut id_provider = IdProvider::with_offset(self.latest_id());
+
+        // find all the connections that need to be broken up with a temp variable
+        let block_result_references = dbg!(self.nodes.get_result_refs());
+        block_result_references.into_iter().for_each(|(referenced_result, connections)| {
+            // create a temporary variable that references the block-output
+            let temp_var = Node::FunctionBlockVariable(FunctionBlockVariable {
+                kind: super::variables::VariableKind::Temp,
+                local_id: id_provider.next_id(),
+                negated: false,
+                expression: format!("__out{}", referenced_result),
+                execution_order_id: None,
+                ref_local_id: Some(referenced_result),
+            });
+
+            // update the nodes that previously pointed to that block-output and change them
+            // so they now point to the temp variable
+            connections.iter().for_each(|connection_id| {
+                self.nodes
+                    .entry(*connection_id)
+                    .and_modify(|it| it.update_ref(referenced_result, temp_var.get_id()));
+            });
+
+            // insert the newly created temp-var into the fdb NodeIndex
+            self.nodes.insert(temp_var.get_id(), temp_var);
+        });
+
+        self
+    }
+
+    fn latest_id(&self) -> NodeId {
+        self.nodes.iter().map(|(id, _)| *id).max().unwrap_or(0)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,15 +85,6 @@ impl Node {
         }
     }
 
-    pub fn get_ref_ids(&self) -> Vec<NodeId> {
-        match self {
-            Node::Block(val) => val.get_variable_references(),
-            Node::FunctionBlockVariable(val) => val.ref_local_id.map_or(vec![], |it| vec![it]),
-            Node::Control(val) => val.ref_local_id.map_or(vec![], |it| vec![it]),
-            _ => vec![],
-        }
-    }
-
     pub fn get_id(&self) -> NodeId {
         match self {
             Node::Block(val) => val.local_id,
@@ -62,6 +92,19 @@ impl Node {
             Node::Control(val) => val.local_id,
             Node::Connector(val) => val.local_id,
         }
+    }
+
+    fn update_ref(&mut self, previous_ref: NodeId, new_ref: NodeId) {
+        match self {
+            Node::Block(val) => val
+                .variables
+                .iter_mut()
+                .filter(|it| it.ref_local_id.is_some_and(|it| it == previous_ref))
+                .map(|var| var.ref_local_id = Some(new_ref)),
+            Node::Control(val) => unimplemented!(),
+            Node::Connector(val) => unimplemented!(),
+            Node::FunctionBlockVariable(_) => unreachable!(),
+        };
     }
 }
 
@@ -104,6 +147,35 @@ impl Parseable for FunctionBlockDiagram {
 
         // Ok(FunctionBlockDiagram { blocks, variables, controls, connectors })
         Ok(FunctionBlockDiagram { nodes })
+    }
+}
+
+trait DirectConnection {
+    fn get_result_refs(&self) -> IndexMap<NodeId, Vec<NodeId>>;
+}
+
+impl DirectConnection for NodeIndex {
+    fn get_result_refs(&self) -> IndexMap<NodeId, Vec<NodeId>> {
+        let mut connections = IndexMap::new();
+        self.iter().for_each(|(block_id, node)| {
+            match node {
+                // XXX: assumption: ref_local_id pointing to another block should point to a temp-var of block's result instead
+                Node::Block(block) => {
+                    let _ = block
+                        .variables
+                        .iter()
+                        .filter_map(|var| var.ref_local_id)
+                        .filter(|ref_id| matches!(self.get(ref_id), Some(Node::Block(_))))
+                        .map(|ref_block_id| {
+                            let entry = connections.entry(ref_block_id).or_insert(vec![]);
+                            entry.push(*block_id)
+                        });
+                }
+                _ => (),
+            };
+        });
+
+        connections
     }
 }
 
