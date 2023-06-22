@@ -8,10 +8,7 @@ use crate::{
     reader::PeekableReader,
 };
 
-use super::{
-    fbd::NodeId,
-    variables::{BlockVariable, VariableKind},
-};
+use super::{fbd::NodeId, variables::BlockVariable};
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Block {

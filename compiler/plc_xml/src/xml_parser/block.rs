@@ -18,7 +18,7 @@ impl Block {
             id: session.next_id(),
         });
 
-        let parameters = if self.variables.len() > 0 {
+        let parameters = if !self.variables.is_empty() {
             Box::new(Some(AstStatement::ExpressionList {
                 expressions: self
                     .variables

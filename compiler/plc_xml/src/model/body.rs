@@ -20,7 +20,7 @@ impl Body {
         Ok(Self { function_block_diagram: None })
     }
 
-    pub fn with_temp_vars(mut self) -> Self {
+    pub fn with_temp_vars(self) -> Self {
         Body { function_block_diagram: self.function_block_diagram.map(|it| it.with_temp_vars()) }
     }
 }

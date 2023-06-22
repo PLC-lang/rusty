@@ -5,7 +5,7 @@ use crate::model::action::Action;
 use super::ParseSession;
 
 impl Action {
-    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstStatement> {
         todo!()
     }
 

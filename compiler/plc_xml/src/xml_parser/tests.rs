@@ -2,7 +2,16 @@
 mod tests {
     use insta::assert_debug_snapshot;
 
-    use crate::{deserializer, xml_parser::tests::ASSIGNMENT_A_B};
+    use crate::{
+        deserializer::{self, Parseable},
+        model::fbd::FunctionBlockDiagram,
+        reader::PeekableReader,
+        serializer::{
+            XBlock, XConnection, XConnectionPointIn, XExpression, XFbd, XInOutVariables, XInVariable,
+            XInputVariables, XOutVariable, XOutputVariables, XRelPosition, XVariable,
+        },
+        xml_parser::tests::ASSIGNMENT_A_B,
+    };
 
     #[test]
     fn variable_assignment() {
@@ -72,21 +81,65 @@ mod tests {
     }
 
     #[test]
-    fn expression_can_be_parsed() {
-        let expression = "a + b * 3";
-        // let expected = AstStatement::BinaryExpression {
-        //     operator: Operator::Plus,
-        //     left: AstStatement::Reference { name: "a".to_string(), location: (0..1).into(), id: () },
-        //     right: todo!(),
-        //     id: todo!(),
-        // };
-        // dbg!(parse_cfc_expression(expression));
-    }
+    fn directly_connected_blocks_have_a_temp_var_inserted_between_them() {
+        let content = XFbd::new()
+            .with_in_variable(
+                XInVariable::init("1", false).with_expression(XExpression::new().with_data("a")),
+            )
+            .with_in_variable(
+                XInVariable::init("2", false).with_expression(XExpression::new().with_data("b")),
+            )
+            .with_block(
+                XBlock::init("3", "myAdd", "0")
+                    .with_input_variables(
+                        XInputVariables::new()
+                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
+                            .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
+                    )
+                    .with_inout_variables(XInOutVariables::new().close())
+                    .with_output_variables(
+                        XOutputVariables::new()
+                            .with_variable(XVariable::init("myAdd", false).with_connection_out_initialized()),
+                    ),
+            )
+            .with_block(
+                XBlock::init("4", "mySub", "1")
+                    .with_input_variables(
+                        XInputVariables::new()
+                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
+                            .with_variable(
+                                XVariable::init("myAdd", false).with_connection_in_initialized("3"),
+                            ),
+                    )
+                    .with_inout_variables(XInOutVariables::new().close())
+                    .with_output_variables(
+                        XOutputVariables::new()
+                            .with_variable(XVariable::init("mySub", false).with_connection_out_initialized()),
+                    ),
+            )
+            .with_out_variable(
+                XOutVariable::init("5", false)
+                    .with_expression(
+                        XExpression::new().with_data("c").with_attribute("executionOrderId", "2"),
+                    )
+                    .with_connection_point_in(
+                        XConnectionPointIn::new()
+                            .with_rel_position(XRelPosition::init().close())
+                            .with_connection(
+                                XConnection::new()
+                                    .with_attribute("refLocalId", "4")
+                                    .with_attribute("formalParameter", "mySub")
+                                    .close(),
+                            ),
+                    ),
+            )
+            .serialize();
 
-    // #[test]
-    // fn declaration_can_be_parsed() {
-    //     deserializer::visit(ASSIGNMENT_A_B).unwrap().parse_declaration();
-    // }
+        let mut reader = PeekableReader::new(&content);
+
+        // assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars());
+    }
 }
 
 const ASSIGNMENT_A_B: &str = r#"

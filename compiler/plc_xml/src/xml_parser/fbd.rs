@@ -7,7 +7,6 @@ use super::ParseSession;
 
 impl FunctionBlockDiagram {
     pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
-        // self.build_reference_table(session);
         let mut ast_association = IndexMap::new();
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
         ast_association

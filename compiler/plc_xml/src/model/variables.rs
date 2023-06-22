@@ -234,7 +234,7 @@ mod tests {
         model::variables::{visit_variable, BlockVariable},
         reader::PeekableReader,
         serializer::{
-            XConnectionPointIn, XConnectionPointOut, XFbd, XInOutVariables, XInVariable, XInputVariables,
+            XConnectionPointIn, XConnectionPointOut, XInOutVariables, XInVariable, XInputVariables,
             XOutVariable, XOutputVariables, XRelPosition, XVariable,
         },
     };

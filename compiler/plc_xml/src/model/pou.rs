@@ -31,7 +31,7 @@ impl Pou {
         })
     }
 
-    pub fn with_temp_vars(mut self) -> Self {
+    pub fn with_temp_vars(self) -> Self {
         Pou {
             name: self.name,
             pou_type: self.pou_type,
