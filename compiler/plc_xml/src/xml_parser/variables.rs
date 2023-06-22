@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 use plc::ast::{AstStatement, Operator};
 
 use crate::model::{
-    fbd::{Node, NodeId, NodeIndex},
+    fbd::{Node, NodeIndex},
     variables::{BlockVariable, FunctionBlockVariable},
 };
 
@@ -35,37 +35,6 @@ impl BlockVariable {
             Some(Node::Control(_)) => todo!(),
             Some(Node::Connector(_)) => todo!(),
             None => unreachable!(),
-        }
-    }
-
-    fn as_param(
-        &self,
-        _block_id: NodeId,
-        _session: &mut ParseSession,
-        _index: &IndexMap<usize, Node>,
-        ast_association: &mut IndexMap<NodeId, AstStatement>,
-    ) -> Option<AstStatement> {
-        if let Some(ref_id) = self.ref_local_id {
-            // let param = if matches!(index.get(&ref_id).unwrap(), Node::Block(_)) {
-            //     // we are directly chaining blocks -> temp var needed
-            //     if let Some(previous) = ast_association.get(&ref_id) {
-            //         let temp_var = if matches!(previous, AstStatement::Reference { .. }) {
-            //             previous.clone()
-            //         } else {
-            //             AstStatement::Reference { name: format!("__{}", previous.get_id()), location: SourceRange::undefined(), id: session.next_id() }
-            //         };
-            //     } else {
-            //         panic!("unhandled missing block")
-            //     };
-            //     todo!()
-            // } else {
-            //     ast_association.remove(&ref_id)
-            // };
-
-            // param
-            ast_association.remove(&ref_id)
-        } else {
-            None
         }
     }
 }
