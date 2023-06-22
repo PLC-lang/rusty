@@ -26,16 +26,12 @@ impl BlockVariable {
         }
 
         match index.get(ref_id) {
-            Some(Node::Block(block)) => {
-                // XXX: chaining blocks happens here. we might solve this with
-                // temp variables in future
-                block.transform(session, index, ast_association);
-            }
+            Some(Node::Block(block)) => block.transform(session, index, ast_association),
             Some(Node::FunctionBlockVariable(var)) => var.transform(session, ast_association),
             Some(Node::Control(_)) => todo!(),
             Some(Node::Connector(_)) => todo!(),
             None => unreachable!(),
-        }
+        };
     }
 }
 

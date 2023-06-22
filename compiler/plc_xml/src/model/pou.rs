@@ -32,10 +32,11 @@ impl Pou {
     }
 
     pub fn with_temp_vars(self) -> Self {
+        let body = self.body.with_temp_vars(&self.name);
         Pou {
             name: self.name,
             pou_type: self.pou_type,
-            body: self.body.with_temp_vars(),
+            body,
             actions: self.actions, // TODO: also create temp vars where needed,
             interface: self.interface,
         }

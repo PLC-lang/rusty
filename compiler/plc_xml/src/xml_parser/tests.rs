@@ -138,7 +138,7 @@ mod tests {
         let mut reader = PeekableReader::new(&content);
 
         // assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
-        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars());
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars("TEST_POU"));
     }
 }
 

@@ -17,23 +17,24 @@ pub(crate) struct FunctionBlockDiagram {
 }
 
 impl FunctionBlockDiagram {
-    pub fn with_temp_vars(mut self) -> Self {
-        // get an id provider set to the last node id in the collection
+    pub fn with_temp_vars(mut self, pou_name: &str) -> Self {
+        // get an id provider set to the next local_id in the collection
         let mut id_provider = IdProvider::with_offset(self.latest_id() + 1);
-
         // find all the connections that need to be broken up with a temp variable
         let block_result_references = self.nodes.get_result_refs();
         block_result_references.into_iter().for_each(|(referenced_result, connections)| {
             // create a temporary variable that references the block-output
-            let formal_param = format!(
-                "__{}", // TODO: might have to mangle here
+            let formal_param_name = format!(
+                "__temp_{}.{}{}",
+                pou_name,
                 self.nodes.get(&referenced_result).map(|it| it.get_name()).unwrap_or_default(),
+                referenced_result,
             );
             let temp_var = Node::FunctionBlockVariable(FunctionBlockVariable {
                 kind: super::variables::VariableKind::Temp,
                 local_id: id_provider.next_id(),
                 negated: false,
-                expression: formal_param.clone(),
+                expression: formal_param_name.clone(),
                 execution_order_id: None,
                 ref_local_id: Some(referenced_result),
             });
@@ -43,7 +44,7 @@ impl FunctionBlockDiagram {
             // XXX: do we also need to update/change the formalParameter strings?
             connections.iter().for_each(|connection_id| {
                 self.nodes.entry(*connection_id).and_modify(|it| {
-                    it.update_references(referenced_result, temp_var.get_id(), &formal_param)
+                    it.update_references(referenced_result, temp_var.get_id(), &formal_param_name)
                 });
             });
 

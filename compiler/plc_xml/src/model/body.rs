@@ -20,8 +20,8 @@ impl Body {
         Ok(Self { function_block_diagram: None })
     }
 
-    pub fn with_temp_vars(self) -> Self {
-        Body { function_block_diagram: self.function_block_diagram.map(|it| it.with_temp_vars()) }
+    pub fn with_temp_vars(self, pou_name: &str) -> Self {
+        Body { function_block_diagram: self.function_block_diagram.map(|it| it.with_temp_vars(pou_name)) }
     }
 }
 
