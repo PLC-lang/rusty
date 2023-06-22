@@ -21,7 +21,7 @@ impl FunctionBlockDiagram {
         let mut id_provider = IdProvider::with_offset(self.latest_id());
 
         // find all the connections that need to be broken up with a temp variable
-        let block_result_references = dbg!(self.nodes.get_result_refs());
+        let block_result_references = self.nodes.get_result_refs();
         block_result_references.into_iter().for_each(|(referenced_result, connections)| {
             // create a temporary variable that references the block-output
             let temp_var = Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -100,7 +100,7 @@ impl Node {
                 .variables
                 .iter_mut()
                 .filter(|it| it.ref_local_id.is_some_and(|it| it == previous_ref))
-                .map(|var| var.ref_local_id = Some(new_ref)),
+                .for_each(|var| var.ref_local_id = Some(new_ref)),
             Node::Control(val) => unimplemented!(),
             Node::Connector(val) => unimplemented!(),
             Node::FunctionBlockVariable(_) => unreachable!(),
@@ -157,18 +157,20 @@ trait DirectConnection {
 impl DirectConnection for NodeIndex {
     fn get_result_refs(&self) -> IndexMap<NodeId, Vec<NodeId>> {
         let mut connections = IndexMap::new();
-        self.iter().for_each(|(block_id, node)| {
+        self.iter().for_each(|(node_id, node)| {
             match node {
                 // XXX: assumption: ref_local_id pointing to another block should point to a temp-var of block's result instead
                 Node::Block(block) => {
-                    let _ = block
+                    block
                         .variables
                         .iter()
-                        .filter_map(|var| var.ref_local_id)
-                        .filter(|ref_id| matches!(self.get(ref_id), Some(Node::Block(_))))
-                        .map(|ref_block_id| {
-                            let entry = connections.entry(ref_block_id).or_insert(vec![]);
-                            entry.push(*block_id)
+                        .filter(|var| {
+                            var.ref_local_id
+                                .is_some_and(|id| matches!(dbg!(self.get(&id)), Some(Node::Block(_))))
+                        })
+                        .for_each(|var| {
+                            let entry = connections.entry(var.ref_local_id.unwrap()).or_insert(vec![]);
+                            entry.push(*node_id);
                         });
                 }
                 _ => (),
