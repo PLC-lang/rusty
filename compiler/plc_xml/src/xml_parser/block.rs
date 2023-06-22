@@ -8,7 +8,7 @@ use super::ParseSession;
 impl Block {
     pub(crate) fn transform(
         &self,
-        session: &mut ParseSession,
+        session: &ParseSession,
         index: &NodeIndex,
         ast_association: &mut IndexMap<usize, AstStatement>,
     ) {

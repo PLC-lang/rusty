@@ -6,7 +6,7 @@ use crate::model::fbd::{FunctionBlockDiagram, NodeId, Node};
 use super::ParseSession;
 
 impl FunctionBlockDiagram {
-    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
         // self.build_reference_table(session);
         let mut ast_association = IndexMap::new();
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
@@ -20,7 +20,7 @@ impl FunctionBlockDiagram {
     fn transform_node(
         &self,
         id: NodeId,
-        session: &mut ParseSession,
+        session: &ParseSession,
         ast_association: &mut IndexMap<NodeId, AstStatement>,
     ) {
         let Some(current_node) = self.nodes.get(&id) else {
@@ -53,7 +53,7 @@ impl FunctionBlockDiagram {
                     AstStatement::Assignment {
                         left: Box::new(lhs),
                         right: Box::new(rhs),
-                        id: session.id_provider.next_id(),
+                        id: session.next_id(),
                     },
                 );
             }

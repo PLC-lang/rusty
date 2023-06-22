@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use plc::{
     ast::{
-        AstId, AstStatement, CompilationUnit, Implementation, LinkageType, Operator, PouType as AstPouType,
+        AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType,
         SourceRange, SourceRangeFactory,
     },
     diagnostics::{Diagnostic, Diagnostician},
@@ -11,14 +11,7 @@ use plc::{
 
 use crate::{
     deserializer::visit,
-    model::{
-        action::Action,
-        block::Block,
-        fbd::{FunctionBlockDiagram, Node, NodeId, NodeIndex},
-        pou::{Pou, PouType},
-        project::Project,
-        variables::{BlockVariable, FunctionBlockVariable},
-    },
+    model::{fbd::NodeId, pou::PouType, project::Project},
 };
 
 mod action;
@@ -71,7 +64,6 @@ pub(crate) struct ParseSession<'parse> {
     linkage: LinkageType,
     file_name: &'static str,
     range_factory: SourceRangeFactory,
-    references: IndexMap<NodeId, Vec<NodeId>>,
 }
 
 impl<'parse> ParseSession<'parse> {
@@ -87,7 +79,6 @@ impl<'parse> ParseSession<'parse> {
             linkage,
             file_name,
             range_factory: SourceRangeFactory::for_file(file_name),
-            references: IndexMap::new(), // not really needed, but sometimes nice to have during development
         }
     }
 
@@ -137,8 +128,8 @@ impl<'parse> ParseSession<'parse> {
         implementations
     }
 
-    fn next_id(&mut self) -> AstId {
-        self.id_provider.next_id()
+    fn next_id(&self) -> AstId {
+        self.id_provider.clone().next_id()
     }
 
     fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {

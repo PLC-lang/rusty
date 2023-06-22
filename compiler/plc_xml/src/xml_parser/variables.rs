@@ -11,7 +11,7 @@ use super::ParseSession;
 impl BlockVariable {
     pub(crate) fn transform(
         &self,
-        session: &mut ParseSession,
+        session: &ParseSession,
         index: &NodeIndex,
         ast_association: &mut IndexMap<usize, AstStatement>,
     ) {
@@ -42,7 +42,7 @@ impl BlockVariable {
 impl FunctionBlockVariable {
     pub(crate) fn transform(
         &self,
-        session: &mut ParseSession,
+        session: &ParseSession,
         ast_association: &mut IndexMap<usize, AstStatement>,
     ) {
         let stmt = if self.negated {
@@ -52,7 +52,7 @@ impl FunctionBlockVariable {
                 operator: Operator::Not,
                 value: Box::new(ident),
                 location,
-                id: session.id_provider.next_id(),
+                id: session.next_id(),
             }
         } else {
             session.parse_expression(&self.expression)
