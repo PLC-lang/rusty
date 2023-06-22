@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use plc::lexer::IdProvider;
 use quick_xml::events::Event;
 
-use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
+use crate::{deserializer::Parseable, error::Error, model::variables::VariableKind, reader::PeekableReader};
 
 use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
 
@@ -123,6 +123,14 @@ impl Node {
         } else {
             "".into()
         }
+    }
+
+    pub(crate) fn is_temp_var(&self) -> bool {
+        let Node::FunctionBlockVariable(var) = self else {
+            return false
+        };
+
+        matches!(var.kind, VariableKind::Temp)
     }
 }
 

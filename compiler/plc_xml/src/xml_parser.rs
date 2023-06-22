@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use plc::{
     ast::{
         AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType,
@@ -11,7 +10,7 @@ use plc::{
 
 use crate::{
     deserializer::visit,
-    model::{fbd::NodeId, pou::PouType, project::Project},
+    model::{pou::PouType, project::Project},
 };
 
 mod action;

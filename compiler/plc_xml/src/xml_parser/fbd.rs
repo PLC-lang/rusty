@@ -11,7 +11,12 @@ impl FunctionBlockDiagram {
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
         ast_association
             .into_iter()
-            .filter(|(k, _)| self.nodes.get(k).map(|it| it.get_exec_id()).is_some())
+            .filter(|(k, _)| 
+                self.nodes.get(k)
+                    .is_some_and(|it| 
+                        it.get_exec_id().is_some() || it.is_temp_var()
+                    )
+            )
             .map(|(_, v)| v)
             .collect()
     }
