@@ -17,7 +17,7 @@ pub(crate) struct FunctionBlockDiagram {
 }
 
 impl FunctionBlockDiagram {
-    pub fn with_temp_vars(mut self, pou_name: &str) -> Self {
+    pub fn with_temp_vars(mut self) -> Self {
         // get an id provider set to the next local_id in the collection
         let mut id_provider = IdProvider::with_offset(self.latest_id() + 1);
         // find all the connections that need to be broken up with a temp variable
@@ -25,8 +25,7 @@ impl FunctionBlockDiagram {
         block_result_references.into_iter().for_each(|(referenced_result, connections)| {
             // create a temporary variable that references the block-output
             let formal_param_name = format!(
-                "__temp_{}.{}{}",
-                pou_name,
+                "__{}{}",
                 self.nodes.get(&referenced_result).map(|it| it.get_name()).unwrap_or_default(),
                 referenced_result,
             );

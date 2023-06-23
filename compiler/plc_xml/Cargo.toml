@@ -16,3 +16,4 @@ plc = { path = "../..", package = "rusty" }
 [features]
 default = ["debug"]
 debug = []
+nested_ast = []

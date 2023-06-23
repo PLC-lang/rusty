@@ -34,14 +34,23 @@ pub fn parse_file(
     unit
 }
 
-fn parse(
+pub(crate) fn parse(
     source: &str,
     location: &'static str,
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
-    // transform the xml file to a data model
-    let Ok(project) = visit(source).map(|proj| proj.with_temp_vars()) else {
+    // transform the xml file to a data model.
+    let project = if cfg!(feature = "nested_ast") {
+        // nests conscutive call-statements in a single ast-statement.makes the generated ast nearly unreadable.
+        // pretty much only exists for demoing purposes until inserting assigning call-results to temp-vars works
+        visit(source)
+    } else {
+        // breaks up d
+        visit(source).map(|proj| proj.with_temp_vars())
+    };
+
+    let Ok(project) = project else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
 

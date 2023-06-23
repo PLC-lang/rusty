@@ -32,7 +32,7 @@ impl Pou {
     }
 
     pub fn with_temp_vars(self) -> Self {
-        let body = self.body.with_temp_vars(&self.name);
+        let body = self.body.with_temp_vars();
         Pou {
             name: self.name,
             pou_type: self.pou_type,
