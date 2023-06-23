@@ -1,17 +1,26 @@
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use plc::{
+        ast::{CompilationUnit, LinkageType},
+        diagnostics::Diagnostic,
+        lexer::IdProvider,
+    };
 
     use crate::{
         deserializer::{self, Parseable},
         model::fbd::FunctionBlockDiagram,
         reader::PeekableReader,
         serializer::{
-            XBlock, XConnection, XConnectionPointIn, XExpression, XFbd, XInOutVariables, XInVariable,
-            XInputVariables, XOutVariable, XOutputVariables, XRelPosition, XVariable,
+            with_header, XBlock, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
+            XInputVariables, XOutVariable, XOutputVariables, XPou, XRelPosition, XVariable,
         },
-        xml_parser::tests::ASSIGNMENT_A_B,
+        xml_parser::{self, tests::ASSIGNMENT_A_B},
     };
+
+    fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+        xml_parser::parse(content, "test.cfc", LinkageType::Internal, IdProvider::default())
+    }
 
     #[test]
     fn variable_assignment() {
@@ -96,7 +105,6 @@ mod tests {
                             .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
                             .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
                     )
-                    .with_inout_variables(XInOutVariables::new().close())
                     .with_output_variables(
                         XOutputVariables::new()
                             .with_variable(XVariable::init("myAdd", false).with_connection_out_initialized()),
@@ -111,7 +119,6 @@ mod tests {
                                 XVariable::init("myAdd", false).with_connection_in_initialized("3"),
                             ),
                     )
-                    .with_inout_variables(XInOutVariables::new().close())
                     .with_output_variables(
                         XOutputVariables::new()
                             .with_variable(XVariable::init("mySub", false).with_connection_out_initialized()),
@@ -119,9 +126,8 @@ mod tests {
             )
             .with_out_variable(
                 XOutVariable::init("5", false)
-                    .with_expression(
-                        XExpression::new().with_data("c").with_attribute("executionOrderId", "2"),
-                    )
+                    .with_attribute("executionOrderId", "2")
+                    .with_expression(XExpression::new().with_data("c"))
                     .with_connection_point_in(
                         XConnectionPointIn::new()
                             .with_rel_position(XRelPosition::init().close())
@@ -137,8 +143,43 @@ mod tests {
 
         let mut reader = PeekableReader::new(&content);
 
-        // assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
-        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars("TEST_POU"));
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars());
+    }
+
+    #[test]
+    fn function_returns() {
+        let content = with_header(
+            &XPou::init(
+                "FuncyReturn",
+                "function",
+                "FUNCTION FuncyReturn : DINT
+                        VAR_INPUT
+                            a : DINT;
+                        END_VAR",
+            )
+            .with_body(
+                XBody::new().with_fbd(
+                    XFbd::new()
+                        .with_in_variable(
+                            XInVariable::init("1", false).with_expression(XExpression::new().with_data("a")),
+                        )
+                        .with_out_variable(
+                            XOutVariable::init("2", false)
+                                .with_attribute("executionOrderId", "0")
+                                .with_expression(XExpression::new().with_data("FuncyReturn"))
+                                .with_connection_point_in(
+                                    XConnectionPointIn::new()
+                                        .with_rel_position(XRelPosition::init().close())
+                                        .with_connection(
+                                            XConnection::new().with_attribute("refLocalId", "1").close(),
+                                        ),
+                                ),
+                        ),
+                ),
+            )
+            .serialize(),
+        );
+        assert_debug_snapshot!(parse(&content));
     }
 }
 
