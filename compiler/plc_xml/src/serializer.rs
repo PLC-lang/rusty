@@ -106,6 +106,11 @@ impl Node {
     }
 }
 
+pub(crate) fn with_header(data: &str) -> String {
+    let header = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
+    format!("{header}\n{data}")
+}
+
 // For `declare_type_and_extend_if_needed! { (Pou, "pou", (Body, with_body)) }` the macro will expand to
 //
 // pub(crate) struct Pou(Node);
@@ -279,7 +284,10 @@ mod tests {
 
     use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
-    use super::{XBlock, XInVariable, XOutVariable, XVariable};
+    use super::{
+        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XOutVariable, XPou, XTextDeclaration,
+        XVariable,
+    };
 
     // convenience methods to reduce amount of boiler-plate-code
     impl XVariable {
@@ -346,6 +354,26 @@ mod tests {
                 .with_attribute("localId", local_id)
                 .with_attribute("typeName", type_name)
                 .with_attribute("executionOrderId", exec_id)
+        }
+    }
+
+    impl XPou {
+        pub(crate) fn init(name: &'static str, pou_type: &'static str, declaration: &'static str) -> Self {
+            XPou::new()
+                .with_attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
+                .with_attribute("name", name)
+                .with_attribute("pouType", pou_type)
+                .with_interface(XInterface::init_with_text_declaration(declaration))
+        }
+    }
+
+    impl XInterface {
+        pub(crate) fn init_with_text_declaration(declaration: &'static str) -> Self {
+            XInterface::new().with_add_data(XAddData::new().with_data_data(
+                XData::new().with_text_declaration(
+                    XTextDeclaration::new().with_content(XContent::new().with_data(declaration)),
+                ),
+            ))
         }
     }
 }
