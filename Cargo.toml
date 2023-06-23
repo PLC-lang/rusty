@@ -66,8 +66,7 @@ members = [
 	"rusty-derive"
 ]
 default-members = [".", 
-	"compiler/plc_driver", "rusty-derive",
-]
+	"compiler/plc_driver"]
 
 [workspace.dependencies]
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [
