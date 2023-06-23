@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["ROUND__LREAL",". Rounds a LREAL (f64) value"],["ROUND__REAL",". Rounds a REAL (f32) value"]]};
