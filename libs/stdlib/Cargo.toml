@@ -27,7 +27,7 @@ path = "../.."
 
 
 [dependencies]
-chrono = "0.4"
+chrono.workspace = true
 num = "0.4"
 paste = "1.0.8"
 
