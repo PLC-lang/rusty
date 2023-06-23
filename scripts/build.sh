@@ -16,14 +16,15 @@ container=0
 assume_linux=0
 junit=0
 ci=0
+package=0
+target=""
 
 CONTAINER_NAME='rust-llvm'
 
 source "${BASH_SOURCE%/*}/common.sh"
 
 function set_cargo_options() {
-	CARGO_OPTIONS="--workspace"
-
+	CARGO_OPTIONS=""
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
 	fi
@@ -77,10 +78,48 @@ function run_build() {
 	fi
 }
 
+# Builds with set targets, useful for standard functions
+function run_std_build() {
+	CARGO_OPTIONS=$(set_cargo_options)
+
+	# if the targets are set, we will build once per target
+
+	# Run cargo build with release or debug flags
+	echo "Build starting"
+	echo "-----------------------------------"
+	cmd="cargo build $CARGO_OPTIONS -p iec61131std" 
+	if [[ ! -z $target ]]; then
+		for val in ${target//,/ }
+		do
+			new_cmd="$cmd --target=$val" 
+			log "Running $new_cmd" 
+			eval "$new_cmd"
+			echo "-----------------------------------"
+			if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+				echo "Build $val failed"
+				exit 1
+			else
+				echo "Build $val done"
+			fi
+		done
+	else
+		log "Running $cmd" 
+		eval "$cmd"
+		echo "-----------------------------------"
+		if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+			echo "Build failed"
+			exit 1
+		else
+			echo "Build done"
+		fi
+	fi
+}
+
 function run_check() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo check"
-	cargo check $CARGO_OPTIONS 
+
+	cargo check $CARGO_OPTIONS --workspace
 }
 
 function run_metrics() {
@@ -99,7 +138,7 @@ function run_doc() {
 function run_check_style() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo clippy"
-	cargo clippy $CARGO_OPTIONS -- -Dwarnings
+	cargo clippy $CARGO_OPTIONS --workspace -- -Dwarnings
 	log "Running cargo fmt check"
 	cargo fmt -- --check
 }
@@ -108,25 +147,42 @@ function run_test() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo test"
 	if [[ $junit -ne 0 ]]; then
-		# Switch to nightly
-		rustup default nightly
 		#Delete the test results if they exist
 		rm -rf "$project_location/test_results"
 		make_dir "$project_location/test_results"
-		cargo test $CARGO_OPTIONS --lib -- --format=junit \
+		# JUnit test should run on nightly
+		log "cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
 			-Zunstable-options \
 		 | split -l1 - "$project_location"/test_results/unit_tests \
 		 -d --additional-suffix=.xml
+		"
+		cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
+			-Zunstable-options \
+		 | split -l1 - "$project_location"/test_results/unit_tests \
+		 -d --additional-suffix=.xml
+
 		# Run only the integration tests
 		#https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
-		cargo test $CARGO_OPTIONS --test '*' -- --format=junit \
+		log "cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/integration_tests \
+		 -d --additional-suffix=.xml"
+		cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
 		 -Zunstable-options  \
 		 | split -l1 - "$project_location"/test_results/integration_tests \
 		 -d --additional-suffix=.xml
-		# Switch back to stable
-		rustup default stable
+
+		# Run the std integration
+		log "cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/std_integration_tests \
+		 -d --additional-suffix=.xml"
+		cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
+		 -Zunstable-options  \
+		 | split -l1 - "$project_location"/test_results/std_integration_tests \
+		 -d --additional-suffix=.xml
 	else
-		cargo test $CARGO_OPTIONS
+		cargo test $CARGO_OPTIONS --workspace
 	fi
 }
 
@@ -146,6 +202,79 @@ function set_offline() {
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
 	fi
+}
+
+function run_package_std() {
+	cc=$(get_compiler)
+	log "Packaging Standard functions"
+	log "Removing previous output folder"
+	rm -rf $OUTPUT_DIR
+	target_dir="$project_location/target"
+	include_dir=$OUTPUT_DIR/include 
+	make_dir $include_dir
+	#Copy the iec61131-st folder
+	cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
+
+	if [[ ! -z $target ]]; then
+		for val in ${target//,/ }
+		do
+			lib_dir=$OUTPUT_DIR/$val/lib
+			make_dir $lib_dir
+			rel_dir="$target_dir/$val"
+			if [[ $release -ne 0 ]]; then
+				rel_dir="$rel_dir/release"
+			else 
+				rel_dir="$rel_dir/debug"
+			fi
+			if [[ ! -d "$rel_dir" ]]; then
+				echo "Compilation directory $rel_dir not found"
+				exit 1
+			fi
+			cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files" 
+			# Create an SO file from the copied a file
+			log "Creating a shared library from the compiled static library"
+			log "Running : $cc --shared -L$lib_dir \
+				-Wl,--whole-archive -liec61131std \
+				-o $lib_dir/out.so -Wl,--no-whole-archive \
+				-lm \
+				-fuse-ld=lld \
+				--target=$val"
+			$cc --shared -L"$lib_dir" \
+				-Wl,--whole-archive -liec61131std \
+				-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+				-lm \
+				-fuse-ld=lld \
+				--target="$val"
+			
+			mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+		done
+	else
+		lib_dir=$OUTPUT_DIR/lib
+		make_dir $lib_dir
+		if [[ $release -ne 0 ]]; then
+			rel_dir="$target_dir/release"
+		else 
+			rel_dir="$target_dir/debug"
+		fi
+		cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
+		# Create an SO file from the copied a file
+		log "Creating a shared library from the compiled static library"
+		log "Running : $cc --shared -L"$lib_dir" \
+			-Wl,--whole-archive -liec61131std \
+			-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+			-lm \
+			-fuse-ld=lld "
+		$cc --shared -L"$lib_dir" \
+			-Wl,--whole-archive -liec61131std \
+			-o "$lib_dir/out.so" -Wl,--no-whole-archive \
+			-lm \
+			-fuse-ld=lld 
+		mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+	fi
+	
+	log "Enabling read/write on the output folder"
+	chmod a+rw $OUTPUT_DIR -R
+
 }
 
 function run_in_container() {
@@ -186,6 +315,12 @@ function run_in_container() {
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
+	if [[ $package -ne 0 ]]; then
+		params="$params --package"
+	fi
+	if [[ ! -z $target ]]; then
+		params="$params --target $target"
+	fi
 	if [[ $ci -ne 0 ]]; then
 		options="$options --env=CI_RUN=true"
 	fi
@@ -216,7 +351,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -280,6 +415,13 @@ while true; do
 			--coverage)
 					coverage=1
 					;;
+			--package)
+					package=1
+					;;
+			--target)
+					shift
+					target=$1
+					;;
 			--)
 					shift
 					break
@@ -305,6 +447,11 @@ if [[ $container -ne 0 ]]; then
 	log "Container Build"
 	run_in_container
 	exit 0
+fi
+
+if [[ $package -ne 0 ]]; then
+	OUTPUT_DIR=$project_location/output
+	make_dir "$OUTPUT_DIR"
 fi
 
 if [[ $vendor -ne 0 ]]; then
@@ -334,6 +481,12 @@ fi
 
 if [[ $build -ne 0 ]]; then
 	run_build
+	#Build the standard functions
+	run_std_build
+fi
+
+if [[ $package -ne 0 ]]; then
+	run_package_std
 fi
 
 if [[ $test -ne 0 ]]; then
