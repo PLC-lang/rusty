@@ -59,4 +59,4 @@ path = "src/main.rs"
 
 [workspace]
 members = ["xtask", "libs/stdlib", "rusty-derive"]
-default-members = [".", "libs/stdlib", "rusty-derive"]
+default-members = ["."]
