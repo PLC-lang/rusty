@@ -1,6 +1,6 @@
 use crate::task::Task;
 use anyhow::Result;
-use reporter::{sysout::SysoutReporter, BenchmarkReport, Reporter, ReporterType};
+use reporter::{sysout::SysoutReporter, BenchmarkReport, ReporterType};
 use task::{compile::Compile, run::Run};
 use xshell::{cmd, Shell};
 
@@ -62,40 +62,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Action::All => {
-            //Create a default benchmark run
-            //This includes oscat in 4 different opt
-            for opt in &["none", "less", "default", "aggressive"] {
-                let task = Compile {
-                    name: "oscat".into(),
-                    directory: "oscat".into(),
-                    optimization: opt.to_string(),
-                };
-                tasks.push(Box::new(task));
-            }
-
-            // This includes the sieve of eratosthenes in
-            // C
-            for opt in &["0", "1", "2", "3"] {
-                let task = Run {
-                    name: "sieve-c".into(),
-                    optimization: opt.to_string(),
-                    compiler: "cc".into(),
-                    location: "xtask/res/sieve.c".into(),
-                    parameters: None,
-                };
-                tasks.push(Box::new(task));
-            }
-            // and ST
-            for opt in &["none", "less", "default", "aggressive"] {
-                let task = Run {
-                    name: "sieve-st".into(),
-                    optimization: opt.to_string(),
-                    compiler: compiler.clone(),
-                    location: "xtask/res/sieve.st".into(),
-                    parameters: Some("--linker=cc".into()),
-                };
-                tasks.push(Box::new(task));
-            }
+            tasks.extend(task::get_default_tasks()?)
         }
     };
     //Run benchmarks

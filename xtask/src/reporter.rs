@@ -10,6 +10,7 @@ use xshell::{cmd, Shell};
 
 pub(crate) mod git;
 pub(crate) mod sysout;
+pub mod sql;
 
 use self::sysout::SysoutReporter;
 
@@ -28,14 +29,16 @@ pub enum ReporterType {
 
 #[derive(Serialize)]
 pub struct BenchmarkReport {
+    #[serde(skip_serializing)]
+    pub id: u64,
     /// Host information, see [`Host`].
-    host: Host,
+    pub host: Host,
 
     /// Unix timestamp of when this xtask was called.
-    timestamp: u64,
+    pub timestamp: u64,
 
     /// Commit hash on which the benchmark ran.
-    commit: String,
+    pub commit: String,
 
     /// Collected benchmarks, where the first tuple element describes the benchmark and the second
     /// element is its raw wall-time value in milliseconds.
@@ -45,10 +48,12 @@ pub struct BenchmarkReport {
 }
 
 #[derive(Serialize)]
-struct Host {
-    os: String,
-    cpu: String,
-    mem: u64,
+pub struct Host {
+    #[serde(skip_serializing)]
+    pub id: u64,
+    pub os: String,
+    pub cpu: String,
+    pub mem: u64,
 }
 
 impl Host {
@@ -59,7 +64,7 @@ impl Host {
         let cpu = sys.global_cpu_info().brand().to_owned();
         let mem = sys.total_memory() / 1024;
 
-        Self { os, cpu, mem }
+        Self { id: 0, os, cpu, mem }
     }
 }
 
@@ -72,6 +77,7 @@ impl BenchmarkReport {
         let sh = Shell::new()?;
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;
         Ok(BenchmarkReport {
+            id: 0,
             host: Host::new(),
             timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
             commit,

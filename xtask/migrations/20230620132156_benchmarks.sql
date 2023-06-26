@@ -1,0 +1,25 @@
+CREATE TABLE Host(
+    id SERIAL,
+    os TEXT NOT NULL,
+    cpu TEXT NOT NULL,
+    memory BIGINT UNSIGNED NOT NULL,
+    CONSTRAINT Reporter_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE Reporter(
+    id SERIAL,
+    `timestamp` BIGINT UNSIGNED NOT NULL,
+    `commit` TEXT NOT NULL,
+    host_id BIGINT UNSIGNED NOT NULL,
+    CONSTRAINT Reporter_pk PRIMARY KEY (id),
+    CONSTRAINT Reporter_FK FOREIGN KEY (host_id) REFERENCES Host(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE Metrics (
+	id SERIAL,
+	name TEXT NOT NULL,
+	`time` BIGINT UNSIGNED NOT NULL,
+    reporter_id BIGINT UNSIGNED NOT NULL,
+	CONSTRAINT Metrics_pk PRIMARY KEY (id),
+	CONSTRAINT Metrics_FK FOREIGN KEY (reporter_id) REFERENCES Reporter(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
