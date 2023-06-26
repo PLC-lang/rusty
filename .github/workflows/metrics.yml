@@ -3,7 +3,7 @@ name: Metrics
 on:
   push:
     branches:
-    - __ci
+    - master
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        ref: __ci
+        ref: master
 
     - name: Collect metrics
       run: |
