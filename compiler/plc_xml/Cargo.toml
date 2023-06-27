@@ -14,6 +14,6 @@ html-escape = "0.2"
 plc = { path = "../..", package = "rusty" }
 
 [features]
-default = ["debug", "nested_ast"]
+default = ["debug"]
 debug = []
 nested_ast = []
