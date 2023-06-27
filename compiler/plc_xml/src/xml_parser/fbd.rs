@@ -11,10 +11,10 @@ impl FunctionBlockDiagram {
         self.nodes.iter().for_each(|(id, _)| self.transform_node(*id, session, &mut ast_association));
         ast_association
             .into_iter()
-            .filter(|(k, _)| 
-                self.nodes.get(k)
-                    .is_some_and(|it| 
-                        it.get_exec_id().is_some() || it.is_temp_var()
+            .filter(|(key, _)| 
+                self.nodes.get(key)
+                    .is_some_and(|node| 
+                        node.get_exec_id().is_some() || node.is_temp_var()
                     )
             )
             .map(|(_, v)| v)
@@ -37,11 +37,11 @@ impl FunctionBlockDiagram {
 
                 // if we are not being assigned to, we can return here
                 let Some(ref_id) = var.ref_local_id else {
-                    // ast_association.insert(id, stmt, ast_association);
                     return;
                 };
 
                 let Some(rhs) = ast_association.remove(&ref_id).or_else(|| { 
+                    // TODO: high "duct-tape" energy - surely there's a cleaner solution
                     self.transform_node(id, session, ast_association); 
                     ast_association.remove(&ref_id)
                 }) else {

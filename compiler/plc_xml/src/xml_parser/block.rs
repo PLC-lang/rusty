@@ -24,8 +24,11 @@ impl Block {
                     .variables
                     .iter()
                     .filter_map(|var| {
+                        // try to transform the element this block variable points to
                         var.transform(session, index, ast_association);
-                        // this might be a problem if multiple blocks reference the same var
+
+                        // take generated statement and add to expression-list
+                        // XXX: this might be a problem if multiple blocks reference the same var
                         var.ref_local_id.map(|id| ast_association.remove(&id)).unwrap_or(None)
                     })
                     .collect(),

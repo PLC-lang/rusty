@@ -43,10 +43,9 @@ pub(crate) fn parse(
     // transform the xml file to a data model.
     let project = if cfg!(feature = "nested_ast") {
         // nests conscutive call-statements in a single ast-statement.makes the generated ast nearly unreadable.
-        // pretty much only exists for demoing purposes until inserting assigning call-results to temp-vars works
+        // pretty much only exists for demoing purposes until assigning call-results to temp-vars works
         visit(source)
     } else {
-        // breaks up d
         visit(source).map(|proj| proj.with_temp_vars())
     };
 
@@ -118,6 +117,7 @@ impl<'parse> ParseSession<'parse> {
     }
 
     fn parse_expression(&self, expr: &str) -> AstStatement {
+        // TODO: diagnostics not handled
         parse_expression(&mut lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
