@@ -12,7 +12,7 @@ pub(crate) mod git;
 pub(crate) mod sysout;
 pub mod sql;
 
-use self::sysout::SysoutReporter;
+use self::{sysout::SysoutReporter, sql::SqlReporter};
 
 pub trait Reporter {
     /// Persists the benchmark data into a database
@@ -21,9 +21,9 @@ pub trait Reporter {
 
 #[derive(Default)]
 pub enum ReporterType {
+    #[default]
     SQL,
     Git,
-    #[default]
     Sysout,
 }
 
@@ -44,10 +44,10 @@ pub struct BenchmarkReport {
     /// element is its raw wall-time value in milliseconds.
     /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
     /// with the `aggressive` optimization flag took 8000ms.
-    pub(crate) metrics: BTreeMap<String, u128>,
+    pub(crate) metrics: BTreeMap<String, u64>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Host {
     #[serde(skip_serializing)]
     pub id: u64,
@@ -72,7 +72,7 @@ impl BenchmarkReport {
     pub fn new(data: Vec<(String, Duration)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
         for (name, duration) in data {
-            metrics.insert(name, duration.as_millis());
+            metrics.insert(name, duration.as_millis() as u64);
         }
         let sh = Shell::new()?;
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;
@@ -89,6 +89,7 @@ impl BenchmarkReport {
 pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
+        ReporterType::SQL => Box::new(SqlReporter),
         _ => todo!(),
     }
 }

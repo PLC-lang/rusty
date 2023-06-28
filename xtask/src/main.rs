@@ -24,17 +24,18 @@ enum Action {
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    prepare()?;
-    let compiler = std::env::var("COMPILER")?;
+    // prepare()?;
+    let compiler = std::env::var("COMPILER").unwrap_or_else(|_| "target/release/rustyc".to_string());
     let params = parse_args(&args);
     //Create Reporter
 
     // To avoid accidental persists of dry runs, assign a [`SysoutReporter`]
     // if the environment variable `CI_RUN` can not be found
-    let reporter = match std::env::var("CI_RUN") {
-        Ok(_) => reporter::from_type(params.reporter),
-        Err(_) => Box::new(SysoutReporter),
-    };
+    // let reporter = match std::env::var("CI_RUN") {
+    //     Ok(_) => reporter::from_type(params.reporter),
+    //     Err(_) => Box::new(SysoutReporter),
+    // };
+    let reporter = reporter::from_type(params.reporter);
 
     //Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
