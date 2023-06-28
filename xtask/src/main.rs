@@ -24,17 +24,11 @@ enum Action {
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    // prepare()?;
-    let compiler = std::env::var("COMPILER").unwrap_or_else(|_| "target/release/rustyc".to_string());
+    prepare()?;
+    let compiler = std::env::var("COMPILER")?;
     let params = parse_args(&args);
     //Create Reporter
 
-    // To avoid accidental persists of dry runs, assign a [`SysoutReporter`]
-    // if the environment variable `CI_RUN` can not be found
-    // let reporter = match std::env::var("CI_RUN") {
-    //     Ok(_) => reporter::from_type(params.reporter),
-    //     Err(_) => Box::new(SysoutReporter),
-    // };
     let reporter = reporter::from_type(params.reporter);
 
     //Create tasks
@@ -88,6 +82,8 @@ fn parse_args(args: &[String]) -> Parameters {
             "compile" => params.action = Action::Compile,
             "run" => params.action = Action::Run,
             "all" => params.action = Action::All,
+            "--sql" => params.reporter = ReporterType::SQL,
+            "--git" => params.reporter = ReporterType::Git,
             _ => params.directory = Some(arg.to_string()),
         }
     }
@@ -99,7 +95,7 @@ fn prepare() -> Result<()> {
     cmd!(&sh, "cargo build --release --workspace").run()?;
     //Todo convert to xtask
     // Build the standard libs and copy them to the output directory
-    cmd!(&sh, "./libs/stdlib/scripts/build.sh --release --package").run()?;
+    cmd!(&sh, "./scripts/build.sh --release --package").run()?;
     // Copy the standard lib to the release target
     cmd!(&sh, "rm -rf target/release/stdlib").run()?;
     cmd!(&sh, "mv output target/release/stdlib").run()?;

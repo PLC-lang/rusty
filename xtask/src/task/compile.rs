@@ -19,7 +19,6 @@ impl Task for Compile {
 
     fn execute(&self) -> Result<Duration> {
         let sh = Shell::new()?;
-        cmd!(&sh, "env").run()?;
         let compiler = sh.var("COMPILER")?;
         //Navitage to directory
         sh.change_dir(&self.directory);

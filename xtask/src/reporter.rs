@@ -12,7 +12,7 @@ pub(crate) mod git;
 pub(crate) mod sysout;
 pub mod sql;
 
-use self::{sysout::SysoutReporter, sql::SqlReporter};
+use self::{sysout::SysoutReporter, sql::SqlReporter, git::GitReporter};
 
 pub trait Reporter {
     /// Persists the benchmark data into a database
@@ -21,9 +21,9 @@ pub trait Reporter {
 
 #[derive(Default)]
 pub enum ReporterType {
-    #[default]
     SQL,
     Git,
+    #[default]
     Sysout,
 }
 
@@ -90,6 +90,6 @@ pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
         ReporterType::SQL => Box::new(SqlReporter),
-        _ => todo!(),
+        ReporterType::Git => Box::new(GitReporter),
     }
 }
