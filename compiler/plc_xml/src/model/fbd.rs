@@ -25,12 +25,14 @@ impl FunctionBlockDiagram {
         block_result_references.into_iter().for_each(|(referenced_result, connections)| {
             // create a temporary variable that references the block-output
             let formal_param_name = format!(
-                "__{}{}",
+                "__{}_id{}",
                 self.nodes.get(&referenced_result).map(|it| it.get_name()).unwrap_or_default(),
                 referenced_result,
             );
+
             let temp_var = Node::FunctionBlockVariable(FunctionBlockVariable {
-                kind: super::variables::VariableKind::Temp,
+                // XXX: if we find this later during parsing, do not parse with expression parser, but generate custom AST (proxy-ref)
+                kind: VariableKind::Temp,
                 local_id: id_provider.next_id(),
                 negated: false,
                 expression: formal_param_name.clone(),
