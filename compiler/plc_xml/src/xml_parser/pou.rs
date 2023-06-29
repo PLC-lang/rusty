@@ -21,12 +21,14 @@ impl Pou {
 
     // TODO: sourcerange
     pub fn build_implementation(&self, session: &ParseSession) -> Implementation {
+        let statements = self.transform(session);
+
         Implementation {
             name: self.name.to_owned(),
             type_name: self.name.to_owned(),
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
-            statements: self.transform(session),
+            statements,
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,

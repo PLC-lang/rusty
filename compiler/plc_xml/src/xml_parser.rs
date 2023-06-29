@@ -34,7 +34,7 @@ pub fn parse_file(
     unit
 }
 
-pub(crate) fn parse(
+fn parse(
     source: &str,
     location: &'static str,
     linkage: LinkageType,
@@ -46,7 +46,7 @@ pub(crate) fn parse(
         // pretty much only exists for demoing purposes until assigning call-results to temp-vars works
         visit(source)
     } else {
-        visit(source).map(|proj| proj.with_temp_vars())
+        visit(source).map(Project::with_temp_vars)
     };
 
     let Ok(project) = project else {
@@ -142,23 +142,6 @@ impl<'parse> ParseSession<'parse> {
 
     fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
         self.range_factory.create_range(range)
-    }
-}
-
-trait CompilationUnitExt {
-    fn with_implementations(self, implementations: Vec<Implementation>) -> Self;
-}
-
-impl CompilationUnitExt for CompilationUnit {
-    fn with_implementations(self, implementations: Vec<Implementation>) -> Self {
-        CompilationUnit {
-            global_vars: self.global_vars,
-            units: self.units,
-            implementations,
-            user_types: self.user_types,
-            file_name: self.file_name,
-            new_lines: self.new_lines,
-        }
     }
 }
 

@@ -11,12 +11,14 @@ impl Action {
 
     // TODO: sourcerange
     pub(crate) fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
+        let statements = self.transform(session);
+
         Implementation {
             name: self.name.to_owned(),
             type_name: self.type_name.to_owned(),
             linkage: session.linkage,
             pou_type: AstPouType::Action,
-            statements: self.transform(session),
+            statements,
             location: SourceRange::undefined(),
             name_location: SourceRange::undefined(),
             overriding: false,
