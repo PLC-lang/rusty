@@ -1,6 +1,6 @@
 use crate::task::Task;
 use anyhow::Result;
-use reporter::{sysout::SysoutReporter, BenchmarkReport, ReporterType};
+use reporter::{BenchmarkReport, ReporterType};
 use task::{compile::Compile, run::Run};
 use xshell::{cmd, Shell};
 
@@ -19,7 +19,7 @@ enum Action {
     Run,
     Compile,
     #[default]
-    All,
+    Default,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -56,7 +56,11 @@ fn main() -> anyhow::Result<()> {
                 tasks.push(Box::new(task));
             }
         }
-        Action::All => {
+        Action::Default => {
+            //Clone the extra required code
+            println!("Clone Oscat into the benchmarks");
+            let sh = Shell::new()?;
+            cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 ./benchmarks/oscat").run()?;
             tasks.extend(task::get_default_tasks()?)
         }
     };
@@ -71,6 +75,7 @@ fn main() -> anyhow::Result<()> {
     //Reprort data
     let report = BenchmarkReport::new(data)?;
     reporter.persist(report)?;
+    finish()?;
     Ok(())
 }
 
@@ -81,8 +86,8 @@ fn parse_args(args: &[String]) -> Parameters {
         match arg.as_str() {
             "compile" => params.action = Action::Compile,
             "run" => params.action = Action::Run,
-            "all" => params.action = Action::All,
-            "--sql" => params.reporter = ReporterType::SQL,
+            "default" => params.action = Action::Default,
+            "--sql" => params.reporter = ReporterType::Sql,
             "--git" => params.reporter = ReporterType::Git,
             _ => params.directory = Some(arg.to_string()),
         }
@@ -112,5 +117,11 @@ fn prepare() -> Result<()> {
         anyhow::bail!("Could not find stdlib, did you run the standard function compile script?")
     }
     std::env::set_var("STDLIBLOC", &lib_loc);
+    Ok(())
+}
+
+fn finish() -> Result<()> {
+    let sh = Shell::new()?;
+    cmd!(&sh, "rm -rf benchmarks").run()?;
     Ok(())
 }

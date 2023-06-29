@@ -18,7 +18,7 @@ impl Task for Run {
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
         //Run the application
         let shell = Shell::new()?;
-        let task = std::env::current_dir()?.join(&self.name).with_extension("out");
+        let task = std::env::current_dir()?.join("benchmarks").join(&self.name).with_extension("out");
         let start = Instant::now();
         cmd!(&shell, "{task}").run()?;
 
@@ -34,7 +34,7 @@ impl Task for Run {
         //Compile the application with the correct optimization flag
         let command = &self.compiler;
         let opt = &self.optimization;
-        let output = std::env::current_dir()?.join(&self.name).with_extension("out");
+        let output = std::env::current_dir()?.join("benchmarks").join(&self.name).with_extension("out");
         let file = &self.location;
         let cmd = cmd!(&shell, "{command} {file} -O{opt} -o {output}");
         let cmd = if let Some(parameters) = &self.parameters { cmd.arg(parameters) } else { cmd };

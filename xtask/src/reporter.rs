@@ -21,7 +21,7 @@ pub trait Reporter {
 
 #[derive(Default)]
 pub enum ReporterType {
-    SQL,
+    Sql,
     Git,
     #[default]
     Sysout,
@@ -89,7 +89,7 @@ impl BenchmarkReport {
 pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
-        ReporterType::SQL => Box::new(SqlReporter),
+        ReporterType::Sql => Box::new(SqlReporter),
         ReporterType::Git => Box::new(GitReporter),
     }
 }

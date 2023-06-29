@@ -33,11 +33,15 @@ pub(crate) trait Task {
 
 pub(crate) fn get_default_tasks() -> Result<Vec<Box<dyn Task>>> {
     let compiler = std::env::var("COMPILER")?;
-    let mut tasks : Vec<Box<dyn Task>>= vec![];
+    let mut tasks: Vec<Box<dyn Task>> = vec![];
     //Create a default benchmark run
     //This includes oscat in 4 different opt
     for opt in &["none", "less", "default", "aggressive"] {
-        let task = Compile { name: "oscat".into(), directory: "oscat".into(), optimization: opt.to_string() };
+        let task = Compile {
+            name: "oscat".into(),
+            directory: "benchmarks/oscat".into(),
+            optimization: opt.to_string(),
+        };
         tasks.push(Box::new(task));
     }
 

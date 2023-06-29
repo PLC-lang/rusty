@@ -1,5 +1,5 @@
 use async_std::task::block_on;
-use sqlx::{migrate::Migrate, mysql::MySqlPoolOptions};
+use sqlx::mysql::MySqlPoolOptions;
 
 use super::Host;
 
@@ -65,7 +65,7 @@ impl SqlReporter {
                 .await?;
         }
 
-        // trans.commit().await?;
+        trans.commit().await?;
         db.close().await;
 
         //Push data
