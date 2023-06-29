@@ -13,7 +13,13 @@ impl FunctionBlockDiagram {
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
         self.nodes.iter().for_each(|(id, _)| {
-            ast_association.insert(*id, self.transform_node(*id, session));
+            let (insert, remove_id) = self.transform_node(*id, session, &ast_association);
+
+            if let Some(id) = remove_id {
+                ast_association.remove(&id);
+            };
+
+            ast_association.insert(*id, insert);
         });
 
         // filter the map for each statement belonging to a node with an execution id or a temp-var, discard the rest -> these have no impact
@@ -22,27 +28,63 @@ impl FunctionBlockDiagram {
             .filter(|(key, _)| {
                 self.nodes.get(key).is_some_and(|node| node.get_exec_id().is_some() || node.is_temp_var())
             })
-            .map(|(_, v)| v)
+            .map(|(_, value)| value)
             .collect()
     }
 
-    fn transform_node(&self, id: NodeId, session: &ParseSession) -> AstStatement {
+    fn transform_node(
+        &self,
+        id: NodeId,
+        session: &ParseSession,
+        ast_association: &IndexMap<usize, AstStatement>,
+    ) -> (AstStatement, Option<NodeId>) {
         let Some(current_node) = self.nodes.get(&id) else {
             unreachable!()
         };
+
+        if current_node.is_temp_var() {}
+
         match current_node {
-            Node::Block(block) => block.transform(session, &self.nodes),
+            Node::Block(block) => (block.transform(session, &self.nodes), None),
             Node::FunctionBlockVariable(var) => {
                 let lhs = var.transform(session);
 
                 // if we are not being assigned to, we can return here
                 let Some(ref_id) = var.ref_local_id else {
-                    return lhs;
+                    return (lhs, None);
                 };
 
-                let rhs = self.transform_node(ref_id, session);
+                let (rhs, remove_id) = ast_association
+                    .get(&ref_id)
+                    .map(|stmt| {
+                        if matches!(stmt, AstStatement::CallStatement { .. }) {
+                            // XXX: need to clone here and filter the original out later.. maybe there's a better way while still
+                            // avoiding a mutable association map
+                            (stmt.clone(), Some(ref_id))
+                        } else {
+                            self.transform_node(ref_id, session, ast_association)
+                        }
+                    })
+                    .unwrap();
 
-                AstStatement::Assignment { left: Box::new(lhs), right: Box::new(rhs), id: session.next_id() }
+                let lhs = if var.is_temp_var() {
+                    let AstStatement::Reference { name, location, id } = lhs else {
+                        todo!()
+                    };
+
+                    AstStatement::TempReference { name, location, id }
+                } else {
+                    lhs
+                };
+
+                (
+                    AstStatement::Assignment {
+                        left: Box::new(lhs),
+                        right: Box::new(rhs),
+                        id: session.next_id(),
+                    },
+                    remove_id,
+                )
             }
             Node::Control(_) => todo!(),
             Node::Connector(_) => todo!(),

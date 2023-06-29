@@ -74,6 +74,10 @@ impl FunctionBlockVariable {
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
         })
     }
+
+    pub(crate) fn is_temp_var(&self) -> bool {
+        matches!(self.kind, VariableKind::Temp)
+    }
 }
 
 impl TryFrom<&[u8]> for VariableKind {
