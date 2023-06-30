@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use std::path::PathBuf;
 use xshell::Shell;
 
 use crate::task::Task;
@@ -9,16 +10,17 @@ pub(crate) struct Run {
     pub name: String,
     pub optimization: String,
     // Call the appropriate compiler with the file name. Output and optimization are not specifed here
-    pub compiler: String,
-    pub location: String,
+    pub compiler: PathBuf,
+    pub location: PathBuf,
     pub parameters: Option<String>,
+    pub work_dir: PathBuf,
 }
 
 impl Task for Run {
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
         //Run the application
         let shell = Shell::new()?;
-        let task = std::env::current_dir()?.join("benchmarks").join(&self.name).with_extension("out");
+        let task = self.work_dir.join(&self.name).with_extension("out");
         let start = Instant::now();
         cmd!(&shell, "{task}").run()?;
 
@@ -34,7 +36,7 @@ impl Task for Run {
         //Compile the application with the correct optimization flag
         let command = &self.compiler;
         let opt = &self.optimization;
-        let output = std::env::current_dir()?.join("benchmarks").join(&self.name).with_extension("out");
+        let output = self.work_dir.join(&self.name).with_extension("out");
         let file = &self.location;
         let cmd = cmd!(&shell, "{command} {file} -O{opt} -o {output}");
         let cmd = if let Some(parameters) = &self.parameters { cmd.arg(parameters) } else { cmd };

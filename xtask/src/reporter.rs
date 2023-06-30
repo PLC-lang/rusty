@@ -9,10 +9,13 @@ use serde::Serialize;
 use xshell::{cmd, Shell};
 
 pub(crate) mod git;
-pub(crate) mod sysout;
 pub mod sql;
+pub(crate) mod sysout;
 
-use self::{sysout::SysoutReporter, sql::SqlReporter, git::GitReporter};
+#[cfg(feature = "sql")]
+use sql::SqlReporter;
+
+use self::{git::GitReporter, sysout::SysoutReporter};
 
 pub trait Reporter {
     /// Persists the benchmark data into a database
@@ -21,6 +24,7 @@ pub trait Reporter {
 
 #[derive(Default)]
 pub enum ReporterType {
+    #[cfg(feature = "sql")]
     Sql,
     Git,
     #[default]
@@ -89,6 +93,7 @@ impl BenchmarkReport {
 pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
+        #[cfg(feature = "sql")]
         ReporterType::Sql => Box::new(SqlReporter),
         ReporterType::Git => Box::new(GitReporter),
     }

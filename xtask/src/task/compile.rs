@@ -7,6 +7,7 @@ use crate::task::Task;
 
 pub(crate) struct Compile {
     pub name: String,
+    pub compiler: PathBuf,
     pub directory: PathBuf,
     pub optimization: String,
 }
@@ -18,13 +19,12 @@ impl Task for Compile {
 
     fn execute(&self) -> Result<Duration> {
         let sh = Shell::new()?;
-        let compiler = sh.var("COMPILER")?;
         //Navigate to directory
         sh.change_dir(&self.directory);
 
         // Run compile
         let start = Instant::now();
-        sh.cmd(&compiler).args(&["build", "-O", &self.optimization]).run()?;
+        sh.cmd(&self.compiler).args(&["build", "-O", &self.optimization]).run()?;
         Ok(start.elapsed())
     }
 }

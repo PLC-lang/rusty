@@ -1,8 +1,13 @@
 use crate::task::Task;
 use anyhow::Result;
 use reporter::{BenchmarkReport, ReporterType};
+use std::path::PathBuf;
 use task::{compile::Compile, run::Run};
+use tempfile::{tempdir, TempDir};
 use xshell::{cmd, Shell};
+
+#[cfg(not(feature = "sql"))]
+use anyhow::bail;
 
 mod reporter;
 mod task;
@@ -24,12 +29,8 @@ enum Action {
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    prepare()?;
-    let compiler = std::env::var("COMPILER")?;
-    let params = parse_args(&args);
-    //Create Reporter
-
-    let reporter = reporter::from_type(params.reporter);
+    let params = parse_args(&args)?;
+    let (work_dir, compiler) = prepare()?;
 
     //Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
@@ -40,6 +41,7 @@ fn main() -> anyhow::Result<()> {
                     name: params.directory.as_ref().expect("Expected directory").to_string(),
                     directory: params.directory.as_ref().expect("Expected Directory").into(),
                     optimization: opt.to_string(),
+                    compiler: compiler.clone(),
                 };
                 tasks.push(Box::new(task));
             }
@@ -50,8 +52,9 @@ fn main() -> anyhow::Result<()> {
                     name: params.directory.as_ref().expect("Expected name").to_string(),
                     optimization: opt.to_string(),
                     compiler: compiler.clone(),
-                    location: params.directory.as_ref().expect("Expected name").to_string(),
+                    location: params.directory.as_ref().expect("Expected name").into(),
                     parameters: Some("--linker=cc".into()),
+                    work_dir: work_dir.path().into(),
                 };
                 tasks.push(Box::new(task));
             }
@@ -60,8 +63,9 @@ fn main() -> anyhow::Result<()> {
             //Clone the extra required code
             println!("Clone Oscat into the benchmarks");
             let sh = Shell::new()?;
-            cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 ./benchmarks/oscat").run()?;
-            tasks.extend(task::get_default_tasks()?)
+            let path = work_dir.path();
+            cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 {path}/oscat").run()?;
+            tasks.extend(task::get_default_tasks(path, &compiler)?)
         }
     };
     //Run benchmarks
@@ -74,12 +78,12 @@ fn main() -> anyhow::Result<()> {
     }
     //Reprort data
     let report = BenchmarkReport::new(data)?;
+    let reporter = reporter::from_type(params.reporter);
     reporter.persist(report)?;
-    finish()?;
     Ok(())
 }
 
-fn parse_args(args: &[String]) -> Parameters {
+fn parse_args(args: &[String]) -> Result<Parameters> {
     let mut params = Parameters::default();
     //Skip the name
     for arg in args.iter().skip(1) {
@@ -87,15 +91,19 @@ fn parse_args(args: &[String]) -> Parameters {
             "compile" => params.action = Action::Compile,
             "run" => params.action = Action::Run,
             "default" => params.action = Action::Default,
+            #[cfg(feature = "sql")]
             "--sql" => params.reporter = ReporterType::Sql,
+            #[cfg(not(feature = "sql"))]
+            "--sql" => bail!("Xtask not compiled with the sql feature"),
             "--git" => params.reporter = ReporterType::Git,
             _ => params.directory = Some(arg.to_string()),
         }
     }
-    params
+    Ok(params)
 }
 
-fn prepare() -> Result<()> {
+fn prepare() -> Result<(TempDir, PathBuf)> {
+    let temp = tempdir()?;
     let sh = Shell::new()?;
     cmd!(&sh, "cargo build --release --workspace").run()?;
     //Todo convert to xtask
@@ -110,18 +118,11 @@ fn prepare() -> Result<()> {
     if !plc.exists() {
         anyhow::bail!("Could not find compiler, did you run cargo build --release?")
     }
-    std::env::set_var("COMPILER", &plc);
     //Export the standard lib location
     let lib_loc = compile_dir.join("stdlib");
     if !(lib_loc.exists()) {
         anyhow::bail!("Could not find stdlib, did you run the standard function compile script?")
     }
     std::env::set_var("STDLIBLOC", &lib_loc);
-    Ok(())
-}
-
-fn finish() -> Result<()> {
-    let sh = Shell::new()?;
-    cmd!(&sh, "rm -rf benchmarks").run()?;
-    Ok(())
+    Ok((temp, plc))
 }

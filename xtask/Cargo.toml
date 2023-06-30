@@ -3,7 +3,9 @@ name = "xtask"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+sql = []
 
 [dependencies]
 xshell = "0.2"
@@ -13,3 +15,4 @@ sysinfo = "0.28"
 anyhow = "1.0"
 sqlx = { version = "0.6", features = ["runtime-async-std-rustls", "mysql"]}
 async-std = "1.12.0"
+tempfile = "3"

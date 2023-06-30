@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::time::Duration;
+use std::{path::Path, time::Duration};
 
 use self::{compile::Compile, run::Run};
 
@@ -31,15 +31,15 @@ pub(crate) trait Task {
     }
 }
 
-pub(crate) fn get_default_tasks() -> Result<Vec<Box<dyn Task>>> {
-    let compiler = std::env::var("COMPILER")?;
+pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<Box<dyn Task>>> {
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     //Create a default benchmark run
     //This includes oscat in 4 different opt
     for opt in &["none", "less", "default", "aggressive"] {
         let task = Compile {
             name: "oscat".into(),
-            directory: "benchmarks/oscat".into(),
+            compiler: compiler.into(),
+            directory: work_dir.join("oscat"),
             optimization: opt.to_string(),
         };
         tasks.push(Box::new(task));
@@ -47,24 +47,26 @@ pub(crate) fn get_default_tasks() -> Result<Vec<Box<dyn Task>>> {
 
     // This includes the sieve of eratosthenes in
     // C
-    for opt in &["0", "1", "2", "3"] {
+    for opt in ["0", "1", "2", "3"] {
         let task = Run {
             name: "sieve-c".into(),
             optimization: opt.to_string(),
             compiler: "cc".into(),
             location: "xtask/res/sieve.c".into(),
             parameters: None,
+            work_dir: work_dir.into(),
         };
         tasks.push(Box::new(task));
     }
     // and ST
-    for opt in &["none", "less", "default", "aggressive"] {
+    for opt in ["none", "less", "default", "aggressive"] {
         let task = Run {
             name: "sieve-st".into(),
             optimization: opt.to_string(),
-            compiler: compiler.clone(),
+            compiler: compiler.into(),
             location: "xtask/res/sieve.st".into(),
             parameters: Some("--linker=cc".into()),
+            work_dir: work_dir.into(),
         };
         tasks.push(Box::new(task));
     }
