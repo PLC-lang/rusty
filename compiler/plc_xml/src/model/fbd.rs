@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, thread::current};
+use std::cmp::Ordering;
 
 use indexmap::IndexMap;
 use plc::lexer::IdProvider;
