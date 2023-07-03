@@ -82,7 +82,7 @@ impl FunctionBlockDiagram {
                     remove_id,
                 )
             }
-            Node::Control(_) => todo!(),
+            Node::Control(control) => (control.transform(session, &self.nodes), None),
             Node::Connector(_) => todo!(),
         }
     }

@@ -1,0 +1,18 @@
+---
+source: compiler/plc_xml/src/model/control.rs
+expression: "Control::visit(&mut reader)"
+---
+Ok(
+    Control {
+        kind: Return,
+        name: None,
+        local_id: 13,
+        ref_local_id: Some(
+            12,
+        ),
+        execution_order_id: Some(
+            0,
+        ),
+        negated: false,
+    },
+)

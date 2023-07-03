@@ -133,11 +133,24 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
-            AstStatement::ReturnStatement { .. } => {
-                self.register_debug_location(statement);
-                self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
-                self.generate_buffer_block();
-            }
+            AstStatement::ReturnStatement { condition, .. } => match condition {
+                Some(condition) => {
+                    self.register_debug_location(statement);
+                    self.pou_generator.generate_return_statement_with_condition(
+                        self.function_context,
+                        self.llvm_index,
+                        condition,
+                    )?;
+                    // Doesn't seem to be necessary
+                    // self.generate_buffer_block();
+                }
+                None => {
+                    self.register_debug_location(statement);
+                    self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
+                    // Doesn't seem to be necessary
+                    // self.generate_buffer_block();
+                }
+            },
             AstStatement::ExitStatement { location, .. } => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);

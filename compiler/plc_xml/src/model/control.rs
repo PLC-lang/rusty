@@ -66,7 +66,18 @@ impl Parseable for Control {
         loop {
             match reader.peek()? {
                 Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                    b"negated" => attributes.extend(reader.attributes()?),
+                    // TODO: Hella ugly
+                    b"negated" => {
+                        // While variables have the negated field as an attribute on their element, e.g.
+                        // <inVariable negated="..."> the return-control statement has it inside its data field
+                        // e.g. <addData><data><negated value="true">, which is hella weird - I want whatever
+                        // they smoked when they designed that XSD
+                        let value = reader.attributes()?;
+                        attributes.insert(
+                            "negated".to_string(),
+                            (value.get("value").unwrap() == "true").to_string(),
+                        );
+                    }
                     b"connection" => attributes.extend(reader.attributes()?),
                     _ => reader.consume()?,
                 },
@@ -82,5 +93,56 @@ impl Parseable for Control {
         }
 
         Control::new(attributes, kind)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+
+    use crate::{deserializer::Parseable, reader::PeekableReader};
+
+    use super::Control;
+
+    #[test]
+    fn simple_return() {
+        let content = r#"
+            <return localId="13" height="20" width="76" executionOrderId="0">
+                <position x="350" y="100"/>
+                <connectionPointIn>
+                    <relPosition x="0" y="10"/>
+                    <connection refLocalId="12"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                        <negated value="false"/>
+                    </data>
+                </addData>
+            </return>
+        "#;
+
+        let mut reader = PeekableReader::new(content);
+        assert_debug_snapshot!(Control::visit(&mut reader))
+    }
+
+    #[test]
+    fn simple_return_negated() {
+        let content = r#"
+            <return localId="13" height="20" width="76" executionOrderId="0">
+                <position x="350" y="100"/>
+                <connectionPointIn>
+                    <relPosition x="0" y="10"/>
+                    <connection refLocalId="12"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                        <negated value="true"/>
+                    </data>
+                </addData>
+            </return>
+        "#;
+
+        let mut reader = PeekableReader::new(content);
+        assert_debug_snapshot!(Control::visit(&mut reader))
     }
 }

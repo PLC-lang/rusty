@@ -15,6 +15,7 @@ use crate::{
 
 mod action;
 mod block;
+mod control;
 mod fbd;
 mod pou;
 mod tests;

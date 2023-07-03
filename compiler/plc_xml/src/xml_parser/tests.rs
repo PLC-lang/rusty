@@ -181,6 +181,104 @@ mod tests {
         );
         assert_debug_snapshot!(parse(&content));
     }
+
+    #[test]
+    fn simple_return() {
+        let content = r#"
+<?xml version="1.0" encoding="UTF-8"?>
+<pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="increment_until" pouType="function">
+    <interface>
+        <localVars/>
+        <addData>
+            <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                <textDeclaration>
+                    <content>FUNCTION increment_until : INT
+VAR_INPUT
+   value	: DINT;
+END_VAR
+
+VAR
+	i : DINT := 0;
+END_VAR</content>
+                </textDeclaration>
+            </data>
+        </addData>
+    </interface>
+    <body>
+        <FBD>
+            <return localId="1" height="20" width="76" executionOrderId="2">
+                <position x="510" y="140"/>
+                <connectionPointIn>
+                    <relPosition x="0" y="10"/>
+                    <connection refLocalId="2"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                        <negated value="false"/>
+                    </data>
+                </addData>
+            </return>
+            <inVariable localId="2" height="20" width="94" negated="false">
+                <position x="260" y="140"/>
+                <connectionPointOut>
+                    <relPosition x="94" y="10"/>
+                </connectionPointOut>
+                <expression>i = value</expression>
+            </inVariable>
+            <inVariable localId="3" height="20" width="80" negated="false">
+                <position x="260" y="70"/>
+                <connectionPointOut>
+                    <relPosition x="80" y="10"/>
+                </connectionPointOut>
+                <expression>i</expression>
+            </inVariable>
+            <inVariable localId="4" height="20" width="80" negated="false">
+                <position x="260" y="90"/>
+                <connectionPointOut>
+                    <relPosition x="80" y="10"/>
+                </connectionPointOut>
+                <expression>1</expression>
+            </inVariable>
+            <block localId="5" width="74" height="60" typeName="ADD" executionOrderId="0">
+                <position x="390" y="50"/>
+                <inputVariables>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="30"/>
+                            <connection refLocalId="3"/>
+                        </connectionPointIn>
+                    </variable>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointIn>
+                            <relPosition x="0" y="50"/>
+                            <connection refLocalId="4"/>
+                        </connectionPointIn>
+                    </variable>
+                </inputVariables>
+                <inOutVariables/>
+                <outputVariables>
+                    <variable formalParameter="" negated="false">
+                        <connectionPointOut>
+                            <relPosition x="74" y="30"/>
+                        </connectionPointOut>
+                    </variable>
+                </outputVariables>
+            </block>
+            <outVariable localId="6" height="20" width="80" executionOrderId="1" negated="false" storage="none">
+                <position x="510" y="70"/>
+                <connectionPointIn>
+                    <relPosition x="0" y="10"/>
+                    <connection refLocalId="5"/>
+                </connectionPointIn>
+                <expression>i</expression>
+            </outVariable>
+        </FBD>
+    </body>
+</pou>
+        "#;
+
+        assert_debug_snapshot!(parse(&content));
+    }
 }
 
 const ASSIGNMENT_A_B: &str = r#"

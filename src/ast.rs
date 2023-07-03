@@ -900,6 +900,9 @@ pub enum AstStatement {
         id: AstId,
     },
     ReturnStatement {
+        /// Used in CFC, where a return statement is bound to a condition to potentially return early
+        condition: Option<Box<AstStatement>>,
+
         location: SourceRange,
         id: AstId,
     },
@@ -993,7 +996,13 @@ impl Debug for AstStatement {
             AstStatement::CaseCondition { condition, .. } => {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
-            AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ReturnStatement { condition, .. } => {
+                if let Some(condition) = condition {
+                    f.debug_struct(&format!("ReturnStatement (conditional; {condition:?}")).finish()
+                } else {
+                    f.debug_struct(&format!("ReturnStatement")).finish()
+                }
+            }
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
             AstStatement::CastStatement { target, type_name, .. } => {

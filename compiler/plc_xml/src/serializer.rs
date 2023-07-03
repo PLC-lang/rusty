@@ -277,6 +277,11 @@ declare_type_and_extend_if_needed! {
         (XPosition, with_position),
         (XConnectionPointIn, with_connection_point_in)
     ),
+    (
+        XReturn, "return",
+        (XConnectionPointIn, with_connection_point_in),
+        (XAddData, with_add_data)
+    ),
 }
 
 #[cfg(test)]

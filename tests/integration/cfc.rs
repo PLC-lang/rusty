@@ -80,3 +80,27 @@ fn function_returns() {
     // THEN it will return the correct value
     assert_eq!(res, 222);
 }
+
+#[test]
+fn early_return() {
+    // GIVEN a CFC function, which early returns when a given
+    // input variable equals 5 and otherwise sets it to 10
+    let st_file = get_test_file("cfc/early_return.st");
+    let cfc_file = get_test_file("cfc/early_return.cfc");
+    // WHEN passing x == 5 as an argument
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN it will return 5 instead of setting it to 10
+    assert_eq!(res, 5);
+}
+
+#[test]
+fn non_early_return() {
+    // GIVEN a CFC function, which early returns when a given
+    // input variable equals 5 and otherwise sets it to 10
+    let st_file = get_test_file("cfc/non_early_return.st");
+    let cfc_file = get_test_file("cfc/early_return.cfc");
+    // WHEN passing x == 1 as an argument
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN it will return 10
+    assert_eq!(res, 10);
+}

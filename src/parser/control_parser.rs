@@ -27,7 +27,7 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> AstStatement {
 fn parse_return_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ReturnStatement { location, id: lexer.next_id() }
+    AstStatement::ReturnStatement { location, id: lexer.next_id(), condition: None }
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> AstStatement {
