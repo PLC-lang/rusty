@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, thread::current};
 
 use indexmap::IndexMap;
 use plc::lexer::IdProvider;
@@ -19,9 +19,11 @@ pub(crate) struct FunctionBlockDiagram {
 impl FunctionBlockDiagram {
     pub fn with_temp_vars(mut self) -> Self {
         // get an id provider set to the next local_id in the collection
+        // XXX: won't work for multiple diagrams in one file
         let mut id_provider = IdProvider::with_offset(self.latest_id() + 1);
         // find all the connections that need to be broken up with a temp variable
         let block_result_references = self.nodes.get_result_refs();
+        // XXX: maybe returning the position of the parameter in the block lets us skip the filter later on
         block_result_references.into_iter().for_each(|(referenced_result, connections)| {
             // create a temporary variable that references the block-output
             let formal_param_name = format!(
@@ -42,13 +44,12 @@ impl FunctionBlockDiagram {
 
             // update the nodes that previously pointed to that block-output and change them
             // so they now point to the temp variable
-            // XXX: do we also need to update/change the formalParameter strings?
             connections.iter().for_each(|connection_id| {
                 self.nodes.entry(*connection_id).and_modify(|it| {
                     it.update_references(referenced_result, temp_var.get_id(), &formal_param_name)
                 });
             });
-
+            // TODO: update exec-order id
             // insert the newly created temp-var into the fdb NodeIndex
             self.nodes.insert(temp_var.get_id(), temp_var);
         });

@@ -42,8 +42,6 @@ impl FunctionBlockDiagram {
             unreachable!()
         };
 
-        if current_node.is_temp_var() {}
-
         match current_node {
             Node::Block(block) => (block.transform(session, &self.nodes), None),
             Node::FunctionBlockVariable(var) => {
@@ -58,8 +56,6 @@ impl FunctionBlockDiagram {
                     .get(&ref_id)
                     .map(|stmt| {
                         if matches!(stmt, AstStatement::CallStatement { .. }) {
-                            // XXX: need to clone here and filter the original out later.. maybe there's a better way while still
-                            // avoiding a mutable association map
                             (stmt.clone(), Some(ref_id))
                         } else {
                             self.transform_node(ref_id, session, ast_association)

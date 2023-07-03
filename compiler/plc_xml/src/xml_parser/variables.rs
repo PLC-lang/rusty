@@ -14,6 +14,7 @@ impl BlockVariable {
             return None;
         };
 
+        // XXX: data-recursion?
         match index.get(ref_id) {
             Some(Node::Block(block)) => Some(block.transform(session, index)),
             Some(Node::FunctionBlockVariable(var)) => Some(var.transform(session)),
@@ -24,11 +25,13 @@ impl BlockVariable {
     }
 }
 
+// variables, parameters -> more readable names?
 impl FunctionBlockVariable {
     pub(crate) fn transform(&self, session: &ParseSession) -> AstStatement {
         let stmt = if self.negated {
             let ident = session.parse_expression(&self.expression);
             let location = ident.get_location();
+            // XXX: maybe insert NOT block?
             AstStatement::UnaryExpression {
                 operator: Operator::Not,
                 value: Box::new(ident),
