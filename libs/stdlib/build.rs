@@ -35,7 +35,7 @@ fn main() {
     //link the object file
     println!("cargo:rustc-link-search=native={out_dir}");
     println!("cargo:rustc-link-lib=static=st");
-    println!("cargo:rerun-if-changed=iec61131-st/*");
+    println!("cargo:rerun-if-changed=iec61131-st/");
 
     //We can link against the st lib gernerated, but this will only be reflected in static libs.
     // The shared lib still has to be generated later.
