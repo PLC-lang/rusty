@@ -8,12 +8,10 @@ mod tests {
     };
 
     use crate::{
-        deserializer::{self, Parseable},
-        model::fbd::FunctionBlockDiagram,
-        reader::PeekableReader,
+        deserializer,
         serializer::{
-            with_header, XBlock, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
-            XInputVariables, XOutVariable, XOutputVariables, XPou, XRelPosition, XVariable,
+            with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
+            XOutVariable, XPou, XRelPosition,
         },
         xml_parser::{self, tests::ASSIGNMENT_A_B},
     };
@@ -87,63 +85,6 @@ mod tests {
         "#;
 
         assert_debug_snapshot!(deserializer::visit(src).unwrap());
-    }
-
-    #[test]
-    fn directly_connected_blocks_have_a_temp_var_inserted_between_them() {
-        let content = XFbd::new()
-            .with_in_variable(
-                XInVariable::init("1", false).with_expression(XExpression::new().with_data("a")),
-            )
-            .with_in_variable(
-                XInVariable::init("2", false).with_expression(XExpression::new().with_data("b")),
-            )
-            .with_block(
-                XBlock::init("3", "myAdd", "0")
-                    .with_input_variables(
-                        XInputVariables::new()
-                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                            .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-                    )
-                    .with_output_variables(
-                        XOutputVariables::new()
-                            .with_variable(XVariable::init("myAdd", false).with_connection_out_initialized()),
-                    ),
-            )
-            .with_block(
-                XBlock::init("4", "mySub", "1")
-                    .with_input_variables(
-                        XInputVariables::new()
-                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                            .with_variable(
-                                XVariable::init("myAdd", false).with_connection_in_initialized("3"),
-                            ),
-                    )
-                    .with_output_variables(
-                        XOutputVariables::new()
-                            .with_variable(XVariable::init("mySub", false).with_connection_out_initialized()),
-                    ),
-            )
-            .with_out_variable(
-                XOutVariable::init("5", false)
-                    .with_attribute("executionOrderId", "2")
-                    .with_expression(XExpression::new().with_data("c"))
-                    .with_connection_point_in(
-                        XConnectionPointIn::new()
-                            .with_rel_position(XRelPosition::init().close())
-                            .with_connection(
-                                XConnection::new()
-                                    .with_attribute("refLocalId", "4")
-                                    .with_attribute("formalParameter", "mySub")
-                                    .close(),
-                            ),
-                    ),
-            )
-            .serialize();
-
-        let mut reader = PeekableReader::new(&content);
-
-        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap().with_temp_vars());
     }
 
     #[test]

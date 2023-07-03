@@ -29,8 +29,4 @@ impl Project {
     pub fn pou_entry(reader: &mut crate::reader::PeekableReader) -> Result<Self, crate::error::Error> {
         Ok(Project { pous: vec![Pou::visit(reader)?] })
     }
-
-    pub fn with_temp_vars(self) -> Self {
-        Project { pous: self.pous.into_iter().map(|pou| pou.with_temp_vars()).collect() }
-    }
 }

@@ -41,20 +41,13 @@ fn parse(
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
     // transform the xml file to a data model.
-    let project = if cfg!(feature = "nested_ast") {
-        // nests conscutive call-statements in a single ast-statement.makes the generated ast nearly unreadable.
-        // pretty much only exists for demoing purposes until assigning call-results to temp-vars works
-        visit(source)
-    } else {
-        visit(source).map(Project::with_temp_vars)
-    };
-
-    let Ok(project) = project else {
+    // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
+    let Ok(project) = visit(source) else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
 
     // create a new parse session
-    let mut parser = ParseSession::new(&project, location, id_provider, linkage);
+    let parser = ParseSession::new(&project, location, id_provider, linkage);
 
     // try to parse a declaration data field
     let Some((unit, diagnostics)) = parser.try_parse_declaration() else {
@@ -125,7 +118,7 @@ impl<'parse> ParseSession<'parse> {
         ))
     }
 
-    fn parse_model(&mut self) -> Vec<Implementation> {
+    fn parse_model(&self) -> Vec<Implementation> {
         let mut implementations = vec![];
         for pou in &self.project.pous {
             // transform body
@@ -145,7 +138,6 @@ impl<'parse> ParseSession<'parse> {
     }
 }
 
-// XXX: that seems redundant.. we only need our own enum because we impl Display
 impl From<PouType> for AstPouType {
     fn from(value: PouType) -> Self {
         match value {
