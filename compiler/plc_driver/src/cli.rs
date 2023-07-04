@@ -149,6 +149,9 @@ pub struct CompileParameters {
     )]
     pub single_module: bool,
 
+    #[clap(name = "check", long, help = "Check only, do not generate any output", global = true)]
+    pub check_only: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -270,6 +273,11 @@ impl CompileParameters {
         }
     }
 
+    /// If set, no files will be generated
+    pub fn is_check(&self) -> bool {
+        self.check_only || matches!(self.commands, Some(SubCommands::Check { .. }))
+    }
+
     /// return the selected output format, or the default if none.
     #[cfg(test)]
     pub fn output_format_or_default(&self) -> FormatOption {
@@ -277,18 +285,6 @@ impl CompileParameters {
         // selected. So if none are selected, the default is chosen
         self.output_format().unwrap_or_default()
     }
-
-    // /// return the output filename with the correct ending
-    // pub fn output_name(&self) -> String {
-    //     let input = self
-    //         .input
-    //         .first()
-    //         .map(Path::new)
-    //         .and_then(Path::file_stem)
-    //         .and_then(OsStr::to_str)
-    //         .unwrap_or(DEFAULT_OUTPUT_NAME);
-    //     crate::get_output_name(self.output.as_deref(), self.output_format_or_default(), input)
-    // }
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
         self.hardware_config.as_deref().and_then(get_config_format)
