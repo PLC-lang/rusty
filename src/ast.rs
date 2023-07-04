@@ -781,12 +781,6 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
-    // Temporary variables for CFC return values
-    TempReference {
-        name: String,
-        location: SourceRange,
-        id: AstId,
-    },
     ArrayAccess {
         reference: Box<AstStatement>,
         access: Box<AstStatement>,
@@ -999,9 +993,6 @@ impl Debug for AstStatement {
             AstStatement::CastStatement { target, type_name, .. } => {
                 f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
             }
-            AstStatement::TempReference { name, .. } => {
-                f.debug_struct("TempReference").field("name", name).finish()
-            }
         }
     }
 }
@@ -1073,7 +1064,6 @@ impl AstStatement {
             AstStatement::ContinueStatement { location, .. } => location.clone(),
             AstStatement::ExitStatement { location, .. } => location.clone(),
             AstStatement::CastStatement { location, .. } => location.clone(),
-            AstStatement::TempReference { location, .. } => location.clone(),
         }
     }
 
@@ -1107,7 +1097,6 @@ impl AstStatement {
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
             AstStatement::CastStatement { id, .. } => *id,
-            AstStatement::TempReference { id, .. } => *id,
         }
     }
 
