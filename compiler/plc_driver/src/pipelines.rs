@@ -55,6 +55,7 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
+
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,

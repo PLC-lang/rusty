@@ -8,7 +8,7 @@ impl Task for Oscat {
         sh.create_dir("./benchmark/oscat/lib")?;
         sh.create_dir("./benchmark/oscat/include")?;
 
-        cmd!(sh, "cargo b --release").run()?;
+        cmd!(sh, "cargo b --release --workspace").run()?;
         sh.copy_file("./target/release/plc", "./benchmark/oscat")?;
         sh.copy_file("./target/release/libiec61131std.so", "./benchmark/oscat/lib")?;
 
