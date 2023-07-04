@@ -11,15 +11,16 @@ impl Pou {
             return vec![]
         };
 
-        let statements = fbd.transform(session);
+        if cfg!(feature = "debug") {
+            let statements = fbd.transform(session);
+            println!("{statements:#?}");
 
-        #[cfg(feature = "debug")]
-        println!("{statements:#?}");
+            return statements;
+        }
 
-        statements
+        fbd.transform(session)
     }
 
-    // TODO: sourcerange
     pub fn build_implementation(&self, session: &ParseSession) -> Implementation {
         let statements = self.transform(session);
 

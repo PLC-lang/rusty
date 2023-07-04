@@ -3,9 +3,10 @@ use std::{collections::HashMap, str::FromStr};
 use quick_xml::events::Event;
 
 use crate::{
-    deserializer::{GetOrErr, Parseable, PrototypingToString},
     error::Error,
+    extensions::{GetOrErr, TryToString},
     reader::PeekableReader,
+    xml_parser::Parseable,
 };
 
 #[derive(Debug, PartialEq)]
@@ -13,7 +14,6 @@ pub(crate) struct Control {
     pub kind: ControlKind,
     pub name: Option<String>,
     pub local_id: usize,
-    // pub global_id: Option<usize>,
     pub ref_local_id: Option<usize>,
     pub execution_order_id: Option<usize>,
     pub negated: bool,
@@ -25,7 +25,6 @@ impl Control {
             kind,
             name: hm.remove("label"),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
-            // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             negated: hm.get("negated").map(|it| it == "true").unwrap_or(false),

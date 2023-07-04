@@ -25,9 +25,7 @@ impl FunctionBlockDiagram {
         // filter the map for each statement belonging to a node with an execution id or a temp-var, discard the rest -> these have no impact
         ast_association
             .into_iter()
-            .filter(|(key, _)| {
-                self.nodes.get(key).is_some_and(|node| node.get_exec_id().is_some() || node.is_temp_var())
-            })
+            .filter(|(key, _)| self.nodes.get(key).is_some_and(|node| node.get_exec_id().is_some()))
             .map(|(_, value)| value)
             .collect()
     }
@@ -61,17 +59,7 @@ impl FunctionBlockDiagram {
                             self.transform_node(ref_id, session, ast_association)
                         }
                     })
-                    .unwrap();
-
-                let lhs = if var.is_temp_var() {
-                    let AstStatement::Reference { name, location, id } = lhs else {
-                        todo!()
-                    };
-
-                    AstStatement::TempReference { name, location, id }
-                } else {
-                    lhs
-                };
+                    .expect("Expected AST statement, found None");
 
                 (
                     AstStatement::Assignment {

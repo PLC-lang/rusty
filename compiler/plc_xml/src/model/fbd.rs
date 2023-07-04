@@ -1,65 +1,19 @@
 use std::cmp::Ordering;
 
 use indexmap::IndexMap;
-use plc::lexer::IdProvider;
 use quick_xml::events::Event;
 
-use crate::{deserializer::Parseable, error::Error, model::variables::VariableKind, reader::PeekableReader};
+use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
 use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
 
+/// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
 pub(crate) type NodeIndex = IndexMap<NodeId, Node>;
 
 #[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram {
     pub nodes: NodeIndex,
-}
-
-impl FunctionBlockDiagram {
-    pub fn with_temp_vars(mut self) -> Self {
-        // get an id provider set to the next local_id in the collection
-        // XXX: won't work for multiple diagrams in one file
-        let mut id_provider = IdProvider::with_offset(self.latest_id() + 1);
-        // find all the connections that need to be broken up with a temp variable
-        let block_result_references = self.nodes.get_result_refs();
-        // XXX: maybe returning the position of the parameter in the block lets us skip the filter later on
-        block_result_references.into_iter().for_each(|(referenced_result, connections)| {
-            // create a temporary variable that references the block-output
-            let formal_param_name = format!(
-                "__{}_id{}",
-                self.nodes.get(&referenced_result).map(|it| it.get_name()).unwrap_or_default(),
-                referenced_result,
-            );
-
-            let temp_var = Node::FunctionBlockVariable(FunctionBlockVariable {
-                // XXX: if we find this later during parsing, do not parse with expression parser, but generate custom AST (proxy-ref)
-                kind: VariableKind::Temp,
-                local_id: id_provider.next_id(),
-                negated: false,
-                expression: formal_param_name.clone(),
-                execution_order_id: None,
-                ref_local_id: Some(referenced_result),
-            });
-
-            // update the nodes that previously pointed to that block-output and change them
-            // so they now point to the temp variable
-            connections.iter().for_each(|connection_id| {
-                self.nodes.entry(*connection_id).and_modify(|it| {
-                    it.update_references(referenced_result, temp_var.get_id(), &formal_param_name)
-                });
-            });
-            // TODO: update exec-order id
-            // insert the newly created temp-var into the fdb NodeIndex
-            self.nodes.insert(temp_var.get_id(), temp_var);
-        });
-
-        self
-    }
-
-    fn latest_id(&self) -> NodeId {
-        self.nodes.iter().map(|(id, _)| *id).max().unwrap_or(0)
-    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -77,8 +31,8 @@ impl PartialOrd for Node {
 
         match (left, right) {
             (None, None) => Some(Ordering::Equal),
-            (None, Some(_)) => Some(Ordering::Greater),
-            (Some(_), None) => Some(Ordering::Less),
+            (None, Some(_)) => Some(Ordering::Less),
+            (Some(_), None) => Some(Ordering::Greater),
             (Some(left), Some(right)) => Some(left.cmp(&right)),
         }
     }
@@ -103,22 +57,6 @@ impl Node {
         }
     }
 
-    fn update_references(&mut self, previous_ref: NodeId, new_ref: NodeId, new_formal_param: &str) {
-        match self {
-            Node::Block(val) => val
-                .variables
-                .iter_mut()
-                .filter(|it| it.ref_local_id.is_some_and(|it| it == previous_ref))
-                .for_each(|var| {
-                    var.ref_local_id = Some(new_ref);
-                    var.formal_parameter = new_formal_param.into()
-                }),
-            Node::Control(_) => unimplemented!(),
-            Node::Connector(_) => unimplemented!(),
-            Node::FunctionBlockVariable(_) => unreachable!(),
-        };
-    }
-
     fn get_name(&self) -> String {
         if let Node::Block(val) = self {
             // TODO: check if the out variables are named after the type- or instance-name
@@ -126,14 +64,6 @@ impl Node {
         } else {
             "".into()
         }
-    }
-
-    pub(crate) fn is_temp_var(&self) -> bool {
-        let Node::FunctionBlockVariable(var) = self else {
-            return false
-        };
-
-        matches!(var.kind, VariableKind::Temp)
     }
 }
 
@@ -174,35 +104,8 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        // Ok(FunctionBlockDiagram { blocks, variables, controls, connectors })
+        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
         Ok(FunctionBlockDiagram { nodes })
-    }
-}
-
-trait DirectConnection {
-    fn get_result_refs(&self) -> IndexMap<NodeId, Vec<NodeId>>;
-}
-
-impl DirectConnection for NodeIndex {
-    fn get_result_refs(&self) -> IndexMap<NodeId, Vec<NodeId>> {
-        let mut connections = IndexMap::new();
-        self.iter().for_each(|(node_id, node)| {
-            // XXX: assumption: ref_local_id pointing to another block should point to a temp-var of block's result instead
-            if let Node::Block(block) = node {
-                block
-                    .variables
-                    .iter()
-                    .filter(|var| {
-                        var.ref_local_id.is_some_and(|id| matches!(self.get(&id), Some(Node::Block(_))))
-                    })
-                    .for_each(|var| {
-                        let entry = connections.entry(var.ref_local_id.unwrap()).or_insert(vec![]);
-                        entry.push(*node_id);
-                    });
-            }
-        });
-
-        connections
     }
 }
 
@@ -211,13 +114,13 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        deserializer::Parseable,
         model::fbd::FunctionBlockDiagram,
         reader::PeekableReader,
         serializer::{
             XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
             XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
         },
+        xml_parser::Parseable,
     };
 
     #[test]
@@ -265,7 +168,6 @@ mod tests {
             )
             .serialize();
 
-        // FIXME: This test is currently wrong, because refLocalId isn't parsed, i.e. it's None in the snapshot
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
     }

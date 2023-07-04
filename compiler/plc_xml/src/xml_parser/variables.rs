@@ -31,7 +31,7 @@ impl FunctionBlockVariable {
         if self.negated {
             let ident = session.parse_expression(&self.expression);
             let location = ident.get_location();
-            // XXX: maybe insert NOT block?
+
             AstStatement::UnaryExpression {
                 operator: Operator::Not,
                 value: Box::new(ident),

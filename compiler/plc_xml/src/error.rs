@@ -4,7 +4,6 @@ pub enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
     /// Indicates that the reader expected the new line to be ...
-    // TODO: This should also carry a vector of tokens
     UnexpectedElement(String),
 
     /// Indicates that converting a `[u8]` to a String failed due to encoding issues.

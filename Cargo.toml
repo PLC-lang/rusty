@@ -13,7 +13,7 @@ keywords = ["iec61131", "st", "Structued_Text"]
 categories = ["development-tools::build-utils"]
 
 [features]
-default = ["debug"]
+default = []
 debug = []
 verify = []
 
@@ -66,7 +66,7 @@ members = [
 	"compiler/plc_xml",
 	"compiler/plc_derive",
 ]
-default-members = [".", "compiler/plc_driver"]
+default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [

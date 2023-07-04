@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use quick_xml::events::Event;
 
 use crate::{
-    deserializer::{GetOrErr, Parseable, PrototypingToString},
     error::Error,
+    extensions::{GetOrErr, TryToString},
     reader::PeekableReader,
+    xml_parser::Parseable,
 };
 
 #[derive(Debug, PartialEq)]
@@ -14,7 +15,6 @@ pub(crate) struct Connector {
     pub name: String,
     pub local_id: usize,
     pub ref_local_id: Option<usize>,
-    // pub global_id: Option<usize>,
     pub formal_parameter: Option<String>,
 }
 
@@ -25,7 +25,6 @@ impl Connector {
             name: hm.get_or_err("name")?,
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
-            // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
             formal_parameter: hm.remove("formalParameter"),
         })
     }

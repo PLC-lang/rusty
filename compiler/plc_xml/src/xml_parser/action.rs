@@ -9,8 +9,7 @@ impl Action {
         todo!()
     }
 
-    // TODO: sourcerange
-    pub(crate) fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
+    pub(crate) fn build_implementation(&self, session: &ParseSession) -> Implementation {
         let statements = self.transform(session);
 
         Implementation {

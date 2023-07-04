@@ -1,3 +1,5 @@
+use super::pou::PouType;
+
 #[derive(Debug)]
 pub(crate) struct Interface {
     //TODO: return type, variables, etc..
@@ -18,17 +20,19 @@ impl Interface {
         let Some(ref data) = self.add_data else {
             return None
         };
+
         Some(&data.content)
     }
 
     // We have to append a END_... to the declaration, as it is missing in our text declaration
-    pub fn append_end_keyword(self, pou_type: &str) -> Self {
+    pub fn append_end_keyword(self, pou_type: &PouType) -> Self {
         let Some(old_data) = self.add_data else {
             // if we have no content, we have nothing to append to. return as is
             return self
         };
+
         Interface {
-            add_data: Some(Data::new_implementation(&format!("{}END_{}", old_data.content, pou_type))),
+            add_data: Some(Data::new_implementation(&format!("{}\nEND_{}", old_data.content, pou_type))),
         }
     }
 }

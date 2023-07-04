@@ -2,15 +2,10 @@ use std::{collections::HashMap, str::FromStr};
 
 use quick_xml::events::Event;
 
-use crate::{
-    deserializer::{GetOrErr, Parseable},
-    error::Error,
-    reader::PeekableReader,
-};
+use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
 
 use super::{action::Action, body::Body, interface::Interface};
 
-// todo: change declaration string to interface
 #[derive(Debug, Default)]
 pub(crate) struct Pou {
     pub name: String,
@@ -29,17 +24,6 @@ impl Pou {
             actions: self.actions,
             interface: self.interface,
         })
-    }
-
-    pub fn with_temp_vars(self) -> Self {
-        let body = self.body.with_temp_vars();
-        Pou {
-            name: self.name,
-            pou_type: self.pou_type,
-            body,
-            actions: self.actions, // TODO: also create temp vars where needed,
-            interface: self.interface,
-        }
     }
 }
 
@@ -94,6 +78,10 @@ impl Parseable for Pou {
                     }
                     b"body" => {
                         pou.body = Body::visit(reader)?;
+                        if let Some(interface) = pou.interface {
+                            pou.interface = Some(interface.append_end_keyword(&pou.pou_type));
+                        }
+
                         // TODO: change in order to parse INTERFACE, ACTION etc..
                         reader.consume_until(vec![b"pou"])?;
                         return Ok(pou);
@@ -128,12 +116,12 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        deserializer::Parseable,
-        model::pou::Pou,
+        model::{pou::Pou, project::Project},
         reader::PeekableReader,
         serializer::{
             XAddData, XBody, XContent, XData, XFbd, XInterface, XLocalVars, XPou, XTextDeclaration,
         },
+        xml_parser::Parseable,
     };
 
     #[test]
@@ -165,7 +153,7 @@ END_VAR
             .serialize();
 
         let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
+        assert_debug_snapshot!(Project::pou_entry(&mut reader));
     }
 
     #[test]

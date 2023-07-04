@@ -123,8 +123,33 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     .index(id_provider.clone())?
     // 3 : Resolve
     .annotate(id_provider, &diagnostician)?;
-    // 4 : Validate and Codegen (parallel)
+    // 4 : Validate
     annotated_project.validate(&diagnostician)?;
+    // 5 : Codegen
+    if !compile_parameters.is_check() {
+        generate(
+            location,
+            compile_parameters,
+            project,
+            output_format,
+            annotated_project,
+            build_location,
+            lib_location,
+        )?;
+    }
+
+    Ok(())
+}
+
+fn generate(
+    location: Option<PathBuf>,
+    compile_parameters: CompileParameters,
+    project: Project<PathBuf>,
+    output_format: FormatOption,
+    annotated_project: pipelines::AnnotatedProject,
+    build_location: Option<PathBuf>,
+    lib_location: Option<PathBuf>,
+) -> Result<(), Diagnostic> {
     let compile_options = CompileOptions {
         root: location,
         build_location: compile_parameters.get_build_location(),
@@ -134,14 +159,12 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
         error_format: compile_parameters.error_format,
         debug_level: compile_parameters.debug_level(),
     };
-
     let res = if compile_parameters.single_module {
         info!("Using single module mode");
         annotated_project.codegen_single_module(compile_options, &compile_parameters.target)?
     } else {
         annotated_project.codegen(compile_options, &compile_parameters.target)?
     };
-    // 5 : Link
     let libraries =
         project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
     let library_pathes = project
@@ -168,14 +191,11 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    //Generate hardware configuration
     if let Some((location, format)) =
         compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
     {
         annotated_project.generate_hardware_information(format, location)?;
     }
-
-    // Copy libraries
     if let Some(lib_location) = lib_location {
         for library in
             project.get_libraries().iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
@@ -188,7 +208,6 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
             }
         }
     }
-
     //Run packaging commands
     Ok(())
 }

@@ -2,18 +2,13 @@ use std::collections::HashMap;
 
 use quick_xml::events::Event;
 
-use crate::{
-    deserializer::{GetOrErr, Parseable},
-    error::Error,
-    reader::PeekableReader,
-};
+use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
 
-use super::{fbd::NodeId, variables::BlockVariable};
+use super::variables::BlockVariable;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Block {
     pub local_id: usize,
-    // pub global_id: Option<usize>,
     pub type_name: String,
     pub instance_name: Option<String>,
     pub execution_order_id: Option<usize>,
@@ -24,17 +19,11 @@ impl Block {
     pub fn new(mut hm: HashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
-            // global_id: hm.get("globalId").map(|it| it.parse()).transpose()?,
             type_name: hm.get_or_err("typeName")?,
             instance_name: hm.remove("instanceName"),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             variables,
         })
-    }
-
-    pub fn get_referenced_out_vars(&self) -> Vec<NodeId> {
-        // if the ref_local_id is pointing to a block,
-        self.variables.iter().filter_map(|var| var.ref_local_id).collect()
     }
 }
 
@@ -73,10 +62,10 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        deserializer::Parseable,
         model::block::Block,
         reader::PeekableReader,
         serializer::{XBlock, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
+        xml_parser::Parseable,
     };
 
     #[test]
