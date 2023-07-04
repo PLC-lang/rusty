@@ -3,6 +3,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use sysinfo::{CpuExt, System, SystemExt};
+use clap::ValueEnum;
 
 use anyhow::Result;
 use serde::Serialize;
@@ -22,7 +23,7 @@ pub trait Reporter {
     fn persist(&self, report: BenchmarkReport) -> Result<()>;
 }
 
-#[derive(Default)]
+#[derive(Default, ValueEnum, Clone, Copy)]
 pub enum ReporterType {
     #[cfg(feature = "sql")]
     Sql,

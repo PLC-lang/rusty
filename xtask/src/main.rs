@@ -1,65 +1,67 @@
 use crate::task::Task;
 use anyhow::Result;
+use clap::{Parser, Subcommand};
 use reporter::{BenchmarkReport, ReporterType};
 use std::path::PathBuf;
 use task::{compile::Compile, run::Run};
 use tempfile::{tempdir, TempDir};
 use xshell::{cmd, Shell};
 
-#[cfg(not(feature = "sql"))]
-use anyhow::bail;
-
 mod reporter;
 mod task;
 
-#[derive(Default)]
+#[derive(Default, Parser)]
+#[command(author, version, about, long_about = None)]
 struct Parameters {
-    action: Action,
-    directory: Option<String>,
+    #[command(subcommand)]
+    action: Option<Action>,
+    #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
     reporter: ReporterType,
 }
 
-#[derive(Default)]
+#[derive(Subcommand, Clone)]
 enum Action {
-    Run,
-    Compile,
-    #[default]
-    Default,
+    Run {
+        #[arg()]
+        directory: String,
+    },
+    Compile {
+        directory: String,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    let params = parse_args(&args)?;
+    let params = Parameters::parse();
     let (work_dir, compiler) = prepare()?;
 
     //Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     match &params.action {
-        Action::Compile => {
-            for opt in &["none", "less", "default", "aggressive"] {
+        Some(Action::Compile { directory }) => {
+            for opt in ["none", "less", "default", "aggressive"] {
                 let task = Compile {
-                    name: params.directory.as_ref().expect("Expected directory").to_string(),
-                    directory: params.directory.as_ref().expect("Expected Directory").into(),
+                    name: directory.clone(),
+                    directory: directory.into(),
                     optimization: opt.to_string(),
                     compiler: compiler.clone(),
                 };
                 tasks.push(Box::new(task));
             }
         }
-        Action::Run => {
-            for opt in &["none", "less", "default", "aggressive"] {
+        Some(Action::Run { directory }) => {
+            for opt in ["none", "less", "default", "aggressive"] {
                 let task = Run {
-                    name: params.directory.as_ref().expect("Expected name").to_string(),
+                    name: directory.into(),
                     optimization: opt.to_string(),
                     compiler: compiler.clone(),
-                    location: params.directory.as_ref().expect("Expected name").into(),
+                    location: directory.into(),
                     parameters: Some("--linker=cc".into()),
                     work_dir: work_dir.path().into(),
                 };
                 tasks.push(Box::new(task));
             }
         }
-        Action::Default => {
+        None => {
             //Clone the extra required code
             println!("Clone Oscat into the benchmarks");
             let sh = Shell::new()?;
@@ -81,25 +83,6 @@ fn main() -> anyhow::Result<()> {
     let reporter = reporter::from_type(params.reporter);
     reporter.persist(report)?;
     Ok(())
-}
-
-fn parse_args(args: &[String]) -> Result<Parameters> {
-    let mut params = Parameters::default();
-    //Skip the name
-    for arg in args.iter().skip(1) {
-        match arg.as_str() {
-            "compile" => params.action = Action::Compile,
-            "run" => params.action = Action::Run,
-            "default" => params.action = Action::Default,
-            #[cfg(feature = "sql")]
-            "--sql" => params.reporter = ReporterType::Sql,
-            #[cfg(not(feature = "sql"))]
-            "--sql" => bail!("Xtask not compiled with the sql feature"),
-            "--git" => params.reporter = ReporterType::Git,
-            _ => params.directory = Some(arg.to_string()),
-        }
-    }
-    Ok(params)
 }
 
 fn prepare() -> Result<(TempDir, PathBuf)> {
