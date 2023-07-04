@@ -1,0 +1,138 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: parse(&content)
+---
+(
+    CompilationUnit {
+        global_vars: [],
+        units: [
+            POU {
+                name: "increment_until",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "value",
+                                data_type: DataTypeReference {
+                                    referenced_type: "DINT",
+                                },
+                            },
+                        ],
+                        variable_block_type: Input(
+                            ByVal,
+                        ),
+                    },
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "i",
+                                data_type: DataTypeReference {
+                                    referenced_type: "DINT",
+                                },
+                                initializer: Some(
+                                    LiteralInteger {
+                                        value: 0,
+                                    },
+                                ),
+                            },
+                        ],
+                        variable_block_type: Local,
+                    },
+                ],
+                pou_type: Function,
+                return_type: Some(
+                    DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                ),
+            },
+        ],
+        implementations: [
+            Implementation {
+                name: "increment_until",
+                type_name: "increment_until",
+                linkage: Internal,
+                pou_type: Function,
+                statements: [
+                    ReturnStatement (conditional; BinaryExpression { operator: Equal, left: Reference { name: "i" }, right: Reference { name: "value" } },
+                    CallStatement {
+                        operator: Reference {
+                            name: "ADD",
+                        },
+                        parameters: Some(
+                            ExpressionList {
+                                expressions: [
+                                    Reference {
+                                        name: "i",
+                                    },
+                                    LiteralInteger {
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ),
+                    },
+                    Assignment {
+                        left: Reference {
+                            name: "i",
+                        },
+                        right: CallStatement {
+                            operator: Reference {
+                                name: "ADD",
+                            },
+                            parameters: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        Reference {
+                                            name: "i",
+                                        },
+                                        LiteralInteger {
+                                            value: 1,
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                    },
+                ],
+                location: SourceRange {
+                    range: 0..0,
+                },
+                name_location: SourceRange {
+                    range: 0..0,
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+        ],
+        user_types: [],
+        file_name: "test.cfc",
+        new_lines: NewLines {
+            line_breaks: [
+                31,
+                41,
+                58,
+                66,
+                67,
+                71,
+                87,
+                95,
+            ],
+        },
+    },
+    [
+        SyntaxError {
+            message: "Unexpected token: expected KeywordEndFunction but found ''",
+            range: [
+                SourceRange {
+                    range: 94..94,
+                    file: Some(
+                        "test.cfc",
+                    ),
+                },
+            ],
+            err_no: syntax__unexpected_token,
+        },
+    ],
+)

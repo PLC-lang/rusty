@@ -1,0 +1,14 @@
+---
+source: compiler/plc_xml/src/model/variables.rs
+expression: "FunctionBlockVariable::visit(&mut reader)"
+---
+Ok(
+    FunctionBlockVariable {
+        kind: Output,
+        local_id: 0,
+        negated: false,
+        expression: "a",
+        execution_order_id: None,
+        ref_local_id: None,
+    },
+)

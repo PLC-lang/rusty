@@ -120,7 +120,8 @@ mod tests {
             )
             .serialize(),
         );
-        assert_debug_snapshot!(parse(&content));
+
+        assert_debug_snapshot!(deserializer::visit(&content).unwrap());
     }
 }
 

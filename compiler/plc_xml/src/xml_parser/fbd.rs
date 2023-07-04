@@ -59,7 +59,7 @@ impl FunctionBlockDiagram {
                             self.transform_node(ref_id, session, ast_association)
                         }
                     })
-                    .unwrap();
+                    .expect("Expected AST statement, found None");
 
                 (
                     AstStatement::Assignment {

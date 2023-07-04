@@ -30,8 +30,8 @@ impl PartialOrd for Node {
 
         match (left, right) {
             (None, None) => Some(Ordering::Equal),
-            (None, Some(_)) => Some(Ordering::Greater),
-            (Some(_), None) => Some(Ordering::Less),
+            (None, Some(_)) => Some(Ordering::Less),
+            (Some(_), None) => Some(Ordering::Greater),
             (Some(left), Some(right)) => Some(left.cmp(&right)),
         }
     }
@@ -103,7 +103,7 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        // Ok(FunctionBlockDiagram { blocks, variables, controls, connectors })
+        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap());
         Ok(FunctionBlockDiagram { nodes })
     }
 }
@@ -167,7 +167,6 @@ mod tests {
             )
             .serialize();
 
-        // FIXME: This test is currently wrong, because refLocalId isn't parsed, i.e. it's None in the snapshot
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
     }
