@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="xshell is a swiss-army knife for writing cross-platform “bash” scripts in Rust."><meta name="keywords" content="rust, rustlang, rust-lang, xshell"><title>xshell - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../xshell/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../xshell/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate xshell</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.2.3</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">xshell</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/xshell/lib.rs.html#1-1109">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>xshell is a swiss-army knife for writing cross-platform “bash” scripts in
+Rust.</p>
+<p>It doesn’t use the shell directly, but rather re-implements parts of
+scripting environment in Rust. The intended use-case is various bits of glue
+code, which could be written in bash or python. The original motivation is
+<a href="https://github.com/matklad/cargo-xtask"><code>xtask</code></a> development.</p>
+<p>Here’s a quick example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>xshell::{Shell, cmd};
+
+<span class="kw">let </span>sh = Shell::new()<span class="question-mark">?</span>;
+<span class="kw">let </span>branch = <span class="string">&quot;main&quot;</span>;
+<span class="kw">let </span>commit_hash = <span class="macro">cmd!</span>(sh, <span class="string">&quot;git rev-parse {branch}&quot;</span>).read()<span class="question-mark">?</span>;</code></pre></div>
+<p><strong>Goals:</strong></p>
+<ul>
+<li>Ergonomics and DWIM (“do what I mean”): <code>cmd!</code> macro supports
+interpolation, writing to a file automatically creates parent directories,
+etc.</li>
+<li>Reliability: no <a href="https://en.wikipedia.org/wiki/Code_injection#Shell_injection">shell injection</a> by construction, good error messages
+with file  paths, non-zero exit status is an error, independence of the
+host environment, etc.</li>
+<li>Frugality: fast compile times, few dependencies, low-tech API.</li>
+</ul>
+<h2 id="guide"><a href="#guide">Guide</a></h2>
+<p>For a short API overview, let’s implement a script to clone a github
+repository and publish it as a crates.io crate. The script will do the
+following:</p>
+<ol>
+<li>Clone the repository.</li>
+<li><code>cd</code> into the repository’s directory.</li>
+<li>Run the tests.</li>
+<li>Create a git tag using a version from <code>Cargo.toml</code>.</li>
+<li>Publish the crate with an optional <code>--dry-run</code>.</li>
+</ol>
+<p>Start with the following skeleton:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>xshell::{cmd, Shell};
+
+<span class="kw">fn </span>main() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span>sh = Shell::new()<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<p>Only two imports are needed – the <a href="struct.Shell.html" title="Shell"><code>Shell</code></a> struct the and <a href="macro.cmd.html" title="cmd!"><code>cmd!</code></a> macro.
+By convention, an instance of a <a href="struct.Shell.html" title="Shell"><code>Shell</code></a> is stored in a variable named
+<code>sh</code>. All the API is available as methods, so a short name helps here. For
+“scripts”, the <a href="https://docs.rs/anyhow"><code>anyhow</code></a> crate is a great choice
+for an error-handling library.</p>
+<p>Next, clone the repository:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">cmd!</span>(sh, <span class="string">&quot;git clone https://github.com/matklad/xshell.git&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>The <a href="macro.cmd.html" title="cmd!"><code>cmd!</code></a> macro provides a convenient syntax for creating a command –
+the <a href="struct.Cmd.html" title="Cmd"><code>Cmd</code></a> struct. The <a href="struct.Cmd.html#method.run" title="Cmd::run"><code>Cmd::run</code></a> method runs the command as if you
+typed it into the shell. The whole program outputs:</p>
+<div class="example-wrap"><pre class="language-console"><code>$ git clone https://github.com/matklad/xshell.git
+Cloning into &#39;xshell&#39;...
+remote: Enumerating objects: 676, done.
+remote: Counting objects: 100% (220/220), done.
+remote: Compressing objects: 100% (123/123), done.
+remote: Total 676 (delta 106), reused 162 (delta 76), pack-reused 456
+Receiving objects: 100% (676/676), 136.80 KiB | 222.00 KiB/s, done.
+Resolving deltas: 100% (327/327), done.
+</code></pre></div>
+<p>Note that the command itself is echoed to stderr (the <code>$ git ...</code> bit in the
+output). You can use <a href="struct.Cmd.html#method.quiet" title="Cmd::quiet"><code>Cmd::quiet</code></a> to override this behavior:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">cmd!</span>(sh, <span class="string">&quot;git clone https://github.com/matklad/xshell.git&quot;</span>)
+    .quiet()
+    .run()<span class="question-mark">?</span>;</code></pre></div>
+<p>To make the code more general, let’s use command interpolation to extract
+the username and the repository:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>user = <span class="string">&quot;matklad&quot;</span>;
+<span class="kw">let </span>repo = <span class="string">&quot;xshell&quot;</span>;
+<span class="macro">cmd!</span>(sh, <span class="string">&quot;git clone https://github.com/{user}/{repo}.git&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>Note that the <code>cmd!</code> macro parses the command string at compile time, so you
+don’t have to worry about escaping the arguments. For example, the following
+command “touches” a single file whose name is <code>contains a space</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>file = <span class="string">&quot;contains a space&quot;</span>;
+<span class="macro">cmd!</span>(sh, <span class="string">&quot;touch {file}&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>Next, <code>cd</code> into the folder you have just cloned:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>sh.change_dir(repo);</code></pre></div>
+<p>Each instance of <a href="struct.Shell.html" title="Shell"><code>Shell</code></a> has a current directory, which is independent of
+the process-wide <a href="https://doc.rust-lang.org/1.67.0/std/env/fn.current_dir.html" title="std::env::current_dir"><code>std::env::current_dir</code></a>. The same applies to the
+environment.</p>
+<p>Next, run the tests:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>test_args = [<span class="string">&quot;-Zunstable-options&quot;</span>, <span class="string">&quot;--report-time&quot;</span>];
+<span class="macro">cmd!</span>(sh, <span class="string">&quot;cargo test -- {test_args...}&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>Note how the so-called splat syntax (<code>...</code>) is used to interpolate an
+iterable of arguments.</p>
+<p>Next, read the Cargo.toml so that we can fetch crate’ declared version:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>manifest = sh.read_file(<span class="string">&quot;Cargo.toml&quot;</span>)<span class="question-mark">?</span>;</code></pre></div>
+<p><a href="struct.Shell.html#method.read_file" title="Shell::read_file"><code>Shell::read_file</code></a> works like <a href="https://doc.rust-lang.org/1.67.0/std/fs/fn.read_to_string.html" title="std::fs::read_to_string"><code>std::fs::read_to_string</code></a>, but paths are
+relative to the current directory of the <a href="struct.Shell.html" title="Shell"><code>Shell</code></a>. Unlike <a href="https://doc.rust-lang.org/1.67.0/std/fs/index.html" title="std::fs"><code>std::fs</code></a>,
+error messages are much more useful. For example, if there isn’t a
+<code>Cargo.toml</code> in the repository, the error message is:</p>
+<div class="example-wrap"><pre class="language-text"><code>Error: failed to read file `xshell/Cargo.toml`: no such file or directory (os error 2)
+</code></pre></div>
+<p><code>xshell</code> doesn’t implement string processing utils like <code>grep</code>, <code>sed</code> or
+<code>awk</code> – there’s no need to, built-in language features work fine, and it’s
+always possible to pull extra functionality from crates.io.</p>
+<p>To extract the <code>version</code> field from Cargo.toml, <a href="https://doc.rust-lang.org/1.67.0/std/primitive.str.html#method.split_once" title="str::split_once"><code>str::split_once</code></a> is
+enough:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>manifest = sh.read_file(<span class="string">&quot;Cargo.toml&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let </span>version = manifest
+    .split_once(<span class="string">&quot;version = \&quot;&quot;</span>)
+    .and_then(|it| it.<span class="number">1</span>.split_once(<span class="string">&#39;\&quot;&#39;</span>))
+    .map(|it| it.<span class="number">0</span>)
+    .ok_or_else(|| <span class="macro">anyhow::format_err!</span>(<span class="string">&quot;can&#39;t find version field in the manifest&quot;</span>))<span class="question-mark">?</span>;
+
+<span class="macro">cmd!</span>(sh, <span class="string">&quot;git tag {version}&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>The splat (<code>...</code>) syntax works with any iterable, and in Rust options are
+iterable. This means that <code>...</code> can be used to implement optional arguments.
+For example, here’s how to pass <code>--dry-run</code> when <em>not</em> running in CI:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>dry_run = <span class="kw">if </span>sh.var(<span class="string">&quot;CI&quot;</span>).is_ok() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(<span class="string">&quot;--dry-run&quot;</span>) };
+<span class="macro">cmd!</span>(sh, <span class="string">&quot;cargo publish {dry_run...}&quot;</span>).run()<span class="question-mark">?</span>;</code></pre></div>
+<p>Putting everything altogether, here’s the whole script:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>xshell::{cmd, Shell};
+
+<span class="kw">fn </span>main() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span>sh = Shell::new()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>user = <span class="string">&quot;matklad&quot;</span>;
+    <span class="kw">let </span>repo = <span class="string">&quot;xshell&quot;</span>;
+    <span class="macro">cmd!</span>(sh, <span class="string">&quot;git clone https://github.com/{user}/{repo}.git&quot;</span>).run()<span class="question-mark">?</span>;
+    sh.change_dir(repo);
+
+    <span class="kw">let </span>test_args = [<span class="string">&quot;-Zunstable-options&quot;</span>, <span class="string">&quot;--report-time&quot;</span>];
+    <span class="macro">cmd!</span>(sh, <span class="string">&quot;cargo test -- {test_args...}&quot;</span>).run()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>manifest = sh.read_file(<span class="string">&quot;Cargo.toml&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>version = manifest
+        .split_once(<span class="string">&quot;version = \&quot;&quot;</span>)
+        .and_then(|it| it.<span class="number">1</span>.split_once(<span class="string">&#39;\&quot;&#39;</span>))
+        .map(|it| it.<span class="number">0</span>)
+        .ok_or_else(|| <span class="macro">anyhow::format_err!</span>(<span class="string">&quot;can&#39;t find version field in the manifest&quot;</span>))<span class="question-mark">?</span>;
+
+    <span class="macro">cmd!</span>(sh, <span class="string">&quot;git tag {version}&quot;</span>).run()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>dry_run = <span class="kw">if </span>sh.var(<span class="string">&quot;CI&quot;</span>).is_ok() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(<span class="string">&quot;--dry-run&quot;</span>) };
+    <span class="macro">cmd!</span>(sh, <span class="string">&quot;cargo publish {dry_run...}&quot;</span>).run()<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<p><code>xshell</code> itself uses a similar script to automatically publish oneself to
+crates.io when the version in Cargo.toml changes:</p>
+<p><a href="https://github.com/matklad/xshell/blob/master/examples/ci.rs">https://github.com/matklad/xshell/blob/master/examples/ci.rs</a></p>
+<h2 id="maintenance"><a href="#maintenance">Maintenance</a></h2>
+<p>Minimum Supported Rust Version: 1.59.0. MSRV bump is not considered semver
+breaking. MSRV is updated conservatively.</p>
+<p>The crate isn’t comprehensive yet, but this is a goal. You are hereby
+encouraged to submit PRs with missing functionality!</p>
+<h2 id="related-crates"><a href="#related-crates">Related Crates</a></h2>
+<p><a href="https://github.com/oconnor663/duct.rs"><code>duct</code></a> is a crate for heavy-duty process herding, with support for
+pipelines.</p>
+<p>Most of what this crate provides can be open-coded using
+<a href="https://doc.rust-lang.org/1.67.0/std/process/struct.Command.html" title="std::process::Command"><code>std::process::Command</code></a> and <a href="https://doc.rust-lang.org/1.67.0/std/fs/index.html" title="std::fs"><code>std::fs</code></a>. If you only need to spawn a
+single process, using <code>std</code> is probably better (but don’t forget to check
+the exit status!).</p>
+<h2 id="implementation-notes"><a href="#implementation-notes">Implementation Notes</a></h2>
+<p>The design is heavily inspired by the Julia language:</p>
+<ul>
+<li><a href="https://julialang.org/blog/2012/03/shelling-out-sucks/">Shelling Out
+Sucks</a></li>
+<li><a href="https://julialang.org/blog/2013/04/put-this-in-your-pipe/">Put This In Your
+Pipe</a></li>
+<li><a href="https://docs.julialang.org/en/v1/manual/running-external-programs/">Running External
+Programs</a></li>
+<li><a href="https://docs.julialang.org/en/v1/base/file/">Filesystem</a></li>
+</ul>
+<p>Smaller influences are the <a href="https://github.com/oconnor663/duct.rs"><code>duct</code></a> crate and Ruby’s
+<a href="https://ruby-doc.org/stdlib-2.4.1/libdoc/fileutils/rdoc/FileUtils.html"><code>FileUtils</code></a>
+module.</p>
+<p>The <code>cmd!</code> macro uses a simple proc-macro internally. It doesn’t depend on
+helper libraries, so the fixed-cost impact on compile times is moderate.
+Compiling a trivial program with <code>cmd!(&quot;date +%Y-%m-%d&quot;)</code> takes one second.
+Equivalent program using only <code>std::process::Command</code> compiles in 0.25
+seconds.</p>
+<p>To make IDEs infer correct types without expanding proc-macro, it is wrapped
+into a declarative macro which supplies type hints.</p>
+</div></details><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cmd.html" title="xshell::cmd macro">cmd</a></div><div class="item-right docblock-short">Constructs a <a href="struct.Cmd.html" title="Cmd"><code>Cmd</code></a> from the given string.</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Cmd.html" title="xshell::Cmd struct">Cmd</a></div><div class="item-right docblock-short">A builder object for constructing a subprocess.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="xshell::Error struct">Error</a></div><div class="item-right docblock-short">An error returned by an <code>xshell</code> operation.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PushDir.html" title="xshell::PushDir struct">PushDir</a></div><div class="item-right docblock-short">RAII guard returned from <a href="struct.Shell.html#method.push_dir" title="Shell::push_dir"><code>Shell::push_dir</code></a>.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PushEnv.html" title="xshell::PushEnv struct">PushEnv</a></div><div class="item-right docblock-short">RAII guard returned from <a href="struct.Shell.html#method.push_env" title="Shell::push_env"><code>Shell::push_env</code></a>.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Shell.html" title="xshell::Shell struct">Shell</a></div><div class="item-right docblock-short">A <code>Shell</code> is the main API entry point.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TempDir.html" title="xshell::TempDir struct">TempDir</a></div><div class="item-right docblock-short">A temporary directory.</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Result.html" title="xshell::Result type">Result</a></div><div class="item-right docblock-short"><code>Result</code> from std, with the error type defaulting to xshell’s <a href="struct.Error.html" title="Error"><code>Error</code></a>.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="xshell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

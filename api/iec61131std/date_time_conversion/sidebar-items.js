@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["DATE_AND_TIME_TO_DATE",". Converts DT/LDT to DATE"],["DATE_AND_TIME_TO_TIME_OF_DAY",". Converts DT/LDT to TOD/LTOD"]]};

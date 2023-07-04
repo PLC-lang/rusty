@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["evaluate",""],["evaluate_constants","returns the resolved constants index and a Vec of qualified names of constants that could not be resolved."]],"struct":[["UnresolvableConstant","a wrapper for an unresolvable const-expression with the reason why it could not be resolved"]]};

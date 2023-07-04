@@ -298,6 +298,10 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
@@ -322,6 +326,7 @@
 
 <span class="kw">pub trait </span>GlobalValueExt {
     <span class="kw">fn </span>make_constant(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>make_private(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>make_external(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>set_initial_value(<span class="self">self</span>, initial_value: <span class="prelude-ty">Option</span>&lt;BasicValueEnum&gt;, data_type: BasicTypeEnum) -&gt; <span class="self">Self</span>;
 }
@@ -333,9 +338,13 @@
         <span class="self">self
     </span>}
 
+    <span class="kw">fn </span>make_private(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.set_linkage(Linkage::Private);
+        <span class="self">self
+    </span>}
+
     <span class="kw">fn </span>make_external(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="comment">// self.set_linkage(Linkage::AvailableExternally);
-        </span><span class="self">self</span>.set_linkage(Linkage::External);
+        <span class="self">self</span>.set_linkage(Linkage::External);
         <span class="self">self
     </span>}
 
@@ -371,7 +380,6 @@
     ) -&gt; GlobalValue&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">let </span>global = module.add_global(data_type, <span class="prelude-val">None</span>, name);
         global.set_thread_local_mode(<span class="prelude-val">None</span>);
-        global.set_linkage(Linkage::External);
         global
     }
 

@@ -424,6 +424,10 @@ This second annotation is called the <em>type-hint</em>. It indicates that while
 </div>
 <p>With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily.
 The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.</p>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<p>When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
+This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
+This information can then be used during the <a href="./codegen.html">codegen</a> period to only generated types and variables that are relevant to the unit.</p>
 
                     </main>
 

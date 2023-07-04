@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.141/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../libc/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.146/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../libc/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4874,6 +4874,51 @@
 <a href="#4874" id="4874">4874</a>
 <a href="#4875" id="4875">4875</a>
 <a href="#4876" id="4876">4876</a>
+<a href="#4877" id="4877">4877</a>
+<a href="#4878" id="4878">4878</a>
+<a href="#4879" id="4879">4879</a>
+<a href="#4880" id="4880">4880</a>
+<a href="#4881" id="4881">4881</a>
+<a href="#4882" id="4882">4882</a>
+<a href="#4883" id="4883">4883</a>
+<a href="#4884" id="4884">4884</a>
+<a href="#4885" id="4885">4885</a>
+<a href="#4886" id="4886">4886</a>
+<a href="#4887" id="4887">4887</a>
+<a href="#4888" id="4888">4888</a>
+<a href="#4889" id="4889">4889</a>
+<a href="#4890" id="4890">4890</a>
+<a href="#4891" id="4891">4891</a>
+<a href="#4892" id="4892">4892</a>
+<a href="#4893" id="4893">4893</a>
+<a href="#4894" id="4894">4894</a>
+<a href="#4895" id="4895">4895</a>
+<a href="#4896" id="4896">4896</a>
+<a href="#4897" id="4897">4897</a>
+<a href="#4898" id="4898">4898</a>
+<a href="#4899" id="4899">4899</a>
+<a href="#4900" id="4900">4900</a>
+<a href="#4901" id="4901">4901</a>
+<a href="#4902" id="4902">4902</a>
+<a href="#4903" id="4903">4903</a>
+<a href="#4904" id="4904">4904</a>
+<a href="#4905" id="4905">4905</a>
+<a href="#4906" id="4906">4906</a>
+<a href="#4907" id="4907">4907</a>
+<a href="#4908" id="4908">4908</a>
+<a href="#4909" id="4909">4909</a>
+<a href="#4910" id="4910">4910</a>
+<a href="#4911" id="4911">4911</a>
+<a href="#4912" id="4912">4912</a>
+<a href="#4913" id="4913">4913</a>
+<a href="#4914" id="4914">4914</a>
+<a href="#4915" id="4915">4915</a>
+<a href="#4916" id="4916">4916</a>
+<a href="#4917" id="4917">4917</a>
+<a href="#4918" id="4918">4918</a>
+<a href="#4919" id="4919">4919</a>
+<a href="#4920" id="4920">4920</a>
+<a href="#4921" id="4921">4921</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Linux-specific definitions for linux-like values
 
 </span><span class="kw">pub type </span>useconds_t = u32;
@@ -4937,11 +4982,6 @@
 }
 
 <span class="macro">s! </span>{
-    <span class="kw">pub struct </span>rlimit64 {
-        <span class="kw">pub </span>rlim_cur: rlim64_t,
-        <span class="kw">pub </span>rlim_max: rlim64_t,
-    }
-
     <span class="kw">pub struct </span>glob_t {
         <span class="kw">pub </span>gl_pathc: ::size_t,
         <span class="kw">pub </span>gl_pathv: <span class="kw-2">*mut *mut </span>c_char,
@@ -5561,6 +5601,11 @@
     <span class="kw">pub struct </span>sctp_authinfo {
         <span class="kw">pub </span>auth_keynumber: ::__u16,
     }
+
+    <span class="kw">pub struct </span>rlimit64 {
+        <span class="kw">pub </span>rlim_cur: rlim64_t,
+        <span class="kw">pub </span>rlim_max: rlim64_t,
+    }
 }
 
 <span class="macro">s_no_extra_traits! </span>{
@@ -5574,14 +5619,6 @@
     <span class="kw">pub struct </span>dirent {
         <span class="kw">pub </span>d_ino: ::ino_t,
         <span class="kw">pub </span>d_off: ::off_t,
-        <span class="kw">pub </span>d_reclen: ::c_ushort,
-        <span class="kw">pub </span>d_type: ::c_uchar,
-        <span class="kw">pub </span>d_name: [::c_char; <span class="number">256</span>],
-    }
-
-    <span class="kw">pub struct </span>dirent64 {
-        <span class="kw">pub </span>d_ino: ::ino64_t,
-        <span class="kw">pub </span>d_off: ::off64_t,
         <span class="kw">pub </span>d_reclen: ::c_ushort,
         <span class="kw">pub </span>d_type: ::c_uchar,
         <span class="kw">pub </span>d_name: [::c_char; <span class="number">256</span>],
@@ -5679,6 +5716,14 @@
         <span class="kw">pub </span>flags: ::c_int,
         <span class="kw">pub </span>tx_type: ::c_int,
         <span class="kw">pub </span>rx_filter: ::c_int,
+    }
+
+    <span class="kw">pub struct </span>dirent64 {
+        <span class="kw">pub </span>d_ino: ::ino64_t,
+        <span class="kw">pub </span>d_off: ::off64_t,
+        <span class="kw">pub </span>d_reclen: ::c_ushort,
+        <span class="kw">pub </span>d_type: ::c_uchar,
+        <span class="kw">pub </span>d_name: [::c_char; <span class="number">256</span>],
     }
 }
 
@@ -6809,9 +6854,7 @@
 <span class="comment">// netinet/in.h
 // NOTE: These are in addition to the constants defined in src/unix/mod.rs
 
-</span><span class="doccomment">/// Multipath TCP
-</span><span class="kw">pub const </span>IPPROTO_MPTCP: ::c_int = <span class="number">262</span>;
-<span class="attr">#[deprecated(
+</span><span class="attr">#[deprecated(
     since = <span class="string">&quot;0.2.80&quot;</span>,
     note = <span class="string">&quot;This value was increased in the newer kernel \
             and we&#39;ll change this following upstream in the future release. \
@@ -8070,6 +8113,19 @@
 <span class="kw">pub const </span>ALG_OP_DECRYPT: ::c_int = <span class="number">0</span>;
 <span class="kw">pub const </span>ALG_OP_ENCRYPT: ::c_int = <span class="number">1</span>;
 
+<span class="comment">// include/uapi/linux/if.h
+</span><span class="kw">pub const </span>IF_OPER_UNKNOWN: ::c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>IF_OPER_NOTPRESENT: ::c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>IF_OPER_DOWN: ::c_int = <span class="number">2</span>;
+<span class="kw">pub const </span>IF_OPER_LOWERLAYERDOWN: ::c_int = <span class="number">3</span>;
+<span class="kw">pub const </span>IF_OPER_TESTING: ::c_int = <span class="number">4</span>;
+<span class="kw">pub const </span>IF_OPER_DORMANT: ::c_int = <span class="number">5</span>;
+<span class="kw">pub const </span>IF_OPER_UP: ::c_int = <span class="number">6</span>;
+
+<span class="kw">pub const </span>IF_LINK_MODE_DEFAULT: ::c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>IF_LINK_MODE_DORMANT: ::c_int = <span class="number">1</span>;
+<span class="kw">pub const </span>IF_LINK_MODE_TESTING: ::c_int = <span class="number">2</span>;
+
 <span class="comment">// include/uapi/linux/udp.h
 </span><span class="kw">pub const </span>UDP_CORK: ::c_int = <span class="number">1</span>;
 <span class="kw">pub const </span>UDP_ENCAP: ::c_int = <span class="number">100</span>;
@@ -8588,9 +8644,11 @@
 <span class="kw">pub const </span>CAN_SFF_MASK: canid_t = <span class="number">0x000007FF</span>;
 <span class="kw">pub const </span>CAN_EFF_MASK: canid_t = <span class="number">0x1FFFFFFF</span>;
 <span class="kw">pub const </span>CAN_ERR_MASK: canid_t = <span class="number">0x1FFFFFFF</span>;
+<span class="kw">pub const </span>CANXL_PRIO_MASK: ::canid_t = CAN_SFF_MASK;
 
 <span class="kw">pub const </span>CAN_SFF_ID_BITS: ::c_int = <span class="number">11</span>;
 <span class="kw">pub const </span>CAN_EFF_ID_BITS: ::c_int = <span class="number">29</span>;
+<span class="kw">pub const </span>CANXL_PRIO_BITS: ::c_int = CAN_SFF_ID_BITS;
 
 <span class="kw">pub const </span>CAN_MAX_DLC: ::c_int = <span class="number">8</span>;
 <span class="kw">pub const </span>CAN_MAX_DLEN: usize = <span class="number">8</span>;
@@ -8600,10 +8658,26 @@
 <span class="kw">pub const </span>CANFD_BRS: ::c_int = <span class="number">0x01</span>;
 <span class="kw">pub const </span>CANFD_ESI: ::c_int = <span class="number">0x02</span>;
 
+<span class="kw">pub const </span>CANXL_MIN_DLC: ::c_int = <span class="number">0</span>;
+<span class="kw">pub const </span>CANXL_MAX_DLC: ::c_int = <span class="number">2047</span>;
+<span class="kw">pub const </span>CANXL_MAX_DLC_MASK: ::c_int = <span class="number">0x07FF</span>;
+<span class="kw">pub const </span>CANXL_MIN_DLEN: usize = <span class="number">1</span>;
+<span class="kw">pub const </span>CANXL_MAX_DLEN: usize = <span class="number">2048</span>;
+
+<span class="kw">pub const </span>CANXL_XLF: ::c_int = <span class="number">0x80</span>;
+<span class="kw">pub const </span>CANXL_SEC: ::c_int = <span class="number">0x01</span>;
+
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(libc_align)] </span>{
         <span class="kw">pub const </span>CAN_MTU: usize = ::mem::size_of::&lt;can_frame&gt;();
         <span class="kw">pub const </span>CANFD_MTU: usize = ::mem::size_of::&lt;canfd_frame&gt;();
+        <span class="kw">pub const </span>CANXL_MTU: usize = ::mem::size_of::&lt;canxl_frame&gt;();
+        <span class="comment">// FIXME: use `core::mem::offset_of!` once that is available
+        // https://github.com/rust-lang/rfcs/pull/3308
+        // pub const CANXL_HDR_SIZE: usize = core::mem::offset_of!(canxl_frame, data);
+        </span><span class="kw">pub const </span>CANXL_HDR_SIZE: usize = <span class="number">12</span>;
+        <span class="kw">pub const </span>CANXL_MIN_MTU: usize = CANXL_HDR_SIZE + <span class="number">64</span>;
+        <span class="kw">pub const </span>CANXL_MAX_MTU: usize = CANXL_MTU;
     }
 }
 
@@ -8629,6 +8703,7 @@
 <span class="kw">pub const </span>CAN_RAW_RECV_OWN_MSGS: ::c_int = <span class="number">4</span>;
 <span class="kw">pub const </span>CAN_RAW_FD_FRAMES: ::c_int = <span class="number">5</span>;
 <span class="kw">pub const </span>CAN_RAW_JOIN_FILTERS: ::c_int = <span class="number">6</span>;
+<span class="kw">pub const </span>CAN_RAW_XL_FRAMES: ::c_int = <span class="number">7</span>;
 
 <span class="comment">// linux/can/j1939.h
 </span><span class="kw">pub const </span>SOL_CAN_J1939: ::c_int = SOL_CAN_BASE + CAN_J1939;
@@ -9145,21 +9220,8 @@
     <span class="kw">pub fn </span>mprotect(addr: <span class="kw-2">*mut </span>::c_void, len: ::size_t, prot: ::c_int) -&gt; ::c_int;
     <span class="kw">pub fn </span>__errno_location() -&gt; <span class="kw-2">*mut </span>::c_int;
 
-    <span class="kw">pub fn </span>fopen64(filename: <span class="kw-2">*const </span>c_char, mode: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>::FILE;
-    <span class="kw">pub fn </span>freopen64(
-        filename: <span class="kw-2">*const </span>c_char,
-        mode: <span class="kw-2">*const </span>c_char,
-        file: <span class="kw-2">*mut </span>::FILE,
-    ) -&gt; <span class="kw-2">*mut </span>::FILE;
-    <span class="kw">pub fn </span>tmpfile64() -&gt; <span class="kw-2">*mut </span>::FILE;
-    <span class="kw">pub fn </span>fgetpos64(stream: <span class="kw-2">*mut </span>::FILE, ptr: <span class="kw-2">*mut </span>fpos64_t) -&gt; ::c_int;
-    <span class="kw">pub fn </span>fsetpos64(stream: <span class="kw-2">*mut </span>::FILE, ptr: <span class="kw-2">*const </span>fpos64_t) -&gt; ::c_int;
-    <span class="kw">pub fn </span>fseeko64(stream: <span class="kw-2">*mut </span>::FILE, offset: ::off64_t, whence: ::c_int) -&gt; ::c_int;
-    <span class="kw">pub fn </span>ftello64(stream: <span class="kw-2">*mut </span>::FILE) -&gt; ::off64_t;
     <span class="kw">pub fn </span>fallocate(fd: ::c_int, mode: ::c_int, offset: ::off_t, len: ::off_t) -&gt; ::c_int;
-    <span class="kw">pub fn </span>fallocate64(fd: ::c_int, mode: ::c_int, offset: ::off64_t, len: ::off64_t) -&gt; ::c_int;
     <span class="kw">pub fn </span>posix_fallocate(fd: ::c_int, offset: ::off_t, len: ::off_t) -&gt; ::c_int;
-    <span class="kw">pub fn </span>posix_fallocate64(fd: ::c_int, offset: ::off64_t, len: ::off64_t) -&gt; ::c_int;
     <span class="kw">pub fn </span>readahead(fd: ::c_int, offset: ::off64_t, count: ::size_t) -&gt; ::ssize_t;
     <span class="kw">pub fn </span>getxattr(
         path: <span class="kw-2">*const </span>c_char,
@@ -9460,12 +9522,6 @@
         offset: <span class="kw-2">*mut </span>off_t,
         count: ::size_t,
     ) -&gt; ::ssize_t;
-    <span class="kw">pub fn </span>sendfile64(
-        out_fd: ::c_int,
-        in_fd: ::c_int,
-        offset: <span class="kw-2">*mut </span>off64_t,
-        count: ::size_t,
-    ) -&gt; ::ssize_t;
     <span class="kw">pub fn </span>sigsuspend(mask: <span class="kw-2">*const </span>::sigset_t) -&gt; ::c_int;
     <span class="kw">pub fn </span>getgrgid_r(
         gid: ::gid_t,
@@ -9715,6 +9771,40 @@
         len: ::size_t,
         flags: ::c_uint,
     ) -&gt; ::ssize_t;
+}
+
+<span class="comment">// LFS64 extensions
+//
+// * musl has 64-bit versions only so aliases the LFS64 symbols to the standard ones
+</span><span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(target_env = <span class="string">&quot;musl&quot;</span>))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>fallocate64(
+                fd: ::c_int,
+                mode: ::c_int,
+                offset: ::off64_t,
+                len: ::off64_t
+            ) -&gt; ::c_int;
+            <span class="kw">pub fn </span>fgetpos64(stream: <span class="kw-2">*mut </span>::FILE, ptr: <span class="kw-2">*mut </span>fpos64_t) -&gt; ::c_int;
+            <span class="kw">pub fn </span>fopen64(filename: <span class="kw-2">*const </span>c_char, mode: <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>::FILE;
+            <span class="kw">pub fn </span>freopen64(
+                filename: <span class="kw-2">*const </span>c_char,
+                mode: <span class="kw-2">*const </span>c_char,
+                file: <span class="kw-2">*mut </span>::FILE,
+            ) -&gt; <span class="kw-2">*mut </span>::FILE;
+            <span class="kw">pub fn </span>fseeko64(stream: <span class="kw-2">*mut </span>::FILE, offset: ::off64_t, whence: ::c_int) -&gt; ::c_int;
+            <span class="kw">pub fn </span>fsetpos64(stream: <span class="kw-2">*mut </span>::FILE, ptr: <span class="kw-2">*const </span>fpos64_t) -&gt; ::c_int;
+            <span class="kw">pub fn </span>ftello64(stream: <span class="kw-2">*mut </span>::FILE) -&gt; ::off64_t;
+            <span class="kw">pub fn </span>posix_fallocate64(fd: ::c_int, offset: ::off64_t, len: ::off64_t) -&gt; ::c_int;
+            <span class="kw">pub fn </span>sendfile64(
+                out_fd: ::c_int,
+                in_fd: ::c_int,
+                offset: <span class="kw-2">*mut </span>off64_t,
+                count: ::size_t,
+            ) -&gt; ::ssize_t;
+            <span class="kw">pub fn </span>tmpfile64() -&gt; <span class="kw-2">*mut </span>::FILE;
+        }
+    }
 }
 
 <span class="macro">cfg_if! </span>{

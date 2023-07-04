@@ -143,15 +143,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
-<p>In addition to the comprehensive help, <code>rustyc</code> offers a build subcommand that simplifies the build process. </br>
+<p>In addition to the comprehensive help, <code>plc</code> offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
 <p>Usage:
-<code>rustyc build</code></p>
-<p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
+<code>plc build</code></p>
+<p>Note that if <code>plc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
 The default location for the build file is the current directory.</p>
 <p>The command for building with an additional path looks like this:
-<code>rustyc build src/plc.json</code></p>
+<code>plc build src/plc.json</code></p>
 <h2 id="build-description-file-plcjson"><a class="header" href="#build-description-file-plcjson">Build description file (plc.json)</a></h2>
 <p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format.
 All the keys used in the build description file are described in the following sections.</p>
@@ -165,7 +165,7 @@ All the keys used in the build description file are described in the following s
 ]
 </code></pre>
 <h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
-<p>To link several objects into one executable <code>rustyc</code> has the option to add libraries and automatically build and link them together.</br>
+<p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.</br>
 The <code>libraries</code> keyword is optional.</p>
 <pre><code class="language-json">&quot;libraries&quot; : [
     {

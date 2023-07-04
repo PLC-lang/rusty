@@ -272,12 +272,26 @@
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
 </pre><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
 </span><span class="kw">use </span>which::which;
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>std::{
     error::Error,
     path::{Path, PathBuf},
@@ -302,8 +316,6 @@
 
 <span class="kw">impl </span>Linker {
     <span class="kw">pub fn </span>new(target: <span class="kw-2">&amp;</span>str, linker: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Linker, LinkerError&gt; {
-        <span class="kw">let </span>target_os = target.split(<span class="string">&#39;-&#39;</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">2</span>];
-
         <span class="prelude-val">Ok</span>(Linker {
             errors: Vec::default(),
             linker: <span class="kw">match </span>linker {
@@ -311,11 +323,18 @@
 
                 <span class="comment">// TODO: Linker for Windows is missing, see also:
                 // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
-                </span><span class="prelude-val">None </span>=&gt; <span class="kw">match </span>target_os {
-                    <span class="string">&quot;win32&quot; </span>| <span class="string">&quot;windows&quot; </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(LinkerError::Target(target_os.into())),
+                </span><span class="prelude-val">None </span>=&gt; {
+                    <span class="kw">let </span>[platform, target_os] = target.split(<span class="string">&#39;-&#39;</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">1</span>..=<span class="number">2</span>] <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(LinkerError::Target(target.into()));
+                    };
+                    <span class="kw">match </span>(platform, target_os) {
+                        (<span class="kw">_</span>, <span class="string">&quot;win32&quot;</span>) | (<span class="kw">_</span>, <span class="string">&quot;windows&quot;</span>) | (<span class="string">&quot;win32&quot;</span>, <span class="kw">_</span>) | (<span class="string">&quot;windows&quot;</span>, <span class="kw">_</span>) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(LinkerError::Target(target_os.into()))
+                        }
 
-                    <span class="kw">_ </span>=&gt; Box::new(LdLinker::new()),
-                },
+                        <span class="kw">_ </span>=&gt; Box::new(LdLinker::new()),
+                    }
+                }
             },
         })
     }
@@ -345,30 +364,30 @@
     </span>}
 
     <span class="doccomment">/// Set the output file and run the linker to generate a shared object
-    </span><span class="kw">pub fn </span>build_shared_obj(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(path) {
+    </span><span class="kw">pub fn </span>build_shared_obj(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LinkerError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(<span class="kw-2">&amp;</span>path) {
             <span class="self">self</span>.linker.build_shared_object(file);
             <span class="self">self</span>.linker.finalize()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(path)
     }
 
     <span class="doccomment">/// Set the output file and run the linker to generate an executable
-    </span><span class="kw">pub fn </span>build_exectuable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(path) {
+    </span><span class="kw">pub fn </span>build_exectuable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LinkerError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(<span class="kw-2">&amp;</span>path) {
             <span class="self">self</span>.linker.build_exectuable(file);
             <span class="self">self</span>.linker.finalize()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(path)
     }
 
     <span class="doccomment">/// Set the output file and run the linker to generate a relocatable object for further linking
-    </span><span class="kw">pub fn </span>build_relocatable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(path) {
+    </span><span class="kw">pub fn </span>build_relocatable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LinkerError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.get_str_from_path(<span class="kw-2">&amp;</span>path) {
             <span class="self">self</span>.linker.build_relocatable(file);
             <span class="self">self</span>.linker.finalize()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(path)
     }
 
     <span class="doccomment">/// Check if the path is valid, log an error if it wasn&#39;t
@@ -430,8 +449,7 @@
         <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
             .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">&quot;{e} for linker: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
-        </span><span class="macro">println!</span>(<span class="string">&quot;Linker command : {} {}&quot;</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
+        <span class="macro">debug!</span>(<span class="string">&quot;Linker command : {} {}&quot;</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
 
         <span class="kw">let </span>status = Command::new(linker_location).args(<span class="kw-2">&amp;</span><span class="self">self</span>.args).status()<span class="question-mark">?</span>;
         <span class="kw">if </span>status.success() {
@@ -531,10 +549,16 @@
     <span class="kw">for </span>target <span class="kw">in </span><span class="kw-2">&amp;</span>[
         <span class="string">&quot;x86_64-pc-windows-gnu&quot;</span>,
         <span class="string">&quot;x86_64-pc-win32-gnu&quot;</span>,
+        <span class="string">&quot;x86_64-windows-gnu&quot;</span>,
+        <span class="string">&quot;x86_64-win32-gnu&quot;</span>,
         <span class="string">&quot;aarch64-pc-windows-gnu&quot;</span>,
         <span class="string">&quot;aarch64-pc-win32-gnu&quot;</span>,
+        <span class="string">&quot;aarch64-windows-gnu&quot;</span>,
+        <span class="string">&quot;aarch64-win32-gnu&quot;</span>,
         <span class="string">&quot;i686-pc-windows-gnu&quot;</span>,
         <span class="string">&quot;i686-pc-win32-gnu&quot;</span>,
+        <span class="string">&quot;i686-windows-gnu&quot;</span>,
+        <span class="string">&quot;i686-win32-gnu&quot;</span>,
     ] {
         <span class="macro">assert!</span>(Linker::new(target, <span class="prelude-val">None</span>).is_err());
     }
@@ -542,7 +566,9 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>non_windows_target_triple_should_result_in_ok() {
-    <span class="kw">for </span>target <span class="kw">in </span><span class="kw-2">&amp;</span>[<span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-unknown-linux-gnu&quot;</span>, <span class="string">&quot;aarch64-apple-darwin&quot;</span>] {
+    <span class="kw">for </span>target <span class="kw">in
+        </span><span class="kw-2">&amp;</span>[<span class="string">&quot;x86_64-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-unknown-linux-gnu&quot;</span>, <span class="string">&quot;aarch64-apple-darwin&quot;</span>]
+    {
         <span class="macro">assert!</span>(Linker::new(target, <span class="prelude-val">None</span>).is_ok());
     }
 }

@@ -918,6 +918,18 @@
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
 <a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -948,7 +960,11 @@
     };
 }
 
-<span class="kw">pub fn </span>visit_statement(validator: <span class="kw-2">&amp;mut </span>Validator, statement: <span class="kw-2">&amp;</span>AstStatement, context: <span class="kw-2">&amp;</span>ValidationContext) {
+<span class="kw">pub fn </span>visit_statement&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    statement: <span class="kw-2">&amp;</span>AstStatement,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
     <span class="kw">match </span>statement {
         <span class="comment">// AstStatement::EmptyStatement { location, id } =&gt; (),
         // AstStatement::DefaultValue { location, id } =&gt; (),
@@ -1060,14 +1076,14 @@
 
 <span class="doccomment">/// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
 /// checks whether the type-prefix is valid
-</span><span class="kw">fn </span>validate_cast_literal(
+</span><span class="kw">fn </span>validate_cast_literal&lt;T: AnnotationMap&gt;(
     <span class="comment">// TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     </span>validator: <span class="kw-2">&amp;mut </span>Validator,
     literal: <span class="kw-2">&amp;</span>AstLiteral,
     statement: <span class="kw-2">&amp;</span>AstStatement,
     type_name: <span class="kw-2">&amp;</span>str,
     location: <span class="kw-2">&amp;</span>SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span>cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
     <span class="kw">let </span>literal_type = context.index.get_type_information_or_void(
@@ -1118,10 +1134,10 @@
     }
 }
 
-<span class="kw">fn </span>validate_qualified_reference(
+<span class="kw">fn </span>validate_qualified_reference&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     elements: <span class="kw-2">&amp;</span>[AstStatement],
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span><span class="kw-2">mut </span>iter = elements.iter().rev();
     <span class="kw">if let </span><span class="prelude-val">Some</span>((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
@@ -1149,9 +1165,9 @@
     }
 }
 
-<span class="kw">fn </span>validate_access_index(
+<span class="kw">fn </span>validate_access_index&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
     access_index: <span class="kw-2">&amp;</span>AstStatement,
     access_type: <span class="kw-2">&amp;</span>DirectAccessType,
     target_type: <span class="kw-2">&amp;</span>DataTypeInformation,
@@ -1181,12 +1197,12 @@
     }
 }
 
-<span class="kw">fn </span>validate_reference(
+<span class="kw">fn </span>validate_reference&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     statement: <span class="kw-2">&amp;</span>AstStatement,
     ref_name: <span class="kw-2">&amp;</span>str,
     location: <span class="kw-2">&amp;</span>SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="comment">// unresolved reference
     </span><span class="kw">if </span>!context.annotations.has_type_annotation(statement) {
@@ -1210,11 +1226,11 @@
     }
 }
 
-<span class="kw">fn </span>visit_array_access(
+<span class="kw">fn </span>visit_array_access&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     reference: <span class="kw-2">&amp;</span>AstStatement,
     access: <span class="kw-2">&amp;</span>AstStatement,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span>target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
@@ -1264,12 +1280,12 @@
     }
 }
 
-<span class="kw">fn </span>validate_array_access(
+<span class="kw">fn </span>validate_array_access&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     access: <span class="kw-2">&amp;</span>AstStatement,
     dimensions: <span class="kw-2">&amp;</span>[Dimension],
     dimension_index: usize,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">if let </span>AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = access {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(dimension) = dimensions.get(dimension_index) {
@@ -1293,13 +1309,13 @@
     }
 }
 
-<span class="kw">fn </span>visit_binary_expression(
+<span class="kw">fn </span>visit_binary_expression&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     statement: <span class="kw-2">&amp;</span>AstStatement,
     operator: <span class="kw-2">&amp;</span>Operator,
     left: <span class="kw-2">&amp;</span>AstStatement,
     right: <span class="kw-2">&amp;</span>AstStatement,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">match </span>operator {
         Operator::NotEqual =&gt; {
@@ -1321,13 +1337,13 @@
     }
 }
 
-<span class="kw">fn </span>validate_binary_expression(
+<span class="kw">fn </span>validate_binary_expression&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     statement: <span class="kw-2">&amp;</span>AstStatement,
     operator: <span class="kw-2">&amp;</span>Operator,
     left: <span class="kw-2">&amp;</span>AstStatement,
     right: <span class="kw-2">&amp;</span>AstStatement,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span>left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
     <span class="kw">let </span>right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
@@ -1353,7 +1369,11 @@
     }
 }
 
-<span class="kw">fn </span>compare_function_exists(type_name: <span class="kw-2">&amp;</span>str, operator: <span class="kw-2">&amp;</span>Operator, context: <span class="kw-2">&amp;</span>ValidationContext) -&gt; bool {
+<span class="kw">fn </span>compare_function_exists&lt;T: AnnotationMap&gt;(
+    type_name: <span class="kw-2">&amp;</span>str,
+    operator: <span class="kw-2">&amp;</span>Operator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) -&gt; bool {
     <span class="kw">let </span>implementation = get_equals_function_name_for(type_name, operator)
         .as_ref()
         .and_then(|function_name| context.index.find_pou_implementation(function_name));
@@ -1444,12 +1464,12 @@
     }
 }
 
-<span class="kw">fn </span>validate_assignment(
+<span class="kw">fn </span>validate_assignment&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     right: <span class="kw-2">&amp;</span>AstStatement,
     left: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
     location: <span class="kw-2">&amp;</span>SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
         <span class="comment">// Check if we are assigning to a...
@@ -1513,9 +1533,9 @@
     }
 }
 
-<span class="kw">fn </span>validate_variable_length_array_assignment(
+<span class="kw">fn </span>validate_variable_length_array_assignment&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
     location: <span class="kw-2">&amp;</span>SourceRange,
     left_type: <span class="kw-2">&amp;</span>DataType,
     right_type: <span class="kw-2">&amp;</span>DataType,
@@ -1658,11 +1678,11 @@
         )
 }
 
-<span class="kw">fn </span>validate_call(
+<span class="kw">fn </span>validate_call&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     operator: <span class="kw-2">&amp;</span>AstStatement,
     parameters: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="comment">// visit called pou
     </span>visit_statement(validator, operator, context);
@@ -1737,12 +1757,12 @@
 }
 
 <span class="comment">// selector, case_blocks, else_block
-</span><span class="kw">fn </span>validate_case_statement(
+</span><span class="kw">fn </span>validate_case_statement&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     selector: <span class="kw-2">&amp;</span>AstStatement,
     case_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
     else_block: <span class="kw-2">&amp;</span>[AstStatement],
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     visit_statement(validator, selector, context);
 
@@ -1787,7 +1807,11 @@
 
 <span class="doccomment">/// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
-</span><span class="kw">fn </span>validate_type_nature(validator: <span class="kw-2">&amp;mut </span>Validator, statement: <span class="kw-2">&amp;</span>AstStatement, context: <span class="kw-2">&amp;</span>ValidationContext) {
+</span><span class="kw">fn </span>validate_type_nature&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    statement: <span class="kw-2">&amp;</span>AstStatement,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(type_hint) = context
         .annotations
         .get_type_hint(statement, context.index)
@@ -1821,22 +1845,22 @@
     }
 }
 
-<span class="kw">fn </span>_validate_assignment_type_sizes(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
-    left: <span class="kw-2">&amp;</span>DataType,
-    right: <span class="kw-2">&amp;</span>DataType,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
-) {
-    <span class="kw">if </span>left.get_type_information().get_size(context.index)
-        &lt; right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(Diagnostic::implicit_downcast(
-            left.get_name(),
-            right.get_name(),
-            location.clone(),
-        ))
-    }
-}
-</code></pre></div>
+<span class="comment">// fn validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
+//     validator: &amp;mut Validator,
+//     left: &amp;DataType,
+//     right: &amp;DataType,
+//     location: &amp;SourceRange,
+//     context: &amp;ValidationContext&lt;T&gt;,
+// ) {
+//     if left.get_type_information().get_size(context.index)
+//         &lt; right.get_type_information().get_size(context.index)
+//     {
+//         validator.push_diagnostic(Diagnostic::implicit_downcast(
+//             left.get_name(),
+//             right.get_name(),
+//             location.clone(),
+//         ))
+//     }
+// }
+</span></code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

@@ -127,16 +127,53 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
 </span><span class="kw">use crate</span>::{
-    ast::SourceRange,
+    ast::{LinkageType, SourceRange},
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     diagnostics::{Diagnostic, ErrNo},
-    index::{Index, PouIndexEntry, VariableIndexEntry},
-    resolver::{AnnotationMap, AstAnnotations},
+    index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
+    resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
+<span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
 
 <span class="kw">use super</span>::{
@@ -146,115 +183,150 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::codegen::debug::DebugBuilderEnum;
 
-<span class="kw">pub fn </span>generate_global_variables&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span>&gt;(
+<span class="kw">pub struct </span>VariableGenerator&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span>&gt; {
     module: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;,
     llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
     global_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
     annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
     types_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;, Diagnostic&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>index = LlvmTypedIndex::default();
+    debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+}
 
-    <span class="kw">fn </span>to_k_v&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(kv: (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>VariableIndexEntry)) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>VariableIndexEntry) {
-        (kv.<span class="number">0</span>.as_str(), kv.<span class="number">1</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span>&gt; VariableGenerator&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="kw">pub fn </span>new(
+        module: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        global_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
+        annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
+        types_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
     }
 
-    <span class="comment">//all declared global variables
-    </span><span class="kw">let </span>globals = global_index.get_globals().elements().map(to_k_v);
-    <span class="comment">//all initializers
-    </span><span class="kw">let </span>initializers = global_index.get_global_initializers().elements().map(to_k_v);
-    <span class="comment">//all enum-elements
-    </span><span class="kw">let </span>enums = global_index.get_global_qualified_enums().elements().map(to_k_v);
-    <span class="comment">//all program instances
-    </span><span class="kw">let </span>programs = global_index
-        .get_pous()
-        .values()
-        .filter_map(|p| <span class="kw">match </span>p {
-            PouIndexEntry::Program { instance_variable, .. } =&gt; <span class="prelude-val">Some</span>(instance_variable),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        })
-        .map(|v| (v.get_qualified_name(), v));
+    <span class="kw">pub fn </span>generate_global_variables(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+        location: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>index = LlvmTypedIndex::default();
 
-    <span class="kw">for </span>(name, variable) <span class="kw">in </span>globals.chain(programs).chain(initializers).chain(enums) {
-        <span class="kw">let </span>global_variable =
-            generate_global_variable(module, llvm, global_index, annotations, types_index, variable)
-                .map_err(|err| <span class="kw">match </span>err.get_type() {
+        <span class="kw">let </span><span class="kw-2">mut </span>globals = <span class="macro">vec!</span>[];
+        dependencies.iter().for_each(|dep| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dep) = <span class="kw">match </span>dep {
+                Dependency::Datatype(name) =&gt; {
+                    <span class="comment">//Attempt to find a pou with that name
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(PouIndexEntry::Program { instance_variable, .. }) =
+                        <span class="self">self</span>.global_index.find_pou(name).as_ref()
+                    {
+                        <span class="prelude-val">Some</span>((name.as_str(), instance_variable))
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                }
+                Dependency::Variable(name) =&gt; {
+                    <span class="self">self</span>.global_index.find_fully_qualified_variable(name).map(|it| (name.as_str(), it))
+                }
+                Dependency::Call(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            } {
+                globals.push(dep);
+            }
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(init) =
+                <span class="self">self</span>.global_index.find_global_initializer(<span class="kw-2">&amp;</span>get_initializer_name(dep.get_name()))
+            {
+                globals.push((init.get_name(), init));
+            }
+        });
+
+        <span class="kw">for </span>(name, variable) <span class="kw">in </span>globals {
+            <span class="kw">let </span>linkage =
+                <span class="kw">if </span>!variable.is_in_unit(location) { LinkageType::External } <span class="kw">else </span>{ variable.get_linkage() };
+            <span class="kw">let </span>global_variable =
+                <span class="self">self</span>.generate_global_variable(variable, linkage).map_err(|err| <span class="kw">match </span>err.get_type() {
                     ErrNo::codegen__missing_function | ErrNo::reference__unresolved =&gt; {
                         Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
                     }
                     <span class="kw">_ </span>=&gt; err,
                 })<span class="question-mark">?</span>;
-        index.associate_global(name, global_variable)<span class="question-mark">?</span>;
-        <span class="comment">//generate debug info
-        </span>debug.create_global_variable(
-            variable.get_qualified_name(),
-            <span class="kw-2">&amp;</span>variable.data_type_name,
-            global_variable,
-            <span class="kw-2">&amp;</span>variable.source_location,
-        );
-    }
-    <span class="prelude-val">Ok</span>(index)
-}
-
-<span class="doccomment">/// convenience function to generates a global variable for the given variable
-///
-/// - `module` the module to generate the variable into
-/// - `llvm` the struct used to generate IR-code
-/// - `index` the global symbol table, the global variable will be registerd as a new symbol
-/// - `global_variable` the variable to generate
-</span><span class="kw">pub fn </span>generate_global_variable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span>&gt;(
-    module: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    global_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
-    annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    global_variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
-) -&gt; <span class="prelude-ty">Result</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, Diagnostic&gt; {
-    <span class="kw">let </span>type_name = global_variable.get_type_name();
-    <span class="kw">let </span>variable_type = index.get_associated_type(type_name)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>initial_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) =
-        global_index.get_const_expressions().maybe_get_constant_statement(<span class="kw-2">&amp;</span>global_variable.initial_value)
-    {
-        <span class="kw">let </span>expr_generator =
-            ExpressionCodeGenerator::new_context_free(llvm, global_index, annotations, index);
-
-        <span class="comment">//see if this value was compile-time evaluated ...
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = index.find_constant_value(global_variable.get_qualified_name()) {
-            <span class="prelude-val">Some</span>(value)
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>value = expr_generator.generate_expression(initializer)<span class="question-mark">?</span>;
-            <span class="kw">let </span>target_type = global_index.get_effective_type_or_void_by_name(type_name);
-            <span class="kw">let </span>value_type = annotations.get_type_or_void(initializer, global_index);
-            <span class="prelude-val">Some</span>(<span class="macro">cast_if_needed!</span>(expr_generator, target_type, value_type, value, <span class="prelude-val">None</span>))
+            index.associate_global(name, global_variable)<span class="question-mark">?</span>;
+            <span class="comment">//generate debug info
+            </span><span class="self">self</span>.debug.create_global_variable(
+                variable.get_qualified_name(),
+                <span class="kw-2">&amp;</span>variable.data_type_name,
+                global_variable,
+                <span class="kw-2">&amp;</span>variable.source_location,
+            );
         }
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>};
 
-    <span class="kw">let </span><span class="kw-2">mut </span>global_ir_variable =
-        llvm.create_global_variable(module, global_variable.get_name(), variable_type);
-    <span class="kw">if </span>global_variable.is_external() {
-        global_ir_variable = global_ir_variable.make_external();
-    } <span class="kw">else </span>{
-        <span class="kw">let </span>initial_value = initial_value
-            <span class="comment">// 2nd try: find an associated default value for the declared type
-            </span>.or_else(|| index.find_associated_initial_value(type_name))
-            <span class="comment">// 3rd try: get the compiler&#39;s default for the given type (zero-initializer)
-            </span>.or_else(|| index.find_associated_type(type_name).map(get_default_for));
-        global_ir_variable.set_initial_value(initial_value, variable_type);
-        <span class="kw">if </span>global_variable.is_constant() {
-            global_ir_variable = global_ir_variable.make_constant();
-            <span class="kw">if </span>initial_value.is_none() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
-                    global_variable.source_location.source_range.clone(),
-                ));
+        <span class="prelude-val">Ok</span>(index)
+    }
+
+    <span class="doccomment">/// convenience function to generates a global variable for the given variable
+    ///
+    /// - `module` the module to generate the variable into
+    /// - `llvm` the struct used to generate IR-code
+    /// - `index` the global symbol table, the global variable will be registerd as a new symbol
+    /// - `global_variable` the variable to generate
+    </span><span class="kw">fn </span>generate_global_variable(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        global_variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
+        linkage: LinkageType,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span>type_name = global_variable.get_type_name();
+        <span class="kw">let </span>variable_type = <span class="self">self</span>.types_index.get_associated_type(type_name)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>global_ir_variable =
+            <span class="self">self</span>.llvm.create_global_variable(<span class="self">self</span>.module, global_variable.get_name(), variable_type);
+        <span class="kw">if </span>linkage == LinkageType::External {
+            global_ir_variable = global_ir_variable.make_external();
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>initial_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = <span class="self">self
+                </span>.global_index
+                .get_const_expressions()
+                .maybe_get_constant_statement(<span class="kw-2">&amp;</span>global_variable.initial_value)
+            {
+                <span class="kw">let </span>expr_generator = ExpressionCodeGenerator::new_context_free(
+                    <span class="self">self</span>.llvm,
+                    <span class="self">self</span>.global_index,
+                    <span class="self">self</span>.annotations,
+                    <span class="self">self</span>.types_index,
+                );
+
+                <span class="comment">//see if this value was compile-time evaluated ...
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) =
+                    <span class="self">self</span>.types_index.find_constant_value(global_variable.get_qualified_name())
+                {
+                    <span class="prelude-val">Some</span>(value)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>value = expr_generator.generate_expression(initializer)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>target_type = <span class="self">self</span>.global_index.get_effective_type_or_void_by_name(type_name);
+                    <span class="kw">let </span>value_type = <span class="self">self</span>.annotations.get_type_or_void(initializer, <span class="self">self</span>.global_index);
+                    <span class="prelude-val">Some</span>(<span class="macro">cast_if_needed!</span>(expr_generator, target_type, value_type, value, <span class="prelude-val">None</span>))
+                }
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>};
+
+            <span class="kw">let </span>initial_value = initial_value
+                <span class="comment">// 2nd try: find an associated default value for the declared type
+                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_initial_value(type_name))
+                <span class="comment">// 3rd try: get the compiler&#39;s default for the given type (zero-initializer)
+                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_type(type_name).map(get_default_for));
+            global_ir_variable.set_initial_value(initial_value, variable_type);
+            <span class="kw">if </span>global_variable.is_constant() {
+                global_ir_variable = global_ir_variable.make_constant();
+                <span class="kw">if </span>initial_value.is_none() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
+                        <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
+                        global_variable.source_location.source_range.clone(),
+                    ));
+                }
             }
         }
+
+        <span class="prelude-val">Ok</span>(global_ir_variable)
     }
-    <span class="prelude-val">Ok</span>(global_ir_variable)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

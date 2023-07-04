@@ -247,6 +247,15 @@
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2022 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::{NewLines, SourceRange};
@@ -359,6 +368,15 @@
 
     <span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.line_number == SymbolLocation::INTERNAL_LINE &amp;&amp; <span class="self">self</span>.source_range.is_undefined()
+    }
+
+    <span class="kw">pub fn </span>is_in_unit(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = <span class="self">self</span>.source_range.get_file_name() {
+            filename == unit.as_ref()
+        } <span class="kw">else </span>{
+            <span class="comment">//Fallback, if no file is defined all files are local
+            </span><span class="bool-val">true
+        </span>}
     }
 }
 

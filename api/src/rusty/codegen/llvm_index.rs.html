@@ -213,7 +213,6 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
@@ -363,8 +362,7 @@
         global_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="self">self</span>.global_values.insert(variable_name.to_lowercase(), global_variable);
-        <span class="comment">//TODO  : Remove this and replace it with a lookup into globals where needed
-        </span><span class="self">self</span>.initial_value_associations
+        <span class="self">self</span>.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
         <span class="prelude-val">Ok</span>(())
     }
@@ -410,8 +408,8 @@
         <span class="self">self</span>.constants.get(qualified_name).copied()
     }
 
-    <span class="kw">pub fn </span>associate_utf08_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: String, literal_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;) {
-        <span class="self">self</span>.utf08_literals.insert(literal, literal_variable);
+    <span class="kw">pub fn </span>associate_utf08_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;) {
+        <span class="self">self</span>.utf08_literals.insert(literal.to_string(), literal_variable);
     }
 
     <span class="kw">pub fn </span>find_utf08_literal_string(<span class="kw-2">&amp;</span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {
@@ -420,8 +418,8 @@
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_utf08_literal_string(literal)))
     }
 
-    <span class="kw">pub fn </span>associate_utf16_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: String, literal_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;) {
-        <span class="self">self</span>.utf16_literals.insert(literal, literal_variable);
+    <span class="kw">pub fn </span>associate_utf16_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;) {
+        <span class="self">self</span>.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
     <span class="kw">pub fn </span>find_utf16_literal_string(<span class="kw-2">&amp;</span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {

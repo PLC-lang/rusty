@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Literal","A single member of a set of literals extracted from a regular expression."],["Literals","A set of literal byte strings extracted from a regular expression."]]};
+window.SIDEBAR_ITEMS = {"enum":[["ExtractKind","The kind of literals to extract from an [`Hir`] expression."]],"fn":[["rank","Returns the “rank” of the given byte."]],"struct":[["Extractor","Extracts prefix or suffix literal sequences from [`Hir`] expressions."],["Literal","A single literal extracted from an [`Hir`] expression."],["Seq","A sequence of literals."]]};

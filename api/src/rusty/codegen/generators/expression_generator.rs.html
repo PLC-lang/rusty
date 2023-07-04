@@ -2685,76 +2685,6 @@
 <a href="#2685" id="2685">2685</a>
 <a href="#2686" id="2686">2686</a>
 <a href="#2687" id="2687">2687</a>
-<a href="#2688" id="2688">2688</a>
-<a href="#2689" id="2689">2689</a>
-<a href="#2690" id="2690">2690</a>
-<a href="#2691" id="2691">2691</a>
-<a href="#2692" id="2692">2692</a>
-<a href="#2693" id="2693">2693</a>
-<a href="#2694" id="2694">2694</a>
-<a href="#2695" id="2695">2695</a>
-<a href="#2696" id="2696">2696</a>
-<a href="#2697" id="2697">2697</a>
-<a href="#2698" id="2698">2698</a>
-<a href="#2699" id="2699">2699</a>
-<a href="#2700" id="2700">2700</a>
-<a href="#2701" id="2701">2701</a>
-<a href="#2702" id="2702">2702</a>
-<a href="#2703" id="2703">2703</a>
-<a href="#2704" id="2704">2704</a>
-<a href="#2705" id="2705">2705</a>
-<a href="#2706" id="2706">2706</a>
-<a href="#2707" id="2707">2707</a>
-<a href="#2708" id="2708">2708</a>
-<a href="#2709" id="2709">2709</a>
-<a href="#2710" id="2710">2710</a>
-<a href="#2711" id="2711">2711</a>
-<a href="#2712" id="2712">2712</a>
-<a href="#2713" id="2713">2713</a>
-<a href="#2714" id="2714">2714</a>
-<a href="#2715" id="2715">2715</a>
-<a href="#2716" id="2716">2716</a>
-<a href="#2717" id="2717">2717</a>
-<a href="#2718" id="2718">2718</a>
-<a href="#2719" id="2719">2719</a>
-<a href="#2720" id="2720">2720</a>
-<a href="#2721" id="2721">2721</a>
-<a href="#2722" id="2722">2722</a>
-<a href="#2723" id="2723">2723</a>
-<a href="#2724" id="2724">2724</a>
-<a href="#2725" id="2725">2725</a>
-<a href="#2726" id="2726">2726</a>
-<a href="#2727" id="2727">2727</a>
-<a href="#2728" id="2728">2728</a>
-<a href="#2729" id="2729">2729</a>
-<a href="#2730" id="2730">2730</a>
-<a href="#2731" id="2731">2731</a>
-<a href="#2732" id="2732">2732</a>
-<a href="#2733" id="2733">2733</a>
-<a href="#2734" id="2734">2734</a>
-<a href="#2735" id="2735">2735</a>
-<a href="#2736" id="2736">2736</a>
-<a href="#2737" id="2737">2737</a>
-<a href="#2738" id="2738">2738</a>
-<a href="#2739" id="2739">2739</a>
-<a href="#2740" id="2740">2740</a>
-<a href="#2741" id="2741">2741</a>
-<a href="#2742" id="2742">2742</a>
-<a href="#2743" id="2743">2743</a>
-<a href="#2744" id="2744">2744</a>
-<a href="#2745" id="2745">2745</a>
-<a href="#2746" id="2746">2746</a>
-<a href="#2747" id="2747">2747</a>
-<a href="#2748" id="2748">2748</a>
-<a href="#2749" id="2749">2749</a>
-<a href="#2750" id="2750">2750</a>
-<a href="#2751" id="2751">2751</a>
-<a href="#2752" id="2752">2752</a>
-<a href="#2753" id="2753">2753</a>
-<a href="#2754" id="2754">2754</a>
-<a href="#2755" id="2755">2755</a>
-<a href="#2756" id="2756">2756</a>
-<a href="#2757" id="2757">2757</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::{<span class="self">self</span>, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
@@ -2808,6 +2738,7 @@
 }
 
 <span class="doccomment">/// context information to generate a parameter
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>CallParameterAssignment&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// the assignmentstatement in the call-argument list (a:=3)
     </span>assignment_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstStatement,
@@ -2819,7 +2750,8 @@
     </span>parameter_struct: PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">pub enum </span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
     <span class="doccomment">/// A Locator-Value
     /// An lvalue (locator value) represents an object that occupies some identifiable location in memory (i.e. has an address).
     </span>LValue(PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;),
@@ -2911,6 +2843,11 @@
     <span class="doccomment">/// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
     </span><span class="kw">pub fn </span>generate_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        <span class="comment">// If the expression was replaced by the resolver, generate the replacement
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) = <span class="self">self</span>.annotations.get(expression) {
+            <span class="comment">// we trust that the validator only passed us valid parameters (so left &amp; right should be same type)
+            </span><span class="kw">return </span><span class="self">self</span>.generate_expression(statement);
+        }
         <span class="kw">let </span>v = <span class="self">self
             </span>.generate_expression_value(expression)<span class="question-mark">?
             </span>.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(expression))
@@ -3066,7 +3003,7 @@
         {
             <span class="self">self</span>.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.create_llvm_generic_binary_expression(operator, left, right, expression)
+            <span class="self">self</span>.create_llvm_generic_binary_expression(left, right, expression)
         }
     }
 
@@ -5045,52 +4982,15 @@
     /// expressions
     </span><span class="kw">fn </span>create_llvm_generic_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        operator: <span class="kw-2">&amp;</span>Operator,
         left: <span class="kw-2">&amp;</span>AstStatement,
         right: <span class="kw-2">&amp;</span>AstStatement,
         binary_statement: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Value { .. }) = <span class="self">self</span>.annotations.get(binary_statement) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) =
+            <span class="self">self</span>.annotations.get(binary_statement)
+        {
             <span class="comment">// we trust that the validator only passed us valid parameters (so left &amp; right should be same type)
-            </span><span class="kw">let </span>call_statement = <span class="kw">match </span>operator {
-                <span class="comment">// a &lt;&gt; b expression is handled as Not(Equal(a,b))
-                </span>Operator::NotEqual =&gt; ast::create_not_expression(
-                    <span class="self">self</span>.create_typed_compare_call_statement(
-                        <span class="kw-2">&amp;</span>Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )<span class="question-mark">?</span>,
-                    binary_statement.get_location(),
-                ),
-                <span class="comment">// a &lt;= b expression is handled as a = b OR a &lt; b
-                </span>Operator::LessOrEqual =&gt; ast::create_or_expression(
-                    <span class="self">self</span>.create_typed_compare_call_statement(
-                        <span class="kw-2">&amp;</span>Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )<span class="question-mark">?</span>,
-                    <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;</span>Operator::Less, left, right, binary_statement)<span class="question-mark">?</span>,
-                ),
-                <span class="comment">// a &gt;= b expression is handled as a = b OR a &gt; b
-                </span>Operator::GreaterOrEqual =&gt; ast::create_or_expression(
-                    <span class="self">self</span>.create_typed_compare_call_statement(
-                        <span class="kw-2">&amp;</span>Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )<span class="question-mark">?</span>,
-                    <span class="self">self</span>.create_typed_compare_call_statement(
-                        <span class="kw-2">&amp;</span>Operator::Greater,
-                        left,
-                        right,
-                        binary_statement,
-                    )<span class="question-mark">?</span>,
-                ),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.create_typed_compare_call_statement(operator, left, right, binary_statement)<span class="question-mark">?</span>,
-            };
-            <span class="self">self</span>.generate_expression(<span class="kw-2">&amp;</span>call_statement)
+            </span><span class="self">self</span>.generate_expression(statement)
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="macro">format!</span>(
@@ -5102,46 +5002,6 @@
                 left.get_location(),
             ))
         }
-    }
-
-    <span class="doccomment">/// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
-    /// given type (of left). The given operator has to be a comparison-operator
-    </span><span class="kw">fn </span>create_typed_compare_call_statement(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        operator: <span class="kw-2">&amp;</span>Operator,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
-        binary_statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-        <span class="kw">let </span>left_type = <span class="self">self</span>.get_type_hint_for(left)<span class="question-mark">?</span>;
-        <span class="kw">let </span>right_type = <span class="self">self</span>.get_type_hint_for(right)<span class="question-mark">?</span>;
-        <span class="kw">let </span>cmp_function_name = <span class="kw">crate</span>::typesystem::get_equals_function_name_for(
-            left_type.get_type_information().get_name(),
-            operator,
-        );
-
-        cmp_function_name
-            .map(|name| {
-                <span class="kw">crate</span>::ast::create_call_to(
-                    name,
-                    <span class="macro">vec!</span>[left.clone(), right.clone()],
-                    binary_statement.get_id(),
-                    left.get_id(),
-                    <span class="kw-2">&amp;</span>binary_statement.get_location(),
-                )
-            })
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;Invalid operator {} for types {} and {}&quot;</span>,
-                        operator,
-                        left_type.get_name(),
-                        right_type.get_name()
-                    )
-                    .as_str(),
-                    binary_statement.get_location(),
-                )
-            })
     }
 
     <span class="kw">pub fn </span>generate_store(

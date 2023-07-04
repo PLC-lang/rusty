@@ -218,7 +218,7 @@ however, you will need some additional dependencies namely:</p>
 <p>The next sections cover how to install these dependencies on different platforms, if you already have them
 however, RuSTy can be build using the <code>cargo</code> command. For debug builds this can be accomplished by executing
 <code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The 
-resulting binaries can be found at <code>target/debug/rustyc</code> and <code>target/release/rustyc</code> respectively.</p>
+resulting binaries can be found at <code>target/debug/plc</code> and <code>target/release/plc</code> respectively.</p>
 <h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
 <p>The specified dependencies can be installed with the following command on Ubuntu:</p>
 <pre><code class="language-bash">sudo apt install                \
@@ -254,22 +254,25 @@ the appropriate environment variable (<code>LLVM_SYS_140_PREFIX=/usr/lib/llvm-14
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
-<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option.
-<code>rustyc</code> takes one output-format parameter and any number of input-files.
+<blockquote>
+<p>The RuSTy compiler binary is called <code>plc</code></p>
+</blockquote>
+<p><code>plc</code> offers a comprehensive help via the -h (--help) option.
+<code>plc</code> takes one output-format parameter and any number of input-files.
 The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
-<p><code>rustyc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
+<p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
 <p>Note that you can only specify at most one output format.
 In the case that no output format switch has been specified, the compiler will select <code>--static</code> by default.</p>
 <p>Similarly, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
 <p>A minimal invocation looks like this:
-<code>rustyc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
+<code>plc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
 <p>More examples:</p>
 <ul>
-<li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
-<li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
-<li><code>rustyc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
+<li><code>plc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
+<li><code>plc --ir src/*.st</code> will compile all st files in the src-folder.</li>
+<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
@@ -294,21 +297,21 @@ END_FUNCTION
 <h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with RuSTy</a></h3>
 <p>The RuSTy command line interface is similar to that of other compilers.</p>
 <p>If you just want to build an object file, then do this:</p>
-<pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
+<pre><code class="language-bash">plc -c hello_world.st -o hello_world.o
 </code></pre>
 <h3 id="optimization"><a class="header" href="#optimization">Optimization</a></h3>
-<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>).</p>
+<p><code>plc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>).</p>
 <p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required:</p>
 <ul>
-<li><code>rustyc -c &quot;**/*.st&quot; -O none</code></li>
-<li><code>rustyc -c &quot;**/*.st&quot; -O less</code></li>
-<li><code>rustyc -c &quot;**/*.st&quot; -O default</code></li>
-<li><code>rustyc -c &quot;**/*.st&quot; -O aggressive</code></li>
+<li><code>plc -c &quot;**/*.st&quot; -O none</code></li>
+<li><code>plc -c &quot;**/*.st&quot; -O less</code></li>
+<li><code>plc -c &quot;**/*.st&quot; -O default</code></li>
+<li><code>plc -c &quot;**/*.st&quot; -O aggressive</code></li>
 </ul>
-<p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
+<p>By default <code>plc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
 <p>Instead, you can also compile this into an executable and run it:</p>
-<pre><code class="language-bash">rustyc hello_world.st -o hello_world --linker=cc
+<pre><code class="language-bash">plc hello_world.st -o hello_world --linker=cc
 ./hello_world
 </code></pre>
 <p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option <code>-c</code>).</p>
@@ -325,26 +328,37 @@ END_FUNCTION
 </ul>
 <h3 id="--target"><a class="header" href="#--target">--target</a></h3>
 <p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>.
-As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected.
+As RuSTy is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected.
 The default <code>target</code> is the host machine's target.
 So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
 <h3 id="--sysroot"><a class="header" href="#--sysroot">--sysroot</a></h3>
-<p><code>rustyc</code> use the <code>sysroot</code> option for linking purposes.
+<p><code>plc</code> use the <code>sysroot</code> option for linking purposes.
 It is considered to be the root directory for the purpose of locating headers and libraries.</p>
 <ul>
 <li>If a target and sysroot are provided, the output will always be stored in a folder with the target name (e.g. an <code>x86_64-linux-gnu</code> target will have the output strored in a folder called <code>x86_64-linux-gnu</code>)</li>
 <li><code>--sysroot</code> parameters have to always match target parameters, there can be no <code>sysroot</code> without a target.</li>
 </ul>
+<h2 id="parallel-compilation"><a class="header" href="#parallel-compilation">Parallel Compilation</a></h2>
+<p>By default, <code>plc</code> uses parallel compilation.</p>
+<p>This option could be controlled with the <code>-j</code> or <code>--threads</code> flag. A value above <code>0</code> will indicate the number of threads to use for the compilation
+Leaving the value unset, setting it to <code>0</code> or simply specifying <code>-j</code> sets the value to the maximum threads that could run for the current machine.
+This is determined by the underlying parallelisation library <a href="https://crates.io/crates/rayon">Rayon</a></p>
+<h3 id="single-module-compilation"><a class="header" href="#single-module-compilation">Single module Compilation</a></h3>
+<p>With the introducton of parallel compilation, every unit is compiled into an object file independently and then linked together in a single module.
+This behaviour might not always be desired and could be disabled using the <code>--single-module</code> flag.</p>
+<blockquote>
+<p>Note that the single module flag is currently much slower to produce as it requires first generating all modules and then merging them together.</p>
+</blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
-<p>In addition to the comprehensive help, <code>rustyc</code> offers a build subcommand that simplifies the build process. </br>
+<p>In addition to the comprehensive help, <code>plc</code> offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
 <p>Usage:
-<code>rustyc build</code></p>
-<p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
+<code>plc build</code></p>
+<p>Note that if <code>plc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
 The default location for the build file is the current directory.</p>
 <p>The command for building with an additional path looks like this:
-<code>rustyc build src/plc.json</code></p>
+<code>plc build src/plc.json</code></p>
 <h2 id="build-description-file-plcjson"><a class="header" href="#build-description-file-plcjson">Build description file (plc.json)</a></h2>
 <p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format.
 All the keys used in the build description file are described in the following sections.</p>
@@ -358,7 +372,7 @@ All the keys used in the build description file are described in the following s
 ]
 </code></pre>
 <h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
-<p>To link several objects into one executable <code>rustyc</code> has the option to add libraries and automatically build and link them together.</br>
+<p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.</br>
 The <code>libraries</code> keyword is optional.</p>
 <pre><code class="language-json">&quot;libraries&quot; : [
     {
@@ -485,8 +499,8 @@ END_PROGRAM
 <ul>
 <li>A binary file for each architecture the library has been built for (<code>x86_64-linux-gnu</code>, <code>aarch64-linux-gnu</code>, ..)</li>
 </ul>
-<h2 id="linking-libraries-using-the-rustyc-command-line"><a class="header" href="#linking-libraries-using-the-rustyc-command-line">Linking libraries using the <code>rustyc</code> command line</a></h2>
-<p>To include a library when using the <code>rustyc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
+<h2 id="linking-libraries-using-the-plc-command-line"><a class="header" href="#linking-libraries-using-the-plc-command-line">Linking libraries using the <code>plc</code> command line</a></h2>
+<p>To include a library when using the <code>plc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
 <p>Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included with the <code>-i</code> are marked as external, the implementation part of a POU is ignored.</p>
 <p>To link the library, two options are then available: <a href="libraries.html#shared-libraries">Shared</a> and <a href="libraries.html#static-libraries">Static</a> libraries.</p>
@@ -508,7 +522,7 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 </blockquote>
 <h3 id="command-line-example"><a class="header" href="#command-line-example">Command line example</a></h3>
 <p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> :</p>
-<pre><code class="language-sh">rustyc input.st -i iec/header.st -L/lib/ -liec
+<pre><code class="language-sh">plc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
 <p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
@@ -657,7 +671,7 @@ END_VAR
 END_FUNCTION
 </code></pre>
 <p>Compiling the previous code with the following command:</p>
-<pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
+<pre><code class="language-sh">plc ExternalFunctions.st -o ExternalFunctions --linker=clang
 </code></pre>
 <p>will yield an executable called <code>ExternalFunctions</code>.</p>
 <blockquote>
@@ -1656,6 +1670,10 @@ This second annotation is called the <em>type-hint</em>. It indicates that while
 </div>
 <p>With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily.
 The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.</p>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<p>When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
+This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
+This information can then be used during the <a href="arch/./codegen.html">codegen</a> period to only generated types and variables that are relevant to the unit.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="validation"><a class="header" href="#validation">Validation</a></h1>
 <p>The validation module implements the semantic validation step of the compiler.
 The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
@@ -1762,7 +1780,7 @@ entry:
 }
 </code></pre>
 <h3 id="functions"><a class="header" href="#functions">Functions</a></h3>
-<p>Functions generate very similar to program's and function_block's.
+<p>Functions generate very similar to programs and function_blocks.
 The main difference is, that no instance-global is allocated and the function's interface-type cannot be used as a datatype to declare your own instances.
 Instances of the program's interface-type are allocated whenever the function is called for the lifetime of a single call.
 Otherwise the code generated for functions is comparable to the code presented above for programs and function-blocks.</p>

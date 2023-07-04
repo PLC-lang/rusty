@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/linux-raw-sys-0.3.1/src/x86_64/general.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>general.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../linux_raw_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/linux-raw-sys-0.3.8/src/x86_64/general.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>general.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../linux_raw_sys/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -5282,6 +5282,79 @@
 <a href="#5282" id="5282">5282</a>
 <a href="#5283" id="5283">5283</a>
 <a href="#5284" id="5284">5284</a>
+<a href="#5285" id="5285">5285</a>
+<a href="#5286" id="5286">5286</a>
+<a href="#5287" id="5287">5287</a>
+<a href="#5288" id="5288">5288</a>
+<a href="#5289" id="5289">5289</a>
+<a href="#5290" id="5290">5290</a>
+<a href="#5291" id="5291">5291</a>
+<a href="#5292" id="5292">5292</a>
+<a href="#5293" id="5293">5293</a>
+<a href="#5294" id="5294">5294</a>
+<a href="#5295" id="5295">5295</a>
+<a href="#5296" id="5296">5296</a>
+<a href="#5297" id="5297">5297</a>
+<a href="#5298" id="5298">5298</a>
+<a href="#5299" id="5299">5299</a>
+<a href="#5300" id="5300">5300</a>
+<a href="#5301" id="5301">5301</a>
+<a href="#5302" id="5302">5302</a>
+<a href="#5303" id="5303">5303</a>
+<a href="#5304" id="5304">5304</a>
+<a href="#5305" id="5305">5305</a>
+<a href="#5306" id="5306">5306</a>
+<a href="#5307" id="5307">5307</a>
+<a href="#5308" id="5308">5308</a>
+<a href="#5309" id="5309">5309</a>
+<a href="#5310" id="5310">5310</a>
+<a href="#5311" id="5311">5311</a>
+<a href="#5312" id="5312">5312</a>
+<a href="#5313" id="5313">5313</a>
+<a href="#5314" id="5314">5314</a>
+<a href="#5315" id="5315">5315</a>
+<a href="#5316" id="5316">5316</a>
+<a href="#5317" id="5317">5317</a>
+<a href="#5318" id="5318">5318</a>
+<a href="#5319" id="5319">5319</a>
+<a href="#5320" id="5320">5320</a>
+<a href="#5321" id="5321">5321</a>
+<a href="#5322" id="5322">5322</a>
+<a href="#5323" id="5323">5323</a>
+<a href="#5324" id="5324">5324</a>
+<a href="#5325" id="5325">5325</a>
+<a href="#5326" id="5326">5326</a>
+<a href="#5327" id="5327">5327</a>
+<a href="#5328" id="5328">5328</a>
+<a href="#5329" id="5329">5329</a>
+<a href="#5330" id="5330">5330</a>
+<a href="#5331" id="5331">5331</a>
+<a href="#5332" id="5332">5332</a>
+<a href="#5333" id="5333">5333</a>
+<a href="#5334" id="5334">5334</a>
+<a href="#5335" id="5335">5335</a>
+<a href="#5336" id="5336">5336</a>
+<a href="#5337" id="5337">5337</a>
+<a href="#5338" id="5338">5338</a>
+<a href="#5339" id="5339">5339</a>
+<a href="#5340" id="5340">5340</a>
+<a href="#5341" id="5341">5341</a>
+<a href="#5342" id="5342">5342</a>
+<a href="#5343" id="5343">5343</a>
+<a href="#5344" id="5344">5344</a>
+<a href="#5345" id="5345">5345</a>
+<a href="#5346" id="5346">5346</a>
+<a href="#5347" id="5347">5347</a>
+<a href="#5348" id="5348">5348</a>
+<a href="#5349" id="5349">5349</a>
+<a href="#5350" id="5350">5350</a>
+<a href="#5351" id="5351">5351</a>
+<a href="#5352" id="5352">5352</a>
+<a href="#5353" id="5353">5353</a>
+<a href="#5354" id="5354">5354</a>
+<a href="#5355" id="5355">5355</a>
+<a href="#5356" id="5356">5356</a>
+<a href="#5357" id="5357">5357</a>
 </pre><pre class="rust"><code><span class="comment">/* automatically generated by rust-bindgen 0.59.2 */
 
 </span><span class="attr">#[repr(C)]
@@ -5421,9 +5494,9 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 </span>}
 }
 <span class="kw">impl</span>&lt;T&gt; ::core::cmp::Eq <span class="kw">for </span>__BindgenUnionField&lt;T&gt; {}
-<span class="kw">pub const </span>LINUX_VERSION_CODE: u32 = <span class="number">393728</span>;
+<span class="kw">pub const </span>LINUX_VERSION_CODE: u32 = <span class="number">393984</span>;
 <span class="kw">pub const </span>LINUX_VERSION_MAJOR: u32 = <span class="number">6</span>;
-<span class="kw">pub const </span>LINUX_VERSION_PATCHLEVEL: u32 = <span class="number">2</span>;
+<span class="kw">pub const </span>LINUX_VERSION_PATCHLEVEL: u32 = <span class="number">3</span>;
 <span class="kw">pub const </span>LINUX_VERSION_SUBLEVEL: u32 = <span class="number">0</span>;
 <span class="kw">pub const </span>AT_SYSINFO_EHDR: u32 = <span class="number">33</span>;
 <span class="kw">pub const </span>AT_VECTOR_SIZE_ARCH: u32 = <span class="number">3</span>;
@@ -5449,6 +5522,8 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>AT_BASE_PLATFORM: u32 = <span class="number">24</span>;
 <span class="kw">pub const </span>AT_RANDOM: u32 = <span class="number">25</span>;
 <span class="kw">pub const </span>AT_HWCAP2: u32 = <span class="number">26</span>;
+<span class="kw">pub const </span>AT_RSEQ_FEATURE_SIZE: u32 = <span class="number">27</span>;
+<span class="kw">pub const </span>AT_RSEQ_ALIGN: u32 = <span class="number">28</span>;
 <span class="kw">pub const </span>AT_EXECFN: u32 = <span class="number">31</span>;
 <span class="kw">pub const </span>AT_MINSIGSTKSZ: u32 = <span class="number">51</span>;
 <span class="kw">pub const </span>__BITS_PER_LONG: u32 = <span class="number">64</span>;
@@ -5596,6 +5671,7 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>F_SEAL_GROW: u32 = <span class="number">4</span>;
 <span class="kw">pub const </span>F_SEAL_WRITE: u32 = <span class="number">8</span>;
 <span class="kw">pub const </span>F_SEAL_FUTURE_WRITE: u32 = <span class="number">16</span>;
+<span class="kw">pub const </span>F_SEAL_EXEC: u32 = <span class="number">32</span>;
 <span class="kw">pub const </span>F_GET_RW_HINT: u32 = <span class="number">1035</span>;
 <span class="kw">pub const </span>F_SET_RW_HINT: u32 = <span class="number">1036</span>;
 <span class="kw">pub const </span>F_GET_FILE_RW_HINT: u32 = <span class="number">1037</span>;
@@ -5995,6 +6071,7 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>MCAST_MSFILTER: u32 = <span class="number">48</span>;
 <span class="kw">pub const </span>IP_MULTICAST_ALL: u32 = <span class="number">49</span>;
 <span class="kw">pub const </span>IP_UNICAST_IF: u32 = <span class="number">50</span>;
+<span class="kw">pub const </span>IP_LOCAL_PORT_RANGE: u32 = <span class="number">51</span>;
 <span class="kw">pub const </span>MCAST_EXCLUDE: u32 = <span class="number">0</span>;
 <span class="kw">pub const </span>MCAST_INCLUDE: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>IP_DEFAULT_MULTICAST_TTL: u32 = <span class="number">1</span>;
@@ -6670,6 +6747,9 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>PR_SME_GET_VL: u32 = <span class="number">64</span>;
 <span class="kw">pub const </span>PR_SME_VL_LEN_MASK: u32 = <span class="number">65535</span>;
 <span class="kw">pub const </span>PR_SME_VL_INHERIT: u32 = <span class="number">131072</span>;
+<span class="kw">pub const </span>PR_SET_MDWE: u32 = <span class="number">65</span>;
+<span class="kw">pub const </span>PR_MDWE_REFUSE_EXEC_GAIN: u32 = <span class="number">1</span>;
+<span class="kw">pub const </span>PR_GET_MDWE: u32 = <span class="number">66</span>;
 <span class="kw">pub const </span>PR_SET_VMA: u32 = <span class="number">1398164801</span>;
 <span class="kw">pub const </span>PR_SET_VMA_ANON_NAME: u32 = <span class="number">0</span>;
 <span class="kw">pub const </span>GRND_NONBLOCK: u32 = <span class="number">1</span>;
@@ -7565,9 +7645,47 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>P_PID: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>P_PGID: u32 = <span class="number">2</span>;
 <span class="kw">pub const </span>P_PIDFD: u32 = <span class="number">3</span>;
+<span class="kw">pub const </span>XATTR_CREATE: u32 = <span class="number">1</span>;
+<span class="kw">pub const </span>XATTR_REPLACE: u32 = <span class="number">2</span>;
+<span class="kw">pub const </span>XATTR_OS2_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">5usize</span>] = <span class="string">b&quot;os2.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_MAC_OSX_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">5usize</span>] = <span class="string">b&quot;osx.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_BTRFS_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">7usize</span>] = <span class="string">b&quot;btrfs.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_HURD_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">5usize</span>] = <span class="string">b&quot;gnu.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SECURITY_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">10usize</span>] = <span class="string">b&quot;security.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SYSTEM_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">8usize</span>] = <span class="string">b&quot;system.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_TRUSTED_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">9usize</span>] = <span class="string">b&quot;trusted.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_USER_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">6usize</span>] = <span class="string">b&quot;user.\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_EVM_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">4usize</span>] = <span class="string">b&quot;evm\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_EVM: <span class="kw-2">&amp;</span>[u8; <span class="number">13usize</span>] = <span class="string">b&quot;security.evm\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_IMA_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">4usize</span>] = <span class="string">b&quot;ima\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_IMA: <span class="kw-2">&amp;</span>[u8; <span class="number">13usize</span>] = <span class="string">b&quot;security.ima\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SELINUX_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">8usize</span>] = <span class="string">b&quot;selinux\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SELINUX: <span class="kw-2">&amp;</span>[u8; <span class="number">17usize</span>] = <span class="string">b&quot;security.selinux\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">8usize</span>] = <span class="string">b&quot;SMACK64\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_IPIN: <span class="kw-2">&amp;</span>[u8; <span class="number">12usize</span>] = <span class="string">b&quot;SMACK64IPIN\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_IPOUT: <span class="kw-2">&amp;</span>[u8; <span class="number">13usize</span>] = <span class="string">b&quot;SMACK64IPOUT\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_EXEC: <span class="kw-2">&amp;</span>[u8; <span class="number">12usize</span>] = <span class="string">b&quot;SMACK64EXEC\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_TRANSMUTE: <span class="kw-2">&amp;</span>[u8; <span class="number">17usize</span>] = <span class="string">b&quot;SMACK64TRANSMUTE\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_SMACK_MMAP: <span class="kw-2">&amp;</span>[u8; <span class="number">12usize</span>] = <span class="string">b&quot;SMACK64MMAP\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACK: <span class="kw-2">&amp;</span>[u8; <span class="number">17usize</span>] = <span class="string">b&quot;security.SMACK64\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACKIPIN: <span class="kw-2">&amp;</span>[u8; <span class="number">21usize</span>] = <span class="string">b&quot;security.SMACK64IPIN\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACKIPOUT: <span class="kw-2">&amp;</span>[u8; <span class="number">22usize</span>] = <span class="string">b&quot;security.SMACK64IPOUT\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACKEXEC: <span class="kw-2">&amp;</span>[u8; <span class="number">21usize</span>] = <span class="string">b&quot;security.SMACK64EXEC\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACKTRANSMUTE: <span class="kw-2">&amp;</span>[u8; <span class="number">26usize</span>] = <span class="string">b&quot;security.SMACK64TRANSMUTE\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_SMACKMMAP: <span class="kw-2">&amp;</span>[u8; <span class="number">21usize</span>] = <span class="string">b&quot;security.SMACK64MMAP\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_APPARMOR_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">9usize</span>] = <span class="string">b&quot;apparmor\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_APPARMOR: <span class="kw-2">&amp;</span>[u8; <span class="number">18usize</span>] = <span class="string">b&quot;security.apparmor\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_CAPS_SUFFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">11usize</span>] = <span class="string">b&quot;capability\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_CAPS: <span class="kw-2">&amp;</span>[u8; <span class="number">20usize</span>] = <span class="string">b&quot;security.capability\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_POSIX_ACL_ACCESS: <span class="kw-2">&amp;</span>[u8; <span class="number">17usize</span>] = <span class="string">b&quot;posix_acl_access\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_POSIX_ACL_ACCESS: <span class="kw-2">&amp;</span>[u8; <span class="number">24usize</span>] = <span class="string">b&quot;system.posix_acl_access\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_POSIX_ACL_DEFAULT: <span class="kw-2">&amp;</span>[u8; <span class="number">18usize</span>] = <span class="string">b&quot;posix_acl_default\0&quot;</span>;
+<span class="kw">pub const </span>XATTR_NAME_POSIX_ACL_DEFAULT: <span class="kw-2">&amp;</span>[u8; <span class="number">25usize</span>] = <span class="string">b&quot;system.posix_acl_default\0&quot;</span>;
 <span class="kw">pub const </span>MFD_CLOEXEC: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>MFD_ALLOW_SEALING: u32 = <span class="number">2</span>;
 <span class="kw">pub const </span>MFD_HUGETLB: u32 = <span class="number">4</span>;
+<span class="kw">pub const </span>MFD_NOEXEC_SEAL: u32 = <span class="number">8</span>;
+<span class="kw">pub const </span>MFD_EXEC: u32 = <span class="number">16</span>;
 <span class="kw">pub const </span>MFD_HUGE_SHIFT: u32 = <span class="number">26</span>;
 <span class="kw">pub const </span>MFD_HUGE_MASK: u32 = <span class="number">63</span>;
 <span class="kw">pub const </span>MFD_HUGE_64KB: u32 = <span class="number">1073741824</span>;
@@ -7659,6 +7777,7 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>IORING_NOTIF_USAGE_ZC_COPIED: u32 = <span class="number">2147483648</span>;
 <span class="kw">pub const </span>IORING_ACCEPT_MULTISHOT: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>IORING_MSG_RING_CQE_SKIP: u32 = <span class="number">1</span>;
+<span class="kw">pub const </span>IORING_MSG_RING_FLAGS_PASS: u32 = <span class="number">2</span>;
 <span class="kw">pub const </span>IORING_CQE_F_BUFFER: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>IORING_CQE_F_MORE: u32 = <span class="number">2</span>;
 <span class="kw">pub const </span>IORING_CQE_F_SOCK_NONEMPTY: u32 = <span class="number">4</span>;
@@ -7688,6 +7807,7 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>IORING_FEAT_RSRC_TAGS: u32 = <span class="number">1024</span>;
 <span class="kw">pub const </span>IORING_FEAT_CQE_SKIP: u32 = <span class="number">2048</span>;
 <span class="kw">pub const </span>IORING_FEAT_LINKED_FILE: u32 = <span class="number">4096</span>;
+<span class="kw">pub const </span>IORING_FEAT_REG_REG_RING: u32 = <span class="number">8192</span>;
 <span class="kw">pub const </span>IORING_RSRC_REGISTER_SPARSE: u32 = <span class="number">1</span>;
 <span class="kw">pub const </span>IORING_REGISTER_FILES_SKIP: i32 = -<span class="number">2</span>;
 <span class="kw">pub const </span>IO_URING_OP_SUPPORTED: u32 = <span class="number">1</span>;
@@ -7817,6 +7937,7 @@ fmt.write_str(<span class="string">&quot;__BindgenUnionField&quot;</span>)
 <span class="kw">pub const </span>MNT_EXPIRE: u32 = <span class="number">4</span>;
 <span class="kw">pub const </span>UMOUNT_NOFOLLOW: u32 = <span class="number">8</span>;
 <span class="kw">pub const </span>UMOUNT_UNUSED: u32 = <span class="number">2147483648</span>;
+<span class="kw">pub const </span>_NSIG: u32 = <span class="number">64</span>;
 <span class="kw">pub type </span>size_t = <span class="kw">crate</span>::ctypes::c_ulong;
 <span class="kw">pub type </span>ssize_t = <span class="kw">crate</span>::ctypes::c_long;
 <span class="kw">pub type </span>__s8 = <span class="kw">crate</span>::ctypes::c_schar;
@@ -9738,6 +9859,7 @@ MEMBARRIER_CMD_PRIVATE_EXPEDITED_SYNC_CORE = <span class="number">32</span>,
 MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_SYNC_CORE = <span class="number">64</span>,
 MEMBARRIER_CMD_PRIVATE_EXPEDITED_RSEQ = <span class="number">128</span>,
 MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_RSEQ = <span class="number">256</span>,
+MEMBARRIER_CMD_GET_REGISTRATIONS = <span class="number">512</span>,
 }
 <span class="attr">#[repr(u32)]
 #[non_exhaustive]
@@ -10103,6 +10225,7 @@ IORING_CQE_BUFFER_SHIFT = <span class="number">16</span>,
 <span class="kw">pub const </span>IORING_REGISTER_SYNC_CANCEL: _bindgen_ty_10 = _bindgen_ty_10::IORING_REGISTER_SYNC_CANCEL;
 <span class="kw">pub const </span>IORING_REGISTER_FILE_ALLOC_RANGE: _bindgen_ty_10 = _bindgen_ty_10::IORING_REGISTER_FILE_ALLOC_RANGE;
 <span class="kw">pub const </span>IORING_REGISTER_LAST: _bindgen_ty_10 = _bindgen_ty_10::IORING_REGISTER_LAST;
+<span class="kw">pub const </span>IORING_REGISTER_USE_REGISTERED_RING: _bindgen_ty_10 = _bindgen_ty_10::IORING_REGISTER_USE_REGISTERED_RING;
 <span class="attr">#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -10134,6 +10257,7 @@ IORING_UNREGISTER_PBUF_RING = <span class="number">23</span>,
 IORING_REGISTER_SYNC_CANCEL = <span class="number">24</span>,
 IORING_REGISTER_FILE_ALLOC_RANGE = <span class="number">25</span>,
 IORING_REGISTER_LAST = <span class="number">26</span>,
+IORING_REGISTER_USE_REGISTERED_RING = <span class="number">2147483648</span>,
 }
 <span class="kw">pub const </span>IO_WQ_BOUND: _bindgen_ty_11 = _bindgen_ty_11::IO_WQ_BOUND;
 <span class="kw">pub const </span>IO_WQ_UNBOUND: _bindgen_ty_11 = _bindgen_ty_11::IO_WQ_UNBOUND;
@@ -10239,7 +10363,7 @@ IO_WQ_UNBOUND = <span class="number">1</span>,
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub struct </span>io_uring_buf_ring__bindgen_ty_1 {
 <span class="kw">pub </span>__bindgen_anon_1: __BindgenUnionField&lt;io_uring_buf_ring__bindgen_ty_1__bindgen_ty_1&gt;,
-<span class="kw">pub </span>bufs: __BindgenUnionField&lt;[io_uring_buf; <span class="number">0usize</span>]&gt;,
+<span class="kw">pub </span>__bindgen_anon_2: __BindgenUnionField&lt;io_uring_buf_ring__bindgen_ty_1__bindgen_ty_2&gt;,
 <span class="kw">pub </span>bindgen_union_field: [u64; <span class="number">2usize</span>],
 }
 <span class="attr">#[repr(C)]
@@ -10250,6 +10374,15 @@ IO_WQ_UNBOUND = <span class="number">1</span>,
 <span class="kw">pub </span>resv3: __u16,
 <span class="kw">pub </span>tail: __u16,
 }
+<span class="attr">#[repr(C)]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>io_uring_buf_ring__bindgen_ty_1__bindgen_ty_2 {
+<span class="kw">pub </span>__empty_bufs: io_uring_buf_ring__bindgen_ty_1__bindgen_ty_2__bindgen_ty_1,
+<span class="kw">pub </span>bufs: __IncompleteArrayField&lt;io_uring_buf&gt;,
+}
+<span class="attr">#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub struct </span>io_uring_buf_ring__bindgen_ty_1__bindgen_ty_2__bindgen_ty_1 {}
 <span class="attr">#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>io_uring_buf_reg {
@@ -10565,6 +10698,19 @@ __bindgen_bitfield_unit
 </span><span class="kw">pub struct </span>mmsghdr {
 <span class="kw">pub </span>msg_hdr: msghdr,
 <span class="kw">pub </span>msg_len: <span class="kw">crate</span>::ctypes::c_uint,
+}
+<span class="attr">#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub struct </span>kernel_sigset_t {
+<span class="kw">pub </span>sig: [<span class="kw">crate</span>::ctypes::c_ulong; <span class="number">1usize</span>],
+}
+<span class="attr">#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub struct </span>kernel_sigaction {
+<span class="kw">pub </span>sa_handler_kernel: __kernel_sighandler_t,
+<span class="kw">pub </span>sa_flags: <span class="kw">crate</span>::ctypes::c_ulong,
+<span class="kw">pub </span>sa_restorer: __sigrestore_t,
+<span class="kw">pub </span>sa_mask: kernel_sigset_t,
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="linux_raw_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

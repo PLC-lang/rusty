@@ -220,24 +220,40 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
-    <span class="kw">use </span>encoding_rs::Encoding;
-    <span class="kw">use </span>inkwell::context::Context;
+    <span class="kw">use </span>source::{Compilable, SourceCode, SourceContainer};
 
     <span class="kw">use crate</span>::{
         ast::{<span class="self">self</span>, CompilationUnit, SourceRangeFactory},
         builtins,
-        diagnostics::{Diagnostic, DiagnosticReporter, Diagnostician, ResolvedDiagnostics},
+        codegen::{CodegenContext, GeneratedModule},
+        diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics},
         index::{<span class="self">self</span>, Index},
         lexer::{<span class="self">self</span>, IdProvider},
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
-        CompileOptions, DebugLevel, SourceContainer, Validator,
+        DebugLevel, Validator,
     };
 
     <span class="doccomment">///a Diagnostic reporter that holds all diagnostics in a list
@@ -262,20 +278,6 @@
         }
     }
 
-    <span class="doccomment">/// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
-    </span><span class="attr">#[cfg(test)]
-    </span><span class="kw">pub fn </span>list_based_diagnostician(diagnostics: Rc&lt;RefCell&lt;Vec&lt;ResolvedDiagnostics&gt;&gt;&gt;) -&gt; Diagnostician {
-        <span class="kw">use </span>std::collections::HashMap;
-
-        <span class="kw">use </span><span class="kw">crate</span>::diagnostics::DefaultDiagnosticAssessor;
-
-        Diagnostician {
-            assessor: Box::&lt;DefaultDiagnosticAssessor&gt;::default(),
-            reporter: Box::new(ListBasedDiagnosticReporter { diagnostics, ..Default::default() }),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
     <span class="kw">pub fn </span>parse(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
@@ -295,7 +297,10 @@
         (unit, diagnostic)
     }
 
-    <span class="kw">fn </span>do_index(src: <span class="kw-2">&amp;</span>str, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
+    <span class="kw">fn </span>do_index&lt;T: Into&lt;SourceCode&gt;&gt;(src: T, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
+        <span class="kw">let </span>source = src.into();
+        <span class="kw">let </span>source_str = <span class="kw-2">&amp;</span>source.source;
+        <span class="kw">let </span>source_path = source.get_location_str();
         <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
         <span class="comment">//Import builtins
         </span><span class="kw">let </span>builtins = builtins::parse_built_ins(id_provider.clone());
@@ -306,10 +311,15 @@
             index.register_type(data_type);
         }
 
+        <span class="kw">let </span>range_factory = <span class="kw">if </span>source_path == <span class="string">&quot;&lt;internal&gt;&quot; </span>{
+            SourceRangeFactory::internal()
+        } <span class="kw">else </span>{
+            SourceRangeFactory::for_file(source_path)
+        };
         <span class="kw">let </span>(<span class="kw-2">mut </span>unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             ast::LinkageType::Internal,
-            <span class="string">&quot;test.st&quot;</span>,
+            source_path,
         );
         ast::pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
@@ -321,7 +331,7 @@
         do_index(src, id_provider)
     }
 
-    <span class="kw">pub fn </span>index_with_ids(src: <span class="kw-2">&amp;</span>str, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
+    <span class="kw">pub fn </span>index_with_ids&lt;T: Into&lt;SourceCode&gt;&gt;(src: T, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
         do_index(src, id_provider)
     }
 
@@ -330,7 +340,7 @@
         index: <span class="kw-2">&amp;mut </span>Index,
         id_provider: IdProvider,
     ) -&gt; AnnotationMapImpl {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, <span class="kw">_</span>) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
         annotations
     }
@@ -340,7 +350,7 @@
         <span class="kw">let </span>(unit, index) = index_with_ids(src, id_provider.clone());
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, <span class="kw">_</span>) = TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, ..) = TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider);
         index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
 
         <span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
@@ -350,27 +360,23 @@
     }
 
     <span class="kw">pub fn </span>codegen_without_unwrap(src: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-        codegen_debug_without_unwrap(src, DebugLevel::None).map(|(it, <span class="kw">_</span>)| it).map_err(|(<span class="kw">_</span>, err)| err)
+        codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
     <span class="doccomment">/// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    </span><span class="kw">pub fn </span>codegen_debug_without_unwrap(
-        src: <span class="kw-2">&amp;</span>str,
-        debug_level: DebugLevel,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(String, Vec&lt;ResolvedDiagnostics&gt;), (Vec&lt;ResolvedDiagnostics&gt;, Diagnostic)&gt; {
+    </span><span class="kw">pub fn </span>codegen_debug_without_unwrap(src: <span class="kw-2">&amp;</span>str, debug_level: DebugLevel) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>id_provider = IdProvider::default();
-        <span class="kw">let </span>diagnostics = Rc::new(RefCell::new(<span class="macro">vec!</span>[]));
-        <span class="kw">let </span>diagnostician = list_based_diagnostician(diagnostics.clone());
         <span class="kw">let </span>(unit, index) = do_index(src, id_provider.clone());
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, literals) = TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
+        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
+            TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
         index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
 
-        <span class="kw">let </span>context = inkwell::context::Context::create();
+        <span class="kw">let </span>context = CodegenContext::create();
         <span class="kw">let </span>path = PathBuf::from_str(<span class="string">&quot;src&quot;</span>).ok();
         <span class="kw">let </span><span class="kw-2">mut </span>code_generator = <span class="kw">crate</span>::codegen::CodeGen::new(
             <span class="kw-2">&amp;</span>context,
@@ -380,22 +386,15 @@
             debug_level,
         );
         <span class="kw">let </span>annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        <span class="kw">let </span>llvm_index = code_generator
-            .generate_llvm_index(<span class="kw-2">&amp;</span>annotations, literals, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>diagnostician)
-            .map_err(|err| (diagnostics.take(), err))<span class="question-mark">?</span>;
+        <span class="kw">let </span>llvm_index =
+            code_generator.generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index)<span class="question-mark">?</span>;
 
         code_generator
-            .generate(<span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>llvm_index)
-            .and_then(|<span class="kw">_</span>| code_generator.finalize())
-            .map(|<span class="kw">_</span>| (code_generator.module.print_to_string().to_string(), diagnostics.take()))
-            .map_err(|err| (diagnostics.take(), err))
+            .generate(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>llvm_index)
+            .map(|module| module.persist_to_string())
     }
 
-    <span class="kw">pub fn </span>codegen_with_diagnostics(src: <span class="kw-2">&amp;</span>str) -&gt; (String, Vec&lt;ResolvedDiagnostics&gt;) {
-        codegen_debug_without_unwrap(src, DebugLevel::None).unwrap()
-    }
-
-    <span class="kw">pub fn </span>codegen_with_debug(src: <span class="kw-2">&amp;</span>str) -&gt; (String, Vec&lt;ResolvedDiagnostics&gt;) {
+    <span class="kw">pub fn </span>codegen_with_debug(src: <span class="kw-2">&amp;</span>str) -&gt; String {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
@@ -403,43 +402,76 @@
         codegen_without_unwrap(src).unwrap()
     }
 
+    <span class="kw">fn </span>codegen_into_modules&lt;T: Compilable&gt;(
+        context: <span class="kw-2">&amp;</span>CodegenContext,
+        sources: T,
+        debug_level: DebugLevel,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;GeneratedModule&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, Diagnostic&gt;
+    <span class="kw">where
+        </span>SourceCode: From&lt;&lt;T <span class="kw">as </span>Compilable&gt;::T&gt;,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>id_provider = IdProvider::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>units = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
+        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
+            |(unit, idx)| {
+                units.push(unit);
+                index.import(idx);
+            },
+        );
+        <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
+        <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
+        <span class="kw">let </span>units = units
+            .into_iter()
+            .map(|unit| {
+                <span class="kw">let </span>(<span class="kw-2">mut </span>annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
+                index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotation.new_index));
+                all_annotations.import(annotation);
+                (unit, dependencies, literals)
+            })
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+        <span class="kw">let </span>path = PathBuf::from_str(<span class="string">&quot;src&quot;</span>).ok();
+        <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+        units
+            .into_iter()
+            .map(|(unit, dependencies, literals)| {
+                <span class="kw">let </span><span class="kw-2">mut </span>code_generator = <span class="kw">crate</span>::codegen::CodeGen::new(
+                    context,
+                    path.as_deref(),
+                    <span class="kw-2">&amp;</span>unit.file_name,
+                    <span class="kw">crate</span>::OptimizationLevel::None,
+                    debug_level,
+                );
+                <span class="kw">let </span>llvm_index = code_generator.generate_llvm_index(
+                    context,
+                    <span class="kw-2">&amp;</span>annotations,
+                    <span class="kw-2">&amp;</span>literals,
+                    <span class="kw-2">&amp;</span>dependencies,
+                    <span class="kw-2">&amp;</span>index,
+                )<span class="question-mark">?</span>;
+
+                code_generator.generate(context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>llvm_index)
+            })
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()
+    }
+
+    <span class="kw">pub fn </span>codegen_multi&lt;T: Compilable&gt;(sources: T, debug_level: DebugLevel) -&gt; Vec&lt;String&gt;
+    <span class="kw">where
+        </span>SourceCode: From&lt;&lt;T <span class="kw">as </span>Compilable&gt;::T&gt;,
+    {
+        <span class="kw">let </span>context = CodegenContext::create();
+        codegen_into_modules(<span class="kw-2">&amp;</span>context, sources, debug_level)
+            .unwrap()
+            .into_iter()
+            .map(|module| module.persist_to_string())
+            .collect()
+    }
+
     <span class="kw">pub fn </span>generate_with_empty_program(src: <span class="kw-2">&amp;</span>str) -&gt; String {
         <span class="kw">let </span>source = <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="string">&quot;PROGRAM main END_PROGRAM&quot;</span>, src);
         codegen(source.as_str())
-    }
-
-    <span class="kw">pub fn </span>compile_to_string&lt;T: SourceContainer&gt;(
-        sources: Vec&lt;T&gt;,
-        includes: Vec&lt;T&gt;,
-        encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
-        debug_level: DebugLevel,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-        <span class="kw">let </span>context = Context::create();
-        <span class="kw">let </span>(<span class="kw">_</span>, cg) = <span class="kw">crate</span>::compile_module(
-            <span class="kw-2">&amp;</span>context,
-            sources,
-            includes,
-            encoding,
-            <span class="kw-2">&amp;</span>CompileOptions { debug_level, ..Default::default() },
-        )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(cg.module.print_to_string().to_string())
-    }
-
-    <span class="kw">pub fn </span>compile_with_root&lt;T: SourceContainer&gt;(
-        sources: Vec&lt;T&gt;,
-        includes: Vec&lt;T&gt;,
-        root: <span class="kw-2">&amp;</span>str,
-        debug_level: DebugLevel,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-        <span class="kw">let </span>context = Context::create();
-        <span class="kw">let </span>(<span class="kw">_</span>, cg) = <span class="kw">crate</span>::compile_module(
-            <span class="kw-2">&amp;</span>context,
-            sources,
-            includes,
-            <span class="prelude-val">None</span>,
-            <span class="kw-2">&amp;</span>CompileOptions { debug_level, root: <span class="prelude-val">Some</span>(root.into()), ..Default::default() },
-        )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(cg.module.print_to_string().to_string())
     }
 }
 </code></pre></div>

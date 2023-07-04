@@ -396,6 +396,7 @@
 <a href="#396" id="396">396</a>
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>core::ops::Range;
 <span class="kw">use </span>logos::Filter;
@@ -747,6 +748,7 @@
 }
 
 <span class="attr">#[derive(Clone)]
+</span><span class="comment">//TODO: This belongs to the AST
 </span><span class="kw">pub struct </span>IdProvider {
     current_id: Arc&lt;AtomicUsize&gt;,
 }

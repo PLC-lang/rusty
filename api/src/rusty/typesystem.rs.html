@@ -1267,6 +1267,10 @@
 <a href="#1267" id="1267">1267</a>
 <a href="#1268" id="1268">1268</a>
 <a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1415,6 +1419,10 @@
     <span class="doccomment">/// returns true if this type is an internal, auto-generated type
     </span><span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.location.is_internal()
+    }
+
+    <span class="kw">pub fn </span>is_struct(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_type_information().is_struct()
     }
 
     <span class="doccomment">/// returns true if this type is an array

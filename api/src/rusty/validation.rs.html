@@ -199,6 +199,12 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="kw">use </span>rusty_derive::Validators;
 
 <span class="kw">use crate</span>::{
@@ -207,7 +213,7 @@
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
     },
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    resolver::AnnotationMap,
     Diagnostic,
 };
 
@@ -230,16 +236,16 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
-    annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>AnnotationMapImpl,
+</span><span class="kw">pub struct </span>ValidationContext&lt;<span class="lifetime">&#39;s</span>, T: AnnotationMap&gt; {
+    annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>T,
     index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Index,
     <span class="doccomment">/// the type_name of the context for a reference (e.g. `a.b` where `a`&#39;s type is the context of `b`)
     </span>qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt;,
     is_call: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str) -&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T: AnnotationMap&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>, T&gt; {
+    <span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str) -&gt; <span class="self">Self </span>{
         ValidationContext {
             annotations: <span class="self">self</span>.annotations,
             index: <span class="self">self</span>.index,
@@ -269,7 +275,7 @@
         })
     }
 
-    <span class="kw">fn </span>set_is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValidationContext&lt;<span class="lifetime">&#39;s</span>&gt; {
+    <span class="kw">fn </span>set_is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         ValidationContext {
             annotations: <span class="self">self</span>.annotations,
             index: <span class="self">self</span>.index,
@@ -296,6 +302,12 @@
     </span>diagnostics: Vec&lt;Diagnostic&gt;,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Validator {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
 }
 
 <span class="kw">impl </span>Validator {
@@ -330,7 +342,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>visit_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>AnnotationMapImpl, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
+    <span class="kw">pub fn </span>visit_unit&lt;T: AnnotationMap&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>T, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
         <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
         <span class="comment">// validate POU and declared Variables
         </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
@@ -361,10 +373,10 @@
 /// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
 /// - https://github.com/PLC-lang/rusty/issues/707 and
 /// - `array_validation_test.rs/array_initialization_validation`
-</span><span class="kw">pub fn </span>validate_for_array_assignment(
+</span><span class="kw">pub fn </span>validate_for_array_assignment&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     expressions: <span class="kw-2">&amp;</span>[AstStatement],
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span><span class="kw-2">mut </span>array_assignment = <span class="bool-val">false</span>;
     expressions.iter().for_each(|e| {

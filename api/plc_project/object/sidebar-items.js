@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ObjectFormat","Representation of a binary file"]],"struct":[["Object",""]]};

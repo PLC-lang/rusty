@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/aa370b5/src/types/struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../inkwell/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/ec963b9/src/types/struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../inkwell/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -414,6 +414,16 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="kw">use </span>llvm_sys::core::{
     LLVMConstArray, LLVMConstNamedStruct, LLVMCountStructElementTypes, LLVMGetStructElementTypes, LLVMGetStructName,
     LLVMIsOpaqueStruct, LLVMIsPackedStruct, LLVMStructGetTypeAtIndex, LLVMStructSetBody,
@@ -608,7 +618,19 @@
     /// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);
     /// let struct_ptr_type = struct_type.ptr_type(AddressSpace::default());
     ///
-    /// #[cfg(not(feature = &quot;llvm15-0&quot;))]
+    /// #[cfg(any(
+    ///     feature = &quot;llvm4-0&quot;,
+    ///     feature = &quot;llvm5-0&quot;,
+    ///     feature = &quot;llvm6-0&quot;,
+    ///     feature = &quot;llvm7-0&quot;,
+    ///     feature = &quot;llvm8-0&quot;,
+    ///     feature = &quot;llvm9-0&quot;,
+    ///     feature = &quot;llvm10-0&quot;,
+    ///     feature = &quot;llvm11-0&quot;,
+    ///     feature = &quot;llvm12-0&quot;,
+    ///     feature = &quot;llvm13-0&quot;,
+    ///     feature = &quot;llvm14-0&quot;
+    /// ))]
     /// assert_eq!(struct_ptr_type.get_element_type().into_struct_type(), struct_type);
     /// ```
     </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
@@ -756,11 +778,11 @@
         <span class="kw">unsafe </span>{ StructValue::new(<span class="self">self</span>.struct_type.get_undef()) }
     }
 
-    <span class="comment">// REVIEW: SubTypes should allow this to only be implemented for StructType&lt;Opaque&gt; one day
-    // but would have to return StructType&lt;Tys&gt;. Maybe this is valid for non opaques, though
-    // it might just override types?
-    // REVIEW: What happens if called with &amp;[] on an opaque? Should that still be opaque? Does the call break?
-    </span><span class="doccomment">/// Defines the body of an opaue `StructType`.
+    <span class="doccomment">/// Defines the body of a `StructType`.
+    ///
+    /// If the struct is an opaque type, it will no longer be after this call.
+    /// 
+    /// Resetting the `packed` state of a non-opaque struct type may not work.
     ///
     /// # Example
     ///
@@ -778,15 +800,13 @@
     </span><span class="kw">pub fn </span>set_body(<span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], packed: bool) -&gt; bool {
         <span class="kw">let </span>is_opaque = <span class="self">self</span>.is_opaque();
         <span class="kw">let </span><span class="kw-2">mut </span>field_types: Vec&lt;LLVMTypeRef&gt; = field_types.iter().map(|val| val.as_type_ref()).collect();
-        <span class="kw">if </span>is_opaque {
-            <span class="kw">unsafe </span>{
-                LLVMStructSetBody(
-                    <span class="self">self</span>.as_type_ref(),
-                    field_types.as_mut_ptr(),
-                    field_types.len() <span class="kw">as </span>u32,
-                    packed <span class="kw">as </span>i32,
-                );
-            }
+        <span class="kw">unsafe </span>{
+            LLVMStructSetBody(
+                <span class="self">self</span>.as_type_ref(),
+                field_types.as_mut_ptr(),
+                field_types.len() <span class="kw">as </span>u32,
+                packed <span class="kw">as </span>i32,
+            );
         }
 
         is_opaque

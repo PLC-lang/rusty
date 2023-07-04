@@ -101,30 +101,32 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration},
     index::Index,
+    resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},
     Diagnostic,
 };
 
 <span class="kw">use super</span>::{variable::visit_variable, ValidationContext, Validator, Validators};
 
-<span class="kw">pub fn </span>visit_data_type_declaration(
+<span class="kw">pub fn </span>visit_data_type_declaration&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     declaration: <span class="kw-2">&amp;</span>DataTypeDeclaration,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
         visit_data_type(validator, data_type, location, context);
     }
 }
 
-<span class="kw">pub fn </span>visit_data_type(
+<span class="kw">pub fn </span>visit_data_type&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     data_type: <span class="kw-2">&amp;</span>DataType,
     location: <span class="kw-2">&amp;</span>SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     validate_data_type(validator, data_type, location);
 
@@ -164,10 +166,10 @@
     }
 }
 
-<span class="kw">pub fn </span>visit_user_type_declaration(
+<span class="kw">pub fn </span>visit_user_type_declaration&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     user_type: <span class="kw-2">&amp;</span>UserTypeDeclaration,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     visit_data_type(validator, <span class="kw-2">&amp;</span>user_type.data_type, <span class="kw-2">&amp;</span>user_type.location, context);
 }

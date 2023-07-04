@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["CodeGen","the codegen struct carries all dependencies required to generate the IR code for a compilation unit"],["CodegenContext","A wrapper around the LLVM context to allow passing it without exposing the inkwell dependencies"],["GeneratedModule",""]]};

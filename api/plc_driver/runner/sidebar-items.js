@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["compile","Compiles and runs the given sources Sources must be `Compilable`, default implementations include `String` and `&str` An implementation is also provided for `Vec<SourceContainer>`"],["compile_and_run","A Convenience method to compile and then run the given source"]],"struct":[["MainType",""]]};

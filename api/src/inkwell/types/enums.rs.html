@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/aa370b5/src/types/enums.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enums.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../inkwell/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/ec963b9/src/types/enums.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enums.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../inkwell/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -623,6 +623,16 @@
 <a href="#623" id="623">623</a>
 <a href="#624" id="624">624</a>
 <a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
 </pre><pre class="rust"><code><span class="kw">use </span>llvm_sys::core::LLVMGetTypeKind;
 <span class="kw">use </span>llvm_sys::prelude::LLVMTypeRef;
 <span class="kw">use </span>llvm_sys::LLVMTypeKind;
@@ -846,7 +856,8 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMBFloatTypeKind =&gt; AnyTypeEnum::FloatType(FloatType::new(type_)),
             LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Label&quot;</span>),
@@ -861,7 +872,8 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMScalableVectorTypeKind =&gt; AnyTypeEnum::VectorType(VectorType::new(type_)),
             <span class="comment">// FIXME: should inkwell support metadata as AnyType?
@@ -871,10 +883,13 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: AMX&quot;</span>),
             LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Token&quot;</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;llvm16-0&quot;</span>)]
+            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: TargetExt&quot;</span>),
         }
     }
 
@@ -1025,7 +1040,8 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMBFloatTypeKind =&gt; BasicTypeEnum::FloatType(FloatType::new(type_)),
             LLVMTypeKind::LLVMIntegerTypeKind =&gt; BasicTypeEnum::IntType(IntType::new(type_)),
@@ -1038,7 +1054,8 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMScalableVectorTypeKind =&gt; BasicTypeEnum::VectorType(VectorType::new(type_)),
             LLVMTypeKind::LLVMMetadataTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported basic type: Metadata&quot;</span>),
@@ -1049,13 +1066,16 @@
                 feature = <span class="string">&quot;llvm12-0&quot;</span>,
                 feature = <span class="string">&quot;llvm13-0&quot;</span>,
                 feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;
+                feature = <span class="string">&quot;llvm15-0&quot;</span>,
+                feature = <span class="string">&quot;llvm16-0&quot;
             </span>))]
             </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: AMX&quot;</span>),
             LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Label&quot;</span>),
             LLVMTypeKind::LLVMVoidTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: VoidType&quot;</span>),
             LLVMTypeKind::LLVMFunctionTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: FunctionType&quot;</span>),
             LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Token&quot;</span>),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;llvm16-0&quot;</span>)]
+            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: TargetExt&quot;</span>),
         }
     }
 

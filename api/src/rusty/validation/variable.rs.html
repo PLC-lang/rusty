@@ -185,9 +185,19 @@
 <a href="#185" id="185">185</a>
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
+    resolver::AnnotationMap,
     Diagnostic,
 };
 
@@ -196,11 +206,11 @@
     validate_for_array_assignment, ValidationContext, Validator, Validators,
 };
 
-<span class="kw">pub fn </span>visit_variable_block(
+<span class="kw">pub fn </span>visit_variable_block&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pou&gt;,
     block: <span class="kw-2">&amp;</span>VariableBlock,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     validate_variable_block(validator, block);
 
@@ -223,7 +233,11 @@
     }
 }
 
-<span class="kw">pub fn </span>visit_variable(validator: <span class="kw-2">&amp;mut </span>Validator, variable: <span class="kw-2">&amp;</span>Variable, context: <span class="kw-2">&amp;</span>ValidationContext) {
+<span class="kw">pub fn </span>visit_variable&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    variable: <span class="kw-2">&amp;</span>Variable,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
     validate_variable(validator, variable, context);
 
     visit_data_type_declaration(validator, <span class="kw-2">&amp;</span>variable.data_type_declaration, context);
@@ -273,7 +287,11 @@
     }
 }
 
-<span class="kw">fn </span>validate_variable(validator: <span class="kw-2">&amp;mut </span>Validator, variable: <span class="kw-2">&amp;</span>Variable, context: <span class="kw-2">&amp;</span>ValidationContext) {
+<span class="kw">fn </span>validate_variable&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    variable: <span class="kw-2">&amp;</span>Variable,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(v_entry) = context
         .qualifier
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))

@@ -1263,6 +1263,7 @@
     SemanticError { message: String, range: Vec&lt;SourceRange&gt;, err_no: ErrNo },
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec&lt;SourceRange&gt; },
+    CombinedDiagnostic { message: String, inner_diagnostics: Vec&lt;Diagnostic&gt;, err_no: ErrNo },
 }
 
 <span class="attr">#[allow(non_camel_case_types)]
@@ -1360,24 +1361,21 @@
 
 <span class="kw">impl </span>Diagnostic {
     <span class="doccomment">/// Creates a new diagnostic with additional ranges
-    </span><span class="kw">pub fn </span>with_extra_ranges(<span class="kw-2">&amp;</span><span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[SourceRange]) -&gt; Diagnostic {
+    </span><span class="kw">pub fn </span>with_extra_ranges(<span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[SourceRange]) -&gt; Diagnostic {
         <span class="kw">match </span><span class="self">self </span>{
-            Diagnostic::SyntaxError { message, range, err_no } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>range = range.to_vec();
+            Diagnostic::SyntaxError { message, <span class="kw-2">mut </span>range, err_no } =&gt; {
                 range.extend_from_slice(ranges);
-                Diagnostic::SyntaxError { message: message.to_string(), range, err_no: <span class="kw-2">*</span>err_no }
+                Diagnostic::SyntaxError { message, range, err_no }
             }
-            Diagnostic::SemanticError { message, range, err_no } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>range = range.to_vec();
+            Diagnostic::SemanticError { message, <span class="kw-2">mut </span>range, err_no } =&gt; {
                 range.extend_from_slice(ranges);
-                Diagnostic::SyntaxError { message: message.to_string(), range, err_no: <span class="kw-2">*</span>err_no }
+                Diagnostic::SyntaxError { message, range, err_no }
             }
-            Diagnostic::ImprovementSuggestion { message, range } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>range = range.to_vec();
+            Diagnostic::ImprovementSuggestion { message, <span class="kw-2">mut </span>range } =&gt; {
                 range.extend_from_slice(ranges);
-                Diagnostic::ImprovementSuggestion { message: message.to_string(), range }
+                Diagnostic::ImprovementSuggestion { message, range }
             }
-            Diagnostic::GeneralError { .. } =&gt; <span class="self">self</span>.clone(),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
         }
     }
 
@@ -1386,7 +1384,7 @@
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
             | Diagnostic::ImprovementSuggestion { range, .. } =&gt; range.as_slice(),
-            Diagnostic::GeneralError { .. } =&gt; <span class="kw-2">&amp;</span>[],
+            <span class="kw">_ </span>=&gt; <span class="kw-2">&amp;</span>[],
         }
     }
 
@@ -1782,7 +1780,8 @@
             Diagnostic::SyntaxError { message, .. }
             | Diagnostic::SemanticError { message, .. }
             | Diagnostic::ImprovementSuggestion { message, .. }
-            | Diagnostic::GeneralError { message, .. } =&gt; message.as_str(),
+            | Diagnostic::GeneralError { message, .. }
+            | Diagnostic::CombinedDiagnostic { message, .. } =&gt; message.as_str(),
         }
     }
 
@@ -1793,7 +1792,7 @@
             | Diagnostic::ImprovementSuggestion { range, .. } =&gt; {
                 range.get(<span class="number">0</span>).cloned().unwrap_or_else(SourceRange::undefined)
             }
-            Diagnostic::GeneralError { .. } =&gt; SourceRange::undefined(),
+            <span class="kw">_ </span>=&gt; SourceRange::undefined(),
         }
     }
 
@@ -1814,7 +1813,8 @@
         <span class="kw">match </span><span class="self">self </span>{
             Diagnostic::SyntaxError { err_no, .. }
             | Diagnostic::SemanticError { err_no, .. }
-            | Diagnostic::GeneralError { err_no, .. } =&gt; err_no,
+            | Diagnostic::GeneralError { err_no, .. }
+            | Diagnostic::CombinedDiagnostic { err_no, .. } =&gt; err_no,
             Diagnostic::ImprovementSuggestion { .. } =&gt; <span class="kw-2">&amp;</span>ErrNo::undefined,
         }
     }

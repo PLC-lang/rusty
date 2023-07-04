@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Benchmark","Trait Extension for the [`xshell::Cmd`] struct."],["Task",""]]};

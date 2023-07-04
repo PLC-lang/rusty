@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["PackageFormat",""]],"fn":[["get_project_from_file",""]],"struct":[["Libraries",""],["Project",""]]};

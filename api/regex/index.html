@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate provides a library for parsing, compiling, and executing regular expressions. Its syntax is similar to Perl-style regular expressions, but lacks a few features like look around and backreferences. In exchange, all searches execute in linear time with respect to the size of the regular expression and search text."><meta name="keywords" content="rust, rustlang, rust-lang, regex"><title>regex - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate regex</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 1.7.3</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">regex</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/regex/lib.rs.html#1-769">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate provides a library for parsing, compiling, and executing regular
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate provides a library for parsing, compiling, and executing regular expressions. Its syntax is similar to Perl-style regular expressions, but lacks a few features like look around and backreferences. In exchange, all searches execute in linear time with respect to the size of the regular expression and search text."><meta name="keywords" content="rust, rustlang, rust-lang, regex"><title>regex - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate regex</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 1.8.4</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">regex</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/regex/lib.rs.html#1-801">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate provides a library for parsing, compiling, and executing regular
 expressions. Its syntax is similar to Perl-style regular expressions, but lacks
 a few features like look around and backreferences. In exchange, all searches
 execute in linear time with respect to the size of the regular expression and
@@ -145,7 +145,9 @@ instead.)</p>
 <h2 id="unicode"><a href="#unicode">Unicode</a></h2>
 <p>This implementation executes regular expressions <strong>only</strong> on valid UTF-8
 while exposing match locations as byte indices into the search string. (To
-relax this restriction, use the <a href="bytes/index.html"><code>bytes</code></a> sub-module.)</p>
+relax this restriction, use the <a href="bytes/index.html"><code>bytes</code></a> sub-module.)
+Conceptually, the regex engine works by matching a haystack as if it were a
+sequence of Unicode scalar values.</p>
 <p>Only simple case folding is supported. Namely, when matching
 case-insensitively, the characters are first mapped using the “simple” case
 folding rules defined by Unicode.</p>
@@ -208,9 +210,9 @@ a separate crate, <a href="https://docs.rs/regex-syntax"><code>regex-syntax</cod
 .             any character except new line (includes new line with s flag)
 \d            digit (\p{Nd})
 \D            not digit
-\pN           One-letter name Unicode character class
+\pX           Unicode character class identified by a one-letter name
 \p{Greek}     Unicode character class (general category or script)
-\PN           Negated one-letter name Unicode character class
+\PX           Negated Unicode character class identified by a one-letter name
 \P{Greek}     negated Unicode character class (general category or script)
 </pre>
 <h4 id="character-classes"><a href="#character-classes">Character classes</a></h4><pre class="rust">
@@ -240,6 +242,22 @@ digit. <code>[\p{Greek}&amp;&amp;\pL]</code> matches Greek letters.</p>
 xy    concatenation (x followed by y)
 x|y   alternation (x or y, prefer x)
 </pre>
+<p>This example shows how an alternation works, and what it means to prefer a
+branch in the alternation over subsequent branches.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>regex::Regex;
+
+<span class="kw">let </span>haystack = <span class="string">&quot;samwise&quot;</span>;
+<span class="comment">// If &#39;samwise&#39; comes first in our alternation, then it is
+// preferred as a match, even if the regex engine could
+// technically detect that &#39;sam&#39; led to a match earlier.
+</span><span class="kw">let </span>re = Regex::new(<span class="string">r&quot;samwise|sam&quot;</span>).unwrap();
+<span class="macro">assert_eq!</span>(<span class="string">&quot;samwise&quot;</span>, re.find(haystack).unwrap().as_str());
+<span class="comment">// But if &#39;sam&#39; comes first, then it will match instead.
+// In this case, it is impossible for &#39;samwise&#39; to match
+// because &#39;sam&#39; is a prefix of it.
+</span><span class="kw">let </span>re = Regex::new(<span class="string">r&quot;sam|samwise&quot;</span>).unwrap();
+<span class="macro">assert_eq!</span>(<span class="string">&quot;sam&quot;</span>, re.find(haystack).unwrap().as_str());</code></pre></div>
 <h3 id="repetitions"><a href="#repetitions">Repetitions</a></h3><pre class="rust">
 x*        zero or more of x (greedy)
 x+        one or more of x (greedy)
@@ -266,11 +284,17 @@ $     the end of text (or end-of-line with multi-line mode)
 regex matches <code>abc</code> at positions <code>0</code>, <code>1</code>, <code>2</code> and <code>3</code>.</p>
 <h3 id="grouping-and-flags"><a href="#grouping-and-flags">Grouping and flags</a></h3><pre class="rust">
 (exp)          numbered capture group (indexed by opening parenthesis)
-(?P&lt;name&gt;exp)  named (also numbered) capture group (allowed chars: [_0-9a-zA-Z.\[\]])
+(?P&lt;name&gt;exp)  named (also numbered) capture group (names must be alpha-numeric)
+(?&lt;name&gt;exp)   named (also numbered) capture group (names must be alpha-numeric)
 (?:exp)        non-capturing group
 (?flags)       set flags within current group
 (?flags:exp)   set flags for exp (non-capturing)
 </pre>
+<p>Capture group names must be any sequence of alpha-numeric Unicode codepoints,
+in addition to <code>.</code>, <code>_</code>, <code>[</code> and <code>]</code>. Names must start with either an <code>_</code> or
+an alphabetic codepoint. Alphabetic codepoints correspond to the <code>Alphabetic</code>
+Unicode property, while numeric codepoints correspond to the union of the
+<code>Decimal_Number</code>, <code>Letter_Number</code> and <code>Other_Number</code> general categories.</p>
 <p>Flags are each a single character. For example, <code>(?x)</code> sets the flag <code>x</code>
 and <code>(?-x)</code> clears the flag <code>x</code>. Multiple flags can be set or cleared at
 the same time: <code>(?xy)</code> sets both the <code>x</code> and <code>y</code> flags and <code>(?x-y)</code> sets
@@ -282,8 +306,11 @@ m     multi-line mode: ^ and $ match begin/end of line
 s     allow . to match \n
 U     swap the meaning of x* and x*?
 u     Unicode support (enabled by default)
-x     ignore whitespace and allow line comments (starting with `#`)
+x     verbose mode, ignores whitespace and allow line comments (starting with `#`)
 </pre>
+<p>Note that in verbose mode, whitespace is ignored everywhere, including within
+character classes. To insert whitespace, use its escaped form or a hex literal.
+For example, <code>\ </code> or <code>\x20</code> for an ASCII space.</p>
 <p>Flags can be toggled within a pattern. Here’s an example that matches
 case-insensitively for the first part but case-sensitively for the second part:</p>
 

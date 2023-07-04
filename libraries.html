@@ -168,8 +168,8 @@ END_PROGRAM
 <ul>
 <li>A binary file for each architecture the library has been built for (<code>x86_64-linux-gnu</code>, <code>aarch64-linux-gnu</code>, ..)</li>
 </ul>
-<h2 id="linking-libraries-using-the-rustyc-command-line"><a class="header" href="#linking-libraries-using-the-rustyc-command-line">Linking libraries using the <code>rustyc</code> command line</a></h2>
-<p>To include a library when using the <code>rustyc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
+<h2 id="linking-libraries-using-the-plc-command-line"><a class="header" href="#linking-libraries-using-the-plc-command-line">Linking libraries using the <code>plc</code> command line</a></h2>
+<p>To include a library when using the <code>plc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
 <p>Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included with the <code>-i</code> are marked as external, the implementation part of a POU is ignored.</p>
 <p>To link the library, two options are then available: <a href="#shared-libraries">Shared</a> and <a href="#static-libraries">Static</a> libraries.</p>
@@ -191,7 +191,7 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 </blockquote>
 <h3 id="command-line-example"><a class="header" href="#command-line-example">Command line example</a></h3>
 <p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> :</p>
-<pre><code class="language-sh">rustyc input.st -i iec/header.st -L/lib/ -liec
+<pre><code class="language-sh">plc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
 <p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
