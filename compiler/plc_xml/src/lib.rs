@@ -1,25 +1,20 @@
 // TODO: Remove
 #![allow(dead_code)]
 
-mod deserializer;
 pub mod error;
+mod extensions;
 pub mod xml_parser;
 pub(crate) mod model {
-    pub(crate) mod action;
-    pub(crate) mod block;
-    pub(crate) mod body;
-    pub(crate) mod connector;
-    pub(crate) mod control;
-    pub(crate) mod fbd;
-    pub(crate) mod interface;
-    pub(crate) mod pou;
-    pub(crate) mod project;
-    pub(crate) mod variables;
+    pub mod action;
+    pub mod block;
+    pub mod body;
+    pub mod connector;
+    pub mod control;
+    pub mod fbd;
+    pub mod interface;
+    pub mod pou;
+    pub mod project;
+    pub mod variables;
 }
 mod reader;
 mod serializer;
-
-mod tests {
-    mod variables;
-    mod xml;
-}

@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use quick_xml::{events::Event, name::QName, Reader};
 
-use crate::{deserializer::PrototypingToString, error::Error};
+use crate::{error::Error, extensions::TryToString};
 
-pub struct PeekableReader<'xml> {
+pub(crate) struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
     peeked: Option<Event<'xml>>,
 }
@@ -21,7 +21,7 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
-    pub(crate) fn next(&mut self) -> Result<Event<'xml>, Error> {
+    pub fn next(&mut self) -> Result<Event<'xml>, Error> {
         if let Some(event) = self.peeked.take() {
             return Ok(event);
         }
@@ -29,7 +29,7 @@ impl<'xml> PeekableReader<'xml> {
         self.reader.read_event().map_err(Error::ReadEvent)
     }
 
-    pub(crate) fn peek(&mut self) -> Result<&Event<'xml>, Error> {
+    pub fn peek(&mut self) -> Result<&Event<'xml>, Error> {
         if self.peeked.is_none() {
             self.peeked = Some(self.reader.read_event().map_err(Error::ReadEvent)?);
         }
@@ -40,8 +40,8 @@ impl<'xml> PeekableReader<'xml> {
         }
     }
 
-    // advances the reader until it sees one of the defined token and stops after consuming it
-    pub(crate) fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
+    // Advances the reader until it sees one of the defined token and stops after consuming it
+    pub fn consume_until(&mut self, tokens: Vec<&'static [u8]>) -> Result<(), Error> {
         loop {
             match self.next()? {
                 Event::End(tag) if tokens.contains(&tag.name().as_ref()) => break,
@@ -53,8 +53,8 @@ impl<'xml> PeekableReader<'xml> {
         Ok(())
     }
 
-    // advances the reader until it sees the defined token and stops without consuming it
-    pub(crate) fn consume_until_start(&mut self, token: &'static [u8]) -> Result<(), Error> {
+    // Advances the reader until it sees the defined token and stops without consuming it
+    pub fn consume_until_start(&mut self, token: &'static [u8]) -> Result<(), Error> {
         loop {
             match self.peek()? {
                 Event::Start(tag) if token == tag.name().as_ref() => break,
@@ -67,13 +67,13 @@ impl<'xml> PeekableReader<'xml> {
     }
 
     /// Advances the reader consuming the event without returning it.
-    pub(crate) fn consume(&mut self) -> Result<(), Error> {
+    pub fn consume(&mut self) -> Result<(), Error> {
         self.next()?;
         Ok(())
     }
 
     /// Advances the reader, consuming the event returning its attributes.
-    pub(crate) fn attributes(&mut self) -> Result<HashMap<String, String>, Error> {
+    pub fn attributes(&mut self) -> Result<HashMap<String, String>, Error> {
         let tag = match self.next()? {
             Event::Start(tag) | Event::Empty(tag) => tag,
             _ => todo!(),

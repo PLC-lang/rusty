@@ -1,24 +1,28 @@
 ---
 source: compiler/plc_xml/src/model/pou.rs
-expression: "Pou::visit(&mut reader)"
+expression: "Project::pou_entry(&mut reader)"
 ---
 Ok(
-    Pou {
-        name: "foo",
-        pou_type: Program,
-        body: Body {
-            function_block_diagram: None,
-        },
-        actions: [],
-        interface: Some(
-            Interface {
-                add_data: Some(
-                    Data {
-                        content: "\nPROGRAM foo\nVAR\n\nEND_VAR\n                    ",
-                        handle: Implementation,
+    Project {
+        pous: [
+            Pou {
+                name: "foo",
+                pou_type: Program,
+                body: Body {
+                    function_block_diagram: None,
+                },
+                actions: [],
+                interface: Some(
+                    Interface {
+                        add_data: Some(
+                            Data {
+                                content: "\nPROGRAM foo\nVAR\n\nEND_VAR\n                    \nEND_PROGRAM",
+                                handle: Implementation,
+                            },
+                        ),
                     },
                 ),
             },
-        ),
+        ],
     },
 )

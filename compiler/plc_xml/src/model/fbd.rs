@@ -3,10 +3,11 @@ use std::cmp::Ordering;
 use indexmap::IndexMap;
 use quick_xml::events::Event;
 
-use crate::{deserializer::Parseable, error::Error, reader::PeekableReader};
+use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
 use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
 
+/// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
 pub(crate) type NodeIndex = IndexMap<NodeId, Node>;
 
@@ -103,7 +104,7 @@ impl Parseable for FunctionBlockDiagram {
             }
         }
 
-        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap());
+        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
         Ok(FunctionBlockDiagram { nodes })
     }
 }
@@ -113,13 +114,13 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        deserializer::Parseable,
         model::fbd::FunctionBlockDiagram,
         reader::PeekableReader,
         serializer::{
             XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
             XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
         },
+        xml_parser::Parseable,
     };
 
     #[test]

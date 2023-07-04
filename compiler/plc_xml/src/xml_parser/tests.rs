@@ -8,7 +8,6 @@ mod tests {
     };
 
     use crate::{
-        deserializer,
         serializer::{
             with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
             XOutVariable, XPou, XRelPosition,
@@ -22,7 +21,7 @@ mod tests {
 
     #[test]
     fn variable_assignment() {
-        let pou = crate::deserializer::visit(ASSIGNMENT_A_B).unwrap();
+        let pou = xml_parser::visit(ASSIGNMENT_A_B).unwrap();
         assert_debug_snapshot!(pou);
     }
 
@@ -84,7 +83,7 @@ mod tests {
         </pou>
         "#;
 
-        assert_debug_snapshot!(deserializer::visit(src).unwrap());
+        assert_debug_snapshot!(xml_parser::visit(src).unwrap());
     }
 
     #[test]
@@ -121,7 +120,7 @@ mod tests {
             .serialize(),
         );
 
-        assert_debug_snapshot!(deserializer::visit(&content).unwrap());
+        assert_debug_snapshot!(xml_parser::visit(&content).unwrap());
     }
 }
 

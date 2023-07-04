@@ -7,10 +7,12 @@ use plc::{
     lexer::{self, IdProvider},
     parser::expressions_parser::parse_expression,
 };
+use quick_xml::events::Event;
 
 use crate::{
-    deserializer::visit,
+    error::Error,
     model::{pou::PouType, project::Project},
+    reader::PeekableReader,
 };
 
 mod action;
@@ -19,6 +21,23 @@ mod fbd;
 mod pou;
 mod tests;
 mod variables;
+
+pub(crate) trait Parseable {
+    type Item;
+    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
+}
+
+pub(crate) fn visit(content: &str) -> Result<Project, Error> {
+    let mut reader = PeekableReader::new(content);
+    loop {
+        match reader.peek()? {
+            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
+            Event::Start(tag) if tag.name().as_ref() == b"project" => return Project::visit(&mut reader),
+            Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
+            _ => reader.consume()?,
+        }
+    }
+}
 
 pub fn parse_file(
     source: &str,

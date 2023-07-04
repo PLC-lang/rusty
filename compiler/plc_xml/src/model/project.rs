@@ -1,8 +1,8 @@
-use crate::deserializer::Parseable;
+use crate::xml_parser::Parseable;
 
 use super::pou::Pou;
 
-// the project root
+/// The Project root as specified in the official XSD
 #[derive(Debug)]
 pub(crate) struct Project {
     pub pous: Vec<Pou>,

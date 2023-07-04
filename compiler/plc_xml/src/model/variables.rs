@@ -1,11 +1,8 @@
 use quick_xml::events::Event;
 
-use crate::deserializer::GetOrErr;
-use crate::{
-    deserializer::{Parseable, PrototypingToString},
-    error::Error,
-    reader::PeekableReader,
-};
+use crate::extensions::GetOrErr;
+use crate::xml_parser::Parseable;
+use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
 use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, PartialEq)]
@@ -92,8 +89,6 @@ impl TryFrom<&[u8]> for VariableKind {
     }
 }
 
-// TODO: these impls should probably return a parse error instead of UnexpectedElement?
-
 impl FromStr for Edge {
     type Err = Error;
 
@@ -122,8 +117,6 @@ impl Parseable for FunctionBlockVariable {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        // peek next token to determine variable kind
-        // token will be consumed when extracting attributes later
         let next = reader.peek()?;
         let kind = match &next {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
@@ -230,13 +223,13 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        deserializer::Parseable,
         model::variables::{BlockVariable, FunctionBlockVariable},
         reader::PeekableReader,
         serializer::{
             XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
             XVariable,
         },
+        xml_parser::Parseable,
     };
 
     #[test]
