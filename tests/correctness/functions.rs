@@ -1,7 +1,7 @@
-use rusty::runner::run_no_param;
+use rusty::codegen::CodegenContext;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 
 #[test]
 fn max_function() {
@@ -42,14 +42,14 @@ fn max_function() {
     "#
     .to_string();
 
-    let context: Context = Context::create();
-    let engine = compile(&context, function);
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
     let mut case1 = MainType { the_a: 4, the_b: 7, ret: 0 };
     let mut case2 = MainType { the_a: 9, the_b: -2, ret: 0 };
 
-    let _: i32 = run(&engine, "main", &mut case1);
+    let _: i32 = module.run("main", &mut case1);
     assert_eq!(case1.ret, 7);
-    let _: i32 = run(&engine, "main", &mut case2);
+    let _: i32 = module.run("main", &mut case2);
     assert_eq!(case2.ret, 9);
 }
 
@@ -124,10 +124,10 @@ fn test_or_sideeffects() {
     "#
     .to_string();
 
-    let context: Context = Context::create();
-    let engine = compile(&context, function);
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
     let mut case1 = MainType { x: false };
-    let res: i32 = run(&engine, "main", &mut case1);
+    let res: i32 = module.run("main", &mut case1);
     assert_eq!(res, 31);
 }
 
@@ -169,10 +169,10 @@ fn test_and_sideeffects() {
     "#
     .to_string();
 
-    let context: Context = Context::create();
-    let engine = compile(&context, function);
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
     let mut case1 = MainType { x: false };
-    let res: i32 = run(&engine, "main", &mut case1);
+    let res: i32 = module.run("main", &mut case1);
     assert_eq!(res, 31);
 }
 
@@ -214,10 +214,10 @@ fn test_amp_as_and_sideeffects() {
     "#
     .to_string();
 
-    let context: Context = Context::create();
-    let engine = compile(&context, function);
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
     let mut case1 = MainType { x: false };
-    let res: i32 = run(&engine, "main", &mut case1);
+    let res: i32 = module.run("main", &mut case1);
     assert_eq!(res, 31);
 }
 
@@ -321,10 +321,10 @@ fn program_instances_save_state_per() {
     "#;
 
     let mut interface = MainType { f: FooType { i: 4 } };
-    let context = inkwell::context::Context::create();
-    let exec_engine = compile(&context, function.to_string());
-    run::<_, i32>(&exec_engine, "main", &mut interface);
-    run::<_, i32>(&exec_engine, "main", &mut interface);
+    let context = CodegenContext::create();
+    let module = compile(&context, function.to_string());
+    module.run::<_, i32>("main", &mut interface);
+    module.run::<_, i32>("main", &mut interface);
     assert_eq!(interface.f.i, 6);
 }
 
@@ -810,9 +810,9 @@ fn mux_test() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
 }
 
@@ -833,9 +833,9 @@ fn mux_test_variables() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
 }
 
@@ -967,9 +967,9 @@ fn sel_test_false() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 4)
 }
 
@@ -981,9 +981,9 @@ fn sel_test_true() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 5)
 }
 
@@ -998,9 +998,9 @@ fn sel_test_true_vars() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 5)
 }
 
@@ -1015,9 +1015,9 @@ fn sel_expression_test() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 15);
 }
 
@@ -1145,9 +1145,9 @@ fn move_test() {
         END_FUNCTION
         "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
     assert_eq!(res, 4)
 }
 
@@ -1209,9 +1209,9 @@ fn sizeof_test() {
         "#;
 
     let mut maintype = MainType::default();
-    let context = Context::create();
-    let exec_engine = compile(&context, function);
-    let _: i32 = run(&exec_engine, "main", &mut maintype);
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let _: i32 = module.run("main", &mut maintype);
 
     let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 4 };
 
@@ -1237,9 +1237,9 @@ fn sizeof_len() {
     END_FUNCTION
     "#;
 
-    let context = Context::create();
-    let exec_engine = compile(&context, src);
-    let res: i32 = run_no_param(&exec_engine, "main");
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
+    let res: i32 = module.run_no_param("main");
 
     assert_eq!(13, res);
 }

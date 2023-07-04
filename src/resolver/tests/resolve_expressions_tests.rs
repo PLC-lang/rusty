@@ -1,6 +1,6 @@
 use core::panic;
 
-use insta::assert_snapshot;
+use insta::{assert_debug_snapshot, assert_snapshot};
 
 use crate::{
     ast::{
@@ -41,7 +41,7 @@ fn binary_expressions_resolves_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "LINT"];
@@ -299,7 +299,7 @@ fn unary_expressions_resolves_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BOOL", "DINT", "REAL"];
@@ -321,7 +321,7 @@ fn binary_expressions_resolves_types_with_floats() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL", "REAL"];
@@ -425,7 +425,7 @@ fn local_variables_resolves_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -473,7 +473,7 @@ fn global_resolves_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -507,7 +507,7 @@ fn global_initializers_resolves_types() {
         ",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements: Vec<&AstStatement> =
         unit.global_vars[0].variables.iter().map(|it| it.initializer.as_ref().unwrap()).collect();
 
@@ -555,7 +555,7 @@ fn resolve_binary_expressions() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -670,7 +670,7 @@ fn complex_expressions_resolve_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
@@ -712,7 +712,7 @@ fn pointer_expressions_resolve_types() {
         ",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_i", "INT", "__PRG_y", "INT", "MyIntRef", "INT", "MyAliasRef", "INT"];
@@ -758,7 +758,7 @@ fn array_expressions_resolve_types() {
         ",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -804,7 +804,7 @@ fn qualified_expressions_resolve_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
@@ -835,7 +835,7 @@ fn pou_expressions_resolve_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[3].statements;
 
     //none of these pou's should really resolve to a type
@@ -879,7 +879,7 @@ fn assignment_expressions_resolve_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![VOID_TYPE, VOID_TYPE];
@@ -942,7 +942,7 @@ fn qualified_expressions_to_structs_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types =
@@ -976,7 +976,7 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_mys", "BYTE", "WORD", "DWORD", "LWORD"];
@@ -1004,7 +1004,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1052,7 +1052,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1062,6 +1062,44 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
     assert_eq!(index.find_effective_type_by_name("INT"), associated_type);
+}
+
+#[test]
+fn comparison_resolves_to_function_call() {
+    //GIVEN a reference to a function
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR_TEMP
+            a,b : STRING;
+        END_VAR
+        a = b;
+        a < b;
+        a <= b;
+        a > b;
+        a >= b;
+        a <> b;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN we expect it to be annotated with the new function call ast for comparison
+    let annotation = annotations.get(&statements[0]);
+    assert_snapshot!(format!("{annotation:?}"));
+    let annotation = annotations.get(&statements[1]);
+    assert_snapshot!(format!("{annotation:?}"));
+    let annotation = annotations.get(&statements[2]);
+    assert_snapshot!(format!("{annotation:?}"));
+    let annotation = annotations.get(&statements[3]);
+    assert_snapshot!(format!("{annotation:?}"));
+    let annotation = annotations.get(&statements[4]);
+    assert_snapshot!(format!("{annotation:?}"));
 }
 
 #[test]
@@ -1129,7 +1167,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types =
@@ -1165,7 +1203,7 @@ fn qualified_expressions_to_fbs_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["MyFb", "SINT", "INT", "DINT"];
@@ -1197,7 +1235,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(None, annotations.get(&statements[0]));
@@ -1236,7 +1274,7 @@ fn function_parameter_assignments_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     assert_eq!(annotations.get_type_or_void(&statements[0], &index).get_name(), "INT");
@@ -1301,7 +1339,7 @@ fn nested_function_parameter_assignments_resolve_types() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[2].statements;
     if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters
@@ -1339,7 +1377,7 @@ fn type_initial_values_are_resolved() {
         id_provider.clone(),
     );
 
-    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
     let UserTypeDeclaration { data_type, .. } = &unit.user_types[0];
@@ -1388,7 +1426,7 @@ fn actions_are_resolved() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get(foo_reference);
     assert_eq!(Some(&StatementAnnotation::Program { qualified_name: "prg.foo".into() }), annotation);
@@ -1425,7 +1463,7 @@ fn method_references_are_resolved() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get(foo_reference);
     assert_eq!(
@@ -1472,7 +1510,7 @@ fn bitaccess_is_resolved() {
     ",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BOOL", "BOOL", "BYTE", "WORD", "DWORD"];
@@ -1500,7 +1538,7 @@ fn variable_direct_access_type_resolved() {
     ",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["INT", "REAL", "LREAL"];
@@ -1578,7 +1616,7 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1628,7 +1666,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1680,7 +1718,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![false, true];
@@ -1719,7 +1757,7 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
         id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, true, true, false];
@@ -2647,7 +2685,7 @@ fn resolve_function_with_same_name_as_return_type() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -2708,7 +2746,7 @@ fn string_compare_should_resolve_to_bool() {
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[1].statements[0];
-    assert_eq!(Some(&StatementAnnotation::value("BOOL")), annotations.get(a_eq_b),);
+    assert_debug_snapshot!(annotations.get(a_eq_b).unwrap());
 }
 
 #[test]
@@ -2881,7 +2919,7 @@ fn call_on_function_block_array() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // should be the call statement
     let statements = &unit.implementations[1].statements[0];
     // should contain array access as operator
@@ -2913,7 +2951,7 @@ fn and_statement_of_bools_results_in_bool() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let a_and_b = &unit.implementations[0].statements[0];
     // a AND b should be treated as i1
     assert_type_and_hint!(&annotations, &index, a_and_b, BOOL_TYPE, None);
@@ -2939,7 +2977,7 @@ fn and_statement_of_dints_results_in_dint() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // a AND b should be treated as DINT
     assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[0], DINT_TYPE, None);
     // c AND d should be treated as DINT
@@ -2973,7 +3011,7 @@ fn resolve_recursive_function_call() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
     let annotated_types = format!("{type_map:#?}");
 
@@ -3006,7 +3044,7 @@ fn resolve_recursive_program_call() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
     let annotated_types = format!("{type_map:#?}");
 
@@ -3443,7 +3481,7 @@ fn parameter_down_cast_test() {
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN check if downcasts are detected for implicit parameters

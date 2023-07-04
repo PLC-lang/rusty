@@ -349,6 +349,7 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
 }
 
 #[derive(Clone)]
+//TODO: This belongs to the AST
 pub struct IdProvider {
     current_id: Arc<AtomicUsize>,
 }

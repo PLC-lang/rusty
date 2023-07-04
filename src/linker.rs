@@ -4,6 +4,7 @@
 use which::which;
 
 use crate::diagnostics::Diagnostic;
+use log::debug;
 use std::{
     error::Error,
     path::{Path, PathBuf},
@@ -28,8 +29,6 @@ trait LinkerInterface {
 
 impl Linker {
     pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
-        let target_os = target.split('-').collect::<Vec<&str>>()[2];
-
         Ok(Linker {
             errors: Vec::default(),
             linker: match linker {
@@ -37,11 +36,18 @@ impl Linker {
 
                 // TODO: Linker for Windows is missing, see also:
                 // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
-                None => match target_os {
-                    "win32" | "windows" => return Err(LinkerError::Target(target_os.into())),
+                None => {
+                    let [platform, target_os] = target.split('-').collect::<Vec<&str>>()[1..=2] else {
+                        return Err(LinkerError::Target(target.into()));
+                    };
+                    match (platform, target_os) {
+                        (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
+                            return Err(LinkerError::Target(target_os.into()))
+                        }
 
-                    _ => Box::new(LdLinker::new()),
-                },
+                        _ => Box::new(LdLinker::new()),
+                    }
+                }
             },
         })
     }
@@ -71,30 +77,30 @@ impl Linker {
     }
 
     /// Set the output file and run the linker to generate a shared object
-    pub fn build_shared_obj(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_shared_obj(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_shared_object(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Set the output file and run the linker to generate an executable
-    pub fn build_exectuable(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_exectuable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_exectuable(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Set the output file and run the linker to generate a relocatable object for further linking
-    pub fn build_relocatable(&mut self, path: &Path) -> Result<(), LinkerError> {
-        if let Some(file) = self.get_str_from_path(path) {
+    pub fn build_relocatable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+        if let Some(file) = self.get_str_from_path(&path) {
             self.linker.build_relocatable(file);
             self.linker.finalize()?;
         }
-        Ok(())
+        Ok(path)
     }
 
     /// Check if the path is valid, log an error if it wasn't
@@ -156,8 +162,7 @@ impl LinkerInterface for CcLinker {
         let linker_location = which(&self.linker)
             .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
 
-        #[cfg(feature = "debug")]
-        println!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
+        debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
 
         let status = Command::new(linker_location).args(&self.args).status()?;
         if status.success() {
@@ -257,10 +262,16 @@ fn windows_target_triple_should_result_in_error() {
     for target in &[
         "x86_64-pc-windows-gnu",
         "x86_64-pc-win32-gnu",
+        "x86_64-windows-gnu",
+        "x86_64-win32-gnu",
         "aarch64-pc-windows-gnu",
         "aarch64-pc-win32-gnu",
+        "aarch64-windows-gnu",
+        "aarch64-win32-gnu",
         "i686-pc-windows-gnu",
         "i686-pc-win32-gnu",
+        "i686-windows-gnu",
+        "i686-win32-gnu",
     ] {
         assert!(Linker::new(target, None).is_err());
     }
@@ -268,7 +279,9 @@ fn windows_target_triple_should_result_in_error() {
 
 #[test]
 fn non_windows_target_triple_should_result_in_ok() {
-    for target in &["x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"] {
+    for target in
+        &["x86_64-linux-gnu", "x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"]
+    {
         assert!(Linker::new(target, None).is_ok());
     }
 }

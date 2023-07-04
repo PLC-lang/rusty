@@ -1,7 +1,8 @@
 use std::ffi::CStr;
 
-use super::super::*;
+use crate::*;
 use inkwell::targets::{InitializationConfig, Target};
+use rusty::codegen::CodegenContext;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -39,19 +40,15 @@ fn test_external_function_called() {
     ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(prog, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
 
-    let fn_value = code_gen.module.get_function("times_two__INT").unwrap();
-    exec_engine.add_global_mapping(&fn_value, times_two_int as usize);
-    let fn_value = code_gen.module.get_function("times_two__REAL").unwrap();
-    exec_engine.add_global_mapping(&fn_value, times_two_real as usize);
+    module.add_global_function_mapping("times_two__INT", times_two_int as usize);
+    module.add_global_function_mapping("times_two__REAL", times_two_real as usize);
 
     let mut main_type = MainType { a: 0, b: 0.0f32 };
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let _: i32 = module.run("main", &mut main_type);
     assert_eq!(main_type.a, 200);
     assert_eq!(main_type.b, 5.0f32);
 }
@@ -153,17 +150,14 @@ fn test_generic_function_with_param_by_ref_called() {
     ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
-    let context: Context = Context::create();
-    let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) =
-        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
-    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
+    let source = SourceCode::new(prog, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
 
-    let fn_value = code_gen.module.get_function("LEFT_EXT__STRING").unwrap();
-    exec_engine.add_global_mapping(&fn_value, left_ext__string as usize);
+    module.add_global_function_mapping("LEFT_EXT__STRING", left_ext__string as usize);
 
     let mut main_type = MainType2 { s: *b"hello\0" };
-    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let _: i32 = module.run("main", &mut main_type);
     let result = CStr::from_bytes_with_nul(&main_type.s).unwrap().to_str().unwrap();
     assert_eq!(result, "hello");
 }

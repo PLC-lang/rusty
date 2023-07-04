@@ -5,11 +5,11 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main = type { %fb }
 %fb = type {}
+%main = type { %fb }
 
-@main_instance = global %main zeroinitializer
 @__fb__init = unnamed_addr constant %fb zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:

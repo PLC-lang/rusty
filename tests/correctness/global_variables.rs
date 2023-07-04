@@ -1,5 +1,7 @@
+use rusty::codegen::CodegenContext;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -61,12 +63,12 @@ fn global_variable_can_be_referenced_in_two_functions() {
     two := gX;
     END_FUNCTION
     ";
-    let context = inkwell::context::Context::create();
-    let exec_engine = compile(&context, function.to_string());
+    let context = CodegenContext::create();
+    let module = compile(&context, function.to_string());
 
-    let res: i32 = run(&exec_engine, "main", &mut MainType { x: 0 });
+    let res: i32 = module.run("main", &mut MainType { x: 0 });
     assert_eq!(res, 30);
-    let res2: i32 = run(&exec_engine, "two", &mut MainType { x: 0 });
+    let res2: i32 = module.run("two", &mut MainType { x: 0 });
     assert_eq!(res2, 30)
 }
 
@@ -95,11 +97,11 @@ fn global_variables_with_initialization() {
         z := gZ;
     END_PROGRAM
     ";
-    let context = inkwell::context::Context::create();
-    let exec_engine = compile(&context, function.to_string());
+    let context = CodegenContext::create();
+    let module = compile(&context, function.to_string());
 
     let mut params = MainGlobalsType { x: 0, y: false, z: 0.0 };
-    run::<_, i32>(&exec_engine, "main", &mut params);
+    module.run::<_, i32>("main", &mut params);
     assert_eq!(params, MainGlobalsType { x: 77, y: true, z: 9.1415 });
 }
 

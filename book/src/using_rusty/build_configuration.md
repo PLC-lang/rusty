@@ -1,17 +1,17 @@
 # Build Configuration
 
-In addition to the comprehensive help, `rustyc` offers a build subcommand that simplifies the build process. </br>
+In addition to the comprehensive help, `plc` offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the [json](https://en.wikipedia.org/wiki/JSON) format.
 
 Usage:
-`rustyc build`
+`plc build`
 
-Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path.
+Note that if `plc` cannot find the `plc.json` file, it will throw an error and request the path.
 The default location for the build file is the current directory.
 
 The command for building with an additional path looks like this:
-`rustyc build src/plc.json`
+`plc build src/plc.json`
 
 ## Build description file (plc.json)
 
@@ -34,7 +34,7 @@ The value of `files` is an array of strings, definied as follows:
 
 ### libraries
 
-To link several objects into one executable `rustyc` has the option to add libraries and automatically build and link them together.</br>
+To link several objects into one executable `plc` has the option to add libraries and automatically build and link them together.</br>
 The `libraries` keyword is optional.
 
 ```json

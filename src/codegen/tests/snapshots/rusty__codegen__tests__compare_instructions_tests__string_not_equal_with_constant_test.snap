@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@utf08_literal_0 = unnamed_addr constant [2 x i8] c"b\00"
+@utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
 define i8 @STRING_EQUAL([1025 x i8] %0, [1025 x i8] %1) {
 entry:

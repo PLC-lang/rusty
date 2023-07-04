@@ -1,11 +1,12 @@
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use std::path::PathBuf;
 
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::context::Context;
-use rusty::*;
-
 //Import the helper run methods into the tests
-pub use rusty::runner::{compile, compile_and_run, run, MainType};
+pub use driver::runner::{compile, compile_and_run, MainType};
+pub use inkwell::context::Context;
+
+pub use source::*;
 
 mod correctness {
     mod arrays;
@@ -34,7 +35,6 @@ mod correctness {
     }
     mod vla;
 }
-
 mod integration {
     mod build_description_tests;
     mod command_line_compile;

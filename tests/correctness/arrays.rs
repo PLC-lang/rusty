@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+
+use crate::compile_and_run;
+
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Debug)]
@@ -153,7 +155,7 @@ fn three_dim_array_math() {
         END_FUNCTION
         ";
 
-    let mut maintype = rusty::runner::MainType::default();
+    let mut maintype = crate::MainType::default();
     let res: i16 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(res, 15);
 }

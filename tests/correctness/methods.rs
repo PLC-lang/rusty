@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+
+use crate::{compile_and_run, MainType};
 
 #[test]
 #[ignore = "class/method support postponed"]

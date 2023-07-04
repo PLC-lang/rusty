@@ -148,6 +148,10 @@ impl DataType {
         self.location.is_internal()
     }
 
+    pub fn is_struct(&self) -> bool {
+        self.get_type_information().is_struct()
+    }
+
     /// returns true if this type is an array
     pub fn is_array(&self) -> bool {
         self.get_type_information().is_array()
