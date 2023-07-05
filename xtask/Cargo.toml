@@ -5,7 +5,6 @@ edition = "2021"
 
 [features]
 default = []
-sql = []
 
 [dependencies]
 xshell = "0.2"
@@ -13,7 +12,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sysinfo = "0.28"
 anyhow = "1.0"
-sqlx = { version = "0.6", features = ["runtime-async-std-rustls", "mysql"]}
+sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-native-tls", "mysql" ]}
+
 async-std = "1.12.0"
 tempfile = "3"
 clap = { version = "4.3.10", features = ["derive"] }

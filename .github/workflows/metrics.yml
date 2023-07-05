@@ -28,9 +28,9 @@ jobs:
     - name: Collect metrics (Git)
       if: github.ref_name == 'master'
       run: |
-        cargo benchmark --git
+        cargo metrics --git
 
     - name: Collect metrics (Local)
       if: github.ref_name != 'master'
       run: |
-        cargo benchmark
+        cargo metrics

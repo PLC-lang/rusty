@@ -1,9 +1,9 @@
+use clap::ValueEnum;
 use std::{
     collections::BTreeMap,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use sysinfo::{CpuExt, System, SystemExt};
-use clap::ValueEnum;
 
 use anyhow::Result;
 use serde::Serialize;
@@ -13,7 +13,6 @@ pub(crate) mod git;
 pub mod sql;
 pub(crate) mod sysout;
 
-#[cfg(feature = "sql")]
 use sql::SqlReporter;
 
 use self::{git::GitReporter, sysout::SysoutReporter};
@@ -25,7 +24,6 @@ pub trait Reporter {
 
 #[derive(Default, ValueEnum, Clone, Copy)]
 pub enum ReporterType {
-    #[cfg(feature = "sql")]
     Sql,
     Git,
     #[default]
@@ -94,7 +92,6 @@ impl BenchmarkReport {
 pub fn from_type(r_type: ReporterType) -> Box<dyn Reporter> {
     match r_type {
         ReporterType::Sysout => Box::new(SysoutReporter),
-        #[cfg(feature = "sql")]
         ReporterType::Sql => Box::new(SqlReporter),
         ReporterType::Git => Box::new(GitReporter),
     }

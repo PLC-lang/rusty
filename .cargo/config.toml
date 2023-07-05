@@ -1,7 +1,6 @@
 [alias]
 xtask = "run --package xtask --"
-benchmark = "run --package xtask --"
-benchmark-sql = "run --package xtask --features=sql -- --reporter=sql"
+metrics = "run --package xtask -- metrics"
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]

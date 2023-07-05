@@ -10,13 +10,21 @@ use xshell::{cmd, Shell};
 mod reporter;
 mod task;
 
-#[derive(Default, Parser)]
+#[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Parameters {
     #[command(subcommand)]
-    action: Option<Action>,
-    #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
-    reporter: ReporterType,
+    command: Command,
+}
+
+#[derive(Subcommand, Clone)]
+enum Command {
+    Metrics {
+        #[command(subcommand)]
+        action: Option<Action>,
+        #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
+        reporter: ReporterType,
+    },
 }
 
 #[derive(Subcommand, Clone)]
@@ -32,11 +40,17 @@ enum Action {
 
 fn main() -> anyhow::Result<()> {
     let params = Parameters::parse();
-    let (work_dir, compiler) = prepare()?;
+    let Command::Metrics { action, reporter } = params.command;
+    run_metrics(action, reporter)?;
 
+    Ok(())
+}
+
+fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
+    let (work_dir, compiler) = prepare()?;
     //Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
-    match &params.action {
+    match &action {
         Some(Action::Compile { directory }) => {
             for opt in ["none", "less", "default", "aggressive"] {
                 let task = Compile {
@@ -80,7 +94,7 @@ fn main() -> anyhow::Result<()> {
     }
     //Reprort data
     let report = BenchmarkReport::new(data)?;
-    let reporter = reporter::from_type(params.reporter);
+    let reporter = reporter::from_type(reporter);
     reporter.persist(report)?;
     Ok(())
 }
@@ -97,7 +111,7 @@ fn prepare() -> Result<(TempDir, PathBuf)> {
     cmd!(&sh, "mv output target/release/stdlib").run()?;
     //Get rusty path
     let compile_dir = std::env::current_dir()?.join("target").join("release");
-    let plc = std::env::current_dir()?.join("target").join("release").join("rustyc");
+    let plc = std::env::current_dir()?.join("target").join("release").join("plc");
     if !plc.exists() {
         anyhow::bail!("Could not find compiler, did you run cargo build --release?")
     }

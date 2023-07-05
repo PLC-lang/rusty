@@ -271,10 +271,12 @@ impl<'ink> GeneratedModule<'ink> {
             std::fs::create_dir_all(parent)?;
         }
         match format {
-            FormatOption::Object | FormatOption::Static | FormatOption::Relocatable => {
+            FormatOption::Object | FormatOption::Relocatable => {
                 self.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC => self.persist_to_shared_pic_object(output, target, optimization_level),
+            FormatOption::PIC | FormatOption::Static => {
+                self.persist_to_shared_pic_object(output, target, optimization_level)
+            }
             FormatOption::Shared => self.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
