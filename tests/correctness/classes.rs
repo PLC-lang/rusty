@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 
 #[test]
 fn class_reference_in_pou() {

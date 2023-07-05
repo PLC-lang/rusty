@@ -5,11 +5,11 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main = type { %fb }
 %fb = type { i16 }
+%main = type { %fb }
 
-@main_instance = global %main { %fb { i16 9 } }
 @__fb__init = unnamed_addr constant %fb { i16 9 }
+@main_instance = global %main { %fb { i16 9 } }
 
 define i32 @func(%fb %0) {
 entry:

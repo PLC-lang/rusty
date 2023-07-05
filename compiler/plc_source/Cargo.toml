@@ -1,0 +1,14 @@
+[package]
+name = "plc_source"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+encoding_rs.workspace = true
+encoding_rs_io.workspace = true
+
+[lib]
+name = "plc_source"
+path = "./src/lib.rs"

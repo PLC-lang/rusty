@@ -18,7 +18,7 @@ pub trait Benchmark {
 
     /// Benchmarks a command specified by the [`self`] argument measuring its wall-time,
     /// collecting and inserting the data into the [`Metrics`] struct. The `name` thereby
-    /// specifies the to be benchmarked task (e.g. `rustyc`) whereas the `desc` argument
+    /// specifies the to be benchmarked task (e.g. `plc`) whereas the `desc` argument
     /// describes how the task ran (e.g. with the `-Oaggressive` flag).
     fn benchmark(&self, metrics: &mut Metrics, name: &str, desc: &str) -> anyhow::Result<()>;
 }

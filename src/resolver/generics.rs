@@ -107,7 +107,7 @@ impl<'i> TypeAnnotator<'i> {
                         }
                     }
                     // annotate the call-statement so it points to the new implementation
-                    self.annotation_map.annotate(operator, annotation);
+                    self.annotate(operator, annotation);
                 }
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
@@ -279,8 +279,7 @@ impl<'i> TypeAnnotator<'i> {
                         match parameter_stmt {
                             AstStatement::Assignment { left, .. }
                             | AstStatement::OutputAssignment { left, .. } => {
-                                self.annotation_map
-                                    .annotate(left, StatementAnnotation::value(datatype.get_name()));
+                                self.annotate(left, StatementAnnotation::value(datatype.get_name()));
                             }
                             _ => {}
                         }

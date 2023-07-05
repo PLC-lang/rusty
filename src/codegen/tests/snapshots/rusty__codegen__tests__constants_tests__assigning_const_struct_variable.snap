@@ -9,8 +9,8 @@ source_filename = "main"
 %main = type { %Point }
 
 @const_strct = unnamed_addr constant %Point { i16 1, i16 2 }
-@main_instance = global %main zeroinitializer
 @__Point__init = unnamed_addr constant %Point zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define void @main(%main* %0) {
 entry:

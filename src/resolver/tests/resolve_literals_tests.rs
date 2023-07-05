@@ -18,7 +18,7 @@ fn bool_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!("BOOL", annotations.get_type_or_void(&statements[0], &index).get_name());
@@ -38,7 +38,7 @@ fn string_literals_are_annotated() {
     );
 
     //WHEN they are annotated
-    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
     // THEN we expect them to be annotated with correctly sized string types
@@ -89,7 +89,7 @@ fn int_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
@@ -118,7 +118,7 @@ fn date_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -150,7 +150,7 @@ fn long_date_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
@@ -169,7 +169,7 @@ fn real_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL"];
@@ -199,7 +199,7 @@ fn casted_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
@@ -243,7 +243,7 @@ fn enum_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let actual_resolves: Vec<&str> =
@@ -266,7 +266,7 @@ fn enum_literals_target_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let color_red = &unit.implementations[0].statements[0];
 
     assert_eq!(
@@ -308,7 +308,7 @@ fn casted_inner_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];

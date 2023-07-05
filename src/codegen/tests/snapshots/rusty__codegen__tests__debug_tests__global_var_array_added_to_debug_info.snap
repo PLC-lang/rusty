@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
-expression: codegen.0
+expression: codegen
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -16,7 +16,7 @@ source_filename = "main"
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "src")
 !3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 352, align: 64, elements: !5)
-!4 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !{!6}
 !6 = !DISubrange(count: 10, lowerBound: 0)
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())

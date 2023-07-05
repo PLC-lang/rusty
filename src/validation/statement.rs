@@ -28,7 +28,11 @@ macro_rules! visit_all_statements {
     };
 }
 
-pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, context: &ValidationContext) {
+pub fn visit_statement<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstStatement,
+    context: &ValidationContext<T>,
+) {
     match statement {
         // AstStatement::EmptyStatement { location, id } => (),
         // AstStatement::DefaultValue { location, id } => (),
@@ -140,14 +144,14 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
 
 /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
 /// checks whether the type-prefix is valid
-fn validate_cast_literal(
+fn validate_cast_literal<T: AnnotationMap>(
     // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     validator: &mut Validator,
     literal: &AstLiteral,
     statement: &AstStatement,
     type_name: &str,
     location: &SourceRange,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     let cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
     let literal_type = context.index.get_type_information_or_void(
@@ -198,10 +202,10 @@ fn validate_cast_literal(
     }
 }
 
-fn validate_qualified_reference(
+fn validate_qualified_reference<T: AnnotationMap>(
     validator: &mut Validator,
     elements: &[AstStatement],
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     let mut iter = elements.iter().rev();
     if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
@@ -229,9 +233,9 @@ fn validate_qualified_reference(
     }
 }
 
-fn validate_access_index(
+fn validate_access_index<T: AnnotationMap>(
     validator: &mut Validator,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
     access_index: &AstStatement,
     access_type: &DirectAccessType,
     target_type: &DataTypeInformation,
@@ -261,12 +265,12 @@ fn validate_access_index(
     }
 }
 
-fn validate_reference(
+fn validate_reference<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstStatement,
     ref_name: &str,
     location: &SourceRange,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
@@ -290,11 +294,11 @@ fn validate_reference(
     }
 }
 
-fn visit_array_access(
+fn visit_array_access<T: AnnotationMap>(
     validator: &mut Validator,
     reference: &AstStatement,
     access: &AstStatement,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
@@ -344,12 +348,12 @@ fn validate_array_access_dimensions(
     }
 }
 
-fn validate_array_access(
+fn validate_array_access<T: AnnotationMap>(
     validator: &mut Validator,
     access: &AstStatement,
     dimensions: &[Dimension],
     dimension_index: usize,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = access {
         if let Some(dimension) = dimensions.get(dimension_index) {
@@ -373,13 +377,13 @@ fn validate_array_access(
     }
 }
 
-fn visit_binary_expression(
+fn visit_binary_expression<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstStatement,
     operator: &Operator,
     left: &AstStatement,
     right: &AstStatement,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     match operator {
         Operator::NotEqual => {
@@ -401,13 +405,13 @@ fn visit_binary_expression(
     }
 }
 
-fn validate_binary_expression(
+fn validate_binary_expression<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstStatement,
     operator: &Operator,
     left: &AstStatement,
     right: &AstStatement,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
     let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
@@ -433,7 +437,11 @@ fn validate_binary_expression(
     }
 }
 
-fn compare_function_exists(type_name: &str, operator: &Operator, context: &ValidationContext) -> bool {
+fn compare_function_exists<T: AnnotationMap>(
+    type_name: &str,
+    operator: &Operator,
+    context: &ValidationContext<T>,
+) -> bool {
     let implementation = get_equals_function_name_for(type_name, operator)
         .as_ref()
         .and_then(|function_name| context.index.find_pou_implementation(function_name));
@@ -524,12 +532,12 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-fn validate_assignment(
+fn validate_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     right: &AstStatement,
     left: Option<&AstStatement>,
     location: &SourceRange,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     if let Some(left) = left {
         // Check if we are assigning to a...
@@ -610,9 +618,9 @@ fn validate_assignment(
     }
 }
 
-fn validate_variable_length_array_assignment(
+fn validate_variable_length_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
     location: &SourceRange,
     left_type: &DataType,
     right_type: &DataType,
@@ -755,11 +763,11 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
         )
 }
 
-fn validate_call(
+fn validate_call<T: AnnotationMap>(
     validator: &mut Validator,
     operator: &AstStatement,
     parameters: &Option<AstStatement>,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     // visit called pou
     visit_statement(validator, operator, context);
@@ -834,12 +842,12 @@ fn validate_call(
 }
 
 // selector, case_blocks, else_block
-fn validate_case_statement(
+fn validate_case_statement<T: AnnotationMap>(
     validator: &mut Validator,
     selector: &AstStatement,
     case_blocks: &[ConditionalBlock],
     else_block: &[AstStatement],
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     visit_statement(validator, selector, context);
 
@@ -884,7 +892,11 @@ fn validate_case_statement(
 
 /// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
-fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, context: &ValidationContext) {
+fn validate_type_nature<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstStatement,
+    context: &ValidationContext<T>,
+) {
     if let Some(type_hint) = context
         .annotations
         .get_type_hint(statement, context.index)
@@ -918,20 +930,20 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
     }
 }
 
-fn _validate_assignment_type_sizes(
-    validator: &mut Validator,
-    left: &DataType,
-    right: &DataType,
-    location: &SourceRange,
-    context: &ValidationContext,
-) {
-    if left.get_type_information().get_size(context.index)
-        < right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(Diagnostic::implicit_downcast(
-            left.get_name(),
-            right.get_name(),
-            location.clone(),
-        ))
-    }
-}
+// fn validate_assignment_type_sizes<T: AnnotationMap>(
+//     validator: &mut Validator,
+//     left: &DataType,
+//     right: &DataType,
+//     location: &SourceRange,
+//     context: &ValidationContext<T>,
+// ) {
+//     if left.get_type_information().get_size(context.index)
+//         < right.get_type_information().get_size(context.index)
+//     {
+//         validator.push_diagnostic(Diagnostic::implicit_downcast(
+//             left.get_name(),
+//             right.get_name(),
+//             location.clone(),
+//         ))
+//     }
+// }
