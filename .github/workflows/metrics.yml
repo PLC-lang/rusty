@@ -32,4 +32,5 @@ jobs:
       shell: bash
       if: github.ref_name != 'master'
       run: |
+        apt install -y pkg-config libssl-dev &&
         cargo metrics
