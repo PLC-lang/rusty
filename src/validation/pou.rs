@@ -3,10 +3,11 @@ use super::{
 };
 use crate::{
     ast::{Implementation, LinkageType, Pou, PouType},
+    resolver::AnnotationMap,
     Diagnostic,
 };
 
-pub fn visit_pou(validator: &mut Validator, pou: &Pou, context: &ValidationContext) {
+pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
         validate_pou(validator, pou, context);
 
@@ -16,10 +17,10 @@ pub fn visit_pou(validator: &mut Validator, pou: &Pou, context: &ValidationConte
     }
 }
 
-pub fn visit_implementation(
+pub fn visit_implementation<T: AnnotationMap>(
     validator: &mut Validator,
     implementation: &Implementation,
-    context: &ValidationContext,
+    context: &ValidationContext<'_, T>,
 ) {
     if implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
@@ -29,13 +30,13 @@ pub fn visit_implementation(
     }
 }
 
-fn validate_pou(validator: &mut Validator, pou: &Pou, context: &ValidationContext) {
+fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.pou_type == PouType::Function {
         validate_function(validator, pou, context);
     };
 }
 
-fn validate_function(validator: &mut Validator, pou: &Pou, context: &ValidationContext) {
+fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
     let return_type = context.index.find_return_type(&pou.name);
     // functions must have a return type
     if return_type.is_none() {

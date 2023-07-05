@@ -107,8 +107,8 @@ jobs:
  
       - uses: actions/upload-artifact@master
         with:
-          name: rustyc.exe
-          path: target/release/rustyc.exe
+          name: plc.exe
+          path: target/release/plc.exe
 
   style:
     name: Check Style

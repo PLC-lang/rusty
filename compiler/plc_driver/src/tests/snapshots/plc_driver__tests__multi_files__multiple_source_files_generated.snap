@@ -1,0 +1,34 @@
+---
+source: compiler/plc_driver/./src/tests/multi_files.rs
+expression: "results.join(\"\\n\")"
+---
+; ModuleID = 'external_file1.st'
+source_filename = "external_file1.st"
+
+%mainProg = type {}
+
+@mainProg_instance = external global %mainProg
+
+define i16 @main() {
+entry:
+  %main = alloca i16, align 2
+  store i16 0, i16* %main, align 2
+  call void @mainProg(%mainProg* @mainProg_instance)
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+
+declare void @mainProg(%mainProg*)
+
+; ModuleID = 'external_file2.st'
+source_filename = "external_file2.st"
+
+%mainProg = type {}
+
+@mainProg_instance = global %mainProg zeroinitializer
+
+define void @mainProg(%mainProg* %0) {
+entry:
+  ret void
+}
+

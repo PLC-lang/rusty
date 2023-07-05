@@ -33,7 +33,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !6 = !{}
 !7 = !DILocation(line: 3, column: 12, scope: !3)
 !8 = !DILocalVariable(name: "myFunc", scope: !3, file: !2, line: 2, type: !9, align: 32)
-!9 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DILocation(line: 2, column: 17, scope: !3)
 !11 = !DILocation(line: 3, column: 16, scope: !3)
 

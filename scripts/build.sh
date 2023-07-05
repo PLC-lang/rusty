@@ -122,8 +122,8 @@ function run_check() {
 
 function run_doc() {
 	CARGO_OPTIONS=$(set_cargo_options)
-	log "Running cargo doc"
-	cargo doc $CARGO_OPTIONS 
+	log "Running cargo doc --workspace $CARGO_OPTIONS"
+	cargo doc --workspace $CARGO_OPTIONS 
 	log "Building book"
 	cd book && mdbook build && mdbook test
 }

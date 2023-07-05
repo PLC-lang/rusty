@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
-    expect_token, lexer,
+    diagnostics::Diagnostician,
+    expect_token,
+    lexer::{self, IdProvider},
     lexer::{ParseSession, Token, Token::*},
     typesystem::DINT_TYPE,
     Diagnostic,
@@ -18,6 +20,22 @@ mod expressions_parser;
 #[cfg(test)]
 pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
+
+pub fn parse_file(
+    source: &str,
+    location: &'static str,
+    linkage: LinkageType,
+    id_provider: IdProvider,
+    diagnostician: &mut Diagnostician,
+) -> CompilationUnit {
+    let location_factory = SourceRangeFactory::for_file(location);
+    let (unit, errors) = parse(lexer::lex_with_ids(source, id_provider, location_factory), linkage, location);
+    //Register the source file with the diagnostician
+    //TODO: We should reduce the clone here
+    diagnostician.register_file(location.to_string(), source.to_string());
+    diagnostician.handle(errors);
+    unit
+}
 
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
     let mut unit = CompilationUnit::new(file_name, NewLines::build(lexer.get_src()));

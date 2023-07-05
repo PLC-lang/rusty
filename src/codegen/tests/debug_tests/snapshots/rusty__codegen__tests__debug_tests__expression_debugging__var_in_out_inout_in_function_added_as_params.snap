@@ -37,12 +37,12 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
 !5 = !{null, !6}
 !6 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_INT", baseType: !7, size: 64, align: 64, dwarfAddressSpace: 1)
-!7 = !DIBasicType(name: "int", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !8 = !{}
 !9 = !DILocation(line: 6, column: 12, scope: !3)
 !10 = !DILocalVariable(name: "x", scope: !3, file: !2, line: 4, type: !6)
 !11 = !DILocation(line: 4, column: 12, scope: !3)
 !12 = !DILocalVariable(name: "myFunc", scope: !3, file: !2, line: 2, type: !13, align: 32)
-!13 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !14 = !DILocation(line: 2, column: 17, scope: !3)
 

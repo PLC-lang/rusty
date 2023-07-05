@@ -221,6 +221,14 @@ impl VariableIndexEntry {
         self.argument_type
     }
 
+    pub fn get_linkage(&self) -> LinkageType {
+        self.linkage
+    }
+
+    pub fn is_in_unit(&self, unit: &str) -> bool {
+        self.source_location.is_in_unit(unit)
+    }
+
     pub fn get_variable_type(&self) -> VariableType {
         self.argument_type.get_inner()
     }
@@ -251,6 +259,11 @@ impl VariableIndexEntry {
 
     pub fn get_varargs(&self) -> Option<&VarArgs> {
         self.varargs.as_ref()
+    }
+
+    fn has_parent(&self, context: &str) -> bool {
+        let name = format!("{context}.{}", self.name);
+        self.qualified_name.eq_ignore_ascii_case(&name)
     }
 }
 
@@ -335,6 +348,10 @@ impl ImplementationIndexEntry {
 
     pub fn get_location(&self) -> &SymbolLocation {
         &self.location
+    }
+
+    pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
+        self.get_location().is_in_unit(unit)
     }
 }
 
@@ -944,10 +961,26 @@ impl Index {
     }
 
     /// returns the `VariableIndexEntry` of the global variable with the given name
-    pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_qualified_global_variable(
+        &self,
+        context: Option<&str>,
+        name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.global_variables
-            .get(&name.to_lowercase())
-            .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
+            .get_all(&name.to_lowercase())
+            .or_else(|| self.enum_global_variables.get_all(&name.to_lowercase()))
+            .and_then(|it| {
+                if let Some(context) = context.filter(|it| !it.is_empty()) {
+                    it.iter().find(|it| it.has_parent(context)).or_else(|| it.first())
+                } else {
+                    it.first()
+                }
+            })
+    }
+
+    /// returns the `VariableIndexEntry` of the global variable with the given name
+    pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
+        self.find_qualified_global_variable(None, name)
     }
 
     /// returns the `VariableIndexEntry` of the global initializer with the given name
@@ -984,9 +1017,9 @@ impl Index {
         }
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
-            Some(context) => {
-                self.find_member(context, segments[0]).or_else(|| self.find_global_variable(segments[0]))
-            }
+            Some(context) => self
+                .find_member(context, segments[0])
+                .or_else(|| self.find_qualified_global_variable(Some(context), segments[0])),
             None => self.find_global_variable(segments[0]),
         };
         segments
@@ -1109,6 +1142,10 @@ impl Index {
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index.get_type(type_name)
+    }
+
+    pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
+        self.type_index.find_type(type_name)
     }
 
     /// expect a built-in type

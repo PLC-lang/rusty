@@ -100,7 +100,7 @@ entry:
 
 ### Functions
 
-Functions generate very similar to program's and function_block's.
+Functions generate very similar to programs and function_blocks.
 The main difference is, that no instance-global is allocated and the function's interface-type cannot be used as a datatype to declare your own instances.
 Instances of the program's interface-type are allocated whenever the function is called for the lifetime of a single call.
 Otherwise the code generated for functions is comparable to the code presented above for programs and function-blocks.

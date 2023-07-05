@@ -1,7 +1,7 @@
-use pretty_assertions::assert_eq;
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+
+use crate::*;
+use pretty_assertions::assert_eq;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -69,7 +69,7 @@ fn bitaccess_chained_assignment() {
     main := d;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
     END_FUNCTION";
 
-    let res: u64 = compile_and_run(prog, &mut rusty::runner::MainType::default());
+    let res: u64 = compile_and_run(prog, &mut crate::MainType::default());
 
     assert_eq!(0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000, res);
 }
@@ -91,7 +91,7 @@ fn qualified_reference_assignment() {
 
         ";
 
-    let res: u8 = compile_and_run(prog, &mut rusty::runner::MainType::default);
+    let res: u8 = compile_and_run(prog, &mut crate::MainType::default);
     assert_eq!(2, res);
 }
 
@@ -194,7 +194,7 @@ fn bitaccess_assignment_should_not_override_current_values() {
     main := a;
     END_FUNCTION
     ";
-    let res: i32 = compile_and_run(prog, &mut rusty::runner::MainType::default);
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default);
     assert_eq!(res, 7);
 }
 
@@ -211,6 +211,6 @@ fn byteaccess_assignment_should_not_override_current_values() {
     main := a;
     END_FUNCTION
     ";
-    let res: i32 = compile_and_run(prog, &mut rusty::runner::MainType::default);
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default);
     assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }

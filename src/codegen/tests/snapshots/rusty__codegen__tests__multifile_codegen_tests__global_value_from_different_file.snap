@@ -1,0 +1,34 @@
+---
+source: src/codegen/tests/multifile_codegen_tests.rs
+expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+---
+; ModuleID = 'g1.st'
+source_filename = "g1.st"
+
+@x = global i32 6
+@d = external global i32
+@y = global i32 7
+@e = external global i32
+
+; ModuleID = 'g2.st'
+source_filename = "g2.st"
+
+@c = unnamed_addr constant i32 5
+@d = unnamed_addr constant i32 6
+@e = unnamed_addr constant i32 7
+
+; ModuleID = 'prog.st'
+source_filename = "prog.st"
+
+%prog = type {}
+
+@prog_instance = global %prog zeroinitializer
+@c = external global i32
+@x = external global i32
+
+define void @prog(%prog* %0) {
+entry:
+  store i32 7, i32* @x, align 4
+  ret void
+}
+
