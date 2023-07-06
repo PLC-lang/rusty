@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 
 #[derive(Default)]
 #[repr(C)]

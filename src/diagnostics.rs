@@ -25,6 +25,7 @@ pub enum Diagnostic {
     SemanticError { message: String, range: Vec<SourceRange>, err_no: ErrNo },
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec<SourceRange> },
+    CombinedDiagnostic { message: String, inner_diagnostics: Vec<Diagnostic>, err_no: ErrNo },
 }
 
 #[allow(non_camel_case_types)]
@@ -122,24 +123,21 @@ impl<T: Error> From<T> for Diagnostic {
 
 impl Diagnostic {
     /// Creates a new diagnostic with additional ranges
-    pub fn with_extra_ranges(&self, ranges: &[SourceRange]) -> Diagnostic {
+    pub fn with_extra_ranges(self, ranges: &[SourceRange]) -> Diagnostic {
         match self {
-            Diagnostic::SyntaxError { message, range, err_no } => {
-                let mut range = range.to_vec();
+            Diagnostic::SyntaxError { message, mut range, err_no } => {
                 range.extend_from_slice(ranges);
-                Diagnostic::SyntaxError { message: message.to_string(), range, err_no: *err_no }
+                Diagnostic::SyntaxError { message, range, err_no }
             }
-            Diagnostic::SemanticError { message, range, err_no } => {
-                let mut range = range.to_vec();
+            Diagnostic::SemanticError { message, mut range, err_no } => {
                 range.extend_from_slice(ranges);
-                Diagnostic::SyntaxError { message: message.to_string(), range, err_no: *err_no }
+                Diagnostic::SyntaxError { message, range, err_no }
             }
-            Diagnostic::ImprovementSuggestion { message, range } => {
-                let mut range = range.to_vec();
+            Diagnostic::ImprovementSuggestion { message, mut range } => {
                 range.extend_from_slice(ranges);
-                Diagnostic::ImprovementSuggestion { message: message.to_string(), range }
+                Diagnostic::ImprovementSuggestion { message, range }
             }
-            Diagnostic::GeneralError { .. } => self.clone(),
+            _ => self,
         }
     }
 
@@ -148,7 +146,7 @@ impl Diagnostic {
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
             | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
-            Diagnostic::GeneralError { .. } => &[],
+            _ => &[],
         }
     }
 
@@ -544,7 +542,8 @@ impl Diagnostic {
             Diagnostic::SyntaxError { message, .. }
             | Diagnostic::SemanticError { message, .. }
             | Diagnostic::ImprovementSuggestion { message, .. }
-            | Diagnostic::GeneralError { message, .. } => message.as_str(),
+            | Diagnostic::GeneralError { message, .. }
+            | Diagnostic::CombinedDiagnostic { message, .. } => message.as_str(),
         }
     }
 
@@ -555,7 +554,7 @@ impl Diagnostic {
             | Diagnostic::ImprovementSuggestion { range, .. } => {
                 range.get(0).cloned().unwrap_or_else(SourceRange::undefined)
             }
-            Diagnostic::GeneralError { .. } => SourceRange::undefined(),
+            _ => SourceRange::undefined(),
         }
     }
 
@@ -576,7 +575,8 @@ impl Diagnostic {
         match self {
             Diagnostic::SyntaxError { err_no, .. }
             | Diagnostic::SemanticError { err_no, .. }
-            | Diagnostic::GeneralError { err_no, .. } => err_no,
+            | Diagnostic::GeneralError { err_no, .. }
+            | Diagnostic::CombinedDiagnostic { err_no, .. } => err_no,
             Diagnostic::ImprovementSuggestion { .. } => &ErrNo::undefined,
         }
     }

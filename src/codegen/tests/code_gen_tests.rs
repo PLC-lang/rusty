@@ -1,5 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
+use crate::{
+    diagnostics::Diagnostic,
+    test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program},
+};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -515,7 +518,7 @@ fn date_comparisons() {
 
 #[test]
 fn date_invalid_declaration() {
-    let (diagnostics, _) = codegen_debug_without_unwrap(
+    let Diagnostic::CombinedDiagnostic {  inner_diagnostics: diagnostics, .. } = codegen_debug_without_unwrap(
         r#"PROGRAM prg
         VAR
           a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
@@ -523,12 +526,12 @@ fn date_invalid_declaration() {
         END_PROGRAM"#,
         crate::DebugLevel::None,
     )
-    .unwrap_err();
+    .unwrap_err() else {panic!("Not a combined diagnostics")};
 
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         "Cannot generate literal initializer for 'prg.a': Value cannot be derived",
-        &diagnostics[0].message
+        diagnostics[0].get_message()
     );
 }
 

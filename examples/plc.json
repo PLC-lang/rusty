@@ -1,11 +1,11 @@
 {
+		"name": "ProjectName",
     "files" : [
         "examples/hw.st",
         "examples/hello_world.st",
         "examples/ExternalFunctions.st"
     ],
     "compile_type" : "Shared",
-    "output" : "proj.so",
     "libraries" : [
         {
             "name" : "iec61131std",

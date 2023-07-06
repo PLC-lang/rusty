@@ -14,7 +14,7 @@ use crate::{
     },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
-    resolver::AstAnnotations,
+    resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
 };
 
@@ -29,6 +29,7 @@ use crate::{
     ast::{Implementation, PouType, SourceRange},
     index::Index,
 };
+use indexmap::{IndexMap, IndexSet};
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -52,6 +53,7 @@ pub struct PouGenerator<'ink, 'cg> {
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
@@ -59,7 +61,17 @@ pub fn generate_implementation_stubs<'ink>(
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
-    for (name, implementation) in index.get_implementations() {
+    let implementations = dependencies
+        .into_iter()
+        .filter_map(|it| {
+            if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+                index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
+            } else {
+                None
+            }
+        })
+        .collect::<IndexMap<_, _>>();
+    for (name, implementation) in implementations {
         if !implementation.is_generic() {
             let curr_f =
                 pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
@@ -77,12 +89,21 @@ pub fn generate_implementation_stubs<'ink>(
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: &Llvm<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
+    location: &str,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut local_llvm_index = LlvmTypedIndex::default();
-    for implementation in index.get_implementations().values() {
+    let implementations = dependencies.into_iter().filter_map(|it| {
+        if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+            index.find_implementation_by_name(name).filter(|it| it.is_in_unit(location))
+        } else {
+            None
+        }
+    });
+    for implementation in implementations {
         let type_name = implementation.get_type_name();
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {

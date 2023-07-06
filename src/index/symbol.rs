@@ -111,6 +111,15 @@ impl SymbolLocation {
     pub fn is_internal(&self) -> bool {
         self.line_number == SymbolLocation::INTERNAL_LINE && self.source_range.is_undefined()
     }
+
+    pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
+        if let Some(filename) = self.source_range.get_file_name() {
+            filename == unit.as_ref()
+        } else {
+            //Fallback, if no file is defined all files are local
+            true
+        }
+    }
 }
 
 /// a factory to create SymbolLocations from SourceRanges, that automatically resolves

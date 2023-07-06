@@ -388,6 +388,37 @@ fn function_var_constant_strings_should_be_collected_as_literals() {
 }
 
 #[test]
+fn using_a_constant_var_string_should_be_memcpyable_nonref() {
+    //regression test that used to break in IF c = ignore because ignore had troubles
+    //when it tried to load the constant string
+    let result = codegen(
+        r#"
+        FUNCTION STRING_EQUAL : BOOL
+            VAR_INPUT op1, op2: STRING[1024] END_VAR
+        END_FUNCTION
+
+        FUNCTION FSTRING_TO_DT : DT
+            VAR CONSTANT
+                ignore: STRING[1] := '*';  (* ignore character is * *)
+                fchar : STRING[1] := '#';  (* format character is # *)
+            END_VAR
+            VAR
+                c: STRING[1];
+            END_VAR
+
+            IF c = ignore THEN
+                (* skip ignore characters *)
+            END_IF;
+
+        END_FUNCTION
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn using_a_constant_var_string_should_be_memcpyable() {
     //regression test that used to break in IF c = ignore because ignore had troubles
     //when it tried to load the constant string

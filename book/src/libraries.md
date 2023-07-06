@@ -30,9 +30,9 @@ A library is defined by:
 >
 - A binary file for each architecture the library has been built for (`x86_64-linux-gnu`, `aarch64-linux-gnu`, ..)
 
-## Linking libraries using the `rustyc` command line
+## Linking libraries using the `plc` command line
 
-To include a library when using the `rustyc` command line interface, the include files can be added using the `-i` flag.
+To include a library when using the `plc` command line interface, the include files can be added using the `-i` flag.
 
 Each [POU](pous.md), [Global Variable](variables.md), or [Datatype](datatypes.md) defined in the included files will be added to the project.
 POUs and Global variables included with the `-i` are marked as external, the implementation part of a POU is ignored.
@@ -64,7 +64,7 @@ If the application is being compiled with the `--static` flag (or no shared libr
 To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` :
 
 ```sh
-rustyc input.st -i iec/header.st -L/lib/ -liec
+plc input.st -i iec/header.st -L/lib/ -liec
 ```
 
 ## Linking libraries using the Build Description File `plc.json`
