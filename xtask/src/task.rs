@@ -1,5 +1,6 @@
 use anyhow::Result;
 use std::{path::Path, time::Duration};
+use xshell::{cmd, Shell};
 
 use self::{compile::Compile, run::Run};
 
@@ -32,6 +33,10 @@ pub(crate) trait Task {
 }
 
 pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<Box<dyn Task>>> {
+    //Clone the extra required code
+    println!("Clone Oscat into the benchmarks");
+    let sh = Shell::new()?;
+    cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 {work_dir}/oscat").run()?;
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     //Create a default benchmark run
     //This includes oscat in 4 different opt

@@ -76,11 +76,7 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
             }
         }
         None => {
-            //Clone the extra required code
-            println!("Clone Oscat into the benchmarks");
-            let sh = Shell::new()?;
             let path = work_dir.path();
-            cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 {path}/oscat").run()?;
             tasks.extend(task::get_default_tasks(path, &compiler)?)
         }
     };
