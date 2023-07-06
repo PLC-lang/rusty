@@ -5,7 +5,6 @@ vendor=0
 offline=0
 check=0
 check_style=0
-metrics=0
 build=0
 doc=0
 test=0
@@ -15,7 +14,6 @@ debug=0
 container=0
 assume_linux=0
 junit=0
-ci=0
 package=0
 target=""
 
@@ -120,11 +118,6 @@ function run_check() {
 	log "Running cargo check"
 
 	cargo check $CARGO_OPTIONS --workspace
-}
-
-function run_metrics() {
-	log "Running cargo xtask metrics"
-	cargo xtask metrics
 }
 
 function run_doc() {
@@ -294,9 +287,6 @@ function run_in_container() {
 	if [[ $check_style -ne 0 ]]; then
 		params="$params --check-style"
 	fi
-	if [[ $metrics -ne 0 ]]; then
-		params="$params --metrics"
-	fi
 	if [[ $build -ne 0 ]]; then
 		params="$params --build"
 	fi
@@ -320,9 +310,6 @@ function run_in_container() {
 	fi
 	if [[ ! -z $target ]]; then
 		params="$params --target $target"
-	fi
-	if [[ $ci -ne 0 ]]; then
-		options="$options --env=CI_RUN=true"
 	fi
 
 	volume_target="/build"
@@ -351,7 +338,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -397,12 +384,6 @@ while true; do
 			--check)
 				  check=1
 					;;
-			--metrics)
-				  metrics=1
-					;;
-			--ci)
-				  ci=1
-					;;
 			-b|--build)
 				  build=1
 					;;
@@ -438,11 +419,6 @@ project_location=$(find_project_root)
 log "Moving to project level directory $project_location"
 cd "$project_location"
 
-
-if [[ $ci -ne 0 ]]; then
-	export CI_RUN=true
-fi
-
 if [[ $container -ne 0 ]]; then
 	log "Container Build"
 	run_in_container
@@ -473,10 +449,6 @@ fi
 
 if [[ $check_style -ne 0 ]]; then
 	run_check_style
-fi
-
-if [[ $metrics -ne 0 ]]; then
-	run_metrics
 fi
 
 if [[ $build -ne 0 ]]; then
