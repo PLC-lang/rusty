@@ -126,7 +126,7 @@ END_FUNCTION
 Compiling the previous code with the following command:
 
 ```sh
-rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
+plc ExternalFunctions.st -o ExternalFunctions --linker=clang
 ```
 
 will yield an executable called `ExternalFunctions`.

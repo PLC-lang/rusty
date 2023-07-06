@@ -1,69 +1,35 @@
 use std::{env, fs};
 
 use crate::get_test_file;
-use inkwell::context::Context;
-use rusty::{
-    build_and_link, compile_module, diagnostics::Diagnostic, link, persist, CompileOptions, ErrorFormat,
-    FilePath, FormatOption, LinkOptions, Target,
-};
+use driver::compile;
 
 static TARGET: Option<&str> = Some("x86_64-linux-gnu");
 
 #[test]
 fn link_as_shared_object() {
-    let file1 = FilePath { path: get_test_file("linking/file1.st") };
-    let file2 = FilePath { path: get_test_file("linking/file2.st") };
+    let file1 = get_test_file("linking/file1.st");
+    let file2 = get_test_file("linking/file2.st");
 
     let mut out = env::temp_dir();
-    out.push("shared1.so");
+    out.push("shared1.o");
     let out1 = out.into_os_string().into_string().unwrap();
     let mut out = env::temp_dir();
     out.push("shared2.o");
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    build_and_link(
-        vec![file2],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out2.clone(),
-            format: FormatOption::Shared,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Default::default(),
-    )
-    .unwrap();
-
+    compile(&["plc", file2.as_str(), "-o", out2.as_str(), "-c", "--target", TARGET.unwrap()]).unwrap();
     //Compile file1 as shared object with file2 as param
-    build_and_link(
-        vec![file1, out2.as_str().into()],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out1.clone(),
-            format: FormatOption::Shared,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            format: FormatOption::Shared,
-            linker: None,
-        }),
-    )
+    compile(&[
+        "plc",
+        file1.as_str(),
+        out2.as_str(),
+        "-o",
+        out1.as_str(),
+        "--shared",
+        "--target",
+        TARGET.unwrap(),
+    ])
     .unwrap();
 
     //Delete it
@@ -73,60 +39,31 @@ fn link_as_shared_object() {
 
 #[test]
 fn link_as_pic_object() {
-    let file1 = FilePath { path: get_test_file("linking/file1.st") };
-    let file2 = FilePath { path: get_test_file("linking/file2.st") };
+    let file1 = get_test_file("linking/file1.st");
+    let file2 = get_test_file("linking/file2.st");
 
     let mut out = env::temp_dir();
-    out.push("pic1.so");
+    out.push("pic1.o");
     let out1 = out.into_os_string().into_string().unwrap();
     let mut out = env::temp_dir();
     out.push("pic2.o");
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    build_and_link(
-        vec![file2],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out2.clone(),
-            format: FormatOption::PIC,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Default::default(),
-    )
+    compile(&["plc", file2.as_str(), "-o", out2.as_str(), "-c", "--target", TARGET.unwrap()]).unwrap();
+    //Compile file1 as shared object with file2 as param
+    compile(&[
+        "plc",
+        file1.as_str(),
+        out2.as_str(),
+        "-o",
+        out1.as_str(),
+        "--pic",
+        "--target",
+        TARGET.unwrap(),
+    ])
     .unwrap();
 
-    //Compile file1 as shared object with file2 as param
-    build_and_link(
-        vec![file1, out2.as_str().into()],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out1.clone(),
-            format: FormatOption::PIC,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            format: FormatOption::PIC,
-            linker: None,
-        }),
-    )
-    .unwrap();
     //Delete it
     fs::remove_file(&out1).unwrap();
     fs::remove_file(&out2).unwrap();
@@ -134,8 +71,8 @@ fn link_as_pic_object() {
 
 #[test]
 fn link_as_static_object() {
-    let file1 = FilePath { path: get_test_file("linking/file1.st") };
-    let file2 = FilePath { path: get_test_file("linking/file2.st") };
+    let file1 = get_test_file("linking/file1.st");
+    let file2 = get_test_file("linking/file2.st");
 
     let mut out = env::temp_dir();
     out.push("static1.o");
@@ -145,49 +82,10 @@ fn link_as_static_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    build_and_link(
-        vec![file2],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out2.clone(),
-            format: FormatOption::Object,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Default::default(),
-    )
-    .unwrap();
-
+    compile(&["plc", file2.as_str(), "-o", out2.as_str(), "-c", "--target", TARGET.unwrap()]).unwrap();
     //Compile file1 as shared object with file2 as param
-    build_and_link(
-        vec![file1, out2.as_str().into()],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out1.clone(),
-            format: FormatOption::Static,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            format: FormatOption::Static,
-            linker: None,
-        }),
-    )
-    .unwrap();
+    compile(&["plc", file1.as_str(), out2.as_str(), "-o", out1.as_str(), "--target", TARGET.unwrap()])
+        .unwrap();
 
     //Delete it
     fs::remove_file(&out1).unwrap();
@@ -196,8 +94,8 @@ fn link_as_static_object() {
 
 #[test]
 fn link_as_relocatable_object() {
-    let file1 = FilePath { path: get_test_file("linking/file1.st") };
-    let file2 = FilePath { path: get_test_file("linking/file2.st") };
+    let file1 = get_test_file("linking/file1.st");
+    let file2 = get_test_file("linking/file2.st");
 
     let mut out = env::temp_dir();
     out.push("reloc1.o");
@@ -207,48 +105,18 @@ fn link_as_relocatable_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    build_and_link(
-        vec![file2],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out2.clone(),
-            format: FormatOption::Object,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Default::default(),
-    )
-    .unwrap();
-
+    compile(&["plc", file2.as_str(), "-o", out2.as_str(), "-c", "--target", TARGET.unwrap()]).unwrap();
     //Compile file1 as shared object with file2 as param
-    build_and_link(
-        vec![file1, out2.as_str().into()],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: out1.clone(),
-            format: FormatOption::Relocatable,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![TARGET.unwrap().into()],
-        None,
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            format: FormatOption::Relocatable,
-            linker: None,
-        }),
-    )
+    compile(&[
+        "plc",
+        file1.as_str(),
+        out2.as_str(),
+        "-o",
+        out1.as_str(),
+        "--relocatable",
+        "--target",
+        TARGET.unwrap(),
+    ])
     .unwrap();
 
     //Delete it
@@ -258,34 +126,18 @@ fn link_as_relocatable_object() {
 
 #[test]
 fn link_missing_file() {
-    let file1 = FilePath { path: get_test_file("linking/file1.st") };
+    let file1 = get_test_file("linking/file1.st");
     let mut out = env::temp_dir();
     out.push("missing.o");
-    let target: Target = TARGET.unwrap().into();
-    //Compile file1 as shared object with file2 as param
-    let context = Context::create();
-    let compile_opions = CompileOptions { error_format: ErrorFormat::Rich, ..Default::default() };
-    let (_, codegen) = compile_module(&context, vec![file1], vec![], None, &compile_opions).unwrap();
-    let object = persist(
-        &codegen,
-        &out,
-        FormatOption::Static,
-        &target.get_target_triple(),
-        rusty::OptimizationLevel::Default,
-    )
-    .unwrap();
-    let res = link(&out, FormatOption::Static, &[object], &[], &[], &target, None);
+
+    let res = compile(&["plc", file1.as_str(), "-o", out.to_str().unwrap(), "--target", TARGET.unwrap()]);
 
     match res {
         Err(err) => {
-            let out = out.to_string_lossy();
-            assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by file1.st\n>>>               {out}:(func1)\n>>> did you mean: func1\n>>> defined in: {out}\n")), err);
+            assert!(err.get_message().contains("lld: error: undefined symbol: func2"));
         }
         _ => panic!("Expected link failure"),
     }
-
-    //Delete it
-    fs::remove_file(&out).unwrap();
 }
 
 // TODO: Ghaith please fix this :)
@@ -294,32 +146,8 @@ fn link_missing_file() {
 #[cfg_attr(target_os = "macos", ignore = "ignoring for now...")]
 //This is a regression, see #548
 fn link_to_a_relative_location_with_no_parent() {
-    let file1 = FilePath { path: get_test_file("linking/relative.st") };
-
-    //Compile file1 as shared object with file2 as param
-    build_and_link(
-        vec![file1],
-        vec![],
-        None,
-        &CompileOptions {
-            root: None,
-            build_location: None,
-            output: "output.o".into(),
-            format: FormatOption::Static,
-            optimization: rusty::OptimizationLevel::Default,
-            error_format: ErrorFormat::Rich,
-            debug_level: rusty::DebugLevel::None,
-        },
-        vec![],
-        None,
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            format: FormatOption::Static,
-            linker: None,
-        }),
-    )
-    .unwrap();
+    let file1 = get_test_file("linking/relative.st");
+    compile(&["plc", file1.as_str(), "-o", "output.o", "--target", TARGET.unwrap()]).unwrap();
 
     //Make sure the file exists in the test location
     let res = std::path::Path::new("output.o");
@@ -327,4 +155,73 @@ fn link_to_a_relative_location_with_no_parent() {
 
     //Delete it
     fs::remove_file(res).unwrap();
+}
+
+#[test]
+fn link_with_initial_values() {
+    let file1 = get_test_file("linking/init.st");
+    let file2 = get_test_file("linking/init2.st");
+    let file3 = get_test_file("linking/init3.st");
+
+    let mut out = env::temp_dir();
+    out.push("extern.o");
+    let out1 = out.into_os_string().into_string().unwrap();
+
+    //Compile file1 as shared object with file2 as param
+    compile(&[
+        "plc",
+        file1.as_str(),
+        file2.as_str(),
+        file3.as_str(),
+        "-o",
+        out1.as_str(),
+        "--shared",
+        "--target",
+        TARGET.unwrap(),
+    ])
+    .unwrap();
+
+    //Delete it
+    fs::remove_file(&out1).unwrap();
+}
+
+#[test]
+fn link_constants() {
+    let file1 = get_test_file("linking/consts.st");
+
+    let mut out = env::temp_dir();
+    out.push("consts.o");
+    let out1 = out.into_os_string().into_string().unwrap();
+
+    //Compile file1 as shared object with file2 as param
+    compile(&["plc", file1.as_str(), "-o", out1.as_str(), "--shared", "--target", TARGET.unwrap()]).unwrap();
+
+    //Delete it
+    fs::remove_file(&out1).unwrap();
+}
+
+#[test]
+fn link_files_with_same_name() {
+    let file1 = get_test_file("linking/folder1/vars.st");
+    let file2 = get_test_file("linking/folder2/vars.st");
+
+    let mut out = env::temp_dir();
+    out.push("consts.o");
+    let out1 = out.into_os_string().into_string().unwrap();
+
+    //Compile file1 as shared object with file2 as param
+    compile(&[
+        "plc",
+        file1.as_str(),
+        file2.as_str(),
+        "-o",
+        out1.as_str(),
+        "--shared",
+        "--target",
+        TARGET.unwrap(),
+    ])
+    .unwrap();
+
+    //Delete it
+    fs::remove_file(&out1).unwrap();
 }

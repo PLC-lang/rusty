@@ -7,8 +7,8 @@ source_filename = "main"
 
 @__FSTRING_TO_DT.ignore__init = unnamed_addr constant [2 x i8] c"*\00"
 @__FSTRING_TO_DT.fchar__init = unnamed_addr constant [2 x i8] c"#\00"
-@utf08_literal_0 = unnamed_addr constant [2 x i8] c"#\00"
-@utf08_literal_1 = unnamed_addr constant [2 x i8] c"*\00"
+@utf08_literal_0 = private unnamed_addr constant [2 x i8] c"#\00"
+@utf08_literal_1 = private unnamed_addr constant [2 x i8] c"*\00"
 
 define i64 @FSTRING_TO_DT() {
 entry:

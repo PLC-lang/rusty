@@ -22,6 +22,7 @@ pub struct Llvm<'a> {
 
 pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
+    fn make_private(self) -> Self;
     fn make_external(self) -> Self;
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
@@ -33,8 +34,12 @@ impl<'ink> GlobalValueExt for GlobalValue<'ink> {
         self
     }
 
+    fn make_private(self) -> Self {
+        self.set_linkage(Linkage::Private);
+        self
+    }
+
     fn make_external(self) -> Self {
-        // self.set_linkage(Linkage::AvailableExternally);
         self.set_linkage(Linkage::External);
         self
     }
@@ -71,7 +76,6 @@ impl<'a> Llvm<'a> {
     ) -> GlobalValue<'a> {
         let global = module.add_global(data_type, None, name);
         global.set_thread_local_mode(None);
-        global.set_linkage(Linkage::External);
         global
     }
 

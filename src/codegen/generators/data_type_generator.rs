@@ -1,18 +1,9 @@
-use std::collections::{HashMap, VecDeque};
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-/// the data_type_generator generates user defined data-types
-/// - Structures
-/// - Enum types
-/// - SubRange types
-/// - Alias types
-/// - sized Strings
 use crate::ast::SourceRange;
 use crate::codegen::debug::Debug;
-use crate::diagnostics::Diagnostician;
 use crate::index::{Index, VariableIndexEntry, VariableType};
-use crate::resolver::AstAnnotations;
-use crate::typesystem::{Dimension, StringEncoding, StructSource};
+use crate::resolver::{AstAnnotations, Dependency};
+use crate::typesystem::{self, Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
 use crate::{ast::literals::AstLiteral, ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
@@ -23,11 +14,19 @@ use crate::{
     },
     typesystem::DataType,
 };
+use indexmap::IndexSet;
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
+/// the data_type_generator generates user defined data-types
+/// - Structures
+/// - Enum types
+/// - SubRange types
+/// - Alias types
+/// - sized Strings
+use std::collections::{HashMap, VecDeque};
 
 use super::ADDRESS_SPACE_GENERIC;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
@@ -50,28 +49,35 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
+    dependencies: &IndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-    diagnostician: &Diagnostician,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    let mut types = vec![];
+    let mut pou_types = vec![];
+
+    // Always add the builtin types
+    let builtins = typesystem::get_builtin_types();
+    for builtin in &builtins {
+        types.push((builtin.get_name(), builtin));
+    }
+
+    for dep in dependencies {
+        if let Dependency::Datatype(name) = dep {
+            if let Some(pou) = index.find_pou(name) {
+                if !pou.is_generic() && !pou.is_action() {
+                    pou_types.push((name.as_str(), pou.get_instance_struct_type_or_void(index)));
+                }
+            } else if let Some(datatype) = index.find_type(name) {
+                if !datatype.get_type_information().is_generic(index) {
+                    types.push((name, datatype))
+                }
+            }
+        }
+    }
+
     let mut generator =
         DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
-
-    let types = generator
-        .index
-        .get_types()
-        .elements()
-        .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
-        .map(|(a, b)| (a.as_str(), b))
-        .collect::<Vec<(&str, &DataType)>>();
-    let pou_types = generator
-        .index
-        .get_pous()
-        .values()
-        .filter(|pou| !pou.is_generic() && !pou.is_action()) //actions dont get an own datatype, they use the one from their parent
-        .map(|pou| pou.get_instance_struct_type_or_void(generator.index))
-        .map(|it| (it.get_name(), it))
-        .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -146,19 +152,19 @@ pub fn generate_data_types<'ink>(
             .into_iter()
             .map(|(name, ty)| {
                 errors
-                    .get(name)
+                    .remove(name)
                     .map(|diag| diag.with_extra_ranges(&[ty.location.source_range.clone()]))
                     .unwrap_or_else(|| {
                         Diagnostic::cannot_generate_initializer(name, ty.location.source_range.clone())
                     })
             })
             .collect::<Vec<_>>();
-        diagnostician.handle(diags);
         //Report the operation failure
-        return Err(Diagnostic::codegen_error(
-            "Some initial values were not generated",
-            SourceRange::undefined(),
-        ));
+        return Err(Diagnostic::CombinedDiagnostic {
+            message: "Some initial values were not generated".to_string(),
+            err_no: crate::diagnostics::ErrNo::codegen__general,
+            inner_diagnostics: diags,
+        });
     }
     Ok(generator.types_index)
 }

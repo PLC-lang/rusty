@@ -148,7 +148,7 @@ fn test_round_real() {
         END_FUNCTION
         ";
     let sources = add_std!(src, "numerical_functions.st");
-    let mut maintype = rusty::runner::MainType::default();
+    let mut maintype = plc_driver::runner::MainType::default();
     let res: f32 = compile_and_run(sources, &mut maintype);
     assert_eq!(res, 3.0f32);
 }
@@ -160,7 +160,7 @@ fn test_round_lreal() {
             main := ROUND(LREAL#2.5);
         END_FUNCTION
         ";
-    let mut maintype = rusty::runner::MainType::default();
+    let mut maintype = plc_driver::runner::MainType::default();
     let sources = add_std!(src, "numerical_functions.st");
     let res: f64 = compile_and_run(sources, &mut maintype);
     assert_eq!(res, 3.0f64);

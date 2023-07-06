@@ -7,21 +7,24 @@ edition = "2021"
 [build-dependencies]
 glob = "0.3"
 
-[build-dependencies.rusty]
-path = "../../"
+[build-dependencies.plc_driver]
+path = "../../compiler/plc_driver"
 
 
 [dev-dependencies.iec61131std]
 path = "."
 features = ["mock_time"]
 
-[dev-dependencies.rusty]
-path = "../../"
+[dev-dependencies.plc_driver]
+path = "../../compiler/plc_driver"
 
-[dev-dependencies.inkwell]
-git = "https://github.com/TheDan64/inkwell"
-branch = "master"
-features = ["llvm14-0"]
+[dev-dependencies.plc_source]
+path = "../../compiler/plc_source"
+
+[dev-dependencies.plc]
+package = "rusty"
+path = "../.."
+
 
 [dependencies]
 chrono = "0.4"

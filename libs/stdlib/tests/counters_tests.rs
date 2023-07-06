@@ -2,13 +2,12 @@ use common::compile_with_native;
 use iec61131std::counters::CTDParams;
 use iec61131std::counters::CTUDParams;
 use iec61131std::counters::CTUParams;
-use inkwell::context::Context;
-use rusty::runner::run;
 
 // Import common functionality into the integration tests
 mod common;
 
 use common::add_std;
+use plc::codegen::CodegenContext;
 
 #[repr(C)]
 #[derive(Default, Debug)]
@@ -39,23 +38,23 @@ fn ctu() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -81,23 +80,23 @@ fn ctu_int() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -123,23 +122,23 @@ fn ctu_dint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<i32> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -165,23 +164,23 @@ fn ctu_udint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<u32> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -207,23 +206,23 @@ fn ctu_lint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<i64> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -249,23 +248,23 @@ fn ctu_ulint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUType::<u64> { ..CTUType::default() };
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 3);
     // reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -301,23 +300,23 @@ fn ctd() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, -1);
 }
@@ -344,23 +343,23 @@ fn ctd_int() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, -1);
 }
@@ -387,23 +386,23 @@ fn ctd_dint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<i32> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, -1);
 }
@@ -430,23 +429,23 @@ fn ctd_udint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<u32> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -473,23 +472,23 @@ fn ctd_lint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<i64> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, -1);
 }
@@ -516,23 +515,23 @@ fn ctd_ulint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTDType::<u64> { load: true, ..CTDType::default() };
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 2);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
     // count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
 }
@@ -593,31 +592,31 @@ fn ctud() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
@@ -668,31 +667,31 @@ fn ctud_int() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
@@ -743,31 +742,31 @@ fn ctud_dint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<i32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
@@ -818,31 +817,31 @@ fn ctud_udint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<u32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
@@ -893,31 +892,31 @@ fn ctud_lint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<i64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
@@ -968,31 +967,31 @@ fn ctud_ulint() {
     "#;
 
     let source = add_std!(prog, "counters.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = CTUDType::<u64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 2nd call, CU/CD both true, nothing should happen
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 3rd call, count down
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);
     // 4th call, count up
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.qu);
     assert!(!main_inst.qd);
     assert_eq!(main_inst.cv, 1);
     // 5th call, reset
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.qu);
     assert!(main_inst.qd);
     assert_eq!(main_inst.cv, 0);

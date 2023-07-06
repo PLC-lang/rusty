@@ -1,9 +1,9 @@
 {
+    "name" : "proj",
     "files" : [
         "simple_program.st"
     ],
     "compile_type" : "Shared",
-    "output" : "proj.so",
     "libraries" : [
         {
             "name" : "copy",

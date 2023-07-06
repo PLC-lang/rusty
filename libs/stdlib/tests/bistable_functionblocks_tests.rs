@@ -1,12 +1,11 @@
 use common::compile_with_native;
 use iec61131std::bistable_functionblocks::SetResetParams;
-use inkwell::context::Context;
-use rusty::runner::run;
 
 // Import common functionality into the integration tests
 mod common;
 
 use common::add_std;
+use plc::codegen::CodegenContext;
 
 #[repr(C)]
 #[derive(Default, Debug)]
@@ -50,10 +49,10 @@ fn sr() {
     "#;
 
     let source = add_std!(prog, "bistable_functionblocks.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { ..MainType::default() };
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.t_t_f);
     assert!(!main_inst.f_t_t);
     assert!(!main_inst.f_f_f);
@@ -92,10 +91,10 @@ fn rs() {
     "#;
 
     let source = add_std!(prog, "bistable_functionblocks.st");
-    let context: Context = Context::create();
-    let exec_engine = compile_with_native(&context, source);
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
     let mut main_inst = MainType { ..MainType::default() };
-    run::<_, ()>(&exec_engine, "main", &mut main_inst);
+    module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.t_t_f);
     assert!(!main_inst.f_f_f);
     assert!(main_inst.t_f_f);

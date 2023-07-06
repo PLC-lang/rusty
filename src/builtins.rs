@@ -20,7 +20,7 @@ use crate::{
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
-        AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext,
+        AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem,
     validation::{Validator, Validators},
@@ -81,7 +81,7 @@ lazy_static! {
                         input_type
                     );
 
-                    annotator.annotation_map.annotate(
+                    annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                         }
@@ -352,7 +352,7 @@ fn validate_variable_length_array_bound_function(
     validator: &mut Validator,
     operator: &AstStatement,
     parameters: &Option<AstStatement>,
-    annotations: &AnnotationMapImpl,
+    annotations: &dyn AnnotationMap,
     index: &Index,
 ) {
     let Some(parameters) = parameters else {
@@ -501,7 +501,7 @@ type CodegenFunction = for<'ink, 'b> fn(
     SourceRange,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
 type ValidationFunction =
-    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &AnnotationMapImpl, &Index);
+    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
     decl: &'static str,

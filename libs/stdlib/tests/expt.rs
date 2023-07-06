@@ -1,5 +1,5 @@
 use common::compile_and_run;
-use rusty::runner::MainType;
+use plc_driver::runner::MainType;
 
 mod common;
 
