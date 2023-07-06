@@ -555,7 +555,7 @@ fn validate_assignment<T: AnnotationMap>(
                 let left_dt =
                     context.annotations.get_type_or_void(left, context.index).get_type_information();
                 if left_dt.is_enum()
-                    && dbg!(left_dt.get_name())
+                    && left_dt.get_name()
                         != context
                             .annotations
                             .get_type_or_void(right, context.index)
