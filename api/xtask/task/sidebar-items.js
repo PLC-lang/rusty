@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_default_tasks",""]],"mod":[["compile",""],["run",""]],"trait":[["Task",""]]};

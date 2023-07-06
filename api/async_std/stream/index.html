@@ -1,0 +1,191 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Composable asynchronous iteration."><meta name="keywords" content="rust, rustlang, rust-lang, stream"><title>async_std::stream - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../async_std/index.html"><div class="logo-container">
+                    <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"><a href="#">Module stream</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Module <a href="../index.html">async_std</a>::<wbr><a class="mod" href="#">stream</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/async_std/stream/mod.rs.html#1-346">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Composable asynchronous iteration.</p>
+<p>This module is an async version of <a href="https://doc.rust-lang.org/std/iter/index.html"><code>std::iter</code></a>.</p>
+<p>If you’ve found yourself with an asynchronous collection of some kind,
+and needed to perform an operation on the elements of said collection,
+you’ll quickly run into ‘streams’. Streams are heavily used in idiomatic
+asynchronous Rust code, so it’s worth becoming familiar with them.</p>
+<p>Before explaining more, let’s talk about how this module is structured:</p>
+<h2 id="organization"><a href="#organization">Organization</a></h2>
+<p>This module is largely organized by type:</p>
+<ul>
+<li><a href="#traits">Traits</a> are the core portion: these traits define what kind of streams
+exist and what you can do with them. The methods of these traits are worth
+putting some extra study time into.</li>
+<li><a href="#functions">Functions</a> provide some helpful ways to create some basic streams.</li>
+<li><a href="#structs">Structs</a> are often the return types of the various methods on this
+module’s traits. You’ll usually want to look at the method that creates
+the <code>struct</code>, rather than the <code>struct</code> itself. For more detail about why,
+see ‘<a href="#implementing-stream">Implementing Stream</a>’.</li>
+</ul>
+<p>That’s it! Let’s dig into streams.</p>
+<h2 id="stream"><a href="#stream">Stream</a></h2>
+<p>The heart and soul of this module is the <a href="trait.Stream.html"><code>Stream</code></a> trait. The core of
+<a href="trait.Stream.html"><code>Stream</code></a> looks like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>Stream {
+    <span class="kw">type </span>Item;
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt;;
+}</code></pre></div>
+<p>A stream has a method, <a href="trait.Stream.html#tymethod.next"><code>next</code></a>, which when called, returns an
+<a href="../task/enum.Poll.html"><code>Poll</code></a>&lt;<a href="../../std/option/enum.Option.html"><code>Option</code></a><code>&lt;Item&gt;&gt;</code>. <a href="trait.Stream.html#tymethod.next"><code>next</code></a> will return <code>Ready(Some(Item))</code>
+as long as there are elements, and once they’ve all been exhausted, will
+return <code>None</code> to indicate that iteration is finished. If we’re waiting on
+something asynchronous to resolve <code>Pending</code> is returned.</p>
+<p>Individual streams may choose to resume iteration, and so calling
+<a href="trait.Stream.html#tymethod.next"><code>next</code></a> again may or may not eventually start returning <code>Ready(Some(Item))</code>
+again at some point.</p>
+<p><a href="trait.Stream.html"><code>Stream</code></a>’s full definition includes a number of other methods as well,
+but they are default methods, built on top of <a href="trait.Stream.html#tymethod.next"><code>next</code></a>, and so you get
+them for free.</p>
+<p>Streams are also composable, and it’s common to chain them together to do
+more complex forms of processing. See the <a href="#adapters">Adapters</a> section
+below for more details.</p>
+<h2 id="the-three-forms-of-streaming"><a href="#the-three-forms-of-streaming">The three forms of streaming</a></h2>
+<p>There are three common methods which can create streams from a collection:</p>
+<ul>
+<li><code>stream()</code>, which iterates over <code>&amp;T</code>.</li>
+<li><code>stream_mut()</code>, which iterates over <code>&amp;mut T</code>.</li>
+<li><code>into_stream()</code>, which iterates over <code>T</code>.</li>
+</ul>
+<p>Various things in async-std may implement one or more of the
+three, where appropriate.</p>
+<h2 id="implementing-stream"><a href="#implementing-stream">Implementing Stream</a></h2>
+<p>Creating a stream of your own involves two steps: creating a <code>struct</code> to
+hold the stream’s state, and then <code>impl</code>ementing <a href="trait.Stream.html"><code>Stream</code></a> for that
+<code>struct</code>. This is why there are so many <code>struct</code>s in this module: there is
+one for each stream and iterator adapter.</p>
+<p>Let’s make a stream named <code>Counter</code> which counts from <code>1</code> to <code>5</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// First, the struct:
+
+</span><span class="doccomment">/// A stream which counts from one to five
+</span><span class="kw">struct </span>Counter {
+    count: usize,
+}
+
+<span class="comment">// we want our count to start at one, so let&#39;s add a new() method to help.
+// This isn&#39;t strictly necessary, but is convenient. Note that we start
+// `count` at zero, we&#39;ll see why in `next()`&#39;s implementation below.
+</span><span class="kw">impl </span>Counter {
+    <span class="kw">fn </span>new() -&gt; Counter {
+        Counter { count: <span class="number">0 </span>}
+    }
+}
+
+<span class="comment">// Then, we implement `Stream` for our `Counter`:
+
+</span><span class="kw">impl </span>Stream <span class="kw">for </span>Counter {
+    <span class="comment">// we will be counting with usize
+    </span><span class="kw">type </span>Item = usize;
+
+    <span class="comment">// poll_next() is the only required method
+    </span><span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="comment">// Increment our count. This is why we started at zero.
+        </span><span class="self">self</span>.count += <span class="number">1</span>;
+
+        <span class="comment">// Check to see if we&#39;ve finished counting or not.
+        </span><span class="kw">if </span><span class="self">self</span>.count &lt; <span class="number">6 </span>{
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="self">self</span>.count))
+        } <span class="kw">else </span>{
+            Poll::Ready(<span class="prelude-val">None</span>)
+        }
+    }
+}
+
+<span class="comment">// And now we can use it!
+</span><span class="kw">let </span><span class="kw-2">mut </span>counter = Counter::new();
+
+<span class="kw">let </span>x = counter.next().<span class="kw">await</span>.unwrap();
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+
+<span class="kw">let </span>x = counter.next().<span class="kw">await</span>.unwrap();
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+
+<span class="kw">let </span>x = counter.next().<span class="kw">await</span>.unwrap();
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+
+<span class="kw">let </span>x = counter.next().<span class="kw">await</span>.unwrap();
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+
+<span class="kw">let </span>x = counter.next().<span class="kw">await</span>.unwrap();
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);</code></pre></div>
+<p>This will print <code>1</code> through <code>5</code>, each on their own line.</p>
+<p>Calling <code>next().await</code> this way gets repetitive. Rust has a construct which
+can call <code>next()</code> on your stream, until it reaches <code>None</code>. Let’s go over
+that next.</p>
+<h2 id="while-let-loops-and-intostream"><a href="#while-let-loops-and-intostream">while let Loops and IntoStream</a></h2>
+<p>Rust’s <code>while let</code> loop syntax is an idiomatic way to iterate over streams. Here’s a basic
+example of <code>while let</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>values = stream::from_iter(<span class="number">1u8</span>..<span class="number">6</span>);
+
+<span class="kw">while let </span><span class="prelude-val">Some</span>(x) = values.next().<span class="kw">await </span>{
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+}</code></pre></div>
+<p>This will print the numbers one through five, each on their own line. But
+you’ll notice something here: we never called anything on our vector to
+produce a stream. What gives?</p>
+<p>There’s a trait in the standard library for converting something into an
+stream: <a href="trait.IntoStream.html"><code>IntoStream</code></a>. This trait has one method, <a href="trait.IntoStream.html#tymethod.into_stream"><code>into_stream</code></a>,
+which converts the thing implementing <a href="trait.IntoStream.html"><code>IntoStream</code></a> into a stream.</p>
+<p>Unlike <code>std::iter::IntoIterator</code>, <code>IntoStream</code> does not have compiler
+support yet. This means that automatic conversions like with <code>for</code> loops
+doesn’t occur yet, and <code>into_stream</code> or <code>from_iter</code> as above will always
+have to be called manually.</p>
+<h2 id="adapters"><a href="#adapters">Adapters</a></h2>
+<p>Functions which take an <a href="trait.Stream.html"><code>Stream</code></a> and return another <a href="trait.Stream.html"><code>Stream</code></a> are
+often called ‘stream adapters’, as they are a form of the ‘adapter
+pattern’.</p>
+<p>Common stream adapters include <a href="trait.Stream.html#method.map"><code>map</code></a>, <a href="trait.Stream.html#method.take"><code>take</code></a>, and <a href="trait.Stream.html#method.filter"><code>filter</code></a>.
+For more, see their documentation.</p>
+<h2 id="laziness"><a href="#laziness">Laziness</a></h2>
+<p>Streams (and stream <a href="#adapters">adapters</a>) are <em>lazy</em>. This means that
+just creating a stream doesn’t <em>do</em> a whole lot. Nothing really happens
+until you call <a href="trait.Stream.html#tymethod.next"><code>next</code></a>. This is sometimes a source of confusion when
+creating a stream solely for its side effects. For example, the <a href="trait.Stream.html#method.map"><code>map</code></a>
+method calls a closure on each element it iterates over:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>v = stream::repeat(<span class="number">1u8</span>).take(<span class="number">5</span>);
+v.map(|x| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x));</code></pre></div>
+<p>This will not print any values, as we only created a stream, rather than
+using it. The compiler will warn us about this kind of behavior:</p>
+<div class="example-wrap"><pre class="language-text"><code>warning: unused result that must be used: streams are lazy and
+do nothing unless consumed
+</code></pre></div>
+<p>The idiomatic way to write a <a href="trait.Stream.html#method.map"><code>map</code></a> for its side effects is to use a
+<code>while let</code> loop instead:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>v = stream::repeat(<span class="number">1u8</span>).take(<span class="number">5</span>);
+
+<span class="kw">while let </span><span class="prelude-val">Some</span>(x) = <span class="kw-2">&amp;</span>v.next().<span class="kw">await </span>{
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, x);
+}</code></pre></div>
+<p>The two most common ways to evaluate a stream are to use a <code>while let</code> loop
+like this, or using the <a href="trait.Stream.html#method.collect"><code>collect</code></a> method to produce a new collection.</p>
+<h2 id="infinity"><a href="#infinity">Infinity</a></h2>
+<p>Streams do not have to be finite. As an example, a repeat stream is
+an infinite stream:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>numbers = stream::repeat(<span class="number">1u8</span>);</code></pre></div>
+<p>It is common to use the <a href="trait.Stream.html#method.take"><code>take</code></a> stream adapter to turn an infinite
+stream into a finite one:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>numbers = stream::from_iter(<span class="number">0u8</span>..);
+<span class="kw">let </span><span class="kw-2">mut </span>five_numbers = numbers.take(<span class="number">5</span>);
+
+<span class="kw">while let </span><span class="prelude-val">Some</span>(number) = five_numbers.next().<span class="kw">await </span>{
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, number);
+}</code></pre></div>
+<p>This will print the numbers <code>0</code> through <code>4</code>, each on their own line.</p>
+<p>Bear in mind that methods on infinite streams, even those for which a
+result can be determined mathematically in finite time, may not terminate.
+Specifically, methods such as <a href="trait.Stream.html#method.min"><code>min</code></a>, which in the general case require
+traversing every element in the stream, are likely not to return
+successfully for any infinite streams.</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">let </span>ones = async_std::stream::repeat(<span class="number">1</span>);
+<span class="kw">let </span>least = ones.min().<span class="kw">await</span>.unwrap(); <span class="comment">// Oh no! An infinite loop!
+// `ones.min()` causes an infinite loop, so we won&#39;t reach this point!
+</span><span class="macro">println!</span>(<span class="string">&quot;The smallest number one is {}.&quot;</span>, least);</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Chain.html" title="async_std::stream::Chain struct">Chain</a></div><div class="item-right docblock-short">A stream that chains two streams one after another.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Cloned.html" title="async_std::stream::Cloned struct">Cloned</a></div><div class="item-right docblock-short">A stream that clones the elements of an underlying stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Copied.html" title="async_std::stream::Copied struct">Copied</a></div><div class="item-right docblock-short">A stream that copies the elements of an underlying stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Empty.html" title="async_std::stream::Empty struct">Empty</a></div><div class="item-right docblock-short">A stream that doesn’t yield any items.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Filter.html" title="async_std::stream::Filter struct">Filter</a></div><div class="item-right docblock-short">A stream to filter elements of another stream with a predicate.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FromFn.html" title="async_std::stream::FromFn struct">FromFn</a></div><div class="item-right docblock-short">A stream that yields elements by calling a closure.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FromIter.html" title="async_std::stream::FromIter struct">FromIter</a></div><div class="item-right docblock-short">A stream that was created from iterator.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Fuse.html" title="async_std::stream::Fuse struct">Fuse</a></div><div class="item-right docblock-short">A stream that yields <code>None</code> forever after the underlying stream yields <code>None</code> once.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Inspect.html" title="async_std::stream::Inspect struct">Inspect</a></div><div class="item-right docblock-short">A stream that does something with each element of another stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Map.html" title="async_std::stream::Map struct">Map</a></div><div class="item-right docblock-short">A stream that maps value of another stream with a function.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Once.html" title="async_std::stream::Once struct">Once</a></div><div class="item-right docblock-short">A stream that yields a single item.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Repeat.html" title="async_std::stream::Repeat struct">Repeat</a></div><div class="item-right docblock-short">A stream that yields the same item repeatedly.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RepeatWith.html" title="async_std::stream::RepeatWith struct">RepeatWith</a></div><div class="item-right docblock-short">A stream that repeats elements of type <code>T</code> endlessly by applying a provided closure.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Scan.html" title="async_std::stream::Scan struct">Scan</a></div><div class="item-right docblock-short">A stream to maintain state while polling another stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Skip.html" title="async_std::stream::Skip struct">Skip</a></div><div class="item-right docblock-short">A stream to skip first n elements of another stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SkipWhile.html" title="async_std::stream::SkipWhile struct">SkipWhile</a></div><div class="item-right docblock-short">A stream to skip elements of another stream based on a predicate.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StepBy.html" title="async_std::stream::StepBy struct">StepBy</a></div><div class="item-right docblock-short">A stream that steps a given amount of elements of another stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Take.html" title="async_std::stream::Take struct">Take</a></div><div class="item-right docblock-short">A stream that yields the first <code>n</code> items of another stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TakeWhile.html" title="async_std::stream::TakeWhile struct">TakeWhile</a></div><div class="item-right docblock-short">A stream that yields elements based on a predicate.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Zip.html" title="async_std::stream::Zip struct">Zip</a></div><div class="item-right docblock-short">A stream that takes items from two other streams simultaneously.</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Stream.html" title="async_std::stream::Stream trait">Stream</a></div><div class="item-right docblock-short">A stream of values produced asynchronously.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.StreamExt.html" title="async_std::stream::StreamExt trait">StreamExt</a></div><div class="item-right docblock-short">Extension methods for <a href="../stream/trait.Stream.html"><code>Stream</code></a>.</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.empty.html" title="async_std::stream::empty fn">empty</a></div><div class="item-right docblock-short">Creates a stream that doesn’t yield any items.</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_fn.html" title="async_std::stream::from_fn fn">from_fn</a></div><div class="item-right docblock-short">Creates a new stream where to produce each new element a provided closure is called.</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_iter.html" title="async_std::stream::from_iter fn">from_iter</a></div><div class="item-right docblock-short">Converts an iterator into a stream.</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.once.html" title="async_std::stream::once fn">once</a></div><div class="item-right docblock-short">Creates a stream that yields a single item.</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.repeat.html" title="async_std::stream::repeat fn">repeat</a></div><div class="item-right docblock-short">Creates a stream that yields the same item repeatedly.</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.repeat_with.html" title="async_std::stream::repeat_with fn">repeat_with</a></div><div class="item-right docblock-short">Creates a new stream that repeats elements of type <code>A</code> endlessly by applying the provided closure.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

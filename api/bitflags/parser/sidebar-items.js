@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["from_str","Parse a set of flags from text."],["to_writer","Write a set of flags to a writer."]],"struct":[["ParseError","An error encountered while parsing flags from text."]],"trait":[["ParseHex","Parse a value from a number encoded as a hex string."],["WriteHex","Encode a value as a hex number."]]};

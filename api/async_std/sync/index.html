@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Synchronization primitives."><meta name="keywords" content="rust, rustlang, rust-lang, sync"><title>async_std::sync - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../async_std/index.html"><div class="logo-container">
+                    <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"><a href="#">Module sync</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Module <a href="../index.html">async_std</a>::<wbr><a class="mod" href="#">sync</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/async_std/sync/mod.rs.html#1-191">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Synchronization primitives.</p>
+<p>This module is an async version of <a href="https://doc.rust-lang.org/std/sync/index.html"><code>std::sync</code></a>.</p>
+<h3 id="the-need-for-synchronization"><a href="#the-need-for-synchronization">The need for synchronization</a></h3>
+<p>async-std’s sync primitives are scheduler-aware, making it possible to
+<code>.await</code> their operations - for example the locking of a <a href="struct.Mutex.html"><code>Mutex</code></a>.</p>
+<p>Conceptually, a Rust program is a series of operations which will
+be executed on a computer. The timeline of events happening in the
+program is consistent with the order of the operations in the code.</p>
+<p>Consider the following code, operating on some global static variables:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">static </span><span class="kw-2">mut </span>A: u32 = <span class="number">0</span>;
+<span class="kw">static </span><span class="kw-2">mut </span>B: u32 = <span class="number">0</span>;
+<span class="kw">static </span><span class="kw-2">mut </span>C: u32 = <span class="number">0</span>;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">unsafe </span>{
+        A = <span class="number">3</span>;
+        B = <span class="number">4</span>;
+        A = A + B;
+        C = B;
+        <span class="macro">println!</span>(<span class="string">&quot;{} {} {}&quot;</span>, A, B, C);
+        C = A;
+    }
+}</code></pre></div>
+<p>It appears as if some variables stored in memory are changed, an addition
+is performed, result is stored in <code>A</code> and the variable <code>C</code> is
+modified twice.</p>
+<p>When only a single thread is involved, the results are as expected:
+the line <code>7 4 4</code> gets printed.</p>
+<p>As for what happens behind the scenes, when optimizations are enabled the
+final generated machine code might look very different from the code:</p>
+<ul>
+<li>
+<p>The first store to <code>C</code> might be moved before the store to <code>A</code> or <code>B</code>,
+<em>as if</em> we had written <code>C = 4; A = 3; B = 4</code>.</p>
+</li>
+<li>
+<p>Assignment of <code>A + B</code> to <code>A</code> might be removed, since the sum can be stored
+in a temporary location until it gets printed, with the global variable
+never getting updated.</p>
+</li>
+<li>
+<p>The final result could be determined just by looking at the code
+at compile time, so <a href="https://en.wikipedia.org/wiki/Constant_folding">constant folding</a> might turn the whole
+block into a simple <code>println!(&quot;7 4 4&quot;)</code>.</p>
+</li>
+</ul>
+<p>The compiler is allowed to perform any combination of these
+optimizations, as long as the final optimized code, when executed,
+produces the same results as the one without optimizations.</p>
+<p>Due to the <a href="https://en.wikipedia.org/wiki/Concurrency_(computer_science)">concurrency</a> involved in modern computers, assumptions
+about the program’s execution order are often wrong. Access to
+global variables can lead to nondeterministic results, <strong>even if</strong>
+compiler optimizations are disabled, and it is <strong>still possible</strong>
+to introduce synchronization bugs.</p>
+<p>Note that thanks to Rust’s safety guarantees, accessing global (static)
+variables requires <code>unsafe</code> code, assuming we don’t use any of the
+synchronization primitives in this module.</p>
+<h3 id="out-of-order-execution"><a href="#out-of-order-execution">Out-of-order execution</a></h3>
+<p>Instructions can execute in a different order from the one we define, due to
+various reasons:</p>
+<ul>
+<li>
+<p>The <strong>compiler</strong> reordering instructions: If the compiler can issue an
+instruction at an earlier point, it will try to do so. For example, it
+might hoist memory loads at the top of a code block, so that the CPU can
+start <a href="https://en.wikipedia.org/wiki/Cache_prefetching">prefetching</a> the values from memory.</p>
+<p>In single-threaded scenarios, this can cause issues when writing
+signal handlers or certain kinds of low-level code.
+Use <a href="https://doc.rust-lang.org/std/sync/atomic/fn.compiler_fence.html">compiler fences</a> to prevent this reordering.</p>
+</li>
+<li>
+<p>A <strong>single processor</strong> executing instructions <a href="https://en.wikipedia.org/wiki/Out-of-order_execution">out-of-order</a>:
+Modern CPUs are capable of <a href="https://en.wikipedia.org/wiki/Superscalar_processor">superscalar</a> execution,
+i.e., multiple instructions might be executing at the same time,
+even though the machine code describes a sequential process.</p>
+<p>This kind of reordering is handled transparently by the CPU.</p>
+</li>
+<li>
+<p>A <strong>multiprocessor</strong> system executing multiple hardware threads
+at the same time: In multi-threaded scenarios, you can use two
+kinds of primitives to deal with synchronization:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/sync/atomic/fn.fence.html">memory fences</a> to ensure memory accesses are made visible to
+other CPUs in the right order.</li>
+<li><a href="https://doc.rust-lang.org/std/sync/atomic/index.html">atomic operations</a> to ensure simultaneous access to the same
+memory location doesn’t lead to undefined behavior.</li>
+</ul>
+</li>
+</ul>
+<h3 id="higher-level-synchronization-objects"><a href="#higher-level-synchronization-objects">Higher-level synchronization objects</a></h3>
+<p>Most of the low-level synchronization primitives are quite error-prone and
+inconvenient to use, which is why async-std also exposes some
+higher-level synchronization objects.</p>
+<p>These abstractions can be built out of lower-level primitives.
+For efficiency, the sync objects in async-std are usually
+implemented with help from the scheduler, which is
+able to reschedule the tasks while they are blocked on acquiring
+a lock.</p>
+<p>The following is an overview of the available synchronization
+objects:</p>
+<ul>
+<li>
+<p><a href="struct.Arc.html"><code>Arc</code></a>: Atomically Reference-Counted pointer, which can be used
+in multithreaded environments to prolong the lifetime of some
+data until all the threads have finished using it.</p>
+</li>
+<li>
+<p><a href="struct.Barrier.html"><code>Barrier</code></a>: Ensures multiple threads will wait for each other
+to reach a point in the program, before continuing execution all
+together.</p>
+</li>
+<li>
+<p><a href="struct.Mutex.html"><code>Mutex</code></a>: Mutual exclusion mechanism, which ensures that at
+most one task at a time is able to access some data.</p>
+</li>
+<li>
+<p><a href="struct.RwLock.html"><code>RwLock</code></a>: Provides a mutual exclusion mechanism which allows
+multiple readers at the same time, while allowing only one
+writer at a time. In some cases, this can be more efficient than
+a mutex.</p>
+</li>
+</ul>
+<p>If you’re looking for channels, check out
+<a href="../channel/index.html" title="crate::channel"><code>async_std::channel</code></a>.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Spawn a task that updates an integer protected by a mutex:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>async_std::sync::{Arc, Mutex};
+<span class="kw">use </span>async_std::task;
+
+<span class="kw">let </span>m1 = Arc::new(Mutex::new(<span class="number">0</span>));
+<span class="kw">let </span>m2 = m1.clone();
+
+task::spawn(<span class="kw">async move </span>{
+    <span class="kw-2">*</span>m2.lock().<span class="kw">await </span>= <span class="number">1</span>;
+})
+.<span class="kw">await</span>;
+
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>m1.lock().<span class="kw">await</span>, <span class="number">1</span>);</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Arc.html" title="async_std::sync::Arc struct">Arc</a></div><div class="item-right docblock-short">A thread-safe reference-counting pointer. ‘Arc’ stands for ‘Atomically
+Reference Counted’.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Mutex.html" title="async_std::sync::Mutex struct">Mutex</a></div><div class="item-right docblock-short">An async mutex.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.MutexGuard.html" title="async_std::sync::MutexGuard struct">MutexGuard</a></div><div class="item-right docblock-short">A guard that releases the mutex when dropped.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.MutexGuardArc.html" title="async_std::sync::MutexGuardArc struct">MutexGuardArc</a></div><div class="item-right docblock-short">An owned guard that releases the mutex when dropped.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RwLock.html" title="async_std::sync::RwLock struct">RwLock</a></div><div class="item-right docblock-short">An async reader-writer lock.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RwLockReadGuard.html" title="async_std::sync::RwLockReadGuard struct">RwLockReadGuard</a></div><div class="item-right docblock-short">A guard that releases the read lock when dropped.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RwLockUpgradableReadGuard.html" title="async_std::sync::RwLockUpgradableReadGuard struct">RwLockUpgradableReadGuard</a></div><div class="item-right docblock-short">A guard that releases the upgradable read lock when dropped.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RwLockWriteGuard.html" title="async_std::sync::RwLockWriteGuard struct">RwLockWriteGuard</a></div><div class="item-right docblock-short">A guard that releases the write lock when dropped.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Weak.html" title="async_std::sync::Weak struct">Weak</a></div><div class="item-right docblock-short"><code>Weak</code> is a version of <a href="struct.Arc.html" title="Arc"><code>Arc</code></a> that holds a non-owning reference to the
+managed allocation. The allocation is accessed by calling <a href="struct.Weak.html#method.upgrade"><code>upgrade</code></a> on the <code>Weak</code>
+pointer, which returns an <code><a href="https://doc.rust-lang.org/1.67.0/core/option/enum.Option.html" title="Option">Option</a>&lt;<a href="struct.Arc.html" title="Arc">Arc</a>&lt;T&gt;&gt;</code>.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

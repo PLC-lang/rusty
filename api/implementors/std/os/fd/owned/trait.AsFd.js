@@ -1,5 +1,6 @@
 (function() {var implementors = {
-"io_lifetimes":[],
-"rustix":[["impl&lt;'fd&gt; <a class=\"trait\" href=\"rustix/fd/trait.AsFd.html\" title=\"trait rustix::fd::AsFd\">AsFd</a> for <a class=\"struct\" href=\"rustix/io/struct.PollFd.html\" title=\"struct rustix::io::PollFd\">PollFd</a>&lt;'fd&gt;"]],
+"async_io":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/std/os/fd/owned/trait.AsFd.html\" title=\"trait std::os::fd::owned::AsFd\">AsFd</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/std/os/fd/owned/trait.AsFd.html\" title=\"trait std::os::fd::owned::AsFd\">AsFd</a> for <a class=\"struct\" href=\"async_io/struct.Async.html\" title=\"struct async_io::Async\">Async</a>&lt;T&gt;"]],
+"polling":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/std/os/fd/owned/trait.AsFd.html\" title=\"trait std::os::fd::owned::AsFd\">AsFd</a> for <a class=\"struct\" href=\"polling/struct.Poller.html\" title=\"struct polling::Poller\">Poller</a>"]],
+"rustix":[],
 "tempfile":[["impl&lt;F:&nbsp;<a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/std/os/fd/owned/trait.AsFd.html\" title=\"trait std::os::fd::owned::AsFd\">AsFd</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/std/os/fd/owned/trait.AsFd.html\" title=\"trait std::os::fd::owned::AsFd\">AsFd</a> for <a class=\"struct\" href=\"tempfile/struct.NamedTempFile.html\" title=\"struct tempfile::NamedTempFile\">NamedTempFile</a>&lt;F&gt;"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

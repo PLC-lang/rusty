@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AnsiColor","Available 4-bit ANSI color palette codes"],["Color","Any ANSI color code scheme"]],"struct":[["Ansi256Color","256 (8-bit) color support"],["EffectIter",""],["Effects","A set of text effects"],["Reset","Reset terminal formatting"],["RgbColor","24-bit ANSI RGB color codes"],["Style","ANSI Text styling"]]};

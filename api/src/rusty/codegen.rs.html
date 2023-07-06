@@ -517,6 +517,8 @@
 <a href="#517" id="517">517</a>
 <a href="#518" id="518">518</a>
 <a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -790,10 +792,12 @@
             std::fs::create_dir_all(parent)<span class="question-mark">?</span>;
         }
         <span class="kw">match </span>format {
-            FormatOption::Object | FormatOption::Static | FormatOption::Relocatable =&gt; {
+            FormatOption::Object | FormatOption::Relocatable =&gt; {
                 <span class="self">self</span>.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC =&gt; <span class="self">self</span>.persist_to_shared_pic_object(output, target, optimization_level),
+            FormatOption::PIC | FormatOption::Static =&gt; {
+                <span class="self">self</span>.persist_to_shared_pic_object(output, target, optimization_level)
+            }
             FormatOption::Shared =&gt; <span class="self">self</span>.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode =&gt; <span class="self">self</span>.persist_to_bitcode(output),
             FormatOption::IR =&gt; <span class="self">self</span>.persist_to_ir(output),
