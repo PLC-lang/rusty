@@ -610,7 +610,7 @@ fn enums_with_inline_initializer_do_not_report_errors() {
 
 #[test]
 fn enums_with_inline_initializer_are_initialized() {
-    let (res, _) = codegen(
+    let res = codegen(
         r#"            
         VAR_GLOBAL
               x : (red, yellow, green) := 2;
