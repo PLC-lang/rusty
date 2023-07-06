@@ -6,19 +6,19 @@ expression: res
 source_filename = "main"
 
 @x = global i32 2
+@x1 = unnamed_addr constant i32 1
+@x7 = unnamed_addr constant i32 2
+@yellow = unnamed_addr constant i32 1
 @redy = unnamed_addr constant i32 1
 @yellowy = unnamed_addr constant i32 2
 @greeny = unnamed_addr constant i32 3
-@x1 = unnamed_addr constant i32 1
 @x2 = unnamed_addr constant i32 2
 @x3 = unnamed_addr constant i32 3
 @x5 = unnamed_addr constant i32 0
 @x6 = unnamed_addr constant i32 1
-@x7 = unnamed_addr constant i32 2
 @x8 = unnamed_addr constant i32 0
 @x9 = unnamed_addr constant i32 1
 @red = unnamed_addr constant i32 0
-@yellow = unnamed_addr constant i32 1
 @green = unnamed_addr constant i32 2
 
 define i32 @main() {
