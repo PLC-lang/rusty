@@ -26,7 +26,7 @@ jobs:
       shell: bash
       if: github.ref_name == 'master'
       run: |
-        cargo metrics --git
+        cargo metrics --reporter=git
 
     - name: Collect metrics (Local)
       shell: bash

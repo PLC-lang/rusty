@@ -50,17 +50,17 @@ impl SqlReporter {
         //Commit the benchmark
 
         sqlx::query!(
-            "INSERT INTO Reporter (host_id, timestamp, commit) VALUES (?, ?, ?)",
+            "INSERT INTO Report (host_id, timestamp, commit) VALUES (?, ?, ?)",
             id,
             &report.timestamp,
             &report.commit
         )
         .execute(&db)
         .await?;
-        let id = sqlx::query!("SELECT id from Reporter ORDER BY id DESC LIMIT 1").fetch_one(&db).await?.id;
+        let id = sqlx::query!("SELECT id from Report ORDER BY id DESC LIMIT 1").fetch_one(&db).await?.id;
 
         for (name, time) in report.metrics {
-            sqlx::query!("INSERT INTO Metrics (reporter_id, name, time) VALUES (?, ?, ?)", id, &name, &time)
+            sqlx::query!("INSERT INTO Metric (report_id, name, time) VALUES (?, ?, ?)", id, &name, &time)
                 .execute(&db)
                 .await?;
         }
