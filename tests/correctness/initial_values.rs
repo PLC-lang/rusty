@@ -1363,3 +1363,41 @@ fn initial_value_in_array_of_struct() {
         [maintype.a, maintype.b, maintype.c, maintype.d, maintype.e, maintype.f, maintype.g, maintype.h]
     );
 }
+
+#[test]
+fn initial_value_of_enums() {
+    let src = "
+    VAR_GLOBAL
+        x_gl : (red, yellow, green) := 2;
+    END_VAR
+
+    PROGRAM main
+    VAR
+        a, b, c, d : DINT;
+    END_VAR
+    VAR_TEMP
+        x : (redy := 1, yellowy := 2, greeny := 3) := redy;
+        y : (x1 := redy, x2 := yellowy, x3 := greeny) := x1;
+        z : (x5, x6, x7) := yellowy;
+    END_VAR
+        a := x;
+        b := y;
+        c := z;
+        d := x_gl;
+    END_FUNCTION";
+
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+    }
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(1, maintype.a);
+    assert_eq!(1, maintype.b);
+    assert_eq!(2, maintype.c);
+    assert_eq!(2, maintype.d);
+}

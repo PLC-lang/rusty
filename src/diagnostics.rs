@@ -807,6 +807,13 @@ impl Diagnostic {
             err_no: ErrNo::vla__dimension_idx_out_of_bounds,
         }
     }
+
+    pub fn enum_variant_mismatch(enum_type: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("Assigned value is not a variant of {enum_type}"),
+            range: vec![range],
+        }
+    }
 }
 
 /// a diagnostics severity
