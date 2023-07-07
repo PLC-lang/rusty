@@ -21,6 +21,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    
+    - name: Update git permissions
+      run: |
+        git config --global --add safe.directory /__w/rusty/rusty
 
     - name: Collect metrics (Git)
       shell: bash
@@ -32,5 +36,4 @@ jobs:
       shell: bash
       if: github.ref_name != 'master'
       run: |
-        git config --global --add safe.directory /__w/rusty/rusty && 
         cargo metrics
