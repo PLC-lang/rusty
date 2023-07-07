@@ -1855,14 +1855,14 @@
         </span><span class="kw">let </span>elements = parse_expression_list(lexer);
         <span class="prelude-val">Some</span>(elements)
     })<span class="question-mark">?</span>;
-
+    <span class="kw">let </span>initializer = lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment).then(|| parse_expression(lexer));
     <span class="prelude-val">Some</span>((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
             location: (start..lexer.last_range.end).into(),
             scope: lexer.scope.clone(),
         },
-        <span class="prelude-val">None</span>,
+        initializer,
     ))
 }
 
