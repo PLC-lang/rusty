@@ -780,14 +780,14 @@ fn parse_enum_type_definition(
         let elements = parse_expression_list(lexer);
         Some(elements)
     })?;
-
+    let initializer = lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
             location: (start..lexer.last_range.end).into(),
             scope: lexer.scope.clone(),
         },
-        None,
+        initializer,
     ))
 }
 
