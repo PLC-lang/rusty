@@ -81,6 +81,7 @@ END_FUNCTION
 #[test]
 fn binary_expressions_for_pointers() {
     #[derive(Default)]
+    #[repr(C)]
     struct Main {
         a: u8,
         b: u8,
@@ -192,10 +193,22 @@ fn binary_expressions_for_pointers_with_function_return() {
 
 #[test]
 fn value_behind_function_block_pointer_is_assigned_to_correctly() {
+    #[repr(C)]
     #[derive(Default)]
     struct MainType {
         a: bool,
         b: bool,
+        file: FileT,
+        file_open: Option<&'static FileT>,
+    }
+
+    #[repr(C)]
+    #[derive(Default)]
+    struct FileT {
+        var1: bool,
+        var2: bool,
+        out1: bool,
+        out2: bool,
     }
 
     let src = r#"

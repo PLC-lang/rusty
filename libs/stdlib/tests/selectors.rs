@@ -2,8 +2,7 @@
 mod common;
 
 use common::add_std;
-use inkwell::context::Context;
-use rusty::runner::run;
+use plc::codegen::CodegenContext;
 
 use crate::common::compile_and_run_no_params;
 use crate::common::compile_with_native as compile;
@@ -219,19 +218,19 @@ fn test_limit_int() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: i16 = run(&engine, "main", &mut 30i16);
+    let res: i16 = module.run("main", &mut 30i16);
     assert_eq!(30, res);
 
     //below range, min returned
-    let res: i16 = run(&engine, "main", &mut 1i16);
+    let res: i16 = module.run("main", &mut 1i16);
     assert_eq!(10, res);
 
     //above range, max returned
-    let res: i16 = run(&engine, "main", &mut 60i16);
+    let res: i16 = module.run("main", &mut 60i16);
     assert_eq!(50, res);
 }
 
@@ -247,19 +246,19 @@ fn test_limit_dint() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: i32 = run(&engine, "main", &mut 30i32);
+    let res: i32 = module.run("main", &mut 30i32);
     assert_eq!(30, res);
 
     //below range, min returned
-    let res: i32 = run(&engine, "main", &mut 1i32);
+    let res: i32 = module.run("main", &mut 1i32);
     assert_eq!(10, res);
 
     //above range, max returned
-    let res: i32 = run(&engine, "main", &mut 60i32);
+    let res: i32 = module.run("main", &mut 60i32);
     assert_eq!(50, res);
 }
 
@@ -275,19 +274,19 @@ fn test_limit_lint() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: i64 = run(&engine, "main", &mut 30i64);
+    let res: i64 = module.run("main", &mut 30i64);
     assert_eq!(30, res);
 
     //below range, min returned
-    let res: i64 = run(&engine, "main", &mut 1i64);
+    let res: i64 = module.run("main", &mut 1i64);
     assert_eq!(10, res);
 
     //above range, max returned
-    let res: i64 = run(&engine, "main", &mut 60i64);
+    let res: i64 = module.run("main", &mut 60i64);
     assert_eq!(50, res);
 }
 
@@ -303,19 +302,19 @@ fn test_limit_char() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: u8 = run(&engine, "main", &mut b'c');
+    let res: u8 = module.run("main", &mut b'c');
     assert_eq!(b'c', res);
 
     //below range, min returned
-    let res: u8 = run(&engine, "main", &mut b'a');
+    let res: u8 = module.run("main", &mut b'a');
     assert_eq!(b'b', res);
 
     //above range, max returned
-    let res: u8 = run(&engine, "main", &mut b'f');
+    let res: u8 = module.run("main", &mut b'f');
     assert_eq!(b'd', res);
 }
 
@@ -331,19 +330,19 @@ fn test_limit_real() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: f32 = run(&engine, "main", &mut 10.5f32);
+    let res: f32 = module.run("main", &mut 10.5f32);
     assert!((res - 10.5f32).abs() <= f32::EPSILON);
 
     //below range, min returned
-    let res: f32 = run(&engine, "main", &mut -1f32);
+    let res: f32 = module.run("main", &mut -1f32);
     assert!((res - 10f32).abs() <= f32::EPSILON);
 
     //above range, max returned
-    let res: f32 = run(&engine, "main", &mut 60f32);
+    let res: f32 = module.run("main", &mut 60f32);
     assert!((res - 50f32).abs() <= f32::EPSILON);
 }
 
@@ -359,18 +358,18 @@ fn test_limit_lreal() {
     "#;
 
     let src = add_std!(src, "selectors.st");
-    let context = Context::create();
-    let engine = compile(&context, src);
+    let context = CodegenContext::create();
+    let module = compile(&context, src);
 
     //In range No Actions
-    let res: f64 = run(&engine, "main", &mut 10.5f64);
+    let res: f64 = module.run("main", &mut 10.5f64);
     assert!((res - 10.5f64).abs() <= f64::EPSILON);
 
     //below range, min returned
-    let res: f64 = run(&engine, "main", &mut -1f64);
+    let res: f64 = module.run("main", &mut -1f64);
     assert!((res - 10f64).abs() <= f64::EPSILON);
 
     //above range, max returned
-    let res: f64 = run(&engine, "main", &mut 60f64);
+    let res: f64 = module.run("main", &mut 60f64);
     assert!((res - 50f64).abs() <= f64::EPSILON);
 }

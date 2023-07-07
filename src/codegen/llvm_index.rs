@@ -147,7 +147,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
         self.global_values.insert(variable_name.to_lowercase(), global_variable);
-        //TODO  : Remove this and replace it with a lookup into globals where needed
         self.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
         Ok(())
@@ -194,8 +193,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.constants.get(qualified_name).copied()
     }
 
-    pub fn associate_utf08_literal(&mut self, literal: String, literal_variable: GlobalValue<'ink>) {
-        self.utf08_literals.insert(literal, literal_variable);
+    pub fn associate_utf08_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
+        self.utf08_literals.insert(literal.to_string(), literal_variable);
     }
 
     pub fn find_utf08_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {
@@ -204,8 +203,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_utf08_literal_string(literal)))
     }
 
-    pub fn associate_utf16_literal(&mut self, literal: String, literal_variable: GlobalValue<'ink>) {
-        self.utf16_literals.insert(literal, literal_variable);
+    pub fn associate_utf16_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
+        self.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
     pub fn find_utf16_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {

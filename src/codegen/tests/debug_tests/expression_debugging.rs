@@ -6,7 +6,7 @@ use crate::test_utils::tests::codegen_with_debug;
 fn implementation_added_as_subroutine() {
     //GIVEN 3 POUs
     //When compiling for debug
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
         END_FUNCTION
@@ -24,7 +24,7 @@ fn implementation_added_as_subroutine() {
 fn external_impl_added_as_external_subroutine() {
     //GIVEN 3 external POUs
     //When compiling for debug
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         {external} FUNCTION myFunc : DINT
         END_FUNCTION
@@ -42,7 +42,7 @@ fn external_impl_added_as_external_subroutine() {
 fn var_and_vartemp_variables_in_pous_added_as_local() {
     //GIVEN 2 POUs
     //When compiling for debug
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
         VAR a,b,c: DINT; END_VAR
@@ -62,7 +62,7 @@ fn var_and_vartemp_variables_in_pous_added_as_local() {
 #[test]
 fn var_in_out_inout_in_function_added_as_params() {
     // Let a function with an assignment
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
         VAR_IN_OUT
@@ -79,7 +79,7 @@ fn var_in_out_inout_in_function_added_as_params() {
 #[test]
 fn non_function_pous_have_struct_as_param() {
     // Let a function with an assignment
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         PROGRAM myProg
         VAR_INPUT
@@ -103,7 +103,7 @@ fn non_function_pous_have_struct_as_param() {
 #[test]
 fn assignment_statement_have_location() {
     // Let a function with an assignment
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             myFunc := 1 + 2;
@@ -117,7 +117,7 @@ fn assignment_statement_have_location() {
 #[test]
 fn function_calls_have_location() {
     // Let a function with a call statement
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             myFunc();
@@ -131,7 +131,7 @@ fn function_calls_have_location() {
 #[test]
 fn function_calls_in_expressions_have_location() {
     // Let a function with a call statement in an addition
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             1 + myFunc();
@@ -145,7 +145,7 @@ fn function_calls_in_expressions_have_location() {
 #[test]
 fn nested_function_calls_get_location() {
     // Let a function with a call statement in an addition
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
         VAR_INPUT x : DINT; END_VAR
@@ -160,7 +160,7 @@ fn nested_function_calls_get_location() {
 #[test]
 fn non_callable_expressions_have_no_location() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             1 + 2;
@@ -175,7 +175,7 @@ fn non_callable_expressions_have_no_location() {
 #[test]
 fn return_statement_have_location() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             RETURN;
@@ -189,7 +189,7 @@ fn return_statement_have_location() {
 #[test]
 fn aggregate_return_value_variable_in_function() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : STRING
             myFunc := 'hello';
@@ -203,7 +203,7 @@ fn aggregate_return_value_variable_in_function() {
 #[test]
 fn exit_statement_have_location() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             WHILE TRUE THEN
@@ -220,7 +220,7 @@ fn exit_statement_have_location() {
 #[test]
 fn if_conditions_location_marked() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             IF TRUE THEN
@@ -241,7 +241,7 @@ fn if_conditions_location_marked() {
 #[test]
 fn case_conditions_location_marked() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             CASE myFunc OF
@@ -263,7 +263,7 @@ fn case_conditions_location_marked() {
 #[test]
 fn while_conditions_location_marked() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             WHILE myFunc > 1 DO
@@ -280,7 +280,7 @@ fn while_conditions_location_marked() {
 #[test]
 fn repeat_conditions_location_marked() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             REPEAT
@@ -297,7 +297,7 @@ fn repeat_conditions_location_marked() {
 #[test]
 fn for_conditions_location_marked() {
     // Let a function with an addition and a reference
-    let (result, _) = codegen_with_debug(
+    let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
             FOR myFunc := 1 TO 20 BY 2 DO

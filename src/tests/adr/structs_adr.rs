@@ -98,8 +98,8 @@ fn initializing_a_struct() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__Rect__init = unnamed_addr constant %Rect zeroinitializer
+    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
@@ -201,8 +201,8 @@ fn accessing_struct_members() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__Rect__init = unnamed_addr constant %Rect zeroinitializer
+    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(%prg* %0) {
     entry:

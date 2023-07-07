@@ -5,12 +5,19 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg = type { %MyClass, i16 }
 %MyClass = type { i16, i16 }
+%prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@prg_instance = global %prg zeroinitializer
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@prg_instance = global %prg zeroinitializer
+
+define void @MyClass(%MyClass* %0) {
+entry:
+  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  ret void
+}
 
 define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
@@ -28,13 +35,6 @@ entry:
   %load_y = load i16, i16* %y, align 2
   %3 = sext i16 %load_y to i32
   %tmpVar = icmp eq i32 %2, %3
-  ret void
-}
-
-define void @MyClass(%MyClass* %0) {
-entry:
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 

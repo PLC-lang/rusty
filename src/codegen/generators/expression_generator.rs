@@ -51,6 +51,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 }
 
 /// context information to generate a parameter
+#[derive(Debug)]
 struct CallParameterAssignment<'a, 'b> {
     /// the assignmentstatement in the call-argument list (a:=3)
     assignment_statement: &'b AstStatement,
@@ -62,6 +63,7 @@ struct CallParameterAssignment<'a, 'b> {
     parameter_struct: PointerValue<'a>,
 }
 
+#[derive(Debug)]
 pub enum ExpressionValue<'ink> {
     /// A Locator-Value
     /// An lvalue (locator value) represents an object that occupies some identifiable location in memory (i.e. has an address).
@@ -154,6 +156,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
     pub fn generate_expression(&self, expression: &AstStatement) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        // If the expression was replaced by the resolver, generate the replacement
+        if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
+            // we trust that the validator only passed us valid parameters (so left & right should be same type)
+            return self.generate_expression(statement);
+        }
         let v = self
             .generate_expression_value(expression)?
             .as_r_value(self.llvm, self.get_load_name(expression))
@@ -309,7 +316,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
-            self.create_llvm_generic_binary_expression(operator, left, right, expression)
+            self.create_llvm_generic_binary_expression(left, right, expression)
         }
     }
 
@@ -2288,52 +2295,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// expressions
     fn create_llvm_generic_binary_expression(
         &self,
-        operator: &Operator,
         left: &AstStatement,
         right: &AstStatement,
         binary_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if let Some(StatementAnnotation::Value { .. }) = self.annotations.get(binary_statement) {
+        if let Some(StatementAnnotation::ReplacementAst { statement }) =
+            self.annotations.get(binary_statement)
+        {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            let call_statement = match operator {
-                // a <> b expression is handled as Not(Equal(a,b))
-                Operator::NotEqual => ast::create_not_expression(
-                    self.create_typed_compare_call_statement(
-                        &Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )?,
-                    binary_statement.get_location(),
-                ),
-                // a <= b expression is handled as a = b OR a < b
-                Operator::LessOrEqual => ast::create_or_expression(
-                    self.create_typed_compare_call_statement(
-                        &Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )?,
-                    self.create_typed_compare_call_statement(&Operator::Less, left, right, binary_statement)?,
-                ),
-                // a >= b expression is handled as a = b OR a > b
-                Operator::GreaterOrEqual => ast::create_or_expression(
-                    self.create_typed_compare_call_statement(
-                        &Operator::Equal,
-                        left,
-                        right,
-                        binary_statement,
-                    )?,
-                    self.create_typed_compare_call_statement(
-                        &Operator::Greater,
-                        left,
-                        right,
-                        binary_statement,
-                    )?,
-                ),
-                _ => self.create_typed_compare_call_statement(operator, left, right, binary_statement)?,
-            };
-            self.generate_expression(&call_statement)
+            self.generate_expression(statement)
         } else {
             Err(Diagnostic::codegen_error(
                 format!(
@@ -2345,46 +2315,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 left.get_location(),
             ))
         }
-    }
-
-    /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
-    /// given type (of left). The given operator has to be a comparison-operator
-    fn create_typed_compare_call_statement(
-        &self,
-        operator: &Operator,
-        left: &AstStatement,
-        right: &AstStatement,
-        binary_statement: &AstStatement,
-    ) -> Result<AstStatement, Diagnostic> {
-        let left_type = self.get_type_hint_for(left)?;
-        let right_type = self.get_type_hint_for(right)?;
-        let cmp_function_name = crate::typesystem::get_equals_function_name_for(
-            left_type.get_type_information().get_name(),
-            operator,
-        );
-
-        cmp_function_name
-            .map(|name| {
-                crate::ast::create_call_to(
-                    name,
-                    vec![left.clone(), right.clone()],
-                    binary_statement.get_id(),
-                    left.get_id(),
-                    &binary_statement.get_location(),
-                )
-            })
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    format!(
-                        "Invalid operator {} for types {} and {}",
-                        operator,
-                        left_type.get_name(),
-                        right_type.get_name()
-                    )
-                    .as_str(),
-                    binary_statement.get_location(),
-                )
-            })
     }
 
     pub fn generate_store(

@@ -1,6 +1,7 @@
 use crate::{
     ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
+    resolver::AnnotationMap,
     Diagnostic,
 };
 
@@ -9,11 +10,11 @@ use super::{
     validate_for_array_assignment, ValidationContext, Validator, Validators,
 };
 
-pub fn visit_variable_block(
+pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
     pou: Option<&Pou>,
     block: &VariableBlock,
-    context: &ValidationContext,
+    context: &ValidationContext<T>,
 ) {
     validate_variable_block(validator, block);
 
@@ -36,7 +37,11 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
     }
 }
 
-pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
+pub fn visit_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
     validate_variable(validator, variable, context);
 
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
@@ -86,7 +91,11 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     }
 }
 
-fn validate_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
+fn validate_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
     if let Some(v_entry) = context
         .qualifier
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))

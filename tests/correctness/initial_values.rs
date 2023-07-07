@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::*;
+use crate::*;
 #[allow(dead_code)]
 #[repr(C)]
 struct MainType {
