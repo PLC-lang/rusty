@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
+    ast::control_statements::*,
     ast::*,
     lexer::Token,
     parser::tests::{empty_stmt, ref_to},
@@ -368,48 +369,50 @@ fn test_nested_if_with_missing_end_if() {
         ]
     );
 
-    assert_eq!(
-        format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::IfStatement {
-                blocks: vec![ConditionalBlock {
-                    condition: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_bool(false),
-                        location: SourceRange::undefined(),
-                        id: 0
-                    }),
-                    body: vec![
-                        AstStatement::IfStatement {
-                            blocks: vec![ConditionalBlock {
-                                condition: Box::new(AstStatement::Literal {
-                                    kind: AstLiteral::new_bool(true),
-                                    location: SourceRange::undefined(),
-                                    id: 0
-                                }),
-                                body: vec![AstStatement::Assignment {
-                                    left: Box::new(ref_to("x")),
-                                    right: Box::new(ref_to("y")),
-                                    id: 0
-                                }],
-                            }],
-                            else_block: vec![],
-                            location: SourceRange::undefined(),
-                            id: 0,
+    insta::assert_snapshot!(format!("{:#?}", unit.implementations[0].statements), @r###"
+    [
+        IfStatement {
+            blocks: [
+                ConditionalBlock {
+                    condition: LiteralBool {
+                        value: false,
+                    },
+                    body: [
+                        IfStatement {
+                            blocks: [
+                                ConditionalBlock {
+                                    condition: LiteralBool {
+                                        value: true,
+                                    },
+                                    body: [
+                                        Assignment {
+                                            left: Reference {
+                                                name: "x",
+                                            },
+                                            right: Reference {
+                                                name: "y",
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                            else_block: [],
                         },
-                        AstStatement::Assignment {
-                            left: Box::new(ref_to("y")),
-                            right: Box::new(ref_to("x")),
-                            id: 0
-                        }
-                    ]
-                },],
-                else_block: vec![],
-                location: SourceRange::undefined(),
-                id: 0,
-            },]
-        )
-    );
+                        Assignment {
+                            left: Reference {
+                                name: "y",
+                            },
+                            right: Reference {
+                                name: "x",
+                            },
+                        },
+                    ],
+                },
+            ],
+            else_block: [],
+        },
+    ]
+    "###);
 }
 
 #[test]

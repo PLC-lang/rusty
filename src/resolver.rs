@@ -19,7 +19,7 @@ use crate::{
     ast::{
         self, create_not_expression, create_or_expression, flatten_expression_list, Array, AstId, AstLiteral,
         AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue, TypeNature,
-        UserTypeDeclaration, Variable,
+        UserTypeDeclaration, Variable, control_statements::AstControlStatement,
     },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -990,12 +990,12 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::IfStatement(stmt), .. } => {
+                stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|e| self.visit_statement(ctx, e));
+                stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
             }
             AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
                 visit_all_statements!(self, ctx, counter, start, end);

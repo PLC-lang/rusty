@@ -1,5 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::Diagnostic;
+use crate::{
+    ast::control_statements::{AstControlStatement, IfStatement},
+    Diagnostic,
+};
 use core::panic;
 use std::ops::Range;
 
@@ -296,7 +299,10 @@ fn ids_are_assigned_to_if_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        AstStatement::IfStatement { blocks, else_block, .. } => {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::IfStatement(IfStatement { blocks, else_block, .. }),
+            ..
+        } => {
             assert_eq!(blocks[0].condition.get_id(), 1);
             assert_eq!(blocks[0].body[0].get_id(), 2);
             assert_eq!(else_block[0].get_id(), 3);
@@ -497,8 +503,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        AstStatement::IfStatement { blocks: vec![], else_block: vec![], location: (1..5).into(), id: 7 }
-            .get_id(),
+        AstControlStatement::if_statement(Vec::new(), Vec::new(), SourceRange::undefined(), 7).get_id(),
         7
     );
     assert_eq!(AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_id(), 7);
@@ -629,8 +634,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::IfStatement { blocks: vec![], else_block: vec![], location: (1..5).into(), id: 7 }
-            .get_location(),
+        AstControlStatement::if_statement(Vec::new(), Vec::new(), (1..5).into(), 7).get_location(),
         (1..5).into()
     );
     assert_eq!(

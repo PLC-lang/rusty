@@ -99,13 +99,10 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::CallStatement { operator, parameters, .. } => {
             validate_call(validator, operator, parameters, &context.set_is_call());
         }
-        AstStatement::IfStatement { blocks, else_block, .. } => {
-            blocks.iter().for_each(|b| {
-                visit_statement(validator, b.condition.as_ref(), context);
-                b.body.iter().for_each(|s| visit_statement(validator, s, context));
-            });
-            else_block.iter().for_each(|e| visit_statement(validator, e, context));
+        AstStatement::ControlStatement { kind, .. } => {
+            validate_control_statement(validator, kind, context)
         }
+
         AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
             visit_all_statements!(validator, context, counter, start, end);
             if let Some(by_step) = by_step {
@@ -140,6 +137,22 @@ pub fn visit_statement<T: AnnotationMap>(
         _ => {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+fn validate_control_statement<T: AnnotationMap>(
+    validator: &mut Validator,
+    control_statement: &ast::control_statements::AstControlStatement,
+    context: &ValidationContext<T>,
+) {
+    match control_statement {
+        ast::control_statements::AstControlStatement::IfStatement(stmt) => {
+            stmt.blocks.iter().for_each(|b| {
+                visit_statement(validator, b.condition.as_ref(), context);
+                b.body.iter().for_each(|s| visit_statement(validator, s, context));
+            });
+            stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
+        }
+    }
 }
 
 /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)

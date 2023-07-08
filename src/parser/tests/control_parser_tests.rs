@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::AstStatement;
+use crate::ast::control_statements::{AstControlStatement, IfStatement};
 use crate::test_utils::tests::parse;
 use pretty_assertions::*;
 
@@ -838,7 +839,7 @@ fn if_stmnt_location_test() {
     END_IF"
     );
 
-    if let AstStatement::IfStatement { blocks, .. } = &unit.statements[0] {
+    if let AstStatement::ControlStatement{kind: AstControlStatement::IfStatement(IfStatement { blocks, .. }), ..} = &unit.statements[0] {
         let if_location = blocks[0].condition.as_ref().get_location();
         assert_eq!(source[if_location.get_start()..if_location.get_end()].to_string(), "a > 4");
 

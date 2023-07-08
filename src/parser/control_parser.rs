@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::*,
+    ast::{control_statements::IfStatement, *},
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
@@ -72,12 +72,12 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let end = lexer.last_range.end;
 
-    AstStatement::IfStatement {
-        blocks: conditional_blocks,
+    control_statements::AstControlStatement::if_statement(
+        conditional_blocks,
         else_block,
-        location: lexer.source_range_factory.create_range(start..end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {

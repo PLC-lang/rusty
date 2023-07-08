@@ -16,6 +16,9 @@ use std::{
     unimplemented, vec,
 };
 
+use self::control_statements::{AstControlStatement, IfStatement};
+
+pub mod control_statements;
 pub mod literals;
 mod pre_processor;
 
@@ -842,9 +845,8 @@ pub enum AstStatement {
         id: AstId,
     },
     // Control Statements
-    IfStatement {
-        blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
+    ControlStatement {
+        kind: AstControlStatement,
         location: SourceRange,
         id: AstId,
     },
@@ -931,7 +933,10 @@ impl Debug for AstStatement {
                 .field("operator", operator)
                 .field("parameters", parameters)
                 .finish(),
-            AstStatement::IfStatement { blocks, else_block, .. } => {
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::IfStatement(IfStatement { blocks, else_block, .. }),
+                ..
+            } => {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
             }
             AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => f
@@ -1040,7 +1045,7 @@ impl AstStatement {
                 left_loc.span(&right_loc)
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
-            AstStatement::IfStatement { location, .. } => location.clone(),
+            AstStatement::ControlStatement { location, .. } => location.clone(),
             AstStatement::ForLoopStatement { location, .. } => location.clone(),
             AstStatement::WhileLoopStatement { location, .. } => location.clone(),
             AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
@@ -1082,7 +1087,7 @@ impl AstStatement {
             AstStatement::Assignment { id, .. } => *id,
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
-            AstStatement::IfStatement { id, .. } => *id,
+            AstStatement::ControlStatement { id, .. } => *id,
             AstStatement::ForLoopStatement { id, .. } => *id,
             AstStatement::WhileLoopStatement { id, .. } => *id,
             AstStatement::RepeatLoopStatement { id, .. } => *id,

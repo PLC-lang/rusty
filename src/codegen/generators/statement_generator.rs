@@ -5,7 +5,10 @@ use super::{
     pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
+    ast::{
+        control_statements::AstControlStatement, flatten_expression_list, AstStatement, ConditionalBlock,
+        NewLines, Operator, SourceRange,
+    },
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
@@ -127,8 +130,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::WhileLoopStatement { condition, body, .. } => {
                 self.generate_while_statement(condition, body)?;
             }
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                self.generate_if_statement(blocks, else_block)?;
+            AstStatement::ControlStatement{kind: ctl_statement, ..} => {
+                self.generate_control_statement(ctl_statement)?
             }
             AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
@@ -166,6 +169,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
         }
         Ok(())
+    }
+
+    /// genertes a single statement
+    ///
+    /// - `statement` the control statement to be generated
+    pub fn generate_control_statement(&self, statement: &AstControlStatement) -> Result<(), Diagnostic> {
+        match statement {
+            AstControlStatement::IfStatement(ifstmt) => {
+                self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block)
+            }
+        }
     }
 
     /// generates an assignment statement _left_ := _right_
