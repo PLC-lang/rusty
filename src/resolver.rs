@@ -17,9 +17,9 @@ pub mod generics;
 
 use crate::{
     ast::{
-        self, create_not_expression, create_or_expression, flatten_expression_list, Array, AstId, AstLiteral,
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue, TypeNature,
-        UserTypeDeclaration, Variable, control_statements::AstControlStatement,
+        self, control_statements::AstControlStatement, flatten_expression_list, Array, AstFactory, AstId,
+        AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue,
+        TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -194,17 +194,17 @@ impl TypeAnnotator<'_> {
         let mut ctx = ctx.clone();
         let call_statement = match operator {
             // a <> b expression is handled as Not(Equal(a,b))
-            Operator::NotEqual => create_not_expression(
+            Operator::NotEqual => AstFactory::create_not_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 statement.get_location(),
             ),
             // a <= b expression is handled as a = b OR a < b
-            Operator::LessOrEqual => create_or_expression(
+            Operator::LessOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Less, left, right, statement),
             ),
             // a >= b expression is handled as a = b OR a > b
-            Operator::GreaterOrEqual => create_or_expression(
+            Operator::GreaterOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(
                     &mut ctx,
@@ -243,7 +243,7 @@ impl TypeAnnotator<'_> {
 
         cmp_function_name
             .map(|name| {
-                crate::ast::create_call_to(
+                AstFactory::create_call_to(
                     name,
                     vec![left.clone(), right.clone()],
                     ctx.id_provider.next_id(),
@@ -700,7 +700,7 @@ impl<'i> TypeAnnotator<'i> {
                     .index
                     .find_range_check_implementation_for(expected_type.get_type_information())
                     .map(|f| {
-                        crate::ast::create_call_to_check_function_ast(
+                        AstFactory::create_call_to_check_function_ast(
                             f.get_call_name().to_string(),
                             right_side.clone(),
                             sub_range.clone(),

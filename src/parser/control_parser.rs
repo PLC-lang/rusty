@@ -1,9 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        control_statements::{AstControlStatement, ConditionalBlock},
-        *,
-    },
+    ast::{control_statements::ConditionalBlock, *},
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
@@ -75,7 +72,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let end = lexer.last_range.end;
 
-    control_statements::AstControlStatement::new_if_statement(
+    AstFactory::new_if_statement(
         conditional_blocks,
         else_block,
         lexer.source_range_factory.create_range(start..end),
@@ -113,7 +110,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
 
     lexer.consume_or_report(KeywordDo); // DO
 
-    AstControlStatement::new_for_loop(
+    AstFactory::new_for_loop(
         counter_expression,
         start_expression,
         end_expression,
@@ -131,7 +128,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     let condition = parse_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
-    AstControlStatement::new_while_statement(
+    AstFactory::new_while_statement(
         condition,
         parse_body_in_region(lexer, vec![KeywordEndWhile]),
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
@@ -150,7 +147,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
         AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     };
 
-    AstControlStatement::new_repeat_statement(
+    AstFactory::new_repeat_statement(
         condition,
         body,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
@@ -214,7 +211,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     };
 
     let end = lexer.last_range.end;
-    AstControlStatement::new_case_statement(
+    AstFactory::new_case_statement(
         selector,
         case_blocks,
         else_block,

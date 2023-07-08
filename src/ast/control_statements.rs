@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Formatter, Result};
 
-use super::{AstId, AstStatement, SourceRange};
+use super::AstStatement;
 
 #[derive(Clone, PartialEq)]
 pub struct IfStatement {
@@ -52,86 +52,5 @@ impl Debug for ConditionalBlock {
             .field("condition", &self.condition)
             .field("body", &self.body)
             .finish()
-    }
-}
-
-impl AstControlStatement {
-    pub fn new_if_statement(
-        blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::If(IfStatement { blocks, else_block }),
-            location,
-            id,
-        }
-    }
-
-    pub fn new_for_loop(
-        counter: AstStatement,
-        start: AstStatement,
-        end: AstStatement,
-        by_step: Option<AstStatement>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::ForLoop(ForLoopStatement {
-                counter: Box::new(counter),
-                start: Box::new(start),
-                end: Box::new(end),
-                by_step: by_step.map(Box::new),
-                body,
-            }),
-            location,
-            id,
-        }
-    }
-
-    pub fn new_while_statement(
-        condition: AstStatement,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::WhileLoop(LoopStatement { condition: Box::new(condition), body }),
-            id,
-            location,
-        }
-    }
-
-    pub fn new_repeat_statement(
-        condition: AstStatement,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
-            id,
-            location,
-        }
-    }
-
-    pub fn new_case_statement(
-        selector: AstStatement,
-        case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::Case(CaseStatement {
-                selector: Box::new(selector),
-                case_blocks,
-                else_block,
-            }),
-            id,
-            location,
-        }
     }
 }

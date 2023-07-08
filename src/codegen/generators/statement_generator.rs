@@ -7,7 +7,7 @@ use super::{
 use crate::{
     ast::{
         control_statements::{AstControlStatement, ConditionalBlock},
-        flatten_expression_list, AstStatement, NewLines, Operator, SourceRange,
+        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange,
     },
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
@@ -626,7 +626,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         // for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        let condition = crate::ast::create_not_expression(condition.clone(), condition.get_location());
+        let condition = AstFactory::create_not_expression(condition.clone(), condition.get_location());
         let (_, while_block) = self.generate_base_while_statement(&condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
