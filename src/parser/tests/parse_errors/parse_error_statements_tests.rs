@@ -456,57 +456,56 @@ fn test_nested_for_with_missing_end_for() {
         ]
     );
 
-    assert_eq!(
+    insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::ForLoopStatement {
-                counter: Box::new(ref_to("x")),
-                start: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
-                    id: 0
-                }),
-                end: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(2),
-                    location: SourceRange::undefined(),
-                    id: 0
-                }),
-                by_step: None,
-                body: vec![
-                    AstStatement::ForLoopStatement {
-                        counter: Box::new(ref_to("x")),
-                        start: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::new_integer(1),
-                            location: SourceRange::undefined(),
-                            id: 0
-                        }),
-                        end: Box::new(AstStatement::Literal {
-                            kind: AstLiteral::new_integer(2),
-                            location: SourceRange::undefined(),
-                            id: 0
-                        }),
-
-                        by_step: None,
-                        body: vec![AstStatement::Assignment {
-                            left: Box::new(ref_to("y")),
-                            right: Box::new(ref_to("x")),
-                            id: 0
-                        },],
-                        location: SourceRange::undefined(),
-                        id: 0
+        @r###"
+    [
+        ForLoopStatement {
+            counter: Reference {
+                name: "x",
+            },
+            start: LiteralInteger {
+                value: 1,
+            },
+            end: LiteralInteger {
+                value: 2,
+            },
+            by_step: None,
+            body: [
+                ForLoopStatement {
+                    counter: Reference {
+                        name: "x",
                     },
-                    AstStatement::Assignment {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(ref_to("y")),
-                        id: 0
-                    }
-                ],
-                location: SourceRange::undefined(),
-                id: 0
-            },]
-        )
-    );
+                    start: LiteralInteger {
+                        value: 1,
+                    },
+                    end: LiteralInteger {
+                        value: 2,
+                    },
+                    by_step: None,
+                    body: [
+                        Assignment {
+                            left: Reference {
+                                name: "y",
+                            },
+                            right: Reference {
+                                name: "x",
+                            },
+                        },
+                    ],
+                },
+                Assignment {
+                    left: Reference {
+                        name: "x",
+                    },
+                    right: Reference {
+                        name: "y",
+                    },
+                },
+            ],
+        },
+    ]
+    "###);
 }
 
 #[test]

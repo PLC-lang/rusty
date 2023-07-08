@@ -997,23 +997,23 @@ impl<'i> TypeAnnotator<'i> {
                 });
                 stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
-                visit_all_statements!(self, ctx, counter, start, end);
-                if let Some(by_step) = by_step {
+            AstStatement::ControlStatement { kind: AstControlStatement::ForLoop(stmt), .. } => {
+                visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
+                if let Some(by_step) = &stmt.by_step {
                     self.visit_statement(ctx, by_step);
                 }
                 //Hint annotate start, end and step with the counter's real type
                 if let Some(type_name) =
-                    self.annotation_map.get_type(counter, self.index).map(typesystem::DataType::get_name)
+                    self.annotation_map.get_type(&stmt.counter, self.index).map(typesystem::DataType::get_name)
                 {
                     let annotation = StatementAnnotation::value(type_name);
-                    self.annotation_map.annotate_type_hint(start, annotation.clone());
-                    self.annotation_map.annotate_type_hint(end, annotation.clone());
-                    if let Some(by_step) = by_step {
+                    self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
+                    self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
+                    if let Some(by_step) = &stmt.by_step {
                         self.annotation_map.annotate_type_hint(by_step, annotation);
                     }
                 }
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
             AstStatement::WhileLoopStatement { condition, body, .. } => {
                 self.visit_statement(ctx, condition);

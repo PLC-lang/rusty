@@ -121,9 +121,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment { left, right, .. } => {
                 self.generate_assignment_statement(left, right)?;
             }
-            AstStatement::ForLoopStatement { start, end, counter, body, by_step, .. } => {
-                self.generate_for_statement(counter, start, end, by_step, body)?;
-            }
             AstStatement::RepeatLoopStatement { condition, body, .. } => {
                 self.generate_repeat_statement(condition, body)?;
             }
@@ -179,6 +176,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstControlStatement::IfStatement(ifstmt) => {
                 self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block)
             }
+            AstControlStatement::ForLoop(for_stmt) => 
+            self.generate_for_statement(&for_stmt.counter, &for_stmt.start, &for_stmt.end, &for_stmt.by_step, &for_stmt.body),
         }
     }
 

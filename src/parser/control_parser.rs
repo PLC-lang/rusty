@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{control_statements::IfStatement, *},
+    ast::{
+        control_statements::{AstControlStatement},
+        *,
+    },
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
@@ -103,22 +106,22 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let step = if lexer.token == KeywordBy {
         lexer.advance(); // BY
-        Some(Box::new(parse_expression(lexer)))
+        Some(parse_expression(lexer))
     } else {
         None
     };
 
     lexer.consume_or_report(KeywordDo); // DO
 
-    AstStatement::ForLoopStatement {
-        counter: Box::new(counter_expression),
-        start: Box::new(start_expression),
-        end: Box::new(end_expression),
-        by_step: step,
-        body: parse_body_in_region(lexer, vec![KeywordEndFor]),
-        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        id: lexer.next_id(),
-    }
+    AstControlStatement::for_loop(
+        counter_expression,
+        start_expression,
+        end_expression,
+        step,
+        parse_body_in_region(lexer, vec![KeywordEndFor]),
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {

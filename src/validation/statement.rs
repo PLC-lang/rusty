@@ -102,14 +102,6 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::ControlStatement { kind, .. } => {
             validate_control_statement(validator, kind, context)
         }
-
-        AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
-            visit_all_statements!(validator, context, counter, start, end);
-            if let Some(by_step) = by_step {
-                visit_statement(validator, by_step, context);
-            }
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
         AstStatement::WhileLoopStatement { condition, body, .. } => {
             visit_statement(validator, condition, context);
             body.iter().for_each(|s| visit_statement(validator, s, context));
@@ -151,6 +143,13 @@ fn validate_control_statement<T: AnnotationMap>(
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
             });
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
+        }
+        ast::control_statements::AstControlStatement::ForLoop(stmt) => {
+            visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
+            if let Some(by_step) = &stmt.by_step {
+                visit_statement(validator, by_step, context);
+            }
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
     }
 }

@@ -5,7 +5,7 @@ use crate::{
     typesystem::{
         DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
         USINT_TYPE, VOID_TYPE,
-    },
+    }, ast::control_statements::ForLoopStatement,
 };
 pub use literals::*;
 use serde::{Deserialize, Serialize};
@@ -850,15 +850,7 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
-    ForLoopStatement {
-        counter: Box<AstStatement>,
-        start: Box<AstStatement>,
-        end: Box<AstStatement>,
-        by_step: Option<Box<AstStatement>>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
+    
     WhileLoopStatement {
         condition: Box<AstStatement>,
         body: Vec<AstStatement>,
@@ -939,7 +931,8 @@ impl Debug for AstStatement {
             } => {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }), ..} => f
                 .debug_struct("ForLoopStatement")
                 .field("counter", counter)
                 .field("start", start)
@@ -1046,7 +1039,6 @@ impl AstStatement {
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::ControlStatement { location, .. } => location.clone(),
-            AstStatement::ForLoopStatement { location, .. } => location.clone(),
             AstStatement::WhileLoopStatement { location, .. } => location.clone(),
             AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
             AstStatement::CaseStatement { location, .. } => location.clone(),
@@ -1088,7 +1080,6 @@ impl AstStatement {
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
             AstStatement::ControlStatement { id, .. } => *id,
-            AstStatement::ForLoopStatement { id, .. } => *id,
             AstStatement::WhileLoopStatement { id, .. } => *id,
             AstStatement::RepeatLoopStatement { id, .. } => *id,
             AstStatement::CaseStatement { id, .. } => *id,

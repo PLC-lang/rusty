@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::control_statements::{AstControlStatement, IfStatement},
+    ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
     Diagnostic,
 };
 use core::panic;
@@ -327,7 +327,11 @@ fn ids_are_assigned_to_for_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        AstStatement::ForLoopStatement { counter, start, end, by_step, id, body, .. } => {
+        AstStatement::ControlStatement {
+            id,
+            kind: AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
+            ..
+        } => {
             assert_eq!(counter.get_id(), 1);
             assert_eq!(start.get_id(), 2);
             assert_eq!(end.get_id(), 3);
@@ -490,15 +494,15 @@ fn id_implementation_for_all_statements() {
     assert_eq!(AstStatement::EmptyStatement { location: (1..5).into(), id: 7 }.get_id(), 7);
     assert_eq!(AstStatement::ExpressionList { expressions: vec![], id: 7 }.get_id(), 7);
     assert_eq!(
-        AstStatement::ForLoopStatement {
-            body: vec![],
-            by_step: None,
-            counter: Box::new(empty_stmt()),
-            end: Box::new(empty_stmt()),
-            start: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
+        AstControlStatement::for_loop(
+            empty_stmt(),
+            empty_stmt(),
+            empty_stmt(),
+            None,
+            vec![],
+            (1..5).into(),
+            7
+        )
         .get_id(),
         7
     );
@@ -621,15 +625,15 @@ fn location_implementation_for_all_statements() {
         (0..8).into()
     );
     assert_eq!(
-        AstStatement::ForLoopStatement {
-            body: vec![],
-            by_step: None,
-            counter: Box::new(empty_stmt()),
-            end: Box::new(empty_stmt()),
-            start: Box::new(empty_stmt()),
-            location: (1..5).into(),
-            id: 7
-        }
+        AstControlStatement::for_loop(
+            empty_stmt(),
+            empty_stmt(),
+            empty_stmt(),
+            None,
+            vec![],
+            (1..5).into(),
+            7
+        )
         .get_location(),
         (1..5).into()
     );
