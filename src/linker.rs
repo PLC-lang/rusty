@@ -45,8 +45,6 @@ impl Linker {
                             return Err(LinkerError::Target(target_os.into()))
                         }
 
-                        (_, "darwin") => Box::new(CcLinker::new("clang")),
-
                         _ => Box::new(LdLinker::new()),
                     }
                 }
@@ -155,7 +153,7 @@ impl LinkerInterface for CcLinker {
     }
 
     fn build_relocatable(&mut self, path: &str) {
-        self.args.push("-r".into()); // --relocatable
+        self.args.push("-relocatable".into());
         self.args.push("-o".into());
         self.args.push(path.into());
     }
@@ -214,7 +212,7 @@ impl LinkerInterface for LdLinker {
     }
 
     fn build_relocatable(&mut self, path: &str) {
-        self.args.push("-r".into()); // --relocatable
+        self.args.push("-relocatable".into());
         self.args.push("-o".into());
         self.args.push(path.into());
     }
