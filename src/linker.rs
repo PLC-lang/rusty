@@ -162,7 +162,7 @@ impl LinkerInterface for CcLinker {
         let linker_location = which(&self.linker)
             .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
 
-        debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
+        log::debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
 
         let status = Command::new(linker_location).args(&self.args).status()?;
         if status.success() {
@@ -218,9 +218,7 @@ impl LinkerInterface for LdLinker {
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        #[cfg(feature = "debug")]
-        println!("Linker arguments : {}", self.args.join(" "));
-
+        log::debug!("Linker arguments : {}", self.args.join(" "));
         lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
     }
 }
