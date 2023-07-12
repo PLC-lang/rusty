@@ -1165,17 +1165,6 @@ E.g. a floating-point number consists of the token-sequence: <em>number</em>, <e
 <p>The lexer is implemented in the <code>lexer</code>-module.
 It uses the <a href="https://github.com/maciejhirsz/logos">logos</a> crate to create a lexer that is able to identify all different terminal-symbols.
 Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so RuSTy's lexer identifies a quite large number of different tokens.</p>
-<h3 id="discussion-rusty-lexer"><a class="header" href="#discussion-rusty-lexer">Discussion: RuSTy-Lexer</a></h3>
-<p>The logos crate uses <a href="https://doc.rust-lang.org/reference/procedural-macros.html">procedural macros</a> to generate the code required to  lex the source-string.
-The number of tokens identified by the RuSTy-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (<em>macro invocation exceeds token limit...</em>).</p>
-<p>The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.</p>
-<p>Following strategies increase the number of tokens and should be reconsidered:</p>
-<ul>
-<li>case insensitivity</li>
-<li>optional underscores in keywords (e.g. <code>END_IF</code> == <code>ENDIF</code>)</li>
-<li>unrolled tokens instead of grouping tokens (e.g. <code>KEYWORD_TRUE</code> &amp; <code>KEYWORD_FALSE</code> instead of <code>KEYWORD_BOOL</code>)</li>
-<li>etc.</li>
-</ul>
 <h2 id="parser-1"><a class="header" href="#parser-1">Parser</a></h2>
 <p>The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way.
 The parser is implemented in the <code>parser</code> module whereas the model for the AST is implemented in the <code>ast</code> module.</p>
