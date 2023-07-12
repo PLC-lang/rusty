@@ -4,7 +4,6 @@
 use which::which;
 
 use crate::diagnostics::Diagnostic;
-use log::debug;
 use std::{
     error::Error,
     path::{Path, PathBuf},
