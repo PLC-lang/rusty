@@ -1,5 +1,9 @@
 use anyhow::Result;
-use std::{path::Path, time::Duration};
+use plc::{ast::SourceRangeFactory, lexer::IdProvider};
+use std::{
+    path::Path,
+    time::{Duration, Instant},
+};
 use xshell::{cmd, Shell};
 
 use self::{compile::Compile, run::Run};
@@ -75,5 +79,6 @@ pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<
         };
         tasks.push(Box::new(task));
     }
+
     Ok(tasks)
 }
