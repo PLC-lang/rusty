@@ -13,10 +13,10 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rusty"
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rusty",
+                    "name": "plc",
                     "kind": "lib"
                 }
             },
@@ -30,11 +30,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
+                    "--bin=plc",
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rustyc",
+                    "name": "plc",
                     "kind": "bin"
                 }
             },
@@ -52,11 +52,11 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rustyc",
-                    "--package=rusty"
+                    "--bin=plc",
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rustyc",
+                    "name": "plc",
                     "kind": "bin"
                 }
             },
@@ -72,7 +72,7 @@
                     "test",
                     "--no-run",
                     "--test=tests",
-                    "--package=rusty"
+                    "--package=plc_driver"
                 ],
                 "filter": {
                     "name": "tests",
@@ -89,11 +89,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
+                    "--bin=plc",
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rustyc",
+                    "name": "plc",
                     "kind": "bin"
                 }
             },
@@ -111,10 +111,10 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rusty"
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rusty",
+                    "name": "plc",
                     "kind": "lib"
                 }
             },
