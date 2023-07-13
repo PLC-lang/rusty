@@ -12,11 +12,11 @@ use super::Task;
 pub struct Lexer;
 impl Task for Lexer {
     fn get_name(&self) -> String {
-        "lexer".to_string()
+        "lexer/combined.st".to_string()
     }
 
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
-        let content = std::fs::read_to_string("./xtask/res/lexer.st").unwrap();
+        let content = std::fs::read_to_string("./xtask/res/combined.st").unwrap();
         let mut lexer = lexer::lex_with_ids(&content, IdProvider::default(), SourceRangeFactory::internal());
 
         let now = Instant::now();
