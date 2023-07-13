@@ -5,7 +5,7 @@ use plc::{
     lexer::{self, IdProvider},
 };
 
-use crate::reporter::TimeFormat;
+use crate::reporter::DurationFormat;
 
 use super::Task;
 
@@ -30,7 +30,7 @@ impl Task for Lexer {
         Ok(elapsed)
     }
 
-    fn get_time_format(&self) -> crate::reporter::TimeFormat {
-        TimeFormat::Micros
+    fn get_time_format(&self) -> crate::reporter::DurationFormat {
+        DurationFormat::Micros
     }
 }

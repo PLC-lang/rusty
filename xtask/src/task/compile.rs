@@ -3,7 +3,7 @@ use std::time::Instant;
 use std::{path::PathBuf, time::Duration};
 use xshell::Shell;
 
-use crate::reporter::TimeFormat;
+use crate::reporter::DurationFormat;
 use crate::task::Task;
 
 pub(crate) struct Compile {
@@ -29,7 +29,7 @@ impl Task for Compile {
         Ok(start.elapsed())
     }
 
-    fn get_time_format(&self) -> crate::reporter::TimeFormat {
-        TimeFormat::Micros
+    fn get_time_format(&self) -> crate::reporter::DurationFormat {
+        DurationFormat::Micros
     }
 }

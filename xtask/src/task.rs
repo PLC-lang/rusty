@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::{path::Path, time::Duration};
 use xshell::{cmd, Shell};
 
-use crate::{reporter::TimeFormat, task::lexer::Lexer};
+use crate::{reporter::DurationFormat, task::lexer::Lexer};
 
 use self::{compile::Compile, run::Run};
 
@@ -23,7 +23,7 @@ pub(crate) trait Task {
     /// Executes the task to be measured and returns the time it took
     fn execute(&self) -> Result<Duration>;
 
-    fn get_time_format(&self) -> TimeFormat;
+    fn get_time_format(&self) -> DurationFormat;
 
     /// Benchmarks the current task and returns the avarage execution time
     fn benchmark(&mut self, executions: u32) -> Result<Duration> {

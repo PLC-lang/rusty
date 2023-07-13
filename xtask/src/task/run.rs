@@ -3,7 +3,7 @@ use std::time::Instant;
 use std::path::PathBuf;
 use xshell::Shell;
 
-use crate::reporter::TimeFormat;
+use crate::reporter::DurationFormat;
 use crate::task::Task;
 use xshell::cmd;
 
@@ -50,7 +50,7 @@ impl Task for Run {
         Ok(())
     }
 
-    fn get_time_format(&self) -> crate::reporter::TimeFormat {
-        TimeFormat::Millis
+    fn get_time_format(&self) -> crate::reporter::DurationFormat {
+        DurationFormat::Millis
     }
 }
