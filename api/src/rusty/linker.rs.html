@@ -253,16 +253,12 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
 </span><span class="kw">use </span>which::which;
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
-<span class="kw">use </span>log::debug;
 <span class="kw">use </span>std::{
     error::Error,
     path::{Path, PathBuf},
@@ -382,7 +378,7 @@
         <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
             .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">&quot;{e} for linker: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Linker command : {} {}&quot;</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Linker command : {} {}&quot;</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
 
         <span class="kw">let </span>status = Command::new(linker_location).args(<span class="kw-2">&amp;</span><span class="self">self</span>.args).status()<span class="question-mark">?</span>;
         <span class="kw">if </span>status.success() {
@@ -409,9 +405,7 @@
     }
 
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
-        </span><span class="macro">println!</span>(<span class="string">&quot;Linker arguments : {}&quot;</span>, <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
-
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Linker arguments : {}&quot;</span>, <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>));
         lld_rs::link(lld_rs::LldFlavor::Elf, <span class="kw-2">&amp;</span><span class="self">self</span>.args).ok().map_err(LinkerError::Link)
     }
 }

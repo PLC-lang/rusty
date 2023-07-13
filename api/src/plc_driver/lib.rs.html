@@ -253,7 +253,6 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -273,7 +272,6 @@
 
 <span class="kw">use </span>cli::CompileParameters;
 <span class="kw">use </span>diagnostics::{Diagnostic, Diagnostician};
-<span class="kw">use </span>log::{debug, info};
 <span class="kw">use </span>plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 <span class="kw">use </span>project::project::{LibraryInformation, Project};
 <span class="kw">use </span>rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -334,17 +332,17 @@
     <span class="kw">let </span>output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     <span class="kw">let </span>location = project.get_location().map(|it| it.to_path_buf());
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>location {
-        <span class="macro">debug!</span>(<span class="string">&quot;PROJECT_ROOT={}&quot;</span>, location.to_string_lossy());
+        <span class="macro">log::debug!</span>(<span class="string">&quot;PROJECT_ROOT={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;PROJECT_ROOT&quot;</span>, location);
     }
     <span class="kw">let </span>build_location = compile_parameters.get_build_location();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>build_location {
-        <span class="macro">debug!</span>(<span class="string">&quot;BUILD_LOCATION={}&quot;</span>, location.to_string_lossy());
+        <span class="macro">log::debug!</span>(<span class="string">&quot;BUILD_LOCATION={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;BUILD_LOCATION&quot;</span>, location);
     }
     <span class="kw">let </span>lib_location = compile_parameters.get_lib_location();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>lib_location {
-        <span class="macro">debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
+        <span class="macro">log::debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;LIB_LOCATION&quot;</span>, location);
     }
     <span class="kw">let </span>id_provider = IdProvider::default();
@@ -357,7 +355,7 @@
     <span class="comment">//Set the global thread count
     </span><span class="kw">let </span>thread_pool = rayon::ThreadPoolBuilder::new();
     <span class="kw">let </span>global_pool = <span class="kw">if let </span><span class="prelude-val">Some</span>(Threads::Fix(threads)) = compile_parameters.threads {
-        <span class="macro">info!</span>(<span class="string">&quot;Using {threads} parallel threads&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Using {threads} parallel threads&quot;</span>);
         thread_pool.num_threads(threads)
     } <span class="kw">else </span>{
         thread_pool
@@ -365,7 +363,7 @@
     .build_global();
     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = global_pool {
         <span class="comment">// Ignore the error here as the global threadpool might have been initialized
-        </span><span class="macro">info!</span>(<span class="string">&quot;{err}&quot;</span>)
+        </span><span class="macro">log::info!</span>(<span class="string">&quot;{err}&quot;</span>)
     }
 
     <span class="comment">// 1 : Parse
@@ -416,7 +414,7 @@
         debug_level: compile_parameters.debug_level(),
     };
     <span class="kw">let </span>res = <span class="kw">if </span>compile_parameters.single_module {
-        <span class="macro">info!</span>(<span class="string">&quot;Using single module mode&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Using single module mode&quot;</span>);
         annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>compile_parameters.target)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
         annotated_project.codegen(compile_options, <span class="kw-2">&amp;</span>compile_parameters.target)<span class="question-mark">?
