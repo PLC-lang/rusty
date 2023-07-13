@@ -74,11 +74,19 @@ impl Host {
     }
 }
 
+pub enum TimeFormat {
+    Millis,
+    Micros,
+}
+
 impl BenchmarkReport {
-    pub fn new(data: Vec<(String, Duration)>) -> Result<Self> {
+    pub fn new(data: Vec<(String, Duration, TimeFormat)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
-        for (name, duration) in data {
-            metrics.insert(name, duration.as_millis() as u64);
+        for (name, duration, format) in data {
+            match format {
+                TimeFormat::Millis => metrics.insert(name, duration.as_millis() as u64),
+                TimeFormat::Micros => metrics.insert(name, duration.as_micros() as u64),
+            };
         }
         let sh = Shell::new()?;
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;

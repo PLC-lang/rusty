@@ -6,9 +6,12 @@ use std::{
 };
 use xshell::{cmd, Shell};
 
+use crate::{reporter::TimeFormat, task::lexer::Lexer};
+
 use self::{compile::Compile, run::Run};
 
 pub(crate) mod compile;
+pub(crate) mod lexer;
 pub(crate) mod run;
 
 pub(crate) trait Task {
@@ -21,6 +24,8 @@ pub(crate) trait Task {
     }
     /// Executes the task to be measured and returns the time it took
     fn execute(&self) -> Result<Duration>;
+
+    fn get_time_format(&self) -> TimeFormat;
 
     /// Benchmarks the current task and returns the avarage execution time
     fn benchmark(&mut self, executions: u32) -> Result<Duration> {
@@ -37,48 +42,49 @@ pub(crate) trait Task {
 }
 
 pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<Box<dyn Task>>> {
-    //Clone the extra required code
-    println!("Clone Oscat into the benchmarks");
-    let sh = Shell::new()?;
-    cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 {work_dir}/oscat").run()?;
+    // //Clone the extra required code
+    // println!("Clone Oscat into the benchmarks");
+    // let sh = Shell::new()?;
+    // cmd!(&sh, "git clone https://github.com/plc-lang/oscat --depth 1 {work_dir}/oscat").run()?;
     let mut tasks: Vec<Box<dyn Task>> = vec![];
-    //Create a default benchmark run
-    //This includes oscat in 4 different opt
-    for opt in &["none", "less", "default", "aggressive"] {
-        let task = Compile {
-            name: "oscat".into(),
-            compiler: compiler.into(),
-            directory: work_dir.join("oscat"),
-            optimization: opt.to_string(),
-        };
-        tasks.push(Box::new(task));
-    }
+    // //Create a default benchmark run
+    // //This includes oscat in 4 different opt
+    // for opt in &["none", "less", "default", "aggressive"] {
+    //     let task = Compile {
+    //         name: "oscat".into(),
+    //         compiler: compiler.into(),
+    //         directory: work_dir.join("oscat"),
+    //         optimization: opt.to_string(),
+    //     };
+    //     tasks.push(Box::new(task));
+    // }
 
-    // This includes the sieve of eratosthenes in
-    // C
-    for opt in ["0", "1", "2", "3"] {
-        let task = Run {
-            name: "sieve-c".into(),
-            optimization: opt.to_string(),
-            compiler: "cc".into(),
-            location: "xtask/res/sieve.c".into(),
-            parameters: None,
-            work_dir: work_dir.into(),
-        };
-        tasks.push(Box::new(task));
-    }
-    // and ST
-    for opt in ["none", "less", "default", "aggressive"] {
-        let task = Run {
-            name: "sieve-st".into(),
-            optimization: opt.to_string(),
-            compiler: compiler.into(),
-            location: "xtask/res/sieve.st".into(),
-            parameters: Some("--linker=cc".into()),
-            work_dir: work_dir.into(),
-        };
-        tasks.push(Box::new(task));
-    }
+    // // This includes the sieve of eratosthenes in
+    // // C
+    // for opt in ["0", "1", "2", "3"] {
+    //     let task = Run {
+    //         name: "sieve-c".into(),
+    //         optimization: opt.to_string(),
+    //         compiler: "cc".into(),
+    //         location: "xtask/res/sieve.c".into(),
+    //         parameters: None,
+    //         work_dir: work_dir.into(),
+    //     };
+    //     tasks.push(Box::new(task));
+    // }
+    // // and ST
+    // for opt in ["none", "less", "default", "aggressive"] {
+    //     let task = Run {
+    //         name: "sieve-st".into(),
+    //         optimization: opt.to_string(),
+    //         compiler: compiler.into(),
+    //         location: "xtask/res/sieve.st".into(),
+    //         parameters: Some("--linker=cc".into()),
+    //         work_dir: work_dir.into(),
+    //     };
+    //     tasks.push(Box::new(task));
+    // }
 
+    tasks.push(Box::new(Lexer));
     Ok(tasks)
 }

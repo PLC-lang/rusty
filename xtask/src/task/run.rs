@@ -3,6 +3,7 @@ use std::time::Instant;
 use std::path::PathBuf;
 use xshell::Shell;
 
+use crate::reporter::TimeFormat;
 use crate::task::Task;
 use xshell::cmd;
 
@@ -47,5 +48,9 @@ impl Task for Run {
             anyhow::bail!("Output does not exist");
         }
         Ok(())
+    }
+
+    fn get_time_format(&self) -> crate::reporter::TimeFormat {
+        TimeFormat::Millis
     }
 }

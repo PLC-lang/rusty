@@ -1,7 +1,10 @@
 use crate::task::Task;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use plc::{ast::SourceRangeFactory, lexer::IdProvider};
+use plc::{
+    ast::SourceRangeFactory,
+    lexer::{self, IdProvider},
+};
 use reporter::{BenchmarkReport, ReporterType};
 use std::{
     path::PathBuf,
@@ -90,37 +93,14 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
         println!("Running benchmark for {}", task.get_name());
         let res = task.benchmark(3)?;
         //Report
-        data.push((task.get_name(), res));
+        data.push((task.get_name(), res, task.get_time_format()));
     }
-    data.push(("lexer/lexer.st".into(), Duration::from_micros(benchmark_lexer() as u64)));
+    // data.push(("lexer/lexer.st".into(), benchmark_lexer()));
     //Reprort data
     let report = BenchmarkReport::new(data)?;
     let reporter = reporter::from_type(reporter);
     reporter.persist(report)?;
     Ok(())
-}
-
-fn benchmark_lexer() -> u128 {
-    let mut avg = 0;
-    let content = std::fs::read_to_string("./xtask/res/lexer.st").unwrap();
-
-    for _ in 0..100 {
-        let mut lexer =
-            plc::lexer::lex_with_ids(&content, IdProvider::default(), SourceRangeFactory::internal());
-
-        let now = Instant::now();
-        while !lexer.is_end_of_stream() {
-            lexer.advance();
-        }
-        avg += now.elapsed().as_micros();
-
-        assert_eq!(lexer.token, plc::lexer::Token::End);
-        assert_eq!(lexer.last_range, 139145..139156);
-    }
-
-    avg = avg / 100;
-    println!("{avg}");
-    avg
 }
 
 fn prepare() -> Result<(TempDir, PathBuf)> {
