@@ -1,15 +1,8 @@
 use crate::task::Task;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use plc::{
-    ast::SourceRangeFactory,
-    lexer::{self, IdProvider},
-};
 use reporter::{BenchmarkReport, ReporterType};
-use std::{
-    path::PathBuf,
-    time::{Duration, Instant},
-};
+use std::path::PathBuf;
 use task::{compile::Compile, run::Run};
 use tempfile::{tempdir, TempDir};
 use xshell::{cmd, Shell};
@@ -95,7 +88,6 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
         //Report
         data.push((task.get_name(), res, task.get_time_format()));
     }
-    // data.push(("lexer/lexer.st".into(), benchmark_lexer()));
     //Reprort data
     let report = BenchmarkReport::new(data)?;
     let reporter = reporter::from_type(reporter);
