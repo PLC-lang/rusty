@@ -50,7 +50,7 @@ pub struct BenchmarkReport {
     /// element is its raw wall-time value in milliseconds.
     /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
     /// with the `aggressive` optimization flag took 8000ms.
-    pub(crate) metrics: BTreeMap<String, u64>,
+    pub(crate) metrics: BTreeMap<String, (Duration, DurationFormat)>,
 }
 
 #[derive(Serialize, Debug)]
@@ -74,6 +74,7 @@ impl Host {
     }
 }
 
+#[derive(Serialize)]
 pub enum DurationFormat {
     Millis,
     Micros,
@@ -83,10 +84,7 @@ impl BenchmarkReport {
     pub fn new(data: Vec<(String, Duration, DurationFormat)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
         for (name, duration, format) in data {
-            match format {
-                DurationFormat::Millis => metrics.insert(name, duration.as_millis() as u64),
-                DurationFormat::Micros => metrics.insert(name, duration.as_micros() as u64),
-            };
+            metrics.insert(name, (duration, format));
         }
 
         let sh = Shell::new()?;

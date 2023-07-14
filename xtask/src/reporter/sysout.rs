@@ -1,3 +1,5 @@
+use crate::reporter::DurationFormat;
+
 use super::{BenchmarkReport, Reporter};
 use anyhow::Result;
 
@@ -12,8 +14,13 @@ impl Reporter for SysoutReporter {
         println!("  Memory: {}", &report.host.mem);
         println!("  OS: {}", &report.host.os);
         println!("-----------------");
-        for (name, time) in report.metrics {
-            println!("Run {name} took {time} ms");
+        for (name, (time, time_format)) in report.metrics {
+            let (time, format) = match time_format {
+                DurationFormat::Micros => (time.as_micros(), "us"),
+                DurationFormat::Millis => (time.as_millis(), "ms"),
+            };
+
+            println!("Run {name} took {time} {format}");
         }
         println!("-----------------");
         Ok(())
