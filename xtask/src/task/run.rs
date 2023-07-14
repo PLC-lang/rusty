@@ -34,6 +34,7 @@ impl Task for Run {
 
     fn prepare(&mut self) -> anyhow::Result<()> {
         let shell = Shell::new()?;
+
         //Compile the application with the correct optimization flag
         let command = &self.compiler;
         let opt = &self.optimization;
@@ -47,6 +48,7 @@ impl Task for Run {
         if !output.exists() {
             anyhow::bail!("Output does not exist");
         }
+
         Ok(())
     }
 

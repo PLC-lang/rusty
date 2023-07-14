@@ -14,6 +14,9 @@ pub(crate) trait Task {
     /// Returns the name of the task being benchmarked
     fn get_name(&self) -> String;
 
+    /// Returns the time format the task was benchmarked in
+    fn get_time_format(&self) -> DurationFormat;
+
     /// Executes any actions required before time measurement starts
     /// By default we make sure we have a release build ready
     fn prepare(&mut self) -> Result<()> {
@@ -22,8 +25,6 @@ pub(crate) trait Task {
 
     /// Executes the task to be measured and returns the time it took
     fn execute(&self) -> Result<Duration>;
-
-    fn get_time_format(&self) -> DurationFormat;
 
     /// Benchmarks the current task and returns the avarage execution time
     fn benchmark(&mut self, executions: u32) -> Result<Duration> {
@@ -52,6 +53,7 @@ pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<
     Ok(tasks)
 }
 
+/// Benchmark task for `oscat`
 fn oscat(work_dir: &Path, compiler: &Path) -> Vec<Box<dyn Task>> {
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     for opt in &["none", "less", "default", "aggressive"] {
@@ -68,6 +70,7 @@ fn oscat(work_dir: &Path, compiler: &Path) -> Vec<Box<dyn Task>> {
     tasks
 }
 
+/// Benchmark task for `res/sieve.c`
 fn sieve_c(work_dir: &Path) -> Vec<Box<dyn Task>> {
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     for opt in ["0", "1", "2", "3"] {
@@ -86,6 +89,7 @@ fn sieve_c(work_dir: &Path) -> Vec<Box<dyn Task>> {
     tasks
 }
 
+/// Benchmark task for `res/sieve.st`
 fn sieve_st(work_dir: &Path, compiler: &Path) -> Vec<Box<dyn Task>> {
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     for opt in ["none", "less", "default", "aggressive"] {
