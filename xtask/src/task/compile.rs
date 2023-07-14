@@ -29,7 +29,7 @@ impl Task for Compile {
         Ok(start.elapsed())
     }
 
-    fn get_time_format(&self) -> crate::reporter::DurationFormat {
-        DurationFormat::Micros
+    fn get_time_format(&self) -> DurationFormat {
+        DurationFormat::Millis
     }
 }
