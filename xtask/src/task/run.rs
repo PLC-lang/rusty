@@ -52,7 +52,7 @@ impl Task for Run {
         Ok(())
     }
 
-    fn get_time_format(&self) -> crate::reporter::DurationFormat {
+    fn get_duration_format(&self) -> crate::reporter::DurationFormat {
         DurationFormat::Millis
     }
 }

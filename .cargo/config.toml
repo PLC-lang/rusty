@@ -1,4 +1,5 @@
 [alias]
+# Compiling in release mode is necessary as we benchmark compiler internal crates such as the lexer / parser.
 xtask = "run --release --package xtask --"
 metrics = "run --release --package xtask -- metrics"
 metrics-sql = "run --release --package xtask --features=sql -- metrics"

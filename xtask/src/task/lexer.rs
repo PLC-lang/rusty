@@ -30,7 +30,7 @@ impl Task for Lexer {
         Ok(elapsed)
     }
 
-    fn get_time_format(&self) -> crate::reporter::DurationFormat {
+    fn get_duration_format(&self) -> crate::reporter::DurationFormat {
         DurationFormat::Micros
     }
 }

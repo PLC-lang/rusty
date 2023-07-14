@@ -29,7 +29,7 @@ impl Task for Compile {
         Ok(start.elapsed())
     }
 
-    fn get_time_format(&self) -> DurationFormat {
+    fn get_duration_format(&self) -> DurationFormat {
         DurationFormat::Millis
     }
 }

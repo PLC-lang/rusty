@@ -14,8 +14,8 @@ pub(crate) trait Task {
     /// Returns the name of the task being benchmarked
     fn get_name(&self) -> String;
 
-    /// Returns the time format the task was benchmarked in
-    fn get_time_format(&self) -> DurationFormat;
+    /// Returns the [`DurationFormat`] the task was benchmarked in
+    fn get_duration_format(&self) -> DurationFormat;
 
     /// Executes any actions required before time measurement starts
     /// By default we make sure we have a release build ready

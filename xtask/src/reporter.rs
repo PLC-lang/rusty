@@ -46,11 +46,11 @@ pub struct BenchmarkReport {
     /// Commit hash on which the benchmark ran.
     pub commit: String,
 
-    /// Collected benchmarks, where the first tuple element describes the benchmark and the second
-    /// element is its raw wall-time value in milliseconds.
-    /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
-    /// with the `aggressive` optimization flag took 8000ms.
-    pub(crate) metrics: BTreeMap<String, (Duration, DurationFormat)>,
+    /// Collected benchmarks, where the first tuple element describes the benchmark and the second element
+    /// is its raw wall-time value in milli- or microseconds, however it is defined in [`DurationFormat`].
+    /// For example one such element might be `("oscat/aggressive", (8000, DurationFormat::Millis))`
+    /// indicating that compiling oscat with the `aggressive` optimization flag took 8000 milliseconds.
+    pub metrics: BTreeMap<String, (Duration, DurationFormat)>,
 }
 
 #[derive(Serialize, Debug)]

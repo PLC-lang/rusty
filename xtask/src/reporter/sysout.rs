@@ -14,13 +14,13 @@ impl Reporter for SysoutReporter {
         println!("  Memory: {}", &report.host.mem);
         println!("  OS: {}", &report.host.os);
         println!("-----------------");
-        for (name, (time, time_format)) in report.metrics {
-            let (time, format) = match time_format {
-                DurationFormat::Micros => (time.as_micros(), "us"),
-                DurationFormat::Millis => (time.as_millis(), "ms"),
+        for (name, (duration, duration_format)) in report.metrics {
+            let (duration, duration_format) = match duration_format {
+                DurationFormat::Micros => (duration.as_micros(), "us"),
+                DurationFormat::Millis => (duration.as_millis(), "ms"),
             };
 
-            println!("Run {name} took {time} {format}");
+            println!("Run {name} took {duration} {duration_format}");
         }
         println!("-----------------");
         Ok(())

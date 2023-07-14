@@ -89,7 +89,7 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
     for mut task in tasks {
         println!("Running benchmark for {}", task.get_name());
         let res = task.benchmark(3)?;
-        data.push((task.get_name(), res, task.get_time_format()));
+        data.push((task.get_name(), res, task.get_duration_format()));
     }
 
     // Report data
