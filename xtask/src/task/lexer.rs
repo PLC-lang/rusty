@@ -9,14 +9,14 @@ use crate::reporter::DurationFormat;
 
 use super::Task;
 
-pub struct Lexer;
+pub struct Lexer(pub &'static str);
 impl Task for Lexer {
     fn get_name(&self) -> String {
-        "lexer/combined.st".to_string()
+        format!("lexer/{}", self.0)
     }
 
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
-        let content = std::fs::read_to_string("./xtask/res/combined.st").unwrap();
+        let content = std::fs::read_to_string(format!("./xtask/res/{}", self.0)).unwrap();
         let mut lexer = lexer::lex_with_ids(&content, IdProvider::default(), SourceRangeFactory::internal());
 
         let now = Instant::now();

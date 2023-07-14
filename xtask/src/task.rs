@@ -47,7 +47,7 @@ pub(crate) fn get_default_tasks(work_dir: &Path, compiler: &Path) -> Result<Vec<
     tasks.extend(oscat(work_dir, compiler));
     tasks.extend(sieve_st(work_dir, compiler));
     tasks.extend(sieve_c(work_dir));
-    tasks.push(Box::new(Lexer));
+    tasks.push(Box::new(Lexer("combined.st")));
 
     Ok(tasks)
 }
