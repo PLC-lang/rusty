@@ -922,3 +922,22 @@ fn enum_variants_mismatch() {
 
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn string_type_alias_assignment_can_be_validated() {
+    let diagnostics = parse_and_validate(
+        "
+        TYPE MY_STR : STRING; END_TYPE
+
+        PROGRAM main
+        VAR
+            my_str : MY_STR;
+            i : INT;
+        END_VAR
+            my_str := i;
+        END_PROGRAM
+        ",
+    );
+
+    assert_validation_snapshot!(diagnostics)
+}
