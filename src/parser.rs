@@ -765,7 +765,7 @@ fn parse_string_type_definition(
     match (size, &name) {
         (Some(size), _) => Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType { name, is_wide, size: Some(size) },
-            location: location.clone(),
+            location,
             scope: lexer.scope.clone(),
         }),
         (None, Some(name)) => Some(DataTypeDeclaration::DataTypeDefinition {
@@ -774,7 +774,7 @@ fn parse_string_type_definition(
                 referenced_type: text,
                 bounds: None,
             },
-            location: location.clone(),
+            location,
             scope: lexer.scope.clone(),
         }),
         _ => Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
