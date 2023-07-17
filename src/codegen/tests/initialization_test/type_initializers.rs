@@ -515,7 +515,8 @@ fn array_of_struct_initialization() {
 
 #[test]
 fn array_of_struct_initialization_with_brackets() {
-    // https://github.com/PLC-lang/rusty/issues/895
+    // We want to check if initializing an array of structs is possible both with a parenthese as well as a
+    // bracket, e.g. both `:= (...)` and `:= [...]` should be valid; see also https://github.com/PLC-lang/rusty/issues/895
     let source = "
         TYPE myStruct : STRUCT
             x : DINT;

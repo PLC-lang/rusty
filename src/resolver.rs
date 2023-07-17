@@ -875,23 +875,23 @@ impl<'i> TypeAnnotator<'i> {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
-                if inner_type.get_type_information().is_struct() {
-                    if let AstStatement::ExpressionList { expressions, .. } = initializer {
-                        for e in expressions {
-                            // annotate with the arrays inner_type
-                            self.annotation_map.annotate_type_hint(
-                                e,
-                                StatementAnnotation::Value {
-                                    resulting_type: inner_type.get_name().to_string(),
-                                },
-                            );
-                            self.visit_statement(&ctx, e);
-                        }
-                    }
-                }
 
-                if let AstStatement::Literal { kind: AstLiteral::Array(arr), .. } = initializer {
-                    if let Some(AstStatement::ExpressionList { expressions, .. }) = arr.elements() {
+                if inner_type.get_type_information().is_struct() {
+                    let expressions = match initializer {
+                        // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        AstStatement::ExpressionList { expressions, .. } => Some(expressions),
+
+                        // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
+                        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
+                            Some(AstStatement::ExpressionList { expressions, .. }) => Some(expressions),
+                            _ => None,
+                        },
+
+                        // ...anything else is uninteresting
+                        _ => None,
+                    };
+
+                    if let Some(expressions) = expressions {
                         for e in expressions {
                             // annotate with the arrays inner_type
                             self.annotation_map.annotate_type_hint(
@@ -900,11 +900,13 @@ impl<'i> TypeAnnotator<'i> {
                                     resulting_type: inner_type.get_name().to_string(),
                                 },
                             );
+
                             self.visit_statement(&ctx, e);
                         }
                     }
                 }
             }
+
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
                 let flattened = ast::flatten_expression_list(initializer);
