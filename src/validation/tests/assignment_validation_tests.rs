@@ -928,13 +928,16 @@ fn string_type_alias_assignment_can_be_validated() {
     let diagnostics = parse_and_validate(
         "
         TYPE MY_STR : STRING; END_TYPE
+        TYPE MY_OTHER_STR: STRING[256]; END_TYPE
 
         PROGRAM main
         VAR
             my_str : MY_STR;
+            my_other_str: MY_OTHER_STR;
             i : INT;
         END_VAR
             my_str := i;
+            my_other_str := i;
         END_PROGRAM
         ",
     );
