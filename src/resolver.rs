@@ -889,6 +889,21 @@ impl<'i> TypeAnnotator<'i> {
                         }
                     }
                 }
+
+                if let AstStatement::Literal { kind: AstLiteral::Array(arr), .. } = initializer {
+                    if let Some(AstStatement::ExpressionList { expressions, .. }) = arr.elements() {
+                        for e in expressions {
+                            // annotate with the arrays inner_type
+                            self.annotation_map.annotate_type_hint(
+                                e,
+                                StatementAnnotation::Value {
+                                    resulting_type: inner_type.get_name().to_string(),
+                                },
+                            );
+                            self.visit_statement(&ctx, e);
+                        }
+                    }
+                }
             }
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
