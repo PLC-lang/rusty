@@ -601,3 +601,41 @@ fn access_arrays_by_ref() {
     assert_eq!(maintype.b0, 5);
     assert_eq!(maintype.b1, 6);
 }
+
+#[test]
+fn struct_initialization_with_array_initializer_using_multiplied_statement() {
+    #[repr(C)]
+    struct MainType {
+        arr: [u16; 64],
+        idx: u16,
+    }
+
+    let source = "
+		TYPE myStruct : STRUCT
+			arr : ARRAY[0..63] OF INT;
+			idx : INT;
+		END_STRUCT END_TYPE
+
+        PROGRAM target
+			VAR
+				val : myStruct := (arr := 64(111), idx := 222);
+            END_VAR
+        END_PROGRAM
+
+		PROGRAM main
+            VAR
+                arr : ARRAY[0..63] OF INT := 0;
+                idx : INT := 0;
+			END_VAR
+
+            arr := target.val.arr;
+            idx := target.val.idx;
+		END_PROGRAM
+		"
+    .to_string();
+
+    let mut maintype = MainType { arr: [0; 64], idx: 0 };
+    let _: i32 = compile_and_run(source, &mut maintype);
+    assert_eq!(maintype.arr, [111; 64]);
+    assert_eq!(maintype.idx, 222);
+}

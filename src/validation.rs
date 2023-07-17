@@ -186,12 +186,14 @@ pub fn validate_for_array_assignment<T: AnnotationMap>(
                     context.annotations.get_type_or_void(right, context.index).get_type_information();
 
                 if left_type.is_array()
-				// if we try to assign an `ExpressionList` to an ARRAY
-				// we can expect that `()` were used and we got a valid parse result
-				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
-                 && !right_type.is_array()
+                    && !matches!(
+                        right.as_ref(),
+                        AstStatement::ExpressionList { .. } | AstStatement::MultipliedStatement { .. }
+                    )
+                    && !right_type.is_array()
                 {
-                    // otherwise we are definitely in an invalid assignment
+                    // If the expression within the assignment is not an ExpressionList (`(...)`)
+                    // or a MultipliedStatement (`64(0)`) the initializer is probably incorrect
                     array_assignment = true;
                     validator
                         .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));
