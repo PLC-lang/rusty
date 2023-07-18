@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
-    validate_for_array_assignment, ValidationContext, Validator, Validators,
+    validate_array_assignment, ValidationContext, Validator, Validators,
 };
 
 pub fn visit_variable_block<T: AnnotationMap>(
@@ -102,7 +102,7 @@ fn validate_variable<T: AnnotationMap>(
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
         if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-            validate_for_array_assignment(validator, expressions, context);
+            validate_array_assignment(validator, expressions, context);
         }
 
         match v_entry

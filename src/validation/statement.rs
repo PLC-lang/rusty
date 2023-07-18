@@ -1,6 +1,6 @@
 use std::{collections::HashSet, mem::discriminant};
 
-use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
+use super::{validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
     ast::{
         self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
@@ -78,7 +78,7 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_unary_expression(validator, operator, value, location);
         }
         AstStatement::ExpressionList { expressions, .. } => {
-            validate_for_array_assignment(validator, expressions, context);
+            validate_array_assignment(validator, expressions, context);
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
         AstStatement::RangeStatement { start, end, .. } => {

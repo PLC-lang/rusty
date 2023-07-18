@@ -737,7 +737,8 @@ impl Diagnostic {
 
     pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: "Array initializer must be an initializer list!".to_string(),
+            message: "Array initializer must be an initializer list, are you missing an enclosing?"
+                .to_string(),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }

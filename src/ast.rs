@@ -1189,6 +1189,14 @@ impl AstStatement {
     pub fn is_binary_expression(&self) -> bool {
         matches!(self, AstStatement::BinaryExpression { .. })
     }
+
+    pub fn is_expression_list(&self) -> bool {
+        matches!(self, AstStatement::ExpressionList { .. })
+    }
+
+    pub fn is_multiplied_statement(&self) -> bool {
+        matches!(self, AstStatement::MultipliedStatement { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

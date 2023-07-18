@@ -159,51 +159,32 @@ impl Validator {
     }
 }
 
-/// Finds and reports invalid `ARRAY` assignments where parentheses are missing yielding invalid ASTs.
-/// Specifically an invalid assignment such as `x := (var1 := 1, var2 := 3, 4);` where `var2` is missing a
-/// `(` will generate `ExpressionList { Assignment {..}, ...}` as the AST where each item after
-/// the first one would be handled as a seperate statement whereas the correct AST should have been
-/// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
-/// - https://github.com/PLC-lang/rusty/issues/707 and
-/// - `array_validation_test.rs/array_initialization_validation`
-pub fn validate_for_array_assignment<T: AnnotationMap>(
+pub fn validate_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     expressions: &[AstStatement],
     context: &ValidationContext<T>,
 ) {
-    let mut array_assignment = false;
-    expressions.iter().for_each(|e| {
-        if array_assignment {
-            // now we cannot be sure where the following values belong to
-            validator
-                .push_diagnostic(Diagnostic::array_expected_identifier_or_round_bracket(e.get_location()));
-        }
-        match e {
+    for expression in expressions {
+        match expression {
             AstStatement::Assignment { left, right, .. } => {
-                let left_type =
-                    context.annotations.get_type_or_void(left, context.index).get_type_information();
-                let right_type =
-                    context.annotations.get_type_or_void(right, context.index).get_type_information();
+                let lt = context.annotations.get_type_or_void(left, context.index).get_type_information();
+                let rt = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
-                if left_type.is_array()
-                    && !matches!(
-                        right.as_ref(),
-                        AstStatement::ExpressionList { .. } | AstStatement::MultipliedStatement { .. }
-                    )
-                    && !right_type.is_array()
+                if lt.is_array()
+                    && !rt.is_array()
+                    && !right.is_expression_list()
+                    && !right.is_multiplied_statement()
                 {
-                    // If the expression within the assignment is not an ExpressionList (`(...)`)
-                    // or a MultipliedStatement (`64(0)`) the initializer is probably incorrect
-                    array_assignment = true;
                     validator
                         .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));
                 }
             }
+
             AstStatement::ExpressionList { expressions, .. } => {
-                // e.g. ARRAY OF STRUCT can have multiple `ExpressionList`s
-                validate_for_array_assignment(validator, expressions, context);
+                validate_array_assignment(validator, expressions, context);
             }
-            _ => {} // do nothing
+
+            _ => {}
         }
-    })
+    }
 }
