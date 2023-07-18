@@ -1302,7 +1302,7 @@ pub struct AstFactory {}
 
 impl AstFactory {
     /// creates a new if-statement
-    pub fn new_if_statement(
+    pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
         location: SourceRange,
@@ -1316,7 +1316,7 @@ impl AstFactory {
     }
 
     ///  creates a new for loop statement
-    pub fn new_for_loop(
+    pub fn create_for_loop(
         counter: AstStatement,
         start: AstStatement,
         end: AstStatement,
@@ -1339,7 +1339,7 @@ impl AstFactory {
     }
 
     /// creates a new while statement
-    pub fn new_while_statement(
+    pub fn create_while_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
         location: SourceRange,
@@ -1353,7 +1353,7 @@ impl AstFactory {
     }
 
     /// creates a new repeat-statement
-    pub fn new_repeat_statement(
+    pub fn create_repeat_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
         location: SourceRange,
@@ -1367,7 +1367,7 @@ impl AstFactory {
     }
 
     /// creates a new case-statement
-    pub fn new_case_statement(
+    pub fn create_case_statement(
         selector: AstStatement,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
