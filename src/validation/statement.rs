@@ -230,18 +230,13 @@ fn validate_qualified_reference<T: AnnotationMap>(
             ))
         }
     } else {
-        let Some((reference, other)) = access else {
+        let Some((reference, _)) = access else {
             return
         };
         if !context.annotations.has_type_annotation(reference) {
             let AstStatement::Reference { name, location, .. } = reference else {
                 return
             };
-
-            let other_type = context.annotations.get_type(other, context.index);
-            if other_type.is_some_and(|it| it.is_struct()) || other_type.is_none() {
-                return;
-            }
 
             validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
                 message: format!("If you meant to access a bit, use %X{name} instead.",),

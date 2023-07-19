@@ -6,4 +6,5 @@ SyntaxError { message: "Could not resolve reference to n1", range: [SourceRange 
 ImprovementSuggestion { message: "If you meant to access a bit, use %Xn1 instead.", range: [SourceRange { range: 287..289 }] }
 SyntaxError { message: "Could not resolve reference to access", range: [SourceRange { range: 376..382 }], err_no: reference__unresolved }
 SyntaxError { message: "Could not resolve reference to var1", range: [SourceRange { range: 383..387 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xvar1 instead.", range: [SourceRange { range: 383..387 }] }
 
