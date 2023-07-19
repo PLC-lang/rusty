@@ -1865,7 +1865,6 @@
 <a href="#1865" id="1865">1865</a>
 <a href="#1866" id="1866">1866</a>
 <a href="#1867" id="1867">1867</a>
-<a href="#1868" id="1868">1868</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -1885,9 +1884,9 @@
 
 <span class="kw">use crate</span>::{
     ast::{
-        <span class="self">self</span>, create_not_expression, create_or_expression, flatten_expression_list, Array, AstId, AstLiteral,
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue, TypeNature,
-        UserTypeDeclaration, Variable,
+        <span class="self">self</span>, control_statements::AstControlStatement, flatten_expression_list, Array, AstFactory, AstId,
+        AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue,
+        TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{<span class="self">self</span>, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -2062,17 +2061,17 @@
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx.clone();
         <span class="kw">let </span>call_statement = <span class="kw">match </span>operator {
             <span class="comment">// a &lt;&gt; b expression is handled as Not(Equal(a,b))
-            </span>Operator::NotEqual =&gt; create_not_expression(
+            </span>Operator::NotEqual =&gt; AstFactory::create_not_expression(
                 <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>Operator::Equal, left, right, statement),
                 statement.get_location(),
             ),
             <span class="comment">// a &lt;= b expression is handled as a = b OR a &lt; b
-            </span>Operator::LessOrEqual =&gt; create_or_expression(
+            </span>Operator::LessOrEqual =&gt; AstFactory::create_or_expression(
                 <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>Operator::Equal, left, right, statement),
                 <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>Operator::Less, left, right, statement),
             ),
             <span class="comment">// a &gt;= b expression is handled as a = b OR a &gt; b
-            </span>Operator::GreaterOrEqual =&gt; create_or_expression(
+            </span>Operator::GreaterOrEqual =&gt; AstFactory::create_or_expression(
                 <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>Operator::Equal, left, right, statement),
                 <span class="self">self</span>.create_typed_compare_call_statement(
                     <span class="kw-2">&amp;mut </span>ctx,
@@ -2111,7 +2110,7 @@
 
         cmp_function_name
             .map(|name| {
-                <span class="kw">crate</span>::ast::create_call_to(
+                AstFactory::create_call_to(
                     name,
                     <span class="macro">vec!</span>[left.clone(), right.clone()],
                     ctx.id_provider.next_id(),
@@ -2568,7 +2567,7 @@
                     </span>.index
                     .find_range_check_implementation_for(expected_type.get_type_information())
                     .map(|f| {
-                        <span class="kw">crate</span>::ast::create_call_to_check_function_ast(
+                        AstFactory::create_call_to_check_function_ast(
                             f.get_call_name().to_string(),
                             right_side.clone(),
                             sub_range.clone(),
@@ -2858,50 +2857,49 @@
     <span class="doccomment">/// annotate a control statement
     </span><span class="kw">fn </span>visit_statement_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
         <span class="kw">match </span>statement {
-            AstStatement::IfStatement { blocks, else_block, .. } =&gt; {
-                blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::If(stmt), .. } =&gt; {
+                stmt.blocks.iter().for_each(|b| {
                     <span class="self">self</span>.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|e| <span class="self">self</span>.visit_statement(ctx, e));
+                stmt.else_block.iter().for_each(|e| <span class="self">self</span>.visit_statement(ctx, e));
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } =&gt; {
-                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, counter, start, end);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = by_step {
+            AstStatement::ControlStatement { kind: AstControlStatement::ForLoop(stmt), .. } =&gt; {
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start, <span class="kw-2">&amp;</span>stmt.end);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
                     <span class="self">self</span>.visit_statement(ctx, by_step);
                 }
                 <span class="comment">//Hint annotate start, end and step with the counter&#39;s real type
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) =
-                    <span class="self">self</span>.annotation_map.get_type(counter, <span class="self">self</span>.index).map(typesystem::DataType::get_name)
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) = <span class="self">self
+                    </span>.annotation_map
+                    .get_type(<span class="kw-2">&amp;</span>stmt.counter, <span class="self">self</span>.index)
+                    .map(typesystem::DataType::get_name)
                 {
                     <span class="kw">let </span>annotation = StatementAnnotation::value(type_name);
-                    <span class="self">self</span>.annotation_map.annotate_type_hint(start, annotation.clone());
-                    <span class="self">self</span>.annotation_map.annotate_type_hint(end, annotation.clone());
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = by_step {
+                    <span class="self">self</span>.annotation_map.annotate_type_hint(<span class="kw-2">&amp;</span>stmt.start, annotation.clone());
+                    <span class="self">self</span>.annotation_map.annotate_type_hint(<span class="kw-2">&amp;</span>stmt.end, annotation.clone());
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
                         <span class="self">self</span>.annotation_map.annotate_type_hint(by_step, annotation);
                     }
                 }
-                body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
+                stmt.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
-            AstStatement::WhileLoopStatement { condition, body, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, condition);
-                body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
+            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }
+            | AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>stmt.condition);
+                stmt.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
-            AstStatement::RepeatLoopStatement { condition, body, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, condition);
-                body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, selector);
-                <span class="kw">let </span>selector_type = <span class="self">self</span>.annotation_map.get_type(selector, <span class="self">self</span>.index).cloned();
-                case_blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::Case(stmt), .. } =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>stmt.selector);
+                <span class="kw">let </span>selector_type = <span class="self">self</span>.annotation_map.get_type(<span class="kw-2">&amp;</span>stmt.selector, <span class="self">self</span>.index).cloned();
+                stmt.case_blocks.iter().for_each(|b| {
                     <span class="self">self</span>.visit_statement(ctx, b.condition.as_ref());
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(selector_type) = <span class="kw-2">&amp;</span>selector_type {
                         <span class="self">self</span>.update_expected_types(selector_type, b.condition.as_ref());
                     }
                     b.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
+                stmt.else_block.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
             AstStatement::CaseCondition { condition, .. } =&gt; <span class="self">self</span>.visit_statement(ctx, condition),
             <span class="kw">_ </span>=&gt; {

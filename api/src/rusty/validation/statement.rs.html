@@ -947,13 +947,20 @@
 <a href="#947" id="947">947</a>
 <a href="#948" id="948">948</a>
 <a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 <span class="kw">use crate</span>::{
     ast::{
-        <span class="self">self</span>, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
-        StringValue,
+        <span class="self">self</span>, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,
+        Operator, SourceRange, StringValue,
     },
     builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -1048,31 +1055,7 @@
         AstStatement::CallStatement { operator, parameters, .. } =&gt; {
             validate_call(validator, operator, parameters, <span class="kw-2">&amp;</span>context.set_is_call());
         }
-        AstStatement::IfStatement { blocks, else_block, .. } =&gt; {
-            blocks.iter().for_each(|b| {
-                visit_statement(validator, b.condition.as_ref(), context);
-                b.body.iter().for_each(|s| visit_statement(validator, s, context));
-            });
-            else_block.iter().for_each(|e| visit_statement(validator, e, context));
-        }
-        AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } =&gt; {
-            <span class="macro">visit_all_statements!</span>(validator, context, counter, start, end);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = by_step {
-                visit_statement(validator, by_step, context);
-            }
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::WhileLoopStatement { condition, body, .. } =&gt; {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::RepeatLoopStatement { condition, body, .. } =&gt; {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::CaseStatement { selector, case_blocks, else_block, .. } =&gt; {
-            validate_case_statement(validator, selector, case_blocks, else_block, context);
-        }
+        AstStatement::ControlStatement { kind, .. } =&gt; validate_control_statement(validator, kind, context),
         AstStatement::CaseCondition { condition, .. } =&gt; {
             <span class="comment">// if we get here, then a `CaseCondition` is used outside a `CaseStatement`
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
@@ -1089,6 +1072,37 @@
         </span><span class="kw">_ </span>=&gt; {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+<span class="kw">fn </span>validate_control_statement&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    control_statement: <span class="kw-2">&amp;</span>ast::control_statements::AstControlStatement,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
+    <span class="kw">match </span>control_statement {
+        ast::control_statements::AstControlStatement::If(stmt) =&gt; {
+            stmt.blocks.iter().for_each(|b| {
+                visit_statement(validator, b.condition.as_ref(), context);
+                b.body.iter().for_each(|s| visit_statement(validator, s, context));
+            });
+            stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
+        }
+        ast::control_statements::AstControlStatement::ForLoop(stmt) =&gt; {
+            <span class="macro">visit_all_statements!</span>(validator, context, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start, <span class="kw-2">&amp;</span>stmt.end);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
+                visit_statement(validator, by_step, context);
+            }
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
+        }
+        ast::control_statements::AstControlStatement::WhileLoop(stmt)
+        | ast::control_statements::AstControlStatement::RepeatLoop(stmt) =&gt; {
+            visit_statement(validator, <span class="kw-2">&amp;</span>stmt.condition, context);
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
+        }
+        ast::control_statements::AstControlStatement::Case(stmt) =&gt; {
+            validate_case_statement(validator, <span class="kw-2">&amp;</span>stmt.selector, <span class="kw-2">&amp;</span>stmt.case_blocks, <span class="kw-2">&amp;</span>stmt.else_block, context);
+        }
+    }
 }
 
 <span class="doccomment">/// validates a literal statement with a dedicated type-prefix (e.g. INT#3)

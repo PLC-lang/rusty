@@ -1437,8 +1437,66 @@
 <a href="#1437" id="1437">1437</a>
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
+    ast::control_statements::ForLoopStatement,
     index::Index,
     lexer::IdProvider,
     typesystem::{
@@ -1455,6 +1513,11 @@
     unimplemented, vec,
 };
 
+<span class="kw">use </span><span class="self">self</span>::control_statements::{
+    AstControlStatement, CaseStatement, ConditionalBlock, IfStatement, LoopStatement,
+};
+
+<span class="kw">pub mod </span>control_statements;
 <span class="kw">pub mod </span>literals;
 <span class="kw">mod </span>pre_processor;
 
@@ -2161,21 +2224,6 @@
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
-</span><span class="kw">pub struct </span>ConditionalBlock {
-    <span class="kw">pub </span>condition: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>body: Vec&lt;AstStatement&gt;,
-}
-
-<span class="kw">impl </span>Debug <span class="kw">for </span>ConditionalBlock {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
-        f.debug_struct(<span class="string">&quot;ConditionalBlock&quot;</span>)
-            .field(<span class="string">&quot;condition&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.condition)
-            .field(<span class="string">&quot;body&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.body)
-            .finish()
-    }
-}
-
-<span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub enum </span>AstStatement {
     EmptyStatement {
         location: SourceRange,
@@ -2281,40 +2329,12 @@
         id: AstId,
     },
     <span class="comment">// Control Statements
-    </span>IfStatement {
-        blocks: Vec&lt;ConditionalBlock&gt;,
-        else_block: Vec&lt;AstStatement&gt;,
+    </span>ControlStatement {
+        kind: AstControlStatement,
         location: SourceRange,
         id: AstId,
     },
-    ForLoopStatement {
-        counter: Box&lt;AstStatement&gt;,
-        start: Box&lt;AstStatement&gt;,
-        end: Box&lt;AstStatement&gt;,
-        by_step: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
-        body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
-        id: AstId,
-    },
-    WhileLoopStatement {
-        condition: Box&lt;AstStatement&gt;,
-        body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
-        id: AstId,
-    },
-    RepeatLoopStatement {
-        condition: Box&lt;AstStatement&gt;,
-        body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
-        id: AstId,
-    },
-    CaseStatement {
-        selector: Box&lt;AstStatement&gt;,
-        case_blocks: Vec&lt;ConditionalBlock&gt;,
-        else_block: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
-        id: AstId,
-    },
+
     CaseCondition {
         condition: Box&lt;AstStatement&gt;,
         id: AstId,
@@ -2370,10 +2390,17 @@
                 .field(<span class="string">&quot;operator&quot;</span>, operator)
                 .field(<span class="string">&quot;parameters&quot;</span>, parameters)
                 .finish(),
-            AstStatement::IfStatement { blocks, else_block, .. } =&gt; {
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::If(IfStatement { blocks, else_block, .. }),
+                ..
+            } =&gt; {
                 f.debug_struct(<span class="string">&quot;IfStatement&quot;</span>).field(<span class="string">&quot;blocks&quot;</span>, blocks).field(<span class="string">&quot;else_block&quot;</span>, else_block).finish()
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } =&gt; f
+            AstStatement::ControlStatement {
+                kind:
+                    AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
+                ..
+            } =&gt; f
                 .debug_struct(<span class="string">&quot;ForLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;counter&quot;</span>, counter)
                 .field(<span class="string">&quot;start&quot;</span>, start)
@@ -2381,17 +2408,26 @@
                 .field(<span class="string">&quot;by_step&quot;</span>, by_step)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::WhileLoopStatement { condition, body, .. } =&gt; f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+                ..
+            } =&gt; f
                 .debug_struct(<span class="string">&quot;WhileLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;condition&quot;</span>, condition)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::RepeatLoopStatement { condition, body, .. } =&gt; f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+                ..
+            } =&gt; f
                 .debug_struct(<span class="string">&quot;RepeatLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;condition&quot;</span>, condition)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } =&gt; f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::Case(CaseStatement { selector, case_blocks, else_block, .. }),
+                ..
+            } =&gt; f
                 .debug_struct(<span class="string">&quot;CaseStatement&quot;</span>)
                 .field(<span class="string">&quot;selector&quot;</span>, selector)
                 .field(<span class="string">&quot;case_blocks&quot;</span>, case_blocks)
@@ -2479,11 +2515,7 @@
                 left_loc.span(<span class="kw-2">&amp;</span>right_loc)
             }
             AstStatement::CallStatement { location, .. } =&gt; location.clone(),
-            AstStatement::IfStatement { location, .. } =&gt; location.clone(),
-            AstStatement::ForLoopStatement { location, .. } =&gt; location.clone(),
-            AstStatement::WhileLoopStatement { location, .. } =&gt; location.clone(),
-            AstStatement::RepeatLoopStatement { location, .. } =&gt; location.clone(),
-            AstStatement::CaseStatement { location, .. } =&gt; location.clone(),
+            AstStatement::ControlStatement { location, .. } =&gt; location.clone(),
             AstStatement::ArrayAccess { reference, access, .. } =&gt; {
                 <span class="kw">let </span>reference_loc = reference.get_location();
                 <span class="kw">let </span>access_loc = access.get_location();
@@ -2521,11 +2553,7 @@
             AstStatement::Assignment { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::OutputAssignment { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::CallStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::IfStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ForLoopStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::WhileLoopStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::RepeatLoopStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::CaseStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
+            AstStatement::ControlStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::CaseCondition { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::ReturnStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
             AstStatement::ContinueStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
@@ -2708,102 +2736,6 @@
     }
 }
 
-<span class="doccomment">/// helper function that creates a call-statement
-</span><span class="kw">pub fn </span>create_call_to(
-    function_name: String,
-    parameters: Vec&lt;AstStatement&gt;,
-    function_id: usize,
-    parameter_list_id: usize,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-) -&gt; AstStatement {
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: function_name,
-            location: location.clone(),
-            id: function_id,
-        }),
-        parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
-            expressions: parameters,
-            id: parameter_list_id,
-        })),
-        location: location.clone(),
-        id: function_id,
-    }
-}
-
-<span class="kw">pub fn </span>create_call_to_with_ids(
-    function_name: String,
-    parameters: Vec&lt;AstStatement&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-    <span class="kw-2">mut </span>id_provider: IdProvider,
-) -&gt; AstStatement {
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: function_name,
-            location: location.clone(),
-            id: id_provider.next_id(),
-        }),
-        parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
-            expressions: parameters,
-            id: id_provider.next_id(),
-        })),
-        location: location.clone(),
-        id: id_provider.next_id(),
-    }
-}
-
-<span class="doccomment">/// helper function that creates an or-expression
-</span><span class="kw">pub fn </span>create_or_expression(left: AstStatement, right: AstStatement) -&gt; AstStatement {
-    AstStatement::BinaryExpression {
-        id: left.get_id(),
-        left: Box::new(left),
-        right: Box::new(right),
-        operator: Operator::Or,
-    }
-}
-
-<span class="doccomment">/// helper function that creates an not-expression
-</span><span class="kw">pub fn </span>create_not_expression(operator: AstStatement, location: SourceRange) -&gt; AstStatement {
-    AstStatement::UnaryExpression {
-        id: operator.get_id(),
-        value: Box::new(operator),
-        location,
-        operator: Operator::Not,
-    }
-}
-
-<span class="kw">pub fn </span>create_reference(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceRange, id: AstId) -&gt; AstStatement {
-    AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
-}
-
-<span class="kw">pub fn </span>create_literal_int(value: i128, location: <span class="kw-2">&amp;</span>SourceRange, id: AstId) -&gt; AstStatement {
-    <span class="kw">let </span>location = location.clone();
-    AstStatement::new_literal(AstLiteral::new_integer(value), id, location)
-}
-
-<span class="kw">pub fn </span>create_binary_expression(
-    left: AstStatement,
-    operator: Operator,
-    right: AstStatement,
-    id: AstId,
-) -&gt; AstStatement {
-    AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
-}
-
-<span class="kw">pub fn </span>create_cast_statement(
-    type_name: <span class="kw-2">&amp;</span>str,
-    stmt: AstStatement,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-    id: AstId,
-) -&gt; AstStatement {
-    AstStatement::CastStatement {
-        id,
-        location: location.clone(),
-        type_name: type_name.to_string(),
-        target: Box::new(stmt),
-    }
-}
-
 <span class="kw">pub fn </span>pre_process(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
 }
@@ -2836,21 +2768,6 @@
     }
 }
 
-<span class="kw">pub fn </span>create_call_to_check_function_ast(
-    check_function_name: String,
-    parameter: AstStatement,
-    sub_range: Range&lt;AstStatement&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-    id_provider: IdProvider,
-) -&gt; AstStatement {
-    create_call_to_with_ids(
-        check_function_name,
-        <span class="macro">vec!</span>[parameter, sub_range.start, sub_range.end],
-        location,
-        id_provider,
-    )
-}
-
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">crate</span>::ast::{ArgumentProperty, PouType, VariableBlockType};
@@ -2874,6 +2791,203 @@
         <span class="macro">assert_eq!</span>(VariableBlockType::Output.to_string(), <span class="string">&quot;Output&quot;</span>);
         <span class="macro">assert_eq!</span>(VariableBlockType::Global.to_string(), <span class="string">&quot;Global&quot;</span>);
         <span class="macro">assert_eq!</span>(VariableBlockType::InOut.to_string(), <span class="string">&quot;InOut&quot;</span>);
+    }
+}
+
+<span class="kw">pub struct </span>AstFactory {}
+
+<span class="kw">impl </span>AstFactory {
+    <span class="doccomment">/// creates a new if-statement
+    </span><span class="kw">pub fn </span>create_if_statement(
+        blocks: Vec&lt;ConditionalBlock&gt;,
+        else_block: Vec&lt;AstStatement&gt;,
+        location: SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::If(IfStatement { blocks, else_block }),
+            location,
+            id,
+        }
+    }
+
+    <span class="doccomment">///  creates a new for loop statement
+    </span><span class="kw">pub fn </span>create_for_loop(
+        counter: AstStatement,
+        start: AstStatement,
+        end: AstStatement,
+        by_step: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+        body: Vec&lt;AstStatement&gt;,
+        location: SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::ForLoop(ForLoopStatement {
+                counter: Box::new(counter),
+                start: Box::new(start),
+                end: Box::new(end),
+                by_step: by_step.map(Box::new),
+                body,
+            }),
+            location,
+            id,
+        }
+    }
+
+    <span class="doccomment">/// creates a new while statement
+    </span><span class="kw">pub fn </span>create_while_statement(
+        condition: AstStatement,
+        body: Vec&lt;AstStatement&gt;,
+        location: SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::WhileLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    <span class="doccomment">/// creates a new repeat-statement
+    </span><span class="kw">pub fn </span>create_repeat_statement(
+        condition: AstStatement,
+        body: Vec&lt;AstStatement&gt;,
+        location: SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    <span class="doccomment">/// creates a new case-statement
+    </span><span class="kw">pub fn </span>create_case_statement(
+        selector: AstStatement,
+        case_blocks: Vec&lt;ConditionalBlock&gt;,
+        else_block: Vec&lt;AstStatement&gt;,
+        location: SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::Case(CaseStatement {
+                selector: Box::new(selector),
+                case_blocks,
+                else_block,
+            }),
+            id,
+            location,
+        }
+    }
+
+    <span class="doccomment">/// creates an or-expression
+    </span><span class="kw">pub fn </span>create_or_expression(left: AstStatement, right: AstStatement) -&gt; AstStatement {
+        AstStatement::BinaryExpression {
+            id: left.get_id(),
+            left: Box::new(left),
+            right: Box::new(right),
+            operator: Operator::Or,
+        }
+    }
+
+    <span class="doccomment">/// creates a not-expression
+    </span><span class="kw">pub fn </span>create_not_expression(operator: AstStatement, location: SourceRange) -&gt; AstStatement {
+        AstStatement::UnaryExpression {
+            id: operator.get_id(),
+            value: Box::new(operator),
+            location,
+            operator: Operator::Not,
+        }
+    }
+
+    <span class="doccomment">/// creates a new reference
+    </span><span class="kw">pub fn </span>create_reference(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceRange, id: AstId) -&gt; AstStatement {
+        AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
+    }
+
+    <span class="doccomment">/// creates a new binary statement
+    </span><span class="kw">pub fn </span>create_binary_expression(
+        left: AstStatement,
+        operator: Operator,
+        right: AstStatement,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
+    }
+
+    <span class="doccomment">/// creates a new cast statement
+    </span><span class="kw">pub fn </span>create_cast_statement(
+        type_name: <span class="kw-2">&amp;</span>str,
+        stmt: AstStatement,
+        location: <span class="kw-2">&amp;</span>SourceRange,
+        id: AstId,
+    ) -&gt; AstStatement {
+        AstStatement::CastStatement {
+            id,
+            location: location.clone(),
+            type_name: type_name.to_string(),
+            target: Box::new(stmt),
+        }
+    }
+
+    <span class="doccomment">/// creates a new call statement to the given function and parameters
+    </span><span class="kw">pub fn </span>create_call_to(
+        function_name: String,
+        parameters: Vec&lt;AstStatement&gt;,
+        id: usize,
+        parameter_list_id: usize,
+        location: <span class="kw-2">&amp;</span>SourceRange,
+    ) -&gt; AstStatement {
+        AstStatement::CallStatement {
+            operator: Box::new(AstStatement::Reference {
+                name: function_name,
+                location: location.clone(),
+                id,
+            }),
+            parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
+                expressions: parameters,
+                id: parameter_list_id,
+            })),
+            location: location.clone(),
+            id,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_call_to_with_ids(
+        function_name: String,
+        parameters: Vec&lt;AstStatement&gt;,
+        location: <span class="kw-2">&amp;</span>SourceRange,
+        <span class="kw-2">mut </span>id_provider: IdProvider,
+    ) -&gt; AstStatement {
+        AstStatement::CallStatement {
+            operator: Box::new(AstStatement::Reference {
+                name: function_name,
+                location: location.clone(),
+                id: id_provider.next_id(),
+            }),
+            parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
+                expressions: parameters,
+                id: id_provider.next_id(),
+            })),
+            location: location.clone(),
+            id: id_provider.next_id(),
+        }
+    }
+
+    <span class="kw">pub fn </span>create_call_to_check_function_ast(
+        check_function_name: String,
+        parameter: AstStatement,
+        sub_range: Range&lt;AstStatement&gt;,
+        location: <span class="kw-2">&amp;</span>SourceRange,
+        id_provider: IdProvider,
+    ) -&gt; AstStatement {
+        AstFactory::create_call_to_with_ids(
+            check_function_name,
+            <span class="macro">vec!</span>[parameter, sub_range.start, sub_range.end],
+            location,
+            id_provider,
+        )
     }
 }
 </code></pre></div>

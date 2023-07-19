@@ -725,6 +725,23 @@
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -732,7 +749,10 @@
     pou_generator::PouGenerator,
 };
 <span class="kw">use crate</span>::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
+    ast::{
+        control_statements::{AstControlStatement, ConditionalBlock},
+        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange,
+    },
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
@@ -845,21 +865,10 @@
             AstStatement::Assignment { left, right, .. } =&gt; {
                 <span class="self">self</span>.generate_assignment_statement(left, right)<span class="question-mark">?</span>;
             }
-            AstStatement::ForLoopStatement { start, end, counter, body, by_step, .. } =&gt; {
-                <span class="self">self</span>.generate_for_statement(counter, start, end, by_step, body)<span class="question-mark">?</span>;
-            }
-            AstStatement::RepeatLoopStatement { condition, body, .. } =&gt; {
-                <span class="self">self</span>.generate_repeat_statement(condition, body)<span class="question-mark">?</span>;
-            }
-            AstStatement::WhileLoopStatement { condition, body, .. } =&gt; {
-                <span class="self">self</span>.generate_while_statement(condition, body)<span class="question-mark">?</span>;
-            }
-            AstStatement::IfStatement { blocks, else_block, .. } =&gt; {
-                <span class="self">self</span>.generate_if_statement(blocks, else_block)<span class="question-mark">?</span>;
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } =&gt; {
-                <span class="self">self</span>.generate_case_statement(selector, case_blocks, else_block)<span class="question-mark">?</span>;
-            }
+
+            AstStatement::ControlStatement { kind: ctl_statement, .. } =&gt; {
+                <span class="self">self</span>.generate_control_statement(ctl_statement)<span class="question-mark">?
+            </span>}
             AstStatement::ReturnStatement { .. } =&gt; {
                 <span class="self">self</span>.register_debug_location(statement);
                 <span class="self">self</span>.pou_generator.generate_return_statement(<span class="self">self</span>.function_context, <span class="self">self</span>.llvm_index)<span class="question-mark">?</span>;
@@ -893,6 +902,31 @@
             }
         }
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// genertes a single statement
+    ///
+    /// - `statement` the control statement to be generated
+    </span><span class="kw">pub fn </span>generate_control_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstControlStatement) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">match </span>statement {
+            AstControlStatement::If(ifstmt) =&gt; <span class="self">self</span>.generate_if_statement(<span class="kw-2">&amp;</span>ifstmt.blocks, <span class="kw-2">&amp;</span>ifstmt.else_block),
+            AstControlStatement::ForLoop(for_stmt) =&gt; <span class="self">self</span>.generate_for_statement(
+                <span class="kw-2">&amp;</span>for_stmt.counter,
+                <span class="kw-2">&amp;</span>for_stmt.start,
+                <span class="kw-2">&amp;</span>for_stmt.end,
+                <span class="kw-2">&amp;</span>for_stmt.by_step,
+                <span class="kw-2">&amp;</span>for_stmt.body,
+            ),
+            AstControlStatement::WhileLoop(stmt) =&gt; {
+                <span class="self">self</span>.generate_while_statement(<span class="kw-2">&amp;</span>stmt.condition, <span class="kw-2">&amp;</span>stmt.body)
+            }
+            AstControlStatement::RepeatLoop(stmt) =&gt; {
+                <span class="self">self</span>.generate_repeat_statement(<span class="kw-2">&amp;</span>stmt.condition, <span class="kw-2">&amp;</span>stmt.body)
+            }
+            AstControlStatement::Case(stmt) =&gt; {
+                <span class="self">self</span>.generate_case_statement(<span class="kw-2">&amp;</span>stmt.selector, <span class="kw-2">&amp;</span>stmt.case_blocks, <span class="kw-2">&amp;</span>stmt.else_block)
+            }
+        }
     }
 
     <span class="doccomment">/// generates an assignment statement _left_ := _right_
@@ -1187,7 +1221,7 @@
         selector: <span class="kw-2">&amp;</span>AstStatement,
         conditional_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
         else_body: <span class="kw-2">&amp;</span>[AstStatement],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="comment">//Continue
         </span><span class="kw">let </span>continue_block = context.append_basic_block(current_function, <span class="string">&quot;continue&quot;</span>);
@@ -1243,7 +1277,7 @@
         builder.build_switch(selector_statement.into_int_value(), else_block, <span class="kw-2">&amp;</span>cases);
 
         builder.position_at_end(continue_block);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// returns the new block to use as else
@@ -1304,7 +1338,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         condition: <span class="kw-2">&amp;</span>AstStatement,
         body: <span class="kw-2">&amp;</span>[AstStatement],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         <span class="kw">let </span>(condition_block, <span class="kw">_</span>) = <span class="self">self</span>.generate_base_while_statement(condition, body)<span class="question-mark">?</span>;
@@ -1315,7 +1349,7 @@
         builder.build_unconditional_branch(condition_block);
 
         builder.position_at_end(continue_block);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// generates a repeat statement
@@ -1331,12 +1365,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         condition: <span class="kw-2">&amp;</span>AstStatement,
         body: <span class="kw-2">&amp;</span>[AstStatement],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         <span class="comment">// for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        </span><span class="kw">let </span>condition = <span class="kw">crate</span>::ast::create_not_expression(condition.clone(), condition.get_location());
+        </span><span class="kw">let </span>condition = AstFactory::create_not_expression(condition.clone(), condition.get_location());
         <span class="kw">let </span>(<span class="kw">_</span>, while_block) = <span class="self">self</span>.generate_base_while_statement(<span class="kw-2">&amp;</span>condition, body)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
@@ -1345,7 +1379,7 @@
         builder.build_unconditional_branch(while_block);
 
         builder.position_at_end(continue_block);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// utility method for while and repeat loops

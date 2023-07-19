@@ -265,15 +265,13 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{ast::DataTypeDeclaration, lexer::IdProvider, typesystem};
 
 <span class="kw">use super</span>::{
     <span class="kw">super</span>::ast::{CompilationUnit, UserTypeDeclaration, Variable},
-    create_binary_expression, create_cast_statement, create_literal_int, create_reference,
-    flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
+    flatten_expression_list, AstFactory, AstLiteral, AstStatement, DataType, Operator, Pou, SourceRange,
 };
 <span class="kw">use </span>std::{collections::HashMap, vec};
 
@@ -411,15 +409,15 @@
 ) -&gt; AstStatement {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(last_element) = last_name.as_ref() {
         <span class="comment">// generate a `enum#last + 1` statement
-        </span><span class="kw">let </span>enum_ref = create_reference(last_element, location, id_provider.next_id());
-        create_binary_expression(
-            create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+        </span><span class="kw">let </span>enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        AstFactory::create_binary_expression(
+            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
-            create_literal_int(<span class="number">1</span>, location, id_provider.next_id()),
+            AstStatement::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )
     } <span class="kw">else </span>{
-        create_literal_int(<span class="number">0</span>, location, id_provider.next_id())
+        AstStatement::new_literal(AstLiteral::new_integer(<span class="number">0</span>), id_provider.next_id(), location.clone())
     }
 }
 
