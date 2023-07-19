@@ -43,20 +43,6 @@ The lexer is implemented in the `lexer`-module.
 It uses the [logos](https://github.com/maciejhirsz/logos) crate to create a lexer that is able to identify all different terminal-symbols.
 Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so RuSTy's lexer identifies a quite large number of different tokens.
 
-### Discussion: RuSTy-Lexer
-
-The logos crate uses [procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html) to generate the code required to  lex the source-string.
-The number of tokens identified by the RuSTy-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (*macro invocation exceeds token limit...*).
-
-The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.
-
-Following strategies increase the number of tokens and should be reconsidered:
-
-- case insensitivity
-- optional underscores in keywords (e.g. `END_IF` == `ENDIF`)
-- unrolled tokens instead of grouping tokens (e.g. `KEYWORD_TRUE` & `KEYWORD_FALSE` instead of `KEYWORD_BOOL`)
-- etc.
-
 ## Parser
 
 The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way.

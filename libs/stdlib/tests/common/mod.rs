@@ -572,15 +572,18 @@ pub fn compile_with_native<T: Compilable>(context: &CodegenContext, source: T) -
         ("E_REAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_REAL) as usize),
         ("E_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_LREAL) as usize),
     ];
+
     let module = compile(context, source);
-    #[cfg(feature = "debug")]
-    module.print_to_stderr();
+    log::debug!("{}", module.persist_to_string());
+
     for (fn_name, fn_addr) in functions {
         module.add_global_function_mapping(fn_name, fn_addr);
     }
+
     for (var_name, var_address) in variables {
         module.add_global_variable_mapping(var_name, var_address);
     }
+
     module
 }
 

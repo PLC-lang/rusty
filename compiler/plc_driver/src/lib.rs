@@ -17,7 +17,6 @@ use std::{
 
 use cli::CompileParameters;
 use diagnostics::{Diagnostic, Diagnostician};
-use log::{debug, info};
 use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -78,17 +77,17 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
     if let Some(location) = &location {
-        debug!("PROJECT_ROOT={}", location.to_string_lossy());
+        log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
         env::set_var("PROJECT_ROOT", location);
     }
     let build_location = compile_parameters.get_build_location();
     if let Some(location) = &build_location {
-        debug!("BUILD_LOCATION={}", location.to_string_lossy());
+        log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
         env::set_var("BUILD_LOCATION", location);
     }
     let lib_location = compile_parameters.get_lib_location();
     if let Some(location) = &lib_location {
-        debug!("LIB_LOCATION={}", location.to_string_lossy());
+        log::debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
     let id_provider = IdProvider::default();
@@ -101,7 +100,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     //Set the global thread count
     let thread_pool = rayon::ThreadPoolBuilder::new();
     let global_pool = if let Some(Threads::Fix(threads)) = compile_parameters.threads {
-        info!("Using {threads} parallel threads");
+        log::info!("Using {threads} parallel threads");
         thread_pool.num_threads(threads)
     } else {
         thread_pool
@@ -109,7 +108,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     .build_global();
     if let Err(err) = global_pool {
         // Ignore the error here as the global threadpool might have been initialized
-        info!("{err}")
+        log::info!("{err}")
     }
 
     // 1 : Parse
@@ -160,7 +159,7 @@ fn generate(
         debug_level: compile_parameters.debug_level(),
     };
     let res = if compile_parameters.single_module {
-        info!("Using single module mode");
+        log::info!("Using single module mode");
         annotated_project.codegen_single_module(compile_options, &compile_parameters.target)?
     } else {
         annotated_project.codegen(compile_options, &compile_parameters.target)?
