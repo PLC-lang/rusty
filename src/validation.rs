@@ -170,6 +170,8 @@ pub fn validate_array_assignment<T: AnnotationMap>(
                 let lt = context.annotations.get_type_or_void(left, context.index).get_type_information();
                 let rt = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
+                // For initializers we expect either an array, an expression list (`arr := (1, 2, 3,...)`) or
+                // a multiplied statement (`arr := 32(0)`), anything else we can assume to be incorrect
                 if lt.is_array()
                     && !rt.is_array()
                     && !right.is_expression_list()
@@ -180,6 +182,7 @@ pub fn validate_array_assignment<T: AnnotationMap>(
                 }
             }
 
+            // For example visit all expressions in `arr : ARRAY[...] OF myStruct := ((...), (...))`
             AstStatement::ExpressionList { expressions, .. } => {
                 validate_array_assignment(validator, expressions, context);
             }
