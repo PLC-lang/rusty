@@ -4135,9 +4135,9 @@ fn override_is_resolved() {
     let method_call = &unit.implementations[5].statements[0];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
-            Some(&StatementAnnotation::Function { 
-                return_type: "INT".to_string(), 
-                qualified_name: "cls2.foo".to_string(), 
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls2.foo".to_string(),
                 call_name: None,
             }),
             annotations.get(operator)
@@ -4146,9 +4146,9 @@ fn override_is_resolved() {
     let method_call = &unit.implementations[5].statements[1];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
-            Some(&StatementAnnotation::Function { 
-                return_type: "INT".to_string(), 
-                qualified_name: "cls.bar".to_string(), 
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls.bar".to_string(),
                 call_name: None,
             }),
             annotations.get(operator)
@@ -4194,9 +4194,9 @@ fn override_in_grandparent_is_resolved() {
     let method_call = &unit.implementations[7].statements[0];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
-            Some(&StatementAnnotation::Function { 
-                return_type: "INT".to_string(), 
-                qualified_name: "cls2.foo".to_string(), 
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls2.foo".to_string(),
                 call_name: None,
             }),
             annotations.get(operator)
@@ -4205,9 +4205,9 @@ fn override_in_grandparent_is_resolved() {
     let method_call = &unit.implementations[7].statements[1];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
-            Some(&StatementAnnotation::Function { 
-                return_type: "INT".to_string(), 
-                qualified_name: "cls.bar".to_string(), 
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls.bar".to_string(),
                 call_name: None,
             }),
             annotations.get(operator)
@@ -4237,28 +4237,32 @@ fn annotate_variable_in_parent_class() {
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
- 
-    if let AstStatement::Assignment { right, .. } =  &unit.implementations[1].statements[1] {
+
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[1].statements[1] {
         let annotation = annotations.get(right);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls1.LIGHT".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[1].statements[1] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[1].statements[1] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls2.Light2".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls2.Light2".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
 }
 
@@ -4283,16 +4287,18 @@ fn annotate_variable_in_grandparent_class() {
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[2].statements[0] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[0] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls0.LIGHT".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
 }
 
@@ -4324,16 +4330,18 @@ fn annotate_variable_in_field() {
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[3].statements[0] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[3].statements[0] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls0.LIGHT".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
 }
 
@@ -4377,59 +4385,69 @@ fn annotate_method_in_super() {
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[2].statements[0] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[0] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls0.LIGHT".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[2].statements[1] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[1] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls1.LIGHT1".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT1".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[4].statements[0] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[0] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls0.LIGHT".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[4].statements[1] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[1] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls1.LIGHT1".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT1".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
-    if let AstStatement::Assignment { left, .. } =  &unit.implementations[4].statements[2] {
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[2] {
         let annotation = annotations.get(left);
-        assert_eq!(&StatementAnnotation::Variable { 
-            resulting_type: "BOOL".to_string(), 
-            qualified_name: "cls2.LIGHT2".to_string(), 
-            constant: false, 
-            argument_type: ArgumentType::ByVal(VariableType::Local,), 
-            is_auto_deref: false, 
-        }, 
-        annotation.unwrap());
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls2.LIGHT2".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
     }
 }

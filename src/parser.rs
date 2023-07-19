@@ -153,10 +153,9 @@ fn parse_pou(
         KeywordEndClass,
     ];
     let pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
-        // parse polymorphism mode for all pou types 
+        // parse polymorphism mode for all pou types
         // check in validator if pou type allows polymorphism
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
-       
 
         let (name, name_location) =
             parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceRange::undefined())); // parse POU name
@@ -176,7 +175,8 @@ fn parse_pou(
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
-            let allowed_var_types = vec![KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+            let allowed_var_types =
+                vec![KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
             while allowed_var_types.contains(&lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
@@ -196,9 +196,9 @@ fn parse_pou(
                     implementations.push(implementation);
                 }
             }
-            
+
             // a class may not contain an implementation
-            // check in validator 
+            // check in validator
             implementations.push(parse_implementation(
                 lexer,
                 linkage,
@@ -208,7 +208,7 @@ fn parse_pou(
                 !generics.is_empty(),
                 name_location.clone(),
             ));
-        
+
             let mut pous = vec![Pou {
                 name,
                 pou_type,

@@ -1240,11 +1240,7 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
-                            || {
-                                self.index
-                                    .find_method(qualifier, name)
-                                    .map(|it| it.into())
-                            },
+                            || self.index.find_method(qualifier, name).map(|it| it.into()),
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
                 } else {
@@ -1284,7 +1280,6 @@ impl<'i> TypeAnnotator<'i> {
                                         .find_pou(format!("{qualifier}.{name}").as_str())
                                         .map(StatementAnnotation::from)
                                 })
-                               
                         })
                         .or_else(|| {
                             // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
@@ -1307,7 +1302,6 @@ impl<'i> TypeAnnotator<'i> {
                                 .find_global_variable(name)
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                         })
-                      
                 };
                 if let Some(annotation) = annotation {
                     self.annotate(statement, annotation);

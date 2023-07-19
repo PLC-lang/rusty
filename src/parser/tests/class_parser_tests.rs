@@ -25,7 +25,7 @@ fn simple_class_can_be_parsed() {
 
     assert_eq!(class.name, "MyClass");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
-    
+
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 }
@@ -40,7 +40,7 @@ fn simple_class2_can_be_parsed() {
 
     assert_eq!(class.name, "MyClass2");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Final));
-    
+
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 }
@@ -107,7 +107,6 @@ fn two_methods_can_be_parsed() {
     let method2 = &unit.implementations[1];
     assert_eq!(method2.name, "MyClass.otherMethod");
     assert_eq!(method2.access, Some(AccessModifier::Protected));
-
 }
 
 #[test]

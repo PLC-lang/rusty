@@ -571,8 +571,9 @@ impl PouIndexEntry {
     /// returns the super class of this pou if supported
     pub fn get_super_class(&self) -> Option<String> {
         match self {
-            PouIndexEntry::Class { super_class, ..}
-            | PouIndexEntry::FunctionBlock { super_class, .. } => super_class.clone(),
+            PouIndexEntry::Class { super_class, .. } | PouIndexEntry::FunctionBlock { super_class, .. } => {
+                super_class.clone()
+            }
             _ => None,
         }
     }
@@ -1004,7 +1005,11 @@ impl Index {
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
-    pub fn find_local_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_local_member(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
             //check qualifier
             container_name
@@ -1015,16 +1020,15 @@ impl Index {
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
-    pub fn find_member(&self, container_name : &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name).or_else(||
+        self.find_local_member(container_name, variable_name).or_else(|| {
             if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
                 self.find_member(&class, variable_name)
             } else {
                 None
             }
-        )
-        
+        })
     }
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
@@ -1307,7 +1311,6 @@ impl Index {
             },
         );
     }
-
 
     pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
         self.pous.get(&pou_name.to_lowercase())

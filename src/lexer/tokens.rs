@@ -34,7 +34,7 @@ pub enum Token {
 
     #[token("EXTENDS", ignore(case))]
     KeywordExtends,
-    
+
     #[token("VAR_INPUT", ignore(case))]
     #[token("VARINPUT", ignore(case))]
     KeywordVarInput,
