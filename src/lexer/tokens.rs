@@ -32,6 +32,9 @@ pub enum Token {
     #[token("ENDCLASS", ignore(case))]
     KeywordEndClass,
 
+    #[token("EXTENDS", ignore(case))]
+    KeywordExtends,
+    
     #[token("VAR_INPUT", ignore(case))]
     #[token("VARINPUT", ignore(case))]
     KeywordVarInput,

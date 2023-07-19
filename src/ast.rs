@@ -40,6 +40,7 @@ pub struct Pou {
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
+    pub super_class: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

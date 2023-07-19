@@ -382,6 +382,7 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     },
     Function {
         name: String,
@@ -397,6 +398,7 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     },
     Method {
         name: String,
@@ -443,12 +445,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class,
         }
     }
 
@@ -519,12 +523,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class,
         }
     }
 
@@ -559,6 +565,15 @@ impl PouIndexEntry {
             | PouIndexEntry::Method { name, .. }
             | PouIndexEntry::Action { name, .. }
             | PouIndexEntry::Class { name, .. } => name,
+        }
+    }
+
+    /// returns the super class of this pou if supported
+    pub fn get_super_class(&self) -> Option<String> {
+        match self {
+            PouIndexEntry::Class { super_class, ..}
+            | PouIndexEntry::FunctionBlock { super_class, .. } => super_class.clone(),
+            _ => None,
         }
     }
 
@@ -989,7 +1004,7 @@ impl Index {
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
-    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_local_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
             //check qualifier
             container_name
@@ -997,6 +1012,30 @@ impl Index {
                 .map(|p| &container_name[..p])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name))
         })
+    }
+
+    /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
+    pub fn find_member(&self, container_name : &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+        // Find pou in index
+        self.find_local_member(container_name, variable_name).or_else(||
+            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                self.find_member(&class, variable_name)
+            } else {
+                None
+            }
+        )
+        
+    }
+
+    /// Searches for method names in the given container, if not found, attempts to search for it in super class
+    pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
+        if let Some(local_method) = self.find_pou(format!("{container_name}.{method_name}").as_str()) {
+            Some(local_method)
+        } else if let Some(super_method) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            self.find_method(&super_method, method_name)
+        } else {
+            None
+        }
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1268,6 +1307,7 @@ impl Index {
             },
         );
     }
+
 
     pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
         self.pous.get(&pou_name.to_lowercase())

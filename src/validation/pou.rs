@@ -34,6 +34,23 @@ fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context:
     if pou.pou_type == PouType::Function {
         validate_function(validator, pou, context);
     };
+    if pou.pou_type == PouType::Class {
+        validate_class(validator, pou, context);
+    };
+}
+
+
+fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
+    let return_type = context.index.find_return_type(&pou.name);
+    // classes cannot have a return type
+    if return_type.is_none() {
+        return;
+    }
+    validator.push_diagnostic(Diagnostic::syntax_error("A class cannot have a return type", pou.name_location.to_owned()));
+
+    // NEED CHECKING
+    // var in/out/inout blocks are not allowed inside of class declaration
+    
 }
 
 fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {

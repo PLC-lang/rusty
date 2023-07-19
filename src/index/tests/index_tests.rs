@@ -1763,6 +1763,7 @@ fn a_program_pou_is_indexed() {
             linkage: LinkageType::Internal,
             instance_struct_name: "myFunctionBlock".into(),
             location: SymbolLocation { source_range: (139..154).into(), line_number: 7 },
+            super_class: None,
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1773,6 +1774,7 @@ fn a_program_pou_is_indexed() {
             linkage: LinkageType::Internal,
             instance_struct_name: "myClass".into(),
             location: SymbolLocation { source_range: (197..204).into(), line_number: 10 },
+            super_class: None,
         }),
         index.find_pou("myClass"),
     );

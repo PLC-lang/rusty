@@ -270,9 +270,9 @@ pub enum StatementAnnotation {
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
         qualified_name: String,
-        /// denotes wheter this variable is declared as a constant
+        /// denotes whether this variable is declared as a constant
         constant: bool,
-        /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
@@ -676,6 +676,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
+        //TODO dependency on super class
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
@@ -1241,7 +1242,7 @@ impl<'i> TypeAnnotator<'i> {
                         .map_or_else(
                             || {
                                 self.index
-                                    .find_pou(format!("{qualifier}.{name}").as_str())
+                                    .find_method(qualifier, name)
                                     .map(|it| it.into())
                             },
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
@@ -1267,6 +1268,7 @@ impl<'i> TypeAnnotator<'i> {
                                 })
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
+                                    //TODO find parent of super class to start the search
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
@@ -1282,6 +1284,7 @@ impl<'i> TypeAnnotator<'i> {
                                         .find_pou(format!("{qualifier}.{name}").as_str())
                                         .map(StatementAnnotation::from)
                                 })
+                               
                         })
                         .or_else(|| {
                             // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
@@ -1304,6 +1307,7 @@ impl<'i> TypeAnnotator<'i> {
                                 .find_global_variable(name)
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                         })
+                      
                 };
                 if let Some(annotation) = annotation {
                     self.annotate(statement, annotation);
