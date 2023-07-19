@@ -208,9 +208,8 @@ fn validate_qualified_reference<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     let mut iter = elements.iter().rev();
-    if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
-        iter.next().zip(iter.next())
-    {
+    let access = iter.next().zip(iter.next());
+    if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) = access {
         let target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         if target_type.is_int() {
@@ -229,6 +228,25 @@ fn validate_qualified_reference<T: AnnotationMap>(
                 access.get_bit_width(),
                 location.clone(),
             ))
+        }
+    } else {
+        let Some((reference, other)) = access else {
+            return
+        };
+        if !context.annotations.has_type_annotation(reference) {
+            let AstStatement::Reference { name, location, .. } = reference else {
+                return
+            };
+
+            let other_type = context.annotations.get_type(other, context.index);
+            if other_type.is_some_and(|it| it.is_struct()) || other_type.is_none() {
+                return;
+            }
+
+            validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                message: format!("If you meant to access a bit, use %X{name} instead.",),
+                range: vec![location.clone()],
+            });
         }
     }
 }
