@@ -4,7 +4,9 @@ use insta::{assert_debug_snapshot, assert_snapshot};
 
 use crate::{
     ast::{
-        self, flatten_expression_list, Array, AstLiteral, AstStatement, DataType, Pou, UserTypeDeclaration,
+        self,
+        control_statements::{AstControlStatement, CaseStatement},
+        flatten_expression_list, Array, AstLiteral, AstStatement, DataType, Pou, UserTypeDeclaration,
     },
     index::{ArgumentType, Index, VariableType},
     lexer::IdProvider,
@@ -2174,7 +2176,10 @@ fn case_conditions_type_hint_test() {
     // THEN we want the case-bocks (1:, 2: , 3:) to have the type hint of the case-selector (x) - in this case BYTE
 
     //check if 'CASE x' got the type BYTE
-    if let AstStatement::CaseStatement { selector, case_blocks, .. } = &unit.implementations[0].statements[0]
+    if let AstStatement::ControlStatement {
+        kind: AstControlStatement::Case(CaseStatement { selector, case_blocks, .. }),
+        ..
+    } = &unit.implementations[0].statements[0]
     {
         let type_of_x = annotations.get_type(selector, &index).unwrap();
 
