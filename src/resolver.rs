@@ -17,9 +17,9 @@ pub mod generics;
 
 use crate::{
     ast::{
-        self, create_not_expression, create_or_expression, flatten_expression_list, Array, AstId, AstLiteral,
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue, TypeNature,
-        UserTypeDeclaration, Variable,
+        self, control_statements::AstControlStatement, flatten_expression_list, Array, AstFactory, AstId,
+        AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue,
+        TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -194,17 +194,17 @@ impl TypeAnnotator<'_> {
         let mut ctx = ctx.clone();
         let call_statement = match operator {
             // a <> b expression is handled as Not(Equal(a,b))
-            Operator::NotEqual => create_not_expression(
+            Operator::NotEqual => AstFactory::create_not_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 statement.get_location(),
             ),
             // a <= b expression is handled as a = b OR a < b
-            Operator::LessOrEqual => create_or_expression(
+            Operator::LessOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Less, left, right, statement),
             ),
             // a >= b expression is handled as a = b OR a > b
-            Operator::GreaterOrEqual => create_or_expression(
+            Operator::GreaterOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(
                     &mut ctx,
@@ -243,7 +243,7 @@ impl TypeAnnotator<'_> {
 
         cmp_function_name
             .map(|name| {
-                crate::ast::create_call_to(
+                AstFactory::create_call_to(
                     name,
                     vec![left.clone(), right.clone()],
                     ctx.id_provider.next_id(),
@@ -701,7 +701,7 @@ impl<'i> TypeAnnotator<'i> {
                     .index
                     .find_range_check_implementation_for(expected_type.get_type_information())
                     .map(|f| {
-                        crate::ast::create_call_to_check_function_ast(
+                        AstFactory::create_call_to_check_function_ast(
                             f.get_call_name().to_string(),
                             right_side.clone(),
                             sub_range.clone(),
@@ -991,50 +991,49 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::If(stmt), .. } => {
+                stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|e| self.visit_statement(ctx, e));
+                stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
-                visit_all_statements!(self, ctx, counter, start, end);
-                if let Some(by_step) = by_step {
+            AstStatement::ControlStatement { kind: AstControlStatement::ForLoop(stmt), .. } => {
+                visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
+                if let Some(by_step) = &stmt.by_step {
                     self.visit_statement(ctx, by_step);
                 }
                 //Hint annotate start, end and step with the counter's real type
-                if let Some(type_name) =
-                    self.annotation_map.get_type(counter, self.index).map(typesystem::DataType::get_name)
+                if let Some(type_name) = self
+                    .annotation_map
+                    .get_type(&stmt.counter, self.index)
+                    .map(typesystem::DataType::get_name)
                 {
                     let annotation = StatementAnnotation::value(type_name);
-                    self.annotation_map.annotate_type_hint(start, annotation.clone());
-                    self.annotation_map.annotate_type_hint(end, annotation.clone());
-                    if let Some(by_step) = by_step {
+                    self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
+                    self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
+                    if let Some(by_step) = &stmt.by_step {
                         self.annotation_map.annotate_type_hint(by_step, annotation);
                     }
                 }
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }
+            | AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.condition);
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.visit_statement(ctx, selector);
-                let selector_type = self.annotation_map.get_type(selector, self.index).cloned();
-                case_blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::Case(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.selector);
+                let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
+                stmt.case_blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     if let Some(selector_type) = &selector_type {
                         self.update_expected_types(selector_type, b.condition.as_ref());
                     }
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
             }
             AstStatement::CaseCondition { condition, .. } => self.visit_statement(ctx, condition),
             _ => {
