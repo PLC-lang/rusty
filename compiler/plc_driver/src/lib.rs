@@ -15,6 +15,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use clap::ErrorKind;
 use cli::CompileParameters;
 use diagnostics::{Diagnostic, Diagnostician};
 use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
@@ -72,7 +73,20 @@ pub struct LinkOptions {
 
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), Diagnostic> {
     //Parse the arguments
-    let compile_parameters = CompileParameters::parse(args)?;
+    let compile_parameters = match CompileParameters::parse(args) {
+        Ok(params) => params,
+        Err(error) => {
+            println!("{}", error);
+            match error.kind {
+                ErrorKind::DisplayHelp => {
+                    std::process::exit(0);
+                }
+                _ => {
+                    std::process::exit(1);
+                }
+            }
+        }
+    };
     let project = get_project(&compile_parameters)?;
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
