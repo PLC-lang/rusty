@@ -48,7 +48,8 @@ fn main() -> anyhow::Result<()> {
 
 fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
     let (work_dir, compiler) = prepare()?;
-    //Create tasks
+
+    // Create tasks
     let mut tasks: Vec<Box<dyn Task>> = vec![];
     match &action {
         Some(Action::Compile { directory }) => {
@@ -62,6 +63,7 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
                 tasks.push(Box::new(task));
             }
         }
+
         Some(Action::Run { directory }) => {
             for opt in ["none", "less", "default", "aggressive"] {
                 let task = Run {
@@ -75,20 +77,22 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
                 tasks.push(Box::new(task));
             }
         }
+
         None => {
             let path = work_dir.path();
             tasks.extend(task::get_default_tasks(path, &compiler)?)
         }
     };
-    //Run benchmarks
+
+    // Run benchmarks
     let mut data = vec![];
     for mut task in tasks {
         println!("Running benchmark for {}", task.get_name());
         let res = task.benchmark(3)?;
-        //Report
-        data.push((task.get_name(), res));
+        data.push((task.get_name(), res, task.get_duration_format()));
     }
-    //Reprort data
+
+    // Report data
     let report = BenchmarkReport::new(data)?;
     let reporter = reporter::from_type(reporter);
     reporter.persist(report)?;
@@ -98,24 +102,27 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
 fn prepare() -> Result<(TempDir, PathBuf)> {
     let temp = tempdir()?;
     let sh = Shell::new()?;
-    cmd!(&sh, "cargo build --release --workspace").run()?;
-    //Todo convert to xtask
+
+    // TODO: convert to xtask
     // Build the standard libs and copy them to the output directory
+    cmd!(&sh, "cargo build --release --workspace").run()?;
     cmd!(&sh, "./scripts/build.sh --release --package").run()?;
-    // Copy the standard lib to the release target
     cmd!(&sh, "rm -rf target/release/stdlib").run()?;
     cmd!(&sh, "mv output target/release/stdlib").run()?;
-    //Get rusty path
+
+    // Get rusty path
     let compile_dir = std::env::current_dir()?.join("target").join("release");
     let plc = std::env::current_dir()?.join("target").join("release").join("plc");
     if !plc.exists() {
         anyhow::bail!("Could not find compiler, did you run cargo build --release?")
     }
-    //Export the standard lib location
+
+    // Export the standard lib location
     let lib_loc = compile_dir.join("stdlib");
     if !(lib_loc.exists()) {
         anyhow::bail!("Could not find stdlib, did you run the standard function compile script?")
     }
+
     std::env::set_var("STDLIBLOC", &lib_loc);
     Ok((temp, plc))
 }

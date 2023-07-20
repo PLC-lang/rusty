@@ -2943,6 +2943,7 @@ dependencies = [
  "anyhow",
  "async-std",
  "clap 4.3.10",
+ "rusty",
  "serde",
  "serde_json",
  "sqlx",
