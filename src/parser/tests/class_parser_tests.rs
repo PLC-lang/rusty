@@ -30,6 +30,21 @@ fn extends_can_be_parsed() {
 }
 
 #[test]
+fn simple_class_can_be_parsed() {
+    let src = "CLASS ABSTRACT MyClass END_CLASS";
+    let unit = parse(src).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+
+    assert_eq!(class.name, "MyClass");
+    assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
+}
+
+#[test]
 fn simple_class2_can_be_parsed() {
     let src = "CLASS FINAL MyClass2 END_CLASS";
     let unit = parse(src).0;
