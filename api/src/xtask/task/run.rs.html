@@ -49,11 +49,19 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::time::Instant;
 
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>xshell::Shell;
 
+<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationFormat;
 <span class="kw">use </span><span class="kw">crate</span>::task::Task;
 <span class="kw">use </span>xshell::cmd;
 
@@ -84,6 +92,7 @@
 
     <span class="kw">fn </span>prepare(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>shell = Shell::new()<span class="question-mark">?</span>;
+
         <span class="comment">//Compile the application with the correct optimization flag
         </span><span class="kw">let </span>command = <span class="kw-2">&amp;</span><span class="self">self</span>.compiler;
         <span class="kw">let </span>opt = <span class="kw-2">&amp;</span><span class="self">self</span>.optimization;
@@ -97,7 +106,12 @@
         <span class="kw">if </span>!output.exists() {
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Output does not exist&quot;</span>);
         }
+
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn </span>get_duration_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reporter::DurationFormat {
+        DurationFormat::Millis
     }
 }
 </code></pre></div>

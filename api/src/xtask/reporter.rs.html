@@ -100,6 +100,13 @@
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre><pre class="rust"><code><span class="kw">use </span>clap::ValueEnum;
 <span class="kw">use </span>std::{
     collections::BTreeMap,
@@ -148,11 +155,11 @@
     <span class="doccomment">/// Commit hash on which the benchmark ran.
     </span><span class="kw">pub </span>commit: String,
 
-    <span class="doccomment">/// Collected benchmarks, where the first tuple element describes the benchmark and the second
-    /// element is its raw wall-time value in milliseconds.
-    /// For example one such element might be `(&quot;oscat/aggressive&quot;, 8000)`, indicating an oscat build
-    /// with the `aggressive` optimization flag took 8000ms.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) metrics: BTreeMap&lt;String, u64&gt;,
+    <span class="doccomment">/// Collected benchmarks, where the first tuple element describes the benchmark and the second element
+    /// is its raw wall-time value in milli- or microseconds, however it is defined in [`DurationFormat`].
+    /// For example one such element might be `(&quot;oscat/aggressive&quot;, (8000, DurationFormat::Millis))`
+    /// indicating that compiling oscat with the `aggressive` optimization flag took 8000 milliseconds.
+    </span><span class="kw">pub </span>metrics: BTreeMap&lt;String, (Duration, DurationFormat)&gt;,
 }
 
 <span class="attr">#[derive(Serialize, Debug)]
@@ -176,12 +183,19 @@
     }
 }
 
+<span class="attr">#[derive(Serialize)]
+</span><span class="kw">pub enum </span>DurationFormat {
+    Millis,
+    Micros,
+}
+
 <span class="kw">impl </span>BenchmarkReport {
-    <span class="kw">pub fn </span>new(data: Vec&lt;(String, Duration)&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">pub fn </span>new(data: Vec&lt;(String, Duration, DurationFormat)&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>metrics = BTreeMap::new();
-        <span class="kw">for </span>(name, duration) <span class="kw">in </span>data {
-            metrics.insert(name, duration.as_millis() <span class="kw">as </span>u64);
+        <span class="kw">for </span>(name, duration, format) <span class="kw">in </span>data {
+            metrics.insert(name, (duration, format));
         }
+
         <span class="kw">let </span>sh = Shell::new()<span class="question-mark">?</span>;
         <span class="kw">let </span>commit = <span class="macro">cmd!</span>(sh, <span class="string">&quot;git rev-parse HEAD&quot;</span>).read()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(BenchmarkReport {

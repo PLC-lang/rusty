@@ -115,6 +115,6 @@ var sourcesIndex = JSON.parse('{\
 "which":["",[],["checker.rs","error.rs","finder.rs","lib.rs"]],\
 "xshell":["",[],["error.rs","lib.rs"]],\
 "xshell_macros":["",[],["lib.rs"]],\
-"xtask":["",[["reporter",[],["git.rs","sysout.rs"]],["task",[],["compile.rs","run.rs"]]],["main.rs","reporter.rs","task.rs"]]\
+"xtask":["",[["reporter",[],["git.rs","sysout.rs"]],["task",[],["compile.rs","lexer.rs","run.rs"]]],["main.rs","reporter.rs","task.rs"]]\
 }');
 createSourceSidebar();

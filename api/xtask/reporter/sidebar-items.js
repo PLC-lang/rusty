@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ReporterType",""]],"fn":[["from_type",""]],"mod":[["git",""],["sysout",""]],"struct":[["BenchmarkReport",""],["Host",""]],"trait":[["Reporter",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["DurationFormat",""],["ReporterType",""]],"fn":[["from_type",""]],"mod":[["git",""],["sysout",""]],"struct":[["BenchmarkReport",""],["Host",""]],"trait":[["Reporter",""]]};
