@@ -310,7 +310,7 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
 }
 
 fn parse_super_class(lexer: &mut ParseSession, pou_type: &PouType) -> Option<String> {
-    if matches!(pou_type, PouType::Class | PouType::FunctionBlock) {
+    if matches!(pou_type, PouType::Class | PouType::FunctionBlock | PouType::Program | PouType::Function) {
         if lexer.try_consume(&KeywordExtends) {
             let (name, _) = parse_identifier(lexer)?;
             Some(name)
