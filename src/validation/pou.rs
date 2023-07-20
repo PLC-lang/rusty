@@ -51,10 +51,10 @@ fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context:
 fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
     // var in/out/inout blocks are not allowed inside of class declaration
     if pou.variable_blocks.iter().any(|it| {
-        it.variable_block_type == VariableBlockType::InOut
-            || it.variable_block_type == VariableBlockType::Input(crate::ast::ArgumentProperty::ByRef)
-            || it.variable_block_type == VariableBlockType::Input(crate::ast::ArgumentProperty::ByVal)
-            || it.variable_block_type == VariableBlockType::Output
+        matches!(
+            it.variable_block_type,
+            VariableBlockType::InOut | VariableBlockType::Input(_) | VariableBlockType::Output
+        )
     }) {
         validator.push_diagnostic(Diagnostic::syntax_error(
             "A class cannot have a var in/out/inout blocks",
@@ -62,15 +62,13 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         ));
     }
 
-    let return_type = context.index.find_return_type(&pou.name);
     // classes cannot have a return type
-    if return_type.is_none() {
-        return;
+    if context.index.find_return_type(&pou.name).is_some() {
+        validator.push_diagnostic(Diagnostic::syntax_error(
+            "A class cannot have a return type",
+            pou.name_location.to_owned(),
+        ));
     }
-    validator.push_diagnostic(Diagnostic::syntax_error(
-        "A class cannot have a return type",
-        pou.name_location.to_owned(),
-    ));
 }
 
 fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {

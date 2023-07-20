@@ -16,18 +16,17 @@ fn simple_class_with_defaults_can_be_parsed() {
 }
 
 #[test]
-fn simple_class_can_be_parsed() {
-    let src = "CLASS ABSTRACT MyClass END_CLASS";
+fn extends_can_be_parsed() {
+    let src = "
+    CLASS MyClass 
+    END_CLASS
+    
+    CLASS MyClass2 EXTENDS MyClass
+    END_CLASS
+    ";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
-    assert_eq!(class.pou_type, PouType::Class);
-
-    assert_eq!(class.name, "MyClass");
-    assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
-
-    // classes have implementation because they are treated as other POUs
-    assert_eq!(unit.implementations.len(), 1);
+    assert_eq!(&unit.units[1].super_class.clone().unwrap(), "MyClass");
 }
 
 #[test]

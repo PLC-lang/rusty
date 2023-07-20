@@ -164,8 +164,7 @@ fn parse_pou(
 
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
-            // TODO: Parse EXTENDS specifier
-            let super_class = parse_super_class(lexer, &pou_type);
+            let super_class = parse_super_class(lexer);
             // TODO: Parse IMPLEMENTS specifier
 
             // parse an optional return type
@@ -309,14 +308,10 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
     }
 }
 
-fn parse_super_class(lexer: &mut ParseSession, pou_type: &PouType) -> Option<String> {
-    if matches!(pou_type, PouType::Class | PouType::FunctionBlock | PouType::Program | PouType::Function) {
-        if lexer.try_consume(&KeywordExtends) {
-            let (name, _) = parse_identifier(lexer)?;
-            Some(name)
-        } else {
-            None
-        }
+fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
+    if lexer.try_consume(&KeywordExtends) {
+        let (name, _) = parse_identifier(lexer)?;
+        Some(name)
     } else {
         None
     }

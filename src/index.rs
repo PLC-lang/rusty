@@ -445,14 +445,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SymbolLocation,
-        super_class: Option<String>,
+        super_class: Option<&str>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class,
+            super_class: super_class.map(|s| s.to_owned()),
         }
     }
 
@@ -569,10 +569,10 @@ impl PouIndexEntry {
     }
 
     /// returns the super class of this pou if supported
-    pub fn get_super_class(&self) -> Option<String> {
+    pub fn get_super_class(&self) -> Option<&str> {
         match self {
             PouIndexEntry::Class { super_class, .. } | PouIndexEntry::FunctionBlock { super_class, .. } => {
-                super_class.clone()
+                super_class.as_deref()
             }
             _ => None,
         }
@@ -1024,7 +1024,7 @@ impl Index {
         // Find pou in index
         self.find_local_member(container_name, variable_name).or_else(|| {
             if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                self.find_member(&class, variable_name)
+                self.find_member(class, variable_name)
             } else {
                 None
             }
@@ -1036,7 +1036,7 @@ impl Index {
         if let Some(local_method) = self.find_pou(format!("{container_name}.{method_name}").as_str()) {
             Some(local_method)
         } else if let Some(super_method) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-            self.find_method(&super_method, method_name)
+            self.find_method(super_method, method_name)
         } else {
             None
         }
