@@ -1,7 +1,13 @@
 use core::panic;
 
 use crate::{
-    assert_type_and_hint, ast::AstStatement, lexer::IdProvider, test_utils::tests::index_with_ids,
+    assert_type_and_hint,
+    ast::{
+        control_statements::{AstControlStatement, ForLoopStatement},
+        AstStatement,
+    },
+    lexer::IdProvider,
+    test_utils::tests::index_with_ids,
     TypeAnnotator,
 };
 
@@ -20,7 +26,11 @@ fn binary_expressions_resolves_types() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    if let AstStatement::ForLoopStatement { counter, start, end, by_step: Some(by_step), .. } = &statements[0]
+    if let AstStatement::ControlStatement {
+        kind:
+            AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step: Some(by_step), .. }),
+        ..
+    } = &statements[0]
     {
         assert_type_and_hint!(&annotations, &index, counter, "INT", None);
         assert_type_and_hint!(&annotations, &index, start, "DINT", Some("INT"));
