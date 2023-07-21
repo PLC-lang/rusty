@@ -1073,6 +1073,18 @@
 <a href="#1073" id="1073">1073</a>
 <a href="#1074" id="1074">1074</a>
 <a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::<span class="kw-2">*</span>,
@@ -1836,12 +1848,24 @@
     <span class="kw">let </span>size = parse_string_size_expression(lexer);
     <span class="kw">let </span>end = lexer.last_range.end;
     <span class="kw">let </span>location: SourceRange = (start..end).into();
-    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
-        data_type: DataType::StringType { name, is_wide, size: <span class="prelude-val">Some</span>(size) },
-        location: location.clone(),
-        scope: lexer.scope.clone(),
-    })
-    .or(<span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
+
+    <span class="kw">match </span>(size, <span class="kw-2">&amp;</span>name) {
+        (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StringType { name, is_wide, size: <span class="prelude-val">Some</span>(size) },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(name)) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::SubRangeType {
+                name: <span class="prelude-val">Some</span>(name.into()),
+                referenced_type: text,
+                bounds: <span class="prelude-val">None</span>,
+            },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
+    }
     .zip(<span class="prelude-val">Some</span>(lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment).then(|| parse_expression(lexer))))
 }
 
