@@ -1259,12 +1259,20 @@ impl<'i> TypeAnnotator<'i> {
                                     if ctx.is_call & (m.get_name() == qualifier) {
                                         // return `None` because this would be foo.foo pointing to the function return
                                         // we need the POU
-                                        None
-                                    } else {
-                                        Some(m)
+                                        return None;
                                     }
+
+                                    // If we're dealing with a call statement, check if the name resolves to
+                                    // a POU first before returning the POU-local variable.
+                                    // See also https://github.com/PLC-lang/rusty/issues/894
+                                    if ctx.is_call {
+                                        if let Some(pou) = self.index.find_pou(&name) {
+                                            return Some(StatementAnnotation::from(pou));
+                                        }
+                                    }
+
+                                    Some(to_variable_annotation(m, self.index, ctx.constant))
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
