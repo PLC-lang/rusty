@@ -64,41 +64,40 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            if let Some(var_type_name) = var.data_type_declaration.get_name() {
-                let type_name = if block_type.is_by_ref() {
-                    //register a pointer type for argument
-                    register_byref_pointer_type_for(index, var_type_name)
-                } else {
-                    var_type_name.to_string()
-                };
-                let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    type_name.as_str(),
-                    Some(pou.name.clone()),
-                );
-
-                let binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
-
-                let entry = index.register_member_variable(
-                    MemberInfo {
-                        container_name: &pou.name,
-                        variable_name: &var.name,
-                        variable_linkage: block_type,
-                        variable_type_name: &type_name,
-                        is_constant: block.constant,
-                        binding,
-                        varargs,
-                    },
-                    initial_value,
-                    symbol_location_factory.create_symbol_location(&var.location),
-                    count,
-                );
-                members.push(entry);
-                count += 1;
+            let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
+            let type_name = if block_type.is_by_ref() {
+                //register a pointer type for argument
+                register_byref_pointer_type_for(index, var_type_name)
+            } else {
+                var_type_name.to_string()
             };
+            let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
+                var.initializer.clone(),
+                type_name.as_str(),
+                Some(pou.name.clone()),
+            );
+
+            let binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
+
+            let entry = index.register_member_variable(
+                MemberInfo {
+                    container_name: &pou.name,
+                    variable_name: &var.name,
+                    variable_linkage: block_type,
+                    variable_type_name: &type_name,
+                    is_constant: block.constant,
+                    binding,
+                    varargs,
+                },
+                initial_value,
+                symbol_location_factory.create_symbol_location(&var.location),
+                count,
+            );
+            members.push(entry);
+            count += 1;
         }
     }
 

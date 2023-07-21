@@ -652,11 +652,9 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs { referenced_type, .. } => referenced_type
-                .as_ref()
-                .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
-                // .or(Some(todo!("VOID_TYPE"))),
-                .or(Some("VOID")),
+            DataType::VarArgs { referenced_type, .. } => {
+                referenced_type.as_ref().and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
+            }
         }
     }
 
