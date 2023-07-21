@@ -46,11 +46,11 @@ pub struct BenchmarkReport {
     /// Commit hash on which the benchmark ran.
     pub commit: String,
 
-    /// Collected benchmarks, where the first tuple element describes the benchmark and the second
-    /// element is its raw wall-time value in milliseconds.
-    /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
-    /// with the `aggressive` optimization flag took 8000ms.
-    pub(crate) metrics: BTreeMap<String, u64>,
+    /// Collected benchmarks, where the first tuple element describes the benchmark and the second element
+    /// is its raw wall-time value in milli- or microseconds, however it is defined in [`DurationFormat`].
+    /// For example one such element might be `("oscat/aggressive", (8000, DurationFormat::Millis))`
+    /// indicating that compiling oscat with the `aggressive` optimization flag took 8000 milliseconds.
+    pub metrics: BTreeMap<String, (Duration, DurationFormat)>,
 }
 
 #[derive(Serialize, Debug)]
@@ -74,12 +74,19 @@ impl Host {
     }
 }
 
+#[derive(Serialize)]
+pub enum DurationFormat {
+    Millis,
+    Micros,
+}
+
 impl BenchmarkReport {
-    pub fn new(data: Vec<(String, Duration)>) -> Result<Self> {
+    pub fn new(data: Vec<(String, Duration, DurationFormat)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
-        for (name, duration) in data {
-            metrics.insert(name, duration.as_millis() as u64);
+        for (name, duration, format) in data {
+            metrics.insert(name, (duration, format));
         }
+
         let sh = Shell::new()?;
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;
         Ok(BenchmarkReport {

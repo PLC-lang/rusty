@@ -2030,3 +2030,27 @@ fn internal_vla_struct_type_is_indexed_correctly() {
         }
     );
 }
+
+#[test]
+fn string_type_alias_without_size_is_indexed() {
+    let (_, index) = index(
+        r"
+            TYPE MyString : STRING; END_TYPE
+            TYPE MyWideString: WSTRING; END_TYPE
+        ",
+    );
+
+    let my_alias = index.get_type("MyString").unwrap();
+    assert_eq!("MyString", my_alias.get_name());
+
+    let my_alias = "MyString";
+    let dt = index.find_effective_type_by_name(my_alias).unwrap();
+    assert_eq!("STRING", dt.get_name());
+
+    let my_alias = index.get_type("MyWideString").unwrap();
+    assert_eq!("MyWideString", my_alias.get_name());
+
+    let my_alias = "MyWideString";
+    let dt = index.find_effective_type_by_name(my_alias).unwrap();
+    assert_eq!("WSTRING", dt.get_name());
+}

@@ -4,8 +4,7 @@ use crate::{ast::DataTypeDeclaration, lexer::IdProvider, typesystem};
 
 use super::{
     super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
-    create_binary_expression, create_cast_statement, create_literal_int, create_reference,
-    flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
+    flatten_expression_list, AstFactory, AstLiteral, AstStatement, DataType, Operator, Pou, SourceRange,
 };
 use std::{collections::HashMap, vec};
 
@@ -143,15 +142,15 @@ fn build_enum_initializer(
 ) -> AstStatement {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
-        let enum_ref = create_reference(last_element, location, id_provider.next_id());
-        create_binary_expression(
-            create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+        let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        AstFactory::create_binary_expression(
+            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
-            create_literal_int(1, location, id_provider.next_id()),
+            AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )
     } else {
-        create_literal_int(0, location, id_provider.next_id())
+        AstStatement::new_literal(AstLiteral::new_integer(0), id_provider.next_id(), location.clone())
     }
 }
 
