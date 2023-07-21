@@ -13,11 +13,11 @@ impl super::Reporter for SqlReporter {
 
 impl SqlReporter {
     async fn persist_to_db(&self, report: super::BenchmarkReport) -> anyhow::Result<()> {
-        //Connect to db
+        // Connect to DB
         let db_url = std::env::var("DATABASE_URL")?;
         let db = MySqlPoolOptions::new().connect(&db_url).await?;
 
-        // get host id
+        // Get host ID
         let host = sqlx::query_as!(
             Host,
             "SELECT id, cpu, os, memory as mem from Host WHERE cpu = ? AND os = ? AND memory = ?",
@@ -28,13 +28,13 @@ impl SqlReporter {
         .fetch_optional(&db)
         .await?;
 
-        //Start transaction
+        // Start transaction
         let trans = db.begin().await?;
 
         let id = match host {
             Some(Host { id, .. }) => id,
             _ => {
-                //Commit new host and get its id
+                // Commit new host and get its id
                 sqlx::query!(
                     "INSERT INTO Host (cpu, os, memory) VALUES (?, ?, ?)",
                     &report.host.cpu,
@@ -47,8 +47,7 @@ impl SqlReporter {
             }
         };
 
-        //Commit the benchmark
-
+        // Commit the benchmark
         sqlx::query!(
             "INSERT INTO Report (host_id, timestamp, commit) VALUES (?, ?, ?)",
             id,
@@ -57,18 +56,18 @@ impl SqlReporter {
         )
         .execute(&db)
         .await?;
-        let id = sqlx::query!("SELECT id from Report ORDER BY id DESC LIMIT 1").fetch_one(&db).await?.id;
 
+        let id = sqlx::query!("SELECT id from Report ORDER BY id DESC LIMIT 1").fetch_one(&db).await?.id;
         for (name, time) in report.metrics {
             sqlx::query!("INSERT INTO Metric (report_id, name, time) VALUES (?, ?, ?)", id, &name, &time)
                 .execute(&db)
                 .await?;
         }
 
+        // Push data
         trans.commit().await?;
         db.close().await;
 
-        //Push data
         Ok(())
     }
 }
