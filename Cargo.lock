@@ -1668,10 +1668,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "plc_names"
-version = "0.1.0"
-
-[[package]]
 name = "plc_project"
 version = "0.1.0"
 dependencies = [
@@ -1693,6 +1689,10 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
 ]
+
+[[package]]
+name = "plc_util"
+version = "0.1.0"
 
 [[package]]
 name = "polling"

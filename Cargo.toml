@@ -63,7 +63,7 @@ members = [
 	"compiler/plc_diagnostics",
 	"compiler/plc_project",
 	"compiler/plc_source",
-	"compiler/plc_names",
+	"compiler/plc_util",
 	"rusty-derive",
 ]
 default-members = [".", "compiler/plc_driver"]
