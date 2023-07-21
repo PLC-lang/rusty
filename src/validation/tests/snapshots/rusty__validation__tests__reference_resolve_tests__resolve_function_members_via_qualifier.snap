@@ -3,9 +3,6 @@ source: src/validation/tests/reference_resolve_tests.rs
 expression: res
 ---
 SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 181..182 }], err_no: reference__unresolved }
-ImprovementSuggestion { message: "If you meant to access a bit, use %Xa instead.", range: [SourceRange { range: 181..182 }] }
 SyntaxError { message: "Could not resolve reference to b", range: [SourceRange { range: 217..218 }], err_no: reference__unresolved }
-ImprovementSuggestion { message: "If you meant to access a bit, use %Xb instead.", range: [SourceRange { range: 217..218 }] }
 SyntaxError { message: "Could not resolve reference to c", range: [SourceRange { range: 253..254 }], err_no: reference__unresolved }
-ImprovementSuggestion { message: "If you meant to access a bit, use %Xc instead.", range: [SourceRange { range: 253..254 }] }
 

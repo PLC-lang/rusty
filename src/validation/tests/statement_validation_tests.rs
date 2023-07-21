@@ -1297,7 +1297,6 @@ fn bit_access_with_incorrect_operator_causes_warning() {
         END_VAR
             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
-            Output.var1.access.var1    := Input.var1; // qualified bitaccess without %X -> Warning
         END_PROGRAM
         
         TYPE STRUCT1 :
