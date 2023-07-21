@@ -111,7 +111,7 @@
 <span class="kw">use </span>std::{path::Path, time::Duration};
 <span class="kw">use </span>xshell::{cmd, Shell};
 
-<span class="kw">use crate</span>::{reporter::DurationFormat, task::lexer::Lexer};
+<span class="kw">use crate</span>::{reporter::DurationWrapper, task::lexer::Lexer};
 
 <span class="kw">use </span><span class="self">self</span>::{compile::Compile, run::Run};
 
@@ -123,8 +123,8 @@
     <span class="doccomment">/// Returns the name of the task being benchmarked
     </span><span class="kw">fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
 
-    <span class="doccomment">/// Returns the [`DurationFormat`] the task was benchmarked in
-    </span><span class="kw">fn </span>get_duration_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DurationFormat;
+    <span class="doccomment">/// Returns a [DurationWrapper] with its inner type being the given argument
+    </span><span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: Duration) -&gt; DurationWrapper;
 
     <span class="doccomment">/// Executes any actions required before time measurement starts
     /// By default we make sure we have a release build ready

@@ -38,7 +38,7 @@
 <span class="kw">use </span>std::{path::PathBuf, time::Duration};
 <span class="kw">use </span>xshell::Shell;
 
-<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationFormat;
+<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationWrapper;
 <span class="kw">use </span><span class="kw">crate</span>::task::Task;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Compile {
@@ -64,8 +64,8 @@
         <span class="prelude-val">Ok</span>(start.elapsed())
     }
 
-    <span class="kw">fn </span>get_duration_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DurationFormat {
-        DurationFormat::Millis
+    <span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: Duration) -&gt; DurationWrapper {
+        DurationWrapper::Millis(duration)
     }
 }
 </code></pre></div>

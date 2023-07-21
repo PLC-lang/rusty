@@ -61,7 +61,7 @@
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>xshell::Shell;
 
-<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationFormat;
+<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationWrapper;
 <span class="kw">use </span><span class="kw">crate</span>::task::Task;
 <span class="kw">use </span>xshell::cmd;
 
@@ -110,8 +110,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>get_duration_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reporter::DurationFormat {
-        DurationFormat::Millis
+    <span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: std::time::Duration) -&gt; DurationWrapper {
+        DurationWrapper::Millis(duration)
     }
 }
 </code></pre></div>

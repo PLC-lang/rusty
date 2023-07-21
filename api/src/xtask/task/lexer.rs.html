@@ -41,7 +41,7 @@
     lexer::{<span class="self">self</span>, IdProvider},
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationFormat;
+<span class="kw">use </span><span class="kw">crate</span>::reporter::DurationWrapper;
 
 <span class="kw">use </span><span class="kw">super</span>::Task;
 
@@ -66,8 +66,8 @@
         <span class="prelude-val">Ok</span>(elapsed)
     }
 
-    <span class="kw">fn </span>get_duration_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::reporter::DurationFormat {
-        DurationFormat::Micros
+    <span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: std::time::Duration) -&gt; DurationWrapper {
+        DurationWrapper::Micros(duration)
     }
 }
 </code></pre></div>

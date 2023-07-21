@@ -26,7 +26,7 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::reporter::DurationFormat;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::reporter::DurationWrapper;
 
 <span class="kw">use super</span>::{BenchmarkReport, Reporter};
 <span class="kw">use </span>anyhow::Result;
@@ -42,10 +42,10 @@
         <span class="macro">println!</span>(<span class="string">&quot;  Memory: {}&quot;</span>, <span class="kw-2">&amp;</span>report.host.mem);
         <span class="macro">println!</span>(<span class="string">&quot;  OS: {}&quot;</span>, <span class="kw-2">&amp;</span>report.host.os);
         <span class="macro">println!</span>(<span class="string">&quot;-----------------&quot;</span>);
-        <span class="kw">for </span>(name, (duration, duration_format)) <span class="kw">in </span>report.metrics {
-            <span class="kw">let </span>(duration, duration_format) = <span class="kw">match </span>duration_format {
-                DurationFormat::Micros =&gt; (duration.as_micros(), <span class="string">&quot;us&quot;</span>),
-                DurationFormat::Millis =&gt; (duration.as_millis(), <span class="string">&quot;ms&quot;</span>),
+        <span class="kw">for </span>(name, duration) <span class="kw">in </span>report.metrics {
+            <span class="kw">let </span>(duration, duration_format) = <span class="kw">match </span>duration {
+                DurationWrapper::Millis(duration) =&gt; (duration.as_millis(), <span class="string">&quot;ms&quot;</span>),
+                DurationWrapper::Micros(duration) =&gt; (duration.as_micros(), <span class="string">&quot;us&quot;</span>),
             };
 
             <span class="macro">println!</span>(<span class="string">&quot;Run {name} took {duration} {duration_format}&quot;</span>);

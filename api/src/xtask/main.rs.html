@@ -216,8 +216,8 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[];
     <span class="kw">for </span><span class="kw-2">mut </span>task <span class="kw">in </span>tasks {
         <span class="macro">println!</span>(<span class="string">&quot;Running benchmark for {}&quot;</span>, task.get_name());
-        <span class="kw">let </span>res = task.benchmark(<span class="number">3</span>)<span class="question-mark">?</span>;
-        data.push((task.get_name(), res, task.get_duration_format()));
+        <span class="kw">let </span>duration = task.benchmark(<span class="number">3</span>)<span class="question-mark">?</span>;
+        data.push((task.get_name(), task.get_wrapped(duration)));
     }
 
     <span class="comment">// Report data
