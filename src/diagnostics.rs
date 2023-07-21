@@ -11,11 +11,9 @@ use codespan_reporting::{
     term::termcolor::{ColorChoice, StandardStream},
 };
 use inkwell::support::LLVMString;
+use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
-use crate::{
-    ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
-    index::VariableType,
-};
+use crate::index::VariableType;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 

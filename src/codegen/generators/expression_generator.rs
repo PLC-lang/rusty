@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{self, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -25,6 +24,10 @@ use inkwell::{
         StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
+};
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    literals::AstLiteral,
 };
 use std::{collections::HashSet, vec};
 
@@ -482,7 +485,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_implementation(self.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
-        let parameters_list = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+        let parameters_list = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
         let implementation_name = implementation.get_call_name();
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {

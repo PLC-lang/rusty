@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::SourceRange;
 use crate::diagnostics::Diagnostic;
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 use inkwell::types::ArrayType;
@@ -11,6 +10,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
+use plc_ast::ast::SourceRange;
 
 use super::ADDRESS_SPACE_GENERIC;
 

@@ -1,9 +1,7 @@
 use std::time::Instant;
 
-use plc::{
-    ast::SourceRangeFactory,
-    lexer::{self, IdProvider},
-};
+use plc::lexer;
+use plc_ast::{ast::SourceRangeFactory, provider::IdProvider};
 
 use crate::reporter::DurationWrapper;
 

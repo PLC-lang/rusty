@@ -1,12 +1,17 @@
+use plc_ast::ast::{
+    pre_process, AstStatement, DataType, DataTypeDeclaration, GenericBinding, LinkageType, Operator,
+    SourceRange, SourceRangeFactory, TypeNature, UserTypeDeclaration, Variable,
+};
+use plc_ast::literals::AstLiteral;
+use plc_ast::provider::IdProvider;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
 use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
-use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
 use crate::typesystem::{InternalType, StructSource, TypeSize, INT_TYPE, VOID_TYPE};
-use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
+use crate::{index::VariableType, typesystem::DataTypeInformation};
 
 #[test]
 fn index_not_case_sensitive() {
@@ -1334,7 +1339,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1376,7 +1381,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1412,7 +1417,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
@@ -1439,7 +1444,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
@@ -1509,7 +1514,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids);
+    pre_process(&mut ast, ids);
     let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the string-len

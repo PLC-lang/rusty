@@ -7,7 +7,6 @@ use super::{
     ADDRESS_SPACE_GENERIC,
 };
 use crate::{
-    ast::{AstStatement, NewLines},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -25,10 +24,7 @@ use crate::{
 /// - declares a global instance if the POU is a PROGRAM
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 
-use crate::{
-    ast::{Implementation, PouType, SourceRange},
-    index::Index,
-};
+use crate::index::Index;
 use indexmap::{IndexMap, IndexSet};
 use inkwell::{
     module::Module,
@@ -40,6 +36,7 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
+use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,

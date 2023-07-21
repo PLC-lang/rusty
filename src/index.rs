@@ -1,15 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-        SourceRange, TypeNature,
-    },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
 use indexmap::IndexMap;
+use plc_ast::ast::{
+    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
+    TypeNature,
+};
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},

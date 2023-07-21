@@ -11,19 +11,22 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+use plc_ast::{
+    ast::{
+        self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+    },
+    control_statements::AstControlStatement,
+    literals::{Array, AstLiteral, StringValue},
+    provider::IdProvider,
+};
 
 pub mod const_evaluator;
 pub mod generics;
 
 use crate::{
-    ast::{
-        self, control_statements::AstControlStatement, flatten_expression_list, Array, AstFactory, AstId,
-        AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue,
-        TypeNature, UserTypeDeclaration, Variable,
-    },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -1745,14 +1748,14 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
     match access {
-        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
-        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
-        crate::ast::DirectAccessType::Word => WORD_TYPE,
-        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
-        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
-        crate::ast::DirectAccessType::Template => VOID_TYPE,
+        DirectAccessType::Bit => BOOL_TYPE,
+        DirectAccessType::Byte => BYTE_TYPE,
+        DirectAccessType::Word => WORD_TYPE,
+        DirectAccessType::DWord => DWORD_TYPE,
+        DirectAccessType::LWord => LWORD_TYPE,
+        DirectAccessType::Template => VOID_TYPE,
     }
 }
 

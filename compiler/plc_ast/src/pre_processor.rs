@@ -1,12 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{ast::DataTypeDeclaration, lexer::IdProvider, typesystem};
+use std::collections::HashMap;
 
-use super::{
-    super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
-    flatten_expression_list, AstFactory, AstLiteral, AstStatement, DataType, Operator, Pou, SourceRange,
+use crate::{
+    ast::{
+        flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+    },
+    literals::AstLiteral,
+    provider::IdProvider,
 };
-use std::{collections::HashMap, vec};
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
@@ -58,7 +61,8 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                 {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
 
-                    let type_name = typesystem::create_internal_type_name("", name);
+                    // let type_name: String = todo!(r#"typesystem::create_internal_type_name("", name);"#);
+                    let type_name = format!("__{name}");
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
                         location: SourceRange::undefined(), //return_type.get_location(),
@@ -219,8 +223,11 @@ fn pre_process_variable_data_type(
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
 ) {
+    // let new_type_name: String = todo!(
+    //     r#"typesystem::create_internal_type_name(format!("{container_name}_").as_str(), variable.name.as_str());"#
+    // );
     let new_type_name =
-        typesystem::create_internal_type_name(format!("{container_name}_").as_str(), variable.name.as_str());
+        format!("__{prefix}{name}", prefix = format!("{container_name}_"), name = variable.name);
     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
         variable.replace_data_type_with_reference_to(new_type_name.clone())
     {

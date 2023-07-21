@@ -1,10 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{
-    AstLiteral, AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
-};
 use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::parse;
 use insta::assert_snapshot;
+use plc_ast::ast::{
+    AstStatement, DataType, DataTypeDeclaration, DirectAccessType, LinkageType, Operator, Pou, PouType,
+    SourceRange,
+};
+use plc_ast::literals::AstLiteral;
 use pretty_assertions::*;
 
 #[test]
@@ -2802,7 +2804,7 @@ fn sized_string_as_function_return() {
     let expected = Pou {
         name: "foo".into(),
         poly_mode: None,
-        pou_type: crate::ast::PouType::Function,
+        pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType {
                 name: None,
@@ -2820,7 +2822,7 @@ fn sized_string_as_function_return() {
         location: SourceRange::undefined(),
         name_location: SourceRange::undefined(),
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
@@ -2839,7 +2841,7 @@ fn array_type_as_function_return() {
     let expected = Pou {
         name: "foo".into(),
         poly_mode: None,
-        pou_type: crate::ast::PouType::Function,
+        pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -2869,7 +2871,7 @@ fn array_type_as_function_return() {
         location: SourceRange::undefined(),
         name_location: SourceRange::undefined(),
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));

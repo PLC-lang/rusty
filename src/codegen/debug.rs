@@ -11,9 +11,9 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+use plc_ast::ast::{LinkageType, SourceRange};
 
 use crate::{
-    ast::{LinkageType, SourceRange},
     datalayout::{Bytes, DataLayout, MemoryLocation},
     diagnostics::Diagnostic,
     index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},

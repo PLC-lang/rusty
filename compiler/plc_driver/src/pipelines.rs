@@ -6,14 +6,16 @@ use std::{
 };
 
 use crate::{CompileOptions, LinkOptions};
-use ast::{CompilationUnit, SourceRange};
+use ast::{
+    ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
+    provider::IdProvider,
+};
 use diagnostics::{Diagnostic, Diagnostician};
 use encoding_rs::Encoding;
 use indexmap::IndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
-    lexer::IdProvider,
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -58,7 +60,7 @@ impl ParsedProject {
                 Ok(parse_file(
                     &loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::Internal,
+                    LinkageType::Internal,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -79,7 +81,7 @@ impl ParsedProject {
                 Ok(parse_file(
                     &loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::External,
+                    LinkageType::External,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -101,7 +103,7 @@ impl ParsedProject {
                 Ok(parse_file(
                     &loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::External,
+                    LinkageType::External,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -119,7 +121,7 @@ impl ParsedProject {
             .into_par_iter()
             .map(|mut unit| {
                 //Preprocess
-                ast::pre_process(&mut unit, id_provider.clone());
+                pre_process(&mut unit, id_provider.clone());
                 //import to index
                 let index = plc::index::visitor::visit(&unit);
 

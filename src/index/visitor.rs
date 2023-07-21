@@ -1,14 +1,14 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-use crate::ast::AstLiteral;
-use crate::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
-};
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
+use plc_ast::ast::{
+    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+};
+use plc_ast::literals::AstLiteral;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();

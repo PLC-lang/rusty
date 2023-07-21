@@ -1633,7 +1633,8 @@ checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
 name = "plc_ast"
 version = "0.1.0"
 dependencies = [
- "rusty",
+ "chrono",
+ "serde",
 ]
 
 [[package]]
@@ -1665,6 +1666,10 @@ dependencies = [
  "serde_json",
  "tempfile",
 ]
+
+[[package]]
+name = "plc_names"
+version = "0.1.0"
 
 [[package]]
 name = "plc_project"
@@ -1935,6 +1940,7 @@ dependencies = [
  "log",
  "logos",
  "num",
+ "plc_ast",
  "plc_driver",
  "plc_project",
  "plc_source",
@@ -2943,6 +2949,7 @@ dependencies = [
  "anyhow",
  "async-std",
  "clap 4.3.10",
+ "plc_ast",
  "rusty",
  "serde",
  "serde_json",

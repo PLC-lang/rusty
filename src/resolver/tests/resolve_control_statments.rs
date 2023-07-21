@@ -1,15 +1,12 @@
 use core::panic;
 
-use crate::{
-    assert_type_and_hint,
-    ast::{
-        control_statements::{AstControlStatement, ForLoopStatement},
-        AstStatement,
-    },
-    lexer::IdProvider,
-    test_utils::tests::index_with_ids,
-    TypeAnnotator,
+use plc_ast::{
+    ast::AstStatement,
+    control_statements::{AstControlStatement, ForLoopStatement},
+    provider::IdProvider,
 };
+
+use crate::{assert_type_and_hint, test_utils::tests::index_with_ids, TypeAnnotator};
 
 #[test]
 fn binary_expressions_resolves_types() {

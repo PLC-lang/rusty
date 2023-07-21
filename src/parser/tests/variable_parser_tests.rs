@@ -1,7 +1,6 @@
-use crate::{
-    ast::{LinkageType, VariableBlock},
-    test_utils::tests::parse,
-};
+use plc_ast::ast::{LinkageType, VariableBlock};
+
+use crate::test_utils::tests::parse;
 
 #[test]
 fn empty_global_vars_can_be_parsed() {

@@ -1,4 +1,9 @@
-use crate::{ast::*, test_utils::tests::parse, Diagnostic};
+use plc_ast::{
+    ast::{AstStatement, DataType, SourceRange, UserTypeDeclaration},
+    literals::AstLiteral,
+};
+
+use crate::{test_utils::tests::parse, Diagnostic};
 
 #[test]
 fn illegal_literal_time_missing_segments_test() {

@@ -1,9 +1,8 @@
-use crate::{
-    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::ConstExpression,
-    resolver::AnnotationMap,
-    Diagnostic,
+use plc_ast::ast::{
+    ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
 };
+
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
 
 use super::{
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},

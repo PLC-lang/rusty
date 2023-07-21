@@ -1,8 +1,8 @@
 use crate::diagnostics::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::SourceRange;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+use plc_ast::ast::SourceRange;
 use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
