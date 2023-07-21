@@ -3,7 +3,7 @@ use std::sync::{
     Arc,
 };
 
-use crate::ast::{AstId, SourceRangeFactory};
+use crate::ast::AstId;
 
 #[derive(Clone)]
 pub struct IdProvider {

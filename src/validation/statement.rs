@@ -221,7 +221,7 @@ fn validate_qualified_reference<T: AnnotationMap>(
         let target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         if target_type.is_int() {
-            if !is_compatible(&access, target_type, context.index) {
+            if !is_compatible(access, target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess(
                     &format!("{access:?}"),
                     access.get_bit_width(),
@@ -270,11 +270,11 @@ fn validate_access_index<T: AnnotationMap>(
 ) {
     match *access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
-            if !is_in_range(&access_type, value.try_into().unwrap_or_default(), target_type, context.index) {
+            if !is_in_range(access_type, value.try_into().unwrap_or_default(), target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
                     target_type.get_name(),
-                    get_range(&access_type, target_type, context.index),
+                    get_range(access_type, target_type, context.index),
                     location.clone(),
                 ))
             }

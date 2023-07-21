@@ -1,4 +1,7 @@
-use plc_ast::{provider::IdProvider, ast::{AstStatement, flatten_expression_list}};
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement},
+    provider::IdProvider,
+};
 
 use crate::{
     assert_type_and_hint,
@@ -286,7 +289,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
         parameters_list
             .iter()
             .find(|it| {
-                matches!(it, AstStatement::Assignment { left, .. } 
+                matches!(it, AstStatement::Assignment { left, .. }
                         if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
             })
             .unwrap()
@@ -360,7 +363,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         parameters_list
             .iter()
             .find(|it| {
-                matches!(it, AstStatement::Assignment { left, .. } 
+                matches!(it, AstStatement::Assignment { left, .. }
             if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
             })
             .unwrap()

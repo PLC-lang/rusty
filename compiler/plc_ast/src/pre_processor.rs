@@ -226,8 +226,7 @@ fn pre_process_variable_data_type(
     // let new_type_name: String = todo!(
     //     r#"typesystem::create_internal_type_name(format!("{container_name}_").as_str(), variable.name.as_str());"#
     // );
-    let new_type_name =
-        format!("__{prefix}{name}", prefix = format!("{container_name}_"), name = variable.name);
+    let new_type_name = format!("__{container_name}_{}", variable.name);
     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
         variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
