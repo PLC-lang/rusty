@@ -761,12 +761,24 @@ fn parse_string_type_definition(
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
     let location: SourceRange = (start..end).into();
-    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
-        data_type: DataType::StringType { name, is_wide, size: Some(size) },
-        location: location.clone(),
-        scope: lexer.scope.clone(),
-    })
-    .or(Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
+
+    match (size, &name) {
+        (Some(size), _) => Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StringType { name, is_wide, size: Some(size) },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        (None, Some(name)) => Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::SubRangeType {
+                name: Some(name.into()),
+                referenced_type: text,
+                bounds: None,
+            },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        _ => Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
+    }
     .zip(Some(lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer))))
 }
 
