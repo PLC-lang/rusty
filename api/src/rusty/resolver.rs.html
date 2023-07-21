@@ -1865,6 +1865,23 @@
 <a href="#1865" id="1865">1865</a>
 <a href="#1866" id="1866">1866</a>
 <a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2742,8 +2759,23 @@
             DataTypeInformation::Array { inner_type_name, .. } =&gt; {
                 <span class="kw">let </span>inner_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type_name);
                 <span class="kw">let </span>ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+
                 <span class="kw">if </span>inner_type.get_type_information().is_struct() {
-                    <span class="kw">if let </span>AstStatement::ExpressionList { expressions, .. } = initializer {
+                    <span class="kw">let </span>expressions = <span class="kw">match </span>initializer {
+                        <span class="comment">// Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        </span>AstStatement::ExpressionList { expressions, .. } =&gt; <span class="prelude-val">Some</span>(expressions),
+
+                        <span class="comment">// Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
+                        </span>AstStatement::Literal { kind: AstLiteral::Array(arr), .. } =&gt; <span class="kw">match </span>arr.elements() {
+                            <span class="prelude-val">Some</span>(AstStatement::ExpressionList { expressions, .. }) =&gt; <span class="prelude-val">Some</span>(expressions),
+                            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                        },
+
+                        <span class="comment">// ...anything else is uninteresting
+                        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                    };
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(expressions) = expressions {
                         <span class="kw">for </span>e <span class="kw">in </span>expressions {
                             <span class="comment">// annotate with the arrays inner_type
                             </span><span class="self">self</span>.annotation_map.annotate_type_hint(
@@ -2752,11 +2784,13 @@
                                     resulting_type: inner_type.get_name().to_string(),
                                 },
                             );
+
                             <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx, e);
                         }
                     }
                 }
             }
+
             <span class="comment">// the array of struct might be a member of another struct
             </span>DataTypeInformation::Struct { members, .. } =&gt; {
                 <span class="kw">let </span>flattened = ast::flatten_expression_list(initializer);
