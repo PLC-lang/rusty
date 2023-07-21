@@ -1,0 +1,19 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Division,
+    left: BinaryExpression {
+        operator: Multiplication,
+        left: LiteralInteger {
+            value: 1,
+        },
+        right: LiteralInteger {
+            value: 2,
+        },
+    },
+    right: LiteralInteger {
+        value: 7,
+    },
+}

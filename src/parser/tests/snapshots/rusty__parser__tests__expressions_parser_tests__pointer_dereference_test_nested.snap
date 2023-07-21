@@ -1,0 +1,32 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+PointerAccess {
+    reference: PointerAccess {
+        reference: ArrayAccess {
+            reference: PointerAccess {
+                reference: ArrayAccess {
+                    reference: ArrayAccess {
+                        reference: PointerAccess {
+                            reference: PointerAccess {
+                                reference: Reference {
+                                    name: "x",
+                                },
+                            },
+                        },
+                        access: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    access: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+            access: LiteralInteger {
+                value: 2,
+            },
+        },
+    },
+}

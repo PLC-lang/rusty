@@ -9,7 +9,7 @@ use crate::{
 };
 use core::str::Split;
 use regex::{Captures, Regex};
-use std::str::FromStr;
+use std::{str::FromStr, thread::current};
 
 use super::parse_hardware_access;
 
@@ -139,11 +139,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let right = parse_unary_expression(lexer);
         left = AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: "EXPT".to_string(),
-                location: op_location,
-                id: lexer.next_id(),
-            }),
+            operator: Box::new(AstFactory::create_reference("EXPT", &op_location, lexer.next_id())),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: vec![left, right],
                 id: lexer.next_id(),
@@ -187,7 +183,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
             (Operator::Plus, AstStatement::Reference { name, .. }) => {
-                AstStatement::Reference { name: name.to_owned(), location, id: lexer.next_id() }
+                AstFactory::create_reference(&name, &location, lexer.next_id())
             }
 
             _ => AstStatement::UnaryExpression {
@@ -275,7 +271,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         OperatorMultiplication => parse_vla_range(lexer),
         // ...and if not then this token may be anything
         _ => match lexer.token {
-            Identifier => parse_qualified_reference(lexer),
+            Identifier => parse_qualified_reference2(lexer),
             HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
             LiteralInteger => parse_literal_number(lexer, false),
             LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
@@ -391,8 +387,55 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
     Ok(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
+pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    let segment =
+        AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id());
+
+    let reference = parse_qualified_reference_with_base(lexer, segment)?;
+
+    if lexer.try_consume(&KeywordParensOpen) {
+        let start = reference.get_location().get_start();
+        // Call Statement
+        let call_statement = if lexer.try_consume(&KeywordParensClose) {
+            AstStatement::CallStatement {
+                operator: Box::new(reference),
+                parameters: Box::new(None),
+                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                id: lexer.next_id(),
+            }
+        } else {
+            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| AstStatement::CallStatement {
+                operator: Box::new(reference),
+                parameters: Box::new(Some(parse_expression_list(lexer))),
+                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                id: lexer.next_id(),
+            })
+        };
+        Ok(call_statement)
+    } else {
+        Ok(reference)
+    }
+}
+
+pub fn parse_qualified_reference_with_base(
+    lexer: &mut ParseSession,
+    base: AstStatement,
+) -> Result<AstStatement, Diagnostic> {
+    match lexer.token {
+        KeywordDot => {
+            lexer.advance();
+            let next_segment = parse_qualified_reference2(lexer)?;
+            Ok(AstFactory::create_member_reference(next_segment, Some(base), lexer.next_id()))
+        }
+        KeywordSquareParensOpen => parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
+            Ok(AstFactory::create_index_reference(parse_expression(lexer), Some(base), lexer.next_id()))
+        }),
+        _ => Ok(base),
+    }
+}
+
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let start = lexer.range().start;
+    let start: usize = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
     while lexer.try_consume(&KeywordDot) {
         let segment = match lexer.token {

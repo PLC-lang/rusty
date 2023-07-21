@@ -1,0 +1,25 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Equal,
+    left: BinaryExpression {
+        operator: Less,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralInteger {
+            value: 7,
+        },
+    },
+    right: BinaryExpression {
+        operator: Greater,
+        left: Reference {
+            name: "y",
+        },
+        right: LiteralInteger {
+            value: 6,
+        },
+    },
+}

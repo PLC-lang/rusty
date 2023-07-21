@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+assertion_line: 1090
+expression: res
+---
+SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 323..324 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 326..327 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 423..433 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 549..574 }], err_no: call__invalid_parameter_type }
+

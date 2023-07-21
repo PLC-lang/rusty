@@ -1,0 +1,28 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: And,
+        left: Reference {
+            name: "a",
+        },
+        right: UnaryExpression {
+            operator: Not,
+            value: Reference {
+                name: "b",
+            },
+        },
+    },
+    right: BinaryExpression {
+        operator: Xor,
+        left: Reference {
+            name: "c",
+        },
+        right: Reference {
+            name: "d",
+        },
+    },
+}

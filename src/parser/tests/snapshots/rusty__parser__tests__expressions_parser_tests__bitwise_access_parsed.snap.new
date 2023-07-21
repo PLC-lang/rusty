@@ -1,0 +1,104 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 43
+expression: "&prg.statements"
+---
+[
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "0",
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "%X",
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "%B",
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "%B",
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Index(
+            LiteralArray {
+                elements: Some(
+                    LiteralInteger {
+                        value: 0,
+                    },
+                ),
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "%D",
+                    },
+                ),
+                base: Some(
+                    Reference {
+                        name: "b",
+                    },
+                ),
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "%B",
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "a",
+            },
+        ),
+    },
+]

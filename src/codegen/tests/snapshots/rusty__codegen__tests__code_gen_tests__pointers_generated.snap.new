@@ -1,0 +1,34 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1841
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg = type { i8, i8*, i8* }
+
+@prg_instance = global %prg zeroinitializer
+
+define void @prg(%prg* %0) {
+entry:
+  %X = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %pX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %rX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  store i8* null, i8** %pX, align 8
+  store i8* null, i8** %rX, align 8
+  store i8* %X, i8** %pX, align 8
+  store i8* %X, i8** %rX, align 8
+  %deref = load i8*, i8** %pX, align 8
+  %load_tmpVar = load i8, i8* %deref, align 1
+  store i8 %load_tmpVar, i8* %X, align 1
+  %deref1 = load i8*, i8** %rX, align 8
+  %load_tmpVar2 = load i8, i8* %deref1, align 1
+  store i8 %load_tmpVar2, i8* %X, align 1
+  %deref3 = load i8*, i8** %pX, align 8
+  %load_tmpVar4 = load i8, i8* %deref3, align 1
+  %deref5 = load i8*, i8** %rX, align 8
+  %load_tmpVar6 = load i8, i8* %deref5, align 1
+  ret void
+}
+

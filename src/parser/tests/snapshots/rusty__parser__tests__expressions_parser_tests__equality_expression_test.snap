@@ -1,0 +1,36 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: prg
+---
+[
+    BinaryExpression {
+        operator: Equal,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralInteger {
+            value: 3,
+        },
+    },
+    BinaryExpression {
+        operator: NotEqual,
+        left: BinaryExpression {
+            operator: Minus,
+            left: Reference {
+                name: "x",
+            },
+            right: LiteralInteger {
+                value: 0,
+            },
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: 1,
+            },
+            right: LiteralInteger {
+                value: 2,
+            },
+        },
+    },
+]

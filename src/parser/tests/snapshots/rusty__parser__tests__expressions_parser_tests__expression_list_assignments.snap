@@ -1,0 +1,32 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+ExpressionList {
+    expressions: [
+        Assignment {
+            left: Reference {
+                name: "x",
+            },
+            right: LiteralInteger {
+                value: 1,
+            },
+        },
+        Assignment {
+            left: Reference {
+                name: "y",
+            },
+            right: LiteralInteger {
+                value: 2,
+            },
+        },
+        Assignment {
+            left: Reference {
+                name: "z",
+            },
+            right: LiteralInteger {
+                value: 3,
+            },
+        },
+    ],
+}

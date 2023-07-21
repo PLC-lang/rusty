@@ -1,0 +1,19 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: Greater,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralInteger {
+            value: 1,
+        },
+    },
+    right: Reference {
+        name: "b1",
+    },
+}

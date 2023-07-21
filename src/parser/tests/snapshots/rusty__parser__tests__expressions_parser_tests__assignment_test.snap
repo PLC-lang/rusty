@@ -1,0 +1,28 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: prg
+---
+[
+    Assignment {
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralInteger {
+            value: 3,
+        },
+    },
+    Assignment {
+        left: Reference {
+            name: "x",
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: 1,
+            },
+            right: LiteralInteger {
+                value: 2,
+            },
+        },
+    },
+]

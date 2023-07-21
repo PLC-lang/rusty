@@ -1,0 +1,21 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1609
+expression: statement
+---
+ReferenceExpr {
+    kind: Index(
+        LiteralArray {
+            elements: Some(
+                LiteralInteger {
+                    value: 1,
+                },
+            ),
+        },
+    ),
+    base: Some(
+        Reference {
+            name: "x",
+        },
+    ),
+}

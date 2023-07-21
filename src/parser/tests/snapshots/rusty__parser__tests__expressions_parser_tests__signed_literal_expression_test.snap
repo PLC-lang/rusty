@@ -1,0 +1,16 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Plus,
+    left: LiteralInteger {
+        value: 2,
+    },
+    right: UnaryExpression {
+        operator: Minus,
+        value: Reference {
+            name: "x",
+        },
+    },
+}

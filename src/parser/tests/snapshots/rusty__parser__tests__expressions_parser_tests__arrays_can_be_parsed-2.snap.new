@@ -1,0 +1,51 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1479
+expression: statements
+---
+[
+    ReferenceExpr {
+        kind: Index(
+            Assignment {
+                left: LiteralArray {
+                    elements: Some(
+                        LiteralInteger {
+                            value: 0,
+                        },
+                    ),
+                },
+                right: LiteralString {
+                    value: "Hello, World!",
+                    is_wide: false,
+                },
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "x",
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Index(
+            Assignment {
+                left: LiteralArray {
+                    elements: Some(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                },
+                right: LiteralString {
+                    value: "",
+                    is_wide: false,
+                },
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "x",
+            },
+        ),
+    },
+]

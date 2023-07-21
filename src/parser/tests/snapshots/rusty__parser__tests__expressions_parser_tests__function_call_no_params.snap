@@ -1,0 +1,10 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+CallStatement {
+    operator: Reference {
+        name: "fn",
+    },
+    parameters: None,
+}

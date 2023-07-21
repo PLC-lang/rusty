@@ -1,0 +1,29 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: CallStatement {
+        operator: Reference {
+            name: "fn",
+        },
+        parameters: Some(
+            ExpressionList {
+                expressions: [
+                    LiteralInteger {
+                        value: 1,
+                    },
+                    LiteralInteger {
+                        value: 2,
+                    },
+                    LiteralInteger {
+                        value: 3,
+                    },
+                ],
+            },
+        ),
+    },
+}

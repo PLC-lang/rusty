@@ -1,0 +1,13 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "b",
+    },
+    right: Reference {
+        name: "c",
+    },
+}

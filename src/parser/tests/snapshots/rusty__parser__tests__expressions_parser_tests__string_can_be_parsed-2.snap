@@ -1,0 +1,24 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statements
+---
+[
+    Assignment {
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralString {
+            value: "Hello, World!",
+            is_wide: false,
+        },
+    },
+    Assignment {
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralString {
+            value: "",
+            is_wide: false,
+        },
+    },
+]

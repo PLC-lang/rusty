@@ -22,6 +22,7 @@ use self::control_statements::{
 };
 
 pub mod control_statements;
+pub mod expressions;
 pub mod literals;
 mod pre_processor;
 
@@ -727,6 +728,26 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
+#[derive(Clone, PartialEq, Debug)]
+pub enum ReferenceAccess {
+    /**
+     * a, a.b
+     */
+    Member(Box<AstStatement>),
+    /**
+     * a[3]
+     */
+    Index(Box<AstStatement>),
+    /**
+     * a^
+     */
+    Deref,
+    /**
+     * &a
+     */
+    Address,
+}
+
 #[derive(Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement {
@@ -761,6 +782,12 @@ pub enum AstStatement {
     QualifiedReference {
         elements: Vec<AstStatement>,
         id: AstId,
+    },
+    ReferenceExpr {
+        access: ReferenceAccess,
+        base: Option<Box<AstStatement>>,
+        id: AstId,
+        location: SourceRange,
     },
     Reference {
         name: String,
@@ -967,6 +994,9 @@ impl Debug for AstStatement {
             AstStatement::CastStatement { target, type_name, .. } => {
                 f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
             }
+            AstStatement::ReferenceExpr { access, base, .. } => {
+                f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
+            }
         }
     }
 }
@@ -1034,6 +1064,7 @@ impl AstStatement {
             AstStatement::ContinueStatement { location, .. } => location.clone(),
             AstStatement::ExitStatement { location, .. } => location.clone(),
             AstStatement::CastStatement { location, .. } => location.clone(),
+            AstStatement::ReferenceExpr { location, .. } => location.clone(),
         }
     }
 
@@ -1063,6 +1094,7 @@ impl AstStatement {
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
             AstStatement::CastStatement { id, .. } => *id,
+            AstStatement::ReferenceExpr { id, .. } => *id,
         }
     }
 
@@ -1408,6 +1440,39 @@ impl AstFactory {
     /// creates a new reference
     pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
         AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
+    }
+
+    pub fn create_member_reference(
+        member: AstStatement,
+        base: Option<AstStatement>,
+        id: AstId,
+    ) -> AstStatement {
+        let location = base.as_ref()
+            .map(|it| it.get_location().span(&member.get_location()))
+            .unwrap_or_else(|| member.get_location());
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Member(Box::new(member)),
+            base: base.map(|it| Box::new(it)),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_index_reference(
+        index: AstStatement,
+        base: Option<AstStatement>,
+        id: AstId,
+    ) -> AstStatement {
+        let location = base.as_ref()
+            .as_ref()
+            .map(|it| it.get_location().span(&index.get_location()))
+            .unwrap_or_else(|| index.get_location());
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Index(Box::new(index)),
+            base: base.map(|it| Box::new(it)),
+            id,
+            location,
+        }
     }
 
     /// creates a new binary statement

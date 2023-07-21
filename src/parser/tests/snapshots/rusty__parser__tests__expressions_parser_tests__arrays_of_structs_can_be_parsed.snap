@@ -1,0 +1,19 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+QualifiedReference {
+    elements: [
+        ArrayAccess {
+            reference: Reference {
+                name: "x",
+            },
+            access: LiteralInteger {
+                value: 1,
+            },
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}

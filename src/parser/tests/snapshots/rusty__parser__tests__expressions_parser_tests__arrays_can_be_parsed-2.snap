@@ -1,0 +1,34 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statements
+---
+[
+    Assignment {
+        left: ArrayAccess {
+            reference: Reference {
+                name: "x",
+            },
+            access: LiteralInteger {
+                value: 0,
+            },
+        },
+        right: LiteralString {
+            value: "Hello, World!",
+            is_wide: false,
+        },
+    },
+    Assignment {
+        left: ArrayAccess {
+            reference: Reference {
+                name: "x",
+            },
+            access: Reference {
+                name: "y",
+            },
+        },
+        right: LiteralString {
+            value: "",
+            is_wide: false,
+        },
+    },
+]
