@@ -3,8 +3,8 @@ use std::{collections::HashSet, mem::discriminant};
 use super::{validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
     ast::{
-        self, Array, AstLiteral, AstStatement, ConditionalBlock, DirectAccessType, Operator, SourceRange,
-        StringValue,
+        self, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,
+        Operator, SourceRange, StringValue,
     },
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -99,31 +99,7 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::CallStatement { operator, parameters, .. } => {
             validate_call(validator, operator, parameters, &context.set_is_call());
         }
-        AstStatement::IfStatement { blocks, else_block, .. } => {
-            blocks.iter().for_each(|b| {
-                visit_statement(validator, b.condition.as_ref(), context);
-                b.body.iter().for_each(|s| visit_statement(validator, s, context));
-            });
-            else_block.iter().for_each(|e| visit_statement(validator, e, context));
-        }
-        AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
-            visit_all_statements!(validator, context, counter, start, end);
-            if let Some(by_step) = by_step {
-                visit_statement(validator, by_step, context);
-            }
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::WhileLoopStatement { condition, body, .. } => {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::RepeatLoopStatement { condition, body, .. } => {
-            visit_statement(validator, condition, context);
-            body.iter().for_each(|s| visit_statement(validator, s, context));
-        }
-        AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-            validate_case_statement(validator, selector, case_blocks, else_block, context);
-        }
+        AstStatement::ControlStatement { kind, .. } => validate_control_statement(validator, kind, context),
         AstStatement::CaseCondition { condition, .. } => {
             // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
@@ -140,6 +116,37 @@ pub fn visit_statement<T: AnnotationMap>(
         _ => {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+fn validate_control_statement<T: AnnotationMap>(
+    validator: &mut Validator,
+    control_statement: &ast::control_statements::AstControlStatement,
+    context: &ValidationContext<T>,
+) {
+    match control_statement {
+        ast::control_statements::AstControlStatement::If(stmt) => {
+            stmt.blocks.iter().for_each(|b| {
+                visit_statement(validator, b.condition.as_ref(), context);
+                b.body.iter().for_each(|s| visit_statement(validator, s, context));
+            });
+            stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
+        }
+        ast::control_statements::AstControlStatement::ForLoop(stmt) => {
+            visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
+            if let Some(by_step) = &stmt.by_step {
+                visit_statement(validator, by_step, context);
+            }
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
+        }
+        ast::control_statements::AstControlStatement::WhileLoop(stmt)
+        | ast::control_statements::AstControlStatement::RepeatLoop(stmt) => {
+            visit_statement(validator, &stmt.condition, context);
+            stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
+        }
+        ast::control_statements::AstControlStatement::Case(stmt) => {
+            validate_case_statement(validator, &stmt.selector, &stmt.case_blocks, &stmt.else_block, context);
+        }
+    }
 }
 
 /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
