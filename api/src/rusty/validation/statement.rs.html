@@ -954,6 +954,23 @@
 <a href="#954" id="954">954</a>
 <a href="#955" id="955">955</a>
 <a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -1171,9 +1188,8 @@
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span><span class="kw-2">mut </span>iter = elements.iter().rev();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
-        iter.next().zip(iter.next())
-    {
+    <span class="kw">let </span>access = iter.next().zip(iter.next());
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((AstStatement::DirectAccess { access, index, location, .. }, reference)) = access {
         <span class="kw">let </span>target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         <span class="kw">if </span>target_type.is_int() {
@@ -1192,6 +1208,24 @@
                 access.get_bit_width(),
                 location.clone(),
             ))
+        }
+    } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>((reference, accessed)) = access <span class="kw">else </span>{
+            <span class="kw">return
+        </span>};
+        <span class="kw">if </span>!context.annotations.has_type_annotation(reference) {
+            <span class="kw">let </span>AstStatement::Reference { name, location, .. } = reference <span class="kw">else </span>{
+                <span class="kw">return
+            </span>};
+
+            <span class="kw">if </span>context.annotations.get_type(accessed, context.index).is_none() {
+                <span class="kw">return</span>;
+            }
+
+            validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                message: <span class="macro">format!</span>(<span class="string">&quot;If you meant to access a bit, use %X{name} instead.&quot;</span>,),
+                range: <span class="macro">vec!</span>[location.clone()],
+            });
         }
     }
 }
