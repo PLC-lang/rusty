@@ -194,6 +194,41 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
@@ -202,6 +237,7 @@
 };
 
 <span class="kw">use super</span>::{
+    statement::validate_enum_variant_assignment,
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     validate_for_array_assignment, ValidationContext, Validator, Validators,
 };
@@ -326,7 +362,20 @@
                     variable.location.clone(),
                 ));
             }
-            <span class="kw">_ </span>=&gt; {}
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = variable.initializer.as_ref() {
+                    validate_enum_variant_assignment(
+                        validator,
+                        context
+                            .index
+                            .get_effective_type_or_void_by_name(v_entry.get_type_name())
+                            .get_type_information(),
+                        context.annotations.get_type_or_void(rhs, context.index).get_type_information(),
+                        v_entry.get_qualified_name(),
+                        rhs.get_location(),
+                    )
+                }
+            }
         }
 
         <span class="comment">// check if we declared a constant fb-instance or class-instance
@@ -340,8 +389,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>variable_validator_tests {
-    <span class="kw">use </span><span class="kw">crate</span>::test_utils::tests::parse_and_validate;
-    <span class="kw">use </span><span class="kw">crate</span>::Diagnostic;
+    <span class="kw">use crate</span>::{assert_validation_snapshot, test_utils::tests::parse_and_validate, Diagnostic};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>validate_empty_struct_declaration() {
@@ -388,6 +436,28 @@
                 Diagnostic::empty_variable_block((<span class="number">112</span>..<span class="number">114</span>).into())
             ]
         );
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>validate_enum_variant_initializer() {
+        <span class="kw">let </span>diagnostics = parse_and_validate(
+            <span class="string">&quot;VAR_GLOBAL
+                x : (red, yellow, green) := 2; // error
+            END_VAR
+    
+            PROGRAM  main
+            VAR
+                y : (metallic := 1, matte := 2, neon := 3) := red; // error
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow; // error
+                var2 : (x5, x6, x7) := neon; // error
+                var3 : (a, b, c) := 7; // error
+            END_VAR
+            END_PROGRAM&quot;</span>,
+        );
+
+        <span class="macro">assert_validation_snapshot!</span>(diagnostics);
     }
 }
 </code></pre></div>
