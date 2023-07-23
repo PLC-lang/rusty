@@ -1,11 +1,17 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Could not resolve reference to field10", range: [SourceRange { range: 694..701 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xfield10 instead.", range: [SourceRange { range: 694..701 }] }
 SyntaxError { message: "Could not resolve reference to field20", range: [SourceRange { range: 721..728 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xfield20 instead.", range: [SourceRange { range: 721..728 }] }
 SyntaxError { message: "Could not resolve reference to field30", range: [SourceRange { range: 748..755 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xfield30 instead.", range: [SourceRange { range: 748..755 }] }
 SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceRange { range: 955..965 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xsubfield10 instead.", range: [SourceRange { range: 955..965 }] }
 SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceRange { range: 989..999 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xsubfield20 instead.", range: [SourceRange { range: 989..999 }] }
 SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceRange { range: 1023..1033 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xsubfield30 instead.", range: [SourceRange { range: 1023..1033 }] }
 
