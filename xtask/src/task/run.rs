@@ -3,6 +3,7 @@ use std::time::Instant;
 use std::path::PathBuf;
 use xshell::Shell;
 
+use crate::reporter::DurationWrapper;
 use crate::task::Task;
 use xshell::cmd;
 
@@ -33,6 +34,7 @@ impl Task for Run {
 
     fn prepare(&mut self) -> anyhow::Result<()> {
         let shell = Shell::new()?;
+
         //Compile the application with the correct optimization flag
         let command = &self.compiler;
         let opt = &self.optimization;
@@ -46,6 +48,11 @@ impl Task for Run {
         if !output.exists() {
             anyhow::bail!("Output does not exist");
         }
+
         Ok(())
+    }
+
+    fn get_wrapped(&self, duration: std::time::Duration) -> DurationWrapper {
+        DurationWrapper::Millis(duration)
     }
 }

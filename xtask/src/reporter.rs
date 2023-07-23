@@ -6,7 +6,7 @@ use std::{
 use sysinfo::{CpuExt, System, SystemExt};
 
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use xshell::{cmd, Shell};
 
 pub(crate) mod git;
@@ -46,11 +46,23 @@ pub struct BenchmarkReport {
     /// Commit hash on which the benchmark ran.
     pub commit: String,
 
-    /// Collected benchmarks, where the first tuple element describes the benchmark and the second
-    /// element is its raw wall-time value in milliseconds.
-    /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
-    /// with the `aggressive` optimization flag took 8000ms.
-    pub(crate) metrics: BTreeMap<String, u64>,
+    /// Collected benchmarks, where the first tuple element describes the benchmark and the second element
+    /// is its raw wall-time value in milli- or microseconds, however it is defined in [`DurationFormat`].
+    /// For example one such element might be `("oscat/aggressive", (8000, DurationFormat::Millis))`
+    /// indicating that compiling oscat with the `aggressive` optimization flag took 8000 milliseconds.
+    pub metrics: BTreeMap<String, DurationWrapper>,
+}
+
+impl Serialize for DurationWrapper {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            DurationWrapper::Millis(value) => serializer.serialize_u128(value.as_millis()),
+            DurationWrapper::Micros(value) => serializer.serialize_u128(value.as_micros()),
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -74,12 +86,18 @@ impl Host {
     }
 }
 
+pub enum DurationWrapper {
+    Millis(Duration),
+    Micros(Duration),
+}
+
 impl BenchmarkReport {
-    pub fn new(data: Vec<(String, Duration)>) -> Result<Self> {
+    pub fn new(data: Vec<(String, DurationWrapper)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
         for (name, duration) in data {
-            metrics.insert(name, duration.as_millis() as u64);
+            metrics.insert(name, duration);
         }
+
         let sh = Shell::new()?;
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;
         Ok(BenchmarkReport {
