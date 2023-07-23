@@ -388,8 +388,11 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 }
 
 pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let segment =
-        AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id());
+    let segment = AstFactory::create_member_reference(
+        AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id()),
+        None,
+        lexer.next_id(),
+    );
 
     let reference = parse_qualified_reference_with_base(lexer, segment)?;
 
@@ -421,17 +424,37 @@ pub fn parse_qualified_reference_with_base(
     lexer: &mut ParseSession,
     base: AstStatement,
 ) -> Result<AstStatement, Diagnostic> {
-    match lexer.token {
-        KeywordDot => {
-            lexer.advance();
-            let next_segment = parse_qualified_reference2(lexer)?;
-            Ok(AstFactory::create_member_reference(next_segment, Some(base), lexer.next_id()))
+    let mut current = base;
+    let mut pos = lexer.parse_progress - 1; // force an initial loop
+
+    // as long as we parse something we keep to eat stuff eagerly
+    while lexer.parse_progress > pos {
+        pos = lexer.parse_progress;
+        match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen]) {
+            Some(KeywordDot) => {
+                current = AstFactory::create_member_reference(
+                    AstFactory::create_reference(
+                        &lexer.slice_and_advance(),
+                        &lexer.last_location(),
+                        lexer.next_id(),
+                    ),
+                    Some(current),
+                    lexer.next_id(),
+                );
+            }
+            Some(KeywordSquareParensOpen) => {
+                current = parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
+                    AstFactory::create_index_reference(
+                        parse_leaf_expression(lexer),
+                        Some(current),
+                        lexer.next_id(),
+                    )
+                });
+            }
+            _ => {}
         }
-        KeywordSquareParensOpen => parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
-            Ok(AstFactory::create_index_reference(parse_expression(lexer), Some(base), lexer.next_id()))
-        }),
-        _ => Ok(base),
     }
+    Ok(current)
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
