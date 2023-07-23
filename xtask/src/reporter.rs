@@ -6,7 +6,7 @@ use std::{
 use sysinfo::{CpuExt, System, SystemExt};
 
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use xshell::{cmd, Shell};
 
 pub(crate) mod git;
@@ -50,7 +50,19 @@ pub struct BenchmarkReport {
     /// is its raw wall-time value in milli- or microseconds, however it is defined in [`DurationFormat`].
     /// For example one such element might be `("oscat/aggressive", (8000, DurationFormat::Millis))`
     /// indicating that compiling oscat with the `aggressive` optimization flag took 8000 milliseconds.
-    pub metrics: BTreeMap<String, (Duration, DurationFormat)>,
+    pub metrics: BTreeMap<String, DurationWrapper>,
+}
+
+impl Serialize for DurationWrapper {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            DurationWrapper::Millis(value) => serializer.serialize_u128(value.as_millis()),
+            DurationWrapper::Micros(value) => serializer.serialize_u128(value.as_micros()),
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -74,17 +86,16 @@ impl Host {
     }
 }
 
-#[derive(Serialize)]
-pub enum DurationFormat {
-    Millis,
-    Micros,
+pub enum DurationWrapper {
+    Millis(Duration),
+    Micros(Duration),
 }
 
 impl BenchmarkReport {
-    pub fn new(data: Vec<(String, Duration, DurationFormat)>) -> Result<Self> {
+    pub fn new(data: Vec<(String, DurationWrapper)>) -> Result<Self> {
         let mut metrics = BTreeMap::new();
-        for (name, duration, format) in data {
-            metrics.insert(name, (duration, format));
+        for (name, duration) in data {
+            metrics.insert(name, duration);
         }
 
         let sh = Shell::new()?;

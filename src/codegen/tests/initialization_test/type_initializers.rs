@@ -514,6 +514,35 @@ fn array_of_struct_initialization() {
 }
 
 #[test]
+fn array_of_struct_initialization_with_brackets() {
+    // We want to check if initializing an array of structs is possible both with a parenthese as well as a
+    // bracket, e.g. both `:= (...)` and `:= [...]` should be valid; see also https://github.com/PLC-lang/rusty/issues/895
+    let source = "
+        TYPE myStruct : STRUCT
+            x : DINT;
+            y : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                {ARRAY}
+            END_VAR
+        END_FUNCTION
+    ";
+
+    let paren = codegen(
+        &source.replace("{ARRAY}", "arr : ARRAY[0..1] OF myStruct := ((x := 1, y := 2), (x := 3, y := 4));"),
+    );
+
+    let bracket = codegen(
+        &source.replace("{ARRAY}", "arr : ARRAY[0..1] OF myStruct := [(x := 1, y := 2), (x := 3, y := 4)];"),
+    );
+
+    assert_eq!(paren, bracket);
+    insta::assert_snapshot!(bracket);
+}
+
+#[test]
 fn type_defaults_are_used_for_uninitialized_constants() {
     let result = codegen_without_unwrap(
         r#"
