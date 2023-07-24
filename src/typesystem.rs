@@ -1274,14 +1274,14 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
     suffix.map(|suffix| format!("{type_name}_{suffix}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
-//returns a range with the min and max value of the given type
-macro_rules! is_covered_by {
-    ($t:ty, $e:expr) => {
-        <$t>::MIN as i128 <= $e as i128 && $e as i128 <= <$t>::MAX as i128
-    };
-}
-
 pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Option<&str> {
+    // Returns a range with the min and max value of the given type
+    macro_rules! is_covered_by {
+        ($t:ty, $e:expr) => {
+            <$t>::MIN as i128 <= $e as i128 && $e as i128 <= <$t>::MAX as i128
+        };
+    }
+
     match lit {
         AstLiteral::Integer(value) => match signed {
             _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),

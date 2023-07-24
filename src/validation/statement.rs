@@ -220,7 +220,7 @@ fn validate_qualified_reference<T: AnnotationMap>(
         let target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         if target_type.is_int() {
-            if !is_compatible(access, target_type, context.index) {
+            if !helper::is_compatible(access, target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess(
                     &format!("{access:?}"),
                     access.get_bit_width(),
@@ -257,26 +257,6 @@ fn validate_qualified_reference<T: AnnotationMap>(
     }
 }
 
-/// Returns true if the current index is in the range for the given type
-pub fn is_in_range(
-    access: &DirectAccessType,
-    access_index: u64,
-    data_type: &DataTypeInformation,
-    index: &Index,
-) -> bool {
-    (access.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
-}
-
-/// Returns the range from 0 for the given data type
-pub fn get_range(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
-    0..((data_type.get_size_in_bits(index) as u64 / access.get_bit_width()) - 1)
-}
-
-/// Returns true if the direct access can be used for the given type
-pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
-    data_type.get_semantic_size(index) as u64 > access.get_bit_width()
-}
-
 fn validate_access_index<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
@@ -287,11 +267,16 @@ fn validate_access_index<T: AnnotationMap>(
 ) {
     match *access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
-            if !is_in_range(access_type, value.try_into().unwrap_or_default(), target_type, context.index) {
+            if !helper::is_in_range(
+                access_type,
+                value.try_into().unwrap_or_default(),
+                target_type,
+                context.index,
+            ) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
                     target_type.get_name(),
-                    get_range(access_type, target_type, context.index),
+                    helper::get_range(access_type, target_type, context.index),
                     location.clone(),
                 ))
             }
@@ -995,3 +980,35 @@ fn validate_type_nature<T: AnnotationMap>(
 //         ))
 //     }
 // }
+
+mod helper {
+    use std::ops::Range;
+
+    use plc_ast::ast::DirectAccessType;
+
+    use crate::{index::Index, typesystem::DataTypeInformation};
+
+    /// Returns true if the current index is in the range for the given type
+    pub fn is_in_range(
+        access: &DirectAccessType,
+        access_index: u64,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> bool {
+        (access.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
+    }
+
+    /// Returns the range from 0 for the given data type
+    pub fn get_range(
+        access: &DirectAccessType,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> Range<u64> {
+        0..((data_type.get_size_in_bits(index) as u64 / access.get_bit_width()) - 1)
+    }
+
+    /// Returns true if the direct access can be used for the given type
+    pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
+        data_type.get_semantic_size(index) as u64 > access.get_bit_width()
+    }
+}
