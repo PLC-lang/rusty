@@ -18,4 +18,9 @@ mod tests {
     fn qualified_name() {
         assert_eq!(super::qualified_name("main", "foo"), "main.foo".to_string());
     }
+
+    #[test]
+    fn internal_type_name() {
+        assert_eq!(super::internal_type_name("POINTER_TO_", "foo"), "__POINTER_TO_foo");
+    }
 }

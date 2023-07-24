@@ -393,7 +393,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let call_name = qualified_name(class_name, &name); // TODO: Naming convention (see plc_util/src/convention.rs)
+        let call_name = qualified_name(class_name, &name);
         let implementation = parse_implementation(
             lexer,
             linkage,

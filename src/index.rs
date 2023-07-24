@@ -176,7 +176,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: qualified_name(container, name), // TODO: Naming convention (see plc_util/src/convention.rs)
+            qualified_name: qualified_name(container, name),
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
