@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 181..182 }], err_no: reference__unresolved }
 SyntaxError { message: "Could not resolve reference to b", range: [SourceRange { range: 217..218 }], err_no: reference__unresolved }
