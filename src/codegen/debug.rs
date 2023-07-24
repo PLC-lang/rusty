@@ -553,7 +553,7 @@ impl<'ink> DebugBuilder<'ink> {
             .into();
         let data_layout = DataLayout::default();
         let debug_type = self.debug_info.create_pointer_type(
-            &format!("__ref_to_{}", variable.get_type_name()),
+            &format!("__ref_to_{}", variable.get_type_name()), // TODO: Naming convention (see plc_util/src/convention.rs)
             original_type,
             data_layout.p64.bits().into(),
             data_layout.p64.bits(),

@@ -29,6 +29,7 @@ use plc_ast::{
     ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::AstLiteral,
 };
+use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
@@ -1024,7 +1025,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         context: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let instance_name = format!("{function_name}_instance");
+        let instance_name = format!("{function_name}_instance"); // TODO: Naming convention (see plc_util/src/convention.rs)
         let function_type = self
             .llvm_index
             .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
@@ -1354,7 +1355,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 _ => {
                     let qualifier_name = self.get_type_hint_for(context)?.get_name();
-                    let qualified_name = format!("{qualifier_name}.{name}");
+                    let qualified_name = qualified_name(qualifier_name, name);
                     let implementation = self.index.find_pou_implementation(&qualified_name);
                     if implementation.is_some() {
                         return Ok(qualifier.to_owned());
@@ -2019,7 +2020,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let member: &VariableIndexEntry =
                             self.index.find_member(struct_name, variable_name).ok_or_else(|| {
                                 Diagnostic::unresolved_reference(
-                                    format!("{struct_name}.{variable_name}").as_str(),
+                                    &qualified_name(struct_name, variable_name),
                                     location.clone(),
                                 )
                             })?;

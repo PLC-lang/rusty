@@ -7,6 +7,7 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
+use plc_util::convention::qualified_name;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
@@ -392,7 +393,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let call_name = format!("{class_name}.{name}");
+        let call_name = qualified_name(class_name, &name); // TODO: Naming convention (see plc_util/src/convention.rs)
         let implementation = parse_implementation(
             lexer,
             linkage,
@@ -506,7 +507,7 @@ fn parse_action(
             let name = lexer.slice_and_advance();
             (name_or_container, name, loc.span(&lexer.last_location()))
         };
-        let call_name = format!("{}.{}", &container, &name);
+        let call_name = qualified_name(&container, &name);
 
         let implementation = parse_implementation(
             lexer,

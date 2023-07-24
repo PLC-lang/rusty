@@ -1271,13 +1271,7 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
         _ => None,
     };
 
-    suffix.map(|suffix| format!("{type_name}_{suffix}"))
-}
-
-/// returns a name for internally created types using the given prefix and original type name
-/// the return name starts with "__"
-pub fn create_internal_type_name(prefix: &str, original_type_name: &str) -> String {
-    format!("__{prefix}{original_type_name}")
+    suffix.map(|suffix| format!("{type_name}_{suffix}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
 //returns a range with the min and max value of the given type

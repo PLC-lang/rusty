@@ -3,6 +3,7 @@ use crate::diagnostics::Diagnostic;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use plc_ast::ast::SourceRange;
+use plc_util::convention::qualified_name;
 use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
@@ -97,7 +98,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         variable_name: &str,
         target_value: PointerValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        let qualified_name = format!("{container_name}.{variable_name}");
+        let qualified_name = qualified_name(container_name, variable_name);
         self.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
         Ok(())
     }

@@ -208,7 +208,7 @@ impl<'i> TypeAnnotator<'i> {
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
-                let name = format!("{name}__{inner_type_name}");
+                let name = format!("{name}__{inner_type_name}"); // TODO: Naming convention (see plc_util/src/convention.rs)
                 let new_type_info =
                     DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: true };
 
@@ -440,7 +440,7 @@ pub fn generic_name_resolver(
         .map(|it| {
             generic_map.get(&it.name).map(|it| it.derived_type.as_str()).unwrap_or_else(|| it.name.as_str())
         })
-        .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}"))
+        .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
 /// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins

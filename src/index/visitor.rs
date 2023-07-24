@@ -9,6 +9,7 @@ use plc_ast::ast::{
     Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
+use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
@@ -268,7 +269,7 @@ fn visit_implementation(
 /// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
-    let type_name = typesystem::create_internal_type_name("auto_pointer_to_", inner_type_name);
+    let type_name = internal_type_name("auto_pointer_to_", inner_type_name);
 
     //check if type was already created
     if index.find_effective_type_by_name(type_name.as_str()).is_none() {

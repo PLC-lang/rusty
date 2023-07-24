@@ -1634,6 +1634,7 @@ name = "plc_ast"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "plc_util",
  "serde",
 ]
 
@@ -1944,6 +1945,7 @@ dependencies = [
  "plc_driver",
  "plc_project",
  "plc_source",
+ "plc_util",
  "pretty_assertions",
  "regex",
  "rusty-derive",

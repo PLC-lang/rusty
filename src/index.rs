@@ -10,6 +10,7 @@ use plc_ast::ast::{
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
     TypeNature,
 };
+use plc_util::convention::qualified_name;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -175,7 +176,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: format!("{container}.{name}"),
+            qualified_name: qualified_name(container, name), // TODO: Naming convention (see plc_util/src/convention.rs)
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
@@ -262,7 +263,7 @@ impl VariableIndexEntry {
     }
 
     fn has_parent(&self, context: &str) -> bool {
-        let name = format!("{context}.{}", self.name);
+        let name = qualified_name(context, &self.name);
         self.qualified_name.eq_ignore_ascii_case(&name)
     }
 }
@@ -1039,7 +1040,7 @@ impl Index {
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&format!("{enum_name}.{element_name}").to_lowercase())
+        self.enum_qualified_variables.get(&qualified_name(enum_name, element_name).to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1275,7 +1276,7 @@ impl Index {
 
     pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
         let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone())
+            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
@@ -1316,7 +1317,7 @@ impl Index {
         let variable_type = member_info.variable_linkage;
         let data_type_name = member_info.variable_type_name;
 
-        let qualified_name = format!("{container_name}.{variable_name}");
+        let qualified_name = qualified_name(container_name, variable_name);
 
         VariableIndexEntry::new(
             variable_name,
@@ -1339,7 +1340,7 @@ impl Index {
         initial_value: Option<ConstId>,
         source_location: SymbolLocation,
     ) {
-        let qualified_name = format!("{enum_type_name}.{element_name}");
+        let qualified_name = qualified_name(enum_type_name, element_name);
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)

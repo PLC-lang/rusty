@@ -20,6 +20,7 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
+use plc_util::convention::{internal_type_name, qualified_name};
 
 pub mod const_evaluator;
 pub mod generics;
@@ -1258,11 +1259,7 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
-                            || {
-                                self.index
-                                    .find_pou(format!("{qualifier}.{name}").as_str())
-                                    .map(|it| it.into())
-                            },
+                            || self.index.find_pou(&qualified_name(qualifier, name)).map(|it| it.into()),
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
                 } else {
@@ -1298,16 +1295,14 @@ impl<'i> TypeAnnotator<'i> {
                                 .or_else(|| {
                                     // try to find a local action with this name
                                     self.index
-                                        .find_pou(format!("{qualifier}.{name}").as_str())
+                                        .find_pou(&qualified_name(qualifier, name))
                                         .map(StatementAnnotation::from)
                                 })
                         })
                         .or_else(|| {
                             // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
                             ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
-                                self.index
-                                    .find_pou(format!("{}.{name}", it.get_container()).as_str())
-                                    .map(Into::into)
+                                self.index.find_pou(&qualified_name(it.get_container(), name)).map(Into::into)
                             })
                         })
                         .or_else(|| {
@@ -1762,7 +1757,7 @@ fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
-    let new_type_name = typesystem::create_internal_type_name(prefix, len.to_string().as_str());
+    let new_type_name = internal_type_name(prefix, len.to_string().as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
@@ -1781,7 +1776,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
+    let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
