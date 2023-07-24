@@ -2,8 +2,8 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-ImprovementSuggestion { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 291..294 }] }
-ImprovementSuggestion { message: "Assigned value is not a variant of main.water", range: [SourceRange { range: 334..338 }] }
-ImprovementSuggestion { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 377..386 }] }
-ImprovementSuggestion { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 420..421 }] }
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 291..294 }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.water", range: [SourceRange { range: 334..338 }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 377..386 }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.color", range: [SourceRange { range: 420..421 }], err_no: var__invalid_enum_variant }
 

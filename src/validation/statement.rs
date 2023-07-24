@@ -215,9 +215,8 @@ fn validate_qualified_reference<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     let mut iter = elements.iter().rev();
-    if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
-        iter.next().zip(iter.next())
-    {
+    let access = iter.next().zip(iter.next());
+    if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) = access {
         let target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         if target_type.is_int() {
@@ -236,6 +235,24 @@ fn validate_qualified_reference<T: AnnotationMap>(
                 access.get_bit_width(),
                 location.clone(),
             ))
+        }
+    } else {
+        let Some((reference, accessed)) = access else {
+            return
+        };
+        if !context.annotations.has_type_annotation(reference) {
+            let AstStatement::Reference { name, location, .. } = reference else {
+                return
+            };
+
+            if context.annotations.get_type(accessed, context.index).is_none() {
+                return;
+            }
+
+            validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                message: format!("If you meant to access a bit, use %X{name} instead.",),
+                range: vec![location.clone()],
+            });
         }
     }
 }
@@ -579,21 +596,13 @@ fn validate_assignment<T: AnnotationMap>(
                 ));
             } else {
                 // ...enum variable where the RHS does not match its variants
-                let left_dt =
-                    context.annotations.get_type_or_void(left, context.index).get_type_information();
-                if left_dt.is_enum()
-                    && left_dt.get_name()
-                        != context
-                            .annotations
-                            .get_type_or_void(right, context.index)
-                            .get_type_information()
-                            .get_name()
-                {
-                    validator.push_diagnostic(Diagnostic::enum_variant_mismatch(
-                        qualified_name,
-                        right.get_location(),
-                    ))
-                }
+                validate_enum_variant_assignment(
+                    validator,
+                    context.annotations.get_type_or_void(left, context.index).get_type_information(),
+                    context.annotations.get_type_or_void(right, context.index).get_type_information(),
+                    qualified_name,
+                    right.get_location(),
+                );
             }
 
             // ...VAR_INPUT {ref} variable
@@ -642,6 +651,18 @@ fn validate_assignment<T: AnnotationMap>(
             // FIXME: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
+    }
+}
+
+pub(crate) fn validate_enum_variant_assignment(
+    validator: &mut Validator,
+    left: &DataTypeInformation,
+    right: &DataTypeInformation,
+    qualified_name: &str,
+    location: SourceRange,
+) {
+    if left.is_enum() && left.get_name() != right.get_name() {
+        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, location))
     }
 }
 

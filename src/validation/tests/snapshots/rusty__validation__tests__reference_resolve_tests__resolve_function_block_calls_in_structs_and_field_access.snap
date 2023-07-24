@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Could not resolve reference to fb3", range: [SourceRange { range: 650..653 }], err_no: reference__unresolved }
 SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 654..655 }], err_no: reference__unresolved }
