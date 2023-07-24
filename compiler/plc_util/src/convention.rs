@@ -7,7 +7,7 @@ pub fn qualified_name<T: AsRef<str> + Display>(qualifier: T, name: T) -> String 
     format!("{qualifier}.{name}")
 }
 
-/// Returns an name for internally created types in the form of `__<prefix><original_type_name>`.
+/// Returns a name for internally created types in the form of `__<prefix><original_type_name>`.
 pub fn internal_type_name<T: AsRef<str> + Display>(prefix: T, original_type_name: T) -> String {
     format!("__{prefix}{original_type_name}")
 }

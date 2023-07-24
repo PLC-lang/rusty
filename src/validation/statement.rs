@@ -1,4 +1,4 @@
-use std::{collections::HashSet, mem::discriminant, ops::Range};
+use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
     ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
