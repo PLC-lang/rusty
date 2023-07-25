@@ -1280,11 +1280,13 @@ impl<'i> TypeAnnotator<'i> {
                                     }
 
                                     // If we're dealing with a call statement, check if the name resolves to
-                                    // a POU first before returning the POU-local variable.
+                                    // a function first before returning the POU-local variable.
                                     // See also https://github.com/PLC-lang/rusty/issues/894
                                     if ctx.is_call {
                                         if let Some(pou) = self.index.find_pou(name) {
-                                            return Some(StatementAnnotation::from(pou));
+                                            if pou.is_function() {
+                                                return Some(StatementAnnotation::from(pou));
+                                            }
                                         }
                                     }
 
