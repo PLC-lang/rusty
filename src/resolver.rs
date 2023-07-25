@@ -1270,66 +1270,52 @@ impl<'i> TypeAnnotator<'i> {
                             self.index
                                 .find_member(qualifier, name)
                                 .and_then(|m| {
-                                    // #604 needed for recursive function calls
-                                    // if we are in a call statement and the member name equals the pou name
-                                    // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
-                                    if ctx.is_call & (m.get_name() == qualifier) {
-                                        // return `None` because this would be foo.foo pointing to the function return
-                                        // we need the POU
-                                        return None;
-                                    }
-
-                                    // If we're dealing with a call statement, check if the name resolves to
-                                    // a function first before returning the POU-local variable.
-                                    // See also https://github.com/PLC-lang/rusty/issues/894
+                                    // If we're dealing with a call statement, then check if...
                                     if ctx.is_call {
-                                        if let Some(pou) = self.index.find_pou(name) {
-                                            if pou.is_function() {
-                                                return Some(StatementAnnotation::from(pou));
-                                            }
+                                        // ...the POU name is the same as the member, which indicates a
+                                        // recursive function call (e.g. `FUNCTION foo : INT foo(); END_FUNCTION`)
+                                        if m.get_name() == qualifier {
+                                            return None; // We need the POU instead
+                                        }
+
+                                        // ...there exists a **function** with the same name as the member,
+                                        // which indicates that we would incorrectly annotate a variable with a call statement.
+                                        // Note: We explicitily check for functions because e.g. FBs can be variables
+                                        if self.index.find_pou(&name).is_some_and(|it| it.is_function()) {
+                                            return None; // We need the POU instead
                                         }
                                     }
 
                                     Some(to_variable_annotation(m, self.index, ctx.constant))
                                 })
-                                .or_else(|| {
-                                    // ... then check if we're in a method and we're referencing
-                                    // a member variable of the corresponding class
-                                    self.index
-                                        .find_pou(qualifier)
-                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
-                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
-                                        .and_then(|class_name| self.index.find_member(class_name, name))
-                                        .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                                })
-                                .or_else(|| {
-                                    // try to find a local action with this name
-                                    self.index
-                                        .find_pou(format!("{qualifier}.{name}").as_str())
-                                        .map(StatementAnnotation::from)
-                                })
+                                // ... then check if we're in a method and we're referencing
+                                // a member variable of the corresponding class
+                                .or(self
+                                    .index
+                                    .find_pou(qualifier)
+                                    .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+                                    .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                    .and_then(|class_name| self.index.find_member(class_name, name))
+                                    .map(|v| to_variable_annotation(v, self.index, ctx.constant)))
+                                // try to find a local action with this name
+                                .or(self
+                                    .index
+                                    .find_pou(format!("{qualifier}.{name}").as_str())
+                                    .map(StatementAnnotation::from))
                         })
-                        .or_else(|| {
-                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
-                            ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
-                                self.index
-                                    .find_pou(format!("{}.{name}", it.get_container()).as_str())
-                                    .map(Into::into)
-                            })
-                        })
-                        .or_else(|| {
-                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
-                            {
-                                let index = self.index;
-                                index.find_pou(name).map(|it| it.into())
-                            }
-                        })
-                        .or_else(|| {
-                            // ... last option is a global variable, where we ignore the current pou's name as a qualifier
+                        // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+                        .or(ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
                             self.index
-                                .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                        })
+                                .find_pou(format!("{}.{name}", it.get_container()).as_str())
+                                .map(Into::into)
+                        }))
+                        // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+                        .or(self.index.find_pou(name).map(|it| it.into()))
+                        // ... last option is a global variable, where we ignore the current pou's name as a qualifier
+                        .or(self
+                            .index
+                            .find_global_variable(name)
+                            .map(|v| to_variable_annotation(v, self.index, ctx.constant)))
                 };
                 if let Some(annotation) = annotation {
                     self.annotate(statement, annotation);
@@ -1625,7 +1611,7 @@ impl<'i> TypeAnnotator<'i> {
             self.update_generic_call_statement(
                 generics_candidates,
                 operator_qualifier,
-                operator,
+                dbg!(operator),
                 parameters_stmt,
                 ctx,
             );

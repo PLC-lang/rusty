@@ -53,10 +53,8 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    /// Updates the generic information of a function call
-    /// It collects all candidates for a generic function
-    /// Then chooses the best fitting function signature
-    /// And reannotates the function with the found information
+    /// Updates the generic information of a function call. It collects all candidates for a generic function
+    /// then chooses the best fitting function signature and reannotates the function with the found information.
     pub(crate) fn update_generic_call_statement(
         &mut self,
         generics_candidates: HashMap<String, Vec<String>>,
