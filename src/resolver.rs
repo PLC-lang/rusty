@@ -1279,8 +1279,8 @@ impl<'i> TypeAnnotator<'i> {
                                         }
 
                                         // ...there exists a **function** with the same name as the member,
-                                        // which indicates that we would incorrectly annotate a variable with a call statement.
-                                        // Note: We explicitily check for functions because e.g. FBs can be variables
+                                        // which indicates that we would incorrectly annotate a call statement as a variable.
+                                        // Note: We explicitily check for functions because e.g. FBs can be callable variables
                                         if self.index.find_pou(name).is_some_and(|it| it.is_function()) {
                                             return None; // We need the POU instead
                                         }
