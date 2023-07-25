@@ -1611,7 +1611,7 @@ impl<'i> TypeAnnotator<'i> {
             self.update_generic_call_statement(
                 generics_candidates,
                 operator_qualifier,
-                dbg!(operator),
+                operator,
                 parameters_stmt,
                 ctx,
             );
