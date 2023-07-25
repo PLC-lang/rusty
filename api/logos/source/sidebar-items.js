@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["Chunk","A fixed, statically sized chunk of data that can be read from the `Source`."],["Source","Trait for types the `Lexer` can read from."]]};
+window.SIDEBAR_ITEMS = {"trait":["Chunk","Source"]};

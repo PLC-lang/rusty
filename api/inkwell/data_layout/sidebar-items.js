@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DataLayout",""]]};
+window.SIDEBAR_ITEMS = {"struct":["DataLayout"]};

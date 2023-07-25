@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"async_std":[["impl !<a class=\"trait\" href=\"https://doc.rust-lang.org/1.67.0/core/marker/trait.Sized.html\" title=\"trait core::marker::Sized\">Sized</a> for <a class=\"struct\" href=\"async_std/path/struct.Path.html\" title=\"struct async_std::path::Path\">Path</a>",1,["async_std::path::path::Path"]]]
+"async_std":[["impl !<a class=\"trait\" href=\"https://doc.rust-lang.org/1.70.0/core/marker/trait.Sized.html\" title=\"trait core::marker::Sized\">Sized</a> for <a class=\"struct\" href=\"async_std/path/struct.Path.html\" title=\"struct async_std::path::Path\">Path</a>",1,["async_std::path::path::Path"]]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

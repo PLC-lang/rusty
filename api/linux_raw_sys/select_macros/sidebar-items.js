@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["FD_CLR",""],["FD_ISSET",""],["FD_SET",""],["FD_ZERO",""]]};
+window.SIDEBAR_ITEMS = {"fn":["FD_CLR","FD_ISSET","FD_SET","FD_ZERO"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["generic_name_resolver","Builds the correct generic name from the given information"],["no_generic_name_resolver","This method returns the qualified name, but has the same signature as the generic resover to be used in builtins"]],"struct":[["GenericType",""]]};
+window.SIDEBAR_ITEMS = {"fn":["generic_name_resolver","no_generic_name_resolver"],"struct":["GenericType"]};

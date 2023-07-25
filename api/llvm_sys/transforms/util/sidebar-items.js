@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["LLVMAddAddDiscriminatorsPass",""],["LLVMAddLowerSwitchPass",""],["LLVMAddPromoteMemoryToRegisterPass",""]]};
+window.SIDEBAR_ITEMS = {"fn":["LLVMAddAddDiscriminatorsPass","LLVMAddLowerSwitchPass","LLVMAddPromoteMemoryToRegisterPass"]};

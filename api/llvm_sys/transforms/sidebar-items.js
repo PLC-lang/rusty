@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["aggressive_instcombine",""],["coroutines",""],["instcombine",""],["ipo","Interprocedural transformations of LLVM IR."],["pass_builder",""],["pass_manager_builder",""],["scalar","Scalar transformations of LLVM IR."],["util",""],["vectorize","Vectorization transformations of LLVM IR."]]};
+window.SIDEBAR_ITEMS = {"mod":["aggressive_instcombine","coroutines","instcombine","ipo","pass_builder","pass_manager_builder","scalar","util","vectorize"]};

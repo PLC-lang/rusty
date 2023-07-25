@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Cow","A clone-on-write smart pointer, mostly compatible with `std::borrow::Cow`."]]};
+window.SIDEBAR_ITEMS = {"struct":["Cow"]};

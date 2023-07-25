@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Action",""],["State",""]],"fn":[["state_change","Transition to next [`State`]"]]};
+window.SIDEBAR_ITEMS = {"enum":["Action","State"],"fn":["state_change"]};

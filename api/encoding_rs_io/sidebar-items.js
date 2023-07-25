@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DecodeReaderBytes","An implementation of `io::Read` that transcodes to UTF-8 in a streaming fashion."],["DecodeReaderBytesBuilder","A builder for constructing a byte oriented transcoder to UTF-8."]]};
+window.SIDEBAR_ITEMS = {"struct":["DecodeReaderBytes","DecodeReaderBytesBuilder"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BasicBlock","A `BasicBlock` is a container of instructions."]]};
+window.SIDEBAR_ITEMS = {"struct":["BasicBlock"]};

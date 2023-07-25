@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["PollMode","The mode in which the poller waits for I/O events."]],"mod":[["os","Platform-specific functionality."]],"struct":[["Event","Indicates that a file descriptor or socket can read or write without blocking."],["Poller","Waits for I/O events."]],"trait":[["Source","A [`RawFd`] or a reference to a type implementing [`AsRawFd`]."]]};
+window.SIDEBAR_ITEMS = {"enum":["PollMode"],"mod":["os"],"struct":["Event","Poller"],"trait":["Source"]};

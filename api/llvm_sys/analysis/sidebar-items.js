@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["LLVMVerifierFailureAction",""]],"fn":[["LLVMVerifyFunction","Verify that a single function is valid, taking the specified action."],["LLVMVerifyModule","Verify that a module is valid, taking the specified action if not."],["LLVMViewFunctionCFG","Open a ghostview window displaying the CFG of the given function."],["LLVMViewFunctionCFGOnly",""]]};
+window.SIDEBAR_ITEMS = {"enum":["LLVMVerifierFailureAction"],"fn":["LLVMVerifyFunction","LLVMVerifyModule","LLVMViewFunctionCFG","LLVMViewFunctionCFGOnly"]};

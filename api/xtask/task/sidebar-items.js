@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["get_default_tasks",""],["oscat","Benchmark task for `oscat`"],["sieve_c","Benchmark task for `res/sieve.c`"],["sieve_st","Benchmark task for `res/sieve.st`"]],"mod":[["compile",""],["lexer",""],["run",""]],"trait":[["Task",""]]};
+window.SIDEBAR_ITEMS = {"fn":["get_default_tasks","oscat","sieve_c","sieve_st"],"mod":["compile","lexer","run"],"trait":["Task"]};

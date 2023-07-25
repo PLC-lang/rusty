@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["collect_hardware_configuration","Retrieves hardware bindings from all defined instances in the program"],["generate_hardware_configuration",""]],"struct":[["HardwareBinding",""],["HardwareConfiguration",""]]};
+window.SIDEBAR_ITEMS = {"fn":["collect_hardware_configuration","generate_hardware_configuration"],"struct":["HardwareBinding","HardwareConfiguration"]};

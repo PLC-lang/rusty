@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["Validators",""]]};
+window.SIDEBAR_ITEMS = {"derive":["Validators"]};

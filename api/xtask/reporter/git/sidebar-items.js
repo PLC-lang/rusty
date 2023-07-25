@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["GitReporter",""]]};
+window.SIDEBAR_ITEMS = {"struct":["GitReporter"]};

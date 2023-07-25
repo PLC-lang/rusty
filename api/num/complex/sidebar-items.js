@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Complex","A complex number in Cartesian form."],["ParseComplexError",""]],"trait":[["ComplexFloat","Generic trait for floating point complex numbers."]],"type":[["Complex32",""],["Complex64",""]]};
+window.SIDEBAR_ITEMS = {"struct":["Complex","ParseComplexError"],"trait":["ComplexFloat"],"type":["Complex32","Complex64"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["LinkerError",""]],"struct":[["Linker",""]]};
+window.SIDEBAR_ITEMS = {"enum":["LinkerError"],"struct":["Linker"]};

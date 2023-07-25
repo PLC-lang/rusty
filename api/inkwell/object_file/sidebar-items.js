@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjectFile",""],["Relocation",""],["RelocationIterator",""],["Section",""],["SectionIterator",""],["Symbol",""],["SymbolIterator",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjectFile","Relocation","RelocationIterator","Section","SectionIterator","Symbol","SymbolIterator"]};

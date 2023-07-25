@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["DWORD_TO_REAL",". Converts DWORD to REAL"],["LREAL_TO_LWORD",". Converts LREAL to LWORD"],["LWORD_TO_LREAL",". Converts LWORD to LREAL"],["REAL_TO_DWORD",". Converts REAL to DWORD"]]};
+window.SIDEBAR_ITEMS = {"fn":["DWORD_TO_REAL","LREAL_TO_LWORD","LWORD_TO_LREAL","REAL_TO_DWORD"]};

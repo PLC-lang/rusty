@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["CHAR_TO_WCHAR",". Converts CHAR to WCHAR"],["STRING_TO_WSTRING_EXT",". Converts STRING to WSTRING Limited by a return type of 80 charachters"],["WCHAR_TO_CHAR",". Converts WCHAR to CHAR"],["WSTRING_TO_STRING_EXT",". Converts WSTRING to STRING Limited by a return type of 80 charachters"]]};
+window.SIDEBAR_ITEMS = {"fn":["CHAR_TO_WCHAR","STRING_TO_WSTRING_EXT","WCHAR_TO_CHAR","WSTRING_TO_STRING_EXT"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Context","A `Context` is a container for all LLVM entities including `Module`s."],["ContextRef","A `ContextRef` is a smart pointer allowing borrowed access to a type’s `Context`."]],"trait":[["AsContextRef","This trait abstracts an LLVM `Context` type and should be implemented with caution."]]};
+window.SIDEBAR_ITEMS = {"struct":["Context","ContextRef"],"trait":["AsContextRef"]};
