@@ -2,18 +2,29 @@
 source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
-QualifiedReference {
-    elements: [
-        Reference {
-            name: "x",
+ReferenceExpr {
+    kind: Index(
+        LiteralInteger {
+            value: 7,
         },
-        ArrayAccess {
-            reference: Reference {
-                name: "y",
-            },
-            access: LiteralInteger {
-                value: 7,
-            },
+    ),
+    base: Some(
+        ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "y",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
         },
-    ],
+    ),
 }

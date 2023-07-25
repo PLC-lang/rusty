@@ -3,109 +3,171 @@ source: src/parser/tests/expressions_parser_tests.rs
 expression: "&prg.statements"
 ---
 [
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
+    ReferenceExpr {
+        kind: Member(
+            LiteralInteger {
+                value: 0,
             },
-            DirectAccess {
-                access: Bit,
-                index: LiteralInteger {
-                    value: 0,
-                },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
             },
-        ],
+        ),
     },
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
-            },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: Bit,
                 index: LiteralInteger {
                     value: 1,
                 },
             },
-        ],
-    },
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
             },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: Byte,
                 index: LiteralInteger {
                     value: 1,
                 },
             },
-        ],
-    },
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
             },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: Byte,
                 index: Reference {
                     name: "b",
                 },
             },
-        ],
-    },
-    QualifiedReference {
-        elements: [
-            ArrayAccess {
-                reference: Reference {
-                    name: "a",
-                },
-                access: LiteralInteger {
-                    value: 0,
-                },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
             },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: Word,
                 index: LiteralInteger {
                     value: 1,
                 },
             },
-        ],
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Index(
+                    LiteralInteger {
+                        value: 0,
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
     },
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
-            },
-            Reference {
-                name: "b",
-            },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: DWord,
                 index: LiteralInteger {
                     value: 1,
                 },
             },
-        ],
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "b",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
     },
-    QualifiedReference {
-        elements: [
-            Reference {
-                name: "a",
-            },
-            DirectAccess {
-                access: Byte,
-                index: LiteralInteger {
-                    value: 1,
-                },
-            },
+    ReferenceExpr {
+        kind: Member(
             DirectAccess {
                 access: Bit,
                 index: LiteralInteger {
                     value: 1,
                 },
             },
-        ],
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    DirectAccess {
+                        access: Byte,
+                        index: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
     },
 ]

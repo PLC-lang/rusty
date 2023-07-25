@@ -1,0 +1,66 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statements
+---
+[
+    RangeStatement {
+        start: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "a",
+                },
+            ),
+            base: None,
+        },
+        end: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "b",
+                },
+            ),
+            base: None,
+        },
+    },
+    RangeStatement {
+        start: LiteralInteger {
+            value: 1,
+        },
+        end: LiteralInteger {
+            value: 2,
+        },
+    },
+    RangeStatement {
+        start: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "a",
+                },
+            ),
+            base: None,
+        },
+        end: LiteralInteger {
+            value: 2,
+        },
+    },
+    RangeStatement {
+        start: LiteralInteger {
+            value: 2,
+        },
+        end: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "a",
+                },
+            ),
+            base: None,
+        },
+    },
+    RangeStatement {
+        start: LiteralInteger {
+            value: -2,
+        },
+        end: LiteralInteger {
+            value: -1,
+        },
+    },
+]

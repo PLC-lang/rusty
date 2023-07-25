@@ -4,8 +4,13 @@ expression: statements
 ---
 [
     Assignment {
-        left: Reference {
-            name: "x",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
         },
         right: LiteralString {
             value: "Hello, World!",
@@ -13,8 +18,13 @@ expression: statements
         },
     },
     Assignment {
-        left: Reference {
-            name: "x",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
         },
         right: LiteralString {
             value: "",

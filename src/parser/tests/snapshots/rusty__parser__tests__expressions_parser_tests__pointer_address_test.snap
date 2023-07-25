@@ -4,7 +4,12 @@ expression: statement
 ---
 UnaryExpression {
     operator: Address,
-    value: Reference {
-        name: "x",
+    value: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
     },
 }

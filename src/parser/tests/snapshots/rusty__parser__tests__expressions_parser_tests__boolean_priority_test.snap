@@ -8,18 +8,38 @@ BinaryExpression {
         operator: Xor,
         left: BinaryExpression {
             operator: And,
-            left: Reference {
-                name: "a",
+            left: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
             },
-            right: Reference {
-                name: "b",
+            right: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "b",
+                    },
+                ),
+                base: None,
             },
         },
-        right: Reference {
-            name: "c",
+        right: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "c",
+                },
+            ),
+            base: None,
         },
     },
-    right: Reference {
-        name: "d",
+    right: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "d",
+            },
+        ),
+        base: None,
     },
 }

@@ -4,8 +4,13 @@ expression: statement
 ---
 BinaryExpression {
     operator: And,
-    left: Reference {
-        name: "a",
+    left: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "a",
+            },
+        ),
+        base: None,
     },
     right: BinaryExpression {
         operator: Xor,
@@ -13,16 +18,31 @@ BinaryExpression {
             operator: Not,
             value: BinaryExpression {
                 operator: Or,
-                left: Reference {
-                    name: "b",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "c",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "c",
+                        },
+                    ),
+                    base: None,
                 },
             },
         },
-        right: Reference {
-            name: "d",
+        right: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "d",
+                },
+            ),
+            base: None,
         },
     },
 }

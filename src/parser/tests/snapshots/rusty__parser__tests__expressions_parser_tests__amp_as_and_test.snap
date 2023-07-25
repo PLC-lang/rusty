@@ -4,10 +4,20 @@ expression: statement
 ---
 BinaryExpression {
     operator: And,
-    left: Reference {
-        name: "b",
+    left: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "b",
+            },
+        ),
+        base: None,
     },
-    right: Reference {
-        name: "c",
+    right: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "c",
+            },
+        ),
+        base: None,
     },
 }

@@ -1,0 +1,39 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+[
+    CastStatement {
+        type_name: "MyEnum",
+        target: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "Val7",
+                },
+            ),
+            base: None,
+        },
+    },
+    CastStatement {
+        type_name: "MyEnum",
+        target: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "Val2",
+                },
+            ),
+            base: None,
+        },
+    },
+    CastStatement {
+        type_name: "MyEnum",
+        target: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "Val3",
+                },
+            ),
+            base: None,
+        },
+    },
+]

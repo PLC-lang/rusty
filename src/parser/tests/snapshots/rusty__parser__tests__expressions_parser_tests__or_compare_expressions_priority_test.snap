@@ -6,14 +6,24 @@ BinaryExpression {
     operator: Or,
     left: BinaryExpression {
         operator: Greater,
-        left: Reference {
-            name: "x",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
         },
         right: LiteralInteger {
             value: 1,
         },
     },
-    right: Reference {
-        name: "b1",
+    right: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "b1",
+            },
+        ),
+        base: None,
     },
 }

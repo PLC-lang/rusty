@@ -269,37 +269,9 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             }
         }
         OperatorMultiplication => parse_vla_range(lexer),
+        Identifier => parse_qualified_reference2(lexer),
         // ...and if not then this token may be anything
-        _ => match lexer.token {
-            Identifier => parse_qualified_reference2(lexer),
-            HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
-            LiteralInteger => parse_literal_number(lexer, false),
-            LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
-            LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, false),
-            LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, false),
-            LiteralDate => parse_literal_date(lexer),
-            LiteralTimeOfDay => parse_literal_time_of_day(lexer),
-            LiteralTime => parse_literal_time(lexer),
-            LiteralDateAndTime => parse_literal_date_and_time(lexer),
-            LiteralString => parse_literal_string(lexer, false),
-            LiteralWideString => parse_literal_string(lexer, true),
-            LiteralTrue => parse_bool_literal(lexer, true),
-            LiteralFalse => parse_bool_literal(lexer, false),
-            LiteralNull => parse_null_literal(lexer),
-            KeywordSquareParensOpen => parse_array_literal(lexer),
-            _ => {
-                if lexer.closing_keywords.contains(&vec![KeywordParensClose])
-                    && matches!(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
-                {
-                    // due to closing keyword ')' and last_token '=>' / ':='
-                    // we are probably in a call statement missing a parameter assignment 'foo(param := );
-                    // optional parameter assignments are allowed, validation should handle any unwanted cases
-                    Ok(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
-                } else {
-                    Err(Diagnostic::unexpected_token_found("Literal", lexer.slice(), lexer.location()))
-                }
-            }
-        },
+        _ => parse_single_leafe_expression(lexer),
     };
 
     let literal_parse_result = literal_parse_result.and_then(|statement| {
@@ -347,6 +319,44 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             statement
         }
     }
+}
+
+fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
+    match lexer.token {
+        Identifier => Ok(parse_identifier(lexer)),
+        HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
+        LiteralInteger => parse_literal_number(lexer, false),
+        LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
+        LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, false),
+        LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, false),
+        LiteralDate => parse_literal_date(lexer),
+        LiteralTimeOfDay => parse_literal_time_of_day(lexer),
+        LiteralTime => parse_literal_time(lexer),
+        LiteralDateAndTime => parse_literal_date_and_time(lexer),
+        LiteralString => parse_literal_string(lexer, false),
+        LiteralWideString => parse_literal_string(lexer, true),
+        LiteralTrue => parse_bool_literal(lexer, true),
+        LiteralFalse => parse_bool_literal(lexer, false),
+        LiteralNull => parse_null_literal(lexer),
+        KeywordSquareParensOpen => parse_array_literal(lexer),
+        DirectAccess(access) => parse_direct_access(lexer, access),
+        _ => {
+            if lexer.closing_keywords.contains(&vec![KeywordParensClose])
+                && matches!(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
+            {
+                // due to closing keyword ')' and last_token '=>' / ':='
+                // we are probably in a call statement missing a parameter assignment 'foo(param := );
+                // optional parameter assignments are allowed, validation should handle any unwanted cases
+                Ok(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
+            } else {
+                Err(Diagnostic::unexpected_token_found("Literal", lexer.slice(), lexer.location()))
+            }
+        }
+    }
+}
+
+fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstStatement {
+    AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id())
 }
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -433,11 +443,7 @@ pub fn parse_qualified_reference_with_base(
         match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen]) {
             Some(KeywordDot) => {
                 current = AstFactory::create_member_reference(
-                    AstFactory::create_reference(
-                        &lexer.slice_and_advance(),
-                        &lexer.last_location(),
-                        lexer.next_id(),
-                    ),
+                    parse_single_leafe_expression(lexer)?,
                     Some(current),
                     lexer.next_id(),
                 );
@@ -445,7 +451,7 @@ pub fn parse_qualified_reference_with_base(
             Some(KeywordSquareParensOpen) => {
                 current = parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
                     AstFactory::create_index_reference(
-                        parse_leaf_expression(lexer),
+                        parse_expression(lexer),
                         Some(current),
                         lexer.next_id(),
                     )

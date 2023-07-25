@@ -4,13 +4,23 @@ expression: statement
 ---
 BinaryExpression {
     operator: And,
-    left: Reference {
-        name: "b",
+    left: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "b",
+            },
+        ),
+        base: None,
     },
     right: UnaryExpression {
         operator: Address,
-        value: Reference {
-            name: "c",
+        value: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "c",
+                },
+            ),
+            base: None,
         },
     },
 }

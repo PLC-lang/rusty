@@ -10,8 +10,13 @@ PointerAccess {
                     reference: ArrayAccess {
                         reference: PointerAccess {
                             reference: PointerAccess {
-                                reference: Reference {
-                                    name: "x",
+                                reference: ReferenceExpr {
+                                    kind: Member(
+                                        Reference {
+                                            name: "x",
+                                        },
+                                    ),
+                                    base: None,
                                 },
                             },
                         },

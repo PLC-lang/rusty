@@ -1,4 +1,4 @@
-use crate::ast::{AstStatement, SourceRange};
+use crate::ast::{AstFactory, AstStatement, SourceRange};
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;
@@ -17,7 +17,16 @@ mod variable_parser_tests;
 
 /// helper function to create references
 pub fn ref_to(name: &str) -> AstStatement {
-    AstStatement::Reference { location: SourceRange::undefined(), name: name.to_string(), id: 0 }
+    AstStatement::ReferenceExpr {
+        access: crate::ast::ReferenceAccess::Member(Box::new(AstFactory::create_reference(
+            name,
+            &SourceRange::undefined(),
+            0,
+        ))),
+        base: None,
+        id: 0,
+        location: SourceRange::undefined(),
+    }
 }
 
 /// helper function to create literal ints

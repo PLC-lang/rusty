@@ -3,7 +3,12 @@ source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
 PointerAccess {
-    reference: Reference {
-        name: "x",
+    reference: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
     },
 }

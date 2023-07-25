@@ -9,8 +9,13 @@ BinaryExpression {
     },
     right: UnaryExpression {
         operator: Minus,
-        value: Reference {
-            name: "x",
+        value: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
         },
     },
 }

@@ -5,8 +5,13 @@ expression: prg
 [
     BinaryExpression {
         operator: Less,
-        left: Reference {
-            name: "a",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "a",
+                },
+            ),
+            base: None,
         },
         right: LiteralInteger {
             value: 3,
@@ -14,8 +19,13 @@ expression: prg
     },
     BinaryExpression {
         operator: Greater,
-        left: Reference {
-            name: "b",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "b",
+                },
+            ),
+            base: None,
         },
         right: LiteralInteger {
             value: 0,
@@ -23,8 +33,13 @@ expression: prg
     },
     BinaryExpression {
         operator: LessOrEqual,
-        left: Reference {
-            name: "c",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "c",
+                },
+            ),
+            base: None,
         },
         right: LiteralInteger {
             value: 7,
@@ -32,16 +47,26 @@ expression: prg
     },
     BinaryExpression {
         operator: GreaterOrEqual,
-        left: Reference {
-            name: "d",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "d",
+                },
+            ),
+            base: None,
         },
         right: LiteralInteger {
             value: 4,
         },
     },
     Assignment {
-        left: Reference {
-            name: "e",
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "e",
+                },
+            ),
+            base: None,
         },
         right: BinaryExpression {
             operator: Greater,

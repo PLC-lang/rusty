@@ -4,20 +4,29 @@ expression: statements
 ---
 [
     Assignment {
-        left: ArrayAccess {
-            reference: Reference {
-                name: "x",
-            },
-            access: ExpressionList {
-                expressions: [
-                    LiteralInteger {
-                        value: 0,
-                    },
-                    LiteralInteger {
-                        value: 1,
-                    },
-                ],
-            },
+        left: ReferenceExpr {
+            kind: Index(
+                ExpressionList {
+                    expressions: [
+                        LiteralInteger {
+                            value: 0,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
         },
         right: LiteralString {
             value: "Hello, World!",
@@ -25,20 +34,34 @@ expression: statements
         },
     },
     Assignment {
-        left: ArrayAccess {
-            reference: Reference {
-                name: "x",
-            },
-            access: ExpressionList {
-                expressions: [
-                    Reference {
-                        name: "y",
-                    },
-                    LiteralInteger {
-                        value: 1,
-                    },
-                ],
-            },
+        left: ReferenceExpr {
+            kind: Index(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
         },
         right: LiteralString {
             value: "",

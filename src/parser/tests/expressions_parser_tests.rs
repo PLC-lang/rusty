@@ -745,7 +745,7 @@ fn literal_int_cast(data_type: &str, value: i128) -> AstStatement {
 fn literal_enum_parse_test() {
     let src = r#"
         PROGRAM exp 
-            MyEnum#Val1;
+            MyEnum#Val7;
             MyEnum#Val2;
             MyEnum#Val3;
         END_PROGRAM
@@ -754,34 +754,7 @@ fn literal_enum_parse_test() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements;
-
-    let ast_string = format!("{statement:#?}");
-    assert_eq!(
-        ast_string,
-        format!(
-            "{:#?}",
-            vec![
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "MyEnum".into(),
-                    target: Box::new(ref_to("Val1"))
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "MyEnum".into(),
-                    target: Box::new(ref_to("Val2"))
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "MyEnum".into(),
-                    target: Box::new(ref_to("Val3"))
-                }
-            ]
-        )
-    );
+    assert_debug_snapshot!(statement);
 }
 
 #[test]
@@ -1212,57 +1185,8 @@ fn range_expression() {
     let result = parse(src).0;
 
     let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RangeStatement {
-    start: Reference {
-        name: "a",
-    },
-    end: Reference {
-        name: "b",
-    },
-}"#;
-    assert_eq!(ast_string, expected_ast);
-
-    let statement = &prg.statements[1];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RangeStatement {
-    start: LiteralInteger {
-        value: 1,
-    },
-    end: LiteralInteger {
-        value: 2,
-    },
-}"#;
-    assert_eq!(ast_string, expected_ast);
-
-    let statement = &prg.statements[2];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RangeStatement {
-    start: Reference {
-        name: "a",
-    },
-    end: LiteralInteger {
-        value: 2,
-    },
-}"#;
-    assert_eq!(ast_string, expected_ast);
-
-    let statement = &prg.statements[3];
-
-    let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"RangeStatement {
-    start: LiteralInteger {
-        value: 2,
-    },
-    end: Reference {
-        name: "a",
-    },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    let statements = &prg.statements;
+    assert_debug_snapshot!(statements)
 }
 
 #[test]
@@ -1883,7 +1807,7 @@ fn direct_access_as_expression_parsed() {
     // GIVEN a program with several types of direct access
     let src = "
     PROGRAM prg
-        x := 5 + %IX2.1;
+        x := 6 + %IX2.1;
         y := %MB200;
         z := %GD5 * 2;
     END_PROGRAM
@@ -1893,5 +1817,5 @@ fn direct_access_as_expression_parsed() {
     let (result, _) = parse(src);
 
     //THEN the AST contains direct address nodes at the access location
-    assert_snapshot!(format!("{result:?}"));
+    assert_debug_snapshot!(result);
 }
