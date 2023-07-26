@@ -1,6 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::*, lexer::Token, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
+use crate::{lexer::Token, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
 use insta::assert_debug_snapshot;
+use plc_ast::ast::{
+    AccessModifier, AstStatement, DataType, DataTypeDeclaration, LinkageType, SourceRange,
+    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+};
 use pretty_assertions::*;
 
 /*

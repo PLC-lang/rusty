@@ -1281,3 +1281,43 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
 
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn bit_access_with_incorrect_operator_causes_warning() {
+    let diagnostics = parse_and_validate(
+        "PROGRAM mainProg
+        VAR_INPUT
+            Input : STRUCT1;
+        END_VAR
+        VAR
+            access : STRUCT2;
+        END_VAR
+        VAR_OUTPUT
+            Output : STRUCT1;
+        END_VAR
+            Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
+            Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
+        END_PROGRAM
+        
+        TYPE STRUCT1 :
+        STRUCT
+            var1 : DWORD;
+        END_STRUCT
+        END_TYPE
+        
+        TYPE ENUM1 :
+        (
+            n1 := 1,
+            n2 := 2
+        );
+        END_TYPE
+        
+        TYPE STRUCT2 :
+        STRUCT
+            var1 : BOOL;
+        END_STRUCT
+        END_TYPE",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}

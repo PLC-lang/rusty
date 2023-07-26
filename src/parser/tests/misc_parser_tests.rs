@@ -1,12 +1,18 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement, LoopStatement},
-    Diagnostic, parser::tests::ref_to,
-};
+use crate::{parser::tests::ref_to, Diagnostic};
 use core::panic;
-use std::{ops::Range, collections::HashSet};
+use std::{collections::HashSet, ops::Range};
 
-use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
+use crate::{parser::tests::empty_stmt, test_utils::tests::parse};
+use plc_ast::{
+    ast::{
+        AccessModifier, ArgumentProperty, AstFactory, AstStatement, DataTypeDeclaration, Implementation,
+        LinkageType, Operator, Pou, PouType, ReferenceAccess, SourceRange, Variable, VariableBlock,
+        VariableBlockType,
+    },
+    control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
+    literals::AstLiteral,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -66,7 +72,7 @@ fn exponent_literals_parsed_as_variables() {
         location: SourceRange::undefined(),
         name_location: SourceRange::undefined(),
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pou:#?}").as_str());
     let implementation = &parse_result.implementations[0];
@@ -154,7 +160,7 @@ fn ids_are_assigned_to_callstatements() {
     foo(a := 1, b => c, d);
     END_PROGRAM
     ";
-    
+
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
@@ -199,7 +205,6 @@ fn ids_are_assigned_to_callstatements() {
             assert!(ids.insert(*id));
         }
         assert!(ids.insert(*id));
-
     } else {
         panic!("unexpected statement");
     }
@@ -231,26 +236,38 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: Some(base), id, .. } = &implementation.statements[1] {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: Some(base), id, .. } =
+        &implementation.statements[1]
+    {
         assert!(ids.insert(*id));
         assert!(ids.insert(m.get_id()));
-        if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: None, ..} = base.as_ref(){
+        if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: None, .. } =
+            base.as_ref()
+        {
             assert!(ids.insert(m.get_id()));
-        }else{
+        } else {
             panic!("unexpected statement");
         }
     } else {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: None, id, .. } = &implementation.statements[2] {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base: None, id, .. } =
+        &implementation.statements[2]
+    {
         assert!(ids.insert(*id));
         assert!(ids.insert(m.get_id()));
     } else {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(access), base: Some(reference), id, .. } = &implementation.statements[3] {
+    if let AstStatement::ReferenceExpr {
+        access: ReferenceAccess::Index(access),
+        base: Some(reference),
+        id,
+        ..
+    } = &implementation.statements[3]
+    {
         assert!(ids.insert(reference.get_id()));
         assert!(ids.insert(access.get_id()));
         assert!(ids.insert(*id));
@@ -422,13 +439,7 @@ fn ids_are_assigned_to_case_statements() {
     let mut ids = HashSet::new();
     match &implementation.statements[0] {
         AstStatement::ControlStatement {
-            kind:
-                AstControlStatement::Case(control_statements::CaseStatement {
-                    case_blocks,
-                    else_block,
-                    selector,
-                    ..
-                }),
+            kind: AstControlStatement::Case(CaseStatement { case_blocks, else_block, selector, .. }),
             ..
         } => {
             //1st case block

@@ -1,8 +1,8 @@
 use indexmap::IndexSet;
 use itertools::Itertools;
+use plc_ast::ast::PouType;
 
 use crate::{
-    ast::PouType,
     diagnostics::Diagnostic,
     index::{Index, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},

@@ -1,10 +1,19 @@
+use plc_ast::{
+    ast::{
+        AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
+        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    },
+    provider::IdProvider,
+};
+use plc_util::convention::qualified_name;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::*,
     diagnostics::Diagnostician,
     expect_token,
-    lexer::{self, IdProvider},
-    lexer::{ParseSession, Token, Token::*},
+    lexer::{self, ParseSession, Token, Token::*},
     typesystem::DINT_TYPE,
     Diagnostic,
 };
@@ -384,7 +393,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let call_name = format!("{class_name}.{name}");
+        let call_name = qualified_name(class_name, &name);
         let implementation = parse_implementation(
             lexer,
             linkage,
@@ -498,7 +507,7 @@ fn parse_action(
             let name = lexer.slice_and_advance();
             (name_or_container, name, loc.span(&lexer.last_location()))
         };
-        let call_name = format!("{}.{}", &container, &name);
+        let call_name = qualified_name(&container, &name);
 
         let implementation = parse_implementation(
             lexer,
@@ -761,12 +770,24 @@ fn parse_string_type_definition(
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
     let location: SourceRange = (start..end).into();
-    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
-        data_type: DataType::StringType { name, is_wide, size: Some(size) },
-        location: location.clone(),
-        scope: lexer.scope.clone(),
-    })
-    .or(Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
+
+    match (size, &name) {
+        (Some(size), _) => Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StringType { name, is_wide, size: Some(size) },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        (None, Some(name)) => Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::SubRangeType {
+                name: Some(name.into()),
+                referenced_type: text,
+                bounds: None,
+            },
+            location,
+            scope: lexer.scope.clone(),
+        }),
+        _ => Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
+    }
     .zip(Some(lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer))))
 }
 

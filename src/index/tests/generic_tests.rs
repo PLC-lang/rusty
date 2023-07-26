@@ -1,6 +1,7 @@
+use plc_ast::ast::{GenericBinding, TypeNature};
 use pretty_assertions::assert_eq;
 
-use crate::{ast::GenericBinding, index::PouIndexEntry, test_utils::tests::index};
+use crate::{index::PouIndexEntry, test_utils::tests::index};
 
 #[test]
 fn generics_saved_in_index() {
@@ -14,7 +15,7 @@ fn generics_saved_in_index() {
     assert!(foo_info.is_generic());
     if let PouIndexEntry::Function { generics, .. } = foo_info {
         let t = &generics[0];
-        assert_eq!(&GenericBinding { name: "T".into(), nature: crate::ast::TypeNature::Any }, t);
+        assert_eq!(&GenericBinding { name: "T".into(), nature: TypeNature::Any }, t);
     } else {
         panic!("{foo_info:#?} not a generic function");
     }

@@ -1,7 +1,7 @@
+use plc_ast::provider::IdProvider;
 use source::SourceCode;
 
 use crate::{
-    lexer::IdProvider,
     resolver::{Dependency, TypeAnnotator},
     test_utils::tests::index_with_ids,
 };

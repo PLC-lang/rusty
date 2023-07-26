@@ -1,6 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::*, lexer::Token, test_utils::tests::parse, Diagnostic};
+use crate::{lexer::Token, test_utils::tests::parse, Diagnostic};
 use insta::assert_debug_snapshot;
+use plc_ast::ast::{
+    AccessModifier, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable, VariableBlock,
+    VariableBlockType,
+};
 use pretty_assertions::*;
 
 /*
@@ -98,7 +102,6 @@ fn function_without_return_variable_declaration() {
     // AND I expect the body to be parsed successfully
     let pou = &compilation_unit.implementations[0];
     assert_debug_snapshot!(pou.statements);
-    
 }
 
 #[test]
@@ -139,7 +142,6 @@ fn function_return_type_with_initializer() {
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
     assert_debug_snapshot!(pou.statements);
-
 }
 
 #[test]
@@ -176,6 +178,7 @@ fn unclosed_var_container() {
         vec![Diagnostic::unexpected_token_found("KeywordEndVar", "'VAR b : INT;'", (82..94).into(),)],
         diagnostics
     );
+
     //check if b was parsed successfully
     let var_block = &compilation_unit.units[0].variable_blocks[0];
     assert_eq!(
@@ -190,7 +193,7 @@ fn unclosed_var_container() {
                 location: SourceRange::undefined(),
                 variables: vec![Variable {
                     name: "a".into(),
-                    data_type_declaration: crate::ast::DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
                         location: SourceRange::undefined(),
                     },
