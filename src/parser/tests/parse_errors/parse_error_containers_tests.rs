@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{ast::*, lexer::Token, test_utils::tests::parse, Diagnostic};
+use insta::assert_debug_snapshot;
 use pretty_assertions::*;
 
 /*
@@ -27,13 +28,7 @@ fn missing_pou_name() {
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements[0]),
-        format!(
-            "{:#?}",
-            AstStatement::Reference { name: "a".into(), location: SourceRange::undefined(), id: 0 }
-        )
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -56,13 +51,7 @@ fn missing_pou_name_2() {
     );
 
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements[1]),
-        format!(
-            "{:#?}",
-            AstStatement::Reference { name: "x".into(), location: SourceRange::undefined(), id: 0 }
-        )
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -86,13 +75,7 @@ fn illegal_end_pou_keyword() {
 
     //check if baz was parsed successfully
     let pou = &compilation_unit.implementations[1];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::Reference { name: "b".into(), location: SourceRange::undefined(), id: 0 }]
-        )
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -114,14 +97,8 @@ fn function_without_return_variable_declaration() {
 
     // AND I expect the body to be parsed successfully
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-            Reference {
-                name: "a",
-            },
-            ]"#
-    );
+    assert_debug_snapshot!(pou.statements);
+    
 }
 
 #[test]
@@ -141,14 +118,7 @@ fn function_with_illegal_return_variable_declaration() {
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-    Reference {
-        name: "a",
-    },
-]"#
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -168,14 +138,8 @@ fn function_return_type_with_initializer() {
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-    Reference {
-        name: "a",
-    },
-]"#
-    );
+    assert_debug_snapshot!(pou.statements);
+
 }
 
 #[test]
@@ -195,13 +159,7 @@ fn program_with_illegal_return_variable_declaration() {
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        format!(
-            "{:#?}",
-            vec![AstStatement::Reference { name: "a".into(), location: SourceRange::undefined(), id: 0 }]
-        )
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]

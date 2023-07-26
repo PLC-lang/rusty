@@ -321,6 +321,16 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     }
 }
 
+/// a leaf expression in a qualifed-reference (e.g a.b <-- )
+fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
+    // we want to force a integer number, not a exponent or something :-/
+    if lexer.token == LiteralInteger {
+        parse_strict_literal_integer(lexer)
+    }else{
+        parse_single_leafe_expression(lexer)
+    }
+}
+
 fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
     match lexer.token {
         Identifier => Ok(parse_identifier(lexer)),
@@ -443,7 +453,7 @@ pub fn parse_qualified_reference_with_base(
         match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen]) {
             Some(KeywordDot) => {
                 current = AstFactory::create_member_reference(
-                    parse_single_leafe_expression(lexer)?,
+                    parse_sub_single_leaf_expression(lexer)?,
                     Some(current),
                     lexer.next_id(),
                 );

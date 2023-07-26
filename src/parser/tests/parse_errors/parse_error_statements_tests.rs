@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{ast::*, lexer::Token, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
+use insta::assert_debug_snapshot;
 use pretty_assertions::*;
 
 /*
@@ -30,17 +31,7 @@ fn missing_semicolon_after_call() {
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-    CallStatement {
-        operator: Reference {
-            name: "buz",
-        },
-        parameters: None,
-    },
-]"#
-    );
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -147,8 +138,13 @@ fn incomplete_statement_test() {
         },
         right: EmptyStatement,
     },
-    Reference {
-        name: "x",
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
     },
 ]"#
     );
@@ -189,8 +185,13 @@ fn incomplete_statement_in_parantheses_recovery_test() {
             value: 3,
         },
     },
-    Reference {
-        name: "x",
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
     },
 ]"#
     );
@@ -221,8 +222,13 @@ fn mismatched_parantheses_recovery_test() {
             value: 2,
         },
     },
-    Reference {
-        name: "x",
+    ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
     },
 ]"#
     );
@@ -379,11 +385,21 @@ fn test_nested_if_with_missing_end_if() {
                                     },
                                     body: [
                                         Assignment {
-                                            left: Reference {
-                                                name: "x",
+                                            left: ReferenceExpr {
+                                                kind: Member(
+                                                    Reference {
+                                                        name: "x",
+                                                    },
+                                                ),
+                                                base: None,
                                             },
-                                            right: Reference {
-                                                name: "y",
+                                            right: ReferenceExpr {
+                                                kind: Member(
+                                                    Reference {
+                                                        name: "y",
+                                                    },
+                                                ),
+                                                base: None,
                                             },
                                         },
                                     ],
@@ -392,11 +408,21 @@ fn test_nested_if_with_missing_end_if() {
                             else_block: [],
                         },
                         Assignment {
-                            left: Reference {
-                                name: "y",
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "y",
+                                    },
+                                ),
+                                base: None,
                             },
-                            right: Reference {
-                                name: "x",
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "x",
+                                    },
+                                ),
+                                base: None,
                             },
                         },
                     ],
@@ -454,8 +480,13 @@ fn test_nested_for_with_missing_end_for() {
         @r###"
     [
         ForLoopStatement {
-            counter: Reference {
-                name: "x",
+            counter: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "x",
+                    },
+                ),
+                base: None,
             },
             start: LiteralInteger {
                 value: 1,
@@ -466,8 +497,13 @@ fn test_nested_for_with_missing_end_for() {
             by_step: None,
             body: [
                 ForLoopStatement {
-                    counter: Reference {
-                        name: "x",
+                    counter: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                     start: LiteralInteger {
                         value: 1,
@@ -478,21 +514,41 @@ fn test_nested_for_with_missing_end_for() {
                     by_step: None,
                     body: [
                         Assignment {
-                            left: Reference {
-                                name: "y",
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "y",
+                                    },
+                                ),
+                                base: None,
                             },
-                            right: Reference {
-                                name: "x",
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "x",
+                                    },
+                                ),
+                                base: None,
                             },
                         },
                     ],
                 },
                 Assignment {
-                    left: Reference {
-                        name: "x",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "y",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -528,17 +584,32 @@ fn test_repeat_with_missing_semicolon_in_body() {
         RepeatLoopStatement {
             condition: BinaryExpression {
                 operator: Equal,
-                left: Reference {
-                    name: "x",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "y",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
                 },
             },
             body: [
                 Assignment {
-                    left: Reference {
-                        name: "x",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                     right: LiteralInteger {
                         value: 3,
@@ -547,11 +618,21 @@ fn test_repeat_with_missing_semicolon_in_body() {
             ],
         },
         Assignment {
-            left: Reference {
-                name: "y",
+            left: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "y",
+                    },
+                ),
+                base: None,
             },
-            right: Reference {
-                name: "x",
+            right: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "x",
+                    },
+                ),
+                base: None,
             },
         },
     ]
@@ -590,11 +671,21 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                 RepeatLoopStatement {
                     condition: BinaryExpression {
                         operator: Equal,
-                        left: Reference {
-                            name: "x",
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
                         },
-                        right: Reference {
-                            name: "y",
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
                         },
                     },
                     body: [
@@ -602,11 +693,21 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                     ],
                 },
                 Assignment {
-                    left: Reference {
-                        name: "y",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "x",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -649,11 +750,21 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                 RepeatLoopStatement {
                     condition: BinaryExpression {
                         operator: Equal,
-                        left: Reference {
-                            name: "x",
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
                         },
-                        right: Reference {
-                            name: "y",
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
                         },
                     },
                     body: [
@@ -661,11 +772,21 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                     ],
                 },
                 Assignment {
-                    left: Reference {
-                        name: "y",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "x",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -704,22 +825,42 @@ fn test_nested_repeat_with_missing_end_repeat() {
         RepeatLoopStatement {
             condition: BinaryExpression {
                 operator: Equal,
-                left: Reference {
-                    name: "x",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "y",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
                 },
             },
             body: [
                 RepeatLoopStatement {
                     condition: BinaryExpression {
                         operator: Equal,
-                        left: Reference {
-                            name: "x",
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
                         },
-                        right: Reference {
-                            name: "y",
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
                         },
                     },
                     body: [
@@ -727,11 +868,21 @@ fn test_nested_repeat_with_missing_end_repeat() {
                     ],
                 },
                 Assignment {
-                    left: Reference {
-                        name: "y",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "x",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -768,17 +919,32 @@ fn test_while_with_missing_semicolon_in_body() {
         WhileLoopStatement {
             condition: BinaryExpression {
                 operator: Equal,
-                left: Reference {
-                    name: "x",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "y",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
                 },
             },
             body: [
                 Assignment {
-                    left: Reference {
-                        name: "x",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                     right: LiteralInteger {
                         value: 3,
@@ -787,11 +953,21 @@ fn test_while_with_missing_semicolon_in_body() {
             ],
         },
         Assignment {
-            left: Reference {
-                name: "y",
+            left: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "y",
+                    },
+                ),
+                base: None,
             },
-            right: Reference {
-                name: "x",
+            right: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "x",
+                    },
+                ),
+                base: None,
             },
         },
     ]
@@ -827,22 +1003,42 @@ fn test_nested_while_with_missing_end_while() {
         WhileLoopStatement {
             condition: BinaryExpression {
                 operator: Equal,
-                left: Reference {
-                    name: "x",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "y",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
                 },
             },
             body: [
                 WhileLoopStatement {
                     condition: BinaryExpression {
                         operator: Equal,
-                        left: Reference {
-                            name: "x",
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
                         },
-                        right: Reference {
-                            name: "y",
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
                         },
                     },
                     body: [
@@ -850,11 +1046,21 @@ fn test_nested_while_with_missing_end_while() {
                     ],
                 },
                 Assignment {
-                    left: Reference {
-                        name: "y",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "x",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -884,20 +1090,40 @@ fn test_while_with_missing_do() {
         WhileLoopStatement {
             condition: BinaryExpression {
                 operator: Equal,
-                left: Reference {
-                    name: "x",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
                 },
-                right: Reference {
-                    name: "y",
+                right: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
                 },
             },
             body: [
                 Assignment {
-                    left: Reference {
-                        name: "y",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
-                    right: Reference {
-                        name: "x",
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
                     },
                 },
             ],
@@ -931,21 +1157,41 @@ fn test_case_body_with_missing_semicolon() {
         @r###"
     [
         CaseStatement {
-            selector: Reference {
-                name: "x",
+            selector: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "x",
+                    },
+                ),
+                base: None,
             },
             case_blocks: [
                 ConditionalBlock {
-                    condition: Reference {
-                        name: "y",
+                    condition: ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
                     body: [
                         Assignment {
-                            left: Reference {
-                                name: "y",
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "y",
+                                    },
+                                ),
+                                base: None,
                             },
-                            right: Reference {
-                                name: "z",
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "z",
+                                    },
+                                ),
+                                base: None,
                             },
                         },
                     ],
@@ -973,8 +1219,13 @@ fn test_case_without_condition() {
         format!("{:#?}", cu.implementations[0].statements),
         r#"[
     CaseStatement {
-        selector: Reference {
-            name: "x",
+        selector: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
         },
         case_blocks: [
             ConditionalBlock {
@@ -987,8 +1238,13 @@ fn test_case_without_condition() {
                 condition: EmptyStatement,
                 body: [
                     Assignment {
-                        left: Reference {
-                            name: "x",
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
                         },
                         right: LiteralInteger {
                             value: 3,
@@ -1078,16 +1334,14 @@ fn pointer_type_with_wrong_keyword_to_test() {
 #[test]
 fn bitwise_access_error_validation() {
     let src = "PROGRAM exp 
-    a.1e5; 
-    b.%f6;
+    a.1e5;   // exponent illegal
+    b.%f6;   // f is no valid direct access modifier
     END_PROGRAM";
-    let (ast, diagnostics) = parse(src);
-    println!("{ast:?}");
-
-    assert_eq!(2, diagnostics.len());
+    let (_, diagnostics) = parse(src);
     let errs = vec![
         Diagnostic::unexpected_token_found("Integer", r#"Exponent value: 1e5"#, (19..22).into()),
-        Diagnostic::unexpected_token_found("KeywordSemicolon", "'f6'", (32..34).into()),
+        Diagnostic::unexpected_token_found("Literal", r#"%"#, (52..53).into()),
+        Diagnostic::unexpected_token_found("KeywordSemicolon", "'%f6'", (52..55).into()),
     ];
     assert_eq!(errs, diagnostics);
 }
