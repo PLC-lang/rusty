@@ -689,7 +689,7 @@ fn parse_type_reference_type_definition(
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement::Reference { .. }) => {
+            Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {

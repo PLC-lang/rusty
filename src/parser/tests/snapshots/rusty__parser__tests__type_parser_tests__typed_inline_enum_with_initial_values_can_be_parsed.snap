@@ -1,7 +1,6 @@
 ---
 source: src/parser/tests/type_parser_tests.rs
 expression: "result.units[0]"
-
 ---
 POU {
     name: "prg",
@@ -17,24 +16,39 @@ POU {
                             elements: ExpressionList {
                                 expressions: [
                                     Assignment {
-                                        left: Reference {
-                                            name: "red",
+                                        left: ReferenceExpr {
+                                            kind: Member(
+                                                Reference {
+                                                    name: "red",
+                                                },
+                                            ),
+                                            base: None,
                                         },
                                         right: LiteralInteger {
                                             value: 1,
                                         },
                                     },
                                     Assignment {
-                                        left: Reference {
-                                            name: "yellow",
+                                        left: ReferenceExpr {
+                                            kind: Member(
+                                                Reference {
+                                                    name: "yellow",
+                                                },
+                                            ),
+                                            base: None,
                                         },
                                         right: LiteralInteger {
                                             value: 2,
                                         },
                                     },
                                     Assignment {
-                                        left: Reference {
-                                            name: "green",
+                                        left: ReferenceExpr {
+                                            kind: Member(
+                                                Reference {
+                                                    name: "green",
+                                                },
+                                            ),
+                                            base: None,
                                         },
                                         right: LiteralInteger {
                                             value: 4,
