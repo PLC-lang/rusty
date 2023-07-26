@@ -18,6 +18,7 @@ use self::{
     variable::visit_variable_block,
 };
 
+mod array;
 mod global;
 mod pou;
 mod recursive;
@@ -159,11 +160,13 @@ impl Validator {
     }
 }
 
+// TODO: Remove this
 pub fn validate_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     expressions: &[AstStatement],
     context: &ValidationContext<T>,
 ) {
+    dbg!(&expressions);
     for expression in expressions {
         match expression {
             AstStatement::Assignment { left, right, .. } => {
