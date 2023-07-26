@@ -1,15 +1,15 @@
 use core::panic;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
+    control_statements::{AstControlStatement, CaseStatement},
+    literals::{Array, AstLiteral},
+    provider::IdProvider,
+};
 
 use crate::{
-    ast::{
-        self,
-        control_statements::{AstControlStatement, CaseStatement},
-        flatten_expression_list, Array, AstLiteral, AstStatement, DataType, Pou, UserTypeDeclaration,
-    },
     index::{ArgumentType, Index, VariableType},
-    lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     typesystem::{
@@ -80,8 +80,7 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
 fn expt_binary_expression() {
     fn get_params(stmt: &AstStatement) -> (&AstStatement, &AstStatement) {
         if let AstStatement::CallStatement { parameters, .. } = stmt {
-            if let &[left, right] =
-                ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap()).as_slice()
+            if let &[left, right] = flatten_expression_list(parameters.as_ref().as_ref().unwrap()).as_slice()
             {
                 return (left, right);
             }
@@ -2565,7 +2564,7 @@ fn literals_passed_to_function_get_annotated() {
     let call_stmt = &unit.implementations[1].statements[0];
 
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
-        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[0], DINT_TYPE, Some(BYTE_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_3", Some("STRING"));
     } else {
@@ -3132,7 +3131,7 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
     let call_stmt = &unit.implementations[1].statements[0];
     // THEN types smaller than LREAL/DINT get promoted while booleans and other types stay untouched.
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
-        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[0], REAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[1], LREAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[2], BOOL_TYPE, None);
@@ -3174,7 +3173,7 @@ fn passing_a_function_as_param_correctly_resolves_as_variable() {
     let call_stmt = &unit.implementations[1].statements[0];
     // THEN the type of the parameter resolves to the original function type
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
-        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[3], DINT_TYPE, Some(DINT_TYPE));
@@ -3209,10 +3208,10 @@ fn resolve_return_variable_in_nested_call() {
 
     if let AstStatement::Assignment { right, .. } = ass {
         if let AstStatement::CallStatement { parameters, .. } = right.as_ref() {
-            let inner_ass = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
+            let inner_ass = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
             if let AstStatement::Assignment { right, .. } = inner_ass {
                 if let AstStatement::CallStatement { parameters, .. } = right.as_ref() {
-                    let main = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
+                    let main = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
                     let a = annotations.get(main).unwrap();
                     assert_eq!(
                         a,
@@ -3491,7 +3490,7 @@ fn parameter_down_cast_test() {
 
     // THEN check if downcasts are detected for implicit parameters
     if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
-        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
         assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
         assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
@@ -3501,7 +3500,7 @@ fn parameter_down_cast_test() {
 
     // THEN check if downcasts are detected for explicit parameters
     if let AstStatement::CallStatement { parameters, .. } = &statements[1] {
-        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap())
             .iter()
             .map(|it| {
                 if let AstStatement::Assignment { right, .. } = it {
@@ -3544,7 +3543,7 @@ fn mux_generic_with_strings_is_annotated_correctly() {
     index.import(std::mem::take(&mut annotations.new_index));
 
     if let AstStatement::CallStatement { parameters, .. } = &unit.implementations[0].statements[0] {
-        let list = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let list = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
         // MUX(2, str2, str3, str4)
         //     ~
@@ -3686,7 +3685,7 @@ fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
     index.import(std::mem::take(&mut annotations.new_index));
 
     if let AstStatement::CallStatement { parameters, .. } = &unit.implementations[2].statements[0] {
-        let list = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let list = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
         assert_type_and_hint!(&annotations, &index, list[0], "STRING", Some("DINT"));
         assert_type_and_hint!(&annotations, &index, list[1], "STRING", Some("LWORD"));
@@ -3985,7 +3984,7 @@ fn vla_call_statement() {
     };
 
     let param = parameters.as_ref().clone().unwrap();
-    let statement = ast::flatten_expression_list(&param)[0];
+    let statement = flatten_expression_list(&param)[0];
 
     assert_type_and_hint!(&annotations, &index, statement, "__main_arr", Some("__foo_vla"));
 }
@@ -4020,7 +4019,7 @@ fn vla_call_statement_with_nested_arrays() {
     };
 
     let param = parameters.as_ref().clone().unwrap();
-    let statement = ast::flatten_expression_list(&param)[0];
+    let statement = flatten_expression_list(&param)[0];
 
     assert_type_and_hint!(&annotations, &index, statement, "__main_arr_", Some("__foo_vla"));
 }

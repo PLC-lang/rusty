@@ -1,6 +1,6 @@
 use logos::Logos;
 
-use crate::ast::{DirectAccessType, HardwareAccessType};
+use plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
 #[derive(Debug, PartialEq, Eq, Logos, Clone)]
 pub enum Token {

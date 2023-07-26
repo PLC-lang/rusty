@@ -1,11 +1,8 @@
 [package]
-name = "plc_ast"
+name = "plc_util"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plc_util = { path = "../plc_util" }
-chrono = { version = "0.4", default-features = false }
-serde = { version = "1.0", features = ["derive"] }

@@ -1,14 +1,15 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-use crate::ast::AstLiteral;
-use crate::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
-};
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
+use plc_ast::ast::{
+    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+};
+use plc_ast::literals::AstLiteral;
+use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
@@ -64,41 +65,40 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            if let Some(var_type_name) = var.data_type_declaration.get_name() {
-                let type_name = if block_type.is_by_ref() {
-                    //register a pointer type for argument
-                    register_byref_pointer_type_for(index, var_type_name)
-                } else {
-                    var_type_name.to_string()
-                };
-                let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    type_name.as_str(),
-                    Some(pou.name.clone()),
-                );
-
-                let binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
-
-                let entry = index.register_member_variable(
-                    MemberInfo {
-                        container_name: &pou.name,
-                        variable_name: &var.name,
-                        variable_linkage: block_type,
-                        variable_type_name: &type_name,
-                        is_constant: block.constant,
-                        binding,
-                        varargs,
-                    },
-                    initial_value,
-                    symbol_location_factory.create_symbol_location(&var.location),
-                    count,
-                );
-                members.push(entry);
-                count += 1;
+            let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
+            let type_name = if block_type.is_by_ref() {
+                //register a pointer type for argument
+                register_byref_pointer_type_for(index, var_type_name)
+            } else {
+                var_type_name.to_string()
             };
+            let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
+                var.initializer.clone(),
+                type_name.as_str(),
+                Some(pou.name.clone()),
+            );
+
+            let binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
+
+            let entry = index.register_member_variable(
+                MemberInfo {
+                    container_name: &pou.name,
+                    variable_name: &var.name,
+                    variable_linkage: block_type,
+                    variable_type_name: &type_name,
+                    is_constant: block.constant,
+                    binding,
+                    varargs,
+                },
+                initial_value,
+                symbol_location_factory.create_symbol_location(&var.location),
+                count,
+            );
+            members.push(entry);
+            count += 1;
         }
     }
 
@@ -269,7 +269,7 @@ fn visit_implementation(
 /// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
-    let type_name = typesystem::create_internal_type_name("auto_pointer_to_", inner_type_name);
+    let type_name = internal_type_name("auto_pointer_to_", inner_type_name);
 
     //check if type was already created
     if index.find_effective_type_by_name(type_name.as_str()).is_none() {

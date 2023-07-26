@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::{AstLiteral, AstStatement, SourceRange};
 use generational_arena::{Arena, Iter};
+use plc_ast::{
+    ast::{AstStatement, SourceRange},
+    literals::AstLiteral,
+};
 
 pub type ConstId = generational_arena::Index;
 

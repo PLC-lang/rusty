@@ -15,9 +15,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use ast::provider::IdProvider;
 use cli::CompileParameters;
 use diagnostics::{Diagnostic, Diagnostician};
-use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+use plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;

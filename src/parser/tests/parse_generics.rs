@@ -1,4 +1,5 @@
-use crate::ast::{DataTypeDeclaration, GenericBinding, TypeNature, Variable};
+use plc_ast::ast::{DataTypeDeclaration, GenericBinding, TypeNature, Variable};
+
 use crate::test_utils::tests::parse;
 
 #[test]

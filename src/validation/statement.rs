@@ -1,18 +1,20 @@
 use std::{collections::HashSet, mem::discriminant};
 
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    control_statements::{AstControlStatement, ConditionalBlock},
+    literals::{Array, AstLiteral, StringValue},
+};
+
 use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
-    ast::{
-        self, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,
-        Operator, SourceRange, StringValue,
-    },
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
-        BOOL_TYPE, POINTER_SIZE,
+        self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
+        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -120,30 +122,29 @@ pub fn visit_statement<T: AnnotationMap>(
 
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
-    control_statement: &ast::control_statements::AstControlStatement,
+    control_statement: &AstControlStatement,
     context: &ValidationContext<T>,
 ) {
     match control_statement {
-        ast::control_statements::AstControlStatement::If(stmt) => {
+        AstControlStatement::If(stmt) => {
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
             });
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
-        ast::control_statements::AstControlStatement::ForLoop(stmt) => {
+        AstControlStatement::ForLoop(stmt) => {
             visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
             if let Some(by_step) = &stmt.by_step {
                 visit_statement(validator, by_step, context);
             }
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
-        ast::control_statements::AstControlStatement::WhileLoop(stmt)
-        | ast::control_statements::AstControlStatement::RepeatLoop(stmt) => {
+        AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
             visit_statement(validator, &stmt.condition, context);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
-        ast::control_statements::AstControlStatement::Case(stmt) => {
+        AstControlStatement::Case(stmt) => {
             validate_case_statement(validator, &stmt.selector, &stmt.case_blocks, &stmt.else_block, context);
         }
     }
@@ -162,8 +163,7 @@ fn validate_cast_literal<T: AnnotationMap>(
 ) {
     let cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
     let literal_type = context.index.get_type_information_or_void(
-        literal
-            .get_literal_actual_signed_type_name(!cast_type.is_unsigned_int())
+        get_literal_actual_signed_type_name(literal, !cast_type.is_unsigned_int())
             .or_else(|| context.annotations.get_type_hint(statement, context.index).map(DataType::get_name))
             .unwrap_or_else(|| context.annotations.get_type_or_void(statement, context.index).get_name()),
     );
@@ -220,7 +220,7 @@ fn validate_qualified_reference<T: AnnotationMap>(
         let target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         if target_type.is_int() {
-            if !access.is_compatible(target_type, context.index) {
+            if !helper::is_compatible(access, target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess(
                     &format!("{access:?}"),
                     access.get_bit_width(),
@@ -267,11 +267,16 @@ fn validate_access_index<T: AnnotationMap>(
 ) {
     match *access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
-            if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index) {
+            if !helper::is_in_range(
+                access_type,
+                value.try_into().unwrap_or_default(),
+                target_type,
+                context.index,
+            ) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     &format!("{access_type:?}"),
                     target_type.get_name(),
-                    access_type.get_range(target_type, context.index),
+                    helper::get_range(access_type, target_type, context.index),
                     location.clone(),
                 ))
             }
@@ -807,7 +812,7 @@ fn validate_call<T: AnnotationMap>(
         }
 
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+        let passed_parameters = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
 
         let mut are_implicit_parameters = true;
         let mut variable_location_in_parent = vec![];
@@ -975,3 +980,35 @@ fn validate_type_nature<T: AnnotationMap>(
 //         ))
 //     }
 // }
+
+mod helper {
+    use std::ops::Range;
+
+    use plc_ast::ast::DirectAccessType;
+
+    use crate::{index::Index, typesystem::DataTypeInformation};
+
+    /// Returns true if the current index is in the range for the given type
+    pub fn is_in_range(
+        access: &DirectAccessType,
+        access_index: u64,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> bool {
+        (access.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
+    }
+
+    /// Returns the range from 0 for the given data type
+    pub fn get_range(
+        access: &DirectAccessType,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> Range<u64> {
+        0..((data_type.get_size_in_bits(index) as u64 / access.get_bit_width()) - 1)
+    }
+
+    /// Returns true if the direct access can be used for the given type
+    pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
+        data_type.get_semantic_size(index) as u64 > access.get_bit_width()
+    }
+}

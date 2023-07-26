@@ -1,12 +1,17 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement, LoopStatement},
-    Diagnostic,
-};
+use crate::Diagnostic;
 use core::panic;
 use std::ops::Range;
 
-use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
+use crate::{parser::tests::empty_stmt, test_utils::tests::parse};
+use plc_ast::{
+    ast::{
+        AccessModifier, ArgumentProperty, AstFactory, AstStatement, DataTypeDeclaration, Implementation,
+        LinkageType, Operator, Pou, PouType, SourceRange, Variable, VariableBlock, VariableBlockType,
+    },
+    control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
+    literals::AstLiteral,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -66,7 +71,7 @@ fn exponent_literals_parsed_as_variables() {
         location: SourceRange::undefined(),
         name_location: SourceRange::undefined(),
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pou:#?}").as_str());
     let implementation = &parse_result.implementations[0];
@@ -416,13 +421,7 @@ fn ids_are_assigned_to_case_statements() {
 
     match &implementation.statements[0] {
         AstStatement::ControlStatement {
-            kind:
-                AstControlStatement::Case(control_statements::CaseStatement {
-                    case_blocks,
-                    else_block,
-                    selector,
-                    ..
-                }),
+            kind: AstControlStatement::Case(CaseStatement { case_blocks, else_block, selector, .. }),
             ..
         } => {
             //1st case block
