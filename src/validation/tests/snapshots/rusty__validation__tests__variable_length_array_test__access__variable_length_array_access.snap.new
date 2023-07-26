@@ -1,7 +1,0 @@
----
-source: src/validation/tests/variable_length_array_test.rs
-assertion_line: 114
-expression: res
----
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_b' to '__fn_arr'", range: [SourceRange { range: 514..521 }], err_no: var__invalid_assignment }
-

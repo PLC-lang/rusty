@@ -1,0 +1,69 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+CaseStatement {
+    selector: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "StateMachine",
+            },
+        ),
+        base: None,
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: ExpressionList {
+                expressions: [
+                    LiteralInteger {
+                        value: 1,
+                    },
+                    LiteralInteger {
+                        value: 2,
+                    },
+                    LiteralInteger {
+                        value: 3,
+                    },
+                ],
+            },
+            body: [
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: ExpressionList {
+                expressions: [
+                    RangeStatement {
+                        start: LiteralInteger {
+                            value: 4,
+                        },
+                        end: LiteralInteger {
+                            value: 5,
+                        },
+                    },
+                    LiteralInteger {
+                        value: 6,
+                    },
+                ],
+            },
+            body: [
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
+                },
+            ],
+        },
+    ],
+    else_block: [],
+}

@@ -9,7 +9,7 @@ use crate::{
 };
 use core::str::Split;
 use regex::{Captures, Regex};
-use std::{str::FromStr, thread::current};
+use std::{str::FromStr};
 
 use super::parse_hardware_access;
 
@@ -183,7 +183,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
             (Operator::Plus, AstStatement::Reference { name, .. }) => {
-                AstFactory::create_reference(&name, &location, lexer.next_id())
+                AstFactory::create_reference(name, &location, lexer.next_id())
             }
 
             _ => AstStatement::UnaryExpression {

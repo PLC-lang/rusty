@@ -1,0 +1,16 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+CaseStatement {
+    selector: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "StateMachine",
+            },
+        ),
+        base: None,
+    },
+    case_blocks: [],
+    else_block: [],
+}

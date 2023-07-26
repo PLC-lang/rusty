@@ -1,0 +1,27 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+WhileLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [
+        ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "y",
+                },
+            ),
+            base: None,
+        },
+    ],
+}

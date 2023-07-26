@@ -1,0 +1,26 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+ForLoopStatement {
+    counter: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "x",
+            },
+        ),
+        base: None,
+    },
+    start: LiteralInteger {
+        value: 1,
+    },
+    end: LiteralInteger {
+        value: 10,
+    },
+    by_step: Some(
+        LiteralInteger {
+            value: 7,
+        },
+    ),
+    body: [],
+}

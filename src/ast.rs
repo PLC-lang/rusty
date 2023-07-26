@@ -1452,7 +1452,7 @@ impl AstFactory {
             .unwrap_or_else(|| member.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Member(Box::new(member)),
-            base: base.map(|it| Box::new(it)),
+            base: base.map(Box::new),
             id,
             location,
         }
@@ -1469,7 +1469,7 @@ impl AstFactory {
             .unwrap_or_else(|| index.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
-            base: base.map(|it| Box::new(it)),
+            base: base.map(Box::new),
             id,
             location,
         }
