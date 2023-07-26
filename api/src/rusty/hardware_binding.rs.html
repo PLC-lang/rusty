@@ -284,13 +284,13 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>serde::{
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
+<span class="kw">use </span>serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
 };
 
 <span class="kw">use crate</span>::{
-    ast::{DirectAccessType, HardwareAccessType},
     diagnostics::{Diagnostic, ErrNo},
     expression_path::ExpressionPath,
     index::Index,

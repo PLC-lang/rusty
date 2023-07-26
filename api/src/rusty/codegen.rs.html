@@ -535,7 +535,6 @@
     DebugLevel, OptimizationLevel, Target,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::ast::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::index::<span class="kw-2">*</span>;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>inkwell::{
@@ -549,6 +548,7 @@
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
+<span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
 
 <span class="kw">mod </span>debug;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>generators;

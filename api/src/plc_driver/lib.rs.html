@@ -253,6 +253,7 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -270,9 +271,10 @@
     path::{Path, PathBuf},
 };
 
+<span class="kw">use </span>ast::provider::IdProvider;
 <span class="kw">use </span>cli::CompileParameters;
 <span class="kw">use </span>diagnostics::{Diagnostic, Diagnostician};
-<span class="kw">use </span>plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+<span class="kw">use </span>plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 <span class="kw">use </span>project::project::{LibraryInformation, Project};
 <span class="kw">use </span>rayon::prelude::{IntoParallelIterator, ParallelIterator};
 <span class="kw">use </span>source_code::SourceContainer;

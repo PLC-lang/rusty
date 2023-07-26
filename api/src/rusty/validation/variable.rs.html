@@ -228,13 +228,11 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::ConstExpression,
-    resolver::AnnotationMap,
-    Diagnostic,
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+    ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
 };
+
+<span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
 
 <span class="kw">use super</span>::{
     statement::validate_enum_variant_assignment,

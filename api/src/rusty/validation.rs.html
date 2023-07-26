@@ -205,10 +205,10 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>rusty_derive::Validators;
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, CompilationUnit};
+<span class="kw">use </span>rusty_derive::Validators;
 
 <span class="kw">use crate</span>::{
-    ast::{AstStatement, CompilationUnit},
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,

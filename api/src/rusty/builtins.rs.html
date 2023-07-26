@@ -549,6 +549,10 @@
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>inkwell::{
@@ -557,23 +561,26 @@
     values::{BasicValue, IntValue},
 };
 <span class="kw">use </span>lazy_static::lazy_static;
-
-<span class="kw">use crate</span>::{
+<span class="kw">use </span>plc_ast::{
     ast::{
-        <span class="self">self</span>, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
+        <span class="self">self</span>, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
         LinkageType, SourceRange, SourceRangeFactory, TypeNature,
     },
+    literals::AstLiteral,
+    provider::IdProvider,
+};
+
+<span class="kw">use crate</span>::{
     codegen::generators::expression_generator::{<span class="self">self</span>, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
     index::Index,
-    lexer::{<span class="self">self</span>, IdProvider},
-    parser,
+    lexer, parser,
     resolver::{
         <span class="self">self</span>,
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem,
+    typesystem::{<span class="self">self</span>, get_literal_actual_signed_type_name},
     validation::{Validator, Validators},
 };
 
@@ -644,7 +651,7 @@
                         <span class="kw">return</span>;
                     };
 
-                    <span class="kw">let </span>params = ast::flatten_expression_list(params);
+                    <span class="kw">let </span>params = flatten_expression_list(params);
 
                     <span class="kw">if </span>params.len() &gt; <span class="number">1 </span>{
                         validator.push_diagnostic(Diagnostic::invalid_parameter_count(<span class="number">1</span>, params.len(), operator.get_location()));
@@ -986,7 +993,7 @@
         <span class="comment">// e.g. LOWER_BOUND(arr, 1)
         </span>AstStatement::Literal { kind, .. } =&gt; {
             <span class="kw">let </span>AstLiteral::Integer(value) = kind <span class="kw">else </span>{
-                <span class="kw">let </span><span class="prelude-val">Some</span>(type_name) = kind.get_literal_actual_signed_type_name(<span class="bool-val">false</span>) <span class="kw">else </span>{
+                <span class="kw">let </span><span class="prelude-val">Some</span>(type_name) = get_literal_actual_signed_type_name(kind, <span class="bool-val">false</span>) <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(<span class="string">&quot;type cannot be VOID&quot;</span>)
                 };
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
@@ -1092,7 +1099,8 @@
         <span class="string">&quot;&lt;builtin&gt;&quot;</span>,
     )
     .<span class="number">0</span>;
-    <span class="kw">crate</span>::ast::pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
+
+    pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
     unit
 }
 

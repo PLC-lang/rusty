@@ -212,9 +212,9 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>plc_ast::ast::{PouType, SourceRange};
 
 <span class="kw">use crate</span>::{
-    ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},

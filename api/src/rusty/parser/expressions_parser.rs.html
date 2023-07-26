@@ -883,16 +883,22 @@
 <a href="#883" id="883">883</a>
 <a href="#884" id="884">884</a>
 <a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
-    ast::<span class="kw-2">*</span>,
     lexer::Token::<span class="kw-2">*</span>,
     lexer::{ParseSession, Token},
     parser::parse_any_in_region,
     Diagnostic,
 };
 <span class="kw">use </span>core::str::Split;
+<span class="kw">use </span>plc_ast::{
+    ast::{AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    literals::{AstLiteral, Time},
+};
 <span class="kw">use </span>regex::{Captures, Regex};
 <span class="kw">use </span>std::str::FromStr;
 
@@ -1286,7 +1292,7 @@
                 <span class="kw">let </span>number = parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
                 <span class="kw">let </span>location = number.get_location().clone();
                 <span class="prelude-val">Ok</span>(AstStatement::DirectAccess {
-                    access: <span class="kw">crate</span>::ast::DirectAccessType::Bit,
+                    access: DirectAccessType::Bit,
                     index: Box::new(number),
                     location,
                     id: lexer.next_id(),

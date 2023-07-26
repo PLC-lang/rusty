@@ -1275,6 +1275,38 @@
 <a href="#1275" id="1275">1275</a>
 <a href="#1276" id="1276">1276</a>
 <a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1282,8 +1314,12 @@
     ops::{Range, RangeInclusive},
 };
 
-<span class="kw">use crate</span>::{
+<span class="kw">use </span>plc_ast::{
     ast::{AstStatement, Operator, PouType, TypeNature},
+    literals::{AstLiteral, StringValue},
+};
+
+<span class="kw">use crate</span>::{
     datalayout::{Bytes, MemoryLocation},
     index::{const_expressions::ConstId, symbol::SymbolLocation, Index, VariableIndexEntry},
 };
@@ -2544,12 +2580,40 @@
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">&quot;{type_name}_{suffix}&quot;</span>))
-}
+    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">&quot;{type_name}_{suffix}&quot;</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+</span>}
 
-<span class="doccomment">/// returns a name for internally created types using the given prefix and original type name
-/// the return name starts with &quot;__&quot;
-</span><span class="kw">pub fn </span>create_internal_type_name(prefix: <span class="kw-2">&amp;</span>str, original_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
-    <span class="macro">format!</span>(<span class="string">&quot;__{prefix}{original_type_name}&quot;</span>)
+<span class="kw">pub fn </span>get_literal_actual_signed_type_name(lit: <span class="kw-2">&amp;</span>AstLiteral, signed: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+    <span class="comment">// Returns a range with the min and max value of the given type
+    </span><span class="macro">macro_rules! </span>is_covered_by {
+        (<span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$e</span>:expr) =&gt; {
+            &lt;<span class="macro-nonterminal">$t</span>&gt;::MIN <span class="kw">as </span>i128 &lt;= <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &amp;&amp; <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &lt;= &lt;<span class="macro-nonterminal">$t</span>&gt;::MAX <span class="kw">as </span>i128
+        };
+    }
+
+    <span class="kw">match </span>lit {
+        AstLiteral::Integer(value) =&gt; <span class="kw">match </span>signed {
+            <span class="kw">_ if </span><span class="kw-2">*</span>value == <span class="number">0_i128 </span>|| <span class="kw-2">*</span>value == <span class="number">1_i128 </span>=&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(SINT_TYPE),
+            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(INT_TYPE),
+            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(DINT_TYPE),
+            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(LINT_TYPE),
+
+            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(USINT_TYPE),
+            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UINT_TYPE),
+            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UDINT_TYPE),
+            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(ULINT_TYPE),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(VOID_TYPE),
+        },
+        AstLiteral::Bool { .. } =&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+        AstLiteral::String(StringValue { is_wide: <span class="bool-val">true</span>, .. }) =&gt; <span class="prelude-val">Some</span>(WSTRING_TYPE),
+        AstLiteral::String(StringValue { is_wide: <span class="bool-val">false</span>, .. }) =&gt; <span class="prelude-val">Some</span>(STRING_TYPE),
+        AstLiteral::Real { .. } =&gt; <span class="prelude-val">Some</span>(LREAL_TYPE),
+        AstLiteral::Date { .. } =&gt; <span class="prelude-val">Some</span>(DATE_TYPE),
+        AstLiteral::DateAndTime { .. } =&gt; <span class="prelude-val">Some</span>(DATE_AND_TIME_TYPE),
+        AstLiteral::Time { .. } =&gt; <span class="prelude-val">Some</span>(TIME_TYPE),
+        AstLiteral::TimeOfDay { .. } =&gt; <span class="prelude-val">Some</span>(TIME_OF_DAY_TYPE),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+    }
 }
 </code></pre></div></section></main></body></html>

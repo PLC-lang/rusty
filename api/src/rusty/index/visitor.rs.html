@@ -857,14 +857,15 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-<span class="kw">use </span><span class="kw">crate</span>::ast::AstLiteral;
-<span class="kw">use </span><span class="kw">crate</span>::ast::{
-    <span class="self">self</span>, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
-};
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>};
+<span class="kw">use </span>plc_ast::ast::{
+    <span class="self">self</span>, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+};
+<span class="kw">use </span>plc_ast::literals::AstLiteral;
+<span class="kw">use </span>plc_util::convention::internal_type_name;
 
 <span class="kw">pub fn </span>visit(unit: <span class="kw-2">&amp;</span>CompilationUnit) -&gt; Index {
     <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
@@ -920,41 +921,40 @@
                 member_varargs = varargs.clone();
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(var_type_name) = var.data_type_declaration.get_name() {
-                <span class="kw">let </span>type_name = <span class="kw">if </span>block_type.is_by_ref() {
-                    <span class="comment">//register a pointer type for argument
-                    </span>register_byref_pointer_type_for(index, var_type_name)
-                } <span class="kw">else </span>{
-                    var_type_name.to_string()
-                };
-                <span class="kw">let </span>initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    type_name.as_str(),
-                    <span class="prelude-val">Some</span>(pou.name.clone()),
-                );
-
-                <span class="kw">let </span>binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, <span class="prelude-val">Some</span>(pou.name.clone())));
-
-                <span class="kw">let </span>entry = index.register_member_variable(
-                    MemberInfo {
-                        container_name: <span class="kw-2">&amp;</span>pou.name,
-                        variable_name: <span class="kw-2">&amp;</span>var.name,
-                        variable_linkage: block_type,
-                        variable_type_name: <span class="kw-2">&amp;</span>type_name,
-                        is_constant: block.constant,
-                        binding,
-                        varargs,
-                    },
-                    initial_value,
-                    symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>var.location),
-                    count,
-                );
-                members.push(entry);
-                count += <span class="number">1</span>;
+            <span class="kw">let </span>var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
+            <span class="kw">let </span>type_name = <span class="kw">if </span>block_type.is_by_ref() {
+                <span class="comment">//register a pointer type for argument
+                </span>register_byref_pointer_type_for(index, var_type_name)
+            } <span class="kw">else </span>{
+                var_type_name.to_string()
             };
+            <span class="kw">let </span>initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
+                var.initializer.clone(),
+                type_name.as_str(),
+                <span class="prelude-val">Some</span>(pou.name.clone()),
+            );
+
+            <span class="kw">let </span>binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, <span class="prelude-val">Some</span>(pou.name.clone())));
+
+            <span class="kw">let </span>entry = index.register_member_variable(
+                MemberInfo {
+                    container_name: <span class="kw-2">&amp;</span>pou.name,
+                    variable_name: <span class="kw-2">&amp;</span>var.name,
+                    variable_linkage: block_type,
+                    variable_type_name: <span class="kw-2">&amp;</span>type_name,
+                    is_constant: block.constant,
+                    binding,
+                    varargs,
+                },
+                initial_value,
+                symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>var.location),
+                count,
+            );
+            members.push(entry);
+            count += <span class="number">1</span>;
         }
     }
 
@@ -1125,7 +1125,7 @@
 <span class="doccomment">/// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 </span><span class="kw">fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="comment">//get unique name
-    </span><span class="kw">let </span>type_name = typesystem::create_internal_type_name(<span class="string">&quot;auto_pointer_to_&quot;</span>, inner_type_name);
+    </span><span class="kw">let </span>type_name = internal_type_name(<span class="string">&quot;auto_pointer_to_&quot;</span>, inner_type_name);
 
     <span class="comment">//check if type was already created
     </span><span class="kw">if </span>index.find_effective_type_by_name(type_name.as_str()).is_none() {

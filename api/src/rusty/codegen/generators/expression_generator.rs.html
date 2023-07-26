@@ -2685,9 +2685,12 @@
 <a href="#2685" id="2685">2685</a>
 <a href="#2686" id="2686">2686</a>
 <a href="#2687" id="2687">2687</a>
+<a href="#2688" id="2688">2688</a>
+<a href="#2689" id="2689">2689</a>
+<a href="#2690" id="2690">2690</a>
+<a href="#2691" id="2691">2691</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
-    ast::{<span class="self">self</span>, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -2713,6 +2716,11 @@
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+<span class="kw">use </span>plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    literals::AstLiteral,
+};
+<span class="kw">use </span>plc_util::convention::qualified_name;
 <span class="kw">use </span>std::{collections::HashSet, vec};
 
 <span class="kw">use super</span>::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
@@ -3169,7 +3177,7 @@
             .find_implementation(<span class="self">self</span>.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>parameters_list = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+        <span class="kw">let </span>parameters_list = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
         <span class="kw">let </span>implementation_name = implementation.get_call_name();
         <span class="comment">// if the function is builtin, generate a basic value enum for it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(builtin) = <span class="self">self</span>.index.get_builtin_function(implementation_name) {
@@ -3708,8 +3716,8 @@
         function_name: <span class="kw-2">&amp;</span>str,
         context: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">&quot;{function_name}_instance&quot;</span>);
-        <span class="kw">let </span>function_type = <span class="self">self
+        <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">&quot;{function_name}_instance&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+        </span><span class="kw">let </span>function_type = <span class="self">self
             </span>.llvm_index
             .find_associated_pou_type(function_name) <span class="comment">//Using find instead of get to control the compile error
             </span>.ok_or_else(|| {
@@ -4038,7 +4046,7 @@
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">let </span>qualifier_name = <span class="self">self</span>.get_type_hint_for(context)<span class="question-mark">?</span>.get_name();
-                    <span class="kw">let </span>qualified_name = <span class="macro">format!</span>(<span class="string">&quot;{qualifier_name}.{name}&quot;</span>);
+                    <span class="kw">let </span>qualified_name = qualified_name(qualifier_name, name);
                     <span class="kw">let </span>implementation = <span class="self">self</span>.index.find_pou_implementation(<span class="kw-2">&amp;</span>qualified_name);
                     <span class="kw">if </span>implementation.is_some() {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(qualifier.to_owned());
@@ -4703,7 +4711,7 @@
                         <span class="kw">let </span>member: <span class="kw-2">&amp;</span>VariableIndexEntry =
                             <span class="self">self</span>.index.find_member(struct_name, variable_name).ok_or_else(|| {
                                 Diagnostic::unresolved_reference(
-                                    <span class="macro">format!</span>(<span class="string">&quot;{struct_name}.{variable_name}&quot;</span>).as_str(),
+                                    <span class="kw-2">&amp;</span>qualified_name(struct_name, variable_name),
                                     location.clone(),
                                 )
                             })<span class="question-mark">?</span>;

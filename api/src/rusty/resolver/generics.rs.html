@@ -447,15 +447,38 @@
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
+<span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+
 <span class="kw">use crate</span>::{
-    ast::{<span class="self">self</span>, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{symbol::SymbolLocation, Index, PouIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{<span class="self">self</span>, DataType, DataTypeInformation, StringEncoding, STRING_TYPE, WSTRING_TYPE},
+    typesystem::{
+        <span class="self">self</span>, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
+        SINT_TYPE, STRING_TYPE, TIME_TYPE, USINT_TYPE, WSTRING_TYPE,
+    },
 };
 
 <span class="kw">use super</span>::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -653,8 +676,8 @@
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 </span><span class="kw">let </span>inner_type_name = <span class="self">self</span>.find_or_create_datatype(inner_type_name, generics);
-                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;{name}__{inner_type_name}&quot;</span>);
-                <span class="kw">let </span>new_type_info =
+                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;{name}__{inner_type_name}&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+                </span><span class="kw">let </span>new_type_info =
                     DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: <span class="bool-val">true </span>};
 
                 <span class="comment">// Registers a new pointer type to the index
@@ -691,7 +714,7 @@
         <span class="comment">// separate variadic and non variadic parameters
         </span><span class="kw">let </span><span class="kw-2">mut </span>passed_parameters = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>variadic_parameters = Vec::new();
-        <span class="kw">for </span>(i, p) <span class="kw">in </span>ast::flatten_expression_list(s).iter().enumerate() {
+        <span class="kw">for </span>(i, p) <span class="kw">in </span>flatten_expression_list(s).iter().enumerate() {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>((location_in_parent, passed_parameter, ..)) =
                 get_implicit_call_parameter(p, <span class="kw-2">&amp;</span>declared_parameters, i)
             {
@@ -808,7 +831,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>generic_map: HashMap&lt;String, GenericType&gt; = HashMap::new();
         <span class="kw">for </span>GenericBinding { name, nature } <span class="kw">in </span>generics {
             <span class="kw">let </span>smallest_possible_type =
-                <span class="self">self</span>.index.find_effective_type_info(nature.get_smallest_possible_type());
+                <span class="self">self</span>.index.find_effective_type_info(get_smallest_possible_type(nature));
             <span class="comment">//Get the current binding
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(candidates) = generics_candidates.get(name) {
                 <span class="comment">//Find the best suiting type
@@ -885,8 +908,8 @@
         .map(|it| {
             generic_map.get(<span class="kw-2">&amp;</span>it.name).map(|it| it.derived_type.as_str()).unwrap_or_else(|| it.name.as_str())
         })
-        .fold(qualified_name.to_string(), |accum, s| <span class="macro">format!</span>(<span class="string">&quot;{accum}__{s}&quot;</span>))
-}
+        .fold(qualified_name.to_string(), |accum, s| <span class="macro">format!</span>(<span class="string">&quot;{accum}__{s}&quot;</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+</span>}
 
 <span class="doccomment">/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
 </span><span class="kw">pub fn </span>no_generic_name_resolver(
@@ -895,5 +918,20 @@
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
 ) -&gt; String {
     generic_name_resolver(qualified_name, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>HashMap::new())
+}
+
+<span class="kw">pub fn </span>get_smallest_possible_type(nature: <span class="kw-2">&amp;</span>TypeNature) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">match </span>nature {
+        TypeNature::Magnitude | TypeNature::Num | TypeNature::Int =&gt; USINT_TYPE,
+        TypeNature::Real =&gt; REAL_TYPE,
+        TypeNature::Unsigned =&gt; USINT_TYPE,
+        TypeNature::Signed =&gt; SINT_TYPE,
+        TypeNature::Duration =&gt; TIME_TYPE,
+        TypeNature::Bit =&gt; BOOL_TYPE,
+        TypeNature::Chars | TypeNature::Char =&gt; CHAR_TYPE,
+        TypeNature::String =&gt; STRING_TYPE,
+        TypeNature::Date =&gt; DATE_TYPE,
+        <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>,
+    }
 }
 </code></pre></div></section></main></body></html>

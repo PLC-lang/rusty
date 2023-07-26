@@ -975,21 +975,60 @@
 <a href="#975" id="975">975</a>
 <a href="#976" id="976">976</a>
 <a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
+
+<span class="kw">use </span>plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    control_statements::{AstControlStatement, ConditionalBlock},
+    literals::{Array, AstLiteral, StringValue},
+};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 <span class="kw">use crate</span>::{
-    ast::{
-        <span class="self">self</span>, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,
-        Operator, SourceRange, StringValue,
-    },
     builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        <span class="self">self</span>, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
-        BOOL_TYPE, POINTER_SIZE,
+        <span class="self">self</span>, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
+        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -1097,30 +1136,29 @@
 
 <span class="kw">fn </span>validate_control_statement&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
-    control_statement: <span class="kw-2">&amp;</span>ast::control_statements::AstControlStatement,
+    control_statement: <span class="kw-2">&amp;</span>AstControlStatement,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">match </span>control_statement {
-        ast::control_statements::AstControlStatement::If(stmt) =&gt; {
+        AstControlStatement::If(stmt) =&gt; {
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
             });
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
-        ast::control_statements::AstControlStatement::ForLoop(stmt) =&gt; {
+        AstControlStatement::ForLoop(stmt) =&gt; {
             <span class="macro">visit_all_statements!</span>(validator, context, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start, <span class="kw-2">&amp;</span>stmt.end);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
                 visit_statement(validator, by_step, context);
             }
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
-        ast::control_statements::AstControlStatement::WhileLoop(stmt)
-        | ast::control_statements::AstControlStatement::RepeatLoop(stmt) =&gt; {
+        AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) =&gt; {
             visit_statement(validator, <span class="kw-2">&amp;</span>stmt.condition, context);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
-        ast::control_statements::AstControlStatement::Case(stmt) =&gt; {
+        AstControlStatement::Case(stmt) =&gt; {
             validate_case_statement(validator, <span class="kw-2">&amp;</span>stmt.selector, <span class="kw-2">&amp;</span>stmt.case_blocks, <span class="kw-2">&amp;</span>stmt.else_block, context);
         }
     }
@@ -1139,8 +1177,7 @@
 ) {
     <span class="kw">let </span>cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
     <span class="kw">let </span>literal_type = context.index.get_type_information_or_void(
-        literal
-            .get_literal_actual_signed_type_name(!cast_type.is_unsigned_int())
+        get_literal_actual_signed_type_name(literal, !cast_type.is_unsigned_int())
             .or_else(|| context.annotations.get_type_hint(statement, context.index).map(DataType::get_name))
             .unwrap_or_else(|| context.annotations.get_type_or_void(statement, context.index).get_name()),
     );
@@ -1197,7 +1234,7 @@
         <span class="kw">let </span>target_type =
             context.annotations.get_type_or_void(reference, context.index).get_type_information();
         <span class="kw">if </span>target_type.is_int() {
-            <span class="kw">if </span>!access.is_compatible(target_type, context.index) {
+            <span class="kw">if </span>!helper::is_compatible(access, target_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess(
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access:?}&quot;</span>),
                     access.get_bit_width(),
@@ -1244,11 +1281,16 @@
 ) {
     <span class="kw">match </span><span class="kw-2">*</span>access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } =&gt; {
-            <span class="kw">if </span>!access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index) {
+            <span class="kw">if </span>!helper::is_in_range(
+                access_type,
+                value.try_into().unwrap_or_default(),
+                target_type,
+                context.index,
+            ) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access_type:?}&quot;</span>),
                     target_type.get_name(),
-                    access_type.get_range(target_type, context.index),
+                    helper::get_range(access_type, target_type, context.index),
                     location.clone(),
                 ))
             }
@@ -1784,7 +1826,7 @@
         }
 
         <span class="kw">let </span>declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        <span class="kw">let </span>passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+        <span class="kw">let </span>passed_parameters = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
 
         <span class="kw">let </span><span class="kw-2">mut </span>are_implicit_parameters = <span class="bool-val">true</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
@@ -1952,4 +1994,36 @@
 //         ))
 //     }
 // }
-</span></code></pre></div></section></main></body></html>
+
+</span><span class="kw">mod </span>helper {
+    <span class="kw">use </span>std::ops::Range;
+
+    <span class="kw">use </span>plc_ast::ast::DirectAccessType;
+
+    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
+
+    <span class="doccomment">/// Returns true if the current index is in the range for the given type
+    </span><span class="kw">pub fn </span>is_in_range(
+        access: <span class="kw-2">&amp;</span>DirectAccessType,
+        access_index: u64,
+        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+        index: <span class="kw-2">&amp;</span>Index,
+    ) -&gt; bool {
+        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index) <span class="kw">as </span>u64
+    }
+
+    <span class="doccomment">/// Returns the range from 0 for the given data type
+    </span><span class="kw">pub fn </span>get_range(
+        access: <span class="kw-2">&amp;</span>DirectAccessType,
+        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+        index: <span class="kw-2">&amp;</span>Index,
+    ) -&gt; Range&lt;u64&gt; {
+        <span class="number">0</span>..((data_type.get_size_in_bits(index) <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
+    }
+
+    <span class="doccomment">/// Returns true if the direct access can be used for the given type
+    </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
+        data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
+    }
+}
+</code></pre></div></section></main></body></html>

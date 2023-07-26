@@ -213,11 +213,13 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
-<span class="kw">use </span>inkwell::types::BasicTypeEnum;
+</span><span class="kw">use </span>inkwell::types::BasicTypeEnum;
 <span class="kw">use </span>inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+<span class="kw">use </span>plc_ast::ast::SourceRange;
+<span class="kw">use </span>plc_util::convention::qualified_name;
 <span class="kw">use </span>std::collections::HashMap;
 
 <span class="doccomment">/// Index view containing declared values for the current context
@@ -312,7 +314,7 @@
         variable_name: <span class="kw-2">&amp;</span>str,
         target_value: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span>qualified_name = <span class="macro">format!</span>(<span class="string">&quot;{container_name}.{variable_name}&quot;</span>);
+        <span class="kw">let </span>qualified_name = qualified_name(container_name, variable_name);
         <span class="self">self</span>.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
         <span class="prelude-val">Ok</span>(())
     }

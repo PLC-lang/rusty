@@ -462,13 +462,11 @@
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
-<span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
+</span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
 <span class="kw">use </span><span class="kw">crate</span>::index::{Index, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::resolver::{AstAnnotations, Dependency};
-<span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, Dimension, StringEncoding, StructSource};
+<span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, DataTypeInformation, Dimension, StringEncoding, StructSource};
 <span class="kw">use </span><span class="kw">crate</span>::Diagnostic;
-<span class="kw">use crate</span>::{ast::literals::AstLiteral, ast::AstStatement, typesystem::DataTypeInformation};
 <span class="kw">use crate</span>::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -483,6 +481,8 @@
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
+<span class="kw">use </span>plc_ast::ast::{AstStatement, SourceRange};
+<span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="doccomment">/// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types

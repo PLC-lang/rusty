@@ -354,65 +354,16 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>core::ops::Range;
 <span class="kw">use </span>logos::Filter;
 <span class="kw">use </span>logos::Lexer;
 <span class="kw">use </span>logos::Logos;
-<span class="kw">use </span>std::sync::atomic::AtomicUsize;
-<span class="kw">use </span>std::sync::atomic::Ordering;
-<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">pub use </span>tokens::Token;
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::AstId;
-<span class="kw">use </span><span class="kw">crate</span>::ast::DirectAccessType;
-<span class="kw">use </span><span class="kw">crate</span>::ast::HardwareAccessType;
-<span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
-<span class="kw">use </span><span class="kw">crate</span>::ast::SourceRangeFactory;
 <span class="kw">use </span><span class="kw">crate</span>::Diagnostic;
+<span class="kw">use </span>plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -702,11 +653,11 @@
         .chars()
         .nth(<span class="number">1</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Bit),
-            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Byte),
-            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Word),
-            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::DWord),
-            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::LWord),
+            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
+            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
+            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
+            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
+            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
         .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
@@ -721,10 +672,10 @@
         .chars()
         .nth(<span class="number">1</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;i&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::HardwareAccessType::Input),
-            <span class="string">&#39;q&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::HardwareAccessType::Output),
-            <span class="string">&#39;m&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::HardwareAccessType::Memory),
-            <span class="string">&#39;g&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::HardwareAccessType::Global),
+            <span class="string">&#39;i&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Input),
+            <span class="string">&#39;q&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Output),
+            <span class="string">&#39;m&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Memory),
+            <span class="string">&#39;g&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Global),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
         .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
@@ -734,35 +685,17 @@
         .chars()
         .nth(<span class="number">2</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Bit),
-            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Byte),
-            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Word),
-            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::DWord),
-            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::LWord),
-            <span class="string">&#39;*&#39; </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::ast::DirectAccessType::Template),
+            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
+            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
+            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
+            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
+            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
+            <span class="string">&#39;*&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Template),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
         .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
 
     <span class="prelude-val">Some</span>((hardware_type, access))
-}
-
-<span class="attr">#[derive(Clone)]
-</span><span class="comment">//TODO: This belongs to the AST
-</span><span class="kw">pub struct </span>IdProvider {
-    current_id: Arc&lt;AtomicUsize&gt;,
-}
-
-<span class="kw">impl </span>IdProvider {
-    <span class="kw">pub fn </span>next_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; AstId {
-        <span class="self">self</span>.current_id.fetch_add(<span class="number">1</span>, Ordering::Relaxed)
-    }
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>IdProvider {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        IdProvider { current_id: Arc::new(AtomicUsize::new(<span class="number">1</span>)) }
-    }
 }
 
 <span class="attr">#[cfg(test)]
@@ -776,24 +709,5 @@
     location_factory: SourceRangeFactory,
 ) -&gt; ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
-}
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>id_tests {
-    <span class="kw">use </span><span class="kw">super</span>::IdProvider;
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>id_provider_generates_unique_ids_over_clones() {
-        <span class="kw">let </span><span class="kw-2">mut </span>id1 = IdProvider::default();
-
-        <span class="macro">assert_eq!</span>(id1.next_id(), <span class="number">1</span>);
-
-        <span class="kw">let </span><span class="kw-2">mut </span>id2 = id1.clone();
-        <span class="macro">assert_eq!</span>(id2.next_id(), <span class="number">2</span>);
-
-        <span class="macro">assert_eq!</span>(id1.next_id(), <span class="number">3</span>);
-
-        <span class="macro">assert_eq!</span>(id2.next_id(), <span class="number">4</span>);
-    }
 }
 </code></pre></div></section></main></body></html>

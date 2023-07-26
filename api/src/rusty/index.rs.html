@@ -1490,18 +1490,20 @@
 <a href="#1490" id="1490">1490</a>
 <a href="#1491" id="1491">1491</a>
 <a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
-    ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-        SourceRange, TypeNature,
-    },
     builtins::{<span class="self">self</span>, BuiltIn},
     datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>},
 };
 <span class="kw">use </span>indexmap::IndexMap;
+<span class="kw">use </span>plc_ast::ast::{
+    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
+    TypeNature,
+};
+<span class="kw">use </span>plc_util::convention::qualified_name;
 
 <span class="kw">use </span><span class="self">self</span>::{
     const_expressions::{ConstExpressions, ConstId},
@@ -1667,7 +1669,7 @@
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: <span class="macro">format!</span>(<span class="string">&quot;{container}.{name}&quot;</span>),
+            qualified_name: qualified_name(container, name),
             data_type_name: new_type.to_string(),
             varargs,
             ..<span class="self">self</span>.to_owned()
@@ -1754,7 +1756,7 @@
     }
 
     <span class="kw">fn </span>has_parent(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span>str) -&gt; bool {
-        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;{context}.{}&quot;</span>, <span class="self">self</span>.name);
+        <span class="kw">let </span>name = qualified_name(context, <span class="kw-2">&amp;</span><span class="self">self</span>.name);
         <span class="self">self</span>.qualified_name.eq_ignore_ascii_case(<span class="kw-2">&amp;</span>name)
     }
 }
@@ -2531,7 +2533,7 @@
     <span class="doccomment">/// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     </span><span class="kw">pub fn </span>find_enum_element(<span class="kw-2">&amp;</span><span class="self">self</span>, enum_name: <span class="kw-2">&amp;</span>str, element_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{enum_name}.{element_name}&quot;</span>).to_lowercase())
+        <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name(enum_name, element_name).to_lowercase())
     }
 
     <span class="doccomment">/// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. &quot;Color.RED&quot;)
@@ -2767,8 +2769,8 @@
 
     <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SymbolLocation, linkage: LinkageType) {
         <span class="kw">let </span>instance_variable =
-            VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone())
-                .set_linkage(linkage);
+            VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+                </span>.set_linkage(linkage);
         <span class="comment">// self.register_global_variable(name, instance_variable.clone());
         </span><span class="kw">let </span>entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
         <span class="self">self</span>.pous.insert(entry.get_name().to_lowercase(), entry);
@@ -2808,7 +2810,7 @@
         <span class="kw">let </span>variable_type = member_info.variable_linkage;
         <span class="kw">let </span>data_type_name = member_info.variable_type_name;
 
-        <span class="kw">let </span>qualified_name = <span class="macro">format!</span>(<span class="string">&quot;{container_name}.{variable_name}&quot;</span>);
+        <span class="kw">let </span>qualified_name = qualified_name(container_name, variable_name);
 
         VariableIndexEntry::new(
             variable_name,
@@ -2831,7 +2833,7 @@
         initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
         source_location: SymbolLocation,
     ) {
-        <span class="kw">let </span>qualified_name = <span class="macro">format!</span>(<span class="string">&quot;{enum_type_name}.{element_name}&quot;</span>);
+        <span class="kw">let </span>qualified_name = qualified_name(enum_type_name, element_name);
         <span class="kw">let </span>entry =
             VariableIndexEntry::create_global(element_name, <span class="kw-2">&amp;</span>qualified_name, enum_type_name, source_location)
                 .set_constant(<span class="bool-val">true</span>)

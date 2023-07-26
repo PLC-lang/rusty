@@ -1085,13 +1085,31 @@
 <a href="#1085" id="1085">1085</a>
 <a href="#1086" id="1086">1086</a>
 <a href="#1087" id="1087">1087</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
+    ast::{
+        AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
+        PolymorphismMode, Pou, PouType, SourceRange, SourceRangeFactory, TypeNature, UserTypeDeclaration,
+        Variable, VariableBlock, VariableBlockType,
+    },
+    provider::IdProvider,
+};
+<span class="kw">use </span>plc_util::convention::qualified_name;
+
+<span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
-    ast::<span class="kw-2">*</span>,
     diagnostics::Diagnostician,
     expect_token,
-    lexer::{<span class="self">self</span>, IdProvider},
-    lexer::{ParseSession, Token, Token::<span class="kw-2">*</span>},
+    lexer::{<span class="self">self</span>, ParseSession, Token, Token::<span class="kw-2">*</span>},
     typesystem::DINT_TYPE,
     Diagnostic,
 };
@@ -1471,7 +1489,7 @@
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        <span class="kw">let </span>call_name = <span class="macro">format!</span>(<span class="string">&quot;{class_name}.{name}&quot;</span>);
+        <span class="kw">let </span>call_name = qualified_name(class_name, <span class="kw-2">&amp;</span>name);
         <span class="kw">let </span>implementation = parse_implementation(
             lexer,
             linkage,
@@ -1585,7 +1603,7 @@
             <span class="kw">let </span>name = lexer.slice_and_advance();
             (name_or_container, name, loc.span(<span class="kw-2">&amp;</span>lexer.last_location()))
         };
-        <span class="kw">let </span>call_name = <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="kw-2">&amp;</span>container, <span class="kw-2">&amp;</span>name);
+        <span class="kw">let </span>call_name = qualified_name(<span class="kw-2">&amp;</span>container, <span class="kw-2">&amp;</span>name);
 
         <span class="kw">let </span>implementation = parse_implementation(
             lexer,

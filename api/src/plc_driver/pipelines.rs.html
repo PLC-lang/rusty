@@ -500,6 +500,8 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -508,14 +510,16 @@
 };
 
 <span class="kw">use crate</span>::{CompileOptions, LinkOptions};
-<span class="kw">use </span>ast::{CompilationUnit, SourceRange};
+<span class="kw">use </span>ast::{
+    ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
+    provider::IdProvider,
+};
 <span class="kw">use </span>diagnostics::{Diagnostic, Diagnostician};
 <span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
-    lexer::IdProvider,
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -560,7 +564,7 @@
                 <span class="prelude-val">Ok</span>(parse_file(
                     <span class="kw-2">&amp;</span>loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::Internal,
+                    LinkageType::Internal,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -581,7 +585,7 @@
                 <span class="prelude-val">Ok</span>(parse_file(
                     <span class="kw-2">&amp;</span>loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::External,
+                    LinkageType::External,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -603,7 +607,7 @@
                 <span class="prelude-val">Ok</span>(parse_file(
                     <span class="kw-2">&amp;</span>loaded_source.source,
                     loaded_source.get_location_str(),
-                    ast::LinkageType::External,
+                    LinkageType::External,
                     id_provider.clone(),
                     diagnostician,
                 ))
@@ -621,7 +625,7 @@
             </span>.into_par_iter()
             .map(|<span class="kw-2">mut </span>unit| {
                 <span class="comment">//Preprocess
-                </span>ast::pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
+                </span>pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
                 <span class="comment">//import to index
                 </span><span class="kw">let </span>index = plc::index::visitor::visit(<span class="kw-2">&amp;</span>unit);
 

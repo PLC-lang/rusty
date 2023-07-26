@@ -303,8 +303,7 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use </span><span class="kw">crate</span>::ast::SourceRange;
-<span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
+</span><span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 <span class="kw">use </span>inkwell::types::ArrayType;
 <span class="kw">use </span>inkwell::{
@@ -315,6 +314,7 @@
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
+<span class="kw">use </span>plc_ast::ast::SourceRange;
 
 <span class="kw">use </span><span class="kw">super</span>::ADDRESS_SPACE_GENERIC;
 

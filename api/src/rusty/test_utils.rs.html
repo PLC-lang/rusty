@@ -236,21 +236,25 @@
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
+    <span class="kw">use </span>plc_ast::{
+        ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+        provider::IdProvider,
+    };
     <span class="kw">use </span>source::{Compilable, SourceCode, SourceContainer};
 
     <span class="kw">use crate</span>::{
-        ast::{<span class="self">self</span>, CompilationUnit, SourceRangeFactory},
         builtins,
         codegen::{CodegenContext, GeneratedModule},
         diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics},
         index::{<span class="self">self</span>, Index},
-        lexer::{<span class="self">self</span>, IdProvider},
-        parser,
+        lexer, parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
         DebugLevel, Validator,
@@ -281,7 +285,7 @@
     <span class="kw">pub fn </span>parse(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             <span class="string">&quot;test.st&quot;</span>,
         )
     }
@@ -290,10 +294,10 @@
         <span class="kw">let </span>id_provider = IdProvider::default();
         <span class="kw">let </span>(<span class="kw-2">mut </span>unit, diagnostic) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             <span class="string">&quot;test.st&quot;</span>,
         );
-        ast::pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
+        pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         (unit, diagnostic)
     }
 
@@ -318,10 +322,10 @@
         };
         <span class="kw">let </span>(<span class="kw-2">mut </span>unit, ..) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             source_path,
         );
-        ast::pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
+        pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
         (unit, index)
     }

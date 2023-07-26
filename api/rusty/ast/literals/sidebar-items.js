@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["AstLiteral"],"struct":["Array","Date","DateAndTime","StringValue","Time","TimeOfDay"]};
