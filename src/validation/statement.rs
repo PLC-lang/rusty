@@ -78,7 +78,7 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_unary_expression(validator, operator, value, location);
         }
         AstStatement::ExpressionList { expressions, .. } => {
-            validate_array_assignment(validator, expressions, context);
+            // validate_array_assignment(validator, expressions, context);
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
         AstStatement::RangeStatement { start, end, .. } => {
@@ -88,6 +88,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
+            super::array::__validate_array_assignment(validator, statement, context);
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {

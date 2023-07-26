@@ -94,7 +94,7 @@ pub struct StringValue {
     pub is_wide: bool,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Array {
     pub elements: Option<Box<AstStatement>>, // expression-list
 }
