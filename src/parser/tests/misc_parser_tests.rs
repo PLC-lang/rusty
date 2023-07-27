@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::Diagnostic;
 use core::panic;
 use std::ops::Range;
 
@@ -12,6 +11,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
     literals::AstLiteral,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 #[test]

@@ -1,9 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{lexer::Token, test_utils::tests::parse, Diagnostic};
+use crate::{lexer::Token, test_utils::tests::parse};
 use plc_ast::ast::{
     AccessModifier, AstStatement, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable,
     VariableBlock, VariableBlockType,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 /*

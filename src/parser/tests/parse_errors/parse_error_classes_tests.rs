@@ -1,4 +1,6 @@
-use crate::{test_utils::tests::parse, Diagnostic};
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::test_utils::tests::parse;
 
 #[test]
 fn simple_class_without_name() {

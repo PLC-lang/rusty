@@ -10,10 +10,10 @@ use codespan_reporting::{
     files::{Files, Location, SimpleFile, SimpleFiles},
     term::termcolor::{ColorChoice, StandardStream},
 };
-use inkwell::support::LLVMString;
+// use inkwell::support::LLVMString;
 use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
-use crate::index::VariableType;
+// use crate::index::VariableType;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -471,9 +471,9 @@ impl Diagnostic {
         Diagnostic::GeneralError { message: reason.to_string(), err_no: ErrNo::general__param_err }
     }
 
-    pub fn llvm_error(file: &str, llvm_error: &LLVMString) -> Diagnostic {
+    pub fn llvm_error(file: &str, llvm_error: &str) -> Diagnostic {
         Diagnostic::GeneralError {
-            message: format!("{file}: Internal llvm error: {:}", llvm_error.to_string()),
+            message: format!("{file}: Internal llvm error: {:}", llvm_error),
             err_no: ErrNo::general__io_err,
         }
     }
@@ -675,12 +675,12 @@ impl Diagnostic {
 
     pub fn invalid_argument_type(
         parameter_name: &str,
-        parameter_type: VariableType,
+        parameter_type: &str,
         range: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Expected a reference for parameter {parameter_name} because their type is {parameter_type:?}"
+                "Expected a reference for parameter {parameter_name} because their type is {parameter_type}"
             ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
@@ -703,7 +703,7 @@ impl Diagnostic {
         }
     }
 
-    pub(crate) fn global_name_conflict(
+    pub fn global_name_conflict(
         name: &str,
         location: SourceRange,
         conflicts: Vec<SourceRange>,
@@ -711,7 +711,7 @@ impl Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
     }
 
-    pub(crate) fn global_name_conflict_with_text(
+    pub fn global_name_conflict_with_text(
         name: &str,
         location: SourceRange,
         conflicts: Vec<SourceRange>,

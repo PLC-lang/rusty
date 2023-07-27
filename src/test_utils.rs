@@ -7,12 +7,12 @@ pub mod tests {
         ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
         provider::IdProvider,
     };
+    use plc_diagnostics::diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics};
     use source::{Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics},
         index::{self, Index},
         lexer, parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},

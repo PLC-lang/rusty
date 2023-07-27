@@ -1,9 +1,10 @@
 use plc_ast::ast::{Implementation, LinkageType, Pou, PouType};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::{resolver::AnnotationMap, Diagnostic};
+use crate::resolver::AnnotationMap;
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {

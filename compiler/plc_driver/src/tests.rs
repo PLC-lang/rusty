@@ -1,8 +1,8 @@
 use std::{fmt::Debug, path::PathBuf};
 
 use ast::provider::IdProvider;
-use diagnostics::{Diagnostic, Diagnostician};
 use plc::DebugLevel;
+use plc_diagnostics::diagnostics::{Diagnostic, Diagnostician};
 use project::project::Project;
 use source_code::SourceContainer;
 
