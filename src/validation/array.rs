@@ -62,8 +62,8 @@ pub fn array_size<T: AnnotationMap>(
         return;
     };
 
-    let lhs_arr_len = lt.get_type_information().get_array_lenght(context.index);
-    let rhs_arr_len = statement_to_array_length(right);
+    let lhs_arr_len = lt.get_type_information().get_array_length(context.index).unwrap_or(0); // TODO: Remove unwrap
+    let rhs_arr_len = dbg!(statement_to_array_length(right));
 
     if lhs_arr_len < rhs_arr_len {
         validator.push_diagnostic(Diagnostic::SemanticError {
@@ -77,12 +77,17 @@ pub fn array_size<T: AnnotationMap>(
     }
 }
 
-fn statement_to_array_length(right: &Box<AstStatement>) -> usize {
-    match right.as_ref() {
+fn statement_to_array_length(right: &AstStatement) -> usize {
+    match right {
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+        AstStatement::Literal { kind: AstLiteral::Integer(_), .. } => 1,
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
-            Some(AstStatement::ExpressionList { expressions, .. }) => expressions.len(),
+            // ARRAY[1..5] := [1, 2, 3, 4, 5]; -> Assignment with a '[' symbol
             Some(AstStatement::Literal { kind: AstLiteral::Integer(_), .. }) => 1,
+            // ARRAY[1..5] := (1, 2, 3, 4, 5); -> Assignment with a '(' symbol
+            Some(AstStatement::ExpressionList { expressions, .. }) => {
+                expressions.iter().map(|it| statement_to_array_length(it)).sum::<usize>()
+            }
             _ => 0,
         },
         _ => 0,

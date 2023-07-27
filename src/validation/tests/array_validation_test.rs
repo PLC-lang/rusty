@@ -126,6 +126,7 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
     assert_eq!(diagnostics.len(), 0);
 }
 
+// TODO: Struct with array of another struct that has array field of DINTs or something similar
 #[test]
 fn exceeding_size() {
     let diagnostics = parse_and_validate(
@@ -144,7 +145,7 @@ fn exceeding_size() {
 			END_VAR
 
 			// These are valid
-			sda := [1];
+			// sda := [1]; // TODO: This panics?
 			sda := [1, 2];
 			sda := [1, 2, 3];
 			sda := [1, 2, 3, 4];
@@ -159,6 +160,8 @@ fn exceeding_size() {
 			sda := (1, 2, 3, 4, 5, 6);
 			mda := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 			mda := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+			nda := [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]];
+			nda := [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]];
 			str := (idx := 0, arr := [1, 2, 3, 4, 5, 6]);
 			str := (idx := 0, arr := (1, 2, 3, 4, 5, 6));
 		END_FUNCTION

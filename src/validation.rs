@@ -166,7 +166,6 @@ pub fn validate_array_assignment<T: AnnotationMap>(
     expressions: &[AstStatement],
     context: &ValidationContext<T>,
 ) {
-    dbg!(&expressions);
     for expression in expressions {
         match expression {
             AstStatement::Assignment { left, right, .. } => {

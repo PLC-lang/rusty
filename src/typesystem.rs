@@ -654,11 +654,19 @@ impl DataTypeInformation {
         }
     }
 
-    /// Returns an arrays length if the callee is of type [`DataTypeInformation::Array`] and 0 otherwise.
-    /// For example, the length of `ARRAY[1..5] OF ...` would be 5 and of `ARRAY[1..2, 1..5]` 10 (= 2 * 5).
-    pub fn get_array_lenght(&self, index: &Index) -> usize {
-        let DataTypeInformation::Array { dimensions, .. } = self else { return 0 };
-        dimensions.iter().map(|it| it.get_length(index).ok().unwrap_or(0)).product::<u32>() as usize
+    /// Returns an arrays length if the callee is of type [`DataTypeInformation::Array`] and None otherwise.
+    /// For example, the length of
+    /// * `ARRAY[1..5] OF ...`          is 5
+    /// * `ARRAY[1..2, 1..5]`           is 10
+    /// * `ARRAY[1..2] OF ARRAY[1..5]`  is 10
+    pub fn get_array_length(&self, index: &Index) -> Option<usize> {
+        let DataTypeInformation::Array { inner_type_name, .. } = self else { return None };
+        let inner_type_info = index.get_inner_type_name(&inner_type_name).get_type_information();
+        let inner_type_size = inner_type_info.get_size_in_bits(index);
+        let arr_size = self.get_size_in_bits(index);
+        dbg!((self.get_size_in_bits(index), inner_type_size));
+
+        Some((arr_size / inner_type_size) as usize)
     }
 }
 
