@@ -102,6 +102,12 @@ mod edgecases {
 }
 
 mod structs {
+    use insta::assert_snapshot;
+    use plc_diagnostics::{
+        diagnostics::{Diagnostic, Diagnostician},
+        reporter::snapshot::SnapshotDiagnosticReporter,
+    };
+
     use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
@@ -128,6 +134,22 @@ mod structs {
         );
 
         assert_validation_snapshot!(&diagnostics);
+    }
+
+    #[test]
+    fn one_cycle_self_a_ui() {
+        let source = "
+            TYPE A : STRUCT
+                a : A;
+            END_STRUCT END_TYPE
+        ";
+        let diagnostics = parse_and_validate(source);
+
+        let mut diagnostician = Diagnostician::snapshot();
+        diagnostician.register_file("input".to_string(), source.to_string()); // TODO: I think we have to register a dummy file here and then give file-id = 0 inside handle method if dummy file
+        diagnostician.handle(diagnostics);
+
+        assert_snapshot!(diagnostician.buffer().unwrap());
     }
 
     #[test]

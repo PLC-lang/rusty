@@ -20,7 +20,7 @@ impl Default for ClangFormatDiagnosticReporter {
 }
 
 impl DiagnosticReporter for ClangFormatDiagnosticReporter {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+    fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
         for diagnostic in diagnostics {
             let file_id = diagnostic.main_location.file_handle;
             let location = &diagnostic.main_location;

@@ -31,7 +31,7 @@ pub mod tests {
 
     #[cfg(test)]
     impl DiagnosticReporter for ListBasedDiagnosticReporter {
-        fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
             self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
         }
 

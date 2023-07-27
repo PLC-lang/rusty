@@ -124,7 +124,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     // 3 : Resolve
     .annotate(id_provider, &diagnostician)?;
     // 4 : Validate
-    annotated_project.validate(&diagnostician)?;
+    annotated_project.validate(&mut diagnostician)?;
     // 5 : Codegen
     if !compile_parameters.is_check() {
         generate(

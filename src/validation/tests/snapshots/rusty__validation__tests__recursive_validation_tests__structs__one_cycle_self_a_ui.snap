@@ -1,0 +1,11 @@
+---
+source: src/validation/tests/recursive_validation_tests.rs
+expression: diagnostician.buffer().unwrap()
+---
+error: Recursive data structure `A -> A` has infinite size
+  ┌─ input:2:18
+  │
+2 │             TYPE A : STRUCT
+  │                  ^ Recursive data structure `A -> A` has infinite size
+
+

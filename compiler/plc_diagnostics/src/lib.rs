@@ -5,5 +5,6 @@ pub mod reporter {
     pub mod clang;
     pub mod codespan;
     pub mod null;
+    pub mod snapshot;
 }
 pub mod errno; // TODO: Make this crate-private?
