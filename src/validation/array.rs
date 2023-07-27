@@ -2,7 +2,7 @@ use crate::{
     ast::{AstLiteral, AstStatement},
     diagnostics::Diagnostic,
     resolver::AnnotationMap,
-    typesystem::DataTypeInformation,
+    typesystem::DataType,
 };
 
 use super::{ValidationContext, Validator, Validators};
@@ -58,10 +58,27 @@ pub fn array_size<T: AnnotationMap>(
 ) {
     let AstStatement::Assignment { left, right, .. } = statement else { return };
     let Some(lt) = context.annotations.get_type(&left, context.index) else { return };
-    let DataTypeInformation::Array { dimensions, .. } = lt.get_type_information() else { return };
-    let l_arr_len = dimensions[0].get_length(context.index).unwrap_or(0) as usize;
+    if !context.annotations.get_type_hint(&right, context.index).is_some_and(DataType::is_array) {
+        return;
+    };
 
-    let r_arr_len = match right.as_ref() {
+    let lhs_arr_len = lt.get_type_information().get_array_lenght(context.index);
+    let rhs_arr_len = statement_to_array_length(right);
+
+    if lhs_arr_len < rhs_arr_len {
+        validator.push_diagnostic(Diagnostic::SemanticError {
+            message: format!(
+                "Array {name} has a size of {lhs_arr_len} but {rhs_arr_len} elements were provided",
+                name = left.get_name().unwrap_or_default()
+            ),
+            range: vec![right.get_location()],
+            err_no: crate::diagnostics::ErrNo::arr__invalid_array_assignment,
+        });
+    }
+}
+
+fn statement_to_array_length(right: &Box<AstStatement>) -> usize {
+    match right.as_ref() {
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
             Some(AstStatement::ExpressionList { expressions, .. }) => expressions.len(),
@@ -69,16 +86,5 @@ pub fn array_size<T: AnnotationMap>(
             _ => 0,
         },
         _ => 0,
-    };
-
-    if l_arr_len < r_arr_len {
-        validator.push_diagnostic(Diagnostic::SemanticError {
-            message: format!(
-                "Array {name} has a size of {l_arr_len} but {r_arr_len} elements were provided",
-                name = left.get_name().unwrap_or_default()
-            ),
-            range: vec![right.get_location()],
-            err_no: crate::diagnostics::ErrNo::arr__invalid_array_assignment,
-        });
     }
 }

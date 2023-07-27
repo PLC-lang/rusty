@@ -653,6 +653,13 @@ impl DataTypeInformation {
             _ => false,
         }
     }
+
+    /// Returns an arrays length if the callee is of type [`DataTypeInformation::Array`] and 0 otherwise.
+    /// For example, the length of `ARRAY[1..5] OF ...` would be 5 and of `ARRAY[1..2, 1..5]` 10 (= 2 * 5).
+    pub fn get_array_lenght(&self, index: &Index) -> usize {
+        let DataTypeInformation::Array { dimensions, .. } = self else { return 0 };
+        dimensions.iter().map(|it| it.get_length(index).ok().unwrap_or(0)).product::<u32>() as usize
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

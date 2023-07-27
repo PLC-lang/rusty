@@ -125,3 +125,45 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
 
     assert_eq!(diagnostics.len(), 0);
 }
+
+#[test]
+fn exceeding_size() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE MyStruct : STRUCT
+			idx : DINT;
+			arr : ARRAY[1..5] OF DINT;
+		END_STRUCT END_TYPE
+
+		FUNCTION main : DINT
+			VAR
+				sda : ARRAY[1..5] OF DINT;
+				mda : ARRAY[1..2, 1..5] OF DINT;
+				nda : ARRAY[1..2] OF ARRAY[1..5] OF DINT;
+				str : MyStruct;
+			END_VAR
+
+			// These are valid
+			sda := [1];
+			sda := [1, 2];
+			sda := [1, 2, 3];
+			sda := [1, 2, 3, 4];
+			sda := [1, 2, 3, 4, 5];
+			mda := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+			mda := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+			str := (idx := 0, arr := [1, 2, 3, 4, 5]);
+			str := (idx := 0, arr := (1, 2, 3, 4, 5));
+
+			// Invalid
+			sda := [1, 2, 3, 4, 5, 6];
+			sda := (1, 2, 3, 4, 5, 6);
+			mda := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+			mda := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+			str := (idx := 0, arr := [1, 2, 3, 4, 5, 6]);
+			str := (idx := 0, arr := (1, 2, 3, 4, 5, 6));
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
