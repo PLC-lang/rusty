@@ -648,6 +648,13 @@ impl DataTypeInformation {
         }
     }
 
+    pub fn get_inner_pointer_type_name(&self) -> Option<&str> {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => Some(inner_type_name),
+            _ => None,
+        }
+    }
+
     pub fn is_compatible_char_and_string(&self, other: &DataTypeInformation) -> bool {
         match self.get_name() {
             CHAR_TYPE => matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }),

@@ -12,15 +12,17 @@ BinaryExpression {
         ),
         base: None,
     },
-    right: UnaryExpression {
-        operator: Address,
-        value: ReferenceExpr {
-            kind: Member(
-                Reference {
-                    name: "c",
-                },
-            ),
-            base: None,
-        },
+    right: ReferenceExpr {
+        kind: Address,
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "c",
+                    },
+                ),
+                base: None,
+            },
+        ),
     },
 }

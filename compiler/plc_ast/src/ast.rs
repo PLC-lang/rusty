@@ -1170,7 +1170,6 @@ pub enum Operator {
     And,
     Or,
     Xor,
-    Address,
 }
 
 impl Display for Operator {
@@ -1430,6 +1429,34 @@ impl AstFactory {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
             base: base.map(Box::new),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_address_of_reference(
+        base: AstStatement,
+        id: AstId,
+        operator_location: SourceRange
+    ) -> AstStatement {
+        let location = operator_location.span(&base.get_location());
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Address,
+            base: Some(Box::new(base)),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_deref_reference(
+        base: AstStatement,
+        id: AstId,
+        operator_location: SourceRange
+    )-> AstStatement {
+        let location = operator_location.span(&base.get_location());
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Deref,
+            base: Some(Box::new(base)),
             id,
             location,
         }

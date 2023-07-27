@@ -2,13 +2,16 @@
 source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
-PointerAccess {
-    reference: ReferenceExpr {
-        kind: Member(
-            Reference {
-                name: "x",
-            },
-        ),
-        base: None,
-    },
+ReferenceExpr {
+    kind: Deref,
+    base: Some(
+        ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    ),
 }

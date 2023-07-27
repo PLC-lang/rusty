@@ -520,18 +520,19 @@ fn validate_unary_expression(
     value: &AstStatement,
     location: &SourceRange,
 ) {
-    if operator == &Operator::Address {
-        match value {
-            AstStatement::Reference { .. }
-            | AstStatement::QualifiedReference { .. }
-            | AstStatement::ArrayAccess { .. } => (),
+    // TODO: 
+    // if operator == &Operator::Address {
+    //     match value {
+    //         AstStatement::Reference { .. }
+    //         | AstStatement::QualifiedReference { .. }
+    //         | AstStatement::ArrayAccess { .. } => (),
 
-            _ => validator.push_diagnostic(Diagnostic::invalid_operation(
-                "Invalid address-of operation",
-                location.to_owned(),
-            )),
-        }
-    }
+    //         _ => validator.push_diagnostic(Diagnostic::invalid_operation(
+    //             "Invalid address-of operation",
+    //             location.to_owned(),
+    //         )),
+    //     }
+    // }
 }
 
 /// Validates if an argument can be passed to a function with [`VariableType::Output`] and

@@ -2,14 +2,16 @@
 source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
-UnaryExpression {
-    operator: Address,
-    value: ReferenceExpr {
-        kind: Member(
-            Reference {
-                name: "x",
-            },
-        ),
-        base: None,
-    },
+ReferenceExpr {
+    kind: Address,
+    base: Some(
+        ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    ),
 }

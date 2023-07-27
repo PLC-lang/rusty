@@ -447,11 +447,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ))
                 }
             }
-            Operator::Address => {
-                //datatype is a pointer to the address
-                //value is the address
-                self.generate_element_pointer(expression).map(|result| result.as_basic_value_enum())
-            }
+            //TODO 
+            // Operator::Address => {
+            //     //datatype is a pointer to the address
+            //     //value is the address
+            //     self.generate_element_pointer(expression).map(|result| result.as_basic_value_enum())
+            // }
             _ => unimplemented!(),
         };
         value

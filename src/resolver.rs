@@ -14,7 +14,8 @@ use indexmap::{IndexMap, IndexSet};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        DataTypeDeclaration, DirectAccessType, Operator, Pou, ReferenceAccess, TypeNature,
+        UserTypeDeclaration, Variable,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral, StringValue},
@@ -1237,12 +1238,12 @@ impl<'i> TypeAnnotator<'i> {
                         .get_name()
                         .to_string();
 
-                    if operator == &Operator::Address {
-                        //this becomes a pointer to the given type:
-                        Some(add_pointer_type(&mut self.annotation_map.new_index, inner_type))
-                    } else {
-                        Some(inner_type)
-                    }
+                    // if operator == &Operator::Address {
+                    //     //this becomes a pointer to the given type:
+                    //     Some(add_pointer_type(&mut self.annotation_map.new_index, inner_type))
+                    // } else {
+                    Some(inner_type)
+                    // }
                 };
 
                 if let Some(statement_type) = statement_type {
@@ -1439,9 +1440,57 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
+            AstStatement::ReferenceExpr { access, base, id, .. } => {
+                self.resolve_reference_expr(access, base, *id, statement, ctx);
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }
+        }
+    }
+
+    fn resolve_reference_expr(
+        &mut self,
+        access: &ast::ReferenceAccess,
+        base: &Option<Box<AstStatement>>,
+        id: usize,
+        stmt: &AstStatement,
+        ctx: &VisitorContext,
+    ) {
+        // first resolve base
+        let qualifier = base.as_ref().and_then(|base| {
+            self.visit_statement_expression(ctx, base);
+            self.annotation_map.get_type(base, self.index)
+        });
+
+        match access {
+            ReferenceAccess::Member(reference) => {
+                if let AstStatement::Reference { name, .. } = reference.as_ref() {
+                    let qualifier_name = qualifier.map(|it| it.get_name());
+                    let variable = qualifier_name
+                        .or(ctx.pou)
+                        .map(|it| it.to_string())
+                        .and_then(|q| self.index.find_member(q.as_str(), name))
+                        .or_else(|| self.index.find_global_variable(name));
+
+                    if let Some(variable) = variable {
+                        let annotation = to_variable_annotation(variable, self.index, false);
+                        self.annotate(stmt, annotation.clone());
+                        self.annotate(reference.as_ref(), annotation);
+                    }
+                } else {
+                    //unknown situation
+                }
+            }
+            ReferenceAccess::Index(_) => todo!(),
+            ReferenceAccess::Deref => {
+                let inner_type =
+                    qualifier.and_then(|dt| dt.get_type_information().get_inner_pointer_type_name());
+                if let Some(inner_type_name) = inner_type.map(|it| it.to_string()) {
+                    self.annotate(stmt, StatementAnnotation::new_value(inner_type_name))
+                }
+            }
+            ReferenceAccess::Address => todo!(),
         }
     }
 

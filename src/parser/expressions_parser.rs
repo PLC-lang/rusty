@@ -163,7 +163,6 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         OperatorNot => Some(Operator::Not),
         OperatorPlus => Some(Operator::Plus),
         OperatorMinus => Some(Operator::Minus),
-        OperatorAmp => Some(Operator::Address),
         _ => None,
     } {
         operators.push(operator);
@@ -273,6 +272,15 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         }
         OperatorMultiplication => parse_vla_range(lexer),
         Identifier => parse_qualified_reference2(lexer),
+        OperatorAmp => {
+            lexer.advance();
+            let op_location = lexer.last_location();
+            Ok(AstFactory::create_address_of_reference(
+                parse_leaf_expression(lexer),
+                lexer.next_id(),
+                op_location,
+            ))
+        }
         // ...and if not then this token may be anything
         _ => parse_single_leafe_expression(lexer),
     };
@@ -453,7 +461,7 @@ pub fn parse_qualified_reference_with_base(
     // as long as we parse something we keep to eat stuff eagerly
     while lexer.parse_progress > pos {
         pos = lexer.parse_progress;
-        match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen]) {
+        match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen, OperatorDeref]) {
             Some(KeywordDot) => {
                 current = AstFactory::create_member_reference(
                     parse_sub_single_leaf_expression(lexer)?,
@@ -470,6 +478,14 @@ pub fn parse_qualified_reference_with_base(
                     )
                 });
             }
+            Some(OperatorDeref) => {
+                current  = AstFactory::create_deref_reference(
+                        current,
+                        lexer.next_id(),
+                        lexer.last_location()
+                    )
+            }
+
             _ => {}
         }
     }
@@ -561,20 +577,20 @@ fn parse_access_modifiers(
     original_reference: AstStatement,
 ) -> Result<AstStatement, Diagnostic> {
     let mut reference = original_reference;
-    //If (while) we hit a dereference, parse and append the dereference to the result
-    while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
-        if lexer.try_consume(&KeywordSquareParensOpen) {
-            let access = parse_expression(lexer);
-            lexer.consume_or_report(KeywordSquareParensClose);
-            reference = AstStatement::ArrayAccess {
-                reference: Box::new(reference),
-                access: Box::new(access),
-                id: lexer.next_id(),
-            };
-        } else if lexer.try_consume(&OperatorDeref) {
-            reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
-        }
-    }
+    // //If (while) we hit a dereference, parse and append the dereference to the result
+    // while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref { //TODO What happens here?
+    //     if lexer.try_consume(&KeywordSquareParensOpen) {
+    //         let access = parse_expression(lexer);
+    //         lexer.consume_or_report(KeywordSquareParensClose);
+    //         reference = AstStatement::ArrayAccess {
+    //             reference: Box::new(reference),
+    //             access: Box::new(access),
+    //             id: lexer.next_id(),
+    //         };
+    //     } else if lexer.try_consume(&OperatorDeref) {
+    //         reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
+    //     }
+    // }
     Ok(reference)
 }
 
