@@ -1,5 +1,5 @@
 use plc_ast::ast::{DirectAccessType, HardwareAccessType};
-use plc_diagnostics::diagnostics::{Diagnostic, ErrNo};
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,

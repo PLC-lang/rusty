@@ -19,7 +19,8 @@ use inkwell::{
 };
 use plc_ast::ast::{AstStatement, SourceRange};
 use plc_ast::literals::AstLiteral;
-use plc_diagnostics::diagnostics::{Diagnostic, ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::errno::ErrNo;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types

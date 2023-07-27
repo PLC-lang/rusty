@@ -21,7 +21,10 @@ use plc::{
     validation::Validator,
     ConfigFormat, Target,
 };
-use plc_diagnostics::diagnostics::{Diagnostic, Diagnostician, ErrNo};
+use plc_diagnostics::{
+    diagnostics::{Diagnostic, Diagnostician},
+    errno::ErrNo,
+};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},

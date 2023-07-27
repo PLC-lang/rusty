@@ -9,7 +9,7 @@ use crate::{
 use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::{LinkageType, SourceRange};
-use plc_diagnostics::diagnostics::{Diagnostic, ErrNo};
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 
 use super::{
     data_type_generator::get_default_for,
