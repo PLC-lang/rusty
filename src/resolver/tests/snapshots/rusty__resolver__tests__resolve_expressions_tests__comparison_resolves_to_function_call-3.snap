@@ -1,5 +1,65 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-expression: "format!(\"{annotation:?}\")"
+expression: "format!(\"{annotation:#?}\")"
 ---
-Some(ReplacementAst { statement: BinaryExpression { operator: Or, left: CallStatement { operator: Reference { name: "STRING_EQUAL" }, parameters: Some(ExpressionList { expressions: [Reference { name: "a" }, Reference { name: "b" }] }) }, right: CallStatement { operator: Reference { name: "STRING_LESS" }, parameters: Some(ExpressionList { expressions: [Reference { name: "a" }, Reference { name: "b" }] }) } } })
+Some(
+    ReplacementAst {
+        statement: BinaryExpression {
+            operator: Or,
+            left: CallStatement {
+                operator: Reference {
+                    name: "STRING_EQUAL",
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [
+                            ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "b",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ],
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: Reference {
+                    name: "STRING_LESS",
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [
+                            ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            ReferenceExpr {
+                                kind: Member(
+                                    Reference {
+                                        name: "b",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ],
+                    },
+                ),
+            },
+        },
+    },
+)

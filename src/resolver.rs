@@ -22,6 +22,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_util::convention::{internal_type_name, qualified_name};
+use regex::internal::Program;
 
 pub mod const_evaluator;
 pub mod generics;
@@ -401,9 +402,8 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Type { .. }
-            | StatementAnnotation::Program { .. } => None,
+            StatementAnnotation::Program { qualified_name } => Some(&qualified_name.as_str()),
+            StatementAnnotation::Function { .. } | StatementAnnotation::Type { .. } => None,
         }
     }
 
@@ -1441,7 +1441,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::ReferenceExpr { access, base, id, .. } => {
-                self.resolve_reference_expr(access, base, *id, statement, ctx);
+                self.visit_reference_expr(access, base, statement, ctx);
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
@@ -1449,48 +1449,71 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn resolve_reference_expr(
+    fn visit_reference_expr(
         &mut self,
         access: &ast::ReferenceAccess,
         base: &Option<Box<AstStatement>>,
-        id: usize,
         stmt: &AstStatement,
         ctx: &VisitorContext,
     ) {
         // first resolve base
-        let qualifier = base.as_ref().and_then(|base| {
-            self.visit_statement_expression(ctx, base);
-            self.annotation_map.get_type(base, self.index)
-        });
-
-        match access {
-            ReferenceAccess::Member(reference) => {
+        if let Some(base) = base {
+            self.visit_statement(ctx, base);
+        };
+        match (access, base) {
+            (ReferenceAccess::Member(reference), Some(qualifier)) => {
+                // qualifier.x
                 if let AstStatement::Reference { name, .. } = reference.as_ref() {
-                    let qualifier_name = qualifier.map(|it| it.get_name());
-                    let variable = qualifier_name
-                        .or(ctx.pou)
-                        .map(|it| it.to_string())
-                        .and_then(|q| self.index.find_member(q.as_str(), name))
-                        .or_else(|| self.index.find_global_variable(name));
-
-                    if let Some(variable) = variable {
-                        let annotation = to_variable_annotation(variable, self.index, false);
+                    if let Some(member) = self
+                        .annotation_map
+                        .get_type(qualifier, self.index)
+                        .and_then(|q| self.index.find_member(q.get_name(), name))
+                    {
+                        let annotation = to_variable_annotation(member, self.index, ctx.constant);
                         self.annotate(stmt, annotation.clone());
-                        self.annotate(reference.as_ref(), annotation);
+                        self.annotate(reference, annotation);
                     }
-                } else {
-                    //unknown situation
                 }
             }
-            ReferenceAccess::Index(_) => todo!(),
-            ReferenceAccess::Deref => {
-                let inner_type =
-                    qualifier.and_then(|dt| dt.get_type_information().get_inner_pointer_type_name());
-                if let Some(inner_type_name) = inner_type.map(|it| it.to_string()) {
-                    self.annotate(stmt, StatementAnnotation::new_value(inner_type_name))
+            (ReferenceAccess::Member(reference), None) => {
+                if let AstStatement::Reference { name, .. } = reference.as_ref() {
+                    // no qualifier, so lets try a pou
+                    if let Some(annotation) = ctx
+                        .pou
+                        .and_then(|pou| self.index.find_member(pou, name))
+                        .map(|member| to_variable_annotation(member, self.index, ctx.constant))
+                    {
+                        // local variable
+                        self.annotate(stmt, annotation.clone());
+                        self.annotate(reference, annotation);
+                    } else if let Some(annotation) = self.index.find_pou(name).and_then(|it| to_pou_annotation(it, self.index)) {
+                        // POU reference
+                        self.annotate(stmt, annotation.clone());
+                        self.annotate(reference, annotation);
+                    }
                 }
             }
-            ReferenceAccess::Address => todo!(),
+            (ReferenceAccess::Index(index), Some(base)) => {
+                self.visit_statement(ctx, index);
+                if let Some(inner_type) = self
+                    .annotation_map
+                    .get_type(base, self.index)
+                    .and_then(|dt| dt.get_type_information().get_inner_array_type_name())
+                {
+                    self.annotate(stmt, StatementAnnotation::value(inner_type))
+                }
+            }
+            (ReferenceAccess::Deref, Some(base)) => {
+                if let Some(inner_type) = self
+                    .annotation_map
+                    .get_type(base, self.index)
+                    .and_then(|dt| dt.get_type_information().get_inner_pointer_type_name())
+                {
+                    self.annotate(stmt, StatementAnnotation::value(inner_type))
+                }
+            }
+            (ReferenceAccess::Address, Some(base)) => todo!(),
+            _ => {}
         }
     }
 
@@ -1841,6 +1864,29 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
         });
     }
     new_type_name
+}
+
+fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnotation> {
+    match p {
+        PouIndexEntry::Program { name, .. } => {
+            Some(StatementAnnotation::Program { qualified_name: name.into() })
+        }
+        PouIndexEntry::Function { name, return_type, .. } => Some(StatementAnnotation::Function {
+            return_type: return_type.into(),
+            qualified_name: name.into(),
+            call_name: None,
+        }),
+        PouIndexEntry::FunctionBlock { name, .. } =>{
+            Some(StatementAnnotation::Type { type_name: name.into() })
+        }
+        PouIndexEntry::Action { name, parent_pou_name, ..} => {
+            match index.find_pou(&parent_pou_name) {
+                Some(PouIndexEntry::Program { .. }) => Some(StatementAnnotation::Program { qualified_name: name.into() }),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
 }
 
 fn to_variable_annotation(

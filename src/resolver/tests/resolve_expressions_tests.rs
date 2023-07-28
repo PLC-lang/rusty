@@ -839,8 +839,8 @@ fn pou_expressions_resolve_types() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[3].statements;
 
-    //none of these pou's should really resolve to a type
-    let expected_types = vec![VOID_TYPE, VOID_TYPE, VOID_TYPE];
+    //Functions and Functionblocks should not resolve to a type
+    let expected_types = vec!["OtherPrg", VOID_TYPE, VOID_TYPE];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
     assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
@@ -1092,15 +1092,15 @@ fn comparison_resolves_to_function_call() {
 
     // THEN we expect it to be annotated with the new function call ast for comparison
     let annotation = annotations.get(&statements[0]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[1]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[2]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[3]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[4]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
 }
 
 #[test]
