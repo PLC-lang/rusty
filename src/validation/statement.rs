@@ -1,6 +1,6 @@
 use std::{collections::HashSet, mem::discriminant};
 
-use super::{validate_array_assignment, ValidationContext, Validator, Validators};
+use super::{ValidationContext, Validator, Validators};
 use crate::{
     ast::{
         self, control_statements::ConditionalBlock, Array, AstLiteral, AstStatement, DirectAccessType,

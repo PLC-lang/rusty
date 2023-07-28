@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array arr has a size of 5 but 6 elements were provided", range: [SourceRange { range: 251..269 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array arr has a size of 5 but 6 elements were provided", range: [SourceRange { range: 282..298 }], err_no: arr__invalid_array_assignment }
+

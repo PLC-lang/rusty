@@ -128,42 +128,86 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
 
 // TODO: Struct with array of another struct that has array field of DINTs or something similar
 #[test]
-fn exceeding_size() {
+fn exceeding_size_1d() {
     let diagnostics = parse_and_validate(
         "
-		TYPE MyStruct : STRUCT
-			idx : DINT;
-			arr : ARRAY[1..5] OF DINT;
-		END_STRUCT END_TYPE
-
 		FUNCTION main : DINT
 			VAR
-				sda : ARRAY[1..5] OF DINT;
-				mda : ARRAY[1..2, 1..5] OF DINT;
-				nda : ARRAY[1..2] OF ARRAY[1..5] OF DINT;
-				str : MyStruct;
+				arr : ARRAY[1..5] OF DINT;
 			END_VAR
 
 			// These are valid
 			// sda := [1]; // TODO: This panics?
-			sda := [1, 2];
-			sda := [1, 2, 3];
-			sda := [1, 2, 3, 4];
-			sda := [1, 2, 3, 4, 5];
-			mda := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-			mda := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-			str := (idx := 0, arr := [1, 2, 3, 4, 5]);
-			str := (idx := 0, arr := (1, 2, 3, 4, 5));
+			arr := [1, 2];
+			arr := [1, 2, 3];
+			arr := [1, 2, 3, 4];
+			arr := [1, 2, 3, 4, 5];
 
 			// Invalid
-			sda := [1, 2, 3, 4, 5, 6];
-			sda := (1, 2, 3, 4, 5, 6);
-			mda := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-			mda := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-			nda := [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]];
-			nda := [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]];
-			str := (idx := 0, arr := [1, 2, 3, 4, 5, 6]);
-			str := (idx := 0, arr := (1, 2, 3, 4, 5, 6));
+			arr := [1, 2, 3, 4, 5, 6];
+			arr := (1, 2, 3, 4, 5, 6);
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+// TODO: Nested arrays can only be initialized with bracket token, why can "normal" array be initialized with both a paren and bracket symbol? Is this inconsistent?
+#[test]
+fn exceeding_size_2d() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr_a : ARRAY[1..2, 1..5] OF DINT;
+				arr_b : ARRAY[1..2] OF ARRAY[1..5] OF DINT;
+			END_VAR
+		
+			// These are valid
+			arr_a := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+			arr_a := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+			arr_b := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]];
+			// arr_b := ((1, 2, 3, 4, 5), (6, 7, 8, 9, 10)); // TODO: Seems like nested arrays can only be initialized with bracket symbols?
+		
+			// These are invalid
+			arr_a := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+			arr_a := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+			arr_b := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
+			// arr_b := ((1, 2, 3, 4, 5), (6, 7, 8, 9, 10, 11)); // TODO: Same as above
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn exceeding_size_3d() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr_a : ARRAY[1..2, 1..2, 1..2] OF DINT;
+				arr_b : ARRAY[1..2] OF ARRAY [1..2] OF ARRAY [1..2] OF DINT;
+			END_VAR
+
+			// These are valid
+			arr_a := [1, 2, 3, 4, 5, 6, 7, 8];
+			arr_a := (1, 2, 3, 4, 5, 6, 7, 8);
+			arr_b := [
+				[[1, 2], [3, 4]],
+				[[5, 6], [7, 8]]
+			];
+
+			// These are invalid
+			arr_a := [1, 2, 3, 4, 5, 6, 7, 8, 9];
+			arr_a := (1, 2, 3, 4, 5, 6, 7, 8, 9);
+			arr_b := [
+				[[1, 2], [3, 4]],
+				[[5, 6], [7, 8]],
+				[[9, 10], [11, 12]]
+			];
 		END_FUNCTION
 		",
     );
