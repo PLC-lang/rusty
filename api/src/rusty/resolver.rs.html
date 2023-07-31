@@ -1880,6 +1880,8 @@
 <a href="#1880" id="1880">1880</a>
 <a href="#1881" id="1881">1881</a>
 <a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2156,9 +2158,9 @@
         </span>resulting_type: String,
         <span class="doccomment">/// the fully qualified name of this variable (e.g. `&quot;MyFB.a&quot;`)
         </span>qualified_name: String,
-        <span class="doccomment">/// denotes wheter this variable is declared as a constant
+        <span class="doccomment">/// denotes whether this variable is declared as a constant
         </span>constant: bool,
-        <span class="doccomment">/// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        <span class="doccomment">/// denotes the variable type of this variable, hence whether it is an input, output, etc.
         </span>argument_type: ArgumentType,
         <span class="doccomment">/// denotes whether this variable-reference should be automatically dereferenced when accessed
         </span>is_auto_deref: bool,
@@ -2562,7 +2564,8 @@
 
     <span class="kw">fn </span>visit_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, pou: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Pou) {
         <span class="self">self</span>.dependencies.insert(Dependency::Datatype(pou.name.clone()));
-        <span class="kw">let </span>pou_ctx = ctx.with_pou(pou.name.as_str());
+        <span class="comment">//TODO dependency on super class
+        </span><span class="kw">let </span>pou_ctx = ctx.with_pou(pou.name.as_str());
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
             <span class="kw">for </span>variable <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
                 <span class="self">self</span>.visit_variable(<span class="kw-2">&amp;</span>pou_ctx, variable);
@@ -3141,7 +3144,7 @@
                         </span>.or_else(|| <span class="self">self</span>.index.find_enum_element(qualifier, name.as_str()))
                         <span class="comment">// 3rd try - look for a method qualifier.name
                         </span>.map_or_else(
-                            || <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>qualified_name(qualifier, name)).map(|it| it.into()),
+                            || <span class="self">self</span>.index.find_method(qualifier, name).map(|it| it.into()),
                             |v| <span class="prelude-val">Some</span>(to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant)),
                         )
                 } <span class="kw">else </span>{
@@ -3165,7 +3168,8 @@
                                 })
                                 .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant))
                                 .or_else(|| {
-                                    <span class="comment">// ... then check if we&#39;re in a method and we&#39;re referencing
+                                    <span class="comment">//TODO find parent of super class to start the search
+                                    // ... then check if we&#39;re in a method and we&#39;re referencing
                                     // a member variable of the corresponding class
                                     </span><span class="self">self</span>.index
                                         .find_pou(qualifier)

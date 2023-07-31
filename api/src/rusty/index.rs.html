@@ -1491,6 +1491,49 @@
 <a href="#1491" id="1491">1491</a>
 <a href="#1492" id="1492">1492</a>
 <a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -1876,6 +1919,7 @@
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Function {
         name: String,
@@ -1891,6 +1935,7 @@
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Method {
         name: String,
@@ -1937,12 +1982,14 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class: super_class.map(|s| s.to_owned()),
         }
     }
 
@@ -2013,12 +2060,14 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class,
         }
     }
 
@@ -2053,6 +2102,16 @@
             | PouIndexEntry::Method { name, .. }
             | PouIndexEntry::Action { name, .. }
             | PouIndexEntry::Class { name, .. } =&gt; name,
+        }
+    }
+
+    <span class="doccomment">/// returns the super class of this pou if supported
+    </span><span class="kw">pub fn </span>get_super_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            PouIndexEntry::Class { super_class, .. } | PouIndexEntry::FunctionBlock { super_class, .. } =&gt; {
+                super_class.as_deref()
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2483,7 +2542,11 @@
     }
 
     <span class="doccomment">/// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
-    </span><span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+    </span><span class="kw">pub fn </span>find_local_member(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        container_name: <span class="kw-2">&amp;</span>str,
+        variable_name: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="self">self</span>.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
             <span class="comment">//check qualifier
             </span>container_name
@@ -2491,6 +2554,29 @@
                 .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
                 .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name))
         })
+    }
+
+    <span class="doccomment">/// Searches for variable name in the given container, if not found, attempts to search for it in super classes
+    </span><span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="comment">// Find pou in index
+        </span><span class="self">self</span>.find_local_member(container_name, variable_name).or_else(|| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(class) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                <span class="self">self</span>.find_member(class, variable_name)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
+        })
+    }
+
+    <span class="doccomment">/// Searches for method names in the given container, if not found, attempts to search for it in super class
+    </span><span class="kw">pub fn </span>find_method(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, method_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(local_method) = <span class="self">self</span>.find_pou(<span class="kw-2">&amp;</span>qualified_name(container_name, method_name)) {
+            <span class="prelude-val">Some</span>(local_method)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(super_method) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            <span class="self">self</span>.find_method(super_method, method_name)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="doccomment">/// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as

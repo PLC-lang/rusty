@@ -854,6 +854,8 @@
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
 <a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
@@ -1014,6 +1016,7 @@
                 <span class="kw-2">&amp;</span>pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>pou.name_location),
+                pou.super_class.clone().as_deref(),
             ));
             index.register_pou_type(datatype);
         }
@@ -1031,6 +1034,7 @@
                 <span class="kw-2">&amp;</span>pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>pou.name_location),
+                pou.super_class.clone(),
             ));
             index.register_pou_type(datatype);
         }

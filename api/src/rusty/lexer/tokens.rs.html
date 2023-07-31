@@ -382,6 +382,9 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
 
 <span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
@@ -415,6 +418,9 @@
     <span class="attr">#[token(<span class="string">&quot;END_CLASS&quot;</span>, ignore(case))]
     #[token(<span class="string">&quot;ENDCLASS&quot;</span>, ignore(case))]
     </span>KeywordEndClass,
+
+    <span class="attr">#[token(<span class="string">&quot;EXTENDS&quot;</span>, ignore(case))]
+    </span>KeywordExtends,
 
     <span class="attr">#[token(<span class="string">&quot;VAR_INPUT&quot;</span>, ignore(case))]
     #[token(<span class="string">&quot;VARINPUT&quot;</span>, ignore(case))]

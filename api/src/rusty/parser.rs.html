@@ -1094,6 +1094,9 @@
 <a href="#1094" id="1094">1094</a>
 <a href="#1095" id="1095">1095</a>
 <a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
@@ -1255,15 +1258,12 @@
         KeywordEndProgram,
         KeywordEndFunction,
         KeywordEndFunctionBlock,
+        KeywordEndClass,
     ];
     <span class="kw">let </span>pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
-        <span class="kw">let </span>poly_mode = <span class="kw">match </span>pou_type {
-            PouType::Class | PouType::FunctionBlock | PouType::Method { .. } =&gt; {
-                <span class="comment">// classes and function blocks can be ABSTRACT, FINAL or neither.
-                </span>parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type)
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        };
+        <span class="comment">// parse polymorphism mode for all pou types
+        // check in validator if pou type allows polymorphism
+        </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type);
 
         <span class="kw">let </span>(name, name_location) =
             parse_identifier(lexer).unwrap_or_else(|| (<span class="string">&quot;&quot;</span>.to_string(), SourceRange::undefined())); <span class="comment">// parse POU name
@@ -1272,55 +1272,50 @@
 
         with_scope(lexer, name.clone(), |lexer| {
             <span class="comment">// TODO: Parse USING directives
-            // TODO: Parse EXTENDS specifier
-            // TODO: Parse IMPLEMENTS specifier
+            </span><span class="kw">let </span>super_class = parse_super_class(lexer);
+            <span class="comment">// TODO: Parse IMPLEMENTS specifier
 
-            </span><span class="kw">let </span>return_type = <span class="kw">if </span>pou_type != PouType::Class {
-                <span class="comment">// parse an optional return type
-                </span>parse_return_type(lexer, <span class="kw-2">&amp;</span>pou_type)
-            } <span class="kw">else </span>{
-                <span class="comment">// classes do not have a return type
-                </span><span class="prelude-val">None
-            </span>};
+            // parse an optional return type
+            // classes do not have a return type (check in validator)
+            </span><span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>pou_type);
 
             <span class="comment">// parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
-            <span class="kw">let </span>allowed_var_types = <span class="kw">match </span>pou_type {
-                PouType::Class =&gt; <span class="macro">vec!</span>[KeywordVar],
-                <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp],
-            };
+            <span class="kw">let </span>allowed_var_types =
+                <span class="macro">vec!</span>[KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
             <span class="kw">while </span>allowed_var_types.contains(<span class="kw-2">&amp;</span>lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>impl_pous = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>implementations = <span class="macro">vec!</span>[];
-            <span class="kw">if </span>pou_type == PouType::Class || pou_type == PouType::FunctionBlock {
-                <span class="comment">// classes and function blocks can have methods. methods consist of a Pou part
-                // and an implementation part. That&#39;s why we get another (Pou, Implementation)
-                // tuple out of parse_method() that has to be added to the list of Pous and
-                // implementations. Note that function blocks have to start with the method
-                // declarations before their implementation.
-                </span><span class="kw">while </span>lexer.token == KeywordMethod {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage) {
-                        impl_pous.push(pou);
-                        implementations.push(implementation);
-                    }
+
+            <span class="comment">// classes and function blocks can have methods. methods consist of a Pou part
+            // and an implementation part. That&#39;s why we get another (Pou, Implementation)
+            // tuple out of parse_method() that has to be added to the list of Pous and
+            // implementations. Note that function blocks have to start with the method
+            // declarations before their implementation.
+            // all other Pous need to be checked in the validator if they can have methods.
+            </span><span class="kw">while </span>lexer.token == KeywordMethod {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage) {
+                    impl_pous.push(pou);
+                    implementations.push(implementation);
                 }
             }
-            <span class="kw">if </span>pou_type != PouType::Class {
-                <span class="comment">// a class may not contain an implementation
-                </span>implementations.push(parse_implementation(
-                    lexer,
-                    linkage,
-                    pou_type.clone(),
-                    <span class="kw-2">&amp;</span>name,
-                    <span class="kw-2">&amp;</span>name,
-                    !generics.is_empty(),
-                    name_location.clone(),
-                ));
-            }
+
+            <span class="comment">// a class may not contain an implementation
+            // check in validator
+            </span>implementations.push(parse_implementation(
+                lexer,
+                linkage,
+                pou_type.clone(),
+                <span class="kw-2">&amp;</span>name,
+                <span class="kw-2">&amp;</span>name,
+                !generics.is_empty(),
+                name_location.clone(),
+            ));
+
             <span class="kw">let </span><span class="kw-2">mut </span>pous = <span class="macro">vec!</span>[Pou {
                 name,
                 pou_type,
@@ -1331,6 +1326,7 @@
                 poly_mode,
                 generics,
                 linkage,
+                super_class,
             }];
             pous.append(<span class="kw-2">&amp;mut </span>impl_pous);
 
@@ -1418,6 +1414,15 @@
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
+}
+
+<span class="kw">fn </span>parse_super_class(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordExtends) {
+        <span class="kw">let </span>(name, <span class="kw">_</span>) = parse_identifier(lexer)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(name)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
 }
 
 <span class="kw">fn </span>parse_return_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
@@ -1516,6 +1521,7 @@
                 poly_mode,
                 generics,
                 linkage,
+                super_class: <span class="prelude-val">None</span>,
             },
             implementation,
         ))
