@@ -200,7 +200,7 @@ fn function_is_indexed() {
 
     index.find_effective_type_by_name("myFunction").unwrap();
 
-    let return_variable = index.find_member("myFunction", "myFunction").unwrap();
+    let return_variable = index.find_member( "myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
     assert_eq!("INT", return_variable.data_type_name);
     assert_eq!(VariableType::Return, return_variable.get_variable_type());
@@ -1744,6 +1744,7 @@ fn a_program_pou_is_indexed() {
                 binding: None,
                 source_location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
                 varargs: None,
+                accessing_type: None,
             }
         }),
         index.find_pou("myProgram"),
@@ -2014,7 +2015,8 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     linkage: LinkageType::Internal,
                     binding: None,
                     source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
-                    varargs: None
+                    varargs: None,
+                    accessing_type: None,
                 },
                 VariableIndexEntry {
                     name: "dimensions".to_string(),
@@ -2027,7 +2029,8 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     linkage: LinkageType::Internal,
                     binding: None,
                     source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
-                    varargs: None
+                    varargs: None,
+                    accessing_type: None,
                 }
             ],
             source: StructSource::Internal(InternalType::VariableLengthArray {

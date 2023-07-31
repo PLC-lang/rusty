@@ -38,11 +38,32 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
-    let mut members = vec![];
+    let mut members: Vec<VariableIndexEntry> = vec![];
 
     //register the pou's member variables
-    let mut member_varargs = None;
+    let mut member_varargs: Option<VarArgs> = None;
     let mut count = 0;
+
+    // if class has parent add to struct
+    if let Some(super_class) = &pou.super_class {
+        let entry = index.register_member_variable(
+            MemberInfo {
+                container_name: &pou.name,
+                variable_name: "__super__",
+                variable_linkage: ArgumentType::ByRef(VariableType::Local),
+                variable_type_name: super_class.as_str(),
+                is_constant: false,
+                binding: None,
+                varargs: None,
+            },
+            None,
+            symbol_location_factory.create_symbol_location(&SourceRange::undefined()),
+            count,
+        );
+        members.push(entry);
+        count += 1;
+    }
+
     for block in &pou.variable_blocks {
         let block_type = get_declaration_type_for(block, &pou.pou_type);
         for var in &block.variables {

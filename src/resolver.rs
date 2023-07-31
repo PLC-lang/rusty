@@ -269,17 +269,22 @@ pub enum StatementAnnotation {
         resulting_type: String,
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
+    /// a.b
+    /// 
+    /// a : Myclass
     Variable {
         /// the name of the variable's type (e.g. `"INT"`)
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
-        qualified_name: String,
+        qualified_name: String,   // foo.b
         /// denotes whether this variable is declared as a constant
         constant: bool,
         /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
+        /// the typename of the pou that accesses this variable, None if it is the same as in the qualified name
+        accessing_type: Option<String>   // Some(Myclass)
     },
     /// a reference to a function
     Function {
@@ -420,6 +425,13 @@ pub trait AnnotationMap {
             _ => None,
         }
     }
+
+    // fn get_accessing_type(&self, s: &AstStatement) -> Option<&str> {
+    //     match self.get(s) {
+    //         Some(StatementAnnotation::Variable { accessing_type, ..}) => accessing_type.as_str(),
+    //         _ => None,
+    //     }
+    // }
 
     fn get_qualified_name(&self, s: &AstStatement) -> Option<&str> {
         match self.get(s) {
@@ -771,7 +783,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
                         if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name()) {
-                            self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
+                            self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false, None));
                             self.annotation_map.annotate_type_hint(
                                 right.as_ref(),
                                 StatementAnnotation::value(v.get_type_name()),
@@ -1261,7 +1273,7 @@ impl<'i> TypeAnnotator<'i> {
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
                             || self.index.find_method(qualifier, name).map(|it| it.into()),
-                            |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
+                            |v| Some(to_variable_annotation(v, self.index, ctx.constant, Some(qualifier))),
                         )
                 } else {
                     // if we see no qualifier, we try some strategies ...
@@ -1282,7 +1294,7 @@ impl<'i> TypeAnnotator<'i> {
                                         Some(m)
                                     }
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant, None))
                                 .or_else(|| {
                                     //TODO find parent of super class to start the search
                                     // ... then check if we're in a method and we're referencing
@@ -1292,7 +1304,7 @@ impl<'i> TypeAnnotator<'i> {
                                         .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
                                         .and_then(PouIndexEntry::get_instance_struct_type_name)
                                         .and_then(|class_name| self.index.find_member(class_name, name))
-                                        .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+                                        .map(|v| to_variable_annotation(v, self.index, ctx.constant, None))
                                 })
                                 .or_else(|| {
                                     // try to find a local action with this name
@@ -1318,7 +1330,7 @@ impl<'i> TypeAnnotator<'i> {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
                             self.index
                                 .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant, None))
                         })
                 };
                 if let Some(annotation) = annotation {
@@ -1489,6 +1501,7 @@ impl<'i> TypeAnnotator<'i> {
                     constant: false,
                     argument_type,
                     is_auto_deref: false,
+                    accessing_type: None,
                 };
                 self.annotation_map.annotate_type_hint(statement, hint_annotation)
             }
@@ -1800,6 +1813,7 @@ fn to_variable_annotation(
     v: &VariableIndexEntry,
     index: &Index,
     constant_override: bool,
+    accessing_type: Option<&str>,
 ) -> StatementAnnotation {
     const AUTO_DEREF: bool = true;
     const NO_DEREF: bool = false;
@@ -1825,6 +1839,7 @@ fn to_variable_annotation(
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         is_auto_deref,
+        accessing_type: accessing_type.map(|it|it.to_string()),
     }
 }
 

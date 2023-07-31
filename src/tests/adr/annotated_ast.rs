@@ -48,7 +48,8 @@ fn references_to_variables_are_annotated() {
             qualified_name: "prg.a".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Local),
-            is_auto_deref: false
+            is_auto_deref: false,
+            accessing_type: None,
         }
     );
 
@@ -60,7 +61,8 @@ fn references_to_variables_are_annotated() {
             qualified_name: "gX".into(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false
+            is_auto_deref: false,
+            accessing_type: None,
         }
     );
 }
@@ -105,6 +107,7 @@ fn different_types_of_annotations() {
             constant: false,                  // whether this variable is a constant or not
             is_auto_deref: false,             // whether this pointerType should be automatically dereferenced
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
+            accessing_type: None,
         })
     );
 
@@ -147,6 +150,7 @@ fn different_types_of_annotations() {
             constant: false,
             is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
+            accessing_type: None,
         })
     );
     // the qualified statement gets the annotation of the last segment (in this case "Main.in" of type INT)

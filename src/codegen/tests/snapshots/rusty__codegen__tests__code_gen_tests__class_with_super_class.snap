@@ -1,0 +1,26 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%cls = type { i16, i16 }
+%cls2 = type { %cls }
+
+@__cls__init = unnamed_addr constant %cls zeroinitializer
+@__cls2__init = unnamed_addr constant %cls2 zeroinitializer
+
+define void @cls(%cls* %0) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  ret void
+}
+
+define void @cls2(%cls2* %0) {
+entry:
+  %__super__ = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
+  ret void
+}
+

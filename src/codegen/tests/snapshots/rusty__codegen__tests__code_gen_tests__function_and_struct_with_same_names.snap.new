@@ -1,0 +1,25 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3229
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@__FOO__init = unnamed_addr constant i32 0
+
+define void @FOO(i32* %0) {
+entry:
+  %FOO = alloca i32*, align 8
+  store i32* %0, i32** %FOO, align 8
+  %deref = load i32*, i32** %FOO, align 8
+  %1 = bitcast i32* %deref to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (i32* @__FOO__init to i8*), i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i1 false)
+  ret void
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+

@@ -51,3 +51,46 @@ fn class_reference_in_pou() {
     let _: i32 = compile_and_run(source, &mut m);
     assert_eq!(m.x, 10);
 }
+
+#[test]
+fn access_var_in_super_class() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: i16,
+        y: i16,
+    }
+
+    let source = "
+        CLASS MyClass
+            VAR
+                x: INT;
+            END_VAR
+        END_CLASS
+
+        CLASS MyClass2 EXTENDS MyCLASS
+        VAR
+            y: INT;
+        END_VAR
+        END_CLASS
+
+        PROGRAM main 
+        VAR
+          x : INT := 0;
+          y : INT := 0;
+        END_VAR
+        VAR_TEMP
+            cl : MyClass2;
+        END_VAR
+        cl.y := 2;
+        cl.x := 1;
+        x := cl.x;
+        y := cl.y;
+        END_PROGRAM
+        ";
+
+    let mut m = MainType { x: 0, y: 0 };
+    let _: i32 = compile_and_run(source, &mut m);
+    assert_eq!(m.x, 1);
+    assert_eq!(m.y, 2);
+}

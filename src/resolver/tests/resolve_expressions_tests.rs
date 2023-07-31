@@ -1030,6 +1030,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
+                accessing_type: None,
             argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         foo_annotation
@@ -1246,6 +1247,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
+                accessing_type: None,
             argument_type: ArgumentType::ByVal(VariableType::Input),
         }),
         annotations.get(&statements[1])
@@ -1473,6 +1475,7 @@ fn method_references_are_resolved() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
+                accessing_type: None,
             argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         annotation
@@ -2453,6 +2456,7 @@ fn action_body_gets_resolved() {
                 resulting_type: "DINT".to_string(),
                 constant: false,
                 is_auto_deref: false,
+                accessing_type: None,
                 argument_type: ArgumentType::ByVal(VariableType::Local),
             }),
             a
@@ -3090,7 +3094,8 @@ fn function_block_initialization_test() {
                 qualified_name: "TON.PT".into(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Input),
-                is_auto_deref: false
+                is_auto_deref: false,
+                accessing_type: None,
             }
         )
     } else {
@@ -3220,7 +3225,8 @@ fn resolve_return_variable_in_nested_call() {
                             qualified_name: "main.main".to_string(),
                             constant: false,
                             argument_type: ArgumentType::ByVal(VariableType::Return),
-                            is_auto_deref: false
+                            is_auto_deref: false,
+                            accessing_type: None,
                         }
                     )
                 }
@@ -4251,6 +4257,7 @@ fn annotate_variable_in_parent_class() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4264,6 +4271,7 @@ fn annotate_variable_in_parent_class() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4300,6 +4308,7 @@ fn annotate_variable_in_grandparent_class() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None, 
             },
             annotation.unwrap()
         );
@@ -4343,6 +4352,7 @@ fn annotate_variable_in_field() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4398,6 +4408,7 @@ fn annotate_method_in_super() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4411,6 +4422,7 @@ fn annotate_method_in_super() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4424,6 +4436,7 @@ fn annotate_method_in_super() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4437,6 +4450,7 @@ fn annotate_method_in_super() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4450,6 +4464,7 @@ fn annotate_method_in_super() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
+                accessing_type: None,
             },
             annotation.unwrap()
         );

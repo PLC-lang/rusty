@@ -49,6 +49,8 @@ pub struct VariableIndexEntry {
     pub source_location: SymbolLocation,
     /// Variadic information placeholder for the variable, if any
     varargs: Option<VarArgs>,
+    /// the typename of the pou that accesses this variable, None if it is the same as in the qualified name
+    accessing_type: Option<String>   // Some(Myclass)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -106,6 +108,7 @@ impl VariableIndexEntry {
         argument_type: ArgumentType,
         location_in_parent: u32,
         source_location: SymbolLocation,
+        accessing_type: Option<&str>
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
@@ -119,6 +122,7 @@ impl VariableIndexEntry {
             binding: None,
             source_location,
             varargs: None,
+            accessing_type: accessing_type.map(|s| s.to_owned()),
         }
     }
 
@@ -140,6 +144,7 @@ impl VariableIndexEntry {
             binding: None,
             source_location,
             varargs: None,
+            accessing_type: None,
         }
     }
 
@@ -165,6 +170,11 @@ impl VariableIndexEntry {
 
     pub fn set_varargs(mut self, varargs: Option<VarArgs>) -> Self {
         self.varargs = varargs;
+        self
+    }
+
+    pub fn set_accessing_type(mut self, accessing_type: Option<String>) -> Self {
+        self.accessing_type = accessing_type;
         self
     }
 
@@ -260,6 +270,10 @@ impl VariableIndexEntry {
 
     pub fn get_varargs(&self) -> Option<&VarArgs> {
         self.varargs.as_ref()
+    }
+
+    pub fn get_accessing_type(&self) -> Option<&str> {
+        self.accessing_type.as_deref()
     }
 
     fn has_parent(&self, context: &str) -> bool {
@@ -1018,6 +1032,7 @@ impl Index {
                 .map(|p| &container_name[..p])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name))
         })
+
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1062,7 +1077,7 @@ impl Index {
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
             Some(context) => self
-                .find_member(context, segments[0])
+                .find_member( context, segments[0])
                 .or_else(|| self.find_qualified_global_variable(Some(context), segments[0])),
             None => self.find_global_variable(segments[0]),
         };
@@ -1369,6 +1384,7 @@ impl Index {
             variable_type,
             location,
             source_location,
+            None,
         )
         .set_constant(member_info.is_constant)
         .set_initial_value(initial_value)

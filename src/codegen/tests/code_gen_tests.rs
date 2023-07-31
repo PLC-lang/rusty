@@ -3257,3 +3257,48 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn class_with_super_class() {
+    let res = codegen(
+        "
+        CLASS cls
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls
+        END_CLASS
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn write_to_parent_variable() {
+    let res = codegen(
+        "
+        CLASS cls
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls
+        END_CLASS
+
+        FUNCTION_BLOCK
+        VAR 
+            myClass : cls2;
+        END_VAR
+            myClass.y = 1;
+        END_FUNCTION_BLOCK
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}

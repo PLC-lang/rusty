@@ -138,7 +138,7 @@ impl<'a> SymbolLocationFactory<'a> {
     /// the resulting line-number usign the source_range's start and the factory's
     /// NewLines
     pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
-        SymbolLocation {
+    SymbolLocation {
             source_range: source_range.clone(),
             line_number: self.new_lines.get_line_nr(source_range.get_start()),
         }

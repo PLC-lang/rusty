@@ -1,0 +1,40 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3306
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%0 = type { %cls2 }
+%cls = type { i16, i16 }
+%cls2 = type { %cls }
+
+@__cls__init = unnamed_addr constant %cls zeroinitializer
+@__cls2__init = unnamed_addr constant %cls2 zeroinitializer
+@____init = unnamed_addr constant %0 zeroinitializer
+
+define void @cls(%cls* %0) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  ret void
+}
+
+define void @cls2(%cls2* %0) {
+entry:
+  %super = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
+  ret void
+}
+
+define void @0(%0* %0) {
+entry:member_location
+  %myClass = getelementptr inbounds %0, %0* %0, i32 0, i32 0
+  %super = getelementptr inbounds %cls2, %cls2* %myClass, i32 0, i32 0
+  %x = getelementptr inbounds %cls, %cls* %super, i32 0, i32 0
+  %load_ = load i16, i16* %x, align 2
+  %1 = sext i16 %load_ to i32
+  %tmpVar = icmp eq i32 %1, 1
+  ret void
+}
+
