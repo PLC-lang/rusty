@@ -274,9 +274,9 @@ pub enum StatementAnnotation {
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
         qualified_name: String,
-        /// denotes wheter this variable is declared as a constant
+        /// denotes whether this variable is declared as a constant
         constant: bool,
-        /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
@@ -680,6 +680,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
+        //TODO dependency on super class
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
@@ -1259,7 +1260,7 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
-                            || self.index.find_pou(&qualified_name(qualifier, name)).map(|it| it.into()),
+                            || self.index.find_method(qualifier, name).map(|it| it.into()),
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
                 } else {
@@ -1283,6 +1284,7 @@ impl<'i> TypeAnnotator<'i> {
                                 })
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
+                                    //TODO find parent of super class to start the search
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index

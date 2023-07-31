@@ -11,6 +11,12 @@ source_filename = "main"
 @__fb__init = unnamed_addr constant %fb { i16 9 }
 @main_instance = global %main { %fb { i16 9 } }
 
+define void @fb(%fb* %0) {
+entry:
+  %a = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  ret void
+}
+
 define i32 @func(%fb %0) {
 entry:
   %func = alloca i32, align 4
