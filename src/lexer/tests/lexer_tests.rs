@@ -1,10 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
+use plc_ast::ast::{DirectAccessType, HardwareAccessType, NewLines};
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::{
-    ast::{DirectAccessType, HardwareAccessType, NewLines},
-    lexer::{lex, Token::*},
-};
+use crate::lexer::{lex, Token::*};
 
 #[test]
 fn generic_properties() {

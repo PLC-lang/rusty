@@ -1,7 +1,5 @@
 use crate::{
-    ast::AstStatement,
     index::{ArgumentType, VariableType},
-    lexer::IdProvider,
     resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, index_with_ids},
 };

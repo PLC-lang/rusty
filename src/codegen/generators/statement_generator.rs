@@ -5,10 +5,6 @@ use super::{
     pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{
-        control_statements::{AstControlStatement, ConditionalBlock},
-        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange,
-    },
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
@@ -21,6 +17,10 @@ use inkwell::{
     builder::Builder,
     context::Context,
     values::{BasicValueEnum, FunctionValue},
+};
+use plc_ast::{
+    ast::{flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange},
+    control_statements::{AstControlStatement, ConditionalBlock},
 };
 
 /// the full context when generating statements inside a POU

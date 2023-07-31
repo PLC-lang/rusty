@@ -1,9 +1,9 @@
 use crate::{pipelines::ParsedProject, CompileOptions};
 
+use ast::provider::IdProvider;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     diagnostics::Diagnostician,
-    lexer::IdProvider,
 };
 use project::project::Project;
 use source_code::Compilable;

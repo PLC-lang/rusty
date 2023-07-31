@@ -3,7 +3,7 @@ use std::time::Instant;
 use std::{path::PathBuf, time::Duration};
 use xshell::Shell;
 
-use crate::reporter::DurationFormat;
+use crate::reporter::DurationWrapper;
 use crate::task::Task;
 
 pub(crate) struct Compile {
@@ -29,7 +29,7 @@ impl Task for Compile {
         Ok(start.elapsed())
     }
 
-    fn get_duration_format(&self) -> DurationFormat {
-        DurationFormat::Millis
+    fn get_wrapped(&self, duration: Duration) -> DurationWrapper {
+        DurationWrapper::Millis(duration)
     }
 }

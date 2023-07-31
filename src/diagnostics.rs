@@ -11,11 +11,9 @@ use codespan_reporting::{
     term::termcolor::{ColorChoice, StandardStream},
 };
 use inkwell::support::LLVMString;
+use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
-use crate::{
-    ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
-    index::VariableType,
-};
+use crate::index::VariableType;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -65,6 +63,7 @@ pub enum ErrNo {
     var__missing_type,
     var__assigning_to_var_input_ref,
     var__overflow,
+    var__invalid_enum_variant,
 
     //array related
     arr__invalid_array_assignment,
@@ -809,9 +808,10 @@ impl Diagnostic {
     }
 
     pub fn enum_variant_mismatch(enum_type: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::ImprovementSuggestion {
+        Diagnostic::SemanticError {
             message: format!("Assigned value is not a variant of {enum_type}"),
             range: vec![range],
+            err_no: ErrNo::var__invalid_enum_variant,
         }
     }
 }

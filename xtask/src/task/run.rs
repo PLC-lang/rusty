@@ -3,7 +3,7 @@ use std::time::Instant;
 use std::path::PathBuf;
 use xshell::Shell;
 
-use crate::reporter::DurationFormat;
+use crate::reporter::DurationWrapper;
 use crate::task::Task;
 use xshell::cmd;
 
@@ -52,7 +52,7 @@ impl Task for Run {
         Ok(())
     }
 
-    fn get_duration_format(&self) -> crate::reporter::DurationFormat {
-        DurationFormat::Millis
+    fn get_wrapped(&self, duration: std::time::Duration) -> DurationWrapper {
+        DurationWrapper::Millis(duration)
     }
 }

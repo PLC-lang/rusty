@@ -1,4 +1,6 @@
-use crate::{ast::*, test_utils::tests::parse};
+use plc_ast::ast::{AccessModifier, ArgumentProperty, PolymorphismMode, PouType, VariableBlockType};
+
+use crate::test_utils::tests::parse;
 
 #[test]
 fn simple_class_with_defaults_can_be_parsed() {

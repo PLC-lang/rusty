@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::control_statements::{AstControlStatement, ForLoopStatement, IfStatement};
-use crate::ast::AstStatement;
 use crate::test_utils::tests::parse;
+use plc_ast::{
+    ast::AstStatement,
+    control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
+};
 use pretty_assertions::*;
 
 #[test]

@@ -1,7 +1,6 @@
-use crate::{
-    lexer::IdProvider,
-    test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
-};
+use plc_ast::provider::IdProvider;
+
+use crate::test_utils::tests::{annotate_with_ids, codegen, index_with_ids};
 
 /// # Architecture Design Record: POUs
 ///

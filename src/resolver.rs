@@ -11,19 +11,23 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+use plc_ast::{
+    ast::{
+        self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+    },
+    control_statements::AstControlStatement,
+    literals::{Array, AstLiteral, StringValue},
+    provider::IdProvider,
+};
+use plc_util::convention::{internal_type_name, qualified_name};
 
 pub mod const_evaluator;
 pub mod generics;
 
 use crate::{
-    ast::{
-        self, control_statements::AstControlStatement, flatten_expression_list, Array, AstFactory, AstId,
-        AstLiteral, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue,
-        TypeNature, UserTypeDeclaration, Variable,
-    },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -876,8 +880,23 @@ impl<'i> TypeAnnotator<'i> {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+
                 if inner_type.get_type_information().is_struct() {
-                    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                    let expressions = match initializer {
+                        // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        AstStatement::ExpressionList { expressions, .. } => Some(expressions),
+
+                        // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
+                        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
+                            Some(AstStatement::ExpressionList { expressions, .. }) => Some(expressions),
+                            _ => None,
+                        },
+
+                        // ...anything else is uninteresting
+                        _ => None,
+                    };
+
+                    if let Some(expressions) = expressions {
                         for e in expressions {
                             // annotate with the arrays inner_type
                             self.annotation_map.annotate_type_hint(
@@ -886,11 +905,13 @@ impl<'i> TypeAnnotator<'i> {
                                     resulting_type: inner_type.get_name().to_string(),
                                 },
                             );
+
                             self.visit_statement(&ctx, e);
                         }
                     }
                 }
             }
+
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
                 let flattened = ast::flatten_expression_list(initializer);
@@ -1276,16 +1297,14 @@ impl<'i> TypeAnnotator<'i> {
                                 .or_else(|| {
                                     // try to find a local action with this name
                                     self.index
-                                        .find_pou(format!("{qualifier}.{name}").as_str())
+                                        .find_pou(&qualified_name(qualifier, name))
                                         .map(StatementAnnotation::from)
                                 })
                         })
                         .or_else(|| {
                             // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
                             ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
-                                self.index
-                                    .find_pou(format!("{}.{name}", it.get_container()).as_str())
-                                    .map(Into::into)
+                                self.index.find_pou(&qualified_name(it.get_container(), name)).map(Into::into)
                             })
                         })
                         .or_else(|| {
@@ -1726,21 +1745,21 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
     match access {
-        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
-        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
-        crate::ast::DirectAccessType::Word => WORD_TYPE,
-        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
-        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
-        crate::ast::DirectAccessType::Template => VOID_TYPE,
+        DirectAccessType::Bit => BOOL_TYPE,
+        DirectAccessType::Byte => BYTE_TYPE,
+        DirectAccessType::Word => WORD_TYPE,
+        DirectAccessType::DWord => DWORD_TYPE,
+        DirectAccessType::LWord => LWORD_TYPE,
+        DirectAccessType::Template => VOID_TYPE,
     }
 }
 
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
-    let new_type_name = typesystem::create_internal_type_name(prefix, len.to_string().as_str());
+    let new_type_name = internal_type_name(prefix, len.to_string().as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
@@ -1759,7 +1778,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
+    let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {

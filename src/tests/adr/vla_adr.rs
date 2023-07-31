@@ -4,7 +4,6 @@
 //! either a INPUT, OUTPUT or INOUT variable block thereby accepts a 1D array of type DINT as an argument.
 
 use crate::{
-    lexer::IdProvider,
     resolver::AnnotationMap,
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     tests::adr::util_macros::{annotate, deconstruct_call_statement},

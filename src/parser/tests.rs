@@ -1,4 +1,7 @@
-use crate::ast::{AstStatement, SourceRange};
+use plc_ast::{
+    ast::{AstStatement, SourceRange},
+    literals::AstLiteral,
+};
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;
@@ -22,7 +25,7 @@ pub fn ref_to(name: &str) -> AstStatement {
 
 /// helper function to create literal ints
 pub fn literal_int(value: i128) -> AstStatement {
-    AstStatement::new_literal(crate::ast::AstLiteral::new_integer(value), 0, SourceRange::undefined())
+    AstStatement::new_literal(AstLiteral::new_integer(value), 0, SourceRange::undefined())
 }
 
 /// helper function to create empty statements

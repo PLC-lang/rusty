@@ -1,4 +1,8 @@
-use crate::{ast::*, test_utils::tests::parse, Diagnostic};
+use crate::{test_utils::tests::parse, Diagnostic};
+use plc_ast::{
+    ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, UserTypeDeclaration, Variable},
+    literals::AstLiteral,
+};
 use pretty_assertions::*;
 
 #[test]

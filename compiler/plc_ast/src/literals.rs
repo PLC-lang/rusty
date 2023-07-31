@@ -1,20 +1,8 @@
 use std::fmt::{Debug, Formatter};
 
-use crate::typesystem::{
-    BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE,
-    STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE,
-    WSTRING_TYPE,
-};
 use chrono::NaiveDate;
 
-use super::AstStatement;
-
-//returns a range with the min and max value of the given type
-macro_rules! is_covered_by {
-    ($t:ty, $e:expr) => {
-        <$t>::MIN as i128 <= $e as i128 && $e as i128 <= <$t>::MAX as i128
-    };
-}
+use crate::ast::AstStatement;
 
 macro_rules! impl_getters {
     ($type:ty, [$($name:ident),+], [$($out:ty),+]) => {
@@ -235,33 +223,6 @@ impl AstLiteral {
     /// Creates a new literal null
     pub fn new_null() -> Self {
         AstLiteral::Null
-    }
-
-    pub fn get_literal_actual_signed_type_name(&self, signed: bool) -> Option<&str> {
-        match self {
-            AstLiteral::Integer(value) => match signed {
-                _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
-                true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
-                true if is_covered_by!(i16, *value) => Some(INT_TYPE),
-                true if is_covered_by!(i32, *value) => Some(DINT_TYPE),
-                true if is_covered_by!(i64, *value) => Some(LINT_TYPE),
-
-                false if is_covered_by!(u8, *value) => Some(USINT_TYPE),
-                false if is_covered_by!(u16, *value) => Some(UINT_TYPE),
-                false if is_covered_by!(u32, *value) => Some(UDINT_TYPE),
-                false if is_covered_by!(u64, *value) => Some(ULINT_TYPE),
-                _ => Some(VOID_TYPE),
-            },
-            AstLiteral::Bool { .. } => Some(BOOL_TYPE),
-            AstLiteral::String(StringValue { is_wide: true, .. }) => Some(WSTRING_TYPE),
-            AstLiteral::String(StringValue { is_wide: false, .. }) => Some(STRING_TYPE),
-            AstLiteral::Real { .. } => Some(LREAL_TYPE),
-            AstLiteral::Date { .. } => Some(DATE_TYPE),
-            AstLiteral::DateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
-            AstLiteral::Time { .. } => Some(TIME_TYPE),
-            AstLiteral::TimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
-            _ => None,
-        }
     }
 
     pub fn get_literal_value(&self) -> String {

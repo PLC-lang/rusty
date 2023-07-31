@@ -32,7 +32,6 @@ use resolver::TypeAnnotator;
 #[cfg(test)]
 use validation::Validator;
 
-pub mod ast;
 pub mod builtins;
 pub mod codegen;
 mod datalayout;

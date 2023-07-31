@@ -1,8 +1,10 @@
-use crate::ast::{Array, AstLiteral, AstStatement, SourceRange};
+use plc_ast::ast::{AstStatement, SourceRange};
+use plc_ast::literals::{Array, AstLiteral};
+use plc_ast::provider::IdProvider;
+
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
 
-use crate::lexer::IdProvider;
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
 use crate::resolver::AnnotationMap;
 use crate::test_utils::tests::{annotate_with_ids, codegen, index, index_with_ids};

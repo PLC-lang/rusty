@@ -1,4 +1,6 @@
-use crate::{builtins, lexer::IdProvider, test_utils::tests::index};
+use plc_ast::provider::IdProvider;
+
+use crate::{builtins, test_utils::tests::index};
 
 #[test]
 fn builtin_functions_added_to_index() {
