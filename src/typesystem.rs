@@ -656,7 +656,7 @@ impl DataTypeInformation {
 
     /// Returns an arrays length if the callee is of type [`DataTypeInformation::Array`] and None otherwise.
     /// For example, the length of
-    /// * `ARRAY[1..5] OF ...`          is 5
+    /// * `ARRAY[1..5]`                 is  5
     /// * `ARRAY[1..2, 1..5]`           is 10
     /// * `ARRAY[1..2] OF ARRAY[1..5]`  is 10
     pub fn get_array_length(&self, index: &Index) -> Option<usize> {
@@ -664,7 +664,6 @@ impl DataTypeInformation {
         let inner_type_info = index.get_inner_type_name(&inner_type_name).get_type_information();
         let inner_type_size = inner_type_info.get_size_in_bits(index);
         let arr_size = self.get_size_in_bits(index);
-        dbg!((self.get_size_in_bits(index), inner_type_size));
 
         Some((arr_size / inner_type_size) as usize)
     }

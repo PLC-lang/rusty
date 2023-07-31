@@ -126,6 +126,28 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
     assert_eq!(diagnostics.len(), 0);
 }
 
+#[test]
+fn exceeding_size_array_of_structs() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE MyStruct : STRUCT
+			idx : DINT;
+			arr : ARRAY[1..5] OF DINT;
+		END_STRUCT END_TYPE
+
+		FUNCTION main : DINT
+			VAR
+				arr : ARRAY[1..5] OF MyStruct;
+			END_VAR
+
+			arr := [
+				(idx := 0, arr := [1, 2, 3, 4, 5]),
+			];
+		END_FUNCTION
+		",
+    );
+}
+
 // TODO: Struct with array of another struct that has array field of DINTs or something similar
 #[test]
 fn exceeding_size_1d() {
@@ -134,14 +156,15 @@ fn exceeding_size_1d() {
 		FUNCTION main : DINT
 			VAR
 				arr : ARRAY[1..5] OF DINT;
+
+				arr_init_valid 		: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5];
+				arr_init_invalid 	: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
 			END_VAR
 
 			// These are valid
 			// sda := [1]; // TODO: This panics?
-			arr := [1, 2];
-			arr := [1, 2, 3];
-			arr := [1, 2, 3, 4];
 			arr := [1, 2, 3, 4, 5];
+			arr := (1, 2, 3, 4, 5);
 
 			// Invalid
 			arr := [1, 2, 3, 4, 5, 6];
@@ -162,6 +185,12 @@ fn exceeding_size_2d() {
 			VAR
 				arr_a : ARRAY[1..2, 1..5] OF DINT;
 				arr_b : ARRAY[1..2] OF ARRAY[1..5] OF DINT;
+
+				arr_a_valid 	: ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+				arr_a_invalid 	: ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+				arr_b_valid 	: ARRAY[1..2] OF ARRAY[1..5] OF DINT := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]];
+				arr_b_invalid 	: ARRAY[1..2] OF ARRAY[1..5] OF DINT := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
 			END_VAR
 		
 			// These are valid
@@ -190,6 +219,12 @@ fn exceeding_size_3d() {
 			VAR
 				arr_a : ARRAY[1..2, 1..2, 1..2] OF DINT;
 				arr_b : ARRAY[1..2] OF ARRAY [1..2] OF ARRAY [1..2] OF DINT;
+
+				arr_a_valid 		: ARRAY[1..2, 1..2, 1..2] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8];
+				arr_a_valid_invalid : ARRAY[1..2, 1..2, 1..2] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+				arr_b_valid 	: ARRAY[1..2] OF ARRAY [1..2] OF ARRAY [1..2] OF DINT := [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+				arr_b_invalid 	: ARRAY[1..2] OF ARRAY [1..2] OF ARRAY [1..2] OF DINT := [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]];
 			END_VAR
 
 			// These are valid
@@ -208,6 +243,45 @@ fn exceeding_size_3d() {
 				[[5, 6], [7, 8]],
 				[[9, 10], [11, 12]]
 			];
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+#[ignore = "Resolver issue, not working (yet?)"]
+fn nested_array_struct_fields() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE Foo : STRUCT
+			arr_foo : ARRAY[1..2] OF bar;
+		END_STRUCT END_TYPE
+
+		TYPE Bar : STRUCT
+			arr_bar : ARRAY[1..5] OF DINT;
+		END_STRUCT END_TYPE
+
+		FUNCTION main : DINT
+			VAR
+				foobar : Foo := (
+					arr_foo := (
+						(arr_bar := [1, 2, 3, 4, 5]),
+						(arr_bar := [1, 2, 3, 4, 5]),
+					)
+				);
+			END_VAR
+
+			// foobar.arr[1].arr := [1, 2, 3, 4, 5];
+			// foobar.arr[2].arr := [1, 2, 3, 4, 5];
+
+			foobar := (
+				arr_foo := (
+					(arr_bar := [1, 2, 3, 4, 5]),
+					(arr_bar := [1, 2, 3, 4, 5]),
+				)
+			);
 		END_FUNCTION
 		",
     );

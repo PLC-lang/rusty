@@ -1142,7 +1142,7 @@ impl Index {
 
     // TODO: Not sure if this is working
     pub fn get_inner_type_name(&self, type_name: &str) -> &DataType {
-        let effective_type = dbg!(self.type_index.get_effective_type_by_name(type_name));
+        let effective_type = self.type_index.get_effective_type_by_name(type_name);
 
         match effective_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => self.get_inner_type_name(&inner_type_name),

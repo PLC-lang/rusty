@@ -6,6 +6,7 @@ use crate::{
 };
 
 use super::{
+    array::__validate_array_initialization,
     statement::validate_enum_variant_assignment,
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     validate_array_assignment, ValidationContext, Validator, Validators,
@@ -102,9 +103,7 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-            validate_array_assignment(validator, expressions, context);
-        }
+        __validate_array_initialization(validator, variable, context);
 
         match v_entry
             .initial_value
