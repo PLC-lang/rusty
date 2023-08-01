@@ -177,3 +177,30 @@ fn exceeding_size_3d() {
 
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn exceeding_size_structs() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE Foo : STRUCT
+			idx: DINT;
+			arr : ARRAY[1..2] OF Bar;
+		END_STRUCT END_TYPE
+
+		TYPE Bar : STRUCT
+			arr : ARRAY[1..2] OF DINT;
+		END_STRUCT END_TYPE
+
+		FUNCTION main : DINT
+			VAR
+				arr : Foo := (
+					idx := 0, 
+					arr := ((arr := [1, 2]), (arr := [3, 4]), (arr := [5, 6]))
+				);
+			END_VAR
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics)
+}

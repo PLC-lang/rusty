@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array TODO has size 2, but 3 were provided", range: [SourceRange { range: 239..286 }], err_no: arr__invalid_array_assignment }
+

@@ -1,6 +1,9 @@
 //! TODO: ...
 
-use plc_ast::{ast::AstStatement, literals::AstLiteral};
+use plc_ast::{
+    ast::{AstStatement, DataTypeDeclaration, Variable},
+    literals::AstLiteral,
+};
 
 use crate::{
     diagnostics::{Diagnostic, ErrNo},
@@ -9,10 +12,44 @@ use crate::{
 
 use super::{ValidationContext, Validator, Validators};
 
+pub fn validate_array_initialization<T>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    variable: &Variable,
+) where
+    T: AnnotationMap,
+{
+    let Some(initializer) = &variable.initializer else { return };
+    if context.annotations.get_hint_or_void(initializer, context.index).is_array() {
+        let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { todo!("definition?") };
+        let Some(ldt) = context.index.find_effective_type_by_name(&referenced_type).map(|it| it.get_type_information()) else { return };
+
+        let lhs_len = ldt.get_array_length(context.index).unwrap_or(0);
+        let rhs_len = statement_to_array_length(initializer);
+
+        println!("Length of lhs: {lhs_len}");
+        println!("Length of rhs: {rhs_len}");
+
+        if lhs_len < rhs_len {
+            validator.push_diagnostic(Diagnostic::SemanticError {
+                message: format!("Array TODO has size {lhs_len}, but {rhs_len} were provided"),
+                range: vec![initializer.get_location()],
+                err_no: ErrNo::arr__invalid_array_assignment,
+            })
+        }
+    }
+
+    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+        for expression in expressions {
+            validate_array_assignment(validator, context, expression);
+        }
+    }
+}
+
 pub fn validate_array_assignment<T>(
     validator: &mut Validator,
-    statement: &AstStatement,
     context: &ValidationContext<T>,
+    statement: &AstStatement,
 ) where
     T: AnnotationMap,
 {
@@ -43,11 +80,11 @@ pub fn validate_array_assignment<T>(
         }
 
         AstStatement::ExpressionList { expressions, .. } => {
-            todo!();
             for expression in expressions {
-                validate_array_assignment(validator, expression, context);
+                validate_array_assignment(validator, context, expression);
             }
         }
+
         _ => todo!(),
     }
 }
