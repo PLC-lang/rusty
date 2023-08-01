@@ -24,7 +24,6 @@ use crate::{
     DebugLevel, OptimizationLevel, Target,
 };
 
-use super::ast::*;
 use super::index::*;
 use indexmap::IndexSet;
 use inkwell::{
@@ -38,6 +37,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
+use plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
 
 mod debug;
 pub(crate) mod generators;

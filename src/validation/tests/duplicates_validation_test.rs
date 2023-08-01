@@ -1,9 +1,12 @@
+use plc_ast::{
+    ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+    provider::IdProvider,
+};
+
 use crate::{
     assert_validation_snapshot,
-    ast::{self, CompilationUnit, SourceRangeFactory},
     index::{visitor, Index},
-    lexer::{self, IdProvider},
-    parser,
+    lexer, parser,
     resolver::TypeAnnotator,
     test_utils::tests::parse_and_validate,
     typesystem,
@@ -341,10 +344,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             "test.st",
         );
-        ast::pre_process(&mut unit, id_provider);
+        pre_process(&mut unit, id_provider);
         index.import(visitor::visit(&unit));
         index
     }
@@ -396,10 +399,10 @@ fn duplicate_with_generic() {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             file_name,
         );
-        ast::pre_process(&mut unit, id_provider);
+        pre_process(&mut unit, id_provider);
         index.import(visitor::visit(&unit));
         (index, unit)
     }

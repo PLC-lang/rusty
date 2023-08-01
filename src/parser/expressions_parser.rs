@@ -1,13 +1,16 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::{
-    ast::*,
     lexer::Token::*,
     lexer::{ParseSession, Token},
     parser::parse_any_in_region,
     Diagnostic,
 };
 use core::str::Split;
+use plc_ast::{
+    ast::{AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    literals::{AstLiteral, Time},
+};
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
@@ -401,7 +404,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 let number = parse_strict_literal_integer(lexer)?;
                 let location = number.get_location().clone();
                 Ok(AstStatement::DirectAccess {
-                    access: crate::ast::DirectAccessType::Bit,
+                    access: DirectAccessType::Bit,
                     index: Box::new(number),
                     location,
                     id: lexer.next_id(),

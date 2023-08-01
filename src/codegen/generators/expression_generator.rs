@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{self, flatten_expression_list, AstLiteral, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -26,6 +25,11 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    literals::AstLiteral,
+};
+use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
@@ -482,7 +486,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_implementation(self.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
-        let parameters_list = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+        let parameters_list = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
         let implementation_name = implementation.get_call_name();
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
@@ -1021,7 +1025,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         context: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let instance_name = format!("{function_name}_instance");
+        let instance_name = format!("{function_name}_instance"); // TODO: Naming convention (see plc_util/src/convention.rs)
         let function_type = self
             .llvm_index
             .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
@@ -1351,7 +1355,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 _ => {
                     let qualifier_name = self.get_type_hint_for(context)?.get_name();
-                    let qualified_name = format!("{qualifier_name}.{name}");
+                    let qualified_name = qualified_name(qualifier_name, name);
                     let implementation = self.index.find_pou_implementation(&qualified_name);
                     if implementation.is_some() {
                         return Ok(qualifier.to_owned());
@@ -2016,7 +2020,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let member: &VariableIndexEntry =
                             self.index.find_member(struct_name, variable_name).ok_or_else(|| {
                                 Diagnostic::unresolved_reference(
-                                    format!("{struct_name}.{variable_name}").as_str(),
+                                    &qualified_name(struct_name, variable_name),
                                     location.clone(),
                                 )
                             })?;

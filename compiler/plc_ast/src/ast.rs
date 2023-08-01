@@ -1,29 +1,20 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::control_statements::ForLoopStatement,
-    index::Index,
-    lexer::IdProvider,
-    typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
-        USINT_TYPE, VOID_TYPE,
-    },
-};
-pub use literals::*;
-use serde::{Deserialize, Serialize};
+
 use std::{
-    fmt::{Debug, Display, Formatter, Result},
-    iter,
+    fmt::{Debug, Display, Formatter},
     ops::Range,
-    unimplemented, vec,
 };
 
-use self::control_statements::{
-    AstControlStatement, CaseStatement, ConditionalBlock, IfStatement, LoopStatement,
-};
+use serde::{Deserialize, Serialize};
 
-pub mod control_statements;
-pub mod literals;
-mod pre_processor;
+use crate::{
+    control_statements::{
+        AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
+    },
+    literals::{AstLiteral, StringValue},
+    pre_processor,
+    provider::IdProvider,
+};
 
 pub type AstId = usize;
 
@@ -46,6 +37,7 @@ pub struct Pou {
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
+    pub super_class: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -96,21 +88,6 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
-    pub fn get_smallest_possible_type(&self) -> &str {
-        match self {
-            TypeNature::Magnitude | TypeNature::Num | TypeNature::Int => USINT_TYPE,
-            TypeNature::Real => REAL_TYPE,
-            TypeNature::Unsigned => USINT_TYPE,
-            TypeNature::Signed => SINT_TYPE,
-            TypeNature::Duration => TIME_TYPE,
-            TypeNature::Bit => BOOL_TYPE,
-            TypeNature::Chars | TypeNature::Char => CHAR_TYPE,
-            TypeNature::String => STRING_TYPE,
-            TypeNature::Date => DATE_TYPE,
-            _ => "",
-        }
-    }
-
     pub fn derives_from(self, other: TypeNature) -> bool {
         if other == self {
             true
@@ -178,21 +155,6 @@ impl TypeNature {
 }
 
 impl DirectAccessType {
-    /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, access_index: u64, data_type: &DataTypeInformation, index: &Index) -> bool {
-        (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
-    }
-
-    /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
-        0..((data_type.get_size_in_bits(index) as u64 / self.get_bit_width()) - 1)
-    }
-
-    /// Returns true if the direct access can be used for the given type
-    pub fn is_compatible(&self, data_type: &DataTypeInformation, index: &Index) -> bool {
-        data_type.get_semantic_size(index) as u64 > self.get_bit_width()
-    }
-
     /// Returns the size of the bitaccess result
     pub fn get_bit_width(&self) -> u64 {
         match self {
@@ -207,7 +169,7 @@ impl DirectAccessType {
 }
 
 impl Debug for Pou {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut str = f.debug_struct("POU");
         str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
@@ -270,7 +232,7 @@ pub enum PouType {
 }
 
 impl Display for PouType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             PouType::Program => write!(f, "Program"),
             PouType::Function => write!(f, "Function"),
@@ -385,7 +347,7 @@ pub enum VariableBlockType {
 }
 
 impl Display for VariableBlockType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VariableBlockType::Local => write!(f, "Local"),
             VariableBlockType::Temp => write!(f, "Temp"),
@@ -415,7 +377,7 @@ pub struct VariableBlock {
 }
 
 impl Debug for VariableBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
             .field("variables", &self.variables)
             .field("variable_block_type", &self.variable_block_type)
@@ -433,7 +395,7 @@ pub struct Variable {
 }
 
 impl Debug for Variable {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut var = f.debug_struct("Variable");
         var.field("name", &self.name).field("data_type", &self.data_type_declaration);
         if self.initializer.is_some() {
@@ -503,7 +465,7 @@ pub struct SourceRange {
 }
 
 impl Debug for SourceRange {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut f = f.debug_struct("SourceRange");
         f.field("range", &self.range);
         if self.file.is_some() {
@@ -574,7 +536,7 @@ pub enum DataTypeDeclaration {
 }
 
 impl Debug for DataTypeDeclaration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
                 f.debug_struct("DataTypeReference").field("referenced_type", referenced_type).finish()
@@ -617,7 +579,7 @@ pub struct UserTypeDeclaration {
 }
 
 impl Debug for UserTypeDeclaration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("UserTypeDeclaration")
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
@@ -691,10 +653,9 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs { referenced_type, .. } => referenced_type
-                .as_ref()
-                .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
-                .or(Some(VOID_TYPE)),
+            DataType::VarArgs { referenced_type, .. } => {
+                referenced_type.as_ref().and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
+            }
         }
     }
 
@@ -858,7 +819,7 @@ pub enum AstStatement {
 }
 
 impl Debug for AstStatement {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
@@ -1184,7 +1145,7 @@ pub enum Operator {
 }
 
 impl Display for Operator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let symbol = match self {
             Operator::Plus => "+",
             Operator::Minus => "-",
@@ -1234,7 +1195,7 @@ pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement { multiplier, element, .. } => {
-            iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
+            std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
         _ => vec![list],
     }
@@ -1245,7 +1206,7 @@ pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
 }
 impl Operator {
     /// returns true, if this operator results in a bool value
-    pub(crate) fn is_bool_type(&self) -> bool {
+    pub fn is_bool_type(&self) -> bool {
         matches!(
             self,
             Operator::Equal
@@ -1259,7 +1220,7 @@ impl Operator {
 
     /// returns true, if this operator is a comparison operator
     /// (=, <>, >, <, >=, <=)
-    pub(crate) fn is_comparison_operator(&self) -> bool {
+    pub fn is_comparison_operator(&self) -> bool {
         matches!(
             self,
             Operator::Equal
