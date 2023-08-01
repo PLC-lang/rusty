@@ -105,3 +105,75 @@ fn array_access_dimension_mismatch() {
     assert_eq!(diagnostics.len(), 4);
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn exceeding_size_1d() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr 		: ARRAY[1..5] OF DINT;
+				arr_init	: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
+			END_VAR
+
+			arr := [1, 2, 3, 4, 5, 6];
+			arr := (1, 2, 3, 4, 5, 6);
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn exceeding_size_2d() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr 		: ARRAY[1..2, 1..5] OF DINT;
+				arr_nested 	: ARRAY[1..2] OF ARRAY[1..5] OF DINT;
+
+				arr_init 		: ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+				arr_nested_init : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
+			END_VAR
+
+			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+			
+			arr_nested := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
+			// arr_nested := ((1, 2, 3, 4, 5), (6, 7, 8, 9, 10, 11)); // TODO: Nested Arrays can only be initialized with a bracket symbol?
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn exceeding_size_3d() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr 		: ARRAY[1..2, 1..2, 1..2] OF DINT;
+				arr_nested 	: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT;
+
+				arr_init 		: ARRAY[1..2, 1..2, 1..2] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9];
+				arr_nested_init	: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]];
+			END_VAR
+
+			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9];
+			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9);
+			
+			arr_nested := [
+				[[1, 2], [3, 4]],
+				[[5, 6], [7, 8]],
+				[[9, 10], [11, 12]],
+			];
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}

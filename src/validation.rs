@@ -18,6 +18,7 @@ use self::{
     variable::visit_variable_block,
 };
 
+mod array;
 mod global;
 mod pou;
 mod recursive;

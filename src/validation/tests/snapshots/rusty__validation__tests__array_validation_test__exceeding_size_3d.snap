@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array TODO has size 8, but 9 were provided", range: [SourceRange { range: 383..410 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array TODO has size 8, but 9 were provided", range: [SourceRange { range: 423..448 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array TODO has size 8, but 12 were provided", range: [SourceRange { range: 472..547 }], err_no: arr__invalid_array_assignment }
+

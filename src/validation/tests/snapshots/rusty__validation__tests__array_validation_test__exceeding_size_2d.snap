@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array TODO has size 10, but 11 were provided", range: [SourceRange { range: 331..366 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array TODO has size 10, but 11 were provided", range: [SourceRange { range: 379..412 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array TODO has size 10, but 11 were provided", range: [SourceRange { range: 436..475 }], err_no: arr__invalid_array_assignment }
+
