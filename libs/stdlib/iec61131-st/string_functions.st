@@ -749,7 +749,7 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION NE <T: ANY_STRING> : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
 	IN1 : T;
     IN2 : T;
 END_VAR
