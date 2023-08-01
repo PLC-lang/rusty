@@ -270,13 +270,13 @@ pub enum StatementAnnotation {
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
     /// a.b
-    /// 
+    ///
     /// a : Myclass
     Variable {
         /// the name of the variable's type (e.g. `"INT"`)
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
-        qualified_name: String,   // foo.b
+        qualified_name: String,
         /// denotes whether this variable is declared as a constant
         constant: bool,
         /// denotes the variable type of this variable, hence whether it is an input, output, etc.
@@ -284,7 +284,7 @@ pub enum StatementAnnotation {
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
         /// the typename of the pou that accesses this variable, None if it is the same as in the qualified name
-        accessing_type: Option<String>   // Some(Myclass)
+        accessing_type: Option<String>,
     },
     /// a reference to a function
     Function {
@@ -1487,7 +1487,9 @@ impl<'i> TypeAnnotator<'i> {
                     unreachable!("must be a reference to a VLA")
                 };
 
-                let Some(argument_type) = self.index.get_pou_members(pou)
+                let Some(argument_type) = self.index.get_all_pou_members_recursively(pou)
+                    .get(pou)
+                    .unwrap()
                     .iter()
                     .filter(|it| it.get_name() == name)
                     .map(|it| it.get_declaration_type())
@@ -1839,7 +1841,7 @@ fn to_variable_annotation(
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         is_auto_deref,
-        accessing_type: accessing_type.map(|it|it.to_string()),
+        accessing_type: accessing_type.map(|it| it.to_string()),
     }
 }
 

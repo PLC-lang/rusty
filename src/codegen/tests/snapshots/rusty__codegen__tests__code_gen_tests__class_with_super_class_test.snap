@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 3306
 expression: res
 ---
 ; ModuleID = 'main'

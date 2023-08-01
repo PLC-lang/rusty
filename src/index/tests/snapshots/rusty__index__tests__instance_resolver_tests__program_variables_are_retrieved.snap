@@ -30,6 +30,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -62,6 +63,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -94,6 +96,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
 ]

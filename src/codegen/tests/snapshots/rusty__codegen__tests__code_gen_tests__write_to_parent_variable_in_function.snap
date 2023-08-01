@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 3303
 expression: res
 ---
 ; ModuleID = 'main'
@@ -9,6 +8,7 @@ source_filename = "main"
 %0 = type { %cls2 }
 %cls = type { i16, i16 }
 %cls2 = type { %cls }
+%cls2.myMethod = type {}
 
 @__cls__init = unnamed_addr constant %cls zeroinitializer
 @__cls2__init = unnamed_addr constant %cls2 zeroinitializer
@@ -24,17 +24,27 @@ entry:
 define void @cls2(%cls2* %0) {
 entry:
   %__super__ = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
+  %x = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 1
   ret void
+}
+
+define i32 @cls2.myMethod(%cls2* %0, %cls2.myMethod* %1) {
+entry:
+  %__super__ = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
+  %x = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 1
+  %myMethod = alloca i32, align 4
+  store i32 0, i32* %myMethod, align 4
+  store i16 33, i16* %x, align 2
+  %cls2.myMethod_ret = load i32, i32* %myMethod, align 4
+  ret i32 %cls2.myMethod_ret
 }
 
 define void @0(%0* %0) {
 entry:
   %myClass = getelementptr inbounds %0, %0* %0, i32 0, i32 0
-  %1 = getelementptr inbounds %cls2, %cls2* %myClass, i32 0, i32 0
-  %y = getelementptr inbounds %cls, %cls* %1, i32 0, i32 1
-  %load_ = load i16, i16* %y, align 2
-  %2 = sext i16 %load_ to i32
-  %tmpVar = icmp eq i32 %2, 1
+  %load_ = load %cls2, %cls2* %myClass, align 2
   ret void
 }
 

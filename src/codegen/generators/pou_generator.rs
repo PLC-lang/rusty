@@ -37,6 +37,7 @@ use inkwell::{
     values::PointerValue,
 };
 use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+use plc_util::convention::qualified_name;
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -102,13 +103,15 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     });
     for implementation in implementations {
         let type_name = implementation.get_type_name();
-        let pou_members = index.get_pou_members(type_name);
-        let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
+        let pou_members = index.get_all_pou_members_recursively(type_name);
+        let local_pou_members = pou_members.get(type_name).unwrap();
+        let variables = local_pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
                 index.get_effective_type_or_void_by_name(it.get_type_name()).get_type_information();
             var_type.is_struct() || var_type.is_array() || var_type.is_string()
         });
         let exp_gen = ExpressionCodeGenerator::new_context_free(llvm, index, annotations, llvm_index);
+
         for variable in variables {
             let name = index::get_initializer_name(variable.get_qualified_name());
             let right_stmt =
@@ -356,19 +359,25 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?;
         }
         {
-            let pou_members =
-                self.index.get_pou_members(&implementation.type_name).iter().collect::<Vec<_>>();
+            let pou_members = self.index.get_all_pou_members_recursively(&implementation.type_name);
+            let local_pou_members = pou_members.get(implementation.type_name.as_str()).unwrap();
             //if this is a function, we need to initilialize the VAR-variables
             if matches!(implementation.pou_type, PouType::Function | PouType::Method { .. }) {
                 self.generate_initialization_of_local_vars(
-                    &pou_members,
+                    local_pou_members,
                     &local_index,
                     &function_context,
                     debug,
                 )?;
             } else {
                 //Generate temp variables
-                let members = pou_members.into_iter().filter(|it| it.is_temp()).collect::<Vec<_>>();
+                let members = local_pou_members
+                    .iter()
+                    .filter(|it| it.is_temp())
+                    .collect::<Vec<_>>()
+                    .iter()
+                    .map(|&&it| it)
+                    .collect::<Vec<_>>();
                 self.generate_initialization_of_local_vars(&members, &local_index, &function_context, debug)?;
             }
             let statement_gen = StatementCodeGenerator::new(
@@ -440,12 +449,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         function_context: &FunctionContext<'ink, '_>,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        let members = self.index.get_pou_members(type_name);
-        //Generate reference to parameter
+        let members = self.index.get_all_pou_members_recursively(type_name);
+        let local_members = members.get(type_name).unwrap();
+        // Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
         let mut params_iter = function_context.function.get_param_iter();
-        if let Some(ret_v) = members.iter().find(|it| it.is_return()) {
+        if let Some(ret_v) = local_members.iter().find(|it| it.is_return()) {
             let return_type = index.get_associated_type(ret_v.get_type_name())?;
             let return_variable = if self
                 .index
@@ -474,7 +484,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // handle all parameters (without return!)
-        for m in members.iter().filter(|it| !it.is_return()) {
+        for m in local_members.iter().filter(|it| !it.is_return()) {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_parameter() {
@@ -510,7 +520,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
             index.associate_loaded_local_variable(type_name, name, variable)?;
         }
-
         Ok(())
     }
 
@@ -525,8 +534,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         location: &SourceRange,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        let members = self.index.get_pou_members(type_name);
-        let param_pointer = function_context
+        let members = self.index.get_all_pou_members_recursively(type_name);
+        let mut param_pointer = function_context
             .function
             .get_nth_param(arg_index)
             .map(BasicValueEnum::into_pointer_value)
@@ -546,28 +555,32 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
-        let mut var_count = 0;
-        for m in members.iter() {
-            let parameter_name = m.get_name();
+        for (type_name, pou_members) in members.iter() {
+            let mut var_count = 0;
 
-            let (name, variable) = if m.is_temp() || m.is_return() {
-                let temp_type = index.get_associated_type(m.get_type_name())?;
-                (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
-            } else {
-                let ptr = self
-                    .llvm
-                    .builder
-                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
-                    .expect(INTERNAL_LLVM_ERROR);
+            for m in pou_members.iter() {
+                let parameter_name = m.get_name();
 
-                var_count += 1;
+                let (name, variable) = if m.is_temp() || m.is_return() {
+                    let temp_type = index.get_associated_type(m.get_type_name())?;
+                    (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
+                } else {
+                    let ptr = self
+                        .llvm
+                        .builder
+                        .build_struct_gep(param_pointer, var_count as u32, parameter_name)
+                        .expect(INTERNAL_LLVM_ERROR);
 
-                (parameter_name, ptr)
-            };
+                    var_count += 1;
 
-            index.associate_loaded_local_variable(type_name, name, variable)?;
+                    (parameter_name, ptr)
+                };
+
+                index.associate_loaded_local_variable(type_name, name, variable)?;
+            }
+            let name = qualified_name(type_name.as_str(), "__super__");
+            param_pointer = index.find_loaded_associated_variable_value(&name).unwrap_or(param_pointer);
         }
-
         Ok(())
     }
 

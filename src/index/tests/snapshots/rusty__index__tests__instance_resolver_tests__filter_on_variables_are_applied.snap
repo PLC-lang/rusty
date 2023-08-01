@@ -35,6 +35,7 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -64,6 +65,7 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -96,6 +98,7 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -131,6 +134,7 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
     (
@@ -166,6 +170,7 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                 },
             },
             varargs: None,
+            accessing_type: None,
         },
     ),
 ]

@@ -1030,7 +1030,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-                accessing_type: None,
+            accessing_type: None,
             argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         foo_annotation
@@ -1247,7 +1247,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-                accessing_type: None,
+            accessing_type: Some("MyStruct".to_string()),
             argument_type: ArgumentType::ByVal(VariableType::Input),
         }),
         annotations.get(&statements[1])
@@ -1475,7 +1475,7 @@ fn method_references_are_resolved() {
             resulting_type: "INT".into(),
             constant: false,
             is_auto_deref: false,
-                accessing_type: None,
+            accessing_type: None,
             argument_type: ArgumentType::ByVal(VariableType::Return),
         }),
         annotation
@@ -4308,7 +4308,7 @@ fn annotate_variable_in_grandparent_class() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
-                accessing_type: None, 
+                accessing_type: None,
             },
             annotation.unwrap()
         );
@@ -4352,7 +4352,7 @@ fn annotate_variable_in_field() {
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
-                accessing_type: None,
+                accessing_type: Some("cls2".to_string()),
             },
             annotation.unwrap()
         );

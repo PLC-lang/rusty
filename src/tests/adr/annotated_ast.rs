@@ -107,7 +107,7 @@ fn different_types_of_annotations() {
             constant: false,                  // whether this variable is a constant or not
             is_auto_deref: false,             // whether this pointerType should be automatically dereferenced
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
-            accessing_type: None,
+            accessing_type: Some("POINT".to_string()),
         })
     );
 
@@ -150,7 +150,7 @@ fn different_types_of_annotations() {
             constant: false,
             is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            accessing_type: None,
+            accessing_type: Some("Main".to_string()),
         })
     );
     // the qualified statement gets the annotation of the last segment (in this case "Main.in" of type INT)

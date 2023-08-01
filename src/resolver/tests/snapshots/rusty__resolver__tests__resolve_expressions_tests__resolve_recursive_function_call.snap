@@ -16,6 +16,7 @@ expression: annotated_types
             Local,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
     2: Variable {
         resulting_type: "DINT",
@@ -25,6 +26,7 @@ expression: annotated_types
             Input,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
     6: Variable {
         resulting_type: "DINT",
@@ -34,6 +36,7 @@ expression: annotated_types
             Local,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
     5: Variable {
         resulting_type: "DINT",
@@ -43,6 +46,7 @@ expression: annotated_types
             InOut,
         ),
         is_auto_deref: true,
+        accessing_type: None,
     },
     8: Variable {
         resulting_type: "DINT",
@@ -52,6 +56,7 @@ expression: annotated_types
             Output,
         ),
         is_auto_deref: true,
+        accessing_type: None,
     },
     9: Variable {
         resulting_type: "DINT",
@@ -61,6 +66,7 @@ expression: annotated_types
             Local,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
     12: Value {
         resulting_type: "DINT",
@@ -73,6 +79,7 @@ expression: annotated_types
             Local,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
     13: Variable {
         resulting_type: "DINT",
@@ -82,5 +89,6 @@ expression: annotated_types
             Return,
         ),
         is_auto_deref: false,
+        accessing_type: None,
     },
 }

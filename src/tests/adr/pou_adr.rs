@@ -79,6 +79,7 @@ fn programs_state_is_stored_in_a_struct() {
                             },
                         },
                         varargs: None,
+                        accessing_type: None,
                     },
                     VariableIndexEntry {
                         name: "io",
@@ -99,6 +100,7 @@ fn programs_state_is_stored_in_a_struct() {
                             },
                         },
                         varargs: None,
+                        accessing_type: None,
                     },
                     VariableIndexEntry {
                         name: "o",
@@ -119,6 +121,7 @@ fn programs_state_is_stored_in_a_struct() {
                             },
                         },
                         varargs: None,
+                        accessing_type: None,
                     },
                     VariableIndexEntry {
                         name: "v",
@@ -139,6 +142,7 @@ fn programs_state_is_stored_in_a_struct() {
                             },
                         },
                         varargs: None,
+                        accessing_type: None,
                     },
                     VariableIndexEntry {
                         name: "vt",
@@ -159,6 +163,7 @@ fn programs_state_is_stored_in_a_struct() {
                             },
                         },
                         varargs: None,
+                        accessing_type: None,
                     },
                 ],
                 source: Pou(

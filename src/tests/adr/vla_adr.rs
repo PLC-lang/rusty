@@ -54,6 +54,7 @@ fn representation() {
                         },
                     },
                     varargs: None,
+                    accessing_type: None,
                 },
                 VariableIndexEntry {
                     name: "dimensions",
@@ -74,6 +75,7 @@ fn representation() {
                         },
                     },
                     varargs: None,
+                    accessing_type: None,
                 },
             ],
             source: Internal(
@@ -281,6 +283,7 @@ fn pass() {
                     },
                 },
                 varargs: None,
+                accessing_type: None,
             },
             VariableIndexEntry {
                 name: "dimensions",
@@ -301,6 +304,7 @@ fn pass() {
                     },
                 },
                 varargs: None,
+                accessing_type: None,
             },
         ],
         source: Internal(

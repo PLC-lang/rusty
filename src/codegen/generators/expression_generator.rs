@@ -1321,14 +1321,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
     /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
     /// - `context` the statement to obtain the location from when returning an error
-    /// 
+    ///
     /// myclass.x
-    /// 
+    ///
     /// a <-- b <-- myclass
-    /// 
+    ///
     /// foo.z
-    /// 
-    /// 
+    ///
+    ///
     fn create_llvm_pointer_value_for_reference(
         &self,
         qualifier: Option<&PointerValue<'ink>>,
@@ -1346,34 +1346,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         return Ok(qualifier.to_owned());
                     }
                 }
-                Some(StatementAnnotation::Variable { qualified_name, accessing_type,  .. }) => {
-                    
+                Some(StatementAnnotation::Variable { qualified_name, accessing_type, .. }) => {
                     let mut qualifier = *qualifier;
                     if let Some(accessing_type) = accessing_type {
                         let base_class_hop = self.find_base_class(1, accessing_type.as_str(), qualified_name);
                         for _ in 0..base_class_hop {
-                            qualifier = self.llvm.get_member_pointer_from_struct(
-                                qualifier, 
-                                0, 
-                                "", 
-                                offset).unwrap();
+                            qualifier =
+                                self.llvm.get_member_pointer_from_struct(qualifier, 0, "", offset).unwrap();
                         }
                     }
 
                     let member_location = self
                         .index
-                        .find_fully_qualified_variable(
-                            qualified_name
-                        )
+                        .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))?;
-                    
-                    let gep = self.llvm.get_member_pointer_from_struct(
-                        qualifier,
-                        member_location,
-                        name,
-                        offset,
-                    )?;
+
+                    let gep =
+                        self.llvm.get_member_pointer_from_struct(qualifier, member_location, name, offset)?;
 
                     return Ok(gep);
                 }
@@ -1403,17 +1393,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.llvm.load_pointer(&accessor_ptr, "deref").into_pointer_value()
     }
 
-    fn find_base_class(&self, count:u32, accessing_type: &str, qualified_name: &str) -> u32{
-        //TODO search for classes and then return hops
+    fn find_base_class(&self, count: u32, accessing_type: &str, qualified_name: &str) -> u32 {
         let Some(qualified_class) = qualified_name.split('.').next() else {
             return 0;
         };
         if let Some(super_class) = self.index.find_pou(accessing_type).and_then(|it| it.get_super_class()) {
             if super_class.eq(qualified_class) {
-                return count
-            }
-            else {
-                self.find_base_class(count+1, super_class, qualified_name)
+                count
+            } else {
+                self.find_base_class(count + 1, super_class, qualified_name)
             }
         } else {
             0

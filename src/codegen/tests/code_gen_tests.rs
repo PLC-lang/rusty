@@ -3295,7 +3295,36 @@ fn write_to_parent_variable() {
         VAR 
             myClass : cls2;
         END_VAR
-            myClass.y = 1;
+            myClass.x = 1;
+        END_FUNCTION_BLOCK
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn write_to_parent_variable_in_function() {
+    let res = codegen(
+        "
+        CLASS cls
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls
+        METHOD myMethod : DINT
+            x := 33;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION_BLOCK
+        VAR 
+            myClass : cls2;
+        END_VAR
+            myClass.myMethod;
         END_FUNCTION_BLOCK
        ",
     );

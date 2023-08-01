@@ -22,6 +22,7 @@ expression: members
             },
         },
         varargs: None,
+        accessing_type: None,
     },
     VariableIndexEntry {
         name: "output1",
@@ -42,6 +43,7 @@ expression: members
             },
         },
         varargs: None,
+        accessing_type: None,
     },
     VariableIndexEntry {
         name: "inout1",
@@ -62,5 +64,6 @@ expression: members
             },
         },
         varargs: None,
+        accessing_type: None,
     },
 ]
