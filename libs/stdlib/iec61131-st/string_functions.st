@@ -566,21 +566,21 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION GT <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 // passing strings by ref causes an error/warning. code still compiles and works correctly
 FUNCTION STRING_GREATER : BOOL
-VAR_INPUT 
+VAR_INPUT {ref}
     a, b : STRING;
 END_VAR
     STRING_GREATER := GT(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_GREATER : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
     a, b : WSTRING;
 END_VAR
     WSTRING_GREATER := GT(a, b);
@@ -594,7 +594,7 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION GE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
@@ -608,20 +608,20 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION EQ <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 FUNCTION STRING_EQUAL : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
     a, b : STRING;
 END_VAR
     STRING_EQUAL := EQ(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_EQUAL : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
     a, b : WSTRING;
 END_VAR
     WSTRING_EQUAL := EQ(a, b);
@@ -636,7 +636,7 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION LE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
@@ -650,20 +650,20 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION LT <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 FUNCTION STRING_LESS : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
     a, b : STRING;
 END_VAR
     STRING_LESS := LT(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_LESS : BOOL
-VAR_INPUT
+VAR_INPUT {ref}
     a, b : WSTRING;
 END_VAR
     WSTRING_LESS := LT(a, b);
@@ -678,7 +678,7 @@ Return:
 ******************************************************************************)
 {external}
 FUNCTION NE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
+VAR_INPUT
 	IN1 : T;
     IN2 : T;
 END_VAR
