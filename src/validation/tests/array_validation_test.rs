@@ -194,19 +194,19 @@ fn exceeding_size_structs() {
 		FUNCTION main : DINT
 			VAR
 				arr_a : Foo := (
-					idx := 0, 
+					idx := 1, 
 					arr := ((arr := [1, 2]), (arr := [3, 4]), (arr := [5, 6])) 			// Invalid, because the outter `arr` can only store 2 elements
 				);
 
 				arr_b : ARRAY[1..2] OF Foo := (
-					(idx := 0, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
-					(idx := 0, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
+					(idx := 2, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
+					(idx := 3, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
 				);
 
 				arr_c : ARRAY[1..2] OF Foo := (											// Invalid because only 2 elements can be stored, but 3 are provided
-					(idx := 0, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
-					(idx := 0, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
-					(idx := 0, arr := ((arr := [1, 2, 3]),  (arr := [4, 5, 6]))),		// Invalid ebcause of the first and second inner `arr`
+					(idx := 4, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
+					(idx := 5, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
+					(idx := 6, arr := ((arr := [1, 2, 3]),  (arr := [4, 5, 6]))),		// Invalid ebcause of the first and second inner `arr`
 				);
 			END_VAR
 		END_FUNCTION

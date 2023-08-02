@@ -106,8 +106,9 @@ fn validate_variable<T: AnnotationMap>(
             validate_for_array_assignment(validator, expressions, context);
         }
 
-        // initialization(validator, context, variable);
-        super::array::validate(validator, context, super::array::ValidationKind::Variable(variable));
+        if let Some(initializer) = &variable.initializer {
+            super::array::validate(validator, context, initializer);
+        }
 
         match v_entry
             .initial_value

@@ -1,96 +1,55 @@
 //! TODO: ...
 
-use plc_ast::{
-    ast::{AstStatement, DataTypeDeclaration, Variable},
-    literals::AstLiteral,
-};
+use plc_ast::{ast::AstStatement, literals::AstLiteral};
 
-use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataTypeInformation};
+use crate::{diagnostics::Diagnostic, resolver::AnnotationMap};
 
 use super::{ValidationContext, Validator, Validators};
 
-pub enum ValidationKind<'a> {
-    Variable(&'a Variable),
-    Statement(&'a AstStatement),
-}
-
-pub(super) fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, kind: ValidationKind)
+pub(super) fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
 where
     T: AnnotationMap,
 {
-    match kind {
-        ValidationKind::Variable(variable) => initialization(validator, context, variable),
-        ValidationKind::Statement(statement) => assignment(validator, context, statement),
-    }
+    _match(validator, context, statement)
 }
 
-/// Validation for array initializations, i.e. directly in the declaration within a VAR-Block
-fn initialization<T>(validator: &mut Validator, context: &ValidationContext<T>, variable: &Variable)
-where
-    T: AnnotationMap,
-{
-    let Some(initializer) = &variable.initializer else { return };
-
-    if context.annotations.get_hint_or_void(initializer, context.index).is_array() {
-        // We first check
-        let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { todo!("definition?") };
-        let Some(ldt) = context.index.find_effective_type_by_name(referenced_type).map(|it| it.get_type_information()) else { return };
-
-        array_size(context, ldt, initializer, validator);
-    } else {
-        // ...and otherwise
-        assignment(validator, context, initializer)
-    }
-}
-
-/// Validation for array assignments
-fn assignment<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
+fn _match<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
 where
     T: AnnotationMap,
 {
     match statement {
-        AstStatement::Assignment { left, right, .. } => {
-            if !context.annotations.get_hint_or_void(right, context.index).is_array() {
-                return; // We're not really interested if the rhs isn't an array
-            }
-
-            let Some(ldt) = context.annotations.get_type(left, context.index).map(|it| it.get_type_information()) else { return };
-            array_size(context, ldt, right, validator);
+        AstStatement::Literal { .. } => validate_size(validator, context, statement),
+        AstStatement::ExpressionList { .. } => validate_size(validator, context, statement),
+        AstStatement::Assignment { .. } => validate_size(validator, context, statement),
+        _ => {
+            dbg!(&statement);
         }
-
-        AstStatement::ExpressionList { expressions, .. } => {
-            for expression in expressions {
-                assignment(validator, context, expression);
-            }
-        }
-
-        AstStatement::Literal { .. } => (),
-
-        _ => (),
     }
 }
 
-fn array_size<T>(
-    context: &ValidationContext<T>,
-    left: &DataTypeInformation,
-    right: &AstStatement,
-    validator: &mut Validator,
-) where
+fn validate_size<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
+where
     T: AnnotationMap,
 {
-    let len_lhs = left.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(right);
-
-    if len_lhs < len_rhs {
-        let diagnostic = Diagnostic::array_size(left.get_name(), len_lhs, len_rhs, right.get_location());
-        validator.push_diagnostic(diagnostic)
+    match statement {
+        AstStatement::Assignment { right, .. } => validate_size(validator, context, &right),
+        AstStatement::ExpressionList { expressions, .. } => {
+            expressions.iter().for_each(|expression| validate_size(validator, context, expression));
+        }
+        _ => (),
     }
 
-    // Visit each expression
-    if let AstStatement::ExpressionList { expressions, .. } = right {
-        for expression in expressions {
-            assignment(validator, context, expression);
-        }
+    let Some(dti) = context.annotations.get_type_hint(statement, context.index).map(|it| it.get_type_information()) else { return };
+    if !dti.is_array() {
+        return;
+    }
+
+    let len_lhs = dti.get_array_length(context.index).unwrap_or(0);
+    let len_rhs = statement_to_array_length(statement);
+
+    if len_lhs < len_rhs {
+        let diagnostic = Diagnostic::array_size(dti.get_name(), len_lhs, len_rhs, statement.get_location());
+        validator.push_diagnostic(diagnostic);
     }
 }
 
