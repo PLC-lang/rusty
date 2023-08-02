@@ -24,7 +24,6 @@ use crate::{
     DebugLevel, OptimizationLevel, Target,
 };
 
-use super::ast::*;
 use super::index::*;
 use indexmap::IndexSet;
 use inkwell::{
@@ -38,6 +37,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
+use plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
 
 mod debug;
 pub(crate) mod generators;
@@ -208,10 +208,9 @@ impl<'ink> CodeGen<'ink> {
                 }
             }
         }
-        self.debug.finalize();
 
-        #[cfg(feature = "debug")]
-        self.module.print_to_stderr();
+        self.debug.finalize();
+        log::debug!("{}", self.module.to_string());
 
         #[cfg(feature = "verify")]
         {
@@ -239,7 +238,7 @@ impl<'ink> GeneratedModule<'ink> {
         let buffer = MemoryBuffer::create_from_file(path)?;
         let module = context.create_module_from_ir(buffer)?;
 
-        #[cfg(feature = "debug")]
+        log::debug!("{}", module.to_string());
         module.print_to_stderr();
 
         Ok(GeneratedModule { module, engine: RefCell::new(None) })
@@ -247,11 +246,8 @@ impl<'ink> GeneratedModule<'ink> {
 
     pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
         self.module.link_in_module(other.module)?;
-        #[cfg(feature = "debug")]
-        {
-            println!("Merged:");
-            self.module.print_to_stderr();
-        }
+        log::debug!("Merged: {}", self.module.to_string());
+
         Ok(self)
     }
 
@@ -271,10 +267,12 @@ impl<'ink> GeneratedModule<'ink> {
             std::fs::create_dir_all(parent)?;
         }
         match format {
-            FormatOption::Object | FormatOption::Static | FormatOption::Relocatable => {
+            FormatOption::Object | FormatOption::Relocatable => {
                 self.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC => self.persist_to_shared_pic_object(output, target, optimization_level),
+            FormatOption::PIC | FormatOption::Static => {
+                self.persist_to_shared_pic_object(output, target, optimization_level)
+            }
             FormatOption::Shared => self.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
@@ -417,12 +415,8 @@ impl<'ink> GeneratedModule<'ink> {
     /// * `codegen` - The generated LLVM module to be persisted
     /// * `output`  - The location to save the generated ir file
     pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
-        #[cfg(feature = "debug")]
-        {
-            println!("Output location: {}", output.to_string_lossy());
-
-            self.print_to_stderr();
-        }
+        log::debug!("Output location: {}", output.to_string_lossy());
+        log::debug!("{}", self.persist_to_string());
 
         self.module
             .print_to_file(&output)
@@ -436,7 +430,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// Persists the given module to a string
     ///
     pub fn persist_to_string(&self) -> String {
-        self.module.print_to_string().to_string()
+        self.module.to_string()
     }
 
     ///
@@ -478,8 +472,7 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(function) = self.module.get_function(function_name) {
             engine.add_global_mapping(&function, local_function);
         } else {
-            #[cfg(feature = "debug")]
-            eprintln!("Function {} does not exist", function_name);
+            log::debug!("Function {} does not exist", function_name);
         }
     }
 
@@ -488,8 +481,7 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(function) = self.module.get_global(global_name) {
             engine.add_global_mapping(&function, local_var);
         } else {
-            #[cfg(feature = "debug")]
-            eprintln!("Global {} does not exist", global_name);
+            log::debug!("Global {} does not exist", global_name);
         }
     }
 

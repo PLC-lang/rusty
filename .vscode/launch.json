@@ -7,93 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'rusty'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "rusty",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'rustyc' - oscat",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "rustyc",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "build",
-                "..\\..\\build_commands_tests\\test_proj\\plc.json"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'rustyc'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=rustyc",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "rustyc",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug integration test 'tests'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--test=tests",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "tests",
-                    "kind": "test"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "Debug source 'demo.st'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
+                    "--bin=plc",
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rustyc",
+                    "name": "plc",
                     "kind": "bin"
                 }
             },
@@ -111,10 +33,10 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rusty"
+                    "--package=plc_driver"
                 ],
                 "filter": {
-                    "name": "rusty",
+                    "name": "plc",
                     "kind": "lib"
                 }
             },

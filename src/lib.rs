@@ -32,7 +32,6 @@ use resolver::TypeAnnotator;
 #[cfg(test)]
 use validation::Validator;
 
-pub mod ast;
 pub mod builtins;
 pub mod codegen;
 mod datalayout;
@@ -179,17 +178,12 @@ pub enum OptimizationLevel {
     Aggressive,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DebugLevel {
+    #[default]
     None,
     VariablesOnly,
     Full,
-}
-
-impl Default for DebugLevel {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

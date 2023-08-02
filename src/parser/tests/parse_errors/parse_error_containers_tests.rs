@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::*, lexer::Token, test_utils::tests::parse, Diagnostic};
+use crate::{lexer::Token, test_utils::tests::parse, Diagnostic};
+use plc_ast::ast::{
+    AccessModifier, AstStatement, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable,
+    VariableBlock, VariableBlockType,
+};
 use pretty_assertions::*;
 
 /*
@@ -218,6 +222,7 @@ fn unclosed_var_container() {
         vec![Diagnostic::unexpected_token_found("KeywordEndVar", "'VAR b : INT;'", (82..94).into(),)],
         diagnostics
     );
+
     //check if b was parsed successfully
     let var_block = &compilation_unit.units[0].variable_blocks[0];
     assert_eq!(
@@ -232,7 +237,7 @@ fn unclosed_var_container() {
                 location: SourceRange::undefined(),
                 variables: vec![Variable {
                     name: "a".into(),
-                    data_type_declaration: crate::ast::DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
                         location: SourceRange::undefined(),
                     },

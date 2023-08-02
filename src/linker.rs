@@ -4,7 +4,6 @@
 use which::which;
 
 use crate::diagnostics::Diagnostic;
-use log::debug;
 use std::{
     error::Error,
     path::{Path, PathBuf},
@@ -14,17 +13,6 @@ use std::{
 pub struct Linker {
     errors: Vec<LinkerError>,
     linker: Box<dyn LinkerInterface>,
-}
-
-trait LinkerInterface {
-    fn add_obj(&mut self, path: &str);
-    fn add_lib(&mut self, path: &str);
-    fn add_lib_path(&mut self, path: &str);
-    fn add_sysroot(&mut self, path: &str);
-    fn build_shared_object(&mut self, path: &str);
-    fn build_exectuable(&mut self, path: &str);
-    fn build_relocatable(&mut self, path: &str);
-    fn finalize(&mut self) -> Result<(), LinkerError>;
 }
 
 impl Linker {
@@ -44,6 +32,8 @@ impl Linker {
                         (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
                             return Err(LinkerError::Target(target_os.into()))
                         }
+
+                        (_, "darwin") => Box::new(CcLinker::new("clang")),
 
                         _ => Box::new(LdLinker::new()),
                     }
@@ -125,44 +115,15 @@ impl CcLinker {
 }
 
 impl LinkerInterface for CcLinker {
-    fn add_obj(&mut self, path: &str) {
-        self.args.push(path.into());
-    }
-
-    fn add_lib_path(&mut self, path: &str) {
-        self.args.push(format!("-L{path}"));
-    }
-
-    fn add_lib(&mut self, path: &str) {
-        self.args.push(format!("-l{path}"));
-    }
-
-    fn add_sysroot(&mut self, path: &str) {
-        self.args.push(format!("--sysroot={path}"));
-    }
-
-    fn build_shared_object(&mut self, path: &str) {
-        self.args.push("--shared".into());
-        self.args.push("-o".into());
-        self.args.push(path.into());
-    }
-
-    fn build_exectuable(&mut self, path: &str) {
-        self.args.push("-o".into());
-        self.args.push(path.into());
-    }
-
-    fn build_relocatable(&mut self, path: &str) {
-        self.args.push("-relocatable".into());
-        self.args.push("-o".into());
-        self.args.push(path.into());
+    fn args(&mut self) -> &mut Vec<String> {
+        &mut self.args
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
         let linker_location = which(&self.linker)
             .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
 
-        debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
+        log::debug!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
 
         let status = Command::new(linker_location).args(&self.args).status()?;
         if status.success() {
@@ -184,44 +145,51 @@ impl LdLinker {
 }
 
 impl LinkerInterface for LdLinker {
-    fn add_obj(&mut self, path: &str) {
-        self.args.push(path.into());
-    }
-
-    fn add_lib_path(&mut self, path: &str) {
-        self.args.push(format!("-L{path}"));
-    }
-
-    fn add_lib(&mut self, path: &str) {
-        self.args.push(format!("-l{path}"));
-    }
-
-    fn add_sysroot(&mut self, path: &str) {
-        self.args.push(format!("--sysroot={path}"));
-    }
-
-    fn build_shared_object(&mut self, path: &str) {
-        self.args.push("--shared".into());
-        self.args.push("-o".into());
-        self.args.push(path.into());
-    }
-
-    fn build_exectuable(&mut self, path: &str) {
-        self.args.push("-o".into());
-        self.args.push(path.into());
-    }
-
-    fn build_relocatable(&mut self, path: &str) {
-        self.args.push("-relocatable".into());
-        self.args.push("-o".into());
-        self.args.push(path.into());
+    fn args(&mut self) -> &mut Vec<String> {
+        &mut self.args
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        #[cfg(feature = "debug")]
-        println!("Linker arguments : {}", self.args.join(" "));
-
+        log::debug!("Linker arguments : {}", self.args.join(" "));
         lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
+    }
+}
+
+trait LinkerInterface {
+    fn args(&mut self) -> &mut Vec<String>;
+    fn finalize(&mut self) -> Result<(), LinkerError>;
+
+    fn add_obj(&mut self, path: &str) {
+        self.args().push(path.into());
+    }
+
+    fn add_lib_path(&mut self, path: &str) {
+        self.args().push(format!("-L{path}"));
+    }
+
+    fn add_lib(&mut self, path: &str) {
+        self.args().push(format!("-l{path}"));
+    }
+
+    fn add_sysroot(&mut self, path: &str) {
+        self.args().push(format!("--sysroot={path}"));
+    }
+
+    fn build_shared_object(&mut self, path: &str) {
+        self.args().push("--shared".into());
+        self.args().push("-o".into());
+        self.args().push(path.into());
+    }
+
+    fn build_exectuable(&mut self, path: &str) {
+        self.args().push("-o".into());
+        self.args().push(path.into());
+    }
+
+    fn build_relocatable(&mut self, path: &str) {
+        self.args().push("-r".into()); // equivalent to --relocatable
+        self.args().push("-o".into());
+        self.args().push(path.into());
     }
 }
 

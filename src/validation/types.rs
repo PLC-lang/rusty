@@ -1,5 +1,6 @@
+use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+
 use crate::{
-    ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration},
     index::Index,
     resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},

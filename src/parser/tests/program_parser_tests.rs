@@ -1,4 +1,6 @@
-use crate::{ast::*, test_utils::tests::parse};
+use plc_ast::ast::{LinkageType, PouType};
+
+use crate::test_utils::tests::parse;
 
 #[test]
 fn simple_foo_program_can_be_parsed() {

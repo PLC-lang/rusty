@@ -1,23 +1,20 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    index::Index,
-    lexer::IdProvider,
-    typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
-        USINT_TYPE, VOID_TYPE,
-    },
-};
-pub use literals::*;
-use serde::{Deserialize, Serialize};
+
 use std::{
-    fmt::{Debug, Display, Formatter, Result},
-    iter,
+    fmt::{Debug, Display, Formatter},
     ops::Range,
-    unimplemented, vec,
 };
 
-pub mod literals;
-mod pre_processor;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    control_statements::{
+        AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
+    },
+    literals::{AstLiteral, StringValue},
+    pre_processor,
+    provider::IdProvider,
+};
 
 pub type AstId = usize;
 
@@ -40,6 +37,7 @@ pub struct Pou {
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
+    pub super_class: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -90,21 +88,6 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
-    pub fn get_smallest_possible_type(&self) -> &str {
-        match self {
-            TypeNature::Magnitude | TypeNature::Num | TypeNature::Int => USINT_TYPE,
-            TypeNature::Real => REAL_TYPE,
-            TypeNature::Unsigned => USINT_TYPE,
-            TypeNature::Signed => SINT_TYPE,
-            TypeNature::Duration => TIME_TYPE,
-            TypeNature::Bit => BOOL_TYPE,
-            TypeNature::Chars | TypeNature::Char => CHAR_TYPE,
-            TypeNature::String => STRING_TYPE,
-            TypeNature::Date => DATE_TYPE,
-            _ => "",
-        }
-    }
-
     pub fn derives_from(self, other: TypeNature) -> bool {
         if other == self {
             true
@@ -172,21 +155,6 @@ impl TypeNature {
 }
 
 impl DirectAccessType {
-    /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, access_index: u64, data_type: &DataTypeInformation, index: &Index) -> bool {
-        (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
-    }
-
-    /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
-        0..((data_type.get_size_in_bits(index) as u64 / self.get_bit_width()) - 1)
-    }
-
-    /// Returns true if the direct access can be used for the given type
-    pub fn is_compatible(&self, data_type: &DataTypeInformation, index: &Index) -> bool {
-        data_type.get_semantic_size(index) as u64 > self.get_bit_width()
-    }
-
     /// Returns the size of the bitaccess result
     pub fn get_bit_width(&self) -> u64 {
         match self {
@@ -201,7 +169,7 @@ impl DirectAccessType {
 }
 
 impl Debug for Pou {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut str = f.debug_struct("POU");
         str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
@@ -264,7 +232,7 @@ pub enum PouType {
 }
 
 impl Display for PouType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             PouType::Program => write!(f, "Program"),
             PouType::Function => write!(f, "Function"),
@@ -384,7 +352,7 @@ pub enum VariableBlockType {
 }
 
 impl Display for VariableBlockType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VariableBlockType::Local => write!(f, "Local"),
             VariableBlockType::Temp => write!(f, "Temp"),
@@ -414,7 +382,7 @@ pub struct VariableBlock {
 }
 
 impl Debug for VariableBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
             .field("variables", &self.variables)
             .field("variable_block_type", &self.variable_block_type)
@@ -432,7 +400,7 @@ pub struct Variable {
 }
 
 impl Debug for Variable {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut var = f.debug_struct("Variable");
         var.field("name", &self.name).field("data_type", &self.data_type_declaration);
         if self.initializer.is_some() {
@@ -502,7 +470,7 @@ pub struct SourceRange {
 }
 
 impl Debug for SourceRange {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut f = f.debug_struct("SourceRange");
         f.field("range", &self.range);
         if self.file.is_some() {
@@ -573,7 +541,7 @@ pub enum DataTypeDeclaration {
 }
 
 impl Debug for DataTypeDeclaration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
                 f.debug_struct("DataTypeReference").field("referenced_type", referenced_type).finish()
@@ -616,7 +584,7 @@ pub struct UserTypeDeclaration {
 }
 
 impl Debug for UserTypeDeclaration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("UserTypeDeclaration")
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
@@ -690,10 +658,9 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs { referenced_type, .. } => referenced_type
-                .as_ref()
-                .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
-                .or(Some(VOID_TYPE)),
+            DataType::VarArgs { referenced_type, .. } => {
+                referenced_type.as_ref().and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
+            }
         }
     }
 
@@ -724,21 +691,6 @@ fn replace_reference(
         DataTypeDeclaration::DataTypeReference { referenced_type: type_name, location: location.clone() };
     let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
     Some(*old_data_type)
-}
-
-#[derive(Clone, PartialEq)]
-pub struct ConditionalBlock {
-    pub condition: Box<AstStatement>,
-    pub body: Vec<AstStatement>,
-}
-
-impl Debug for ConditionalBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("ConditionalBlock")
-            .field("condition", &self.condition)
-            .field("body", &self.body)
-            .finish()
-    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -847,40 +799,12 @@ pub enum AstStatement {
         id: AstId,
     },
     // Control Statements
-    IfStatement {
-        blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
+    ControlStatement {
+        kind: AstControlStatement,
         location: SourceRange,
         id: AstId,
     },
-    ForLoopStatement {
-        counter: Box<AstStatement>,
-        start: Box<AstStatement>,
-        end: Box<AstStatement>,
-        by_step: Option<Box<AstStatement>>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
-    WhileLoopStatement {
-        condition: Box<AstStatement>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
-    RepeatLoopStatement {
-        condition: Box<AstStatement>,
-        body: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
-    CaseStatement {
-        selector: Box<AstStatement>,
-        case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
-        location: SourceRange,
-        id: AstId,
-    },
+
     CaseCondition {
         condition: Box<AstStatement>,
         id: AstId,
@@ -900,7 +824,7 @@ pub enum AstStatement {
 }
 
 impl Debug for AstStatement {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
@@ -936,10 +860,17 @@ impl Debug for AstStatement {
                 .field("operator", operator)
                 .field("parameters", parameters)
                 .finish(),
-            AstStatement::IfStatement { blocks, else_block, .. } => {
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::If(IfStatement { blocks, else_block, .. }),
+                ..
+            } => {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => f
+            AstStatement::ControlStatement {
+                kind:
+                    AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
+                ..
+            } => f
                 .debug_struct("ForLoopStatement")
                 .field("counter", counter)
                 .field("start", start)
@@ -947,17 +878,26 @@ impl Debug for AstStatement {
                 .field("by_step", by_step)
                 .field("body", body)
                 .finish(),
-            AstStatement::WhileLoopStatement { condition, body, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+                ..
+            } => f
                 .debug_struct("WhileLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::RepeatLoopStatement { condition, body, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+                ..
+            } => f
                 .debug_struct("RepeatLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => f
+            AstStatement::ControlStatement {
+                kind: AstControlStatement::Case(CaseStatement { selector, case_blocks, else_block, .. }),
+                ..
+            } => f
                 .debug_struct("CaseStatement")
                 .field("selector", selector)
                 .field("case_blocks", case_blocks)
@@ -1045,11 +985,7 @@ impl AstStatement {
                 left_loc.span(&right_loc)
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
-            AstStatement::IfStatement { location, .. } => location.clone(),
-            AstStatement::ForLoopStatement { location, .. } => location.clone(),
-            AstStatement::WhileLoopStatement { location, .. } => location.clone(),
-            AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
-            AstStatement::CaseStatement { location, .. } => location.clone(),
+            AstStatement::ControlStatement { location, .. } => location.clone(),
             AstStatement::ArrayAccess { reference, access, .. } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
@@ -1087,11 +1023,7 @@ impl AstStatement {
             AstStatement::Assignment { id, .. } => *id,
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
-            AstStatement::IfStatement { id, .. } => *id,
-            AstStatement::ForLoopStatement { id, .. } => *id,
-            AstStatement::WhileLoopStatement { id, .. } => *id,
-            AstStatement::RepeatLoopStatement { id, .. } => *id,
-            AstStatement::CaseStatement { id, .. } => *id,
+            AstStatement::ControlStatement { id, .. } => *id,
             AstStatement::CaseCondition { id, .. } => *id,
             AstStatement::ReturnStatement { id, .. } => *id,
             AstStatement::ContinueStatement { id, .. } => *id,
@@ -1218,7 +1150,7 @@ pub enum Operator {
 }
 
 impl Display for Operator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let symbol = match self {
             Operator::Plus => "+",
             Operator::Minus => "-",
@@ -1268,105 +1200,9 @@ pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement { multiplier, element, .. } => {
-            iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
+            std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
         _ => vec![list],
-    }
-}
-
-/// helper function that creates a call-statement
-pub fn create_call_to(
-    function_name: String,
-    parameters: Vec<AstStatement>,
-    function_id: usize,
-    parameter_list_id: usize,
-    location: &SourceRange,
-) -> AstStatement {
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: function_name,
-            location: location.clone(),
-            id: function_id,
-        }),
-        parameters: Box::new(Some(AstStatement::ExpressionList {
-            expressions: parameters,
-            id: parameter_list_id,
-        })),
-        location: location.clone(),
-        id: function_id,
-    }
-}
-
-pub fn create_call_to_with_ids(
-    function_name: String,
-    parameters: Vec<AstStatement>,
-    location: &SourceRange,
-    mut id_provider: IdProvider,
-) -> AstStatement {
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: function_name,
-            location: location.clone(),
-            id: id_provider.next_id(),
-        }),
-        parameters: Box::new(Some(AstStatement::ExpressionList {
-            expressions: parameters,
-            id: id_provider.next_id(),
-        })),
-        location: location.clone(),
-        id: id_provider.next_id(),
-    }
-}
-
-/// helper function that creates an or-expression
-pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
-    AstStatement::BinaryExpression {
-        id: left.get_id(),
-        left: Box::new(left),
-        right: Box::new(right),
-        operator: Operator::Or,
-    }
-}
-
-/// helper function that creates an not-expression
-pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
-    AstStatement::UnaryExpression {
-        id: operator.get_id(),
-        value: Box::new(operator),
-        location,
-        operator: Operator::Not,
-    }
-}
-
-pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
-    AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
-}
-
-pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
-    let location = location.clone();
-    AstStatement::new_literal(AstLiteral::new_integer(value), id, location)
-}
-
-pub fn create_binary_expression(
-    left: AstStatement,
-    operator: Operator,
-    right: AstStatement,
-    id: AstId,
-) -> AstStatement {
-    AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
-}
-
-pub fn create_cast_statement(
-    type_name: &str,
-    stmt: AstStatement,
-    location: &SourceRange,
-    id: AstId,
-) -> AstStatement {
-    AstStatement::CastStatement {
-        id,
-        location: location.clone(),
-        type_name: type_name.to_string(),
-        target: Box::new(stmt),
     }
 }
 
@@ -1375,7 +1211,7 @@ pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
 }
 impl Operator {
     /// returns true, if this operator results in a bool value
-    pub(crate) fn is_bool_type(&self) -> bool {
+    pub fn is_bool_type(&self) -> bool {
         matches!(
             self,
             Operator::Equal
@@ -1389,7 +1225,7 @@ impl Operator {
 
     /// returns true, if this operator is a comparison operator
     /// (=, <>, >, <, >=, <=)
-    pub(crate) fn is_comparison_operator(&self) -> bool {
+    pub fn is_comparison_operator(&self) -> bool {
         matches!(
             self,
             Operator::Equal
@@ -1400,21 +1236,6 @@ impl Operator {
                 | Operator::GreaterOrEqual
         )
     }
-}
-
-pub fn create_call_to_check_function_ast(
-    check_function_name: String,
-    parameter: AstStatement,
-    sub_range: Range<AstStatement>,
-    location: &SourceRange,
-    id_provider: IdProvider,
-) -> AstStatement {
-    create_call_to_with_ids(
-        check_function_name,
-        vec![parameter, sub_range.start, sub_range.end],
-        location,
-        id_provider,
-    )
 }
 
 #[cfg(test)]
@@ -1440,5 +1261,202 @@ mod tests {
         assert_eq!(VariableBlockType::Output.to_string(), "Output");
         assert_eq!(VariableBlockType::Global.to_string(), "Global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+    }
+}
+
+pub struct AstFactory {}
+
+impl AstFactory {
+    /// creates a new if-statement
+    pub fn create_if_statement(
+        blocks: Vec<ConditionalBlock>,
+        else_block: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::If(IfStatement { blocks, else_block }),
+            location,
+            id,
+        }
+    }
+
+    ///  creates a new for loop statement
+    pub fn create_for_loop(
+        counter: AstStatement,
+        start: AstStatement,
+        end: AstStatement,
+        by_step: Option<AstStatement>,
+        body: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::ForLoop(ForLoopStatement {
+                counter: Box::new(counter),
+                start: Box::new(start),
+                end: Box::new(end),
+                by_step: by_step.map(Box::new),
+                body,
+            }),
+            location,
+            id,
+        }
+    }
+
+    /// creates a new while statement
+    pub fn create_while_statement(
+        condition: AstStatement,
+        body: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::WhileLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    /// creates a new repeat-statement
+    pub fn create_repeat_statement(
+        condition: AstStatement,
+        body: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
+            id,
+            location,
+        }
+    }
+
+    /// creates a new case-statement
+    pub fn create_case_statement(
+        selector: AstStatement,
+        case_blocks: Vec<ConditionalBlock>,
+        else_block: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::ControlStatement {
+            kind: AstControlStatement::Case(CaseStatement {
+                selector: Box::new(selector),
+                case_blocks,
+                else_block,
+            }),
+            id,
+            location,
+        }
+    }
+
+    /// creates an or-expression
+    pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
+        AstStatement::BinaryExpression {
+            id: left.get_id(),
+            left: Box::new(left),
+            right: Box::new(right),
+            operator: Operator::Or,
+        }
+    }
+
+    /// creates a not-expression
+    pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
+        AstStatement::UnaryExpression {
+            id: operator.get_id(),
+            value: Box::new(operator),
+            location,
+            operator: Operator::Not,
+        }
+    }
+
+    /// creates a new reference
+    pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+        AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
+    }
+
+    /// creates a new binary statement
+    pub fn create_binary_expression(
+        left: AstStatement,
+        operator: Operator,
+        right: AstStatement,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
+    }
+
+    /// creates a new cast statement
+    pub fn create_cast_statement(
+        type_name: &str,
+        stmt: AstStatement,
+        location: &SourceRange,
+        id: AstId,
+    ) -> AstStatement {
+        AstStatement::CastStatement {
+            id,
+            location: location.clone(),
+            type_name: type_name.to_string(),
+            target: Box::new(stmt),
+        }
+    }
+
+    /// creates a new call statement to the given function and parameters
+    pub fn create_call_to(
+        function_name: String,
+        parameters: Vec<AstStatement>,
+        id: usize,
+        parameter_list_id: usize,
+        location: &SourceRange,
+    ) -> AstStatement {
+        AstStatement::CallStatement {
+            operator: Box::new(AstStatement::Reference {
+                name: function_name,
+                location: location.clone(),
+                id,
+            }),
+            parameters: Box::new(Some(AstStatement::ExpressionList {
+                expressions: parameters,
+                id: parameter_list_id,
+            })),
+            location: location.clone(),
+            id,
+        }
+    }
+
+    pub fn create_call_to_with_ids(
+        function_name: String,
+        parameters: Vec<AstStatement>,
+        location: &SourceRange,
+        mut id_provider: IdProvider,
+    ) -> AstStatement {
+        AstStatement::CallStatement {
+            operator: Box::new(AstStatement::Reference {
+                name: function_name,
+                location: location.clone(),
+                id: id_provider.next_id(),
+            }),
+            parameters: Box::new(Some(AstStatement::ExpressionList {
+                expressions: parameters,
+                id: id_provider.next_id(),
+            })),
+            location: location.clone(),
+            id: id_provider.next_id(),
+        }
+    }
+
+    pub fn create_call_to_check_function_ast(
+        check_function_name: String,
+        parameter: AstStatement,
+        sub_range: Range<AstStatement>,
+        location: &SourceRange,
+        id_provider: IdProvider,
+    ) -> AstStatement {
+        AstFactory::create_call_to_with_ids(
+            check_function_name,
+            vec![parameter, sub_range.start, sub_range.end],
+            location,
+            id_provider,
+        )
     }
 }

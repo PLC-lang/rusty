@@ -1,7 +1,7 @@
+use plc_ast::ast::{AstStatement, CompilationUnit};
 use plc_derive::Validators;
 
 use crate::{
-    ast::{AstStatement, CompilationUnit},
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,

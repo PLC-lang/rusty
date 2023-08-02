@@ -1,10 +1,10 @@
+use plc_ast::ast::{DirectAccessType, HardwareAccessType};
 use serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
 };
 
 use crate::{
-    ast::{DirectAccessType, HardwareAccessType},
     diagnostics::{Diagnostic, ErrNo},
     expression_path::ExpressionPath,
     index::Index,

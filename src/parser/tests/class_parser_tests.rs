@@ -1,4 +1,6 @@
-use crate::{ast::*, test_utils::tests::parse};
+use plc_ast::ast::{AccessModifier, ArgumentProperty, PolymorphismMode, PouType, VariableBlockType};
+
+use crate::test_utils::tests::parse;
 
 #[test]
 fn simple_class_with_defaults_can_be_parsed() {
@@ -10,7 +12,23 @@ fn simple_class_with_defaults_can_be_parsed() {
 
     assert_eq!(class.name, "MyClass");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::None));
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
+}
+
+#[test]
+fn extends_can_be_parsed() {
+    let src = "
+    CLASS MyClass 
+    END_CLASS
+    
+    CLASS MyClass2 EXTENDS MyClass
+    END_CLASS
+    ";
+    let unit = parse(src).0;
+
+    assert_eq!(&unit.units[1].super_class.clone().unwrap(), "MyClass");
 }
 
 #[test]
@@ -23,7 +41,9 @@ fn simple_class_can_be_parsed() {
 
     assert_eq!(class.name, "MyClass");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
 }
 
 #[test]
@@ -36,7 +56,9 @@ fn simple_class2_can_be_parsed() {
 
     assert_eq!(class.name, "MyClass2");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Final));
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
 }
 
 #[test]
@@ -46,7 +68,9 @@ fn method_with_defaults_can_be_parsed() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 1);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
     assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
@@ -66,7 +90,9 @@ fn method_can_be_parsed() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 1);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
     assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
@@ -86,7 +112,9 @@ fn two_methods_can_be_parsed() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 2);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 3);
 
     let method1 = &unit.implementations[0];
     assert_eq!(method1.name, "MyClass.testMethod2");
@@ -108,7 +136,9 @@ fn method_with_return_type_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
     let method = &unit.implementations[0];
-    assert_eq!(unit.implementations.len(), 1);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
 
     assert_eq!(method_pou.name, "MyClass.testMethod3");
     assert_eq!(method.access, Some(AccessModifier::Private));
@@ -124,7 +154,9 @@ fn class_with_var_default_block() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
 
     let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
@@ -142,7 +174,9 @@ fn class_with_var_non_retain_block() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
 
     let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
@@ -160,7 +194,9 @@ fn class_with_var_retain_block() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 0);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 1);
 
     let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
@@ -178,7 +214,9 @@ fn method_with_var_block() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
-    assert_eq!(unit.implementations.len(), 1);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
     let vblock = &method_pou.variable_blocks[0];
@@ -207,7 +245,9 @@ fn method_with_var_inout_blocks() {
     assert_eq!(class.pou_type, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(unit.implementations.len(), 1);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
 
     assert_eq!(method_pou.variable_blocks.len(), 3);
     let vblock1 = &method_pou.variable_blocks[0];
@@ -235,6 +275,8 @@ fn fb_method_can_be_parsed() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::FunctionBlock);
+
+    // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
@@ -260,6 +302,8 @@ fn fb_two_methods_can_be_parsed() {
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::FunctionBlock);
+
+    // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 3);
 
     let method1 = &unit.implementations[0];
@@ -286,6 +330,8 @@ fn fb_method_with_return_type_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyShinyFb".into() });
     let method = &unit.implementations[0];
+
+    // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
     assert_eq!(method_pou.name, "MyShinyFb.testMethod3");

@@ -1,4 +1,4 @@
-use ast::SourceRange;
+use ast::ast::SourceRange;
 use diagnostics::Diagnostic;
 use plc::DebugLevel;
 use source_code::SourceCode;

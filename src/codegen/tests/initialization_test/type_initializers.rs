@@ -514,6 +514,35 @@ fn array_of_struct_initialization() {
 }
 
 #[test]
+fn array_of_struct_initialization_with_brackets() {
+    // We want to check if initializing an array of structs is possible both with a parenthese as well as a
+    // bracket, e.g. both `:= (...)` and `:= [...]` should be valid; see also https://github.com/PLC-lang/rusty/issues/895
+    let source = "
+        TYPE myStruct : STRUCT
+            x : DINT;
+            y : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                {ARRAY}
+            END_VAR
+        END_FUNCTION
+    ";
+
+    let paren = codegen(
+        &source.replace("{ARRAY}", "arr : ARRAY[0..1] OF myStruct := ((x := 1, y := 2), (x := 3, y := 4));"),
+    );
+
+    let bracket = codegen(
+        &source.replace("{ARRAY}", "arr : ARRAY[0..1] OF myStruct := [(x := 1, y := 2), (x := 3, y := 4)];"),
+    );
+
+    assert_eq!(paren, bracket);
+    insta::assert_snapshot!(bracket);
+}
+
+#[test]
 fn type_defaults_are_used_for_uninitialized_constants() {
     let result = codegen_without_unwrap(
         r#"
@@ -583,4 +612,52 @@ fn partly_uninitialized_const_struct_will_not_report_errors() {
         "#,
     );
     assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn enums_with_inline_initializer_do_not_report_errors() {
+    let diagnostics = parse_and_validate(
+        r#"            
+        VAR_GLOBAL
+              x : (red, yellow, green) := red;
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                y : (redy := 1, yellowy := 2, greeny := 3) := greeny;
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;
+                // or
+                var2 : (x5, x6, x7) := x7;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn enums_with_inline_initializer_are_initialized() {
+    let res = codegen(
+        r#"            
+        VAR_GLOBAL
+              x : (red, yellow, green) := 2;
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                y : (redy := 1, yellowy := 2, greeny := 3) := 2;
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;
+                // or
+                var2 : (x5, x6, x7) := x7;
+
+                var3 : (x8, x9) := yellow;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+    insta::assert_snapshot!(res);
 }

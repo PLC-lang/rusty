@@ -5,7 +5,6 @@ use super::{
     pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
@@ -18,6 +17,10 @@ use inkwell::{
     builder::Builder,
     context::Context,
     values::{BasicValueEnum, FunctionValue},
+};
+use plc_ast::{
+    ast::{flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange},
+    control_statements::{AstControlStatement, ConditionalBlock},
 };
 
 /// the full context when generating statements inside a POU
@@ -118,20 +121,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment { left, right, .. } => {
                 self.generate_assignment_statement(left, right)?;
             }
-            AstStatement::ForLoopStatement { start, end, counter, body, by_step, .. } => {
-                self.generate_for_statement(counter, start, end, by_step, body)?;
-            }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.generate_repeat_statement(condition, body)?;
-            }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.generate_while_statement(condition, body)?;
-            }
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                self.generate_if_statement(blocks, else_block)?;
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.generate_case_statement(selector, case_blocks, else_block)?;
+
+            AstStatement::ControlStatement { kind: ctl_statement, .. } => {
+                self.generate_control_statement(ctl_statement)?
             }
             AstStatement::ReturnStatement { .. } => {
                 self.register_debug_location(statement);
@@ -166,6 +158,31 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
         }
         Ok(())
+    }
+
+    /// genertes a single statement
+    ///
+    /// - `statement` the control statement to be generated
+    pub fn generate_control_statement(&self, statement: &AstControlStatement) -> Result<(), Diagnostic> {
+        match statement {
+            AstControlStatement::If(ifstmt) => self.generate_if_statement(&ifstmt.blocks, &ifstmt.else_block),
+            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
+                &for_stmt.counter,
+                &for_stmt.start,
+                &for_stmt.end,
+                &for_stmt.by_step,
+                &for_stmt.body,
+            ),
+            AstControlStatement::WhileLoop(stmt) => {
+                self.generate_while_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::RepeatLoop(stmt) => {
+                self.generate_repeat_statement(&stmt.condition, &stmt.body)
+            }
+            AstControlStatement::Case(stmt) => {
+                self.generate_case_statement(&stmt.selector, &stmt.case_blocks, &stmt.else_block)
+            }
+        }
     }
 
     /// generates an assignment statement _left_ := _right_
@@ -460,7 +477,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         selector: &AstStatement,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -516,7 +533,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// returns the new block to use as else
@@ -577,7 +594,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) = self.generate_base_while_statement(condition, body)?;
@@ -588,7 +605,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(condition_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// generates a repeat statement
@@ -604,12 +621,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         // for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        let condition = crate::ast::create_not_expression(condition.clone(), condition.get_location());
+        let condition = AstFactory::create_not_expression(condition.clone(), condition.get_location());
         let (_, while_block) = self.generate_base_while_statement(&condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
@@ -618,7 +635,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(while_block);
 
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok(())
     }
 
     /// utility method for while and repeat loops
