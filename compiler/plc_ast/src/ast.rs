@@ -1126,6 +1126,14 @@ impl AstStatement {
         matches!(self, AstStatement::ExpressionList { .. })
     }
 
+    pub fn is_assignment(&self) -> bool {
+        matches!(self, AstStatement::Assignment { .. })
+    }
+
+    pub fn is_literal_array(&self) -> bool {
+        matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
+    }
+
     pub fn is_multiplied_statement(&self) -> bool {
         matches!(self, AstStatement::MultipliedStatement { .. })
     }

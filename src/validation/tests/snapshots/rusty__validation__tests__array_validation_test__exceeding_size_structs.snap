@@ -5,9 +5,9 @@ expression: res
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 241..288 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 433..442 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 564..573 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_c has size 2, but 3 were provided", range: [SourceRange { range: 753..1032 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 779..788 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 910..919 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 1002..1011 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __Foo_arr has size 2, but 3 were provided", range: [SourceRange { range: 1023..1032 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_c has size 2, but 3 were provided", range: [SourceRange { range: 753..1032 }], err_no: arr__invalid_array_assignment }
 

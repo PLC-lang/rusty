@@ -10,20 +10,8 @@ pub(super) fn validate<T>(validator: &mut Validator, context: &ValidationContext
 where
     T: AnnotationMap,
 {
-    _match(validator, context, statement)
-}
-
-fn _match<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
-where
-    T: AnnotationMap,
-{
-    match statement {
-        AstStatement::Literal { .. } => validate_size(validator, context, statement),
-        AstStatement::ExpressionList { .. } => validate_size(validator, context, statement),
-        AstStatement::Assignment { .. } => validate_size(validator, context, statement),
-        _ => {
-            dbg!(&statement);
-        }
+    if statement.is_expression_list() | statement.is_assignment() | statement.is_literal_array() {
+        validate_size(validator, context, statement);
     }
 }
 
@@ -31,25 +19,26 @@ fn validate_size<T>(validator: &mut Validator, context: &ValidationContext<T>, s
 where
     T: AnnotationMap,
 {
+    if let Some(dt) = context.annotations.get_type_hint(statement, context.index) {
+        let dti = dt.get_type_information();
+        if dti.is_array() {
+            let len_lhs = dti.get_array_length(context.index).unwrap_or(0);
+            let len_rhs = statement_to_array_length(statement);
+
+            if len_lhs < len_rhs {
+                let diagnostic =
+                    Diagnostic::array_size(dti.get_name(), len_lhs, len_rhs, statement.get_location());
+                validator.push_diagnostic(diagnostic);
+            }
+        }
+    }
+
     match statement {
         AstStatement::Assignment { right, .. } => validate_size(validator, context, &right),
         AstStatement::ExpressionList { expressions, .. } => {
             expressions.iter().for_each(|expression| validate_size(validator, context, expression));
         }
         _ => (),
-    }
-
-    let Some(dti) = context.annotations.get_type_hint(statement, context.index).map(|it| it.get_type_information()) else { return };
-    if !dti.is_array() {
-        return;
-    }
-
-    let len_lhs = dti.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(statement);
-
-    if len_lhs < len_rhs {
-        let diagnostic = Diagnostic::array_size(dti.get_name(), len_lhs, len_rhs, statement.get_location());
-        validator.push_diagnostic(diagnostic);
     }
 }
 
