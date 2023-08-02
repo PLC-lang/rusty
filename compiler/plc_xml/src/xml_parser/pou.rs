@@ -1,4 +1,4 @@
-use plc::ast::{AstStatement, Implementation, SourceRange};
+use ast::ast::{AstStatement, Implementation, SourceRange};
 
 use crate::model::pou::Pou;
 

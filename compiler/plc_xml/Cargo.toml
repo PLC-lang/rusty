@@ -12,6 +12,7 @@ insta = "1.20"
 indexmap = "1.9"
 html-escape = "0.2"
 plc = { path = "../..", package = "rusty" }
+ast = { path = "../plc_ast/", package = "plc_ast" }
 
 [features]
 default = []

@@ -1,13 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::Diagnostic;
 use core::ops::Range;
-use logos::Filter;
-use logos::Lexer;
-use logos::Logos;
+use logos::{Filter, Lexer, Logos};
+use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 use plc_ast::provider::IdProvider;
 pub use tokens::Token;
-
-use crate::Diagnostic;
-use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 
 #[cfg(test)]
 mod tests;
@@ -340,28 +337,6 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
         .expect("Unknown access type - tokenizer/grammar incomplete?");
 
     Some((hardware_type, access))
-}
-
-#[derive(Clone)]
-//TODO: This belongs to the AST
-pub struct IdProvider {
-    current_id: Arc<AtomicUsize>,
-}
-
-impl IdProvider {
-    pub fn next_id(&mut self) -> AstId {
-        self.current_id.fetch_add(1, Ordering::Relaxed)
-    }
-
-    pub fn with_offset(offset: usize) -> Self {
-        IdProvider { current_id: Arc::new(AtomicUsize::new(offset)) }
-    }
-}
-
-impl Default for IdProvider {
-    fn default() -> Self {
-        IdProvider { current_id: Arc::new(AtomicUsize::new(1)) }
-    }
 }
 
 #[cfg(test)]

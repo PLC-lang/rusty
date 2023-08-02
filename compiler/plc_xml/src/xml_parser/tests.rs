@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
-    use plc::{
+    use ast::{
         ast::{CompilationUnit, LinkageType},
-        diagnostics::Diagnostic,
-        lexer::IdProvider,
+        provider::IdProvider,
     };
+    use insta::assert_debug_snapshot;
+    use plc::diagnostics::Diagnostic;
 
     use crate::{
         serializer::{
