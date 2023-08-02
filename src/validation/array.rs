@@ -14,7 +14,7 @@ pub enum ValidationKind<'a> {
     Statement(&'a AstStatement),
 }
 
-pub fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, kind: ValidationKind)
+pub(super) fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, kind: ValidationKind)
 where
     T: AnnotationMap,
 {
@@ -30,12 +30,15 @@ where
     T: AnnotationMap,
 {
     let Some(initializer) = &variable.initializer else { return };
+
     if context.annotations.get_hint_or_void(initializer, context.index).is_array() {
+        // We first check
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { todo!("definition?") };
         let Some(ldt) = context.index.find_effective_type_by_name(referenced_type).map(|it| it.get_type_information()) else { return };
 
         array_size(context, ldt, initializer, validator);
     } else {
+        // ...and otherwise
         assignment(validator, context, initializer)
     }
 }
@@ -45,17 +48,13 @@ fn assignment<T>(validator: &mut Validator, context: &ValidationContext<T>, stat
 where
     T: AnnotationMap,
 {
-    // foo := [1, 2, 3, 4, 5, 6]; // ARRAY[1..5] OF DINT;
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^
-    //        We get this
-
     match statement {
         AstStatement::Assignment { left, right, .. } => {
             if !context.annotations.get_hint_or_void(right, context.index).is_array() {
                 return; // We're not really interested if the rhs isn't an array
             }
 
-            let Some(ldt) = context.annotations.get_type(left, context.index).map(|it| it.get_type_information()) else { return; };
+            let Some(ldt) = context.annotations.get_type(left, context.index).map(|it| it.get_type_information()) else { return };
             array_size(context, ldt, right, validator);
         }
 
