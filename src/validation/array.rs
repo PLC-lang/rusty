@@ -5,11 +5,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 
-use crate::{
-    diagnostics::{Diagnostic, ErrNo},
-    resolver::AnnotationMap,
-    typesystem::DataTypeInformation,
-};
+use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 
@@ -29,7 +25,7 @@ where
 }
 
 /// Validation for array initializations, i.e. directly in the declaration within a VAR-Block
-pub fn initialization<T>(validator: &mut Validator, context: &ValidationContext<T>, variable: &Variable)
+fn initialization<T>(validator: &mut Validator, context: &ValidationContext<T>, variable: &Variable)
 where
     T: AnnotationMap,
 {
@@ -45,7 +41,7 @@ where
 }
 
 /// Validation for array assignments
-pub fn assignment<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
+fn assignment<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
 where
     T: AnnotationMap,
 {
@@ -83,18 +79,12 @@ fn array_size<T>(
 ) where
     T: AnnotationMap,
 {
-    let lhs_len = left.get_array_length(context.index).unwrap_or(0);
-    let rhs_len = statement_to_array_length(right);
+    let len_lhs = left.get_array_length(context.index).unwrap_or(0);
+    let len_rhs = statement_to_array_length(right);
 
-    println!("Length of lhs: {lhs_len}");
-    println!("Length of rhs: {rhs_len}");
-
-    if lhs_len < rhs_len {
-        validator.push_diagnostic(Diagnostic::SemanticError {
-            message: format!("Array TODO has size {lhs_len}, but {rhs_len} were provided"),
-            range: vec![right.get_location()],
-            err_no: ErrNo::arr__invalid_array_assignment,
-        })
+    if len_lhs < len_rhs {
+        let diagnostic = Diagnostic::array_size(left.get_name(), len_lhs, len_rhs, right.get_location());
+        validator.push_diagnostic(diagnostic)
     }
 
     // Visit each expression

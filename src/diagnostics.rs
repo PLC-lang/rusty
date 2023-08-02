@@ -814,6 +814,14 @@ impl Diagnostic {
             err_no: ErrNo::var__invalid_enum_variant,
         }
     }
+
+    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Array {name} has size {len_lhs}, but {len_rhs} were provided",),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
 }
 
 /// a diagnostics severity
