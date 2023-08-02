@@ -181,18 +181,16 @@ pub fn validate_for_array_assignment<T: AnnotationMap>(
         }
         match e {
             AstStatement::Assignment { left, right, .. } => {
-                let left_type =
-                    context.annotations.get_type_or_void(left, context.index).get_type_information();
-                let right_type =
-                    context.annotations.get_type_or_void(right, context.index).get_type_information();
+                let lt = context.annotations.get_type_or_void(left, context.index).get_type_information();
+                let rt = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
-                if left_type.is_array()
-				// if we try to assign an `ExpressionList` to an ARRAY
-				// we can expect that `()` were used and we got a valid parse result
-				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
-                 && !right_type.is_array()
+                // For initializers we expect either an array, an expression list (`arr := (1, 2, 3,...)`) or
+                // a multiplied statement (`arr := 32(0)`), anything else we can assume to be incorrect
+                if lt.is_array()
+                    && !rt.is_array()
+                    && !right.is_expression_list()
+                    && !right.is_multiplied_statement()
                 {
-                    // otherwise we are definitely in an invalid assignment
                     array_assignment = true;
                     validator
                         .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));

@@ -215,3 +215,22 @@ fn exceeding_size_structs() {
 
     assert_validation_snapshot!(diagnostics)
 }
+
+#[test]
+fn struct_initialization_with_array_initializer_using_multiplied_statement() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE myStruct : STRUCT
+			arr : ARRAY[0..63] OF BYTE;
+			idx : DINT;
+		END_STRUCT END_TYPE
+		PROGRAM mainProg
+			VAR
+				val : myStruct := (arr := 64(0), idx := 0);
+			END_VAR
+		END_PROGRAM
+		",
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+}

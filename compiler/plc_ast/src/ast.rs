@@ -1121,6 +1121,21 @@ impl AstStatement {
     pub fn is_binary_expression(&self) -> bool {
         matches!(self, AstStatement::BinaryExpression { .. })
     }
+
+    pub fn is_expression_list(&self) -> bool {
+        matches!(self, AstStatement::ExpressionList { .. })
+    }
+
+    pub fn is_multiplied_statement(&self) -> bool {
+        matches!(self, AstStatement::MultipliedStatement { .. })
+    }
+
+    pub fn get_name(&self) -> Option<&str> {
+        match self {
+            AstStatement::Reference { name, .. } => Some(name),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
