@@ -5,7 +5,6 @@ use plc_ast::ast::{
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
 
 use super::{
-    array::initialization,
     statement::validate_enum_variant_assignment,
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     validate_for_array_assignment, ValidationContext, Validator, Validators,

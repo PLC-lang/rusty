@@ -668,14 +668,14 @@ impl DataTypeInformation {
 
             match effective_type.get_type_information() {
                 DataTypeInformation::Array { inner_type_name, .. } => {
-                    intrinsic_array_type(index, &inner_type_name)
+                    intrinsic_array_type(index, inner_type_name)
                 }
                 _ => effective_type,
             }
         }
 
         let DataTypeInformation::Array { inner_type_name, .. } = self else { return None };
-        let inner_type_info = intrinsic_array_type(index, &inner_type_name).get_type_information();
+        let inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
         let inner_type_size = inner_type_info.get_size_in_bits(index);
         let arr_size = self.get_size_in_bits(index);
 

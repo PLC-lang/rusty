@@ -23,8 +23,8 @@ where
     T: AnnotationMap,
 {
     match kind {
-        ValidationKind::Variable(variable) => initialization(validator, context, dbg!(&variable)),
-        ValidationKind::Statement(statement) => assignment(validator, context, &statement),
+        ValidationKind::Variable(variable) => initialization(validator, context, variable),
+        ValidationKind::Statement(statement) => assignment(validator, context, statement),
     }
 }
 
@@ -36,7 +36,7 @@ where
     let Some(initializer) = &variable.initializer else { return };
     if context.annotations.get_hint_or_void(initializer, context.index).is_array() {
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { todo!("definition?") };
-        let Some(ldt) = context.index.find_effective_type_by_name(&referenced_type).map(|it| it.get_type_information()) else { return };
+        let Some(ldt) = context.index.find_effective_type_by_name(referenced_type).map(|it| it.get_type_information()) else { return };
 
         array_size(context, ldt, initializer, validator);
     } else {
@@ -55,11 +55,11 @@ where
 
     match statement {
         AstStatement::Assignment { left, right, .. } => {
-            if !context.annotations.get_hint_or_void(&right, context.index).is_array() {
+            if !context.annotations.get_hint_or_void(right, context.index).is_array() {
                 return; // We're not really interested if the rhs isn't an array
             }
 
-            let Some(ldt) = context.annotations.get_type(&left, context.index).map(|it| it.get_type_information()) else { return; };
+            let Some(ldt) = context.annotations.get_type(left, context.index).map(|it| it.get_type_information()) else { return; };
             array_size(context, ldt, right, validator);
         }
 
@@ -84,7 +84,7 @@ fn array_size<T>(
     T: AnnotationMap,
 {
     let lhs_len = left.get_array_length(context.index).unwrap_or(0);
-    let rhs_len = statement_to_array_length(&right);
+    let rhs_len = statement_to_array_length(right);
 
     println!("Length of lhs: {lhs_len}");
     println!("Length of rhs: {rhs_len}");
@@ -110,7 +110,7 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
-                expressions.iter().map(|it| statement_to_array_length(it)).sum::<usize>()
+                expressions.iter().map(statement_to_array_length).sum::<usize>()
             }
 
             Some(any) => statement_to_array_length(any),
