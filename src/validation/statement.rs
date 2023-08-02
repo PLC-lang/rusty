@@ -90,7 +90,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            super::array::validate_array_assignment(validator, context, statement); // TODO: Should this be inside the `validate_assignment` function?
+            super::array::validate(validator, context, super::array::ValidationKind::Statement(statement)); // TODO: Should this be inside the `validate_assignment` function?
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {

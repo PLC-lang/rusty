@@ -8,15 +8,29 @@ use plc_ast::{
 use crate::{
     diagnostics::{Diagnostic, ErrNo},
     resolver::AnnotationMap,
+    typesystem::DataTypeInformation,
 };
 
 use super::{ValidationContext, Validator, Validators};
 
-pub fn validate_array_initialization<T>(
-    validator: &mut Validator,
-    context: &ValidationContext<T>,
-    variable: &Variable,
-) where
+pub enum ValidationKind<'a> {
+    Variable(&'a Variable),
+    Statement(&'a AstStatement),
+}
+
+pub fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, kind: ValidationKind)
+where
+    T: AnnotationMap,
+{
+    match kind {
+        ValidationKind::Variable(variable) => initialization(validator, context, dbg!(&variable)),
+        ValidationKind::Statement(statement) => assignment(validator, context, &statement),
+    }
+}
+
+/// Validation for array initializations, i.e. directly in the declaration within a VAR-Block
+pub fn initialization<T>(validator: &mut Validator, context: &ValidationContext<T>, variable: &Variable)
+where
     T: AnnotationMap,
 {
     let Some(initializer) = &variable.initializer else { return };
@@ -24,33 +38,15 @@ pub fn validate_array_initialization<T>(
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = &variable.data_type_declaration else { todo!("definition?") };
         let Some(ldt) = context.index.find_effective_type_by_name(&referenced_type).map(|it| it.get_type_information()) else { return };
 
-        let lhs_len = ldt.get_array_length(context.index).unwrap_or(0);
-        let rhs_len = statement_to_array_length(initializer);
-
-        println!("Length of lhs: {lhs_len}");
-        println!("Length of rhs: {rhs_len}");
-
-        if lhs_len < rhs_len {
-            validator.push_diagnostic(Diagnostic::SemanticError {
-                message: format!("Array TODO has size {lhs_len}, but {rhs_len} were provided"),
-                range: vec![initializer.get_location()],
-                err_no: ErrNo::arr__invalid_array_assignment,
-            })
-        }
-    }
-
-    if let AstStatement::ExpressionList { expressions, .. } = initializer {
-        for expression in expressions {
-            validate_array_assignment(validator, context, expression);
-        }
+        array_size(context, ldt, initializer, validator);
+    } else {
+        assignment(validator, context, initializer)
     }
 }
 
-pub fn validate_array_assignment<T>(
-    validator: &mut Validator,
-    context: &ValidationContext<T>,
-    statement: &AstStatement,
-) where
+/// Validation for array assignments
+pub fn assignment<T>(validator: &mut Validator, context: &ValidationContext<T>, statement: &AstStatement)
+where
     T: AnnotationMap,
 {
     // foo := [1, 2, 3, 4, 5, 6]; // ARRAY[1..5] OF DINT;
@@ -64,37 +60,48 @@ pub fn validate_array_assignment<T>(
             }
 
             let Some(ldt) = context.annotations.get_type(&left, context.index).map(|it| it.get_type_information()) else { return; };
-            let lhs_len = ldt.get_array_length(context.index).unwrap_or(0);
-            let rhs_len = statement_to_array_length(&right);
-
-            println!("Length of lhs: {lhs_len}");
-            println!("Length of rhs: {rhs_len}");
-
-            if lhs_len < rhs_len {
-                validator.push_diagnostic(Diagnostic::SemanticError {
-                    message: format!("Array TODO has size {lhs_len}, but {rhs_len} were provided"),
-                    range: vec![right.get_location()],
-                    err_no: ErrNo::arr__invalid_array_assignment,
-                })
-            }
-
-            // Visit each expression
-            if let AstStatement::ExpressionList { expressions, .. } = right.as_ref() {
-                for expression in expressions {
-                    validate_array_assignment(validator, context, expression);
-                }
-            }
+            array_size(context, ldt, right, validator);
         }
 
         AstStatement::ExpressionList { expressions, .. } => {
             for expression in expressions {
-                validate_array_assignment(validator, context, expression);
+                assignment(validator, context, expression);
             }
         }
 
         AstStatement::Literal { .. } => (),
 
-        _ => todo!("{statement:?}"),
+        _ => (),
+    }
+}
+
+fn array_size<T>(
+    context: &ValidationContext<T>,
+    left: &DataTypeInformation,
+    right: &AstStatement,
+    validator: &mut Validator,
+) where
+    T: AnnotationMap,
+{
+    let lhs_len = left.get_array_length(context.index).unwrap_or(0);
+    let rhs_len = statement_to_array_length(&right);
+
+    println!("Length of lhs: {lhs_len}");
+    println!("Length of rhs: {rhs_len}");
+
+    if lhs_len < rhs_len {
+        validator.push_diagnostic(Diagnostic::SemanticError {
+            message: format!("Array TODO has size {lhs_len}, but {rhs_len} were provided"),
+            range: vec![right.get_location()],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        })
+    }
+
+    // Visit each expression
+    if let AstStatement::ExpressionList { expressions, .. } = right {
+        for expression in expressions {
+            assignment(validator, context, expression);
+        }
     }
 }
 
