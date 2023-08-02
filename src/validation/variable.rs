@@ -102,10 +102,12 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
+        // TODO: Remove this
+        if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
+            validate_for_array_assignment(validator, expressions, context);
+        }
+
         validate_array_initialization(validator, context, variable);
-        // if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-        //     validate_for_array_assignment(validator, expressions, context);
-        // }
 
         match v_entry
             .initial_value

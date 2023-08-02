@@ -77,6 +77,13 @@ pub fn validate_array_assignment<T>(
                     err_no: ErrNo::arr__invalid_array_assignment,
                 })
             }
+
+            // Visit each expression
+            if let AstStatement::ExpressionList { expressions, .. } = right.as_ref() {
+                for expression in expressions {
+                    validate_array_assignment(validator, context, expression);
+                }
+            }
         }
 
         AstStatement::ExpressionList { expressions, .. } => {
@@ -85,30 +92,31 @@ pub fn validate_array_assignment<T>(
             }
         }
 
-        _ => todo!(),
+        AstStatement::Literal { .. } => (),
+
+        _ => todo!("{statement:?}"),
     }
 }
 
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement {
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
-        AstStatement::Literal { kind, .. } => match kind {
-            AstLiteral::Array(arr) => match arr.elements() {
-                Some(statement) => match statement {
-                    AstStatement::ExpressionList { expressions, .. } => {
-                        // TODO: Explain why; nested arrays e.g. `[[1, 2, 3], [4, 5, 6]]`
-                        expressions.iter().map(|it| statement_to_array_length(it)).sum::<usize>()
-                    }
-                    _ => statement_to_array_length(statement),
-                },
-                None => 0,
-            },
+        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
+            Some(AstStatement::ExpressionList { expressions, .. }) => {
+                expressions.iter().map(|it| statement_to_array_length(it)).sum::<usize>()
+            }
 
-            // Any other literal counts as 1
-            _ => 1,
+            Some(any) => statement_to_array_length(any),
+            None => 0,
         },
 
+        // Any literal other than an array can be counted as 1
+        AstStatement::Literal { .. } => 1,
+
         // TODO: Not sure what else could be in here
-        _ => 0,
+        any => {
+            log::warn!("Array size counting for {any:?} not covered. Result might be wrong.");
+            0
+        }
     }
 }
