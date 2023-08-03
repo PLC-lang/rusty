@@ -11,9 +11,9 @@ use crate::{
 /// the Diagnostician handle's Diangostics with the help of a
 /// assessor and a reporter
 pub struct Diagnostician {
-    pub reporter: Box<dyn DiagnosticReporter>,
-    pub assessor: Box<dyn DiagnosticAssessor>,
-    pub(crate) filename_fileid_mapping: HashMap<String, usize>,
+    reporter: Box<dyn DiagnosticReporter>,
+    assessor: Box<dyn DiagnosticAssessor>,
+    filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -26,22 +26,8 @@ impl Diagnostician {
         handle
     }
 
-    /// creates a null-diagnostician that does not report diagnostics
-    pub fn null_diagnostician() -> Diagnostician {
-        Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            reporter: Box::<NullDiagnosticReporter>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
-    /// creates a clang-format-diagnostician that reports diagnostics in clang format
-    pub fn clang_format_diagnostician() -> Diagnostician {
-        Diagnostician {
-            reporter: Box::<ClangFormatDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
+    fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
+        file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
     }
 
     /// assess and reports the given diagnostics
@@ -68,8 +54,22 @@ impl Diagnostician {
         self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
     }
 
-    fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
-        file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
+    /// creates a null-diagnostician that does not report diagnostics
+    pub fn null_diagnostician() -> Diagnostician {
+        Diagnostician {
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            reporter: Box::<NullDiagnosticReporter>::default(),
+            filename_fileid_mapping: HashMap::new(),
+        }
+    }
+
+    /// creates a clang-format-diagnostician that reports diagnostics in clang format
+    pub fn clang_format_diagnostician() -> Diagnostician {
+        Diagnostician {
+            reporter: Box::<ClangFormatDiagnosticReporter>::default(),
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            filename_fileid_mapping: HashMap::new(),
+        }
     }
 }
 
