@@ -10,7 +10,11 @@ pub(super) fn validate<T>(validator: &mut Validator, context: &ValidationContext
 where
     T: AnnotationMap,
 {
-    if statement.is_expression_list() | statement.is_assignment() | statement.is_literal_array() {
+    if statement.is_expression_list()
+        | statement.is_assignment()
+        | statement.is_literal_array()
+        | statement.is_multiplied_statement()
+    {
         validate_size(validator, context, statement);
     }
 }
@@ -45,6 +49,7 @@ where
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement {
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+        AstStatement::MultipliedStatement { multiplier, .. } => *multiplier as usize,
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
                 expressions.iter().map(statement_to_array_length).sum::<usize>()

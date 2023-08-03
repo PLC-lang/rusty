@@ -206,7 +206,7 @@ fn exceeding_size_structs() {
 				arr_c : ARRAY[1..2] OF Foo := (											// Invalid because only 2 elements can be stored, but 3 are provided
 					(idx := 4, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
 					(idx := 5, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
-					(idx := 6, arr := ((arr := [1, 2, 3]),  (arr := [4, 5, 6]))),		// Invalid ebcause of the first and second inner `arr`
+					(idx := 6, arr := ((arr := 2(0)),  		(arr := 4(0)))),			// Invalid ebcause of the second inner `arr`
 				);
 			END_VAR
 		END_FUNCTION
@@ -233,4 +233,22 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
     );
 
     assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn exceeding_size_multiplied_statement() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+			VAR
+				arr 		: ARRAY[1..5] OF DINT;
+				arr_init	: ARRAY[1..5] OF DINT := 6(0);
+			END_VAR
+
+			arr := 6(0);
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
 }
