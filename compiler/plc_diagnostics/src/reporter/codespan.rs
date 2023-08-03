@@ -38,7 +38,7 @@ impl Default for CodeSpanDiagnosticReporter {
 }
 
 impl DiagnosticReporter for CodeSpanDiagnosticReporter {
-    fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
         for d in diagnostics {
             let diagnostic_factory = match d.severity {
                 Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),

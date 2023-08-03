@@ -11,7 +11,7 @@ use crate::{
     errno::ErrNo,
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
-        null::NullDiagnosticReporter, snapshot::SnapshotDiagnosticReporter,
+        null::NullDiagnosticReporter,
     },
 };
 
@@ -795,15 +795,11 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 /// possible implementations could print to either std-out, std-err or a file, etc.
 pub trait DiagnosticReporter {
     /// reports the given diagnostic
-    fn report(&mut self, diagnostics: &[ResolvedDiagnostics]);
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]);
     /// register the given path & src and returns an ID to indicate
     /// a relationship the given src (diagnostics for this src need
     /// to use this id)
     fn register(&mut self, path: String, src: String) -> usize;
-
-    fn buffer(&mut self) -> Option<String> {
-        None
-    }
 }
 
 /// the Diagnostician handle's Diangostics with the help of a
@@ -842,28 +838,21 @@ impl Diagnostician {
         }
     }
 
-    /// Creates a default [`SnapshotDiagnosticReporter`].
-    pub fn snapshot() -> Diagnostician {
-        Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            reporter: Box::<SnapshotDiagnosticReporter>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
     /// assess and reports the given diagnostics
-    pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
+    pub fn handle(&self, diagnostics: Vec<Diagnostic>) {
         let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
             message: d.get_message().to_string(),
             severity: self.assess(d),
             main_location: ResolvedLocation {
-                file_handle: self.get_file_handle(d.get_location().get_file_name()).unwrap_or(0),
+                file_handle: self
+                    .get_file_handle(d.get_location().get_file_name())
+                    .unwrap_or(usize::max_value()),
                 range: d.get_location().to_range(),
             },
             additional_locations: d.get_secondary_locations().map(|it| {
                 it.iter()
                     .map(|l| ResolvedLocation {
-                        file_handle: self.get_file_handle(l.get_file_name()).unwrap_or(0),
+                        file_handle: self.get_file_handle(l.get_file_name()).unwrap_or(usize::max_value()),
                         range: l.to_range(),
                     })
                     .collect()
@@ -876,14 +865,10 @@ impl Diagnostician {
     fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
         file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
     }
-
-    pub fn buffer(&mut self) -> Option<String> {
-        self.reporter.buffer()
-    }
 }
 
 impl DiagnosticReporter for Diagnostician {
-    fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
         //delegate to reporter
         self.reporter.report(diagnostics);
     }
