@@ -4,9 +4,11 @@ use codespan_reporting::{
     term::termcolor::{ColorChoice, StandardStream},
 };
 
-use crate::diagnostics::{DiagnosticReporter, ResolvedDiagnostics, Severity};
+use crate::diagnostician::Severity;
 
-/// a DiagnosticReporter that reports diagnostics using codespan_reporting
+use super::{DiagnosticReporter, ResolvedDiagnostics};
+
+/// A reporter that reports diagnostics using [`codespan_reporting`].
 pub struct CodeSpanDiagnosticReporter {
     files: SimpleFiles<String, String>,
     config: codespan_reporting::term::Config,

@@ -7,7 +7,10 @@ pub mod tests {
         ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
         provider::IdProvider,
     };
-    use plc_diagnostics::diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics};
+    use plc_diagnostics::{
+        diagnostics::Diagnostic,
+        reporter::{DiagnosticReporter, ResolvedDiagnostics},
+    };
     use source::{Compilable, SourceCode, SourceContainer};
 
     use crate::{

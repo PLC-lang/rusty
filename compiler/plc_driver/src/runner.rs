@@ -2,7 +2,7 @@ use crate::{pipelines::ParsedProject, CompileOptions};
 
 use ast::provider::IdProvider;
 use plc::codegen::{CodegenContext, GeneratedModule};
-use plc_diagnostics::diagnostics::Diagnostician;
+use plc_diagnostics::diagnostician::Diagnostician;
 use project::project::Project;
 use source_code::Compilable;
 

@@ -1,8 +1,11 @@
 use codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
 
-use crate::diagnostics::{DiagnosticReporter, ResolvedDiagnostics, Severity};
+use crate::diagnostician::Severity;
 
-/// a DiagnosticReporter that reports diagnostics using clang-format
+use super::{DiagnosticReporter, ResolvedDiagnostics};
+
+/// A reporter that reports diagnostics in clang format. Specifically the messages have the following
+/// form `<filename>:<range>: <severity>: <message>`.
 pub struct ClangFormatDiagnosticReporter {
     files: SimpleFiles<String, String>,
 }

@@ -18,7 +18,7 @@ use std::{
 use ast::provider::IdProvider;
 use cli::CompileParameters;
 use plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
-use plc_diagnostics::diagnostics::{Diagnostic, Diagnostician};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;

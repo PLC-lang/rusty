@@ -7,7 +7,7 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_diagnostics::diagnostics::{Diagnostic, Diagnostician};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_util::convention::qualified_name;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder

@@ -1,6 +1,6 @@
-use crate::diagnostics::{DiagnosticReporter, ResolvedDiagnostics};
+use super::{DiagnosticReporter, ResolvedDiagnostics};
 
-/// a DiagnosticReporter that swallows all diagnostics
+/// A reporter that consumes all diagnostics without reporting them.
 #[derive(Default)]
 pub struct NullDiagnosticReporter {
     last_id: usize,
