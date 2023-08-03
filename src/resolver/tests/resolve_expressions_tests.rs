@@ -92,8 +92,8 @@ fn expt_binary_expression() {
     let (unit, mut index) = index_with_ids(
         "
         PROGRAM PRG
-            VAR 
-                a,b : DINT; 
+            VAR
+                a,b : DINT;
                 c,d : REAL;
                 e,f : LREAL;
             END_VAR
@@ -251,10 +251,10 @@ fn complex_expressions_resolves_types_for_literals_directly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
-            VAR 
-                a : BYTE; 
-                b : SINT; 
-                c : INT; 
+            VAR
+                a : BYTE;
+                b : SINT;
+                c : INT;
             END_VAR
             a := ((b + USINT#7) - c);
         END_PROGRAM",
@@ -457,7 +457,7 @@ fn global_resolves_types() {
             li : LINT;
             uli : ULINT;
         END_VAR
-        
+
         PROGRAM PRG
             b;
             w;
@@ -539,7 +539,7 @@ fn resolve_binary_expressions() {
             li : LINT;
             uli : ULINT;
         END_VAR
-        
+
         PROGRAM PRG
             b + b;
             b + w;
@@ -578,7 +578,7 @@ fn necessary_promotions_should_be_type_hinted() {
             b : BYTE;
             di : DINT;
        END_VAR
-        
+
         PROGRAM PRG
             b + di;
             b < di;
@@ -622,7 +622,7 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
         VAR_GLOBAL
             f : REAL;
        END_VAR
-        
+
         PROGRAM PRG
             f > 0;
         END_PROGRAM",
@@ -705,10 +705,10 @@ fn pointer_expressions_resolve_types() {
             b;
             b^;
         END_PROGRAM
-        
-        TYPE MyInt: INT := 7; END_TYPE 
-        TYPE MyIntRef: REF_TO INT; END_TYPE 
-        TYPE MyAliasRef: REF_TO MyInt; END_TYPE 
+
+        TYPE MyInt: INT := 7; END_TYPE
+        TYPE MyIntRef: REF_TO INT; END_TYPE
+        TYPE MyAliasRef: REF_TO MyInt; END_TYPE
 
         ",
         id_provider.clone(),
@@ -751,10 +751,10 @@ fn array_expressions_resolve_types() {
             z;
             z[2];
         END_PROGRAM
-        
-        TYPE MyInt: INT := 7; END_TYPE 
-        TYPE MyIntArray: ARRAY[0..10] OF INT := 7; END_TYPE 
-        TYPE MyAliasArray: ARRAY[0..10] OF MyInt := 7; END_TYPE 
+
+        TYPE MyInt: INT := 7; END_TYPE
+        TYPE MyIntArray: ARRAY[0..10] OF INT := 7; END_TYPE
+        TYPE MyAliasArray: ARRAY[0..10] OF MyInt := 7; END_TYPE
 
         ",
         id_provider.clone(),
@@ -792,7 +792,7 @@ fn qualified_expressions_resolve_types() {
                 dw : DWORD;
                 lw : LWORD;
             END_VAR
-        END_PROGRAM   
+        END_PROGRAM
 
         PROGRAM PRG
             Other.b;
@@ -821,7 +821,7 @@ fn pou_expressions_resolve_types() {
     let (unit, index) = index_with_ids(
         "
         PROGRAM OtherPrg
-        END_PROGRAM   
+        END_PROGRAM
 
         FUNCTION OtherFunc : INT
         END_FUNCTION
@@ -915,7 +915,7 @@ fn qualified_expressions_to_structs_resolve_types() {
             lw : LWORD;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
             b : BYTE;
             w : WORD;
@@ -926,7 +926,7 @@ fn qualified_expressions_to_structs_resolve_types() {
         END_TYPE
 
         PROGRAM PRG
-            VAR 
+            VAR
                 mys : MyStruct;
             END_VAR
             mys;
@@ -960,7 +960,7 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
     let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
-            VAR 
+            VAR
                 mys : STRUCT
                     b : BYTE;
                     w : WORD;
@@ -1111,7 +1111,7 @@ fn shadowed_function_is_annotated_correctly() {
         FUNCTION foo : DINT
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         foo();
         END_PROGRAM
         ",
@@ -1137,7 +1137,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
             lw : LWORD;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
             b : BYTE;
             w : WORD;
@@ -1151,7 +1151,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
         TYPE AliasedNextStruct : NextStruct; END_TYPE
 
         PROGRAM PRG
-            VAR 
+            VAR
                 mys : AliasedMyStruct;
             END_VAR
             mys;
@@ -1193,7 +1193,7 @@ fn qualified_expressions_to_fbs_resolve_types() {
         END_FUNCTION_BLOCK
 
         PROGRAM PRG
-            VAR 
+            VAR
                 fb : MyFb;
             END_VAR
             fb;
@@ -1221,7 +1221,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
         "
         VAR_GLOBAL
             x : DINT;
-        END_VAR 
+        END_VAR
 
         TYPE MyStruct: STRUCT
             y : INT;
@@ -1269,7 +1269,7 @@ fn function_parameter_assignments_resolve_types() {
         PROGRAM PRG
             foo(x := 3, y => 6);
         END_PROGRAM
-        
+
         TYPE MyType: INT; END_TYPE
         ",
         id_provider.clone(),
@@ -1415,7 +1415,7 @@ fn actions_are_resolved() {
             prg.foo;
         END_PROGRAM
         ACTIONS prg
-        ACTION foo 
+        ACTION foo
         END_ACTION
         END_ACTIONS
 
@@ -1477,7 +1477,7 @@ fn method_references_are_resolved() {
         }),
         annotation
     );
-    let method_call = &unit.implementations[1].statements[0];
+    let method_call = &unit.implementations[2].statements[0];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
             Some(&StatementAnnotation::Function {
@@ -1595,7 +1595,7 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
         VAR_GLOBAL CONSTANT
             cg : INT := 1;
         END_VAR
-        
+
         VAR_GLOBAL
             g : INT := 1;
         END_VAR
@@ -1605,7 +1605,7 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
                 cl : INT;
             END_VAR
 
-            VAR 
+            VAR
                 l : INT;
             END_VAR
 
@@ -1644,7 +1644,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
             b : BYTE;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
             b : BYTE;
             next : NextStruct;
@@ -1652,10 +1652,10 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
         END_TYPE
 
         PROGRAM PRG
-            VAR 
+            VAR
                 mys : MyStruct;
             END_VAR
-            VAR CONSTANT 
+            VAR CONSTANT
                 cmys : MyStruct;
             END_VAR
 
@@ -1694,7 +1694,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
             b : BYTE;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
             b : BYTE;
             next : NextStruct;
@@ -1705,12 +1705,12 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
             other.mys.next.b;
             other.cmys.next.b;
         END_PROGRAM
-        
+
         PROGRAM other
-            VAR 
+            VAR
                 mys : MyStruct;
             END_VAR
-            VAR CONSTANT 
+            VAR CONSTANT
                 cmys : MyStruct;
             END_VAR
 
@@ -1744,9 +1744,9 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
         "
     TYPE Color: (red, green, yellow);
     END_TYPE
-            
+
     PROGRAM other
-        VAR 
+        VAR
             state: (OPEN, CLOSE);
         END_VAR
         red;
@@ -1897,7 +1897,7 @@ fn enum_initialization_is_annotated_correctly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
-        
+
         PROGRAM PRG
             VAR_TEMP
                 x : MyEnum := 1;
@@ -2152,7 +2152,7 @@ fn case_conditions_type_hint_test() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : BYTE;
             y : BYTE;
@@ -2240,9 +2240,9 @@ fn struct_variable_initialization_annotates_initializer() {
           a: DINT; b: DINT;
         END_STRUCT END_TYPE
 
-         VAR_GLOBAL 
-           a : MyStruct  := (a:=3, b:=5); 
-           b : MyStruct  := (a:=3); 
+         VAR_GLOBAL
+           a : MyStruct  := (a:=3, b:=5);
+           b : MyStruct  := (a:=3);
          END_VAR
          ",
         id_provider.clone(),
@@ -2294,10 +2294,10 @@ fn deep_struct_variable_initialization_annotates_initializer() {
             v: Point; q: Point;
         END_STRUCT END_TYPE
 
-         VAR_GLOBAL 
+         VAR_GLOBAL
            a : MyStruct  := (
-               v := (a := 1, b := 2), 
-               q := (b := 3)); 
+               v := (a := 1, b := 2),
+               q := (b := 3));
          END_VAR
          ",
         id_provider.clone(),
@@ -2369,7 +2369,7 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-        PROGRAM foo 
+        PROGRAM foo
             VAR_IN_OUT
                 inout : DINT;
             END_VAR
@@ -2394,7 +2394,7 @@ fn action_call_should_be_annotated() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -2425,7 +2425,7 @@ fn action_body_gets_resolved() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : DINT;
             END_VAR
@@ -2473,7 +2473,7 @@ fn class_method_gets_annotated() {
         VAR
             x, y : BYTE;
         END_VAR
-    
+
         METHOD testMethod
             VAR_INPUT myMethodArg : DINT; END_VAR
             VAR myMethodLocalVar : SINT; END_VAR
@@ -2588,7 +2588,7 @@ fn array_accessor_in_struct_array_is_annotated() {
             data : MyStruct;
             i : INT;
         END_VAR
-        
+
         data.arr1[i];
 
         END_PROGRAM
@@ -2622,7 +2622,7 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
         PROGRAM Main
         VAR
             x : MyInt;
-        END_VAR 
+        END_VAR
         x := 7;
         END_PROGRAM
         "#,
@@ -2652,7 +2652,7 @@ fn null_statement_should_get_a_valid_type_hint() {
         PROGRAM Main
         VAR
             x : POINTER TO BYTE;
-        END_VAR 
+        END_VAR
         x := NULL;
         END_PROGRAM
         "#,
@@ -2732,7 +2732,7 @@ fn string_compare_should_resolve_to_bool() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         r#"
-        FUNCTION STRING_EQUAL: BOOL 
+        FUNCTION STRING_EQUAL: BOOL
         VAR a,b : STRING; END_VAR
 
         END_FUNCTION;
@@ -2740,7 +2740,7 @@ fn string_compare_should_resolve_to_bool() {
         PROGRAM Main
         VAR
             a,b: STRING;
-        END_VAR 
+        END_VAR
         a = b;
         END_PROGRAM
         "#,
@@ -2763,7 +2763,7 @@ fn assigning_lword_to_ptr_will_annotate_correctly() {
         VAR
             a : POINTER TO INT;
             b : DWORD;
-        END_VAR 
+        END_VAR
         b := a;
         END_PROGRAM
         "#,
@@ -2792,7 +2792,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly() {
         VAR
             a : POINTER TO INT;
             b : DWORD;
-        END_VAR 
+        END_VAR
         a := b;
         END_PROGRAM
         "#,
@@ -2821,7 +2821,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
         VAR
             a : POINTER TO INT;
             b : DWORD;
-        END_VAR 
+        END_VAR
         b := a^;
         END_PROGRAM
         "#,
@@ -2855,7 +2855,7 @@ fn address_of_is_annotated_correctly() {
         PROGRAM Main
         VAR
             b : INT;
-        END_VAR 
+        END_VAR
         &b;
         END_PROGRAM
         "#,
@@ -2947,7 +2947,7 @@ fn and_statement_of_bools_results_in_bool() {
 		VAR
             a,b : BOOL;
 		END_VAR
-        
+
             a AND b;
         END_PROGRAM
         ",
@@ -2972,7 +2972,7 @@ fn and_statement_of_dints_results_in_dint() {
             a,b : DINT;
             c,d : INT;
 		END_VAR
-        
+
             a AND b;
             c AND d;
         END_PROGRAM
@@ -3067,9 +3067,9 @@ fn function_block_initialization_test() {
             END_FUNCTION_BLOCK
 
 
-            PROGRAM main 
+            PROGRAM main
             VAR
-                timer : TON := (PT := T#0s); 
+                timer : TON := (PT := T#0s);
             END_VAR
             END_PROGRAM
             ",
@@ -3110,7 +3110,7 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
             END_VAR
             END_FUNCTION
 
-            PROGRAM main 
+            PROGRAM main
             VAR
                 float: REAL := 3.0;
                 double: LREAL := 4.0;
@@ -3286,8 +3286,8 @@ fn multiple_pointer_referencing_annotates_correctly() {
     let (unit, mut index) = index_with_ids(
         "
         PROGRAM PRG
-        VAR 
-            a : BYTE; 
+        VAR
+            a : BYTE;
         END_VAR
             &&a;
             &&&a;
@@ -3317,7 +3317,7 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     let (unit, mut index) = index_with_ids(
         "
         PROGRAM PRG
-        VAR 
+        VAR
             a : BYTE;
         END_VAR
             (&&a)^;
@@ -3353,8 +3353,8 @@ fn multiple_negative_annotates_correctly() {
     let (unit, mut index) = index_with_ids(
         "
         PROGRAM PRG
-        VAR 
-            a : DINT; 
+        VAR
+            a : DINT;
         END_VAR
             --a;
             -(-a);
@@ -3466,7 +3466,7 @@ fn parameter_down_cast_test() {
                 i : SINT;
                 ii : INT;
                 di : DINT;
-                li : LINT;               
+                li : LINT;
             END_VAR
             foo(
                 ii,     // downcast
@@ -3658,13 +3658,13 @@ fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
     VAR
         var1 : ARRAY[0..10] OF WSTRING;
         var2 : ARRAY[0..10] OF WSTRING;
-    END_VAR       
+    END_VAR
     VAR_INPUT
         in1 : DINT;
         in2 : LWORD;
-    END_VAR 
+    END_VAR
     END_FUNCTION_BLOCK
-    
+
     ACTIONS fb_t
     ACTION foo
     END_ACTION
@@ -4001,7 +4001,7 @@ fn vla_call_statement_with_nested_arrays() {
         END_VAR
             foo(arr[1]);
         END_FUNCTION
-        
+
         FUNCTION foo : DINT
         VAR_INPUT
             vla: ARRAY[*] OF DINT;
@@ -4104,4 +4104,354 @@ fn multi_dim_vla_access_assignment_receives_the_correct_type_hint() {
     };
     // RHS resolves to INT and receives type-hint to DINT
     assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("DINT"));
+}
+
+#[test]
+fn override_is_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls
+        METHOD foo : INT
+        END_METHOD
+        METHOD bar : INT
+        END_METHOD
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls
+        METHOD OVERRIDE foo : INT
+        END_METHOD
+        END_CLASS
+
+        FUNCTION_BLOCK fb
+        VAR 
+            myClass : cls2; 
+        END_VAR
+
+        myClass.foo();
+        myClass.bar();
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let method_call = &unit.implementations[5].statements[0];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls2.foo".to_string(),
+                call_name: None,
+            }),
+            annotations.get(operator)
+        );
+    }
+    let method_call = &unit.implementations[5].statements[1];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls.bar".to_string(),
+                call_name: None,
+            }),
+            annotations.get(operator)
+        );
+    }
+}
+
+#[test]
+fn override_in_grandparent_is_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls
+        METHOD foo : INT
+        END_METHOD
+        METHOD bar : INT
+        END_METHOD
+        END_CLASS
+
+        CLASS cls1 EXTENDS cls
+        METHOD OVERRIDE foo : INT
+        END_METHOD
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls1
+        METHOD OVERRIDE foo : INT
+        END_METHOD
+        END_CLASS
+
+        FUNCTION_BLOCK fb
+        VAR 
+            myClass : cls2; 
+        END_VAR
+
+        myClass.foo();
+        myClass.bar();
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let method_call = &unit.implementations[7].statements[0];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls2.foo".to_string(),
+                call_name: None,
+            }),
+            annotations.get(operator)
+        );
+    }
+    let method_call = &unit.implementations[7].statements[1];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".to_string(),
+                qualified_name: "cls.bar".to_string(),
+                call_name: None,
+            }),
+            annotations.get(operator)
+        );
+    }
+}
+
+#[test]
+fn annotate_variable_in_parent_class() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls1
+        VAR 
+            LIGHT: BOOL; 
+        END_VAR
+        END_CLASS
+
+        FUNCTION_BLOCK cls2 EXTENDS cls1
+        VAR
+            Light2 : BOOL;
+        END_VAR
+            LIGHT := TRUE;
+            Light2 := LIGHT;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[1].statements[1] {
+        let annotation = annotations.get(right);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[1].statements[1] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls2.Light2".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+}
+
+#[test]
+fn annotate_variable_in_grandparent_class() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls0
+        VAR 
+            LIGHT: BOOL;
+        END_VAR
+        END_CLASS
+
+        CLASS cls1 EXTENDS cls0
+        END_CLASS
+
+        FUNCTION_BLOCK cls2 EXTENDS cls1
+            LIGHT := TRUE;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[0] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+}
+
+#[test]
+fn annotate_variable_in_field() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls0
+        VAR 
+            LIGHT: BOOL;
+        END_VAR
+        END_CLASS
+
+        CLASS cls1 EXTENDS cls0
+        END_CLASS
+
+        FUNCTION_BLOCK cls2 EXTENDS cls1
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog
+        VAR 
+            myClass : cls2; 
+        END_VAR
+
+        myClass.LIGHT := TRUE;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[3].statements[0] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+}
+
+#[test]
+fn annotate_method_in_super() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls0
+        VAR 
+            LIGHT: BOOL;
+        END_VAR
+
+        METHOD meth : DINT
+            LIGHT := TRUE;
+        END_METHOD
+        END_CLASS
+
+        CLASS cls1 EXTENDS cls0
+        VAR 
+            LIGHT1: BOOL;
+        END_VAR
+
+        METHOD meth1 : DINT
+            LIGHT := TRUE;
+            LIGHT1 := TRUE;
+        END_METHOD
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls1
+        VAR 
+            LIGHT2: BOOL;
+        END_VAR
+        METHOD meth2 : DINT
+            LIGHT := TRUE;
+            LIGHT1 := TRUE;
+            LIGHT2 := TRUE;
+        END_METHOD
+        END_CLASS
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[0] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[2].statements[1] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT1".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[0] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls0.LIGHT".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[1] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls1.LIGHT1".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
+    if let AstStatement::Assignment { left, .. } = &unit.implementations[4].statements[2] {
+        let annotation = annotations.get(left);
+        assert_eq!(
+            &StatementAnnotation::Variable {
+                resulting_type: "BOOL".to_string(),
+                qualified_name: "cls2.LIGHT2".to_string(),
+                constant: false,
+                argument_type: ArgumentType::ByVal(VariableType::Local,),
+                is_auto_deref: false,
+            },
+            annotation.unwrap()
+        );
+    }
 }

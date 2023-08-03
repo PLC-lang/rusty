@@ -158,6 +158,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.super_class.clone().as_deref(),
             ));
             index.register_pou_type(datatype);
         }
@@ -175,6 +176,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.super_class.clone(),
             ));
             index.register_pou_type(datatype);
         }
