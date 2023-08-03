@@ -1,13 +1,9 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 314..318 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 325..326 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 449..453 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 460..461 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 497..500 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 507..508 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 603..607 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 614..615 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 322..323 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 457..458 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 504..505 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 611..612 }], err_no: arr__invalid_array_assignment }
 
