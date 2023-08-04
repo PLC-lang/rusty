@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array __main_arr has size 10, but 11 were provided", range: [SourceRange { range: 73..108 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_nested has size 10, but 15 were provided", range: [SourceRange { range: 249..308 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr has size 10, but 11 were provided", range: [SourceRange { range: 504..539 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 552..585 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_nested has size 10, but 15 were provided", range: [SourceRange { range: 673..732 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 754..809 }], err_no: arr__invalid_array_assignment }
+

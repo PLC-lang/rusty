@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/array_validation_test.rs
+assertion_line: 79
+expression: res
+---
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr4 has size 2, but 3 were provided", range: [SourceRange { range: 288..328 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 457..458 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 504..505 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 536..540 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 611..612 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 611..612 }], err_no: arr__invalid_array_assignment }
+

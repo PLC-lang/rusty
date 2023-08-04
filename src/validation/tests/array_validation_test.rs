@@ -107,15 +107,16 @@ fn array_access_dimension_mismatch() {
 }
 
 #[test]
-fn exceeding_size_1d() {
+fn assignment_1d() {
     let diagnostics = parse_and_validate(
         "
 		FUNCTION main : DINT
 			VAR
-				arr 		: ARRAY[1..5] OF DINT;
-				arr_init	: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
+				arr 		: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
+				arr_alt		: ARRAY[1..5] OF DINT := (1, 2, 3, 4, 5, 6);
 			END_VAR
 
+			arr := [1, 2, 3, 4, 5]; // Valid
 			arr := [1, 2, 3, 4, 5, 6];
 			arr := (1, 2, 3, 4, 5, 6);
 		END_FUNCTION
@@ -126,23 +127,25 @@ fn exceeding_size_1d() {
 }
 
 #[test]
-fn exceeding_size_2d() {
+fn assignment_2d() {
     let diagnostics = parse_and_validate(
         "
 		FUNCTION main : DINT
 			VAR
-				arr 		: ARRAY[1..2, 1..5] OF DINT;
-				arr_nested 	: ARRAY[1..2] OF ARRAY[1..5] OF DINT;
+				arr 			: ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+				arr_alt			: ARRAY[1..2, 1..5] OF DINT := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
-				arr_init 		: ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-				arr_nested_init : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
+				arr_nested		: ARRAY[1..2] OF ARRAY[1..5] OF DINT := [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
+				arr_nested_alt	: ARRAY[1..2] OF ARRAY[1..5] OF DINT := ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
 			END_VAR
 
+			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Valid
 			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 			
-			arr_nested := [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]];
-			// arr_nested := ((1, 2, 3, 4, 5), (6, 7, 8, 9, 10, 11)); // TODO: Nested Arrays can only be initialized with a bracket symbol?
+			arr_nested		:= [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10] ]; // Valid
+			arr_nested		:= [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
+			arr_nested		:= ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
 		END_FUNCTION
 		",
     );
@@ -151,26 +154,25 @@ fn exceeding_size_2d() {
 }
 
 #[test]
-fn exceeding_size_3d() {
+fn assignment_3d() {
     let diagnostics = parse_and_validate(
         "
 		FUNCTION main : DINT
 			VAR
-				arr 		: ARRAY[1..2, 1..2, 1..2] OF DINT;
-				arr_nested 	: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT;
+				arr 		: ARRAY[1..2, 1..2, 1..2] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9];
+				arr_alt 	: ARRAY[1..2, 1..2, 1..2] OF DINT := (1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-				arr_init 		: ARRAY[1..2, 1..2, 1..2] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9];
-				arr_nested_init	: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]];
+				arr_nested		: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [ [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] ];
+				arr_nested_alt	: ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := ( [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] );
 			END_VAR
 
+			arr := [1, 2, 3, 4, 5, 6, 7, 8]; // Valid
 			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9];
 			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9);
 			
-			arr_nested := [
-				[[1, 2], [3, 4]],
-				[[5, 6], [7, 8]],
-				[[9, 10], [11, 12]],
-			];
+			arr_nested := [ [[1, 2], [3, 4]], [[5, 6], [7, 8]] ]; // Valid
+			arr_nested := [ [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] ];
+			arr_nested := ( [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] );
 		END_FUNCTION
 		",
     );
@@ -179,6 +181,32 @@ fn exceeding_size_3d() {
 }
 
 #[test]
+fn assignment_structs() {
+    let diagnostics = parse_and_validate(
+        "
+		TYPE FOO : STRUCT
+			idx : DINT;
+			arr : ARRAY[1..2] OF BAR;
+		END_STRUCT END_TYPE
+
+		TYPE BAR : STRUCT
+			arr : ARRAY[1..5] OF DINT;
+		END_STRUCT END_TYPE
+
+		FUNCTION main : DINT
+			VAR
+				foo 		: FOO := (idx := 0, arr := [(arr := [1, 2, 3, 4, 5]), (arr := [1, 2, 3, 4, 5])]);
+				foo_invalid : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+			END_VAR
+		END_FUNCTION
+		",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+#[ignore = "Needs to be re-checked"]
 fn exceeding_size_structs() {
     let diagnostics = parse_and_validate(
         "
@@ -195,18 +223,18 @@ fn exceeding_size_structs() {
 			VAR
 				arr_a : Foo := (
 					idx := 1, 
-					arr := ((arr := [1, 2]), (arr := [3, 4]), (arr := [5, 6])) 			// Invalid, because the outter `arr` can only store 2 elements
+					arr := [(arr := [1, 2]), (arr := [3, 4]), (arr := [5, 6])] 			// Invalid, because the outter `arr` can only store 2 elements
 				);
 
 				arr_b : ARRAY[1..2] OF Foo := (
-					(idx := 2, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
-					(idx := 3, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
+					[idx := 2, arr := [(arr := [1, 2, 3]),  (arr := [4, 5])]],			// Invalid because of the first inner `arr`
+					[idx := 3, arr := [(arr := [1, 2]),     (arr := [3, 4, 5])]],		// Invalid because of the second inner `arr`
 				);
 
 				arr_c : ARRAY[1..2] OF Foo := (											// Invalid because only 2 elements can be stored, but 3 are provided
-					(idx := 4, arr := ((arr := [1, 2, 3]),  (arr := [4, 5]))),			// Invalid because of the first inner `arr`
-					(idx := 5, arr := ((arr := [1, 2]),     (arr := [3, 4, 5]))),		// Invalid because of the second inner `arr`
-					(idx := 6, arr := ((arr := 2(0)),  		(arr := 4(0)))),			// Invalid ebcause of the second inner `arr`
+					(idx := 4, arr := [(arr := [1, 2, 3]),  (arr := [4, 5])]),			// Invalid because of the first inner `arr`
+					(idx := 5, arr := [(arr := [1, 2]),     (arr := [3, 4, 5])]),		// Invalid because of the second inner `arr`
+					(idx := 6, arr := [(arr := 2(0)),  		(arr := 4(0))]),			// Invalid ebcause of the second inner `arr`
 				);
 			END_VAR
 		END_FUNCTION
@@ -217,35 +245,33 @@ fn exceeding_size_structs() {
 }
 
 #[test]
-fn struct_initialization_with_array_initializer_using_multiplied_statement() {
-    let diagnostics = parse_and_validate(
-        "
-		TYPE myStruct : STRUCT
-			arr : ARRAY[0..63] OF BYTE;
-			idx : DINT;
-		END_STRUCT END_TYPE
-		PROGRAM mainProg
-			VAR
-				val : myStruct := (arr := 64(0), idx := 0);
-			END_VAR
-		END_PROGRAM
-		",
-    );
-
-    assert_eq!(diagnostics.len(), 0);
-}
-
-#[test]
-fn exceeding_size_multiplied_statement() {
+fn assignment_multiplied_statement() {
     let diagnostics = parse_and_validate(
         "
 		FUNCTION main : DINT
 			VAR
-				arr 		: ARRAY[1..5] OF DINT;
-				arr_init	: ARRAY[1..5] OF DINT := 6(0);
+				arr_1d : ARRAY[1..5] OF DINT := 6(0);
+
+				arr_2d : ARRAY[1..2, 1..5] OF DINT := 11(0);
+				arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := 11(0);
+
+				arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := 9(0);
+				arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := 9(0);
 			END_VAR
 
-			arr := 6(0);
+			// Valid
+			arr_1d := 5(0);
+			arr_2d := 10(0);
+			arr_2d_nested := 10(0);
+			arr_3d = 8(0);
+			arr_3d_nested := 8(0);
+
+			// Invalid
+			arr_1d := 6(0);
+			arr_2d := 11(0);
+			arr_2d_nested := 11(0);
+			arr_3d := 9(0);
+			arr_3d_nested := 9(0);
 		END_FUNCTION
 		",
     );

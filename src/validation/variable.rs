@@ -1,6 +1,4 @@
-use plc_ast::ast::{
-    ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
-};
+use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
 
@@ -102,13 +100,8 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        // // TODO: Remove this
-        // if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-        //     validate_for_array_assignment(validator, expressions, context);
-        // }
-
         if let Some(initializer) = &variable.initializer {
-            validate_array_assignment(validator, context, initializer);
+            validate_array_assignment(validator, context, initializer, Some(variable));
         }
 
         match v_entry

@@ -734,6 +734,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn array_invalid_assigment(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Arrays must be initialized with a `[` symbol".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
     pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Array initializer must be an initializer list!".to_string(),
