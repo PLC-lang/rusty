@@ -1879,9 +1879,6 @@
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
 <a href="#1881" id="1881">1881</a>
-<a href="#1882" id="1882">1882</a>
-<a href="#1883" id="1883">1883</a>
-<a href="#1884" id="1884">1884</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -3148,63 +3145,60 @@
                             |v| <span class="prelude-val">Some</span>(to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant)),
                         )
                 } <span class="kw">else </span>{
-                    <span class="comment">// if we see no qualifier, we try some strategies ...
+                    <span class="comment">// if we see no qualifier, we try some strategies...
                     </span>ctx.pou
                         .and_then(|qualifier| {
-                            <span class="comment">// ... first look at POU-local variables
+                            <span class="comment">// ...first look at POU-local variables
                             </span><span class="self">self</span>.index
                                 .find_member(qualifier, name)
                                 .and_then(|m| {
-                                    <span class="comment">// #604 needed for recursive function calls
-                                    // if we are in a call statement and the member name equals the pou name
-                                    // we are in a recursive function call -&gt; FUNCTION foo : INT foo(); END_FUNCTION
-                                    </span><span class="kw">if </span>ctx.is_call &amp; (m.get_name() == qualifier) {
-                                        <span class="comment">// return `None` because this would be foo.foo pointing to the function return
-                                        // we need the POU
-                                        </span><span class="prelude-val">None
-                                    </span>} <span class="kw">else </span>{
-                                        <span class="prelude-val">Some</span>(m)
+                                    <span class="comment">// If we&#39;re dealing with a call statement, check if...
+                                    </span><span class="kw">if </span>ctx.is_call {
+                                        <span class="comment">// ...the POU name is the same as the member, which indicates a
+                                        // recursive function call (e.g. `FUNCTION foo : INT foo(); END_FUNCTION`)
+                                        </span><span class="kw">if </span>m.get_name() == qualifier {
+                                            <span class="kw">return </span><span class="prelude-val">None</span>; <span class="comment">// We need the POU instead
+                                        </span>}
+
+                                        <span class="comment">// ...there exists a **function** with the same name as the member,
+                                        // which indicates that we would incorrectly annotate a call statement as a variable.
+                                        // Note: We explicitily check for functions because e.g. FBs can be callable variables
+                                        </span><span class="kw">if </span><span class="self">self</span>.index.find_pou(name).is_some_and(|it| it.is_function()) {
+                                            <span class="kw">return </span><span class="prelude-val">None</span>; <span class="comment">// We need the POU instead
+                                        </span>}
                                     }
+
+                                    <span class="prelude-val">Some</span>(to_variable_annotation(m, <span class="self">self</span>.index, ctx.constant))
                                 })
-                                .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant))
-                                .or_else(|| {
-                                    <span class="comment">//TODO find parent of super class to start the search
-                                    // ... then check if we&#39;re in a method and we&#39;re referencing
-                                    // a member variable of the corresponding class
-                                    </span><span class="self">self</span>.index
-                                        .find_pou(qualifier)
-                                        .filter(|it| <span class="macro">matches!</span>(it, PouIndexEntry::Method { .. }))
-                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
-                                        .and_then(|class_name| <span class="self">self</span>.index.find_member(class_name, name))
-                                        .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant))
-                                })
-                                .or_else(|| {
-                                    <span class="comment">// try to find a local action with this name
-                                    </span><span class="self">self</span>.index
-                                        .find_pou(<span class="kw-2">&amp;</span>qualified_name(qualifier, name))
-                                        .map(StatementAnnotation::from)
-                                })
+                                <span class="comment">//TODO find parent of super class to start the search
+                                // ...then check if we&#39;re in a method and we&#39;re referencing
+                                // a member variable of the corresponding class
+                                </span>.or(<span class="self">self
+                                    </span>.index
+                                    .find_pou(qualifier)
+                                    .filter(|it| <span class="macro">matches!</span>(it, PouIndexEntry::Method { .. }))
+                                    .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                    .and_then(|class_name| <span class="self">self</span>.index.find_member(class_name, name))
+                                    .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant)))
+                                <span class="comment">// try to find a local action with this name
+                                </span>.or(<span class="self">self
+                                    </span>.index
+                                    .find_pou(<span class="kw-2">&amp;</span>qualified_name(qualifier, name))
+                                    .map(StatementAnnotation::from))
                         })
-                        .or_else(|| {
-                            <span class="comment">// ... then try if we find a scoped-pou with that name (maybe it&#39;s a call to a local method or action?)
-                            </span>ctx.pou.and_then(|pou_name| <span class="self">self</span>.index.find_pou(pou_name)).and_then(|it| {
-                                <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>qualified_name(it.get_container(), name)).map(Into::into)
-                            })
-                        })
-                        .or_else(|| {
-                            <span class="comment">// ... then try if we find a global-pou with that name (maybe it&#39;s a call to a function or program?)
-                            </span>{
-                                <span class="kw">let </span>index = <span class="self">self</span>.index;
-                                index.find_pou(name).map(|it| it.into())
-                            }
-                        })
-                        .or_else(|| {
-                            <span class="comment">// ... last option is a global variable, where we ignore the current pou&#39;s name as a qualifier
-                            </span><span class="self">self</span>.index
-                                .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant))
-                        })
+                        <span class="comment">// ...then try if we find a scoped-pou with that name (maybe it&#39;s a call to a local method or action?)
+                        </span>.or(ctx.pou.and_then(|pou_name| <span class="self">self</span>.index.find_pou(pou_name)).and_then(|it| {
+                            <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>qualified_name(it.get_container(), name)).map(Into::into)
+                        }))
+                        <span class="comment">// ...then try if we find a global-pou with that name (maybe it&#39;s a call to a function or program?)
+                        </span>.or(<span class="self">self</span>.index.find_pou(name).map(|it| it.into()))
+                        <span class="comment">// ...last option is a global variable, where we ignore the current pou&#39;s name as a qualifier
+                        </span>.or(<span class="self">self
+                            </span>.index
+                            .find_global_variable(name)
+                            .map(|v| to_variable_annotation(v, <span class="self">self</span>.index, ctx.constant)))
                 };
+
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = annotation {
                     <span class="self">self</span>.annotate(statement, annotation);
                     <span class="self">self</span>.maybe_annotate_vla(ctx, statement);
