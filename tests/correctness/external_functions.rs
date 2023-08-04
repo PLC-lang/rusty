@@ -193,3 +193,37 @@ fn string_sized_pointer_variadic_call() {
     let res: bool = module.run_no_param("main");
     assert!(res)
 }
+
+#[no_mangle]
+extern "C" fn echo__DINT(val: i32) -> i32 {
+    val
+}
+
+#[test]
+fn generic_external_function_having_same_name_as_local_variable() {
+    let src = "
+        {external}
+        FUNCTION echo <T: ANY_INT> : DINT
+            VAR_INPUT
+                val : T;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                echo : DINT;
+            END_VAR
+            echo := echo(12345);
+            main := echo;
+        END_FUNCTION
+    ";
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let source = SourceCode::new(src, "external_test.st");
+    let context = CodegenContext::create();
+    let module = compile(&context, source);
+    module.add_global_function_mapping("echo__DINT", echo__DINT as usize);
+
+    let res: i32 = module.run_no_param("main");
+    assert_eq!(res, 12345)
+}
