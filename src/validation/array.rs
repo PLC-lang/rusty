@@ -36,11 +36,17 @@ impl<'a> Wrapper<'a> {
     where
         T: AnnotationMap,
     {
-        // TODO: Wrong, variable != get_statement
-        let statement = self.get_statement();
-        let Some(AstStatement::Assignment { left, .. }) = statement else { return None };
+        match self {
+            Wrapper::Statement(statement) => {
+                let AstStatement::Assignment { left, .. } = statement else { return None };
+                context.annotations.get_type(&left, context.index)
+            }
 
-        context.annotations.get_type(&left, context.index)
+            Wrapper::Variable(variable) => variable
+                .data_type_declaration
+                .get_referenced_type()
+                .and_then(|it| context.index.find_effective_type_by_name(&it)),
+        }
     }
 }
 
@@ -63,6 +69,7 @@ where
     T: AnnotationMap,
 {
     if init {
+        dbg!(wrapper.get_statement());
         match wrapper.get_statement() {
             Some(AstStatement::Assignment { right, .. }) => {
                 validate(validator, context, Wrapper::Statement(&right), init)
