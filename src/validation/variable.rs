@@ -3,7 +3,7 @@ use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, Vari
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
 
 use super::{
-    array::validate_array_assignment,
+    array::{validate_array_assignment, Wrapper},
     statement::validate_enum_variant_assignment,
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
@@ -100,8 +100,8 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if let Some(initializer) = &variable.initializer {
-            validate_array_assignment(validator, context, initializer, Some(variable));
+        if variable.initializer.is_some() {
+            validate_array_assignment(validator, context, Wrapper::Variable(variable));
         }
 
         match v_entry

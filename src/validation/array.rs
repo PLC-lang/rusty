@@ -7,80 +7,91 @@ use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataTy
 
 use super::{ValidationContext, Validator, Validators};
 
+pub(super) enum Wrapper<'a> {
+    Statement(&'a AstStatement),
+    Variable(&'a Variable),
+}
+
+impl<'a> Wrapper<'a> {
+    fn get_statement(&self) -> Option<&'a AstStatement> {
+        match self {
+            Wrapper::Statement(statement) => Some(statement),
+            Wrapper::Variable(variable) => variable.initializer.as_ref(),
+        }
+    }
+
+    fn get_rhs(&self) -> Option<&'a AstStatement> {
+        match self {
+            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(&right),
+            Wrapper::Variable(variable) => variable.initializer.as_ref(),
+            _ => None,
+        }
+    }
+
+    fn is_assignment(&self) -> bool {
+        matches!(self, Wrapper::Variable(..) | Wrapper::Statement(AstStatement::Assignment { .. }))
+    }
+
+    fn datatype_lhs<T>(&self, context: &'a ValidationContext<T>) -> Option<&'a DataType>
+    where
+        T: AnnotationMap,
+    {
+        // TODO: Wrong, variable != get_statement
+        let statement = self.get_statement();
+        let Some(AstStatement::Assignment { left, .. }) = statement else { return None };
+
+        context.annotations.get_type(&left, context.index)
+    }
+}
+
 pub(super) fn validate_array_assignment<T>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    statement: &AstStatement,
-    variable: Option<&Variable>,
+    wrapper: Wrapper,
 ) where
     T: AnnotationMap,
 {
-    // Two ways this function gets called,
-    // 1) On variable initializations inside the variable block
-    // 2) On variable assigments inside the body
-    // For 1) we carry the `variable` field
-    if !statement.is_assignment() {
-        // TODO: 1)
-        // return; // TODO:
+    if matches!(wrapper, Wrapper::Variable(..)) {
+        validate(validator, context, wrapper, true)
+    } else {
+        validate(validator, context, wrapper, false)
     }
-
-    let initializer_hint = variable
-        .and_then(|it| it.data_type_declaration.get_referenced_type())
-        .and_then(|it| context.index.find_effective_type_by_name(&it));
-
-    validate(validator, context, statement, initializer_hint)
 }
 
-fn validate<T>(
-    validator: &mut Validator,
-    context: &ValidationContext<T>,
-    statement: &AstStatement,
-    hint: Option<&DataType>,
-) where
+fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, wrapper: Wrapper, init: bool)
+where
     T: AnnotationMap,
 {
-    match statement {
-        AstStatement::Assignment { left, right, .. } => validate(
-            validator,
-            context,
-            &right,
-            Some(context.annotations.get_type_or_void(&left, context.index)), // We have to give hint here, for cases such as arr := 1, 2, 3 (=> should have been [1, 2, 3])
-        ),
-        AstStatement::ExpressionList { expressions, .. } => {
-            expressions.iter().for_each(|it| validate(validator, context, it, None))
+    if init {
+        match wrapper.get_statement() {
+            Some(AstStatement::Assignment { right, .. }) => {
+                validate(validator, context, Wrapper::Statement(&right), init)
+            }
+
+            Some(AstStatement::ExpressionList { expressions, .. }) => {
+                expressions.iter().for_each(|it| validate(validator, context, Wrapper::Statement(it), init))
+            }
+
+            _ => (),
         }
-        _ => (),
     }
 
-    // if let AstStatement::Assignment { left, right, .. } = statement {
-    //     let lt = context.annotations.get_type_or_void(&left, &context.index);
-    //     let rt = context.annotations.get_type_or_void(&left, &context.index);
+    if wrapper.is_assignment() {
+        if let Some(l_dt) = wrapper.datatype_lhs(context) {
+            let r = wrapper.get_rhs().unwrap();
+            if l_dt.is_array() {
+                if !(r.is_literal_array() || r.is_multiplied_statement() || r.is_reference()) {
+                    validator.push_diagnostic(Diagnostic::array_invalid_assigment(r.get_location()));
+                } else {
+                    // Only if there was no issue with assignment do we want to validate their sizes
+                    let len_lhs = l_dt.get_type_information().get_array_length(context.index).unwrap_or(0);
+                    let len_rhs = statement_to_array_length(r);
 
-    //     if lt.is_array() && (!rt.is_array() && !(right.is_literal_array() || right.is_multiplied_statement()))
-    //     {
-    //         validator.push_diagnostic(Diagnostic::array_invalid_assigment(right.get_location()));
-    //     }
-    // }
-
-    if let Some(hint) = hint.or(context.annotations.get_type_hint(statement, context.index)) {
-        if hint.is_array()
-            && !(statement.is_literal_array()
-                || statement.is_multiplied_statement()
-                || statement.is_reference())
-        {
-            if !statement.is_reference() {
-                validator.push_diagnostic(Diagnostic::array_invalid_assigment(statement.get_location()));
-            }
-        } else {
-            // Only if there was no issue with assignment do we want to validate their sizes
-            if hint.is_array() {
-                let len_lhs = hint.get_type_information().get_array_length(context.index).unwrap_or(0);
-                let len_rhs = statement_to_array_length(statement);
-
-                if len_lhs < len_rhs {
-                    let diagnostic =
-                        Diagnostic::array_size(hint.get_name(), len_lhs, len_rhs, statement.get_location());
-                    validator.push_diagnostic(diagnostic);
+                    if len_lhs < len_rhs {
+                        let diagnostic =
+                            Diagnostic::array_size(l_dt.get_name(), len_lhs, len_rhs, r.get_location());
+                        validator.push_diagnostic(diagnostic);
+                    }
                 }
             }
         }

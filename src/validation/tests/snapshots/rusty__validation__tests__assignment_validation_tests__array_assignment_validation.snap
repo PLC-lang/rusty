@@ -8,8 +8,9 @@ SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_4' t
 SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_real_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 946..973 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_string_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 990..1019 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_char_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 1036..1063 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1095..1096 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_v_arr_int_3 has size 4, but 6 were provided", range: [SourceRange { range: 1180..1196 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 1095..1096 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 1138..1148 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 1180..1196 }], err_no: arr__invalid_array_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1384..1410 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1427..1460 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1477..1503 }], err_no: var__invalid_assignment }

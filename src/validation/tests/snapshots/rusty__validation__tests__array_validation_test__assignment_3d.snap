@@ -8,6 +8,6 @@ SemanticError { message: "Array __main_arr_nested has size 8, but 12 were provid
 SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 395..450 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr has size 8, but 9 were provided", range: [SourceRange { range: 521..548 }], err_no: arr__invalid_array_assignment }
 SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 561..586 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_nested has size 8, but 12 were provided", range: [SourceRange { range: 673..732 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 753..808 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_nested has size 8, but 12 were provided", range: [SourceRange { range: 676..735 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 756..811 }], err_no: arr__invalid_array_assignment }
 

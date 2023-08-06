@@ -6,7 +6,10 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
 };
 
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+use super::{
+    array::{validate_array_assignment, Wrapper},
+    ValidationContext, Validator, Validators,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -89,7 +92,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            validate_array_assignment(validator, context, statement, None); // TODO: Should this be inside the `validate_assignment` function?
+            validate_array_assignment(validator, context, Wrapper::Statement(statement)); // TODO: Should this be inside the `validate_assignment` function?
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {
