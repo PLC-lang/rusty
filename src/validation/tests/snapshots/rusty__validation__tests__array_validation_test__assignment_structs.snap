@@ -2,7 +2,7 @@
 source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 336..349 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 362..375 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 328..375 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 336..349 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 362..375 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 328..375 }], err_no: arr__invalid_array_assignment }
 

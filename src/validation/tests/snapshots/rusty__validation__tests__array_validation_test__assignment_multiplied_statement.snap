@@ -2,14 +2,14 @@
 source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
-SemanticError { message: "Array __main_arr_1d has size 5, but 6 were provided", range: [SourceRange { range: 67..73 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d has size 10, but 11 were provided", range: [SourceRange { range: 118..125 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d_nested has size 10, but 11 were provided", range: [SourceRange { range: 185..192 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d has size 8, but 9 were provided", range: [SourceRange { range: 243..249 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d_nested has size 8, but 9 were provided", range: [SourceRange { range: 324..330 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_1d has size 5, but 6 were provided", range: [SourceRange { range: 504..510 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d has size 10, but 11 were provided", range: [SourceRange { range: 525..532 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d_nested has size 10, but 11 were provided", range: [SourceRange { range: 554..561 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d has size 8, but 9 were provided", range: [SourceRange { range: 576..582 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d_nested has size 8, but 9 were provided", range: [SourceRange { range: 604..610 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_1d has a size of 5, but 6 elements were provided", range: [SourceRange { range: 67..73 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_2d has a size of 10, but 11 elements were provided", range: [SourceRange { range: 118..125 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_2d_nested has a size of 10, but 11 elements were provided", range: [SourceRange { range: 185..192 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_3d has a size of 8, but 9 elements were provided", range: [SourceRange { range: 243..249 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_3d_nested has a size of 8, but 9 elements were provided", range: [SourceRange { range: 324..330 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_1d has a size of 5, but 6 elements were provided", range: [SourceRange { range: 504..510 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_2d has a size of 10, but 11 elements were provided", range: [SourceRange { range: 525..532 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_2d_nested has a size of 10, but 11 elements were provided", range: [SourceRange { range: 554..561 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_3d has a size of 8, but 9 elements were provided", range: [SourceRange { range: 576..582 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_3d_nested has a size of 8, but 9 elements were provided", range: [SourceRange { range: 604..610 }], err_no: arr__invalid_array_assignment }
 

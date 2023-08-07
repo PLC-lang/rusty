@@ -736,23 +736,15 @@ impl Diagnostic {
 
     pub fn array_invalid_assigment(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: "Arrays must be initialized with a `[` symbol".to_string(),
+            message: "Array initializations must start with a leading `[` symbol".to_string(),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
     }
 
-    pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Array initializer must be an initializer list!".to_string(),
-            range: vec![range],
-            err_no: ErrNo::arr__invalid_array_assignment,
-        }
-    }
-
-    pub fn array_expected_identifier_or_round_bracket(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Expected identifier or '('".to_string(),
+    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided",),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
@@ -820,14 +812,6 @@ impl Diagnostic {
             message: format!("Assigned value is not a variant of {enum_type}"),
             range: vec![range],
             err_no: ErrNo::var__invalid_enum_variant,
-        }
-    }
-
-    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceRange) -> Diagnostic {
-        Diagnostic::SemanticError {
-            message: format!("Array {name} has size {len_lhs}, but {len_rhs} were provided",),
-            range: vec![range],
-            err_no: ErrNo::arr__invalid_array_assignment,
         }
     }
 }
