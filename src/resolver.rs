@@ -876,8 +876,6 @@ impl<'i> TypeAnnotator<'i> {
         initializer: &AstStatement,
         ctx: &VisitorContext,
     ) {
-        dbg!(&expected_type);
-        dbg!(&initializer);
         match expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);

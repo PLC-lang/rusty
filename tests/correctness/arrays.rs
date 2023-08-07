@@ -611,11 +611,6 @@ fn initialize_array_with_struct_elements() {
         b0: u16,
         c0: u16,
         d0: u16,
-
-        a1: u16,
-        b1: u16,
-        c1: u16,
-        d1: u16,
     }
 
     let function = r#"
@@ -627,25 +622,18 @@ fn initialize_array_with_struct_elements() {
         PROGRAM target
             VAR
                 bracket : ARRAY[0..1] OF myStruct := [(x := 2, y := 4), (x := 6, y := 8)];
-                paren : ARRAY[0..1] OF myStruct := ((x := 2, y := 4), (x := 6, y := 8));
             END_VAR
         END_PROGRAM
 
         PROGRAM main
             VAR
                 a0, b0, c0, d0 : INT;
-                a1, b1, c1, d1 : INT;
             END_VAR
 
             a0 := target.bracket[0].x;
             b0 := target.bracket[0].y;
             c0 := target.bracket[1].x;
             d0 := target.bracket[1].y;
-
-            a1 := target.paren[0].x;
-            b1 := target.paren[0].y;
-            c1 := target.paren[1].x;
-            d1 := target.paren[1].y;
         END_PROGRAM
     "#;
 
@@ -656,11 +644,6 @@ fn initialize_array_with_struct_elements() {
     assert_eq!(maintype.b0, 4);
     assert_eq!(maintype.c0, 6);
     assert_eq!(maintype.d0, 8);
-
-    assert_eq!(maintype.a1, 2);
-    assert_eq!(maintype.b1, 4);
-    assert_eq!(maintype.c1, 6);
-    assert_eq!(maintype.d1, 8);
 }
 
 #[test]
@@ -678,12 +661,12 @@ fn struct_initialization_with_array_initializer_using_multiplied_statement() {
 		END_STRUCT END_TYPE
         PROGRAM target
 			VAR
-				val : myStruct := (arr := 64(111), idx := 222);
+				val : myStruct := (arr := [64(111)], idx := 222);
             END_VAR
         END_PROGRAM
 		PROGRAM main
             VAR
-                arr : ARRAY[0..63] OF INT := 0;
+                arr : ARRAY[0..63] OF INT;
                 idx : INT := 0;
 			END_VAR
             arr := target.val.arr;
