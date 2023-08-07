@@ -13,16 +13,9 @@ pub(super) enum Wrapper<'a> {
 }
 
 impl<'a> Wrapper<'a> {
-    fn get_statement(&self) -> Option<&'a AstStatement> {
-        match self {
-            Wrapper::Statement(statement) => Some(statement),
-            Wrapper::Variable(variable) => variable.initializer.as_ref(),
-        }
-    }
-
     fn get_rhs(&self) -> Option<&'a AstStatement> {
         match self {
-            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(&right),
+            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(right),
             Wrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
@@ -39,7 +32,7 @@ impl<'a> Wrapper<'a> {
         match self {
             Wrapper::Statement(statement) => {
                 let AstStatement::Assignment { left, .. } = statement else { return None };
-                context.annotations.get_type(&left, context.index)
+                context.annotations.get_type(left, context.index)
             }
 
             Wrapper::Variable(variable) => variable
