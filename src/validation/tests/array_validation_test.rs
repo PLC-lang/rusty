@@ -250,28 +250,28 @@ fn assignment_multiplied_statement() {
         "
 		FUNCTION main : DINT
 			VAR
-				arr_1d : ARRAY[1..5] OF DINT := 6(0);
+				arr_1d : ARRAY[1..5] OF DINT := [6(0)];
 
-				arr_2d : ARRAY[1..2, 1..5] OF DINT := 11(0);
-				arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := 11(0);
+				arr_2d : ARRAY[1..2, 1..5] OF DINT := [11(0)];
+				arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [11(0)];
 
-				arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := 9(0);
-				arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := 9(0);
+				arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := [9(0)];
+				arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [9(0)];
 			END_VAR
 
 			// Valid
-			arr_1d := 5(0);
-			arr_2d := 10(0);
-			arr_2d_nested := 10(0);
-			arr_3d = 8(0);
-			arr_3d_nested := 8(0);
+			arr_1d := [5(0)];
+			arr_2d := [10(0)];
+			arr_2d_nested := [10(0)];
+			arr_3d = [8(0)];
+			arr_3d_nested := [8(0)];
 
 			// Invalid
-			arr_1d := 6(0);
-			arr_2d := 11(0);
-			arr_2d_nested := 11(0);
-			arr_3d := 9(0);
-			arr_3d_nested := 9(0);
+			arr_1d := [6(0)];
+			arr_2d := [11(0)];
+			arr_2d_nested := [11(0)];
+			arr_3d := [9(0)];
+			arr_3d_nested := [9(0)];
 		END_FUNCTION
 		",
     );

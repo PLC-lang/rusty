@@ -57,7 +57,7 @@ pub(super) fn validate_array_assignment<T>(
     if let Some(l_dt) = wrapper.datatype_lhs(context) {
         let r = wrapper.get_rhs().unwrap();
         if l_dt.is_array() {
-            if !(r.is_literal_array() || r.is_multiplied_statement() || r.is_reference()) {
+            if !(r.is_literal_array() || r.is_reference()) {
                 validator.push_diagnostic(Diagnostic::array_invalid_assigment(r.get_location()));
             } else {
                 // Only if there was no issue with assignment do we want to validate their sizes
