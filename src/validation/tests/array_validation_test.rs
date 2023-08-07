@@ -55,8 +55,8 @@ fn array_initialization_validation() {
 		VAR
 			arr			: ARRAY[1..2] OF DINT;
 			arr2		: ARRAY[1..2] OF DINT := 1, 2; 												// Missing `[`
-			arr3		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); 	// Missing `[` for `var2`
-			arr4		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); 		// Missing `[` for `var2`
+			arr3		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); 	// Missing `[`
+			arr4		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); 		// Missing `[`
 			arr_init	: ARRAY[1..2] OF DINT := (1, 2);											// Missing `[`
 			x	 		: myStruct;
 			y	 		: myStruct := (var1 := 1, var2 := 3, 4);									// Missing `[`
@@ -64,7 +64,7 @@ fn array_initialization_validation() {
 			arr	:= 1, 2; 																			// Missing `[`
 			arr	:= (1, 2);																			// Missing `[`
 			arr	:= (arr_init); // valid
-			x	:= (var1 := 1, var2 := 3, 4); 														// Missing `[` for `var2`
+			x	:= (var1 := 1, var2 := 3, 4); 														// Missing `[`
 			x	:= (var1 := 1, var2 := arr_init); // valid
 		END_FUNCTION
 		
