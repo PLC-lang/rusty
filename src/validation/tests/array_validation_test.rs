@@ -54,17 +54,17 @@ fn array_initialization_validation() {
 		FUNCTION main : DINT
 		VAR
 			arr			: ARRAY[1..2] OF DINT;
-			arr2		: ARRAY[1..2] OF DINT := 1, 2; // our parser can handle this, should we validate this ?
-			arr3		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); // valid
-			arr4		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); // var2 missing `(`
-			arr_init	: ARRAY[1..2] OF DINT := (1, 2);
+			arr2		: ARRAY[1..2] OF DINT := 1, 2; 												// Missing `[`
+			arr3		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); 	// Missing `[` for `var2`
+			arr4		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); 		// Missing `[` for `var2`
+			arr_init	: ARRAY[1..2] OF DINT := (1, 2);											// Missing `[`
 			x	 		: myStruct;
-			y	 		: myStruct := (var1 := 1, var2 := 3, 4); // var2 missing `(`
+			y	 		: myStruct := (var1 := 1, var2 := 3, 4);									// Missing `[`
 		END_VAR
-			arr	:= 1, 2; // missing `(`
-			arr	:= (1, 2); // valid
+			arr	:= 1, 2; 																			// Missing `[`
+			arr	:= (1, 2);																			// Missing `[`
 			arr	:= (arr_init); // valid
-			x	:= (var1 := 1, var2 := 3, 4); // var2 missing `(`
+			x	:= (var1 := 1, var2 := 3, 4); 														// Missing `[` for `var2`
 			x	:= (var1 := 1, var2 := arr_init); // valid
 		END_FUNCTION
 		

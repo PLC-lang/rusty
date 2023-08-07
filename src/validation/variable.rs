@@ -100,8 +100,9 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if variable.initializer.is_some() {
+        if let Some(initializer) = &variable.initializer {
             validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            super::statement::visit_statement(validator, initializer, context);
         }
 
         match v_entry

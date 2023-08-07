@@ -57,48 +57,24 @@ pub(super) fn validate_array_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    if matches!(wrapper, Wrapper::Variable(..)) {
-        validate(validator, context, wrapper, true)
-    } else {
-        validate(validator, context, wrapper, false)
-    }
-}
-
-fn validate<T>(validator: &mut Validator, context: &ValidationContext<T>, wrapper: Wrapper, init: bool)
-where
-    T: AnnotationMap,
-{
-    if init {
-        dbg!(wrapper.get_statement());
-        match wrapper.get_statement() {
-            Some(AstStatement::Assignment { right, .. }) => {
-                validate(validator, context, Wrapper::Statement(&right), init)
-            }
-
-            Some(AstStatement::ExpressionList { expressions, .. }) => {
-                expressions.iter().for_each(|it| validate(validator, context, Wrapper::Statement(it), init))
-            }
-
-            _ => (),
-        }
+    if !wrapper.is_assignment() {
+        return;
     }
 
-    if wrapper.is_assignment() {
-        if let Some(l_dt) = wrapper.datatype_lhs(context) {
-            let r = wrapper.get_rhs().unwrap();
-            if l_dt.is_array() {
-                if !(r.is_literal_array() || r.is_multiplied_statement() || r.is_reference()) {
-                    validator.push_diagnostic(Diagnostic::array_invalid_assigment(r.get_location()));
-                } else {
-                    // Only if there was no issue with assignment do we want to validate their sizes
-                    let len_lhs = l_dt.get_type_information().get_array_length(context.index).unwrap_or(0);
-                    let len_rhs = statement_to_array_length(r);
+    if let Some(l_dt) = wrapper.datatype_lhs(context) {
+        let r = wrapper.get_rhs().unwrap();
+        if l_dt.is_array() {
+            if !(r.is_literal_array() || r.is_multiplied_statement() || r.is_reference()) {
+                validator.push_diagnostic(Diagnostic::array_invalid_assigment(r.get_location()));
+            } else {
+                // Only if there was no issue with assignment do we want to validate their sizes
+                let len_lhs = l_dt.get_type_information().get_array_length(context.index).unwrap_or(0);
+                let len_rhs = statement_to_array_length(r);
 
-                    if len_lhs < len_rhs {
-                        let diagnostic =
-                            Diagnostic::array_size(l_dt.get_name(), len_lhs, len_rhs, r.get_location());
-                        validator.push_diagnostic(diagnostic);
-                    }
+                if len_lhs < len_rhs {
+                    let diagnostic =
+                        Diagnostic::array_size(l_dt.get_name(), len_lhs, len_rhs, r.get_location());
+                    validator.push_diagnostic(diagnostic);
                 }
             }
         }

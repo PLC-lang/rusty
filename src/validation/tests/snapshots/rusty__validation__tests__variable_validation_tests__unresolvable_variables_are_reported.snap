@@ -1,7 +1,8 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Unresolved constant 'cx' variable", range: [SourceRange { range: 374..376 }], err_no: var__unresolved_constant }
+SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 455..456 }], err_no: reference__unresolved }
 SyntaxError { message: "Unresolved constant 'cai' variable", range: [SourceRange { range: 455..456 }], err_no: var__unresolved_constant }
 

@@ -2,8 +2,14 @@
 source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 322..323 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 457..458 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 504..505 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 611..612 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 199..236 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 232..236 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 290..326 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 322..323 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 388..392 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 457..458 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 504..505 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 536..540 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Arrays must be initialized with a `[` symbol", range: [SourceRange { range: 611..612 }], err_no: arr__invalid_array_assignment }
 
