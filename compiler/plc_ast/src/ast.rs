@@ -1122,27 +1122,8 @@ impl AstStatement {
         matches!(self, AstStatement::BinaryExpression { .. })
     }
 
-    pub fn is_expression_list(&self) -> bool {
-        matches!(self, AstStatement::ExpressionList { .. })
-    }
-
-    pub fn is_assignment(&self) -> bool {
-        matches!(self, AstStatement::Assignment { .. })
-    }
-
     pub fn is_literal_array(&self) -> bool {
         matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
-    }
-
-    pub fn is_multiplied_statement(&self) -> bool {
-        matches!(self, AstStatement::MultipliedStatement { .. })
-    }
-
-    pub fn get_name(&self) -> Option<&str> {
-        match self {
-            AstStatement::Reference { name, .. } => Some(name),
-            _ => None,
-        }
     }
 }
 
