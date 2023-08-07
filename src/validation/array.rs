@@ -1,46 +1,27 @@
+//! This module is responsible for validating array assignments both in their syntax and semantics.
+//!
+//! Specifically this module checks if the array assignments start with a leading `[` symbol and the fed
+//! elements are less-equal to the arrays size. As an example, `foo : ARRAY[1..3] OF DINT := (1, 2, 3)`
+//! violates both the syntax and semantic of array assignments.
+//!
+//! Design note: Because we distinguish between variables inside VAR blocks [`plc_ast::ast::Variable`]
+//! and POU bodies [`plc_ast::ast::AstStatement`] and how we interact with them (e.g. infering types of
+//! [`plc_ast::ast::Variable`] from the AstAnnotation being impossible right now) a wrapper enum was
+//! introduced to make the validation code as generic as possible.
+
 use plc_ast::{
     ast::{AstStatement, Variable},
     literals::AstLiteral,
 };
 
-use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataType};
+use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 
+/// Indicates whether an array was defined in a VAR block or a POU body
 pub(super) enum Wrapper<'a> {
     Statement(&'a AstStatement),
     Variable(&'a Variable),
-}
-
-impl<'a> Wrapper<'a> {
-    fn get_rhs(&self) -> Option<&'a AstStatement> {
-        match self {
-            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(right),
-            Wrapper::Variable(variable) => variable.initializer.as_ref(),
-            _ => None,
-        }
-    }
-
-    fn is_assignment(&self) -> bool {
-        matches!(self, Wrapper::Variable(..) | Wrapper::Statement(AstStatement::Assignment { .. }))
-    }
-
-    fn datatype_lhs<T>(&self, context: &'a ValidationContext<T>) -> Option<&'a DataType>
-    where
-        T: AnnotationMap,
-    {
-        match self {
-            Wrapper::Statement(statement) => {
-                let AstStatement::Assignment { left, .. } = statement else { return None };
-                context.annotations.get_type(left, context.index)
-            }
-
-            Wrapper::Variable(variable) => variable
-                .data_type_declaration
-                .get_referenced_type()
-                .and_then(|it| context.index.find_effective_type_by_name(&it)),
-        }
-    }
 }
 
 pub(super) fn validate_array_assignment<T>(
@@ -50,32 +31,29 @@ pub(super) fn validate_array_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    if !wrapper.is_assignment() {
+    let Some(dti_lhs) = wrapper.datatype_info_lhs(context) else { return };
+    let Some(stmt_rhs) = wrapper.get_rhs() else { return };
+
+    if !dti_lhs.is_array() {
         return;
     }
 
-    if let Some(l_dt) = wrapper.datatype_lhs(context) {
-        let r = wrapper.get_rhs().unwrap();
-        if l_dt.is_array() {
-            if !(r.is_literal_array() || r.is_reference()) {
-                validator.push_diagnostic(Diagnostic::array_invalid_assigment(r.get_location()));
-            } else {
-                // Only if there was no issue with assignment do we want to validate their sizes
-                let len_lhs = l_dt.get_type_information().get_array_length(context.index).unwrap_or(0);
-                let len_rhs = statement_to_array_length(r);
+    if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
+        validator.push_diagnostic(Diagnostic::array_invalid_assigment(stmt_rhs.get_location()));
+        return; // Return here, because array size validation is error-prone with incorrect assignments
+    }
 
-                if len_lhs < len_rhs {
-                    let diagnostic =
-                        Diagnostic::array_size(l_dt.get_name(), len_lhs, len_rhs, r.get_location());
-                    validator.push_diagnostic(diagnostic);
-                }
-            }
-        }
+    let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
+    let len_rhs = statement_to_array_length(stmt_rhs);
+
+    if len_lhs < len_rhs {
+        let diag = Diagnostic::array_size(dti_lhs.get_name(), len_lhs, len_rhs, stmt_rhs.get_location());
+        validator.push_diagnostic(diag);
     }
 }
 
 /// Takes an [`AstStatement`] and returns its length as if it was an array. For example calling this function
-/// on the expression-list of `foo := ((...), (...))` would return 2.
+/// on an expression-list such as `[(...), (...)]` would return 2.
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement {
         AstStatement::ExpressionList { .. } => 1,
@@ -94,8 +72,35 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
 
         any => {
             // XXX: Not sure what else could be in here
-            log::warn!("Array size counting for {any:?} not covered; validation _could_ be wrong");
+            log::warn!("Array size-counting for {any:?} not covered; validation _might_ be wrong");
             0
+        }
+    }
+}
+
+impl<'a> Wrapper<'a> {
+    fn get_rhs(&self) -> Option<&'a AstStatement> {
+        match self {
+            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(right),
+            Wrapper::Variable(variable) => variable.initializer.as_ref(),
+            _ => None,
+        }
+    }
+
+    fn datatype_info_lhs<T>(&self, context: &'a ValidationContext<T>) -> Option<&'a DataTypeInformation>
+    where
+        T: AnnotationMap,
+    {
+        match self {
+            Wrapper::Statement(statement) => {
+                let AstStatement::Assignment { left, .. } = statement else { return None };
+                context.annotations.get_type(left, context.index).map(|it| it.get_type_information())
+            }
+
+            Wrapper::Variable(variable) => variable
+                .data_type_declaration
+                .get_referenced_type()
+                .and_then(|it| context.index.find_effective_type_info(&it)),
         }
     }
 }

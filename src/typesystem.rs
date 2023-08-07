@@ -658,10 +658,11 @@ impl DataTypeInformation {
         }
     }
 
-    /// TODO: Doc, returns length of array; e.g.
-    /// - ARRAY[1..5] OF DINT                   =>  5
-    /// - ARRAY[1..2, 1..5]                     => 10
-    /// - ARRAY[1..2] OF ARRAY[1..5] OF DINT    => 10
+    /// Returns the array length if [`DataTypeInformation`] is of variant [`DataTypeInformation::Array`] and
+    /// None otherwise.
+    ///
+    /// For example calling this function on `ARRAY[1..5] OF DINT`, `ARRAY[1..2, 1..5] OF DINT` and
+    /// `ARRAY[1..3] OF ARRAY[1..5]` yields `5`, `10` and `15` respectively.
     pub fn get_array_length(&self, index: &Index) -> Option<usize> {
         fn intrinsic_array_type<'index>(index: &'index Index, name: &str) -> &'index DataType {
             let effective_type = index.get_effective_type_or_void_by_name(name);

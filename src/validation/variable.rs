@@ -101,6 +101,9 @@ fn validate_variable<T: AnnotationMap>(
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
         if let Some(initializer) = &variable.initializer {
+            // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
+            // assignment as a whole whereas the second function call (`visit_statement`) validates the
+            // initializer in case it has further sub-assignments.
             validate_array_assignment(validator, context, Wrapper::Variable(variable));
             super::statement::visit_statement(validator, initializer, context);
         }
