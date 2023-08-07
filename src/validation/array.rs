@@ -1,7 +1,7 @@
 //! This module is responsible for validating array assignments both in their syntax and semantics.
 //!
 //! Specifically this module checks if the array assignments start with a leading `[` symbol and the fed
-//! elements are less-equal to the arrays size. As an example, `foo : ARRAY[1..3] OF DINT := (1, 2, 3)`
+//! elements are less-equal to the arrays size. As an example, `foo : ARRAY[1..2] OF DINT := (1, 2, 3)`
 //! violates both the syntax and semantic of array assignments.
 //!
 //! Design note: Because we distinguish between variables inside VAR blocks [`plc_ast::ast::Variable`]
