@@ -78,7 +78,7 @@ pub(super) fn validate_array_assignment<T>(
 /// on the expression-list of `foo := ((...), (...))` would return 2.
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement {
-        AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+        AstStatement::ExpressionList { .. } => 1,
         AstStatement::MultipliedStatement { multiplier, .. } => *multiplier as usize,
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
             Some(AstStatement::ExpressionList { expressions, .. }) => {

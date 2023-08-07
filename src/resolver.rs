@@ -876,12 +876,30 @@ impl<'i> TypeAnnotator<'i> {
         initializer: &AstStatement,
         ctx: &VisitorContext,
     ) {
+        dbg!(&expected_type);
+        dbg!(&initializer);
         match expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+
                 if inner_type.get_type_information().is_struct() {
-                    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                    let expressions = match initializer {
+                        // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive "could not resolve reference" errors
+                        AstStatement::ExpressionList { expressions, .. } => Some(expressions),
+
+                        // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
+                        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
+                            Some(AstStatement::ExpressionList { expressions, .. }) => Some(expressions),
+                            _ => None,
+                        },
+
+                        // ...anything else is uninteresting
+                        _ => None,
+                    };
+
+                    if let Some(expressions) = expressions {
                         for e in expressions {
                             // annotate with the arrays inner_type
                             self.annotation_map.annotate_type_hint(
@@ -890,11 +908,13 @@ impl<'i> TypeAnnotator<'i> {
                                     resulting_type: inner_type.get_name().to_string(),
                                 },
                             );
+
                             self.visit_statement(&ctx, e);
                         }
                     }
                 }
             }
+
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
                 let flattened = ast::flatten_expression_list(initializer);
