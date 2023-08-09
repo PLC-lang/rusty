@@ -135,6 +135,19 @@ impl<'s> VisitorContext<'s> {
         }
     }
 
+/// returns a copy of the current context and changes the `is_call` to true
+    fn with_const(&self, const_state: bool) -> VisitorContext<'s> {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            lhs: self.lhs,
+            is_call: self.is_call,
+            constant: const_state,
+            in_body: self.in_body,
+            id_provider: self.id_provider.clone(),
+        }
+    }
+
     // returns a copy of the current context and sets the in_body field to true
     fn enter_body(&self) -> Self {
         VisitorContext {
@@ -315,6 +328,13 @@ impl StatementAnnotation {
     /// constructs a new StatementAnnotation::Value with the given type_name
     pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value { resulting_type: type_name }
+    }
+
+    pub fn is_const(&self) -> bool {
+        match self {
+            StatementAnnotation::Variable { constant, ..} => *constant,
+            _ => false
+        }
     }
 }
 
@@ -870,6 +890,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    // TODO: can this be done witin the real visiting?
     fn annotate_array_of_struct(
         &mut self,
         expected_type: &typesystem::DataType,
@@ -879,7 +900,8 @@ impl<'i> TypeAnnotator<'i> {
         match expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
-                let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+                // TODO this seems wrong
+                let ctx = ctx.with_qualifier(inner_type.get_name().to_string()).with_lhs(inner_type.get_name());
 
                 if inner_type.get_type_information().is_struct() {
                     let expressions = match initializer {
@@ -1440,8 +1462,8 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
-            AstStatement::ReferenceExpr { access, base, id, .. } => {
-                self.visit_reference_expr(access, base, statement, ctx);
+            AstStatement::ReferenceExpr { access, base, .. } => {
+                self.visit_reference_expr(access, base.as_deref(), statement, ctx);
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
@@ -1452,7 +1474,7 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_reference_expr(
         &mut self,
         access: &ast::ReferenceAccess,
-        base: &Option<Box<AstStatement>>,
+        base: Option<&AstStatement>,
         stmt: &AstStatement,
         ctx: &VisitorContext,
     ) {
@@ -1460,60 +1482,123 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(base) = base {
             self.visit_statement(ctx, base);
         };
-        match (access, base) {
-            (ReferenceAccess::Member(reference), Some(qualifier)) => {
-                // qualifier.x
-                if let AstStatement::Reference { name, .. } = reference.as_ref() {
-                    if let Some(member) = self
-                        .annotation_map
-                        .get_type(qualifier, self.index)
-                        .and_then(|q| self.index.find_member(q.get_name(), name))
-                    {
-                        let annotation = to_variable_annotation(member, self.index, ctx.constant);
-                        self.annotate(stmt, annotation.clone());
-                        self.annotate(reference, annotation);
-                    }
+
+        if let ReferenceAccess::Index(index) = access {
+            self.visit_statement(ctx, index);
+        }
+
+        match (
+            access,
+            base.and_then(|it| {
+                self.annotation_map.get_type(it, self.index).map(|it| it.get_name().to_string())
+            }),
+        ) {
+            (ReferenceAccess::Member(reference), qualifier) => {
+                let base_const = base.and_then(|it| self.annotation_map.get(it)).map(|it| it.is_const())
+                                                .filter(|it| *it != ctx.constant);
+                
+                let new_ctx = base_const.map(|it| ctx.with_const(it));
+                let new_ctx = new_ctx.as_ref().unwrap_or(ctx);
+                if let Some(annotation) =
+                    self.get_annotation_from_flat_reference(reference.as_ref(), qualifier.as_deref(), new_ctx)
+                {
+                    // self.annotate(&reference, annotation.clone()); // TODO decie what to do with the references themselves
+                    self.annotate(stmt, annotation);
+
+                    self.maybe_annotate_vla(new_ctx, stmt);
+                    // self.maybe_annotate_vla(ctx, reference.as_ref());
                 }
             }
-            (ReferenceAccess::Member(reference), None) => {
-                if let AstStatement::Reference { name, .. } = reference.as_ref() {
-                    // no qualifier, so lets try a pou
-                    if let Some(annotation) = ctx
-                        .pou
-                        .and_then(|pou| self.index.find_member(pou, name))
-                        .map(|member| to_variable_annotation(member, self.index, ctx.constant))
-                    {
-                        // local variable
-                        self.annotate(stmt, annotation.clone());
-                        self.annotate(reference, annotation);
-                    } else if let Some(annotation) = self.index.find_pou(name).and_then(|it| to_pou_annotation(it, self.index)) {
-                        // POU reference
-                        self.annotate(stmt, annotation.clone());
-                        self.annotate(reference, annotation);
-                    }
-                }
-            }
-            (ReferenceAccess::Index(index), Some(base)) => {
-                self.visit_statement(ctx, index);
+            (ReferenceAccess::Index(_), Some(base)) => {
                 if let Some(inner_type) = self
-                    .annotation_map
-                    .get_type(base, self.index)
-                    .and_then(|dt| dt.get_type_information().get_inner_array_type_name())
+                    .index
+                    .find_effective_type_info(base.as_str())
+                    .and_then(|t| t.get_inner_array_type_name())
+                    .and_then(|it| self.index.find_effective_type_by_name(it).map(|it| it.get_name()))
                 {
                     self.annotate(stmt, StatementAnnotation::value(inner_type))
                 }
             }
             (ReferenceAccess::Deref, Some(base)) => {
                 if let Some(inner_type) = self
-                    .annotation_map
-                    .get_type(base, self.index)
-                    .and_then(|dt| dt.get_type_information().get_inner_pointer_type_name())
+                    .index
+                    .find_effective_type_info(base.as_str())
+                    .and_then(|t| t.get_inner_pointer_type_name())
+                    .and_then(|dt| self.index.find_effective_type_by_name(dt))
+                    .map(|dt| dt.get_name())
                 {
                     self.annotate(stmt, StatementAnnotation::value(inner_type))
                 }
             }
-            (ReferenceAccess::Address, Some(base)) => todo!(),
+            (ReferenceAccess::Address, Some(base)) => {
+                if let Some(inner_type) =
+                    self.index.find_effective_type_by_name(base.as_str()).map(|it| it.get_name().to_string())
+                {
+                    let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type);
+                    self.annotate(stmt, StatementAnnotation::new_value(ptr_type))
+                }
+            }
             _ => {}
+        }
+    }
+
+
+    // todo the whole handling of the base-const is not very ellegant. can I pass the base-type annotation?
+    fn get_annotation_from_flat_reference(
+        &mut self,
+        reference: &AstStatement,
+        base: Option<&str>,
+        ctx: &VisitorContext<'_>,
+    ) -> Option<StatementAnnotation> {
+        match (reference, base) {
+            (AstStatement::Reference { name, .. }, None) => {
+                // no qualifier, so lets try ...
+
+                // optional 1a try: see if this is a call (possibly a recursive call)
+                let candidate = if ctx.is_call {
+                    self.index.find_pou(name).and_then(|pou| to_pou_annotation(pou, self.index))
+                } else {
+                    None
+                };
+
+                // 1st try: find a local variable in the current pou
+                let candidate = candidate.or(ctx
+                    .pou
+                    .and_then(|pou| self.get_annotation_from_flat_reference(reference, Some(pou), ctx)));
+
+                // 2nd try: find a pou with that name
+                let candidate = candidate
+                    .or_else(|| self.index.find_pou(name).and_then(|pou| to_pou_annotation(pou, self.index)));
+
+                // 3rd try: find a global variable with that name
+                candidate.or_else(|| {
+                    self.index
+                        .find_global_variable(name)
+                        .map(|g| to_variable_annotation(g, self.index, g.is_constant()))
+                })
+            }
+            (AstStatement::Reference { name, .. }, Some(base)) => {
+                if let Some(member) = self
+                    .index
+                    .find_member(base, name)
+                    .or_else(|| self.index.find_qualified_enum_element(format!("{base}.{name}").as_str()))
+                {
+                    // see if we can find `base.name`
+                    Some(to_variable_annotation(member, self.index, member.is_constant() || ctx.constant))
+                } else {
+                    // try action
+                    self.index.find_pou(format!("{base}.{name}").as_str()).map(|action| action.into())
+                }
+            }
+            (AstStatement::Literal { kind: AstLiteral::Integer(_), .. }, Some(_)) => {
+                // x.1 - bit access
+                Some(StatementAnnotation::value(BOOL_TYPE))
+            }
+            (AstStatement::DirectAccess { access, .. }, Some(_)) => {
+                // x.%X1 - bit access
+                Some(StatementAnnotation::value(get_direct_access_type(access)))
+            }
+            _ => None,
         }
     }
 
@@ -1541,8 +1626,10 @@ impl<'i> TypeAnnotator<'i> {
                     unreachable!("VLA not allowed outside of POUs")
                 };
 
-                let AstStatement::Reference { name, .. } = statement else {
-                    unreachable!("must be a reference to a VLA")
+                let name = if let AstStatement::Reference { name, .. } = statement {
+                    name.as_str()
+                } else {
+                    statement.get_flat_reference_name().expect("must be a reference to a VLA")
                 };
 
                 let Some(argument_type) = self.index.get_pou_members(pou)
@@ -1576,6 +1663,7 @@ impl<'i> TypeAnnotator<'i> {
         self.visit_statement(&ctx.set_is_call(), operator);
         let operator_qualifier = self.get_call_name(operator);
         //Use the context without the is_call =true
+        //TODO why do we start a lhs context here???
         let ctx = ctx.with_lhs(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
             self.visit_statement(&ctx, parameters);
@@ -1585,7 +1673,7 @@ impl<'i> TypeAnnotator<'i> {
         };
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(self, operator, parameters_stmt, ctx)
+            annotation(self, operator, parameters_stmt, ctx.to_owned())
         } else {
             //If builtin, skip this
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
@@ -1687,7 +1775,7 @@ impl<'i> TypeAnnotator<'i> {
                 operator_qualifier,
                 operator,
                 parameters_stmt,
-                ctx,
+                ctx.to_owned(),
             );
         }
         if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
@@ -1876,15 +1964,15 @@ fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnota
             qualified_name: name.into(),
             call_name: None,
         }),
-        PouIndexEntry::FunctionBlock { name, .. } =>{
+        PouIndexEntry::FunctionBlock { name, .. } => {
             Some(StatementAnnotation::Type { type_name: name.into() })
         }
-        PouIndexEntry::Action { name, parent_pou_name, ..} => {
-            match index.find_pou(&parent_pou_name) {
-                Some(PouIndexEntry::Program { .. }) => Some(StatementAnnotation::Program { qualified_name: name.into() }),
-                _ => None,
+        PouIndexEntry::Action { name, parent_pou_name, .. } => match index.find_pou(&parent_pou_name) {
+            Some(PouIndexEntry::Program { .. }) => {
+                Some(StatementAnnotation::Program { qualified_name: name.into() })
             }
-        }
+            _ => None,
+        },
         _ => None,
     }
 }

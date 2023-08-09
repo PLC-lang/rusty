@@ -10,11 +10,21 @@ ReplacementAst {
         parameters: Some(
             ExpressionList {
                 expressions: [
-                    Reference {
-                        name: "a",
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
                     },
-                    Reference {
-                        name: "b",
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
                     },
                 ],
             },

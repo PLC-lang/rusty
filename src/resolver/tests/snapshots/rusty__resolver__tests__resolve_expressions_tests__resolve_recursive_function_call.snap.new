@@ -1,9 +1,18 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 3022
+assertion_line: 3048
 expression: annotated_types
 ---
 {
+    1: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.foo",
+        constant: false,
+        argument_type: ByVal(
+            Return,
+        ),
+        is_auto_deref: false,
+    },
     2: Variable {
         resulting_type: "DINT",
         qualified_name: "foo.foo",
@@ -13,12 +22,12 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    1: Variable {
+    5: Variable {
         resulting_type: "DINT",
-        qualified_name: "foo.foo",
+        qualified_name: "foo.var1",
         constant: false,
         argument_type: ByVal(
-            Return,
+            Local,
         ),
         is_auto_deref: false,
     },
@@ -31,9 +40,27 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    5: Variable {
+    3: Variable {
         resulting_type: "DINT",
-        qualified_name: "foo.var1",
+        qualified_name: "foo.input1",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        is_auto_deref: false,
+    },
+    4: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.input1",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        is_auto_deref: false,
+    },
+    10: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var2",
         constant: false,
         argument_type: ByVal(
             Local,
@@ -49,21 +76,21 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    10: Variable {
+    8: Variable {
         resulting_type: "DINT",
-        qualified_name: "foo.var2",
-        constant: false,
-        argument_type: ByVal(
-            Local,
-        ),
-        is_auto_deref: false,
-    },
-    14: Variable {
-        resulting_type: "DINT",
-        qualified_name: "foo.output1",
+        qualified_name: "foo.inout1",
         constant: false,
         argument_type: ByRef(
-            Output,
+            InOut,
+        ),
+        is_auto_deref: true,
+    },
+    9: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.inout1",
+        constant: false,
+        argument_type: ByRef(
+            InOut,
         ),
         is_auto_deref: true,
     },
@@ -76,14 +103,14 @@ expression: annotated_types
         ),
         is_auto_deref: true,
     },
-    16: Variable {
+    14: Variable {
         resulting_type: "DINT",
-        qualified_name: "foo.var3",
+        qualified_name: "foo.output1",
         constant: false,
-        argument_type: ByVal(
-            Local,
+        argument_type: ByRef(
+            Output,
         ),
-        is_auto_deref: false,
+        is_auto_deref: true,
     },
     15: Variable {
         resulting_type: "DINT",
@@ -94,9 +121,9 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    23: Variable {
+    16: Variable {
         resulting_type: "DINT",
-        qualified_name: "foo.var1",
+        qualified_name: "foo.var3",
         constant: false,
         argument_type: ByVal(
             Local,
@@ -112,7 +139,16 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    21: Variable {
+    23: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var1",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+    20: Variable {
         resulting_type: "DINT",
         qualified_name: "foo.foo",
         constant: false,
@@ -121,7 +157,7 @@ expression: annotated_types
         ),
         is_auto_deref: false,
     },
-    20: Variable {
+    21: Variable {
         resulting_type: "DINT",
         qualified_name: "foo.foo",
         constant: false,

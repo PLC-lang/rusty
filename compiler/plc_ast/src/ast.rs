@@ -1076,9 +1076,37 @@ impl AstStatement {
         }
     }
 
-    /// Returns true if the current statement is a reference
-    pub fn is_reference(&self) -> bool {
-        matches!(self, AstStatement::Reference { .. })
+    /// Returns true if the current statement is a flat reference (e.g. `a`)
+    pub fn is_flat_reference(&self) -> bool {
+        matches!(self, AstStatement::Reference { .. }) || {
+            if let AstStatement::ReferenceExpr {
+                access: ReferenceAccess::Member(reference),
+                base: None,
+                ..
+            } = self
+            {
+                matches!(reference.as_ref(), AstStatement::Reference { .. })
+            } else {
+                false
+            }
+        }
+    }
+
+    /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
+    pub fn get_flat_reference_name(&self) -> Option<&str> {
+        match self {
+            AstStatement::ReferenceExpr {
+                access: ReferenceAccess::Member(reference), base: None, ..
+            } => {
+                if let AstStatement::Reference { name, .. } = reference.as_ref() {
+                    Some(name)
+                } else {
+                    None
+                }
+            }
+            AstStatement::Reference { name, .. } => Some(name),
+            _ => None,
+        }
     }
 
     pub fn is_qualified_reference(&self) -> bool {
@@ -1107,7 +1135,7 @@ impl AstStatement {
 
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
-            || self.is_reference()
+            || self.is_flat_reference()
             || self.is_qualified_reference()
             || self.is_array_access()
             || self.is_pointer_access()
@@ -1437,7 +1465,7 @@ impl AstFactory {
     pub fn create_address_of_reference(
         base: AstStatement,
         id: AstId,
-        operator_location: SourceRange
+        operator_location: SourceRange,
     ) -> AstStatement {
         let location = operator_location.span(&base.get_location());
         AstStatement::ReferenceExpr {
@@ -1451,8 +1479,8 @@ impl AstFactory {
     pub fn create_deref_reference(
         base: AstStatement,
         id: AstId,
-        operator_location: SourceRange
-    )-> AstStatement {
+        operator_location: SourceRange,
+    ) -> AstStatement {
         let location = operator_location.span(&base.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Deref,

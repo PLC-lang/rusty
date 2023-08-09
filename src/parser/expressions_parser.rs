@@ -470,7 +470,7 @@ pub fn parse_qualified_reference_with_base(
                 );
             }
             Some(KeywordSquareParensOpen) => {
-                current = parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
+                current = parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer: &mut ParseSession<'_>| {
                     AstFactory::create_index_reference(
                         parse_expression(lexer),
                         Some(current),
@@ -484,7 +484,8 @@ pub fn parse_qualified_reference_with_base(
                         lexer.next_id(),
                         lexer.last_location()
                     )
-            }
+            },
+            // Some(KeywordParensOpen) 
 
             _ => {}
         }
