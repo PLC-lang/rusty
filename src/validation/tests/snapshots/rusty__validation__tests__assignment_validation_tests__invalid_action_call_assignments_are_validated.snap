@@ -1,7 +1,0 @@
----
-source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
----
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'DINT'", range: [SourceRange { range: 408..411 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'STRING'", range: [SourceRange { range: 413..416 }], err_no: var__invalid_assignment }
-
