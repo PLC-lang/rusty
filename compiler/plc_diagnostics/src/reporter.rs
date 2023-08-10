@@ -26,7 +26,7 @@ pub struct ResolvedLocation {
 }
 
 impl ResolvedLocation {
-    pub fn is_internal(&self) -> bool {
+    pub(crate) fn is_internal(&self) -> bool {
         self.range == SourceRange::undefined().to_range()
     }
 }

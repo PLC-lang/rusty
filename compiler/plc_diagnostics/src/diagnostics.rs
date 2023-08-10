@@ -41,15 +41,6 @@ impl Diagnostic {
         }
     }
 
-    pub fn get_affected_ranges(&self) -> &[SourceRange] {
-        match self {
-            Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::SemanticError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
-            _ => &[],
-        }
-    }
-
     pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
@@ -585,14 +576,6 @@ impl Diagnostic {
             ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
-        }
-    }
-
-    pub fn duplicate_pou(name: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Duplicate POU {name}"),
-            range: vec![range],
-            err_no: ErrNo::duplicate_symbol,
         }
     }
 
