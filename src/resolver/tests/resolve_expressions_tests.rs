@@ -4470,3 +4470,45 @@ fn annotate_method_in_super() {
         );
     }
 }
+
+// foo(cl)
+// hint_annotation_   fat pointer
+#[test]
+fn annotate_fat_pointer() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        CLASS cls0
+        METHOD foo
+        VAR_IN_OUT
+            myClass : cls1;
+        END_VAR
+        END_METHOD
+        END_CLASS
+
+        CLASS cls1
+        END_CLASS
+
+        PROGRAM prog
+        VAR 
+            callClass : cls0; 
+            paramClass : cls1; 
+        END_VAR
+
+        callClass.foo(paramClass);
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let params =
+        if let AstStatement::CallStatement { parameters, .. } = &unit.implementations[3].statements[0] {
+            parameters.as_ref().as_ref().map(flatten_expression_list).unwrap_or_default()
+        } else {
+            unreachable!();
+        };
+
+    insta::assert_debug_snapshot!(annotations.get_type_hint(params[0], &index));
+    insta::assert_debug_snapshot!(annotations.get_type(params[0], &index));
+}

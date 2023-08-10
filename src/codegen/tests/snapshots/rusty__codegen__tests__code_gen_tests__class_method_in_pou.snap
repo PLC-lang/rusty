@@ -7,10 +7,12 @@ source_filename = "main"
 
 %MyClass = type { i16, i16 }
 %prg = type { %MyClass, i16 }
+%__fat_pointer_to_MyClass = type { %MyClass*, [1 x i64]* }
 %MyClass.testMethod = type { i16, i16 }
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 @prg_instance = global %prg zeroinitializer
+@____fat_pointer_to_MyClass__init = unnamed_addr constant %__fat_pointer_to_MyClass zeroinitializer
 
 define void @MyClass(%MyClass* %0) {
 entry:

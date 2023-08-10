@@ -177,7 +177,20 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             let members = members
                 .iter()
                 .filter(|it| !it.is_temp() && !it.is_return())
-                .map(|m| self.types_index.get_associated_type(m.get_type_name()))
+                .map(|m| {
+                    //Generate fat pointer if needed
+                    let type_name = self
+                        .index
+                        .find_effective_type_by_name(m.get_type_name())
+                        .and_then(|it| it.get_type_information().get_inner_pointer_type())
+                        .map(|it| format!("__fat_pointer_to_{}", it))
+                        .filter(|it| {
+                            m.get_declaration_type().is_by_ref() && self.index.find_type(it).is_some()
+                        })
+                        .unwrap_or_else(|| m.get_type_name().to_string());
+
+                    self.types_index.get_associated_type(&type_name)
+                })
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
             let struct_type = match source {

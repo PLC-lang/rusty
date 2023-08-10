@@ -6,9 +6,11 @@ expression: function
 source_filename = "main"
 
 %fb = type { i16 }
+%__fat_pointer_to_fb = type { %fb*, [0 x i64]* }
 %main = type { %fb }
 
 @__fb__init = unnamed_addr constant %fb { i16 9 }
+@____fat_pointer_to_fb__init = unnamed_addr constant %__fat_pointer_to_fb zeroinitializer
 @main_instance = global %main { %fb { i16 9 } }
 
 define void @fb(%fb* %0) {

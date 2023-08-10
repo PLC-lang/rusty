@@ -86,6 +86,7 @@ pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
+pub const FAT_POINTER_TYPE: &str = "FAT_POINTER";
 pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
@@ -163,6 +164,14 @@ impl DataType {
 
     pub fn is_vla(&self) -> bool {
         self.get_type_information().is_vla()
+    }
+
+    pub fn is_fat_pointer(&self) -> bool {
+        self.get_type_information().is_fat_pointer()
+    }
+
+    pub fn is_class(&self) -> bool {
+        self.get_type_information().is_class()
     }
 
     /// returns true if this type is an array, struct or string
@@ -334,6 +343,7 @@ impl StructSource {
 pub enum InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
     __VLA, // used for error-reporting only
+    FatPointer,
 }
 
 type TypeId = String;
@@ -471,6 +481,17 @@ impl DataTypeInformation {
                 ..
             }
         )
+    }
+
+    pub fn is_fat_pointer(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { source: StructSource::Internal(InternalType::FatPointer), .. }
+        )
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class), .. })
     }
 
     pub fn is_enum(&self) -> bool {
@@ -641,9 +662,20 @@ impl DataTypeInformation {
         }
     }
 
+    /// Returns the inner type of an array
+    /// If self is not an array, does not return anything
     pub fn get_inner_array_type_name(&self) -> Option<&str> {
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),
+            _ => None,
+        }
+    }
+
+    /// Returns the inner type of a pointer
+    /// If self is not a pointer, does not return anything
+    pub fn get_inner_pointer_type(&self) -> Option<&str> {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => Some(inner_type_name),
             _ => None,
         }
     }

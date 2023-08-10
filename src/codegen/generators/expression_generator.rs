@@ -562,7 +562,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             };
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
-
         value
     }
 
@@ -875,7 +874,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             return Ok(ptr_value.into());
         }
-
+        
+        //TODO need to do cast_if_needed()
         // Generate the element pointer, then...
         let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
             // Passed a literal to a byref parameter?
@@ -901,6 +901,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self,
                     hint,
                     actual_type,
+                    value.into(),
+                    self.annotations.get(argument)
+                ));
+            };
+
+            if target_type_info.is_fat_pointer() {
+                return Ok(cast_if_needed!(
+                    self,
+                    actual_type,
+                    hint,
                     value.into(),
                     self.annotations.get(argument)
                 ));
@@ -1179,7 +1189,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let parameter = self
                 .index
                 .find_parameter(function_name, index)
-                .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
+                .and_then(|var: &VariableIndexEntry| {
+                    self.index.find_effective_type_by_name(var.get_type_name())
+                })
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
@@ -1194,7 +1206,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         })?;
                     builder.build_alloca(temp_type, "empty_varinout").as_basic_value_enum()
                 } else {
-                    self.generate_element_pointer(expression)?.as_basic_value_enum()
+                    //Either Generate a pointer or return the fat pointer by
+                    //Geting expression
+                    //Perform Casting
+                    let value = self.generate_element_pointer(expression)?.as_basic_value_enum();
+
+                    let target_type = self
+                        .annotations
+                        .get_type_hint(param_context.assignment_statement, self.index)
+                        .unwrap();
+                    let original_type =
+                        self.annotations.get_type_or_void(param_context.assignment_statement, self.index);
+
+                    if target_type.is_fat_pointer() {
+                        cast_if_needed!(
+                            self,
+                            original_type,
+                            target_type,
+                            value,
+                            self.annotations.get(param_context.assignment_statement)
+                        )
+                    } else {
+                        value
+                    }
                 };
                 builder.build_store(pointer_to_param, generated_exp);
             } else {
@@ -1313,7 +1347,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement.get_location(),
             )),
         }
-        .map(|it| self.auto_deref_if_necessary(it, reference_statement))
+        .and_then(|it| self.auto_deref_if_necessary(it, reference_statement))
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
@@ -1321,13 +1355,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
     /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
     /// - `context` the statement to obtain the location from when returning an error
-    ///
-    /// myclass.x
-    ///
-    /// a <-- b <-- myclass
-    ///
-    /// foo.z
-    ///
     ///
     fn create_llvm_pointer_value_for_reference(
         &self,
@@ -1351,8 +1378,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     if let Some(accessing_type) = accessing_type {
                         let base_class_hop = self.find_base_class(1, accessing_type.as_str(), qualified_name);
                         for _ in 0..base_class_hop {
-                            qualifier =
-                                self.llvm.get_member_pointer_from_struct(qualifier, 0, "", offset).unwrap();
+                            qualifier = self.llvm.get_member_pointer_from_struct(qualifier, 0, "", offset)?
                         }
                     }
 
@@ -1435,13 +1461,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         accessor_ptr: PointerValue<'ink>,
         statement: &AstStatement,
-    ) -> PointerValue<'ink> {
-        if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
-            self.annotations.get(statement)
-        {
-            self.deref(accessor_ptr)
-        } else {
-            accessor_ptr
+    ) -> Result<PointerValue<'ink>, Diagnostic> {
+        match self.annotations.get(statement) {
+            Some(variable) if variable.is_fat_pointer(self.index) => {
+                //Create a gep to first struct element
+                let ptr = self.llvm.get_member_pointer_from_struct(
+                    accessor_ptr,
+                    0,
+                    "load_fp_member",
+                    &statement.get_location(),
+                )?;
+                Ok(self.deref(ptr))
+            }
+            Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) => Ok(self.deref(accessor_ptr)),
+            _ => Ok(accessor_ptr),
         }
     }
 
@@ -2464,7 +2497,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         reference: &AstStatement,
         access: &AstStatement,
-    ) -> Result<PointerValue<'ink>, ()> {
+    ) -> Result<PointerValue<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
@@ -2480,13 +2513,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr = self.auto_deref_if_necessary(
-            self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
+            self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    &format!("Could not find associated value for {qualified_name}"),
+                    reference.get_location(),
+                )
+            })?,
             reference,
-        );
+        )?;
 
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
-        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").map_err(|_| {
+            Diagnostic::codegen_error("Error while accessing vla struct", reference.get_location())
+        })?;
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
@@ -2509,7 +2549,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(stmt) = access_statements.get(0) else {
                 unreachable!("Must have exactly 1 access statement")
             };
-            let access_value = self.generate_expression(stmt).map_err(|_| ())?;
+            let access_value = self.generate_expression(stmt)?;
 
             // if start offset is not 0, adjust the access value accordingly
             let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {

@@ -8,10 +8,14 @@ source_filename = "main"
 %0 = type { %cls2 }
 %cls = type { i16, i16 }
 %cls2 = type { %cls }
+%__fat_pointer_to_cls2 = type { %cls2*, [0 x i64]* }
+%__fat_pointer_to_cls = type { %cls*, [0 x i64]* }
 
 @__cls__init = unnamed_addr constant %cls zeroinitializer
 @__cls2__init = unnamed_addr constant %cls2 zeroinitializer
 @____init = unnamed_addr constant %0 zeroinitializer
+@____fat_pointer_to_cls2__init = unnamed_addr constant %__fat_pointer_to_cls2 zeroinitializer
+@____fat_pointer_to_cls__init = unnamed_addr constant %__fat_pointer_to_cls zeroinitializer
 
 define void @cls(%cls* %0) {
 entry:

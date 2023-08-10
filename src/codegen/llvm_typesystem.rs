@@ -2,8 +2,9 @@
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
-    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
+    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue},
 };
+use plc_ast::ast::PouType;
 
 use crate::{
     index::Index,
@@ -144,8 +145,75 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
             BasicValueEnum::FloatValue(val) => val.cast(cast_data),
             BasicValueEnum::PointerValue(val) => val.cast(cast_data),
             BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
+            BasicValueEnum::StructValue(val) => val.cast(cast_data),
             _ => self,
         }
+    }
+}
+
+impl<'ctx, 'cast> Castable<'ctx, 'cast> for StructValue<'ctx> {
+    // generates a fat pointer struct for a Struct (Class)
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        if !cast_data.target_type.is_fat_pointer() {
+            return self.into();
+        }
+        let builder = &cast_data.llvm.builder;
+        let zero = cast_data.llvm.i32_type().const_zero();
+
+        let Ok(associated_type) = cast_data
+            .llvm_type_index
+            .get_associated_type(cast_data.target_type.get_name()) else {
+                unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+            };
+
+        // get fat_pointer annotation from POU
+        let Some(StatementAnnotation::Variable {qualified_name, ..}) = cast_data.annotation else {
+            unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
+        };
+        let fat_pointer = cast_data
+            .llvm_type_index
+            .find_loaded_associated_variable_value(qualified_name.as_str())
+            .unwrap_or_else(|| unreachable!("passed fat_pointer must be in the llvm index"));
+
+        // gep into the original class. result address will be stored in fat_pointer
+        let class_gep =
+            unsafe { builder.build_in_bounds_gep(fat_pointer, &[zero, zero], "outer_fat_pointer_gep") };
+
+        // -- Generate struct with pointer to Class and array of methods --
+        let struct_type = associated_type.into_struct_type();
+        let fat_pointer_struct = builder.build_alloca(struct_type, "fat_pointer_struct");
+
+        let Ok(fat_pointer_class_ptr) = builder.build_struct_gep(fat_pointer_struct, 0, "fat_pointer_class_gep") else {
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+        };
+
+        let Ok(fat_pointer_array) = builder.build_struct_gep(fat_pointer_struct, 1, "fat_poitner_array_gep") else {
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+        };
+
+        // --generate array of methods
+        // let arr = ty.array_type(size as u32);
+        // let arr_storage = self.llvm.builder.build_alloca(arr, "");
+        // for (i, ele) in generated_params.iter().enumerate() {
+        //     let ele_ptr = self.llvm.load_array_element(
+        //         arr_storage,
+        //         &[
+        //             self.llvm.context.i32_type().const_zero(),
+        //             self.llvm.context.i32_type().const_int(i as u64, true),
+        //         ],
+        //         "",
+        //     )?;
+        //     self.llvm.builder.build_store(ele_ptr, *ele);
+        // }
+
+        let arr_ptr = builder.build_array_alloca(
+            cast_data.llvm.context.i64_type(),
+            cast_data.llvm.context.i32_type().const_int(0, true),
+            "",
+        );
+        builder.build_store(fat_pointer_array, arr_ptr);
+        builder.build_store(fat_pointer_class_ptr, class_gep);
+        builder.build_load(fat_pointer_struct, "")
     }
 }
 
@@ -241,6 +309,67 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
                 cast_data.llvm.builder.build_store(struct_ptr, struct_val);
                 struct_ptr.into()
+            }
+            DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class), .. }
+            | DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. } => {
+                let builder = &cast_data.llvm.builder;
+                let zero = cast_data.llvm.i32_type().const_zero();
+
+                // get fat_pointer annotation from POU
+                let Some(StatementAnnotation::Variable {qualified_name, ..}) = cast_data.annotation else {
+                    unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
+                };
+                let fat_pointer = cast_data
+                    .llvm_type_index
+                    .find_loaded_associated_variable_value(qualified_name.as_str())
+                    .unwrap_or_else(|| unreachable!("passed fat_pointer must be in the llvm index"));
+
+                // gep into the original class. result address will be stored in fat_pointer
+                let class_gep = unsafe {
+                    builder.build_in_bounds_gep(fat_pointer, &[zero, zero], "outer_fat_pointer_gep")
+                };
+
+                let Ok(associated_type) = cast_data
+                .llvm_type_index
+                .get_associated_type(cast_data.value_type.get_name()) else {
+                    unreachable!("Target type of cast instruction does not exist: {}", cast_data.value_type.get_name())
+                };
+
+                // -- Generate struct with pointer to Class and array of methods --
+                let struct_type = associated_type.into_struct_type();
+                let fat_pointer_struct = builder.build_alloca(struct_type, "fat_pointer_struct");
+
+                let Ok(fat_pointer_class_ptr) = builder.build_struct_gep(fat_pointer_struct, 0, "fat_pointer_class_gep") else {
+                    unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+                };
+
+                let Ok(fat_pointer_array) = builder.build_struct_gep(fat_pointer_struct, 1, "fat_poitner_array_gep") else {
+                    unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
+                };
+
+                // --generate array of methods
+                // let arr = ty.array_type(size as u32);
+                // let arr_storage = self.llvm.builder.build_alloca(arr, "");
+                // for (i, ele) in generated_params.iter().enumerate() {
+                //     let ele_ptr = self.llvm.load_array_element(
+                //         arr_storage,
+                //         &[
+                //             self.llvm.context.i32_type().const_zero(),
+                //             self.llvm.context.i32_type().const_int(i as u64, true),
+                //         ],
+                //         "",
+                //     )?;
+                //     self.llvm.builder.build_store(ele_ptr, *ele);
+                // }
+
+                let arr_ptr = builder.build_array_alloca(
+                    cast_data.llvm.context.i64_type(),
+                    cast_data.llvm.context.i32_type().const_int(0, true),
+                    "",
+                );
+                builder.build_store(fat_pointer_array, arr_ptr);
+                builder.build_store(fat_pointer_class_ptr, class_gep);
+                builder.build_load(fat_pointer_struct, "")
             }
             _ => unreachable!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
         }

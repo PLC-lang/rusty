@@ -319,6 +319,19 @@ impl StatementAnnotation {
     pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value { resulting_type: type_name }
     }
+
+    pub fn is_auto_deref(&self) -> bool {
+        matches!(self, StatementAnnotation::Variable { is_auto_deref: true, .. })
+    }
+
+    pub fn is_fat_pointer(&self, index: &Index) -> bool {
+        if let StatementAnnotation::Variable { is_auto_deref: true, resulting_type, .. } = self {
+            //Get original type
+            index.find_type(resulting_type).filter(|it| it.is_class()).is_some()
+        } else {
+            false
+        }
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {
@@ -966,6 +979,15 @@ impl<'i> TypeAnnotator<'i> {
         if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
             match datatype.get_type_information() {
                 DataTypeInformation::Struct { members, .. } => {
+                    if let Some(pou) = self.index.find_pou(datatype_name) {
+                        if pou.is_class() {
+                            resolved_names = self.get_datatype_dependencies(
+                                format!("__fat_pointer_to_{datatype_name}").as_str(),
+                                resolved_names,
+                            );
+                        }
+                    }
+
                     for member in members {
                         resolved_names =
                             self.get_datatype_dependencies(member.get_type_name(), resolved_names);
@@ -1296,7 +1318,7 @@ impl<'i> TypeAnnotator<'i> {
                                 })
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant, None))
                                 .or_else(|| {
-                                    //TODO find parent of super class to start the search
+                                    // find parent of super class to start the search
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
@@ -1510,6 +1532,23 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    fn resolve_fat_pointer(&mut self, m: &VariableIndexEntry) -> String {
+        let words = m.data_type_name.split('_').collect::<Vec<_>>();
+        let class_name = words.last().unwrap().to_owned();
+        let class_pou = self.index.find_pou(class_name);
+        if class_pou.is_none() {
+            m.get_type_name().to_string()
+        } else if class_pou.unwrap().is_class() {
+            if m.is_in_parameter_by_ref() {
+                format!("__fat_pointer_to_{class_name}")
+            } else {
+                m.get_type_name().to_string()
+            }
+        } else {
+            m.get_type_name().to_string()
+        }
+    }
+
     fn visit_call_statement(&mut self, statement: &AstStatement, ctx: &VisitorContext) {
         let (operator, parameters_stmt) =
             if let AstStatement::CallStatement { operator, parameters, .. } = statement {
@@ -1547,10 +1586,13 @@ impl<'i> TypeAnnotator<'i> {
 
             for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
                 if let Some(p) = parameters.next() {
-                    let type_name = m.get_type_name();
-                    if let Some((key, candidate)) =
-                        TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
-                    {
+                    let type_name = self.resolve_fat_pointer(m);
+                    if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                        self.index,
+                        &self.annotation_map,
+                        type_name.as_str(),
+                        p,
+                    ) {
                         generics_candidates
                             .entry(key.to_string())
                             .or_insert_with(std::vec::Vec::new)

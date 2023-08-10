@@ -7,6 +7,14 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "ST Debug oo test",
+            "program": "${workspaceFolder}/examples/oo_test",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug source 'demo.st'",
             "cargo": {
                 "args": [
@@ -20,7 +28,8 @@
                 }
             },
             "args": [
-                "target/demo.st"
+                "examples/oo_test.st",
+                "-g"
             ],
             "cwd": "${workspaceFolder}"
         },

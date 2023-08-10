@@ -9,7 +9,8 @@ source_filename = "main"
 %cls = type { i16, i16 }
 %cls2 = type { %cls }
 %__fat_pointer_to_cls2 = type { %cls2*, [1 x i64]* }
-%__fat_pointer_to_cls = type { %cls*, [0 x i64]* }
+%__fat_pointer_to_cls = type { %cls*, [1 x i64]* }
+%cls.myMethod = type {}
 %cls2.myMethod = type {}
 
 @__cls__init = unnamed_addr constant %cls zeroinitializer
@@ -25,6 +26,14 @@ entry:
   ret void
 }
 
+define void @cls.myMethod(%cls* %0, %cls.myMethod* %1) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  store i16 10, i16* %x, align 2
+  ret void
+}
+
 define void @cls2(%cls2* %0) {
 entry:
   %__super__ = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
@@ -33,22 +42,20 @@ entry:
   ret void
 }
 
-define i32 @cls2.myMethod(%cls2* %0, %cls2.myMethod* %1) {
+define void @cls2.myMethod(%cls2* %0, %cls2.myMethod* %1) {
 entry:
   %__super__ = getelementptr inbounds %cls2, %cls2* %0, i32 0, i32 0
   %x = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 0
   %y = getelementptr inbounds %cls, %cls* %__super__, i32 0, i32 1
-  %myMethod = alloca i32, align 4
-  store i32 0, i32* %myMethod, align 4
-  store i16 33, i16* %x, align 2
-  %cls2.myMethod_ret = load i32, i32* %myMethod, align 4
-  ret i32 %cls2.myMethod_ret
+  store i16 20, i16* %x, align 2
+  ret void
 }
 
 define void @0(%0* %0) {
 entry:
   %myClass = getelementptr inbounds %0, %0* %0, i32 0, i32 0
-  %load_ = load %cls2, %cls2* %myClass, align 2
+  %cls2.myMethod_instance = alloca %cls2.myMethod, align 8
+  call void @cls2.myMethod(%cls2* %myClass, %cls2.myMethod* %cls2.myMethod_instance)
   ret void
 }
 

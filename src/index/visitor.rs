@@ -34,7 +34,86 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation, &symbol_location_factory);
     }
+
+    for pou in &unit.units {
+        visit_and_generate_fat_pointers(&mut index, pou, &symbol_location_factory);
+    }
+
     index
+}
+
+pub fn visit_and_generate_fat_pointers(
+    index: &mut Index,
+    pou: &Pou,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
+    let pou_name = &pou.name;
+    let virtual_table_array = format!("__arr_vt_{pou_name}").to_lowercase();
+    let number_of_methods = index.get_number_of_pou_methods(pou_name);
+    index.register_type(typesystem::DataType {
+        name: virtual_table_array.clone(),
+        initial_value: None,
+        information: DataTypeInformation::Array {
+            name: virtual_table_array.clone(),
+            inner_type_name: LWORD_TYPE.to_string(),
+            dimensions: vec![Dimension {
+                start_offset: TypeSize::LiteralInteger(0),
+                end_offset: TypeSize::LiteralInteger(number_of_methods - 1),
+            }],
+        },
+        nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
+    });
+
+    let fat_pointer_variables = vec![
+        // pointer to struct
+        Variable {
+            name: format!("pointer_to_{pou_name}").to_lowercase(),
+            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::PointerType {
+                    name: Some(format!("__ptr_to_{pou_name}_struct")),
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                        referenced_type: pou.name.clone(),
+                        location: SourceRange::undefined(),
+                    }),
+                },
+                location: SourceRange::undefined(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+        // pointer to array
+        Variable {
+            name: format!("pointer_to_{pou_name}_vt").to_lowercase(),
+            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::PointerType {
+                    name: Some(format!("__ptr_to_{pou_name}_vt")),
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                        referenced_type: virtual_table_array,
+                        location: SourceRange::undefined(),
+                    }),
+                },
+                location: SourceRange::undefined(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+    ];
+
+    visit_struct(
+        format!("__fat_pointer_to_{pou_name}").as_str(),
+        &fat_pointer_variables,
+        index,
+        symbol_location_factory,
+        &None,
+        None,
+        &SourceRange::undefined(),
+        StructSource::Internal(InternalType::FatPointer),
+    );
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
@@ -369,7 +448,8 @@ fn visit_data_type(
                 index,
                 symbol_location_factory,
                 scope,
-                type_declaration,
+                type_declaration.initializer.clone(),
+                &type_declaration.location,
                 StructSource::OriginalDeclaration,
             );
         }
@@ -693,14 +773,6 @@ fn visit_variable_length_array(
         },
     ];
 
-    let struct_ty = DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
-    let type_dec = UserTypeDeclaration {
-        data_type: struct_ty,
-        initializer: None,
-        location: type_declaration.location.clone(),
-        scope: type_declaration.scope.clone(),
-    };
-
     // visit the internally created struct type to also index its members
     visit_struct(
         &struct_name,
@@ -708,7 +780,8 @@ fn visit_variable_length_array(
         index,
         symbol_location_factory,
         &type_declaration.scope,
-        &type_dec,
+        type_declaration.initializer.clone(),
+        &type_declaration.location,
         StructSource::Internal(InternalType::VariableLengthArray { inner_type_name: referenced_type, ndims }),
     )
 }
@@ -800,7 +873,8 @@ fn visit_struct(
     index: &mut Index,
     symbol_location_factory: &SymbolLocationFactory,
     scope: &Option<String>,
-    type_declaration: &UserTypeDeclaration,
+    initializer: Option<AstStatement>,
+    location: &SourceRange,
     source: StructSource,
 ) {
     let members = variables
@@ -853,17 +927,14 @@ fn visit_struct(
     let nature = source.get_type_nature();
     let information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
 
-    let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-        type_declaration.initializer.clone(),
-        name,
-        scope.clone(),
-    );
+    let init =
+        index.get_mut_const_expressions().maybe_add_constant_expression(initializer, name, scope.clone());
     index.register_type(typesystem::DataType {
         name: name.to_string(),
         initial_value: init,
         information,
         nature,
-        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+        location: symbol_location_factory.create_symbol_location(location),
     });
     //Generate an initializer for the struct
     let global_struct_name = crate::index::get_initializer_name(name);
@@ -871,7 +942,7 @@ fn visit_struct(
         &global_struct_name,
         &global_struct_name,
         name,
-        symbol_location_factory.create_symbol_location(&type_declaration.location),
+        symbol_location_factory.create_symbol_location(location),
     )
     .set_initial_value(init)
     .set_constant(true);

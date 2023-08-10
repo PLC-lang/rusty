@@ -1,0 +1,29 @@
+---
+source: src/index/tests/index_tests.rs
+expression: "index.find_effective_type_by_name(\"__arr_vt_cls\").unwrap()"
+---
+DataType {
+    name: "__arr_vt_cls",
+    initial_value: None,
+    information: Array {
+        name: "__arr_vt_cls",
+        inner_type_name: "LWORD",
+        dimensions: [
+            Dimension {
+                start_offset: LiteralInteger(
+                    0,
+                ),
+                end_offset: LiteralInteger(
+                    2,
+                ),
+            },
+        ],
+    },
+    nature: Any,
+    location: SymbolLocation {
+        line_number: 4294967295,
+        source_range: SourceRange {
+            range: 0..0,
+        },
+    },
+}

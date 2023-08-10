@@ -1,0 +1,65 @@
+---
+source: src/index/tests/index_tests.rs
+expression: "index.find_effective_type_by_name(\"__fat_pointer_to_cls\").unwrap()"
+---
+DataType {
+    name: "__fat_pointer_to_cls",
+    initial_value: None,
+    information: Struct {
+        name: "__fat_pointer_to_cls",
+        members: [
+            VariableIndexEntry {
+                name: "pointer_to_cls",
+                qualified_name: "__fat_pointer_to_cls.pointer_to_cls",
+                initial_value: None,
+                argument_type: ByVal(
+                    Input,
+                ),
+                is_constant: false,
+                data_type_name: "__ptr_to_cls_struct",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SymbolLocation {
+                    line_number: 0,
+                    source_range: SourceRange {
+                        range: 0..0,
+                    },
+                },
+                varargs: None,
+                accessing_type: None,
+            },
+            VariableIndexEntry {
+                name: "pointer_to_cls_vt",
+                qualified_name: "__fat_pointer_to_cls.pointer_to_cls_vt",
+                initial_value: None,
+                argument_type: ByVal(
+                    Input,
+                ),
+                is_constant: false,
+                data_type_name: "__ptr_to_cls_vt",
+                location_in_parent: 1,
+                linkage: Internal,
+                binding: None,
+                source_location: SymbolLocation {
+                    line_number: 0,
+                    source_range: SourceRange {
+                        range: 0..0,
+                    },
+                },
+                varargs: None,
+                accessing_type: None,
+            },
+        ],
+        source: Internal(
+            FatPointer,
+        ),
+    },
+    nature: Derived,
+    location: SymbolLocation {
+        line_number: 0,
+        source_range: SourceRange {
+            range: 0..0,
+        },
+    },
+}

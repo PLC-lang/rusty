@@ -3331,3 +3331,146 @@ fn write_to_parent_variable_in_function() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn executes_overridden_method() {
+    let res = codegen(
+        "
+        CLASS cls
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        METHOD myMethod
+            x := 10;
+        END_METHOD
+        END_CLASS
+
+        CLASS cls2 EXTENDS cls
+        METHOD OVERRIDE myMethod 
+            x := 20;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION_BLOCK
+        VAR 
+            myClass : cls2;
+        END_VAR
+            myClass.myMethod();
+        END_FUNCTION_BLOCK
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+#[ignore]
+//TODO as soon as methods are implemented, this test can be used
+fn fat_pointer_struct_method() {
+    let res = codegen(
+        "
+        CLASS cls
+        METHOD myMethod
+        VAR_IN_OUT
+            myClass : cls2;
+        END_VAR
+        END_METHOD
+        END_CLASS
+
+        CLASS cls2 
+        END_CLASS
+
+        FUNCTION_BLOCK
+        VAR 
+            callClass : cls;
+            paramClass : cls2;
+        END_VAR
+            callClass.myMethod(paramClass);
+        END_FUNCTION_BLOCK
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn class_call_by_ref() {
+    let source = "
+    CLASS MyClass
+    VAR
+        x : INT;
+        y : INT;
+    END_VAR
+    END_CLASS
+
+    PROGRAM MyProg
+    VAR_IN_OUT
+        cls : MyClass;
+    END_VAR
+    VAR_OUTPUT
+        x : INT;
+        y : INT;
+    END_VAR
+        x := cls.x;
+        cls.y := y;
+    END_PROGRAM
+
+    PROGRAM main
+    VAR_TEMP
+        cls : MyClass;
+    END_VAR
+    VAR
+        x : INT;
+        y : INT;
+    END_VAR
+        cls.x := 2;
+        MyProg.y := 3;
+        MyProg(cls);
+        x := MyProg.x;
+        y := cls.y;
+    END_PROGRAM
+    ";
+
+    let res = codegen(source);
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn class_call_by_ref_using_func() {
+    let source = "
+    CLASS MyClass
+    VAR
+        x : INT;
+        y : INT;
+    END_VAR
+    END_CLASS
+
+    FUNCTION MyFunc : DINT
+    VAR_IN_OUT
+        cls : MyClass;
+    END_VAR
+    VAR_INPUT
+        y : INT;
+    END_VAR 
+        MyFunc := cls.x;
+        cls.y := y;
+    END_FUNCTION
+
+    PROGRAM main
+    VAR_TEMP
+        cls : MyClass;
+    END_VAR
+    VAR
+        x : INT;
+        y : INT;
+    END_VAR
+        cls.x := 2;
+        x := MyFunc(cls,3);
+        y := cls.y;
+    END_PROGRAM
+    ";
+
+    let res = codegen(source);
+    insta::assert_snapshot!(res);
+}

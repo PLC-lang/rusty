@@ -1,9 +1,18 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceRange { range: 25..28 }, SourceRange { range: 74..77 }], err_no: duplicate_symbol }
 SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceRange { range: 74..77 }, SourceRange { range: 25..28 }], err_no: duplicate_symbol }
+SyntaxError { message: "__ptr_to_foo_struct can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to_foo_struct can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to_foo_struct can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to_foo_vt can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to_foo_vt can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__ptr_to_foo_vt can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__fat_pointer_to_foo can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__fat_pointer_to_foo can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
+SyntaxError { message: "__fat_pointer_to_foo can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 0..0 }, SourceRange { range: 0..0 }], err_no: type__invalid_name }
 SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 25..28 }, SourceRange { range: 74..77 }, SourceRange { range: 116..119 }], err_no: duplicate_symbol }
 SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 74..77 }, SourceRange { range: 25..28 }, SourceRange { range: 116..119 }], err_no: duplicate_symbol }
 SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 116..119 }, SourceRange { range: 25..28 }, SourceRange { range: 74..77 }], err_no: duplicate_symbol }

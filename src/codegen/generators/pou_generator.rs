@@ -166,9 +166,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .enumerate()
             .map(|(i, p)| match declared_parameters.get(i) {
                 Some(v)
-                    if v.is_in_parameter_by_ref() &&
-					// parameters by ref will always be a pointer
-					p.into_pointer_type().get_element_type().is_array_type() =>
+                    if v.is_in_parameter_by_ref()
+                        && p.is_pointer_type()
+                        && p.into_pointer_type().get_element_type().is_array_type() =>
                 {
                     // for array types we will generate a pointer to the arrays element type
                     // not a pointer to array
@@ -268,10 +268,22 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             let declared_params = self.index.get_declared_parameters(implementation.get_call_name());
 
-            //find the function's parameters
             declared_params
                 .iter()
-                .map(|v| self.llvm_index.get_associated_type(v.get_type_name()).map(Into::into))
+                .map(|v| {
+                    //find the function's parameters
+                    let type_name = self
+                        .index
+                        .find_effective_type_by_name(v.get_type_name())
+                        .and_then(|it| it.get_type_information().get_inner_pointer_type())
+                        .map(|it| format!("__fat_pointer_to_{}", it))
+                        .filter(|it| {
+                            v.get_declaration_type().is_by_ref() && self.index.find_type(it).is_some()
+                        })
+                        .unwrap_or_else(|| v.get_type_name().to_string());
+
+                    self.llvm_index.get_associated_type(&type_name).map(Into::into)
+                })
                 .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()
         }
     }
@@ -492,9 +504,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .next()
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.source_range.clone()))?;
 
-                let ptr = self
-                    .llvm
-                    .create_local_variable(m.get_name(), &index.get_associated_type(m.get_type_name())?);
+                let type_name = self
+                    .index
+                    .find_effective_type_by_name(m.get_type_name())
+                    .and_then(|it| it.get_type_information().get_inner_pointer_type())
+                    .map(|it| format!("__fat_pointer_to_{}", it))
+                    .filter(|it| m.get_declaration_type().is_by_ref() && self.index.find_type(it).is_some())
+                    .unwrap_or_else(|| m.get_type_name().to_string());
+
+                let ptr =
+                    self.llvm.create_local_variable(m.get_name(), &index.get_associated_type(&type_name)?);
 
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(

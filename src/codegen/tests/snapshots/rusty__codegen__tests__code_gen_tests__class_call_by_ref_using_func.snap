@@ -1,0 +1,76 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass = type { i16, i16 }
+%__fat_pointer_to_MyClass = type { %MyClass*, [0 x i64]* }
+%main = type { i16, i16 }
+
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@____fat_pointer_to_MyClass__init = unnamed_addr constant %__fat_pointer_to_MyClass zeroinitializer
+@main_instance = global %main zeroinitializer
+
+define void @MyClass(%MyClass* %0) {
+entry:
+  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  ret void
+}
+
+define i32 @MyFunc(%__fat_pointer_to_MyClass %0, i16 %1) {
+entry:
+  %MyFunc = alloca i32, align 4
+  %cls = alloca %__fat_pointer_to_MyClass, align 8
+  store %__fat_pointer_to_MyClass %0, %__fat_pointer_to_MyClass* %cls, align 8
+  %y = alloca i16, align 2
+  store i16 %1, i16* %y, align 2
+  store i32 0, i32* %MyFunc, align 4
+  %load_fp_member = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %cls, i32 0, i32 0
+  %deref = load %MyClass*, %MyClass** %load_fp_member, align 8
+  %x = getelementptr inbounds %MyClass, %MyClass* %deref, i32 0, i32 0
+  %load_ = load i16, i16* %x, align 2
+  %2 = sext i16 %load_ to i32
+  store i32 %2, i32* %MyFunc, align 4
+  %load_fp_member1 = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %cls, i32 0, i32 0
+  %deref2 = load %MyClass*, %MyClass** %load_fp_member1, align 8
+  %y3 = getelementptr inbounds %MyClass, %MyClass* %deref2, i32 0, i32 1
+  %load_y = load i16, i16* %y, align 2
+  store i16 %load_y, i16* %y3, align 2
+  %MyFunc_ret = load i32, i32* %MyFunc, align 4
+  ret i32 %MyFunc_ret
+}
+
+define void @main(%main* %0) {
+entry:
+  %cls = alloca %MyClass, align 8
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %1 = bitcast %MyClass* %cls to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%MyClass* @__MyClass__init to i8*), i64 ptrtoint (%MyClass* getelementptr (%MyClass, %MyClass* null, i32 1) to i64), i1 false)
+  %x1 = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0, i32 0
+  store i16 2, i16* %x1, align 2
+  %outer_fat_pointer_gep = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0, i32 0
+  %fat_pointer_struct = alloca %__fat_pointer_to_MyClass, align 8
+  %fat_pointer_class_gep = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, i32 0, i32 0
+  %fat_poitner_array_gep = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, i32 0, i32 1
+  %2 = alloca i64, i32 0, align 8
+  store i64* %2, [0 x i64]** %fat_poitner_array_gep, align 8
+  store i16* %outer_fat_pointer_gep, %MyClass** %fat_pointer_class_gep, align 8
+  %3 = load %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, align 8
+  %call = call i32 @MyFunc(%__fat_pointer_to_MyClass %3, i16 3)
+  %4 = trunc i32 %call to i16
+  store i16 %4, i16* %x, align 2
+  %y2 = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0, i32 1
+  %load_ = load i16, i16* %y2, align 2
+  store i16 %load_, i16* %y, align 2
+  ret void
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+

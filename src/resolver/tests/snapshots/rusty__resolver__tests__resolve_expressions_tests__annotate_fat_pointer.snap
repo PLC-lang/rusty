@@ -1,0 +1,67 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: "annotations.get_type_hint(params[0], &index)"
+---
+Some(
+    DataType {
+        name: "__fat_pointer_to_cls1",
+        initial_value: None,
+        information: Struct {
+            name: "__fat_pointer_to_cls1",
+            members: [
+                VariableIndexEntry {
+                    name: "pointer_to_cls1",
+                    qualified_name: "__fat_pointer_to_cls1.pointer_to_cls1",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    data_type_name: "__ptr_to_cls1_struct",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SymbolLocation {
+                        line_number: 0,
+                        source_range: SourceRange {
+                            range: 0..0,
+                        },
+                    },
+                    varargs: None,
+                    accessing_type: None,
+                },
+                VariableIndexEntry {
+                    name: "pointer_to_cls1_vt",
+                    qualified_name: "__fat_pointer_to_cls1.pointer_to_cls1_vt",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    data_type_name: "__ptr_to_cls1_vt",
+                    location_in_parent: 1,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SymbolLocation {
+                        line_number: 0,
+                        source_range: SourceRange {
+                            range: 0..0,
+                        },
+                    },
+                    varargs: None,
+                    accessing_type: None,
+                },
+            ],
+            source: Internal(
+                FatPointer,
+            ),
+        },
+        nature: Derived,
+        location: SymbolLocation {
+            line_number: 0,
+            source_range: SourceRange {
+                range: 0..0,
+            },
+        },
+    },
+)

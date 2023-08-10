@@ -1,0 +1,55 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%0 = type { %cls, %cls2 }
+%cls = type {}
+%cls2 = type {}
+%__fat_pointer_to_cls2 = type { %cls2*, [0 x i64]* }
+%__fat_pointer_to_cls = type { %cls*, [2 x i64]* }
+%cls.myMethod = type { %cls2* }
+
+@__cls__init = unnamed_addr constant %cls zeroinitializer
+@__cls2__init = unnamed_addr constant %cls2 zeroinitializer
+@____fat_pointer_to_cls2__init = unnamed_addr constant %__fat_pointer_to_cls2 zeroinitializer
+@____init = unnamed_addr constant %0 zeroinitializer
+@____fat_pointer_to_cls__init = unnamed_addr constant %__fat_pointer_to_cls zeroinitializer
+
+define void @cls(%cls* %0) {
+entry:
+  ret void
+}
+
+define void @cls.myMethod(%cls* %0, %cls.myMethod* %1) {
+entry:
+  %myClass = getelementptr inbounds %cls.myMethod, %cls.myMethod* %1, i32 0, i32 0
+  ret void
+}
+
+define void @cls2(%cls2* %0) {
+entry:
+  ret void
+}
+
+define void @0(%0* %0) {
+entry:
+  %callClass = getelementptr inbounds %0, %0* %0, i32 0, i32 0
+  %paramClass = getelementptr inbounds %0, %0* %0, i32 0, i32 1
+  %cls.myMethod_instance = alloca %cls.myMethod, align 8
+  %1 = getelementptr inbounds %cls.myMethod, %cls.myMethod* %cls.myMethod_instance, i32 0, i32 0
+  %outer_fat_pointer_gep = getelementptr inbounds %cls2, %cls2* %paramClass, i32 0
+  %fat_pointer_struct = alloca %__fat_pointer_to_cls2, align 8
+  %fat_pointer_class_gep = getelementptr inbounds %__fat_pointer_to_cls2, %__fat_pointer_to_cls2* %fat_pointer_struct, i32 0, i32 0
+  %fat_poitner_array_gep = getelementptr inbounds %__fat_pointer_to_cls2, %__fat_pointer_to_cls2* %fat_pointer_struct, i32 0, i32 1
+  %2 = alloca i64, i32 0, align 8
+  store i64* %2, [0 x i64]** %fat_poitner_array_gep, align 8
+  store %cls2* %outer_fat_pointer_gep, %cls2** %fat_pointer_class_gep, align 8
+  %3 = load %__fat_pointer_to_cls2, %__fat_pointer_to_cls2* %fat_pointer_struct, align 8
+  store %__fat_pointer_to_cls2 %3, %cls2** %1, align 8
+  call void @cls.myMethod(%cls* %callClass, %cls.myMethod* %cls.myMethod_instance)
+  ret void
+}
+

@@ -717,7 +717,6 @@ pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: SymbolMap<String, DataType>,
     pou_types: SymbolMap<String, DataType>,
-
     void_type: DataType,
 }
 
@@ -1109,6 +1108,18 @@ impl Index {
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
     pub fn get_container_members(&self, container_name: &str) -> &[VariableIndexEntry] {
         self.type_index.find_type(container_name).map(|it| it.get_members()).unwrap_or_else(|| &[])
+    }
+
+    /// returns all methods of the given POU (e.g. FUNCTION, PROGRAM, CLASS, etc.)
+    pub fn get_number_of_pou_methods(&self, container_name: &str) -> i64 {
+        let all = self.get_pous();
+        let mut count = 0;
+        for (_key, value) in all.elements() {
+            if value.is_method() && value.get_container().eq(container_name) {
+                count += 1;
+            }
+        }
+        count
     }
 
     /// returns all member variables of the given POU (e.g. FUNCTION, PROGRAM, etc.)

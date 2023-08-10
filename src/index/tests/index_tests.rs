@@ -2064,3 +2064,50 @@ fn string_type_alias_without_size_is_indexed() {
     let dt = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("WSTRING", dt.get_name());
 }
+
+#[test]
+fn test_fat_pointer_vt_size() {
+    let (_, index) = index(
+        r"
+            CLASS cls
+            METHOD foo
+            END_METHOD
+            METHOD bar
+            END_METHOD
+            METHOD buz
+            END_METHOD
+            END_CLASS
+
+            CLASS cls2
+            END_CLASS
+        ",
+    );
+
+    let number = index.get_number_of_pou_methods("cls");
+    assert_eq!(number, 3);
+
+    let number = index.get_number_of_pou_methods("cls2");
+    assert_eq!(number, 0);
+}
+
+#[test]
+fn test() {
+    let (_, index) = index(
+        r"
+            CLASS cls
+            METHOD foo
+            VAR_IN_OUT
+                test_class : cls; 
+            END_VAR
+            END_METHOD
+            METHOD bar
+            END_METHOD
+            METHOD buz
+            END_METHOD
+            END_CLASS
+    ",
+    );
+
+    let number = index.get_number_of_pou_methods("cls");
+    assert_eq!(number, 3);
+}

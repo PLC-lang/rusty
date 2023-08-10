@@ -1,0 +1,24 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: "annotations.get_type(params[0], &index)"
+---
+Some(
+    DataType {
+        name: "cls1",
+        initial_value: None,
+        information: Struct {
+            name: "cls1",
+            members: [],
+            source: Pou(
+                Class,
+            ),
+        },
+        nature: Any,
+        location: SymbolLocation {
+            line_number: 9,
+            source_range: SourceRange {
+                range: 154..158,
+            },
+        },
+    },
+)
