@@ -21,7 +21,7 @@ use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
-        StructValue, VectorValue,
+        StructValue, VectorValue, CallableValue, CallSiteValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -502,15 +502,53 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.get_function_context(operator)?,
         )?;
 
-        let function = self
-            .llvm_index
-            .find_associated_implementation(implementation_name) // using the non error option to control the output error
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    &format!("No callable implementation associated to {implementation_name:?}"),
-                    operator.get_location(),
-                )
-            })?;
+        //TODO should check if it is class or FunctionBlock
+        let function: CallableValue<'_> = if pou.is_method() {
+            let element = if let AstStatement::QualifiedReference { elements, .. } = operator {
+                elements.first()
+            } else {
+                None
+            };
+            
+            //let ptr_to_fp = self.generate_element_pointer(operator)?;
+            let ptr_to_fp = self.do_generate_element_pointer_without_deref(None, element.unwrap())?;
+            let vt_arr =
+                self.llvm.get_member_pointer_from_struct(
+                    ptr_to_fp, 
+                    1, 
+                    "name", 
+                    &operator.get_location())?;
+            
+            let all = self.index.get_pous();
+            let mut count = 0;
+            // populate the array
+            for (_key, value) in all.elements() {
+                if value.is_method() && value.get_container().eq(pou.get_container()) {
+                    count += 1;
+                    if _key.eq(&implementation_name.to_lowercase()) {
+                        break;
+                    }
+                }
+            }
+
+            let res = self.llvm.load_array_element(
+                vt_arr,
+                &[self.llvm.context.i64_type().const_int(count-1, true)],
+                "",
+            )?;
+            res.try_into().map_err(|_| Diagnostic::codegen_error("Cannot cast pointer to function", SourceRange::undefined()))?
+        } else {
+            let res = self
+                .llvm_index
+                .find_associated_implementation(implementation_name) // using the non error option to control the output error
+                .ok_or_else(|| {
+                    Diagnostic::codegen_error(
+                        &format!("No callable implementation associated to {implementation_name:?}"),
+                        operator.get_location(),
+                    )
+                })?;
+            res.into()
+        };
 
         // generate the debug statetment for a call
         self.register_debug_location(operator);
@@ -534,7 +572,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // if the target is a function, declare the struct locally
         // assign all parameters into the struct values
-        let call = &self.llvm.builder.build_call(function, &arguments_list, "call");
+        let call: CallSiteValue<'_> = self.llvm.builder.build_call(function, &arguments_list, "call");
 
         // so grab either:
         // - the out-pointer if we generated one in by_ref_func_out
@@ -874,7 +912,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             return Ok(ptr_value.into());
         }
-        
+
         //TODO need to do cast_if_needed()
         // Generate the element pointer, then...
         let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
@@ -1307,6 +1345,49 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Diagnostic::codegen_error(&format!("Cannot generate a LValue for {elements:?}"), location)
         })
     }
+
+    fn do_generate_element_pointer_without_deref(
+        &self,
+        qualifier: Option<PointerValue<'ink>>,
+        reference_statement: &AstStatement,
+    ) -> Result<PointerValue<'ink>, Diagnostic> {
+        match reference_statement {
+            AstStatement::Reference { name, .. } => self.create_llvm_pointer_value_for_reference(
+                qualifier.as_ref(),
+                name.as_str(),
+                reference_statement,
+            ),
+            AstStatement::ArrayAccess { reference, access, .. } => {
+                let Some(dt) = self.annotations.get_type(reference, self.index) else {
+                    // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
+                    unreachable!("unresolved reference")
+                };
+
+                if dt.get_type_information().is_vla() {
+                    self.generate_element_pointer_for_vla(reference, access)
+                        .map_err(|_| unreachable!("invalid access statement"))
+                } else {
+                    self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
+                }
+            }
+            AstStatement::PointerAccess { reference, .. } => {
+                self.do_generate_element_pointer(qualifier, reference).map(|it| self.deref(it))
+            }
+            AstStatement::Literal { kind: AstLiteral::String(sv), .. } => if sv.is_wide() {
+                self.llvm_index.find_utf16_literal_string(sv.value())
+            } else {
+                self.llvm_index.find_utf08_literal_string(sv.value())
+            }
+            .map(|it| it.as_pointer_value())
+            .ok_or_else(|| unreachable!("All string literals have to be constants")),
+            _ => Err(Diagnostic::codegen_error(
+                &format!("Cannot generate a LValue for {reference_statement:?}"),
+                reference_statement.get_location(),
+            )),
+        }
+    }
+
+
 
     fn do_generate_element_pointer(
         &self,

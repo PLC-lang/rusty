@@ -1,0 +1,76 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3397
+expression: res
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%cls = type { i32, i32, i32 }
+%myFB = type { %__fat_pointer_to_cls }
+%__fat_pointer_to_cls = type { %cls*, [2 x i64]* }
+%main = type { %cls, %myFB }
+%cls.myMethod = type {}
+%cls.myMethod2 = type {}
+
+@__cls__init = unnamed_addr constant %cls zeroinitializer
+@__myFB__init = unnamed_addr constant %myFB zeroinitializer
+@____fat_pointer_to_cls__init = unnamed_addr constant %__fat_pointer_to_cls zeroinitializer
+@main_instance = global %main zeroinitializer
+
+define void @cls(%cls* %0) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  %z = getelementptr inbounds %cls, %cls* %0, i32 0, i32 2
+  ret void
+}
+
+define void @cls.myMethod(%cls* %0, %cls.myMethod* %1) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  %z = getelementptr inbounds %cls, %cls* %0, i32 0, i32 2
+  ret void
+}
+
+define void @cls.myMethod2(%cls* %0, %cls.myMethod2* %1) {
+entry:
+  %x = getelementptr inbounds %cls, %cls* %0, i32 0, i32 0
+  %y = getelementptr inbounds %cls, %cls* %0, i32 0, i32 1
+  %z = getelementptr inbounds %cls, %cls* %0, i32 0, i32 2
+  ret void
+}
+
+define void @myFB(%myFB* %0) {
+entry:
+  %callClass = getelementptr inbounds %myFB, %myFB* %0, i32 0, i32 0
+  %load_fp_member = getelementptr inbounds %__fat_pointer_to_cls, %__fat_pointer_to_cls* %callClass, i32 0, i32 0
+  %deref = load %cls*, %cls** %load_fp_member, align 8
+  %cls.myMethod_instance = alloca %cls.myMethod, align 8
+  call void @cls.myMethod(%cls* %deref, %cls.myMethod* %cls.myMethod_instance)
+  ret void
+}
+
+define void @main(%main* %0) {
+entry:
+  %callClass = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %1 = getelementptr inbounds %myFB, %myFB* %fb, i32 0, i32 0
+  %outer_fat_pointer_gep = getelementptr inbounds %cls, %cls* %callClass, i32 0
+  %fat_pointer_struct = alloca %__fat_pointer_to_cls, align 8
+  %fat_pointer_class_gep = getelementptr inbounds %__fat_pointer_to_cls, %__fat_pointer_to_cls* %fat_pointer_struct, i32 0, i32 0
+  %fat_poitner_array_gep = getelementptr inbounds %__fat_pointer_to_cls, %__fat_pointer_to_cls* %fat_pointer_struct, i32 0, i32 1
+  %2 = alloca i64, align 8
+  %3 = getelementptr inbounds i64, i64* %2, i64 0
+  store void (%cls*, %cls.myMethod*)* @cls.myMethod, i64* %3, align 8
+  %4 = getelementptr inbounds i64, i64* %2, i64 0
+  store void (%cls*, %cls.myMethod2*)* @cls.myMethod2, i64* %4, align 8
+  store i64* %2, [2 x i64]** %fat_poitner_array_gep, align 8
+  store %cls* %outer_fat_pointer_gep, %cls** %fat_pointer_class_gep, align 8
+  %5 = load %__fat_pointer_to_cls, %__fat_pointer_to_cls* %fat_pointer_struct, align 8
+  store %__fat_pointer_to_cls %5, %__fat_pointer_to_cls* %1, align 8
+  call void @myFB(%myFB* %fb)
+  ret void
+}
+

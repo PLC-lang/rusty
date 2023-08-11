@@ -13,6 +13,7 @@ use crate::{
     typesystem::DataType,
 };
 use indexmap::IndexSet;
+use inkwell::types::{AnyType, AnyTypeEnum};
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -228,9 +229,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)
                 } else {
-                    self.index
-                        .get_effective_type_by_name(inner_type_name)
-                        .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
+                    let inner_type = if inner_type_name == "__FUNCTION_POINTER__" {
+                        Ok(self.llvm.context.i32_type().fn_type(&[], false).as_any_type_enum())
+                    } else {
+                        self.index
+                            .get_effective_type_by_name(inner_type_name)
+                            .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
+                            .map(|inner_type| inner_type.as_any_type_enum())
+                    };
+
+                    inner_type
                         .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                         .map(|it| it.as_basic_type_enum())
                 }
@@ -435,7 +443,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// `arr: ARRAY[0..3] OF INT`.
     fn create_nested_array_type(
         &self,
-        inner_type: BasicTypeEnum<'ink>,
+        inner_type: AnyTypeEnum<'ink>,
         dimensions: &[Dimension],
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         let len = dimensions
@@ -451,12 +459,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .ok_or_else(|| Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined()))?;
 
         let result = match inner_type {
-            BasicTypeEnum::IntType(ty) => ty.array_type(len),
-            BasicTypeEnum::FloatType(ty) => ty.array_type(len),
-            BasicTypeEnum::StructType(ty) => ty.array_type(len),
-            BasicTypeEnum::ArrayType(ty) => ty.array_type(len),
-            BasicTypeEnum::PointerType(ty) => ty.array_type(len),
-            BasicTypeEnum::VectorType(ty) => ty.array_type(len),
+            AnyTypeEnum::IntType(ty) => ty.array_type(len),
+            AnyTypeEnum::FloatType(ty) => ty.array_type(len),
+            AnyTypeEnum::StructType(ty) => ty.array_type(len),
+            AnyTypeEnum::ArrayType(ty) => ty.array_type(len),
+            AnyTypeEnum::PointerType(ty) => ty.array_type(len),
+            AnyTypeEnum::VectorType(ty) => ty.array_type(len),
+            AnyTypeEnum::FunctionType(ty)  => ty.ptr_type(AddressSpace::default()).array_type(len),
+            AnyTypeEnum::VoidType(_) => unimplemented!()
         }
         .as_basic_type_enum();
 

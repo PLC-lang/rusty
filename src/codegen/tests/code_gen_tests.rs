@@ -3365,29 +3365,31 @@ fn executes_overridden_method() {
 }
 
 #[test]
-#[ignore]
 //TODO as soon as methods are implemented, this test can be used
 fn fat_pointer_struct_method() {
     let res = codegen(
         "
         CLASS cls
         METHOD myMethod
-        VAR_IN_OUT
-            myClass : cls2;
-        END_VAR
+        END_METHOD
+        METHOD myMethod2
         END_METHOD
         END_CLASS
 
-        CLASS cls2 
-        END_CLASS
-
-        FUNCTION_BLOCK
-        VAR 
+        FUNCTION_BLOCK myFB
+        VAR_IN_OUT
             callClass : cls;
-            paramClass : cls2;
         END_VAR
-            callClass.myMethod(paramClass);
+            callClass.myMethod();
         END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+            callClass : cls;
+            fb : myFb;
+        END_VAR
+        fb(callClass);
+        END_PROGRAM
        ",
     );
 

@@ -316,7 +316,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 let zero = cast_data.llvm.i32_type().const_zero();
 
                 // get fat_pointer annotation from POU
-                let Some(StatementAnnotation::Variable {qualified_name, ..}) = cast_data.annotation else {
+                let Some(StatementAnnotation::Variable {qualified_name, resulting_type, ..}) = cast_data.annotation else {
                     unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
                 };
                 let fat_pointer = cast_data
@@ -325,9 +325,8 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                     .unwrap_or_else(|| unreachable!("passed fat_pointer must be in the llvm index"));
 
                 // gep into the original class. result address will be stored in fat_pointer
-                let class_gep = unsafe {
-                    builder.build_in_bounds_gep(fat_pointer, &[zero, zero], "outer_fat_pointer_gep")
-                };
+                let class_gep =
+                    unsafe { builder.build_in_bounds_gep(fat_pointer, &[zero], "outer_fat_pointer_gep") };
 
                 let Ok(associated_type) = cast_data
                 .llvm_type_index
@@ -348,25 +347,30 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 };
 
                 // --generate array of methods
-                // let arr = ty.array_type(size as u32);
-                // let arr_storage = self.llvm.builder.build_alloca(arr, "");
-                // for (i, ele) in generated_params.iter().enumerate() {
-                //     let ele_ptr = self.llvm.load_array_element(
-                //         arr_storage,
-                //         &[
-                //             self.llvm.context.i32_type().const_zero(),
-                //             self.llvm.context.i32_type().const_int(i as u64, true),
-                //         ],
-                //         "",
-                //     )?;
-                //     self.llvm.builder.build_store(ele_ptr, *ele);
-                // }
+                let arr_ptr = builder.build_alloca(cast_data.llvm.context.i64_type(), "");
 
-                let arr_ptr = builder.build_array_alloca(
-                    cast_data.llvm.context.i64_type(),
-                    cast_data.llvm.context.i32_type().const_int(0, true),
-                    "",
-                );
+                let all = cast_data.index.get_pous();
+
+                // populate the array
+                for (_key, value) in all.elements() {
+                    if value.is_method() && value.get_container().eq(resulting_type) {
+                        let ele_ptr = cast_data.llvm.load_array_element(
+                            arr_ptr,
+                            &[cast_data.llvm.context.i64_type().const_int(0, true)],
+                            "",
+                        ).unwrap();
+                        builder.build_store(
+                            ele_ptr,
+                            cast_data
+                                .llvm_type_index
+                                .find_associated_implementation(value.get_name())
+                                .unwrap()
+                                .as_global_value()
+                                .as_pointer_value(),
+                        );
+                    }
+                }
+
                 builder.build_store(fat_pointer_array, arr_ptr);
                 builder.build_store(fat_pointer_class_ptr, class_gep);
                 builder.build_load(fat_pointer_struct, "")

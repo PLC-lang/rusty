@@ -55,7 +55,7 @@ pub fn visit_and_generate_fat_pointers(
         initial_value: None,
         information: DataTypeInformation::Array {
             name: virtual_table_array.clone(),
-            inner_type_name: LWORD_TYPE.to_string(),
+            inner_type_name: "__FUNCTION_POINTER__".to_string(),
             dimensions: vec![Dimension {
                 start_offset: TypeSize::LiteralInteger(0),
                 end_offset: TypeSize::LiteralInteger(number_of_methods - 1),

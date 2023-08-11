@@ -50,13 +50,13 @@ entry:
   %x1 = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0, i32 0
   store i16 2, i16* %x1, align 2
   store i16 3, i16* getelementptr inbounds (%MyProg, %MyProg* @MyProg_instance, i32 0, i32 2), align 2
-  %outer_fat_pointer_gep = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0, i32 0
+  %outer_fat_pointer_gep = getelementptr inbounds %MyClass, %MyClass* %cls, i32 0
   %fat_pointer_struct = alloca %__fat_pointer_to_MyClass, align 8
   %fat_pointer_class_gep = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, i32 0, i32 0
   %fat_poitner_array_gep = getelementptr inbounds %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, i32 0, i32 1
   %2 = alloca i64, i32 0, align 8
   store i64* %2, [0 x i64]** %fat_poitner_array_gep, align 8
-  store i16* %outer_fat_pointer_gep, %MyClass** %fat_pointer_class_gep, align 8
+  store %MyClass* %outer_fat_pointer_gep, %MyClass** %fat_pointer_class_gep, align 8
   %3 = load %__fat_pointer_to_MyClass, %__fat_pointer_to_MyClass* %fat_pointer_struct, align 8
   store %__fat_pointer_to_MyClass %3, %__fat_pointer_to_MyClass* getelementptr inbounds (%MyProg, %MyProg* @MyProg_instance, i32 0, i32 0), align 8
   call void @MyProg(%MyProg* @MyProg_instance)
