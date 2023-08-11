@@ -4107,6 +4107,37 @@ fn multi_dim_vla_access_assignment_receives_the_correct_type_hint() {
 }
 
 #[test]
+fn function_call_resolves_correctly_to_pou_rather_than_local_variable() {
+    let id_provider = IdProvider::default();
+
+    // Verify that `a()` has an annotation on `C` rather than `A` or `B.a`
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION_BLOCK A
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK B
+        VAR
+            a : C;
+        END_VAR
+
+        a();
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK C
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+
+    let AstStatement::CallStatement { operator, .. } = stmt else { unreachable!() };
+    assert_type_and_hint!(&annotations, &index, operator, "C", None);
+}
+
+#[test]
 fn override_is_resolved() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(

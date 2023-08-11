@@ -1,6 +1,0 @@
----
-source: src/validation/tests/variable_length_array_test.rs
-expression: res
----
-ImprovementSuggestion { message: "Variable Length Arrays are always by-ref, even when declared in a by-value block", range: [SourceRange { range: 66..69 }] }
-
