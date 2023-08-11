@@ -86,17 +86,10 @@ pub fn visit_and_generate_fat_pointers(
         },
         // pointer to array
         Variable {
-            name: format!("pointer_to_{pou_name}_vt").to_lowercase(),
-            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType {
-                    name: Some(format!("__ptr_to_{pou_name}_vt")),
-                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                        referenced_type: virtual_table_array,
-                        location: SourceRange::undefined(),
-                    }),
-                },
+            name: format!("{pou_name}_vt").to_lowercase(),
+            data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                referenced_type: virtual_table_array,
                 location: SourceRange::undefined(),
-                scope: None,
             },
             initializer: None,
             address: None,

@@ -2,7 +2,7 @@
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
-    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue},
+    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue}, AddressSpace,
 };
 use plc_ast::ast::PouType;
 
@@ -347,16 +347,16 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 };
 
                 // --generate array of methods
-                let arr_ptr = builder.build_alloca(cast_data.llvm.context.i64_type(), "");
-
+                // This should be a alloca for the vt array
                 let all = cast_data.index.get_pous();
 
                 // populate the array
+                let mut index = 0;
                 for (_key, value) in all.elements() {
                     if value.is_method() && value.get_container().eq(resulting_type) {
                         let ele_ptr = cast_data.llvm.load_array_element(
-                            arr_ptr,
-                            &[cast_data.llvm.context.i64_type().const_int(0, true)],
+                            fat_pointer_array,
+                            &[cast_data.llvm.context.i64_type().const_int(index as u64, true)],
                             "",
                         ).unwrap();
                         builder.build_store(
@@ -368,10 +368,10 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                                 .as_global_value()
                                 .as_pointer_value(),
                         );
+                        index += 1;
                     }
                 }
 
-                builder.build_store(fat_pointer_array, arr_ptr);
                 builder.build_store(fat_pointer_class_ptr, class_gep);
                 builder.build_load(fat_pointer_struct, "")
             }

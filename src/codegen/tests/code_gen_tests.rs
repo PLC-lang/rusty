@@ -3341,7 +3341,7 @@ fn executes_overridden_method() {
             x : INT;
             y : INT;
         END_VAR
-        METHOD myMethod
+        METHOD myMethod : DINT
             x := 10;
         END_METHOD
         END_CLASS
@@ -3370,9 +3370,11 @@ fn fat_pointer_struct_method() {
     let res = codegen(
         "
         CLASS cls
-        METHOD myMethod
+        VAR x : DINT; END_VAR
+
+        METHOD myMethod : DINT
         END_METHOD
-        METHOD myMethod2
+        METHOD myMethod2 : DINT
         END_METHOD
         END_CLASS
 
@@ -3380,6 +3382,7 @@ fn fat_pointer_struct_method() {
         VAR_IN_OUT
             callClass : cls;
         END_VAR
+            callClass.x := 2;
             callClass.myMethod();
         END_FUNCTION_BLOCK
 
@@ -3435,7 +3438,7 @@ fn class_call_by_ref() {
     ";
 
     let res = codegen(source);
-    insta::assert_snapshot!(res);
+    insta::assert_snapshot!(res)
 }
 
 #[test]

@@ -509,9 +509,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             } else {
                 None
             };
-            
+
+            let StatementAnnotation::Variable { qualified_name, .. } = self.annotations.get(element.unwrap()).unwrap() else {
+                unimplemented!();
+            };
+
             //let ptr_to_fp = self.generate_element_pointer(operator)?;
-            let ptr_to_fp = self.do_generate_element_pointer_without_deref(None, element.unwrap())?;
+            let ptr_to_fp = self.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+
             let vt_arr =
                 self.llvm.get_member_pointer_from_struct(
                     ptr_to_fp, 
@@ -530,12 +535,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
             }
+            
 
             let res = self.llvm.load_array_element(
                 vt_arr,
-                &[self.llvm.context.i64_type().const_int(count-1, true)],
+                &[
+                    self.llvm.context.i64_type().const_zero(),
+                    self.llvm.context.i64_type().const_int(count-1, true)],
                 "",
             )?;
+            let res = self.llvm.load_pointer(&res, "").into_pointer_value();
             res.try_into().map_err(|_| Diagnostic::codegen_error("Cannot cast pointer to function", SourceRange::undefined()))?
         } else {
             let res = self
