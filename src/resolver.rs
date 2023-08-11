@@ -866,23 +866,31 @@ impl<'i> TypeAnnotator<'i> {
 
                 // handle annotation for array of struct
                 self.annotate_array_of_struct(expected_type, initializer, &ctx);
+                dbg!(&self.annotation_map.type_hint_map);
             }
         }
     }
 
+    // #[rustfmt::skip]
     fn annotate_array_of_struct(
         &mut self,
         expected_type: &typesystem::DataType,
         initializer: &AstStatement,
         ctx: &VisitorContext,
     ) {
+        // var_init : ARRAY[1..2] OF STRUCT1 := [
+        // 	(name := 'first', node := 1, myArr := [(x1 := FALSE, x2 := TRUE), (x1 := TRUE, x2 := FALSE)]),
+        // 	(name := 'second', node := 2, myArr := [(x1 := FALSE, x2 := TRUE), (x1 := TRUE, x2 := FALSE)])
+        // ];
+        dbg!(initializer);
+        // dbg!(&self.annotation_map.type_hint_map);
         match expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
 
                 if inner_type.get_type_information().is_struct() {
-                    let expressions = match initializer {
+                    let expressions = match dbg!(initializer) {
                         // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
                         // Note: While these are invalid per-se we still annotate them here to avoid having false-positive "could not resolve reference" errors
                         AstStatement::ExpressionList { expressions, .. } => Some(expressions),
@@ -894,12 +902,31 @@ impl<'i> TypeAnnotator<'i> {
                         },
 
                         // ...anything else is uninteresting
+                        AstStatement::Assignment { .. } => {
+                            self.annotation_map.annotate_type_hint(
+                                initializer,
+                                StatementAnnotation::Value {
+                                    resulting_type: inner_type.get_name().to_string(),
+                                },
+                            );
+
+                            self.visit_statement(&ctx, initializer);
+                            None
+                        }
+
                         _ => None,
                     };
 
                     if let Some(expressions) = expressions {
                         for e in expressions {
-                            // annotate with the arrays inner_type
+                            if let AstStatement::Assignment { left, right, id } = e {
+                                if let AstStatement::Reference { name, .. } = left.as_ref() {
+                                    if name == "x1" {
+                                        println!("...");
+                                    }
+                                }
+                            }
+
                             self.annotation_map.annotate_type_hint(
                                 e,
                                 StatementAnnotation::Value {
@@ -927,6 +954,27 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             _ => (),
+        }
+        // dbg!(&self.annotation_map.type_hint_map);
+
+        dbg!(initializer);
+        let AstStatement::Literal { kind: AstLiteral::Array(array), .. } = initializer else { return };
+        let Some(AstStatement::ExpressionList { expressions,  .. }) = array.elements() else { return };
+        for expression in expressions {
+            if let AstStatement::Assignment { left, right, .. } = expression {
+                let Some(ty) = self.annotation_map.get_type(&left, self.index).cloned() else { continue };
+                let AstStatement::Reference { name, .. } = left.as_ref() else { return };
+
+                if let AstStatement::Literal { kind: AstLiteral::Array(array), .. } = right.as_ref() {
+                    let Some(AstStatement::ExpressionList { expressions, .. }) = array.elements() else { continue };
+                    for expression in expressions {
+                        if let AstStatement::Assignment { .. } = expression {
+                            self.annotate_array_of_struct(&ty, expression, ctx);
+                        }
+                        dbg!(expressions);
+                    }
+                }
+            }
         }
     }
 
