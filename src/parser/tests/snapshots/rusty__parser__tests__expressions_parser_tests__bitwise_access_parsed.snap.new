@@ -1,0 +1,179 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 43
+expression: "&prg.statements"
+---
+[
+    ReferenceExpr {
+        kind: Member(
+            LiteralInteger {
+                value: 0,
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: Bit,
+                index: LiteralInteger {
+                    value: 1,
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: Byte,
+                index: LiteralInteger {
+                    value: 1,
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: Byte,
+                index: Reference {
+                    name: "b",
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: Word,
+                index: LiteralInteger {
+                    value: 1,
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Index(
+                    LiteralInteger {
+                        value: 0,
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: DWord,
+                index: LiteralInteger {
+                    value: 1,
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Member(
+            DirectAccess {
+                access: Bit,
+                index: LiteralInteger {
+                    value: 1,
+                },
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    DirectAccess {
+                        access: Byte,
+                        index: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Reference {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    },
+]

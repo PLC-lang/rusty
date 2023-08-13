@@ -1,0 +1,36 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1518
+expression: statement
+---
+ReferenceExpr {
+    kind: Index(
+        LiteralInteger {
+            value: 7,
+        },
+    ),
+    base: Some(
+        ReferenceExpr {
+            kind: Member(
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "y",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    ),
+}

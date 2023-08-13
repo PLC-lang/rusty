@@ -1,0 +1,28 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1107
+expression: statement
+---
+BinaryExpression {
+    operator: And,
+    left: BinaryExpression {
+        operator: And,
+        left: ReferenceExpr {
+            kind: Member(
+                Reference {
+                    name: "b",
+                },
+            ),
+            base: None,
+        },
+        right: EmptyStatement,
+    },
+    right: ReferenceExpr {
+        kind: Member(
+            Reference {
+                name: "c",
+            },
+        ),
+        base: None,
+    },
+}

@@ -200,23 +200,24 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // PARENTHESIZED (...)
 fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
-    let result = match lexer.token {
-        KeywordParensOpen => {
-            lexer.advance();
-            super::parse_any_in_region(lexer, vec![KeywordParensClose], parse_expression)
-        }
-        _ => parse_leaf_expression(lexer),
-    };
+    parse_leaf_expression(lexer)
+    // let result = match lexer.token {
+    //     KeywordParensOpen => {
+    //         lexer.advance();
+    //         super::parse_any_in_region(lexer, vec![KeywordParensClose], parse_expression)
+    //     }
+    //     _ => parse_leaf_expression(lexer),
+    // };
     // we might deal with a deref after a paren-expr
-    match parse_access_modifiers(lexer, result) {
-        Ok(statement) => statement,
-        Err(diagnostic) => {
-            let statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
-            lexer.accept_diagnostic(diagnostic);
-            statement
-        }
-    }
+    // match parse_access_modifiers(lexer, result) {
+    //     Ok(statement) => statement,
+    //     Err(diagnostic) => {
+    //         let statement =
+    //             AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+    //         lexer.accept_diagnostic(diagnostic);
+    //         statement
+    //     }
+    // }
 }
 
 fn to_operator(token: &Token) -> Option<Operator> {
@@ -271,18 +272,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             }
         }
         OperatorMultiplication => parse_vla_range(lexer),
-        Identifier => parse_qualified_reference2(lexer),
-        OperatorAmp => {
-            lexer.advance();
-            let op_location = lexer.last_location();
-            Ok(AstFactory::create_address_of_reference(
-                parse_leaf_expression(lexer),
-                lexer.next_id(),
-                op_location,
-            ))
-        }
-        // ...and if not then this token may be anything
-        _ => parse_single_leafe_expression(lexer),
+        _ => parse_qualified_reference2(lexer),
     };
 
     let literal_parse_result = literal_parse_result.and_then(|statement| {
@@ -344,7 +334,8 @@ fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstS
 
 fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
     match lexer.token {
-        Identifier => Ok(parse_identifier(lexer)),
+
+        Identifier => Ok(AstFactory::create_member_reference(parse_identifier(lexer), None, lexer.next_id())),
         HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
         LiteralInteger => parse_literal_number(lexer, false),
         LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
@@ -419,12 +410,14 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 }
 
 pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let segment = AstFactory::create_member_reference(
-        AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id()),
-        None,
-        lexer.next_id(),
-    );
-
+    let segment = if lexer.try_consume(&KeywordParensOpen) {
+        parse_any_in_region(lexer, vec![KeywordParensClose, KeywordSemicolon], |lexer| {
+            parse_expression(lexer)
+        })
+    }else{
+        parse_single_leafe_expression(lexer)?
+    };
+    
     let reference = parse_qualified_reference_with_base(lexer, segment)?;
 
     if lexer.try_consume(&KeywordParensOpen) {
@@ -470,23 +463,22 @@ pub fn parse_qualified_reference_with_base(
                 );
             }
             Some(KeywordSquareParensOpen) => {
-                current = parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer: &mut ParseSession<'_>| {
-                    AstFactory::create_index_reference(
-                        parse_expression(lexer),
-                        Some(current),
-                        lexer.next_id(),
-                    )
-                });
+                current = parse_any_in_region(
+                    lexer,
+                    vec![KeywordSquareParensClose],
+                    |lexer: &mut ParseSession<'_>| {
+                        AstFactory::create_index_reference(
+                            parse_expression(lexer),
+                            Some(current),
+                            lexer.next_id(),
+                        )
+                    },
+                );
             }
             Some(OperatorDeref) => {
-                current  = AstFactory::create_deref_reference(
-                        current,
-                        lexer.next_id(),
-                        lexer.last_location()
-                    )
-            },
-            // Some(KeywordParensOpen) 
-
+                current = AstFactory::create_deref_reference(current, lexer.next_id(), lexer.last_location())
+            }
+            // Some(KeywordParensOpen)
             _ => {}
         }
     }
