@@ -161,6 +161,11 @@ impl DataType {
         self.get_type_information().is_array()
     }
 
+    /// returns true if this type is an enum
+    pub fn is_enum(&self) -> bool {
+        self.get_type_information().is_enum()
+    }
+
     pub fn is_vla(&self) -> bool {
         self.get_type_information().is_vla()
     }

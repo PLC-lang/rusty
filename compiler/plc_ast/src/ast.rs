@@ -697,6 +697,10 @@ pub enum ReferenceAccess {
      */
     Index(Box<AstStatement>),
     /**
+     * Color#Red
+     */
+    Cast(Box<AstStatement>),
+    /**
      * a^
      */
     Deref,
@@ -1505,17 +1509,18 @@ impl AstFactory {
     }
 
     /// creates a new cast statement
-    pub fn create_cast_statement(
-        type_name: &str,
+    pub fn create_cast_statement<T>(
+        type_name: AstStatement,
         stmt: AstStatement,
         location: &SourceRange,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement::CastStatement {
-            id,
-            location: location.clone(),
-            type_name: type_name.to_string(),
-            target: Box::new(stmt),
+        id_provider: &mut T,
+    ) -> AstStatement where T : FnMut() -> AstId{
+        let new_location = (location.get_start()..stmt.get_location().get_end()).into();
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Cast(Box::new(stmt)),
+            base: Some(Box::new(type_name)),
+            id: id_provider(),
+            location: new_location,
         }
     }
 

@@ -135,7 +135,7 @@ impl<'s> VisitorContext<'s> {
         }
     }
 
-/// returns a copy of the current context and changes the `is_call` to true
+    /// returns a copy of the current context and changes the `is_call` to true
     fn with_const(&self, const_state: bool) -> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
@@ -332,9 +332,13 @@ impl StatementAnnotation {
 
     pub fn is_const(&self) -> bool {
         match self {
-            StatementAnnotation::Variable { constant, ..} => *constant,
-            _ => false
+            StatementAnnotation::Variable { constant, .. } => *constant,
+            _ => false,
         }
+    }
+
+    pub fn data_type(type_name: &str) -> Self {
+        StatementAnnotation::Type { type_name: type_name.into() }
     }
 }
 
@@ -423,7 +427,8 @@ pub trait AnnotationMap {
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(&qualified_name.as_str()),
-            StatementAnnotation::Function { .. } | StatementAnnotation::Type { .. } => None,
+            StatementAnnotation::Function { .. } => None,
+            StatementAnnotation::Type { type_name } => Some(type_name),
         }
     }
 
@@ -901,7 +906,8 @@ impl<'i> TypeAnnotator<'i> {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 // TODO this seems wrong
-                let ctx = ctx.with_qualifier(inner_type.get_name().to_string()).with_lhs(inner_type.get_name());
+                let ctx =
+                    ctx.with_qualifier(inner_type.get_name().to_string()).with_lhs(inner_type.get_name());
 
                 if inner_type.get_type_information().is_struct() {
                     let expressions = match initializer {
@@ -1417,7 +1423,7 @@ impl<'i> TypeAnnotator<'i> {
                 let statement_to_annotation = if let Some(DataTypeInformation::Enum { name, .. }) = data_type
                 {
                     //enum cast
-                    self.visit_statement(&ctx.with_qualifier(name.to_string()), target);
+                    self.visit_statement(&ctx.with_qualifier(name.to_string()), dbg!(target));
                     //use the type of the target
                     let type_name = self.annotation_map.get_type_or_void(target, self.index).get_name();
                     vec![(statement, type_name.to_string())]
@@ -1494,9 +1500,11 @@ impl<'i> TypeAnnotator<'i> {
             }),
         ) {
             (ReferenceAccess::Member(reference), qualifier) => {
-                let base_const = base.and_then(|it| self.annotation_map.get(it)).map(|it| it.is_const())
-                                                .filter(|it| *it != ctx.constant);
-                
+                let base_const = base
+                    .and_then(|it| self.annotation_map.get(it))
+                    .map(|it| it.is_const())
+                    .filter(|it| *it != ctx.constant);
+
                 let new_ctx = base_const.map(|it| ctx.with_const(it));
                 let new_ctx = new_ctx.as_ref().unwrap_or(ctx);
                 if let Some(annotation) =
@@ -1507,6 +1515,12 @@ impl<'i> TypeAnnotator<'i> {
 
                     self.maybe_annotate_vla(new_ctx, stmt);
                     // self.maybe_annotate_vla(ctx, reference.as_ref());
+                }
+            }
+            (ReferenceAccess::Cast(target), Some(qualifier)) => {
+                if let Some(annotation) = self.get_annotation_from_flat_reference(target.as_ref(), Some(qualifier.as_str()), ctx) {
+                    self.annotate(stmt, annotation.clone());
+                    self.annotate(target.as_ref(), annotation);
                 }
             }
             (ReferenceAccess::Index(_), Some(base)) => {
@@ -1542,7 +1556,6 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-
     // todo the whole handling of the base-const is not very ellegant. can I pass the base-type annotation?
     fn get_annotation_from_flat_reference(
         &mut self,
@@ -1561,21 +1574,30 @@ impl<'i> TypeAnnotator<'i> {
                     None
                 };
 
-                // 1st try: find a local variable in the current pou
+                // try: find a local variable in the current pou
                 let candidate = candidate.or(ctx
                     .pou
                     .and_then(|pou| self.get_annotation_from_flat_reference(reference, Some(pou), ctx)));
 
-                // 2nd try: find a pou with that name
+                // try: find a pou with that name
                 let candidate = candidate
                     .or_else(|| self.index.find_pou(name).and_then(|pou| to_pou_annotation(pou, self.index)));
 
-                // 3rd try: find a global variable with that name
-                candidate.or_else(|| {
+                // try: find an enum-type with that name
+                let candidate = candidate.or_else(|| {
+                    self.index
+                        .find_type(name)
+                        .filter(|it| it.is_enum())
+                        .map(|enum_type| StatementAnnotation::data_type(enum_type.get_name()))
+                });
+                // try: find a global variable with that name
+                let candidate = candidate.or_else(|| {
                     self.index
                         .find_global_variable(name)
                         .map(|g| to_variable_annotation(g, self.index, g.is_constant()))
-                })
+                });
+
+                candidate
             }
             (AstStatement::Reference { name, .. }, Some(base)) => {
                 if let Some(member) = self

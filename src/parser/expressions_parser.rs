@@ -9,7 +9,7 @@ use crate::{
 use core::str::Split;
 use logos::Source;
 use plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
     literals::{AstLiteral, Time},
 };
 use regex::{Captures, Regex};
@@ -283,12 +283,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                 return Err(Diagnostic::syntax_error("Incomplete statement", location));
             }
 
-            Ok(AstStatement::CastStatement {
-                id: lexer.next_id(),
-                location: (location.get_start()..statement.get_location().get_end()).into(),
-                target: Box::new(statement),
-                type_name: cast,
-            })
+            Ok(AstFactory::create_cast_statement(cast.as_str(), statement, &location, &mut || lexer.next_id()))
         } else {
             Ok(statement)
         }
@@ -329,7 +324,7 @@ fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstS
     if lexer.token == LiteralInteger {
         parse_strict_literal_integer(lexer)
     } else {
-    parse_single_leafe_expression(lexer)
+        parse_single_leafe_expression(lexer)
     }
 }
 
@@ -488,6 +483,19 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                     lexer.next_id(),
                 ));
             }
+            (Some(base), Some(TypeCastPrefix)) => {
+                let location_start = lexer.location();
+                let mut type_name = lexer.slice_and_advance();
+                type_name.pop(); 
+                let stmt = parse_single_leafe_expression(lexer)?;
+                let end = stmt.get_location();
+                current = Some(AstFactory::create_cast_statement(
+                    base,
+                    stmt,
+                    &location_start.span(&end),
+                    &mut || lexer.next_id(),
+                ));
+            }
             (Some(base), Some(KeywordSquareParensOpen)) => {
                 lexer.advance();
                 current = parse_any_in_region(
@@ -526,10 +534,9 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
     }
     if let Some(current) = current {
         Ok(current)
-    }else{
+    } else {
         parse_single_leafe_expression(lexer)
     }
-
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

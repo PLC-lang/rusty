@@ -262,10 +262,11 @@ fn enum_literals_target_are_annotated() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-            TYPE Color: (Green, Yellow, Red); END_TYPE
+            TYPE Color: (Green, Yellow, Red) := 0; END_TYPE
 
             PROGRAM PRG
-                Color#Red;
+                VAR Red: BYTE; END_VAR
+                Color#Red;  //we should resolve to the enum, not the local!
             END_PROGRAM",
         id_provider.clone(),
     );

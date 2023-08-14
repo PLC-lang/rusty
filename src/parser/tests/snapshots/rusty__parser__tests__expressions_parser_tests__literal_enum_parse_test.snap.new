@@ -1,0 +1,73 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 755
+expression: statement
+---
+[
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val7",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val2",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val3",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+]

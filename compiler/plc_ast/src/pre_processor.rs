@@ -103,9 +103,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         .map(|it| match it {
                             AstStatement::Assignment { left, right, .. } => {
                                 //<element-name, initializer, location>
-                                (extract_flat_ref_name(left.as_ref()), Some(*right.clone()), it.get_location())
+                                (
+                                    extract_flat_ref_name(left.as_ref()),
+                                    Some(*right.clone()),
+                                    it.get_location(),
+                                )
                             }
-                            _ => (extract_flat_ref_name(it), None, it.get_location())
+                            _ => (extract_flat_ref_name(it), None, it.get_location()),
                         })
                         .map(|(element_name, initializer, location)| {
                             let enum_literal = initializer.unwrap_or_else(|| {
@@ -150,7 +154,7 @@ fn build_enum_initializer(
         // generate a `enum#last + 1` statement
         let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
         AstFactory::create_binary_expression(
-            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+            AstFactory::create_cast_statement(enum_name, enum_ref, location, &mut || id_provider.next_id()),
             Operator::Plus,
             AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
