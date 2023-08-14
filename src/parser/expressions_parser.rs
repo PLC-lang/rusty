@@ -283,7 +283,8 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                 return Err(Diagnostic::syntax_error("Incomplete statement", location));
             }
 
-            Ok(AstFactory::create_cast_statement(cast.as_str(), statement, &location, &mut || lexer.next_id()))
+            let type_element = AstFactory::create_reference(cast.as_str(), &location, lexer.next_id());
+            Ok(AstFactory::create_cast_statement(type_element, statement, &location, &mut || lexer.next_id()))
         } else {
             Ok(statement)
         }

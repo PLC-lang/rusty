@@ -3,37 +3,55 @@ source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
 [
-    CastStatement {
-        type_name: "MyEnum",
-        target: ReferenceExpr {
-            kind: Member(
-                Reference {
-                    name: "Val7",
-                },
-            ),
-            base: None,
-        },
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val7",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "MyEnum",
+            },
+        ),
     },
-    CastStatement {
-        type_name: "MyEnum",
-        target: ReferenceExpr {
-            kind: Member(
-                Reference {
-                    name: "Val2",
-                },
-            ),
-            base: None,
-        },
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val2",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "MyEnum",
+            },
+        ),
     },
-    CastStatement {
-        type_name: "MyEnum",
-        target: ReferenceExpr {
-            kind: Member(
-                Reference {
-                    name: "Val3",
-                },
-            ),
-            base: None,
-        },
+    ReferenceExpr {
+        kind: Cast(
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "Val3",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        base: Some(
+            Reference {
+                name: "MyEnum",
+            },
+        ),
     },
 ]

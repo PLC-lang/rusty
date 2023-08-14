@@ -153,8 +153,9 @@ fn build_enum_initializer(
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
         let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        let type_element = AstFactory::create_reference(enum_name, location, id_provider.next_id());
         AstFactory::create_binary_expression(
-            AstFactory::create_cast_statement(enum_name, enum_ref, location, &mut || id_provider.next_id()),
+            AstFactory::create_cast_statement(type_element, enum_ref, location, &mut || id_provider.next_id()),
             Operator::Plus,
             AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
