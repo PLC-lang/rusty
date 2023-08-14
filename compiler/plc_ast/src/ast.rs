@@ -1318,6 +1318,10 @@ mod tests {
 pub struct AstFactory {}
 
 impl AstFactory {
+    pub fn empty_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement::EmptyStatement { location, id }
+    }
+
     /// creates a new if-statement
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,

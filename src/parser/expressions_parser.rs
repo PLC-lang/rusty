@@ -7,6 +7,7 @@ use crate::{
     Diagnostic,
 };
 use core::str::Split;
+use logos::Source;
 use plc_ast::{
     ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
@@ -328,14 +329,19 @@ fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstS
     if lexer.token == LiteralInteger {
         parse_strict_literal_integer(lexer)
     } else {
-        parse_single_leafe_expression(lexer)
+    parse_single_leafe_expression(lexer)
     }
 }
 
 fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
     match lexer.token {
-
-        Identifier => Ok(AstFactory::create_member_reference(parse_identifier(lexer), None, lexer.next_id())),
+        KeywordParensOpen => {
+            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
+                lexer.advance(); // eat KeywordParensOpen
+                Ok(parse_expression(lexer))
+            })
+        }
+        Identifier => Ok(parse_identifier(lexer)),
         HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
         LiteralInteger => parse_literal_number(lexer, false),
         LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
@@ -410,15 +416,21 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 }
 
 pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let segment = if lexer.try_consume(&KeywordParensOpen) {
-        parse_any_in_region(lexer, vec![KeywordParensClose, KeywordSemicolon], |lexer| {
-            parse_expression(lexer)
-        })
-    }else{
-        parse_single_leafe_expression(lexer)?
-    };
-    
-    let reference = parse_qualified_reference_with_base(lexer, segment)?;
+    // let segment = if lexer.try_consume(&KeywordParensOpen) {
+    //     parse_any_in_region(lexer, vec![KeywordParensClose, KeywordSemicolon], |lexer| {
+    //         parse_expression(lexer)
+    //     })
+    // } else {
+    //     parse_single_leafe_expression(lexer)?
+    // };
+    // //wrap in refExpression if necessary
+    // let segment = if matches!(segment, AstStatement::Reference { .. }) {
+    //     AstFactory::create_member_reference(segment, None, lexer.next_id())
+    // } else {
+    //     segment
+    // };
+
+    let reference = parse_qualified_reference_with_base(lexer)?;
 
     if lexer.try_consume(&KeywordParensOpen) {
         let start = reference.get_location().get_start();
@@ -444,45 +456,80 @@ pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStateme
     }
 }
 
-pub fn parse_qualified_reference_with_base(
-    lexer: &mut ParseSession,
-    base: AstStatement,
-) -> Result<AstStatement, Diagnostic> {
-    let mut current = base;
+pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    let mut current = None;
     let mut pos = lexer.parse_progress - 1; // force an initial loop
 
-    // as long as we parse something we keep to eat stuff eagerly
+    // as long as we parse something we keep eating stuff eagerly
     while lexer.parse_progress > pos {
         pos = lexer.parse_progress;
-        match lexer.try_consume_any(&[KeywordDot, KeywordSquareParensOpen, OperatorDeref]) {
-            Some(KeywordDot) => {
-                current = AstFactory::create_member_reference(
-                    parse_sub_single_leaf_expression(lexer)?,
-                    Some(current),
-                    lexer.next_id(),
-                );
+        match (
+            current,
+            // only test for the tokens without eating it (Amp must not be consumed if it is in the middle of the chain)
+            [KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp]
+                .into_iter()
+                .find(|it| lexer.token == *it),
+        ) {
+            (None, None) => {
+                //beginning of a chain
+                let exp = parse_single_leafe_expression(lexer)?;
+                // pack if this is something to be resolved
+                current = if matches!(exp, AstStatement::Reference { .. }) {
+                    Some(AstFactory::create_member_reference(exp, None, lexer.next_id()))
+                } else {
+                    Some(exp)
+                };
             }
-            Some(KeywordSquareParensOpen) => {
+            (Some(base), Some(KeywordDot)) => {
+                lexer.advance();
+                current = Some(AstFactory::create_member_reference(
+                    parse_sub_single_leaf_expression(lexer)?,
+                    Some(base),
+                    lexer.next_id(),
+                ));
+            }
+            (Some(base), Some(KeywordSquareParensOpen)) => {
+                lexer.advance();
                 current = parse_any_in_region(
                     lexer,
                     vec![KeywordSquareParensClose],
                     |lexer: &mut ParseSession<'_>| {
-                        AstFactory::create_index_reference(
-                            parse_expression(lexer),
-                            Some(current),
-                            lexer.next_id(),
-                        )
+                        Some({
+                            AstFactory::create_index_reference(
+                                parse_expression(lexer),
+                                Some(base),
+                                lexer.next_id(),
+                            )
+                        })
                     },
                 );
             }
-            Some(OperatorDeref) => {
-                current = AstFactory::create_deref_reference(current, lexer.next_id(), lexer.last_location())
+            (Some(base), Some(OperatorDeref)) => {
+                lexer.advance();
+                current =
+                    Some(AstFactory::create_deref_reference(base, lexer.next_id(), lexer.last_location()))
+            }
+            (None, Some(OperatorAmp)) => {
+                lexer.advance();
+                let op_location = lexer.last_location();
+                current = Some(AstFactory::create_address_of_reference(
+                    parse_expression(lexer),
+                    lexer.next_id(),
+                    op_location,
+                ))
             }
             // Some(KeywordParensOpen)
-            _ => {}
+            (last_current, _) => {
+                current = last_current; // exit the loop
+            }
         }
     }
-    Ok(current)
+    if let Some(current) = current {
+        Ok(current)
+    }else{
+        parse_single_leafe_expression(lexer)
+    }
+
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

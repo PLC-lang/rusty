@@ -2103,10 +2103,10 @@ fn data_type_initializers_type_hint_test() {
                     );
                 }
             } else {
-                unreachable!()
+                unreachable!("{:#?}", unit)
             }
         } else {
-            unreachable!()
+            unreachable!("{:#?}", unit)
         }
     } else {
         unreachable!()
