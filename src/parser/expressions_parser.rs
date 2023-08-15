@@ -245,50 +245,10 @@ fn to_operator(token: &Token) -> Option<Operator> {
 
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
-    //see if there's a cast
-    let literal_cast = if lexer.token == TypeCastPrefix {
-        let location = lexer.location();
-        let mut a = lexer.slice_and_advance();
-        a.pop(); //drop last char '#' - the lexer made sure it ends with a '#'
-        Some((a, location))
-    } else {
-        None
-    };
     let literal_parse_result = match lexer.token {
-        // Check if we're dealing with a number that has an explicit '+' or '-' sign...
-        OperatorPlus | OperatorMinus => {
-            let is_negative = lexer.token == OperatorMinus;
-            lexer.advance();
-
-            match lexer.token {
-                LiteralInteger => parse_literal_number(lexer, is_negative),
-                LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, is_negative),
-                LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, is_negative),
-                LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, is_negative),
-                _ => Err(Diagnostic::unexpected_token_found(
-                    "Numeric Literal",
-                    lexer.slice(),
-                    lexer.location(),
-                )),
-            }
-        }
         OperatorMultiplication => parse_vla_range(lexer),
         _ => parse_qualified_reference2(lexer),
     };
-
-    let literal_parse_result = literal_parse_result.and_then(|statement| {
-        if let Some((cast, location)) = literal_cast {
-            //check if there is something between the literal-type and the literal itself
-            if location.get_end() != statement.get_location().get_start() {
-                return Err(Diagnostic::syntax_error("Incomplete statement", location));
-            }
-
-            let type_element = AstFactory::create_reference(cast.as_str(), &location, lexer.next_id());
-            Ok(AstFactory::create_cast_statement(type_element, statement, &location, &mut || lexer.next_id()))
-        } else {
-            Ok(statement)
-        }
-    });
 
     match literal_parse_result {
         Ok(statement) => {
@@ -330,7 +290,25 @@ fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstS
 }
 
 fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
+    // Check if we're dealing with a number that has an explicit '+' or '-' sign...
+
     match lexer.token {
+        OperatorPlus | OperatorMinus => {
+            let is_negative = lexer.token == OperatorMinus;
+            lexer.advance();
+
+            match lexer.token {
+                LiteralInteger => parse_literal_number(lexer, is_negative),
+                LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, is_negative),
+                LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, is_negative),
+                LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, is_negative),
+                _ => Err(Diagnostic::unexpected_token_found(
+                    "Numeric Literal",
+                    lexer.slice(),
+                    lexer.location(),
+                )),
+            }
+        }
         KeywordParensOpen => {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
                 lexer.advance(); // eat KeywordParensOpen
@@ -462,7 +440,7 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
         match (
             current,
             // only test for the tokens without eating it (Amp must not be consumed if it is in the middle of the chain)
-            [KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp]
+            [KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp, TypeCastPrefix]
                 .into_iter()
                 .find(|it| lexer.token == *it),
         ) {
@@ -484,14 +462,20 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                     lexer.next_id(),
                 ));
             }
-            (Some(base), Some(TypeCastPrefix)) => {
+            (_, Some(TypeCastPrefix)) => {
                 let location_start = lexer.location();
                 let mut type_name = lexer.slice_and_advance();
-                type_name.pop(); 
+                type_name.pop();
                 let stmt = parse_single_leafe_expression(lexer)?;
                 let end = stmt.get_location();
+                let type_range =
+                    (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
                 current = Some(AstFactory::create_cast_statement(
-                    base,
+                    AstFactory::create_member_reference(
+                        AstFactory::create_reference(type_name.as_str(), &type_range, lexer.next_id()),
+                        None,
+                        lexer.next_id(),
+                    ),
                     stmt,
                     &location_start.span(&end),
                     &mut || lexer.next_id(),

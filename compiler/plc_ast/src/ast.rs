@@ -1235,11 +1235,8 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
     match enum_element {
         AstStatement::Reference { name, .. } => name.to_string(),
         AstStatement::Assignment { left, .. } => {
-            if let AstStatement::Reference { name, .. } = left.as_ref() {
-                name.to_string()
-            } else {
-                unreachable!("left of assignment not a reference")
-            }
+            left.get_flat_reference_name()
+                .map(|it| it.to_string()).expect("left of assignment not a reference")
         }
         _ => {
             unreachable!("expected {:?} to be a Reference or Assignment", enum_element);

@@ -55,6 +55,26 @@ fn binary_expressions_resolves_types() {
 }
 
 #[test]
+fn cast_expressions_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRG
+            BYTE#7;
+            INT#7;
+            UINT#7;
+            DWORD#7;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BYTE_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], INT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[2], UINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[3], DWORD_TYPE, None);
+}
+
+#[test]
 fn binary_expressions_resolves_types_for_mixed_signed_ints() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
@@ -840,7 +860,7 @@ fn pou_expressions_resolve_types() {
     let statements = &unit.implementations[3].statements;
 
     //Functions and Functionblocks should not resolve to a type
-    let expected_types = vec!["OtherPrg", VOID_TYPE, VOID_TYPE];
+    let expected_types = vec!["OtherPrg", VOID_TYPE, "OtherFuncBlock"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
     assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
@@ -1824,7 +1844,6 @@ fn global_enums_type_resolving() {
         id_provider.clone(),
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-
     //check the type-annotation of a,b,c's implicit initializers
 
     let initalizer_types = index

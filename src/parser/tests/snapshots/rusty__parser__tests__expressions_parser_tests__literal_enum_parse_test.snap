@@ -5,52 +5,52 @@ expression: statement
 [
     ReferenceExpr {
         kind: Cast(
-            ReferenceExpr {
-                kind: Member(
-                    Reference {
-                        name: "Val7",
-                    },
-                ),
-                base: None,
+            Reference {
+                name: "Val7",
             },
         ),
         base: Some(
-            Reference {
-                name: "MyEnum",
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
             },
         ),
     },
     ReferenceExpr {
         kind: Cast(
-            ReferenceExpr {
-                kind: Member(
-                    Reference {
-                        name: "Val2",
-                    },
-                ),
-                base: None,
+            Reference {
+                name: "Val2",
             },
         ),
         base: Some(
-            Reference {
-                name: "MyEnum",
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
             },
         ),
     },
     ReferenceExpr {
         kind: Cast(
-            ReferenceExpr {
-                kind: Member(
-                    Reference {
-                        name: "Val3",
-                    },
-                ),
-                base: None,
+            Reference {
+                name: "Val3",
             },
         ),
         base: Some(
-            Reference {
-                name: "MyEnum",
+            ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
             },
         ),
     },

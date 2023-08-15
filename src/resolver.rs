@@ -791,7 +791,7 @@ impl<'i> TypeAnnotator<'i> {
                 // find out left's type and update a type hint for right
                 if let (
                     typesystem::DataTypeInformation::Struct { name: qualifier, .. },
-                    AstStatement::Reference { name: variable_name, .. },
+                    AstStatement::Reference { name: variable_name, .. }, // TODO is this wrong?
                 ) = (expected_type.get_type_information(), left.as_ref())
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
@@ -803,6 +803,24 @@ impl<'i> TypeAnnotator<'i> {
                             );
                             self.update_expected_types(target_type, right);
                         }
+                    }
+                } else if let (
+                    typesystem::DataTypeInformation::Struct { name: qualifier, .. },
+                    AstStatement::ReferenceExpr { access: ReferenceAccess::Member(var), base: None, .. }, // TODO is this wrong?
+                ) = (expected_type.get_type_information(), left.as_ref())
+                {
+                    if let AstStatement::Reference { name: variable_name, .. } = var.as_ref() {
+
+                    if let Some(v) = self.index.find_member(qualifier, variable_name) {
+                        if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name()) {
+                            self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
+                            self.annotation_map.annotate_type_hint(
+                                right.as_ref(),
+                                StatementAnnotation::value(v.get_type_name()),
+                            );
+                            self.update_expected_types(target_type, right);
+                        }
+                    }
                     }
                 }
             }
@@ -1023,8 +1041,9 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, bounds);
                 }
             }
-            DataType::EnumType { elements, .. } => {
-                self.visit_statement(ctx, elements);
+            DataType::EnumType { elements, name, .. } => {
+                let ctx = name.as_ref().map(|n| ctx.with_lhs(n)).unwrap_or(ctx.clone());
+                self.visit_statement(&ctx, elements);
             }
             DataType::PointerType { referenced_type, .. } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref())
@@ -1278,81 +1297,81 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
-            AstStatement::Reference { name, .. } => {
-                let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
-                    // if we see a qualifier, we only consider [qualifier].[name] as candidates
-                    self.index
-                        // 1st try a qualified member variable qualifier.name
-                        .find_member(qualifier, name)
-                        // 2nd try an enum-element qualifier#name
-                        .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
-                        // 3rd try - look for a method qualifier.name
-                        .map_or_else(
-                            || self.index.find_pou(&qualified_name(qualifier, name)).map(|it| it.into()),
-                            |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
-                        )
-                } else {
-                    // if we see no qualifier, we try some strategies ...
-                    ctx.pou
-                        .and_then(|qualifier| {
-                            // ... first look at POU-local variables
-                            self.index
-                                .find_member(qualifier, name)
-                                .and_then(|m| {
-                                    // #604 needed for recursive function calls
-                                    // if we are in a call statement and the member name equals the pou name
-                                    // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
-                                    if ctx.is_call & (m.get_name() == qualifier) {
-                                        // return `None` because this would be foo.foo pointing to the function return
-                                        // we need the POU
-                                        None
-                                    } else {
-                                        Some(m)
-                                    }
-                                })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                                .or_else(|| {
-                                    // ... then check if we're in a method and we're referencing
-                                    // a member variable of the corresponding class
-                                    self.index
-                                        .find_pou(qualifier)
-                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
-                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
-                                        .and_then(|class_name| self.index.find_member(class_name, name))
-                                        .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                                })
-                                .or_else(|| {
-                                    // try to find a local action with this name
-                                    self.index
-                                        .find_pou(&qualified_name(qualifier, name))
-                                        .map(StatementAnnotation::from)
-                                })
-                        })
-                        .or_else(|| {
-                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
-                            ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
-                                self.index.find_pou(&qualified_name(it.get_container(), name)).map(Into::into)
-                            })
-                        })
-                        .or_else(|| {
-                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
-                            {
-                                let index = self.index;
-                                index.find_pou(name).map(|it| it.into())
-                            }
-                        })
-                        .or_else(|| {
-                            // ... last option is a global variable, where we ignore the current pou's name as a qualifier
-                            self.index
-                                .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                        })
-                };
-                if let Some(annotation) = annotation {
-                    self.annotate(statement, annotation);
-                    self.maybe_annotate_vla(ctx, statement);
-                }
-            }
+            // AstStatement::Reference { name, .. } => {
+            //     let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
+            //         // if we see a qualifier, we only consider [qualifier].[name] as candidates
+            //         self.index
+            //             // 1st try a qualified member variable qualifier.name
+            //             .find_member(qualifier, name)
+            //             // 2nd try an enum-element qualifier#name
+            //             .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
+            //             // 3rd try - look for a method qualifier.name
+            //             .map_or_else(
+            //                 || self.index.find_pou(&qualified_name(qualifier, name)).map(|it| it.into()),
+            //                 |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
+            //             )
+            //     } else {
+            //         // if we see no qualifier, we try some strategies ...
+            //         ctx.pou
+            //             .and_then(|qualifier| {
+            //                 // ... first look at POU-local variables
+            //                 self.index
+            //                     .find_member(qualifier, name)
+            //                     .and_then(|m| {
+            //                         // #604 needed for recursive function calls
+            //                         // if we are in a call statement and the member name equals the pou name
+            //                         // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
+            //                         if ctx.is_call & (m.get_name() == qualifier) {
+            //                             // return `None` because this would be foo.foo pointing to the function return
+            //                             // we need the POU
+            //                             None
+            //                         } else {
+            //                             Some(m)
+            //                         }
+            //                     })
+            //                     .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+            //                     .or_else(|| {
+            //                         // ... then check if we're in a method and we're referencing
+            //                         // a member variable of the corresponding class
+            //                         self.index
+            //                             .find_pou(qualifier)
+            //                             .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+            //                             .and_then(PouIndexEntry::get_instance_struct_type_name)
+            //                             .and_then(|class_name| self.index.find_member(class_name, name))
+            //                             .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+            //                     })
+            //                     .or_else(|| {
+            //                         // try to find a local action with this name
+            //                         self.index
+            //                             .find_pou(&qualified_name(qualifier, name))
+            //                             .map(StatementAnnotation::from)
+            //                     })
+            //             })
+            //             .or_else(|| {
+            //                 // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+            //                 ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
+            //                     self.index.find_pou(&qualified_name(it.get_container(), name)).map(Into::into)
+            //                 })
+            //             })
+            //             .or_else(|| {
+            //                 // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+            //                 {
+            //                     let index = self.index;
+            //                     index.find_pou(name).map(|it| it.into())
+            //                 }
+            //             })
+            //             .or_else(|| {
+            //                 // ... last option is a global variable, where we ignore the current pou's name as a qualifier
+            //                 self.index
+            //                     .find_global_variable(name)
+            //                     .map(|v| to_variable_annotation(v, self.index, ctx.constant))
+            //             })
+            //     };
+            //     if let Some(annotation) = annotation {
+            //         self.annotate(statement, annotation);
+            //         self.maybe_annotate_vla(ctx, statement);
+            //     }
+            // }
             AstStatement::QualifiedReference { elements, .. } => {
                 let mut ctx = ctx.clone();
                 for s in elements.iter() {
