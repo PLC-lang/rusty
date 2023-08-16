@@ -903,25 +903,19 @@ impl<'i> TypeAnnotator<'i> {
                             self.annotation_map.annotate_type_hint(expression, hint);
 
                             self.visit_statement(&ctx, expression);
+
                             // TODO: Expected type is incorrect here?
                             // We want to annotate each and every sub-expression
                             self.update_type_hints_for_array_of_structs(expected_type, expression, &ctx);
                         }
                     }
 
-                    AstStatement::Assignment { left, right, .. } => {
-                        if left.is_reference() && right.is_literal_array() {
-                            if let Some(array) = right.get_literal_array() {
-                                if let Some(datatype) =
-                                    self.annotation_map.get_type(left, self.index).cloned()
-                                {
-                                    self.update_type_hints_for_array_of_structs(
-                                        &datatype,
-                                        array.elements().unwrap(),
-                                        &ctx,
-                                    );
-                                }
-                            }
+                    AstStatement::Assignment { left, right, .. } if left.is_reference() => {
+                        let AstStatement::Literal { kind: AstLiteral::Array(array), .. } = right.as_ref() else { return };
+                        let Some(elements) = array.elements() else { return };
+
+                        if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
+                            self.update_type_hints_for_array_of_structs(&datatype, elements, &ctx);
                         }
                     }
 
