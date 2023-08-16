@@ -1,6 +1,6 @@
-//! This crates handles diagnostics, from creation
-//! to reporting.
-//! It is currently only a re-export of the diagnostics functions from the root, but these should
-//! eventually move here
+//! This crates handles diagnostics, from creation to reporting.
 
-pub use plc::diagnostics::*;
+pub mod diagnostician;
+pub mod diagnostics;
+pub mod errno; // TODO: Make this crate-private?
+pub mod reporter;

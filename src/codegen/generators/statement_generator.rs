@@ -7,7 +7,6 @@ use super::{
 use crate::{
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations},
     typesystem::{self, DataTypeInformation},
@@ -22,6 +21,7 @@ use plc_ast::{
     ast::{flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange},
     control_statements::{AstControlStatement, ConditionalBlock},
 };
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {

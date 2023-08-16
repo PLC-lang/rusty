@@ -13,8 +13,9 @@ use plc_ast::{
     ast::{AstStatement, Variable},
     literals::AstLiteral,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{diagnostics::Diagnostic, resolver::AnnotationMap, typesystem::DataTypeInformation};
+use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 

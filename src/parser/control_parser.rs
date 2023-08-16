@@ -2,13 +2,13 @@ use plc_ast::{
     ast::{AstFactory, AstStatement},
     control_statements::ConditionalBlock,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
-    Diagnostic,
 };
 
 use super::ParseSession;

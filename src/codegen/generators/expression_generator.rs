@@ -5,7 +5,6 @@ use crate::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
         VariableIndexEntry, VariableType,
@@ -29,6 +28,7 @@ use plc_ast::{
     ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::AstLiteral,
 };
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 

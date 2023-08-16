@@ -1,6 +1,7 @@
 use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
     array::{validate_array_assignment, Wrapper},
@@ -160,7 +161,9 @@ fn validate_variable<T: AnnotationMap>(
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate, Diagnostic};
+    use plc_diagnostics::diagnostics::Diagnostic;
+
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn validate_empty_struct_declaration() {
