@@ -59,8 +59,9 @@ fn cast_expressions_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
+            VAR a : SINT; END_VAR
             BYTE#7;
-            INT#7;
+            INT#a;
             UINT#7;
             DWORD#7;
         END_PROGRAM",
@@ -70,9 +71,32 @@ fn cast_expressions_resolves_types() {
     let statements = &unit.implementations[0].statements;
     assert_type_and_hint!(&annotations, &index, &statements[0], BYTE_TYPE, None);
     assert_type_and_hint!(&annotations, &index, &statements[1], INT_TYPE, None);
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), ..} = &statements[1]  else {unreachable!()}; 
+    assert_type_and_hint!(&annotations, &index, target.as_ref(), SINT_TYPE, None);
+    
     assert_type_and_hint!(&annotations, &index, &statements[2], UINT_TYPE, None);
     assert_type_and_hint!(&annotations, &index, &statements[3], DWORD_TYPE, None);
 }
+
+#[test]
+fn cast_expressions_of_enum_with_direct_access_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRs
+            MyEnum#a.1;
+            MyEnum#a.%W1;
+        END_PROGRAM
+        TYPE MyEnum : (a,b,c); END_TYPE
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], WORD_TYPE, None);
+}
+
+
 
 #[test]
 fn binary_expressions_resolves_types_for_mixed_signed_ints() {

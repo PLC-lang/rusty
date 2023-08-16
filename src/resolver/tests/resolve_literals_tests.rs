@@ -1,12 +1,12 @@
 use plc_ast::{
-    ast::{AstStatement, TypeNature},
+    ast::{AstStatement, ReferenceAccess, TypeNature},
     provider::IdProvider,
 };
 
 use crate::{
     assert_type_and_hint,
-    index::symbol::SymbolLocation,
-    resolver::{AnnotationMap, TypeAnnotator},
+    index::{symbol::SymbolLocation, ArgumentType},
+    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
 };
@@ -230,17 +230,17 @@ fn enum_literals_are_annotated() {
                 Green;  //Color
                 Dog;    //Animal
 
-                Yellow;     // local variable
-                Color#Yellow;  //Animal
+                Yellow;     //BYTE (local variable)
+                Color#Yellow;  //Color
 
-                Cat;   //global variable
+                Cat;   //BOOL (global variable)
                 Animal#Cat;  //Animal
 
                 // make sure these dont accidentally resolve to wrong enum
-                Animal#Green;   //invalid (VOID)
-                Color#Dog;      //invalid (VOID)
+                Animal#Green;   //Animal (invalid cast, validation must handle this)
+                Color#Dog;      //Color (invalid cast, validation must handle this)
                 invalid#Dog;    //invalid (VOID)
-                Animal.Dog;     //invalid (VOID)
+                Animal.Dog;     //Dog (invalid access, validation must handle this)
                 PRG.Cat;        //invalid (VOID)
 
             END_PROGRAM",
@@ -252,7 +252,7 @@ fn enum_literals_are_annotated() {
     let actual_resolves: Vec<&str> =
         statements.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
     assert_eq!(
-        vec!["Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "VOID", "VOID", "VOID", "VOID", "VOID"],
+        vec!["Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "Animal", "Color", "VOID", "Animal", "VOID"],
         actual_resolves
     )
 }
@@ -282,7 +282,8 @@ fn enum_literals_target_are_annotated() {
         annotations.get_type_or_void(color_red, &index).get_type_information()
     );
 
-    if let AstStatement::CastStatement { target, .. } = color_red {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = color_red {
+        // right type gets annotated
         assert_eq!(
             &DataTypeInformation::Enum {
                 name: "Color".into(),
@@ -290,6 +291,17 @@ fn enum_literals_target_are_annotated() {
                 referenced_type: DINT_TYPE.into(),
             },
             annotations.get_type_or_void(target, &index).get_type_information()
+        );
+        // Red gets annoatted to the declared variable, not only the type
+        assert_eq!(
+            Some(&StatementAnnotation::Variable {
+                resulting_type: "Color".into(),
+                qualified_name: "Color.Red".into(),
+                constant: true,
+                argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
+                is_auto_deref: false
+            }),
+            annotations.get(target)
         );
     } else {
         panic!("no cast statement")
@@ -314,14 +326,15 @@ fn casted_inner_literals_are_annotated() {
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
-
-    let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
+    //TODO: explain in commit: change of stragy here, we no longer lie, we annotate the statement as its targe type, the literal as what it is
+    //and let the validation decide whether this is feasable or not
+    let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "REAL", "REAL", "DINT", "BOOL"];
     let actual_types: Vec<&str> = statements
         .iter()
         .map(
             |it| {
-                if let AstStatement::CastStatement { target, .. } = it {
-                    target
+                if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+                    target.as_ref()
                 } else {
                     panic!("no cast")
                 }
@@ -353,8 +366,8 @@ fn casted_literals_enums_are_annotated_correctly() {
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
-            if let AstStatement::CastStatement { target, .. } = it {
-                target
+            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+                target.as_ref()
             } else {
                 unreachable!();
             }
