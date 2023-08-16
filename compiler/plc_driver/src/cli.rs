@@ -33,6 +33,9 @@ pub struct CompileParameters {
     #[clap(long = "pic", group = "format", global = true, help = "Equivalent to --shared")]
     pub output_pic_obj: bool,
 
+    #[clap(long = "no-pic", group = "format", global = true, help = "Emit a no PIC shared object")]
+    pub output_no_pic_obj: bool,
+
     #[clap(long = "static", group = "format", global = true, help = "Emit an object as output")]
     pub output_obj_code: bool,
 
@@ -267,6 +270,8 @@ impl CompileParameters {
             Some(FormatOption::PIC)
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
+        } else if self.output_no_pic_obj {
+            Some(FormatOption::NoPIC)
         } else if self.compile_only {
             Some(FormatOption::Object)
         } else if self.output_obj_code {

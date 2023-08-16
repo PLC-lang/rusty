@@ -270,8 +270,8 @@ impl<S: SourceContainer> Project<S> {
             let input = self.get_name();
             match self.format {
                 FormatOption::Object | FormatOption::Relocatable => format!("{input}.o"),
-                FormatOption::Static => input.to_string(),
-                FormatOption::Shared | FormatOption::PIC => format!("{input}.so"),
+                FormatOption::Static => format!("{input}.out"),
+                FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => format!("{input}.so"),
                 FormatOption::Bitcode => format!("{input}.bc"),
                 FormatOption::IR => format!("{input}.ll"),
             }
