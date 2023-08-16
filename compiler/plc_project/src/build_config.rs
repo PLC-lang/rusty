@@ -1,5 +1,5 @@
-use diagnostics::Diagnostic;
 use plc::Target;
+use plc_diagnostics::diagnostics::Diagnostic;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};

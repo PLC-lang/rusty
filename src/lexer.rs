@@ -4,9 +4,9 @@ use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
 use plc_ast::provider::IdProvider;
+use plc_diagnostics::diagnostics::Diagnostic;
 pub use tokens::Token;
 
-use crate::Diagnostic;
 use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 
 #[cfg(test)]

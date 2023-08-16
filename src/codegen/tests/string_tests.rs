@@ -1,8 +1,7 @@
+use plc_diagnostics::diagnostics::Diagnostic;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap},
-};
+use crate::test_utils::tests::{codegen, codegen_without_unwrap};
 
 #[test]
 fn variable_string_assignment_test() {

@@ -11,7 +11,6 @@ use crate::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
@@ -37,6 +36,7 @@ use inkwell::{
     values::PointerValue,
 };
 use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,

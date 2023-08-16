@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::diagnostics::Diagnostic;
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 use inkwell::types::ArrayType;
 use inkwell::{
@@ -11,6 +10,7 @@ use inkwell::{
     AddressSpace,
 };
 use plc_ast::ast::SourceRange;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::ADDRESS_SPACE_GENERIC;
 

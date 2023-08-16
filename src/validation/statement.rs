@@ -5,6 +5,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
@@ -16,7 +17,6 @@ use crate::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
-    Diagnostic,
 };
 
 macro_rules! visit_all_statements {
@@ -555,7 +555,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
 
         _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
             param.get_name(),
-            param.get_variable_type(),
+            &param.get_variable_type().to_string(),
             arg.get_location(),
         )),
     }

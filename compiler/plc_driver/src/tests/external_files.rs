@@ -1,6 +1,6 @@
 use ast::ast::SourceRange;
-use diagnostics::Diagnostic;
 use plc::DebugLevel;
+use plc_diagnostics::diagnostics::Diagnostic;
 use source_code::SourceCode;
 
 use crate::tests::compile_to_string;

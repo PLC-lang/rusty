@@ -1642,7 +1642,8 @@ dependencies = [
 name = "plc_diagnostics"
 version = "0.1.0"
 dependencies = [
- "rusty",
+ "codespan-reporting",
+ "plc_ast",
 ]
 
 [[package]]
@@ -1928,7 +1929,6 @@ version = "0.2.0"
 dependencies = [
  "chrono",
  "clap 3.2.25",
- "codespan-reporting",
  "encoding_rs",
  "encoding_rs_io",
  "generational-arena",
@@ -1942,6 +1942,7 @@ dependencies = [
  "logos",
  "num",
  "plc_ast",
+ "plc_diagnostics",
  "plc_driver",
  "plc_project",
  "plc_source",

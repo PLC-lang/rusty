@@ -1,5 +1,6 @@
+use plc_diagnostics::diagnostics::Diagnostic;
+
 use crate::{
-    diagnostics::Diagnostic,
     test_utils::tests::{codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate},
     DebugLevel,
 };
