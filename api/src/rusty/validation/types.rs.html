@@ -104,12 +104,12 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{
     index::Index,
     resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},
-    Diagnostic,
 };
 
 <span class="kw">use super</span>::{variable::visit_variable, ValidationContext, Validator, Validators};

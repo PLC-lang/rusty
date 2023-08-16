@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["INTERNAL_LLVM_ERROR"],"enum":["Diagnostic","ErrNo","Severity"],"struct":["ClangFormatDiagnosticReporter","CodeSpanDiagnosticReporter","DefaultDiagnosticAssessor","Diagnostician","NullDiagnosticReporter","ResolvedDiagnostics","ResolvedLocation"],"trait":["DiagnosticAssessor","DiagnosticReporter"]};

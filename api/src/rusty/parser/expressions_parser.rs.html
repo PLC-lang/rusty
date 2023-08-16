@@ -892,13 +892,13 @@
     lexer::Token::<span class="kw-2">*</span>,
     lexer::{ParseSession, Token},
     parser::parse_any_in_region,
-    Diagnostic,
 };
 <span class="kw">use </span>core::str::Split;
 <span class="kw">use </span>plc_ast::{
     ast::{AstId, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>regex::{Captures, Regex};
 <span class="kw">use </span>std::str::FromStr;
 

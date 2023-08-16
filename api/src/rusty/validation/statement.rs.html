@@ -1019,6 +1019,7 @@
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
 <span class="kw">use crate</span>::{
@@ -1030,7 +1031,6 @@
         <span class="self">self</span>, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
-    Diagnostic,
 };
 
 <span class="macro">macro_rules! </span>visit_all_statements {
@@ -1569,7 +1569,7 @@
 
         <span class="kw">_ </span>=&gt; validator.push_diagnostic(Diagnostic::invalid_argument_type(
             param.get_name(),
-            param.get_variable_type(),
+            <span class="kw-2">&amp;</span>param.get_variable_type().to_string(),
             arg.get_location(),
         )),
     }

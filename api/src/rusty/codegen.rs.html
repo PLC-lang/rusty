@@ -509,6 +509,9 @@
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -529,7 +532,6 @@
     llvm_index::LlvmTypedIndex,
 };
 <span class="kw">use crate</span>::{
-    diagnostics::Diagnostic,
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
     DebugLevel, OptimizationLevel, Target,
@@ -549,6 +551,7 @@
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 <span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">mod </span>debug;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>generators;
@@ -844,10 +847,13 @@
             .and_then(|it| {
                 <span class="self">self</span>.module
                     .run_passes(optimization_level.opt_params(), <span class="kw-2">&amp;</span>it, PassBuilderOptions::create())
-                    .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), <span class="kw-2">&amp;</span>it))
+                    .map_err(|it| {
+                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), <span class="kw-2">&amp;</span>it.to_string())
+                    })
                     .and_then(|<span class="kw">_</span>| {
-                        it.write_to_file(<span class="kw-2">&amp;</span><span class="self">self</span>.module, FileType::Object, output.as_path())
-                            .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), <span class="kw-2">&amp;</span>it))
+                        it.write_to_file(<span class="kw-2">&amp;</span><span class="self">self</span>.module, FileType::Object, output.as_path()).map_err(|it| {
+                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), <span class="kw-2">&amp;</span>it.to_string())
+                        })
                     })
             })
             .map(|<span class="kw">_</span>| output)

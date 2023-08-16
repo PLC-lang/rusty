@@ -809,7 +809,6 @@
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{<span class="self">self</span>, ImplementationType},
     resolver::{AstAnnotations, Dependency},
     typesystem::{<span class="self">self</span>, DataType, VarArgs},
@@ -835,6 +834,7 @@
     values::PointerValue,
 };
 <span class="kw">use </span>plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+<span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 
 <span class="kw">pub struct </span>PouGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; {
     llvm: Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,

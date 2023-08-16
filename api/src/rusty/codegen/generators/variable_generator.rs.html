@@ -168,13 +168,13 @@
 </span><span class="doccomment">/// offers operations to generate global variables
 </span><span class="kw">use crate</span>::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
-    diagnostics::{Diagnostic, ErrNo},
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
 <span class="kw">use </span>plc_ast::ast::{LinkageType, SourceRange};
+<span class="kw">use </span>plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 
 <span class="kw">use super</span>::{
     data_type_generator::get_default_for,

@@ -953,10 +953,10 @@
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 <span class="kw">use </span>plc_ast::ast::{LinkageType, SourceRange};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    diagnostics::Diagnostic,
     index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,

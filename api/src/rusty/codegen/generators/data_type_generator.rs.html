@@ -461,12 +461,12 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
 <span class="kw">use </span><span class="kw">crate</span>::index::{Index, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::resolver::{AstAnnotations, Dependency};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, DataTypeInformation, Dimension, StringEncoding, StructSource};
-<span class="kw">use </span><span class="kw">crate</span>::Diagnostic;
 <span class="kw">use crate</span>::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -483,6 +483,8 @@
 };
 <span class="kw">use </span>plc_ast::ast::{AstStatement, SourceRange};
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_diagnostics::errno::ErrNo;
 <span class="doccomment">/// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
@@ -625,7 +627,7 @@
         <span class="comment">//Report the operation failure
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::CombinedDiagnostic {
             message: <span class="string">&quot;Some initial values were not generated&quot;</span>.to_string(),
-            err_no: <span class="kw">crate</span>::diagnostics::ErrNo::codegen__general,
+            err_no: ErrNo::codegen__general,
             inner_diagnostics: diags,
         });
     }

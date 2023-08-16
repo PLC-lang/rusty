@@ -1096,7 +1096,6 @@
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
 <a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
@@ -1106,15 +1105,14 @@
     },
     provider::IdProvider,
 };
+<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 <span class="kw">use </span>plc_util::convention::qualified_name;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
-    diagnostics::Diagnostician,
     expect_token,
     lexer::{<span class="self">self</span>, ParseSession, Token, Token::<span class="kw-2">*</span>},
     typesystem::DINT_TYPE,
-    Diagnostic,
 };
 
 <span class="kw">use </span><span class="self">self</span>::{

@@ -256,9 +256,9 @@
 </pre></div><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
-</span><span class="kw">use </span>which::which;
+</span><span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>which::which;
 
-<span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="kw">use </span>std::{
     error::Error,
     path::{Path, PathBuf},

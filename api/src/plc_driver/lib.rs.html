@@ -273,8 +273,8 @@
 
 <span class="kw">use </span>ast::provider::IdProvider;
 <span class="kw">use </span>cli::CompileParameters;
-<span class="kw">use </span>diagnostics::{Diagnostic, Diagnostician};
 <span class="kw">use </span>plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 <span class="kw">use </span>project::project::{LibraryInformation, Project};
 <span class="kw">use </span>rayon::prelude::{IntoParallelIterator, ParallelIterator};
 <span class="kw">use </span>source_code::SourceContainer;

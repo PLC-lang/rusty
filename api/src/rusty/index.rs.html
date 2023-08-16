@@ -1534,11 +1534,24 @@
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
 <a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
     datalayout::DataLayout,
-    diagnostics::Diagnostic,
     typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>},
 };
 <span class="kw">use </span>indexmap::IndexMap;
@@ -1546,6 +1559,7 @@
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
     TypeNature,
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_util::convention::qualified_name;
 
 <span class="kw">use </span><span class="self">self</span>::{
@@ -1843,6 +1857,20 @@
     InOut,
     Global,
     Return,
+}
+
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>VariableType {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            VariableType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Local&quot;</span>),
+            VariableType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Temp&quot;</span>),
+            VariableType::Input =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Input&quot;</span>),
+            VariableType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Output&quot;</span>),
+            VariableType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;InOut&quot;</span>),
+            VariableType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Global&quot;</span>),
+            VariableType::Return =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Return&quot;</span>),
+        }
+    }
 }
 
 <span class="attr">#[derive(Clone, PartialEq, Eq, Debug)]

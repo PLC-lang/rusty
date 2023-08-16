@@ -569,10 +569,10 @@
     literals::AstLiteral,
     provider::IdProvider,
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{
     codegen::generators::expression_generator::{<span class="self">self</span>, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::Diagnostic,
     index::Index,
     lexer, parser,
     resolver::{

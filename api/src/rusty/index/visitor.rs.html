@@ -859,7 +859,6 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-<span class="kw">use </span><span class="kw">crate</span>::diagnostics::Diagnostic;
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>};
 <span class="kw">use </span>plc_ast::ast::{
@@ -867,6 +866,7 @@
     Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
 <span class="kw">pub fn </span>visit(unit: <span class="kw-2">&amp;</span>CompilationUnit) -&gt; Index {

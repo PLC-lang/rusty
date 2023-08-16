@@ -514,7 +514,6 @@
     ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
     provider::IdProvider,
 };
-<span class="kw">use </span>diagnostics::{Diagnostic, Diagnostician};
 <span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>plc::{
@@ -526,6 +525,7 @@
     validation::Validator,
     ConfigFormat, Target,
 };
+<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, errno::ErrNo};
 <span class="kw">use </span>project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -876,7 +876,7 @@
         <span class="kw">let </span>hw_conf = plc::hardware_binding::collect_hardware_configuration(<span class="kw-2">&amp;</span><span class="self">self</span>.index)<span class="question-mark">?</span>;
         <span class="kw">let </span>generated_conf = plc::hardware_binding::generate_hardware_configuration(<span class="kw-2">&amp;</span>hw_conf, format)<span class="question-mark">?</span>;
         File::create(location).and_then(|<span class="kw-2">mut </span>it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::GeneralError { err_no: diagnostics::ErrNo::general__io_err, message: it.to_string() }
+            Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message: it.to_string() }
         })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }

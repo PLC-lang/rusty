@@ -144,9 +144,9 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::PouType;
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{
-    diagnostics::Diagnostic,
     index::{Index, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
 };

@@ -2696,7 +2696,6 @@
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
         VariableIndexEntry, VariableType,
@@ -2720,6 +2719,7 @@
     ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::AstLiteral,
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_util::convention::qualified_name;
 <span class="kw">use </span>std::{collections::HashSet, vec};
 

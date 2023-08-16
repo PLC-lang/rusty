@@ -227,13 +227,13 @@
     ast::{AstFactory, AstStatement},
     control_statements::ConditionalBlock,
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     expect_token,
     lexer::Token::<span class="kw-2">*</span>,
     parser::{parse_any_in_region, parse_body_in_region},
-    Diagnostic,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;

@@ -4,10 +4,10 @@
 <a href="#4" id="4">4</a>
 <a href="#5" id="5">5</a>
 <a href="#6" id="6">6</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! This crates handles diagnostics, from creation
-//! to reporting.
-//! It is currently only a re-export of the diagnostics functions from the root, but these should
-//! eventually move here
+</pre></div><pre class="rust"><code><span class="doccomment">//! This crates handles diagnostics, from creation to reporting.
 
-</span><span class="kw">pub use </span>plc::diagnostics::<span class="kw-2">*</span>;
+</span><span class="kw">pub mod </span>diagnostician;
+<span class="kw">pub mod </span>diagnostics;
+<span class="kw">pub mod </span>errno; <span class="comment">// TODO: Make this crate-private?
+</span><span class="kw">pub mod </span>reporter;
 </code></pre></div></section></main></body></html>

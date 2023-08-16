@@ -228,11 +228,15 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
 };
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
-<span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap, Diagnostic};
+<span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 <span class="kw">use super</span>::{
     statement::validate_enum_variant_assignment,
@@ -387,7 +391,9 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>variable_validator_tests {
-    <span class="kw">use crate</span>::{assert_validation_snapshot, test_utils::tests::parse_and_validate, Diagnostic};
+    <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+
+    <span class="kw">use crate</span>::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>validate_empty_struct_declaration() {
