@@ -723,6 +723,12 @@
 <a href="#723" id="723">723</a>
 <a href="#724" id="724">724</a>
 <a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -741,27 +747,33 @@
 #[clap(propagate_version = <span class="bool-val">true</span>)]
 #[clap(subcommand_negates_reqs = <span class="bool-val">true</span>)]
 </span><span class="kw">pub struct </span>CompileParameters {
-    <span class="attr">#[clap(short, long, name = <span class="string">&quot;output-file&quot;</span>, help = <span class="string">&quot;Write output to &lt;output-file&gt;&quot;</span>)]
+    <span class="attr">#[clap(short, long, global = <span class="bool-val">true</span>, name = <span class="string">&quot;output-file&quot;</span>, help = <span class="string">&quot;Write output to &lt;output-file&gt;&quot;</span>)]
     </span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;ir&quot;</span>, group = <span class="string">&quot;format&quot;</span>, help = <span class="string">&quot;Emit IR (LLVM Intermediate Representation) as output&quot;</span>)]
+    <span class="attr">#[clap(
+        long = <span class="string">&quot;ir&quot;</span>,
+        group = <span class="string">&quot;format&quot;</span>,
+        global = <span class="bool-val">true</span>,
+        help = <span class="string">&quot;Emit IR (LLVM Intermediate Representation) as output&quot;
+    </span>)]
     </span><span class="kw">pub </span>output_ir: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;shared&quot;</span>, group = <span class="string">&quot;format&quot;</span>, help = <span class="string">&quot;Emit a shared object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">&quot;shared&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit a shared object as output&quot;</span>)]
     </span><span class="kw">pub </span>output_shared_obj: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, help = <span class="string">&quot;Equivalent to --shared&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">&quot;pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Equivalent to --shared&quot;</span>)]
     </span><span class="kw">pub </span>output_pic_obj: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;static&quot;</span>, group = <span class="string">&quot;format&quot;</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">&quot;static&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
     </span><span class="kw">pub </span>output_obj_code: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;relocatable&quot;</span>, group = <span class="string">&quot;format&quot;</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">&quot;relocatable&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
     </span><span class="kw">pub </span>output_reloc_code: bool,
 
     <span class="attr">#[clap(
         long = <span class="string">&quot;bc&quot;</span>,
         group = <span class="string">&quot;format&quot;</span>,
+        global = <span class="bool-val">true</span>,
         help = <span class="string">&quot;Emit binary IR (binary representation of LLVM-IR) as output&quot;
     </span>)]
     </span><span class="kw">pub </span>output_bit_code: bool,

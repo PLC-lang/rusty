@@ -212,6 +212,8 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>diagnostics::Diagnostic;
 <span class="kw">use </span>plc::Target;
 <span class="kw">use </span>regex::Captures;
@@ -253,7 +255,8 @@
     <span class="kw">pub </span>files: Vec&lt;PathBuf&gt;,
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>compile_type: FormatOption,
-    <span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="attr">#[serde(default)]
+    </span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>libraries: Vec&lt;LibraryConfig&gt;,
     <span class="attr">#[serde(default)]
@@ -395,6 +398,7 @@
         <span class="macro">assert_eq!</span>(test_project.name, proj.name);
         <span class="macro">assert_eq!</span>(test_project.files, proj.files);
         <span class="macro">assert_eq!</span>(test_project.compile_type, proj.compile_type);
+        <span class="macro">assert_eq!</span>(test_project.output, proj.output);
         <span class="kw">let </span>proj_lib = proj.libraries;
         <span class="kw">let </span>testproj_lib = test_project.libraries;
         <span class="macro">assert_eq!</span>(testproj_lib[<span class="number">0</span>].name, proj_lib[<span class="number">0</span>].name);

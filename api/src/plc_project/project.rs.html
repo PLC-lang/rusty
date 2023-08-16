@@ -510,7 +510,7 @@
 
     <span class="kw">pub fn </span>with_output_name(<span class="self">self</span>, output: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>proj = <span class="self">self</span>;
-        proj.output = output;
+        proj.output = output.or(proj.output);
         proj
     }
 }
