@@ -506,7 +506,7 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                 lexer.advance();
                 let op_location = lexer.last_location();
                 current = Some(AstFactory::create_address_of_reference(
-                    parse_expression(lexer),
+                    parse_qualified_reference2(lexer)?,
                     lexer.next_id(),
                     op_location,
                 ))
@@ -599,8 +599,12 @@ fn parse_direct_access(
 
 pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
-    let reference =
-        AstStatement::Reference { name: lexer.slice_and_advance(), location, id: lexer.next_id() };
+
+    let reference = AstFactory::create_member_reference(
+        AstFactory::create_reference(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
+        None,
+        lexer.next_id(),
+    );
     parse_access_modifiers(lexer, reference)
 }
 

@@ -119,12 +119,17 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
 }
 
 #[test]
-fn additon_of_two_variables_parsed() {
-    let src = "PROGRAM exp x+y; END_PROGRAM";
+fn binary_stmts_of_two_variables_parsed() {
+    let src = "PROGRAM exp 
+        x+y; 
+        x.y = y.z;
+        x.y - y.z;
+        &x.y = y.z;
+    END_PROGRAM";
     let result = parse(src).0;
 
     let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
+    let statement = &prg.statements;
 
     assert_debug_snapshot!(statement);
 }

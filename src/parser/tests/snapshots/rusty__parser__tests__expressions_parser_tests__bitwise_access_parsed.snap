@@ -64,8 +64,13 @@ expression: "&prg.statements"
         kind: Member(
             DirectAccess {
                 access: Byte,
-                index: Reference {
-                    name: "b",
+                index: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
                 },
             },
         ),

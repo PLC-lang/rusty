@@ -699,7 +699,6 @@ impl<'i> TypeAnnotator<'i> {
             if let Some((Some(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(&i))
             {
-
                 if visitor.annotation_map.get(statement).is_none() {
                     panic!("new expression we did not visit yet")
                 }
@@ -1535,7 +1534,6 @@ impl<'i> TypeAnnotator<'i> {
         stmt: &AstStatement,
         ctx: &VisitorContext,
     ) {
-
         // first resolve base
         if let Some(base) = base {
             self.visit_statement(ctx, base);
@@ -1563,13 +1561,16 @@ impl<'i> TypeAnnotator<'i> {
                     self.get_annotation_from_flat_reference(reference.as_ref(), qualifier.as_deref(), new_ctx)
                 {
                     // self.annotate(&reference, annotation.clone()); // TODO decie what to do with the references themselves
-                    
-                    if matches!(reference.as_ref(), AstStatement::Literal{kind: AstLiteral::Integer(_) , ..}){
+
+                    if matches!(
+                        reference.as_ref(),
+                        AstStatement::Literal { kind: AstLiteral::Integer(_), .. }
+                    ) {
                         self.annotate(stmt, StatementAnnotation::value(BOOL_TYPE));
-                    }else{ 
+                    } else {
                         self.annotate(stmt, annotation);
                     }
-                    
+
                     self.maybe_annotate_vla(new_ctx, stmt);
                     // self.maybe_annotate_vla(ctx, reference.as_ref());
                 }
@@ -1596,7 +1597,7 @@ impl<'i> TypeAnnotator<'i> {
                     // //     // e.g. enum access
                     //     self.annotate(stmt, annotation.clone());
                     // } else {
-                        self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
+                    self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
                     // }
                     self.annotate(target.as_ref(), annotation);
                 }
@@ -1611,20 +1612,16 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::value(inner_type))
                 }
             }
-            (ReferenceAccess::Deref, Some(base)) => {
-                if let Some(inner_type) = self
-                    .index
-                    .find_effective_type_info(base.as_str())
-                    .and_then(|t| t.get_inner_pointer_type_name())
-                    .and_then(|dt| self.index.find_effective_type_by_name(dt))
-                    .map(|dt| dt.get_name())
+            (ReferenceAccess::Deref, _) => {
+                if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: false, .. }) = base
+                    .map(|base| self.annotation_map.get_type_or_void(base, self.index).get_type_information())
                 {
-                    self.annotate(stmt, StatementAnnotation::value(inner_type))
+                    self.annotate(stmt, StatementAnnotation::value(inner_type_name))
                 }
             }
-            (ReferenceAccess::Address, Some(base)) => {
-                if let Some(inner_type) =
-                    self.index.find_effective_type_by_name(base.as_str()).map(|it| it.get_name().to_string())
+            (ReferenceAccess::Address, _) => {
+                if let Some(inner_type) = base
+                    .map(|base| self.annotation_map.get_type_or_void(base, self.index).get_name().to_string())
                 {
                     let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type);
                     self.annotate(stmt, StatementAnnotation::new_value(ptr_type))
@@ -1675,6 +1672,9 @@ impl<'i> TypeAnnotator<'i> {
                                 .filter(|it| it.is_enum())
                                 .map(|enum_type| StatementAnnotation::data_type(enum_type.get_name()))
                         }
+                        ResolvingScope::FunctionsOnly => {
+                            self.index.find_pou(name).filter(|it| it.is_function()).map(|pou| pou.into())
+                        }
                     }
                 })
             }
@@ -1704,8 +1704,9 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement_literals(ctx, reference);
                 self.annotation_map.get(reference).cloned() // return what we just annotated //TODO not elegant, we need to clone
             }
-            (AstStatement::DirectAccess { access, .. }, Some(_)) => {
+            (AstStatement::DirectAccess { access, index, .. }, Some(_)) => {
                 // x.%X1 - bit access
+                self.visit_statement(ctx, index.as_ref());
                 Some(StatementAnnotation::value(get_direct_access_type(access)))
             }
             _ => None,
@@ -1770,7 +1771,7 @@ impl<'i> TypeAnnotator<'i> {
                 unreachable!("Always a call statement");
             };
         // #604 needed for recursive function calls
-        self.visit_statement(&ctx.set_is_call(), operator);
+        self.visit_statement(&ctx.with_resolving_strategy(ResolvingScope::call_operator()), operator);
         let operator_qualifier = self.get_call_name(operator);
         //Use the context without the is_call =true
         //TODO why do we start a lhs context here???
@@ -2176,10 +2177,11 @@ mod resolver_tests {
 
 #[derive(Clone)]
 pub enum ResolvingScope {
-    Variable, //try to resolve a variable
-    POU,      //try to resolve a POU
-    DataType, //try to resolve a DataType
-    EnumTypeOnly,
+    Variable,      //try to resolve a variable
+    POU,           //try to resolve a POU
+    DataType,      //try to resolve a DataType
+    EnumTypeOnly,  //only consider EnumTypes
+    FunctionsOnly, //only consider functions
 }
 
 impl ResolvingScope {
@@ -2189,5 +2191,11 @@ impl ResolvingScope {
 
     pub fn types_only() -> Vec<Self> {
         vec![ResolvingScope::DataType]
+    }
+
+    fn call_operator() -> Vec<ResolvingScope> {
+        let mut strategy = vec![ResolvingScope::FunctionsOnly];
+        strategy.extend(Self::default());
+        strategy
     }
 }

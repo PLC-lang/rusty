@@ -2,7 +2,7 @@ use core::panic;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DataType, Pou, ReferenceAccess, UserTypeDeclaration},
+    ast::{flatten_expression_list, AstStatement, DataType, Pou, ReferenceAccess, UserTypeDeclaration, DirectAccessType},
     control_statements::{AstControlStatement, CaseStatement},
     literals::{Array, AstLiteral},
     provider::IdProvider,
@@ -240,7 +240,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
 }
 
 #[test]
-fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
+fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
@@ -1632,8 +1632,9 @@ fn variable_direct_access_type_resolved() {
     let type_names: Vec<&str> = statements
         .iter()
         .map(|s| {
-            let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(idx), .. } = s else { unreachable!("expected ReferenceExpr") };
-            idx  
+            let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } = s else { unreachable!("expected ReferenceExpr") };
+            let AstStatement::DirectAccess { index, .. } = reference.as_ref() else { unreachable!("expected DirectAccess") };
+            index
         })
         .map(|s| annotations.get_type_or_void(s, &index).get_name())
         .collect();
@@ -3423,26 +3424,14 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
 
     // THEN the expressions are nested and annotated correctly
     let AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, base: Some(value), ..} = &statement else { unreachable!("expected ReferenceExpr, but got {statement:#?}")};
-    assert_type_and_hint!(&annotations, &index, value, "BYTE", None);
-
+    assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
+    
     let AstStatement::ReferenceExpr { access: ReferenceAccess::Address, base: Some(base), ..} = value.as_ref() else { unreachable!("expected ReferenceExpr, but got {value:#?}")};
     assert_type_and_hint!(&annotations, &index, base, "__POINTER_TO_BYTE", None);
-
+    
     let AstStatement::ReferenceExpr { access: ReferenceAccess::Address, base: Some(base), ..} = base.as_ref() else { unreachable!("expected ReferenceExpr, but got {base:#?}")};
-    assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO__POINTER_TO_BYTE", None);
-    // if let AstStatement::PointerAccess { reference, .. } = &statement {
-    //     assert_type_and_hint!(&annotations, &index, reference, "__POINTER_TO___POINTER_TO_BYTE", None);
-
-    //     if let AstStatement::UnaryExpression { value, .. } = &reference.as_ref() {
-    //         assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO_BYTE", None);
-
-    //         if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
-    //             assert_type_and_hint!(&annotations, &index, value, "BYTE", None);
-    //         }
-    //     }
-    // } else {
-    //     panic!("Not a pointer")
-    // }
+    assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
+ 
     // AND the overall type of the statement is annotated correctly
     assert_type_and_hint!(&annotations, &index, statement, "__POINTER_TO_BYTE", None);
 }
