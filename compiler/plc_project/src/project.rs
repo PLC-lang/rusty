@@ -200,7 +200,7 @@ impl Project<PathBuf> {
 
     pub fn with_output_name(self, output: Option<String>) -> Self {
         let mut proj = self;
-        proj.output = output;
+        proj.output = output.or(proj.output);
         proj
     }
 }

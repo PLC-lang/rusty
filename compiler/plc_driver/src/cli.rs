@@ -16,27 +16,33 @@ pub type ParameterError = clap::Error;
 #[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
 pub struct CompileParameters {
-    #[clap(short, long, name = "output-file", help = "Write output to <output-file>")]
+    #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
 
-    #[clap(long = "ir", group = "format", help = "Emit IR (LLVM Intermediate Representation) as output")]
+    #[clap(
+        long = "ir",
+        group = "format",
+        global = true,
+        help = "Emit IR (LLVM Intermediate Representation) as output"
+    )]
     pub output_ir: bool,
 
-    #[clap(long = "shared", group = "format", help = "Emit a shared object as output")]
+    #[clap(long = "shared", group = "format", global = true, help = "Emit a shared object as output")]
     pub output_shared_obj: bool,
 
-    #[clap(long = "pic", group = "format", help = "Equivalent to --shared")]
+    #[clap(long = "pic", group = "format", global = true, help = "Equivalent to --shared")]
     pub output_pic_obj: bool,
 
-    #[clap(long = "static", group = "format", help = "Emit an object as output")]
+    #[clap(long = "static", group = "format", global = true, help = "Emit an object as output")]
     pub output_obj_code: bool,
 
-    #[clap(long = "relocatable", group = "format", help = "Emit an object as output")]
+    #[clap(long = "relocatable", group = "format", global = true, help = "Emit an object as output")]
     pub output_reloc_code: bool,
 
     #[clap(
         long = "bc",
         group = "format",
+        global = true,
         help = "Emit binary IR (binary representation of LLVM-IR) as output"
     )]
     pub output_bit_code: bool,
