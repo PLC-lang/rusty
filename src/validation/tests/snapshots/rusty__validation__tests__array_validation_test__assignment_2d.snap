@@ -3,11 +3,11 @@ source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
 SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 73..108 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 249..308 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 504..539 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 552..585 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 552..585 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 676..735 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 757..812 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 757..812 }], err_no: arr__invalid_array_assignment }
 

@@ -39,7 +39,7 @@ pub(super) fn validate_array_assignment<T>(
     }
 
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
-        validator.push_diagnostic(Diagnostic::array_invalid_assigment(stmt_rhs.get_location()));
+        validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
@@ -47,8 +47,9 @@ pub(super) fn validate_array_assignment<T>(
     let len_rhs = statement_to_array_length(stmt_rhs);
 
     if len_lhs < len_rhs {
-        let diag = Diagnostic::array_size(dti_lhs.get_name(), len_lhs, len_rhs, stmt_rhs.get_location());
-        validator.push_diagnostic(diag);
+        let name = dti_lhs.get_name();
+        let location = stmt_rhs.get_location();
+        validator.push_diagnostic(Diagnostic::array_size(name, len_lhs, len_rhs, location));
     }
 }
 

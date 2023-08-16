@@ -2,14 +2,14 @@
 source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 169..206 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 202..206 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 267..303 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 299..300 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 362..366 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 456..457 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 506..507 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 557..561 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializations must start with a leading `[` symbol", range: [SourceRange { range: 656..657 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 169..206 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 202..206 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 267..303 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 299..300 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 362..366 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 456..457 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 506..507 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 557..561 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 656..657 }], err_no: arr__invalid_array_assignment }
 
