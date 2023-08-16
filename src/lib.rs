@@ -24,7 +24,6 @@ use clap::clap_derive::ArgEnum;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use diagnostics::Diagnostic;
 use inkwell::targets::{self, TargetMachine, TargetTriple};
 
 #[cfg(test)]
@@ -35,7 +34,6 @@ use validation::Validator;
 pub mod builtins;
 pub mod codegen;
 mod datalayout;
-pub mod diagnostics;
 pub mod expression_path;
 pub mod hardware_binding;
 pub mod index;

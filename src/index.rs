@@ -2,7 +2,6 @@
 use crate::{
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
-    diagnostics::Diagnostic,
     typesystem::{self, *},
 };
 use indexmap::IndexMap;
@@ -10,6 +9,7 @@ use plc_ast::ast::{
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
     TypeNature,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_util::convention::qualified_name;
 
 use self::{
@@ -307,6 +307,20 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
+}
+
+impl std::fmt::Display for VariableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VariableType::Local => write!(f, "Local"),
+            VariableType::Temp => write!(f, "Temp"),
+            VariableType::Input => write!(f, "Input"),
+            VariableType::Output => write!(f, "Output"),
+            VariableType::InOut => write!(f, "InOut"),
+            VariableType::Global => write!(f, "Global"),
+            VariableType::Return => write!(f, "Return"),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]

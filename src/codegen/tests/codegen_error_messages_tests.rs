@@ -1,8 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    diagnostics::Diagnostic,
-    test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap},
-};
+use crate::test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap};
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::assert_eq;
 
 #[test]

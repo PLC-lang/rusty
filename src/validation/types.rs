@@ -1,10 +1,10 @@
 use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     index::Index,
     resolver::AnnotationMap,
     typesystem::{DataTypeInformation, StructSource},
-    Diagnostic,
 };
 
 use super::{variable::visit_variable, ValidationContext, Validator, Validators};

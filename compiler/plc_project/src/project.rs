@@ -3,8 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use diagnostics::Diagnostic;
 use glob::glob;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},

@@ -3,7 +3,6 @@ use crate::codegen::debug::Debug;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
-use crate::Diagnostic;
 use crate::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -20,6 +19,8 @@ use inkwell::{
 };
 use plc_ast::ast::{AstStatement, SourceRange};
 use plc_ast::literals::AstLiteral;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::errno::ErrNo;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
@@ -162,7 +163,7 @@ pub fn generate_data_types<'ink>(
         //Report the operation failure
         return Err(Diagnostic::CombinedDiagnostic {
             message: "Some initial values were not generated".to_string(),
-            err_no: crate::diagnostics::ErrNo::codegen__general,
+            err_no: ErrNo::codegen__general,
             inner_diagnostics: diags,
         });
     }
