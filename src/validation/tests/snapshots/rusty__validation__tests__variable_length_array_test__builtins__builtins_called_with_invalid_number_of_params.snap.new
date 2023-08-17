@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+assertion_line: 349
+expression: res
+---
+

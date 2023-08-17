@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/parameters_tests.rs
+assertion_line: 644
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type { %file_t, %file_t* }
+%file_t = type { i8, i8 }
+
+@main_instance = global %main zeroinitializer
+@__file_t__init = unnamed_addr constant %file_t zeroinitializer
+
+define void @main(%main* %0) {
+entry:
+  %file = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  store %file_t* %file, %file_t** %FileOpen, align 8
+  %deref = load %file_t*, %file_t** %FileOpen, align 8
+  call void @file_t(%file_t* %deref)
+  ret void
+}
+
+define void @file_t(%file_t* %0) {
+entry:
+  %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
+  %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1
+  ret void
+}
+

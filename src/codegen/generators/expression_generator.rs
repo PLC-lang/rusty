@@ -26,13 +26,19 @@ use inkwell::{
     AddressSpace, FloatPredicate, IntPredicate,
 };
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
     literals::AstLiteral,
 };
 use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
+
+macro_rules! segments {
+    ($string:expr) => {
+        $string.split('.').collect::<Vec<&str>>().as_slice()
+    };
+}
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -199,34 +205,52 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
         // generate the expression
         match expression {
-            AstStatement::Reference { .. } => {
-                if let Some(StatementAnnotation::Variable {
-                    qualified_name,
-                    resulting_type,
-                    constant: true,
-                    ..
-                }) = self.annotations.get(expression)
-                {
-                    if self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                        self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                    } else {
-                        // constant propagation
-                        self.generate_constant_expression(qualified_name, expression)
+            AstStatement::ReferenceExpr { access, base, .. } => {
+                let res = self.generate_reference_expression(access, base.as_deref(), expression)?;
+                let val = match res {
+                    ExpressionValue::LValue(val) => ExpressionValue::LValue(self.auto_deref_if_necessary(val, expression)),
+                    ExpressionValue::RValue(val) => {
+                        let val = if val.is_pointer_value() {
+                            self.auto_deref_if_necessary(val.into_pointer_value(), expression).as_basic_value_enum()
+                        } else {
+                            val
+                        };
+                        ExpressionValue::RValue(val)
                     }
-                } else {
-                    // general reference generation
-                    self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                }
+                };
+                Ok(val)
+
+                //TODO lvalue/rvalue stuff
             }
-            AstStatement::QualifiedReference { elements, .. } => {
-                //If direct access, don't load pointers
-                if expression.has_direct_access() {
-                    //Split the qualified reference at the last element
-                    self.generate_directaccess(elements).map(ExpressionValue::RValue)
-                } else {
-                    self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                }
-            }
+
+            // AstStatement::Reference { .. } => {
+            //     if let Some(StatementAnnotation::Variable {
+            //         qualified_name,
+            //         resulting_type,
+            //         constant: true,
+            //         ..
+            //     }) = self.annotations.get(expression)
+            //     {
+            //         if self.index.get_type_information_or_void(resulting_type).is_aggregate() {
+            //             self.generate_element_pointer(expression).map(ExpressionValue::LValue)
+            //         } else {
+            //             // constant propagation
+            //             self.generate_constant_expression(qualified_name, expression)
+            //         }
+            //     } else {
+            //         // general reference generation
+            //         self.generate_element_pointer(expression).map(ExpressionValue::LValue)
+            //     }
+            // }
+            // AstStatement::QualifiedReference { elements, .. } => {
+            //     //If direct access, don't load pointers
+            //     if expression.has_direct_access() {
+            //         //Split the qualified reference at the last element
+            //         self.generate_directaccess(elements).map(ExpressionValue::RValue)
+            //     } else {
+            //         self.generate_element_pointer(expression).map(ExpressionValue::LValue)
+            //     }
+            // }
             AstStatement::ArrayAccess { .. } => {
                 self.generate_element_pointer(expression).map(ExpressionValue::LValue)
             }
@@ -475,7 +499,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .or_else(|| self.index.find_pou(qualified_name)))
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
-                if let AstStatement::Reference { name, .. } = operator {
+                if let Some(name) = operator.get_flat_reference_name() {
                     self.index.find_pou(name)
                 } else {
                     None
@@ -657,11 +681,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         left: &AstStatement,
         right: &AstStatement,
     ) -> Result<(), Diagnostic> {
-        if let AstStatement::Reference { name, .. } = left {
+        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
                 .index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+                .find_variable(None, segments!(qualified_name))
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
             self.assign_output_value(&CallParameterAssignment {
                 assignment_statement: right,
@@ -1219,11 +1243,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<(), Diagnostic> {
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
-        if let AstStatement::Reference { name, .. } = left {
+
+        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
                 .index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+                .find_variable(None, qualified_name.split('.').collect::<Vec<_>>().as_slice())
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
 
             // don't generate param assignments for empty statements, with the exception
@@ -1243,7 +1268,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     parameter_struct,
                 })?;
             };
-        };
+        }
         Ok(())
     }
 
@@ -1254,11 +1279,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         reference_statement: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        if let AstStatement::QualifiedReference { elements, .. } = reference_statement {
-            self.generate_element_pointer_from_elements(elements, reference_statement.get_location())
-        } else {
-            self.do_generate_element_pointer(None, reference_statement)
-        }
+        // if let AstStatement::QualifiedReference { elements, .. } = reference_statement {
+        //     self.generate_element_pointer_from_elements(elements, reference_statement.get_location())
+        // } else {
+        //     self.do_generate_element_pointer(None, reference_statement)
+        // }
+        self.generate_expression_value(reference_statement)
+            .map(|it| it.get_basic_value_enum().into_pointer_value())
     }
 
     pub fn generate_element_pointer_from_elements(
@@ -1467,106 +1494,111 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         //Load the reference
-        self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
-            if let DataTypeInformation::Array { dimensions, .. } = self.get_type_hint_info_for(reference)? {
-                // make sure dimensions match statement list
-                let statements = access.get_as_list();
-                if statements.is_empty() || statements.len() != dimensions.len() {
-                    return Err(Diagnostic::codegen_error("Invalid array access", access.get_location()));
-                }
+        self.generate_expression_value(reference)
+            .map(|it| it.get_basic_value_enum().into_pointer_value())
+            .and_then(|lvalue| {
+                // self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
+                if let DataTypeInformation::Array { dimensions, .. } =
+                    self.get_type_hint_info_for(reference)?
+                {
+                    // make sure dimensions match statement list
+                    let statements = access.get_as_list();
+                    if statements.is_empty() || statements.len() != dimensions.len() {
+                        return Err(Diagnostic::codegen_error("Invalid array access", access.get_location()));
+                    }
 
-                // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
-                let lengths = dimensions
-                    .iter()
-                    .map(|d| d.get_length(self.index))
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|msg| {
-                        Diagnostic::codegen_error(
-                            format!("Invalid array dimensions access: {msg}").as_str(),
-                            access.get_location(),
-                        )
-                    })?;
+                    // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
+                    let lengths = dimensions
+                        .iter()
+                        .map(|d| d.get_length(self.index))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                format!("Invalid array dimensions access: {msg}").as_str(),
+                                access.get_location(),
+                            )
+                        })?;
 
-                // the portion indicates how many elements are represented by the corresponding dimension
-                // the first dimensions corresponds to the number of elements of the rest of the dimensions
-                //          - portion = 6 (size to the right = 3 x 2 = 6)
-                //         /        - portion = 2 (because the size to the right of this dimension = 2)
-                //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
-                //                /         /
-                // [    4   ,    3    ,    2  ]
-                let dimension_portions = (0..lengths.len())
-                    .map(|index| {
-                        if index == lengths.len() - 1 {
-                            1
-                        } else {
-                            lengths[index + 1..lengths.len()].iter().product()
-                        }
-                    })
-                    .collect::<Vec<u32>>();
+                    // the portion indicates how many elements are represented by the corresponding dimension
+                    // the first dimensions corresponds to the number of elements of the rest of the dimensions
+                    //          - portion = 6 (size to the right = 3 x 2 = 6)
+                    //         /        - portion = 2 (because the size to the right of this dimension = 2)
+                    //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
+                    //                /         /
+                    // [    4   ,    3    ,    2  ]
+                    let dimension_portions = (0..lengths.len())
+                        .map(|index| {
+                            if index == lengths.len() - 1 {
+                                1
+                            } else {
+                                lengths[index + 1..lengths.len()].iter().product()
+                            }
+                        })
+                        .collect::<Vec<u32>>();
 
-                let accessors_and_portions = statements
-                    .iter()
-                    .zip(dimensions)
-                    .map(|(statement, dimension)|
+                    let accessors_and_portions = statements
+                        .iter()
+                        .zip(dimensions)
+                        .map(|(statement, dimension)|
                             // generate array-accessors
                             self.generate_access_for_dimension(dimension, statement))
-                    .zip(dimension_portions);
+                        .zip(dimension_portions);
 
-                // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
-                let (index_access, _) = accessors_and_portions.fold(
-                    (Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()), 1),
-                    |(accumulated_value, _), (current_v, current_portion)| {
-                        let result = accumulated_value.and_then(|last_v| {
-                            current_v.map(|v| {
-                                let current_portion_value = self
-                                    .llvm
-                                    .i32_type()
-                                    .const_int(current_portion as u64, false)
-                                    .as_basic_value_enum();
-                                // multiply the accessor with the dimension's portion
-                                let m_v = self.create_llvm_int_binary_expression(
-                                    &Operator::Multiplication,
-                                    current_portion_value,
-                                    v,
-                                );
-                                // take the sum of the mulitlication and the previous accumulated_value
-                                // this now becomes the new accumulated value
-                                self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
-                            })
-                        });
-                        (result, 0 /* the 0 will be ignored */)
-                    },
-                );
+                    // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                    let (index_access, _) = accessors_and_portions.fold(
+                        (Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()), 1),
+                        |(accumulated_value, _), (current_v, current_portion)| {
+                            let result = accumulated_value.and_then(|last_v| {
+                                current_v.map(|v| {
+                                    let current_portion_value = self
+                                        .llvm
+                                        .i32_type()
+                                        .const_int(current_portion as u64, false)
+                                        .as_basic_value_enum();
+                                    // multiply the accessor with the dimension's portion
+                                    let m_v = self.create_llvm_int_binary_expression(
+                                        &Operator::Multiplication,
+                                        current_portion_value,
+                                        v,
+                                    );
+                                    // take the sum of the mulitlication and the previous accumulated_value
+                                    // this now becomes the new accumulated value
+                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
+                                })
+                            });
+                            (result, 0 /* the 0 will be ignored */)
+                        },
+                    );
 
-                // make sure we got an int-value
-                let index_access: IntValue = index_access.and_then(|it| {
-                    it.try_into().map_err(|_| {
-                        Diagnostic::codegen_error("non-numeric index-access", access.get_location())
-                    })
-                })?;
+                    // make sure we got an int-value
+                    let index_access: IntValue = index_access.and_then(|it| {
+                        it.try_into().map_err(|_| {
+                            Diagnostic::codegen_error("non-numeric index-access", access.get_location())
+                        })
+                    })?;
 
-                let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
-                    // e.g.: [81 x i32]*
-                    // the first index (0) will point to the array -> [81 x i32]
-                    // the second index (index_access) will point to the element in the array
-                    vec![self.llvm.i32_type().const_zero(), index_access]
-                } else {
-                    // lvalue is a pointer to type -> e.g.: i32*
-                    // only one index (index_access) is needed to access the element
+                    let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
+                        // e.g.: [81 x i32]*
+                        // the first index (0) will point to the array -> [81 x i32]
+                        // the second index (index_access) will point to the element in the array
+                        vec![self.llvm.i32_type().const_zero(), index_access]
+                    } else {
+                        // lvalue is a pointer to type -> e.g.: i32*
+                        // only one index (index_access) is needed to access the element
 
-                    // IGNORE the additional first index (0)
-                    // it would point to -> i32
-                    // we can't access any element of i32
-                    vec![index_access]
-                };
+                        // IGNORE the additional first index (0)
+                        // it would point to -> i32
+                        // we can't access any element of i32
+                        vec![index_access]
+                    };
 
-                // load the access from that array
-                let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
+                    // load the access from that array
+                    let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
 
-                return Ok(pointer);
-            }
-            Err(Diagnostic::codegen_error("Invalid array access", access.get_location()))
-        })
+                    return Ok(pointer);
+                }
+                Err(Diagnostic::codegen_error("Invalid array access", access.get_location()))
+            })
     }
 
     /// generates the result of an pointer binary-expression
@@ -2420,9 +2452,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
     fn get_load_name(&self, expression: &AstStatement) -> Option<String> {
         match expression {
-            AstStatement::Reference { name, .. } => {
-                Some(format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. }
+            | AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. } => {
+                Some("load_tmpVar".to_string())
             }
+            AstStatement::ReferenceExpr { .. } => expression
+                .get_flat_reference_name()
+                .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
+                .or_else(|| Some(self.temp_variable_prefix.clone())),
+            AstStatement::Reference { name, .. } => Some(format!("{}{}", name, self.temp_variable_suffix)),
             AstStatement::QualifiedReference { .. } => Some(self.temp_variable_prefix.clone()),
             AstStatement::PointerAccess { .. } | AstStatement::ArrayAccess { .. } => {
                 Some("load_tmpVar".to_string())
@@ -2522,6 +2560,53 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
 
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
+    }
+
+    fn generate_reference_expression(
+        &self,
+        access: &ReferenceAccess,
+        base: Option<&AstStatement>,
+        original_expression: &AstStatement,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        match (access, base) {
+            (ReferenceAccess::Member(member), base) => {
+                let base = base.map(|it| self.generate_expression_value(it)).transpose()?;
+
+                let member_name = member.get_flat_reference_name().unwrap_or("unknown");
+                self.create_llvm_pointer_value_for_reference(
+                    base.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
+                    self.get_load_name(member).as_deref().unwrap_or(member_name),
+                    original_expression,
+                )
+                .map(ExpressionValue::LValue)
+            }
+            (ReferenceAccess::Index(access), Some(base)) => {
+                self.generate_element_pointer_for_array(None, base, access).map(ExpressionValue::LValue)
+            }
+            (ReferenceAccess::Cast(target), Some(_)) => self.generate_expression_value(target),
+
+            (ReferenceAccess::Deref, Some(base)) => {
+                let ptr = self.generate_expression_value(base)?;
+                Ok(ExpressionValue::LValue(
+                    self.llvm
+                        .load_pointer(&ptr.get_basic_value_enum().into_pointer_value(), "deref")
+                        .into_pointer_value(),
+                ))
+            }
+
+            (ReferenceAccess::Address, Some(base)) => {
+                let lvalue = self.generate_expression_value(base)?;
+                Ok(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
+            }
+
+            (ReferenceAccess::Index(_), None)
+            | (ReferenceAccess::Cast(_), None)
+            | (ReferenceAccess::Deref, None)
+            | (ReferenceAccess::Address, None) => Err(Diagnostic::codegen_error(
+                "This type of ReferenceExpr needs a base-expression.",
+                original_expression.get_location(),
+            )),
+        }
     }
 }
 

@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+assertion_line: 604
+expression: res
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 425..439 }], err_no: var__invalid_assignment }
+

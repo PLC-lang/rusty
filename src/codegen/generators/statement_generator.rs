@@ -205,7 +205,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return Ok(());
         }
         let exp_gen = self.create_expr_generator();
-        let left = exp_gen.generate_element_pointer(left_statement)?;
+        let left = exp_gen.generate_expression_value(left_statement)?.get_basic_value_enum().into_pointer_value();
+        
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);

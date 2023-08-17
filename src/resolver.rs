@@ -1599,7 +1599,8 @@ impl<'i> TypeAnnotator<'i> {
                     // } else {
                     self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
                     // }
-                    self.annotate(target.as_ref(), annotation);
+                    self.annotate(target.as_ref(), StatementAnnotation::value(qualifier.as_str()));
+                    // self.annotation_map.annotate_type_hint(target.as_ref(), StatementAnnotation::value(qualifier.as_str()))
                 }
             }
             (ReferenceAccess::Index(_), Some(base)) => {

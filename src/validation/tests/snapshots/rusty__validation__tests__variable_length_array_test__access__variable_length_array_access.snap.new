@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/variable_length_array_test.rs
+assertion_line: 114
+expression: res
+---
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 149..154 }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 183..191 }], err_no: reference__expected }
+

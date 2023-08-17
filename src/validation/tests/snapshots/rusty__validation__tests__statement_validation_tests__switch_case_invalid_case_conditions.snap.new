@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+assertion_line: 427
+expression: res
+---
+SyntaxError { message: "Invalid case condition!", range: [SourceRange { range: 120..126 }], err_no: case__case_condition_outside_case_statement }
+SyntaxError { message: "Cannot resolve constant: CallStatement {\n    operator: ReferenceExpr {\n        kind: Member(\n            Reference {\n                name: \"foo\",\n            },\n        ),\n        base: None,\n    },\n    parameters: None,\n}. Non constant variables are not supported in case conditions", range: [SourceRange { range: 120..126 }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition!", range: [SourceRange { range: 146..154 }], err_no: case__case_condition_outside_case_statement }
+

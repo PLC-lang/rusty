@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+assertion_line: 955
+expression: res
+---
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Duration.", range: [SourceRange { range: 434..442 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Duration.", range: [SourceRange { range: 444..456 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Duration.", range: [SourceRange { range: 458..468 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Duration.", range: [SourceRange { range: 480..488 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. STRING is no Duration.", range: [SourceRange { range: 490..497 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Duration.", range: [SourceRange { range: 499..507 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Duration.", range: [SourceRange { range: 509..517 }], err_no: type__invalid_nature }
+
