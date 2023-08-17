@@ -1307,6 +1307,31 @@
 <a href="#1307" id="1307">1307</a>
 <a href="#1308" id="1308">1308</a>
 <a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1965,6 +1990,31 @@
             }
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="doccomment">/// Returns the array length if [`DataTypeInformation`] is of variant [`DataTypeInformation::Array`] and
+    /// None otherwise.
+    ///
+    /// For example calling this function on `ARRAY[1..5] OF DINT`, `ARRAY[1..2, 1..5] OF DINT` and
+    /// `ARRAY[1..3] OF ARRAY[1..5]` yields `5`, `10` and `15` respectively.
+    </span><span class="kw">pub fn </span>get_array_length(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">fn </span>intrinsic_array_type&lt;<span class="lifetime">&#39;index</span>&gt;(index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;index </span>Index, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;index </span>DataType {
+            <span class="kw">let </span>effective_type = index.get_effective_type_or_void_by_name(name);
+
+            <span class="kw">match </span>effective_type.get_type_information() {
+                DataTypeInformation::Array { inner_type_name, .. } =&gt; {
+                    intrinsic_array_type(index, inner_type_name)
+                }
+                <span class="kw">_ </span>=&gt; effective_type,
+            }
+        }
+
+        <span class="kw">let </span>DataTypeInformation::Array { inner_type_name, .. } = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+        <span class="kw">let </span>inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
+        <span class="kw">let </span>inner_type_size = inner_type_info.get_size_in_bits(index);
+        <span class="kw">let </span>arr_size = <span class="self">self</span>.get_size_in_bits(index);
+
+        <span class="prelude-val">Some</span>((arr_size / inner_type_size) <span class="kw">as </span>usize)
     }
 }
 

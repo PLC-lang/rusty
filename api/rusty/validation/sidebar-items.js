@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["validate_for_array_assignment"],"struct":["ValidationContext","Validator"],"trait":["Validators"]};
+window.SIDEBAR_ITEMS = {"struct":["ValidationContext","Validator"],"trait":["Validators"]};

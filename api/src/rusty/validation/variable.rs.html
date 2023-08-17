@@ -231,17 +231,19 @@
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
-    ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
-};
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 <span class="kw">use super</span>::{
-    statement::validate_enum_variant_assignment,
+    array::{validate_array_assignment, Wrapper},
+    statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
-    validate_for_array_assignment, ValidationContext, Validator, Validators,
+    ValidationContext, Validator, Validators,
 };
 
 <span class="kw">pub fn </span>visit_variable_block&lt;T: AnnotationMap&gt;(
@@ -335,8 +337,12 @@
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(AstStatement::ExpressionList { expressions, .. }) = <span class="kw-2">&amp;</span>variable.initializer {
-            validate_for_array_assignment(validator, expressions, context);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = <span class="kw-2">&amp;</span>variable.initializer {
+            <span class="comment">// Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
+            // assignment as a whole whereas the second function call (`visit_statement`) validates the
+            // initializer in case it has further sub-assignments.
+            </span>validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            visit_statement(validator, initializer, context);
         }
 
         <span class="kw">match </span>v_entry

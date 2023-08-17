@@ -1879,6 +1879,7 @@
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
 <a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2765,6 +2766,7 @@
                 <span class="kw">if </span>inner_type.get_type_information().is_struct() {
                     <span class="kw">let </span>expressions = <span class="kw">match </span>initializer {
                         <span class="comment">// Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive &quot;could not resolve reference&quot; errors
                         </span>AstStatement::ExpressionList { expressions, .. } =&gt; <span class="prelude-val">Some</span>(expressions),
 
                         <span class="comment">// Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`

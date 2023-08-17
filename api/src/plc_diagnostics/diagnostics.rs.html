@@ -1394,17 +1394,17 @@
         }
     }
 
-    <span class="kw">pub fn </span>array_expected_initializer_list(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>array_assignment(range: SourceRange) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
-            message: <span class="string">&quot;Array initializer must be an initializer list!&quot;</span>.to_string(),
+            message: <span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>.to_string(),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
     }
 
-    <span class="kw">pub fn </span>array_expected_identifier_or_round_bracket(range: SourceRange) -&gt; Diagnostic {
-        Diagnostic::SyntaxError {
-            message: <span class="string">&quot;Expected identifier or &#39;(&#39;&quot;</span>.to_string(),
+    <span class="kw">pub fn </span>array_size(name: <span class="kw-2">&amp;</span>str, len_lhs: usize, len_rhs: usize, range: SourceRange) -&gt; Diagnostic {
+        Diagnostic::SemanticError {
+            message: <span class="macro">format!</span>(<span class="string">&quot;Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided&quot;</span>),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }

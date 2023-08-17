@@ -1012,6 +1012,9 @@
 <a href="#1012" id="1012">1012</a>
 <a href="#1013" id="1013">1013</a>
 <a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
@@ -1021,7 +1024,10 @@
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
-<span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
+<span class="kw">use super</span>::{
+    array::{validate_array_assignment, Wrapper},
+    ValidationContext, Validator, Validators,
+};
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -1094,7 +1100,6 @@
             validate_unary_expression(validator, operator, value, location);
         }
         AstStatement::ExpressionList { expressions, .. } =&gt; {
-            validate_for_array_assignment(validator, expressions, context);
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
         AstStatement::RangeStatement { start, end, .. } =&gt; {
@@ -1105,6 +1110,7 @@
             visit_statement(validator, right, context);
 
             validate_assignment(validator, right, <span class="prelude-val">Some</span>(left), <span class="kw-2">&amp;</span>statement.get_location(), context);
+            validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
         AstStatement::OutputAssignment { left, right, .. } =&gt; {
             visit_statement(validator, left, context);
