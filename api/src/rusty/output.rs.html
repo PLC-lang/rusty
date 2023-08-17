@@ -27,6 +27,12 @@
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="attr">#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
@@ -40,6 +46,8 @@
     </span>PIC,
     <span class="doccomment">/// Indicates that the linked object will be shared and position independent
     </span>Shared,
+    <span class="doccomment">/// Indicates that the compiled object will be a DynamicNoPIC object
+    </span>NoPIC,
     <span class="doccomment">/// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
     </span>Relocatable,
     <span class="doccomment">/// Indicates that the compile result will be LLVM Bitcode
@@ -52,7 +60,11 @@
     <span class="kw">pub fn </span>should_link(<span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            FormatOption::Static | FormatOption::Shared | FormatOption::PIC | FormatOption::Relocatable
+            FormatOption::Static
+                | FormatOption::Shared
+                | FormatOption::PIC
+                | FormatOption::NoPIC
+                | FormatOption::Relocatable
         )
     }
 }

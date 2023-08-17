@@ -729,6 +729,11 @@
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -763,6 +768,9 @@
 
     <span class="attr">#[clap(long = <span class="string">&quot;pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Equivalent to --shared&quot;</span>)]
     </span><span class="kw">pub </span>output_pic_obj: bool,
+
+    <span class="attr">#[clap(long = <span class="string">&quot;no-pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit a no PIC shared object&quot;</span>)]
+    </span><span class="kw">pub </span>output_no_pic_obj: bool,
 
     <span class="attr">#[clap(long = <span class="string">&quot;static&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
     </span><span class="kw">pub </span>output_obj_code: bool,
@@ -998,6 +1006,8 @@
             <span class="prelude-val">Some</span>(FormatOption::PIC)
         } <span class="kw">else if </span><span class="self">self</span>.output_shared_obj {
             <span class="prelude-val">Some</span>(FormatOption::Shared)
+        } <span class="kw">else if </span><span class="self">self</span>.output_no_pic_obj {
+            <span class="prelude-val">Some</span>(FormatOption::NoPIC)
         } <span class="kw">else if </span><span class="self">self</span>.compile_only {
             <span class="prelude-val">Some</span>(FormatOption::Object)
         } <span class="kw">else if </span><span class="self">self</span>.output_obj_code {

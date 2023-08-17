@@ -991,7 +991,7 @@
 
                 <span class="kw">match </span>link_options.format {
                     FormatOption::Static =&gt; linker.build_exectuable(output_location).map_err(Into::into),
-                    FormatOption::Shared | FormatOption::PIC =&gt; {
+                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC =&gt; {
                         linker.build_shared_obj(output_location).map_err(Into::into)
                     }
                     FormatOption::Object | FormatOption::Relocatable =&gt; {

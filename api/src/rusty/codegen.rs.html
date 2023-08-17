@@ -511,9 +511,7 @@
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
 <a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 </span><span class="kw">use </span>std::{
     cell::RefCell,
     ops::Deref,
@@ -784,10 +782,10 @@
             FormatOption::Object | FormatOption::Relocatable =&gt; {
                 <span class="self">self</span>.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC | FormatOption::Static =&gt; {
+            FormatOption::PIC | FormatOption::Shared | FormatOption::Static =&gt; {
                 <span class="self">self</span>.persist_to_shared_pic_object(output, target, optimization_level)
             }
-            FormatOption::Shared =&gt; <span class="self">self</span>.persist_to_shared_object(output, target, optimization_level),
+            FormatOption::NoPIC =&gt; <span class="self">self</span>.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode =&gt; <span class="self">self</span>.persist_to_bitcode(output),
             FormatOption::IR =&gt; <span class="self">self</span>.persist_to_ir(output),
         }
