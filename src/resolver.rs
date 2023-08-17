@@ -864,8 +864,7 @@ impl<'i> TypeAnnotator<'i> {
                     .annotate_type_hint(initializer, StatementAnnotation::value(expected_type.get_name()));
                 self.update_expected_types(expected_type, initializer);
 
-                // handle annotation for array of struct
-                self.type_hint_for_array_of_structs(expected_type, dbg!(initializer), &ctx);
+                self.type_hint_for_array_of_structs(expected_type, initializer, &ctx);
             }
         }
     }
@@ -878,15 +877,14 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         match expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } => {
-                let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
-                let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+                let inner_data_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
+                let ctx = ctx.with_qualifier(inner_data_type.get_name().to_string());
 
-                if !inner_type.get_type_information().is_struct() {
+                if !inner_data_type.get_type_information().is_struct() {
                     return;
                 }
 
                 match statement {
-                    // This **should** only happen for initializers, i.e. where the lhs isn't an aststatement
                     AstStatement::Literal { kind: AstLiteral::Array(array), .. } => match array.elements() {
                         Some(elements) if elements.is_expression_list() => {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
@@ -898,14 +896,11 @@ impl<'i> TypeAnnotator<'i> {
                     AstStatement::ExpressionList { expressions, .. } => {
                         for expression in expressions {
                             // annotate with the arrays inner_type
-                            let name = inner_type.get_name().to_string();
+                            let name = inner_data_type.get_name().to_string();
                             let hint = StatementAnnotation::Value { resulting_type: name };
                             self.annotation_map.annotate_type_hint(expression, hint);
 
                             self.visit_statement(&ctx, expression);
-
-                            // TODO: Expected type is incorrect here?
-                            // We want to annotate each and every sub-expression
                             self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
                         }
                     }
@@ -923,19 +918,19 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
 
-            // the array of struct might be a member of another struct
+            // We _should_ only land here when the variable itself isn't defined as an array (e.g. `foo : STRUCT1`).
+            // The initializer of that variable might have an array of struct defined however, hence check it's elements.
             DataTypeInformation::Struct { members, .. } => {
                 let flattened = ast::flatten_expression_list(statement);
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
-                            continue;
-                        };
+                        let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else { continue };
                         self.type_hint_for_array_of_structs(data_type, right, ctx);
                     }
                 }
             }
+
             _ => (),
         }
     }
