@@ -1,14 +1,13 @@
-use plc_ast::ast::{
-    ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType,
-};
+use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
-    statement::validate_enum_variant_assignment,
+    array::{validate_array_assignment, Wrapper},
+    statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
-    validate_for_array_assignment, ValidationContext, Validator, Validators,
+    ValidationContext, Validator, Validators,
 };
 
 pub fn visit_variable_block<T: AnnotationMap>(
@@ -102,8 +101,12 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-            validate_for_array_assignment(validator, expressions, context);
+        if let Some(initializer) = &variable.initializer {
+            // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
+            // assignment as a whole whereas the second function call (`visit_statement`) validates the
+            // initializer in case it has further sub-assignments.
+            validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            visit_statement(validator, initializer, context);
         }
 
         match v_entry
