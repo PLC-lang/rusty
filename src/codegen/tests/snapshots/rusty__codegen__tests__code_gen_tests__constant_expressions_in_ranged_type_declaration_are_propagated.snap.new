@@ -30,11 +30,7 @@ entry:
 define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %load_MIN = load i16, i16* @MIN, align 2
-  %1 = sext i16 %load_MIN to i32
-  %tmpVar = add i32 %1, 1
-  %2 = trunc i32 %tmpVar to i16
-  %call = call i16 @CheckRangeSigned(i32 5, i16 0, i16 %2)
+  %call = call i16 @CheckRangeSigned(i32 5, i16 0, i16 8)
   store i16 %call, i16* %x, align 2
   ret void
 }

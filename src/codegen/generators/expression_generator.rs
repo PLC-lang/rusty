@@ -197,10 +197,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         expression: &AstStatement,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         //see if this is a constant - maybe we can short curcuit this codegen
-        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(expression) {
-            if let Some(basic_value_enum) = self.llvm_index.find_constant_value(qualified_name) {
-                //this is a constant and we have a value for it
-                return Ok(ExpressionValue::RValue(basic_value_enum));
+        if let Some(StatementAnnotation::Variable {
+            qualified_name, constant: true, resulting_type, ..
+        }) = self.annotations.get(expression)
+        {
+            if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
+                // constant propagation
+                return self.generate_constant_expression(qualified_name, expression);
             }
         }
         // generate the expression
@@ -208,10 +211,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::ReferenceExpr { access, base, .. } => {
                 let res = self.generate_reference_expression(access, base.as_deref(), expression)?;
                 let val = match res {
-                    ExpressionValue::LValue(val) => ExpressionValue::LValue(self.auto_deref_if_necessary(val, expression)),
+                    ExpressionValue::LValue(val) => {
+                        ExpressionValue::LValue(self.auto_deref_if_necessary(val, expression))
+                    }
                     ExpressionValue::RValue(val) => {
                         let val = if val.is_pointer_value() {
-                            self.auto_deref_if_necessary(val.into_pointer_value(), expression).as_basic_value_enum()
+                            self.auto_deref_if_necessary(val.into_pointer_value(), expression)
+                                .as_basic_value_enum()
                         } else {
                             val
                         };
@@ -721,7 +727,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
                     (Some(class_ptr), call_ptr)
                 }
-                PouIndexEntry::Action { .. } if matches!(operator, AstStatement::Reference { .. }) => {
+                PouIndexEntry::Action { .. } if matches!(operator, AstStatement::ReferenceExpr { .. }) => {
                     // special handling for local actions, get the parameter from the function context
                     function_context
                         .function
@@ -1372,7 +1378,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))?;
-                    let gep = self.llvm.get_member_pointer_from_struct(
+                    let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
                         *qualifier,
                         member_location,
                         name,
