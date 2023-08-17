@@ -88,8 +88,8 @@ fn run_metrics(action: Option<Action>, reporter: ReporterType) -> Result<()> {
     let mut data = vec![];
     for mut task in tasks {
         println!("Running benchmark for {}", task.get_name());
-        let res = task.benchmark(3)?;
-        data.push((task.get_name(), res, task.get_duration_format()));
+        let duration = task.benchmark(3)?;
+        data.push((task.get_name(), task.get_wrapped(duration)));
     }
 
     // Report data

@@ -11,11 +11,11 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+use plc_ast::ast::{LinkageType, SourceRange};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
-    ast::{LinkageType, SourceRange},
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    diagnostics::Diagnostic,
     index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
@@ -553,7 +553,7 @@ impl<'ink> DebugBuilder<'ink> {
             .into();
         let data_layout = DataLayout::default();
         let debug_type = self.debug_info.create_pointer_type(
-            &format!("__ref_to_{}", variable.get_type_name()),
+            &format!("__ref_to_{}", variable.get_type_name()), // TODO: Naming convention (see plc_util/src/convention.rs)
             original_type,
             data_layout.p64.bits().into(),
             data_layout.p64.bits(),

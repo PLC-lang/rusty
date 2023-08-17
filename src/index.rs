@@ -1,15 +1,16 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-        SourceRange, TypeNature,
-    },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
-    diagnostics::Diagnostic,
     typesystem::{self, *},
 };
 use indexmap::IndexMap;
+use plc_ast::ast::{
+    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
+    TypeNature,
+};
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_util::convention::qualified_name;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -175,7 +176,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: format!("{container}.{name}"),
+            qualified_name: qualified_name(container, name),
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
@@ -262,7 +263,7 @@ impl VariableIndexEntry {
     }
 
     fn has_parent(&self, context: &str) -> bool {
-        let name = format!("{context}.{}", self.name);
+        let name = qualified_name(context, &self.name);
         self.qualified_name.eq_ignore_ascii_case(&name)
     }
 }
@@ -306,6 +307,20 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
+}
+
+impl std::fmt::Display for VariableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VariableType::Local => write!(f, "Local"),
+            VariableType::Temp => write!(f, "Temp"),
+            VariableType::Input => write!(f, "Input"),
+            VariableType::Output => write!(f, "Output"),
+            VariableType::InOut => write!(f, "InOut"),
+            VariableType::Global => write!(f, "Global"),
+            VariableType::Return => write!(f, "Return"),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -382,6 +397,7 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     },
     Function {
         name: String,
@@ -397,6 +413,7 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     },
     Method {
         name: String,
@@ -443,12 +460,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<&str>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class: super_class.map(|s| s.to_owned()),
         }
     }
 
@@ -519,12 +538,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SymbolLocation,
+        super_class: Option<String>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
+            super_class,
         }
     }
 
@@ -559,6 +580,16 @@ impl PouIndexEntry {
             | PouIndexEntry::Method { name, .. }
             | PouIndexEntry::Action { name, .. }
             | PouIndexEntry::Class { name, .. } => name,
+        }
+    }
+
+    /// returns the super class of this pou if supported
+    pub fn get_super_class(&self) -> Option<&str> {
+        match self {
+            PouIndexEntry::Class { super_class, .. } | PouIndexEntry::FunctionBlock { super_class, .. } => {
+                super_class.as_deref()
+            }
+            _ => None,
         }
     }
 
@@ -989,7 +1020,11 @@ impl Index {
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
-    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_local_member(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
             //check qualifier
             container_name
@@ -997,6 +1032,29 @@ impl Index {
                 .map(|p| &container_name[..p])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name))
         })
+    }
+
+    /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
+    pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+        // Find pou in index
+        self.find_local_member(container_name, variable_name).or_else(|| {
+            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                self.find_member(class, variable_name)
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Searches for method names in the given container, if not found, attempts to search for it in super class
+    pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
+        if let Some(local_method) = self.find_pou(&qualified_name(container_name, method_name)) {
+            Some(local_method)
+        } else if let Some(super_method) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            self.find_method(super_method, method_name)
+        } else {
+            None
+        }
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1039,7 +1097,7 @@ impl Index {
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&format!("{enum_name}.{element_name}").to_lowercase())
+        self.enum_qualified_variables.get(&qualified_name(enum_name, element_name).to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1275,7 +1333,7 @@ impl Index {
 
     pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
         let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone())
+            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
@@ -1316,7 +1374,7 @@ impl Index {
         let variable_type = member_info.variable_linkage;
         let data_type_name = member_info.variable_type_name;
 
-        let qualified_name = format!("{container_name}.{variable_name}");
+        let qualified_name = qualified_name(container_name, variable_name);
 
         VariableIndexEntry::new(
             variable_name,
@@ -1339,7 +1397,7 @@ impl Index {
         initial_value: Option<ConstId>,
         source_location: SymbolLocation,
     ) {
-        let qualified_name = format!("{enum_type_name}.{element_name}");
+        let qualified_name = qualified_name(enum_type_name, element_name);
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)

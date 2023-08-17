@@ -1,5 +1,6 @@
+use plc_ast::ast::{Operator, TypeNature};
+
 use crate::{
-    ast::{Operator, TypeNature},
     index::{symbol::SymbolLocation, Index},
     test_utils::tests::index,
     typesystem::{

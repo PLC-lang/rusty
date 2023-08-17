@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "A class cannot have a var in/out/inout blocks", range: [SourceRange { range: 15..18 }], err_no: syntax__generic_error }
+

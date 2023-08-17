@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "A program cannot use EXTEND", range: [SourceRange { range: 54..58 }], err_no: syntax__generic_error }
+

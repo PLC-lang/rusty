@@ -18,13 +18,11 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    diagnostics::Diagnostic,
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
     DebugLevel, OptimizationLevel, Target,
 };
 
-use super::ast::*;
 use super::index::*;
 use indexmap::IndexSet;
 use inkwell::{
@@ -38,6 +36,8 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
+use plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 mod debug;
 pub(crate) mod generators;
@@ -333,10 +333,13 @@ impl<'ink> GeneratedModule<'ink> {
             .and_then(|it| {
                 self.module
                     .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
-                    .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
+                    .map_err(|it| {
+                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                    })
                     .and_then(|_| {
-                        it.write_to_file(&self.module, FileType::Object, output.as_path())
-                            .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
+                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(|it| {
+                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                        })
                     })
             })
             .map(|_| output)

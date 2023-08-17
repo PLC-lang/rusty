@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 241..252 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 266..283 }], err_no: var__invalid_assignment }
+

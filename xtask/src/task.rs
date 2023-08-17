@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::{path::Path, time::Duration};
 use xshell::{cmd, Shell};
 
-use crate::{reporter::DurationFormat, task::lexer::Lexer};
+use crate::{reporter::DurationWrapper, task::lexer::Lexer};
 
 use self::{compile::Compile, run::Run};
 
@@ -14,8 +14,8 @@ pub(crate) trait Task {
     /// Returns the name of the task being benchmarked
     fn get_name(&self) -> String;
 
-    /// Returns the [`DurationFormat`] the task was benchmarked in
-    fn get_duration_format(&self) -> DurationFormat;
+    /// Returns a [DurationWrapper] with its inner type being the given argument
+    fn get_wrapped(&self, duration: Duration) -> DurationWrapper;
 
     /// Executes any actions required before time measurement starts
     /// By default we make sure we have a release build ready

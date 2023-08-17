@@ -11,14 +11,14 @@
 use std::{
     env,
     ffi::OsStr,
-    fmt::{Debug},
+    fmt::Debug,
     path::{Path, PathBuf},
 };
 
-
+use ast::provider::IdProvider;
 use cli::{CompileParameters, ParameterError};
-use diagnostics::{Diagnostic, Diagnostician};
-use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+use plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;

@@ -2,14 +2,14 @@
 
 /// offers operations to generate global variables
 use crate::{
-    ast::{LinkageType, SourceRange},
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
-    diagnostics::{Diagnostic, ErrNo},
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
 use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
+use plc_ast::ast::{LinkageType, SourceRange};
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 
 use super::{
     data_type_generator::get_default_for,

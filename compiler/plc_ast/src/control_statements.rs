@@ -1,6 +1,6 @@
-use std::fmt::{Debug, Formatter, Result};
+use std::fmt::{Debug, Formatter};
 
-use super::AstStatement;
+use crate::ast::AstStatement;
 
 #[derive(Clone, PartialEq)]
 pub struct IfStatement {
@@ -47,7 +47,7 @@ pub struct ConditionalBlock {
 }
 
 impl Debug for ConditionalBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ConditionalBlock")
             .field("condition", &self.condition)
             .field("body", &self.body)

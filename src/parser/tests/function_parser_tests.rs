@@ -1,4 +1,9 @@
-use crate::{ast::*, parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE, Diagnostic};
+use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
+use plc_ast::ast::{
+    AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
+    SourceRange, Variable, VariableBlock, VariableBlockType,
+};
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 #[test]
@@ -237,7 +242,8 @@ fn varargs_parameters_can_be_parsed() {
         name_location: SourceRange::undefined(),
         poly_mode: None,
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
+        super_class: None,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
@@ -306,7 +312,8 @@ fn sized_varargs_parameters_can_be_parsed() {
         name_location: SourceRange::undefined(),
         poly_mode: None,
         generics: vec![],
-        linkage: crate::ast::LinkageType::Internal,
+        linkage: LinkageType::Internal,
+        super_class: None,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }

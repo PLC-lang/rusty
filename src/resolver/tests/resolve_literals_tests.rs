@@ -1,8 +1,11 @@
+use plc_ast::{
+    ast::{AstStatement, TypeNature},
+    provider::IdProvider,
+};
+
 use crate::{
     assert_type_and_hint,
-    ast::AstStatement,
     index::symbol::SymbolLocation,
-    lexer::IdProvider,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
@@ -51,7 +54,7 @@ fn string_literals_are_annotated() {
         &DataType {
             initial_value: None,
             name: "__STRING_3".into(),
-            nature: crate::ast::TypeNature::String,
+            nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
@@ -64,7 +67,7 @@ fn string_literals_are_annotated() {
         &DataType {
             initial_value: None,
             name: "__WSTRING_6".into(),
-            nature: crate::ast::TypeNature::String,
+            nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)

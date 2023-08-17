@@ -1,11 +1,9 @@
 use std::time::Instant;
 
-use plc::{
-    ast::SourceRangeFactory,
-    lexer::{self, IdProvider},
-};
+use plc::lexer;
+use plc_ast::{ast::SourceRangeFactory, provider::IdProvider};
 
-use crate::reporter::DurationFormat;
+use crate::reporter::DurationWrapper;
 
 use super::Task;
 
@@ -30,7 +28,7 @@ impl Task for Lexer {
         Ok(elapsed)
     }
 
-    fn get_duration_format(&self) -> crate::reporter::DurationFormat {
-        DurationFormat::Micros
+    fn get_wrapped(&self, duration: std::time::Duration) -> DurationWrapper {
+        DurationWrapper::Micros(duration)
     }
 }

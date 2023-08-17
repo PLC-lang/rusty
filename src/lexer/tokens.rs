@@ -1,6 +1,6 @@
 use logos::Logos;
 
-use crate::ast::{DirectAccessType, HardwareAccessType};
+use plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
 #[derive(Debug, PartialEq, Eq, Logos, Clone)]
 pub enum Token {
@@ -31,6 +31,9 @@ pub enum Token {
     #[token("END_CLASS", ignore(case))]
     #[token("ENDCLASS", ignore(case))]
     KeywordEndClass,
+
+    #[token("EXTENDS", ignore(case))]
+    KeywordExtends,
 
     #[token("VAR_INPUT", ignore(case))]
     #[token("VARINPUT", ignore(case))]

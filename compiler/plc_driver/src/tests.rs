@@ -1,7 +1,8 @@
 use std::{fmt::Debug, path::PathBuf};
 
-use diagnostics::{Diagnostic, Diagnostician};
-use plc::{lexer::IdProvider, DebugLevel};
+use ast::provider::IdProvider;
+use plc::DebugLevel;
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::Project;
 use source_code::SourceContainer;
 

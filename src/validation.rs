@@ -1,13 +1,13 @@
+use plc_ast::ast::{AstStatement, CompilationUnit};
+use plc_diagnostics::diagnostics::Diagnostic;
 use rusty_derive::Validators;
 
 use crate::{
-    ast::{AstStatement, CompilationUnit},
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
-    Diagnostic,
 };
 
 use self::{
