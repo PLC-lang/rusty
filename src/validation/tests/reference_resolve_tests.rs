@@ -337,8 +337,8 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
         PROGRAM mainProg
         VAR
             var_str1 : ARRAY[1..5] OF STRUCT1 := [
-                (myInt := 1), (myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]),
-                (myInt := 2), (myArr := [(x1 := TRUE, x2 := 256), (x1 := FALSE, x2 := 2048)])
+                (myInt := 1, myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]),
+                (myInt := 2, myArr := [(x1 := TRUE, x2 := 256), (x1 := FALSE, x2 := 2048)])
             ];
         END_VAR
         END_PROGRAM
