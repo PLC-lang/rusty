@@ -1639,6 +1639,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_derive"
+version = "0.1.0"
+dependencies = [
+ "quote 0.6.13",
+ "syn 0.15.44",
+]
+
+[[package]]
 name = "plc_diagnostics"
 version = "0.1.0"
 dependencies = [
@@ -1942,6 +1950,7 @@ dependencies = [
  "logos",
  "num",
  "plc_ast",
+ "plc_derive",
  "plc_diagnostics",
  "plc_driver",
  "plc_project",
@@ -1949,7 +1958,6 @@ dependencies = [
  "plc_util",
  "pretty_assertions",
  "regex",
- "rusty-derive",
  "serde",
  "serde_json",
  "serial_test",
@@ -1958,14 +1966,6 @@ dependencies = [
  "thiserror",
  "toml",
  "which",
-]
-
-[[package]]
-name = "rusty-derive"
-version = "0.1.0"
-dependencies = [
- "quote 0.6.13",
- "syn 0.15.44",
 ]
 
 [[package]]

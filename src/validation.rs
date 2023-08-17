@@ -1,6 +1,6 @@
 use plc_ast::ast::{AstStatement, CompilationUnit};
+use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
-use rusty_derive::Validators;
 
 use crate::{
     index::{
