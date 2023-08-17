@@ -865,12 +865,12 @@ impl<'i> TypeAnnotator<'i> {
                 self.update_expected_types(expected_type, initializer);
 
                 // handle annotation for array of struct
-                self.update_type_hints_for_array_of_structs(expected_type, initializer, &ctx);
+                self.type_hint_for_array_of_structs(expected_type, dbg!(initializer), &ctx);
             }
         }
     }
 
-    fn update_type_hints_for_array_of_structs(
+    fn type_hint_for_array_of_structs(
         &mut self,
         expected_type: &typesystem::DataType,
         statement: &AstStatement,
@@ -889,7 +889,7 @@ impl<'i> TypeAnnotator<'i> {
                     // This **should** only happen for initializers, i.e. where the lhs isn't an aststatement
                     AstStatement::Literal { kind: AstLiteral::Array(array), .. } => match array.elements() {
                         Some(elements) if elements.is_expression_list() => {
-                            self.update_type_hints_for_array_of_structs(expected_type, elements, &ctx)
+                            self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
 
                         _ => (),
@@ -906,7 +906,7 @@ impl<'i> TypeAnnotator<'i> {
 
                             // TODO: Expected type is incorrect here?
                             // We want to annotate each and every sub-expression
-                            self.update_type_hints_for_array_of_structs(expected_type, expression, &ctx);
+                            self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
                         }
                     }
 
@@ -915,7 +915,7 @@ impl<'i> TypeAnnotator<'i> {
                         let Some(elements) = array.elements() else { return };
 
                         if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
-                            self.update_type_hints_for_array_of_structs(&datatype, elements, &ctx);
+                            self.type_hint_for_array_of_structs(&datatype, elements, &ctx);
                         }
                     }
 
@@ -932,7 +932,7 @@ impl<'i> TypeAnnotator<'i> {
                         let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
                             continue;
                         };
-                        self.update_type_hints_for_array_of_structs(data_type, right, ctx);
+                        self.type_hint_for_array_of_structs(data_type, right, ctx);
                     }
                 }
             }
