@@ -11,12 +11,12 @@
 use std::{
     env,
     ffi::OsStr,
-    fmt::Debug,
+    fmt::{Debug},
     path::{Path, PathBuf},
 };
 
-use clap::ErrorKind;
-use cli::CompileParameters;
+
+use cli::{CompileParameters, ParameterError};
 use diagnostics::{Diagnostic, Diagnostician};
 use plc::{lexer::IdProvider, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 use project::project::{LibraryInformation, Project};
@@ -71,22 +71,45 @@ pub struct LinkOptions {
     pub linker: Option<String>,
 }
 
-pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), Diagnostic> {
-    //Parse the arguments
-    let compile_parameters = match CompileParameters::parse(args) {
-        Ok(params) => params,
-        Err(error) => {
-            println!("{}", error);
-            match error.kind {
-                ErrorKind::DisplayHelp => {
-                    std::process::exit(0);
-                }
-                _ => {
-                    std::process::exit(1);
-                }
+#[derive(Debug)]
+pub enum CompileError {
+    Diagnostic(Diagnostic),
+    Parameter(ParameterError),
+}
+
+impl From<Diagnostic> for CompileError {
+    fn from(value: Diagnostic) -> Self {
+        Self::Diagnostic(value)
+    }
+}
+impl From<ParameterError> for CompileError {
+    fn from(value: ParameterError) -> Self {
+        Self::Parameter(value)
+    }
+}
+
+impl CompileError {
+    pub fn exit(&self) {
+        match self {
+            CompileError::Diagnostic(err) => {
+                println!("{err:#?}");
+                std::process::exit(1)
             }
+            CompileError::Parameter(err) => err.exit(),
         }
-    };
+    }
+
+    pub fn into_diagnostic(self) -> Option<Diagnostic> {
+        let CompileError::Diagnostic(res) = self else {
+            return None
+        };
+        Some(res)
+    }
+}
+
+pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), CompileError> {
+    //Parse the arguments
+    let compile_parameters = CompileParameters::parse(args)?;
     let project = get_project(&compile_parameters)?;
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
