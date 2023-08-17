@@ -447,7 +447,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ))
                 }
             }
-            //TODO 
+            //TODO
             // Operator::Address => {
             //     //datatype is a pointer to the address
             //     //value is the address
@@ -2539,7 +2539,7 @@ pub fn get_implicit_call_parameter<'a>(
     let (location, param_statement, is_implicit) = match param_statement {
         AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } => {
             //explicit
-            let AstStatement::Reference { name: left_name, .. } = left.as_ref() else {
+            let Some(left_name) = left.as_ref().get_flat_reference_name() else {
                 return Err(Diagnostic::reference_expected(param_statement.get_location()));
             };
             let loc = declared_parameters
