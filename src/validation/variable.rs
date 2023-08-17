@@ -5,7 +5,7 @@ use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
     array::{validate_array_assignment, Wrapper},
-    statement::validate_enum_variant_assignment,
+    statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -106,7 +106,7 @@ fn validate_variable<T: AnnotationMap>(
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
             validate_array_assignment(validator, context, Wrapper::Variable(variable));
-            super::statement::visit_statement(validator, initializer, context);
+            visit_statement(validator, initializer, context);
         }
 
         match v_entry

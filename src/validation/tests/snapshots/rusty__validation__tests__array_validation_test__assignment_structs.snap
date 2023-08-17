@@ -2,7 +2,10 @@
 source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 336..349 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 362..375 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 328..375 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 612..625 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 638..651 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 604..651 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 713..726 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 739..752 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 705..752 }], err_no: arr__invalid_array_assignment }
 

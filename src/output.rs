@@ -11,6 +11,8 @@ pub enum FormatOption {
     PIC,
     /// Indicates that the linked object will be shared and position independent
     Shared,
+    /// Indicates that the compiled object will be a DynamicNoPIC object
+    NoPIC,
     /// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
     Relocatable,
     /// Indicates that the compile result will be LLVM Bitcode
@@ -23,7 +25,11 @@ impl FormatOption {
     pub fn should_link(self) -> bool {
         matches!(
             self,
-            FormatOption::Static | FormatOption::Shared | FormatOption::PIC | FormatOption::Relocatable
+            FormatOption::Static
+                | FormatOption::Shared
+                | FormatOption::PIC
+                | FormatOption::NoPIC
+                | FormatOption::Relocatable
         )
     }
 }
