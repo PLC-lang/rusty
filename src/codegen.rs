@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use std::{
     cell::RefCell,
     ops::Deref,
@@ -270,10 +269,10 @@ impl<'ink> GeneratedModule<'ink> {
             FormatOption::Object | FormatOption::Relocatable => {
                 self.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC | FormatOption::Static => {
+            FormatOption::PIC | FormatOption::Shared | FormatOption::Static => {
                 self.persist_to_shared_pic_object(output, target, optimization_level)
             }
-            FormatOption::Shared => self.persist_to_shared_object(output, target, optimization_level),
+            FormatOption::NoPIC => self.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
         }

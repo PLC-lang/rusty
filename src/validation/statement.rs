@@ -7,7 +7,10 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
+use super::{
+    array::{validate_array_assignment, Wrapper},
+    ValidationContext, Validator, Validators,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -80,7 +83,6 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_unary_expression(validator, operator, value, location);
         }
         AstStatement::ExpressionList { expressions, .. } => {
-            validate_for_array_assignment(validator, expressions, context);
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
         AstStatement::RangeStatement { start, end, .. } => {
@@ -91,6 +93,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, right, context);
 
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
+            validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
         AstStatement::OutputAssignment { left, right, .. } => {
             visit_statement(validator, left, context);

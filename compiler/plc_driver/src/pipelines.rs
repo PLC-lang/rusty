@@ -487,7 +487,7 @@ impl GeneratedProject<'_> {
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
-                    FormatOption::Shared | FormatOption::PIC => {
+                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => {
                         linker.build_shared_obj(output_location).map_err(Into::into)
                     }
                     FormatOption::Object | FormatOption::Relocatable => {

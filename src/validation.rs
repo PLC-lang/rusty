@@ -18,6 +18,7 @@ use self::{
     variable::visit_variable_block,
 };
 
+mod array;
 mod global;
 mod pou;
 mod recursive;
@@ -157,51 +158,4 @@ impl Validator {
             visit_implementation(self, implementation, &context);
         }
     }
-}
-
-/// Finds and reports invalid `ARRAY` assignments where parentheses are missing yielding invalid ASTs.
-/// Specifically an invalid assignment such as `x := (var1 := 1, var2 := 3, 4);` where `var2` is missing a
-/// `(` will generate `ExpressionList { Assignment {..}, ...}` as the AST where each item after
-/// the first one would be handled as a seperate statement whereas the correct AST should have been
-/// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
-/// - https://github.com/PLC-lang/rusty/issues/707 and
-/// - `array_validation_test.rs/array_initialization_validation`
-pub fn validate_for_array_assignment<T: AnnotationMap>(
-    validator: &mut Validator,
-    expressions: &[AstStatement],
-    context: &ValidationContext<T>,
-) {
-    let mut array_assignment = false;
-    expressions.iter().for_each(|e| {
-        if array_assignment {
-            // now we cannot be sure where the following values belong to
-            validator
-                .push_diagnostic(Diagnostic::array_expected_identifier_or_round_bracket(e.get_location()));
-        }
-        match e {
-            AstStatement::Assignment { left, right, .. } => {
-                let left_type =
-                    context.annotations.get_type_or_void(left, context.index).get_type_information();
-                let right_type =
-                    context.annotations.get_type_or_void(right, context.index).get_type_information();
-
-                if left_type.is_array()
-				// if we try to assign an `ExpressionList` to an ARRAY
-				// we can expect that `()` were used and we got a valid parse result
-				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
-                 && !right_type.is_array()
-                {
-                    // otherwise we are definitely in an invalid assignment
-                    array_assignment = true;
-                    validator
-                        .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));
-                }
-            }
-            AstStatement::ExpressionList { expressions, .. } => {
-                // e.g. ARRAY OF STRUCT can have multiple `ExpressionList`s
-                validate_for_array_assignment(validator, expressions, context);
-            }
-            _ => {} // do nothing
-        }
-    })
 }
