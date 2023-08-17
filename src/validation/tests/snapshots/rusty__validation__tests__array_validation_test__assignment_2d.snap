@@ -3,13 +3,13 @@ source: src/validation/tests/array_validation_test.rs
 expression: res
 ---
 SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 73..108 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 249..308 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 555..580 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 594..623 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 637..670 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 555..580 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 594..623 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 637..670 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 683..718 }], err_no: arr__invalid_array_assignment }
 SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 808..867 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must start with a leading '[' symbol", range: [SourceRange { range: 889..944 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 889..944 }], err_no: arr__invalid_array_assignment }
 

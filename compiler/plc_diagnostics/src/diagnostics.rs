@@ -620,7 +620,7 @@ impl Diagnostic {
 
     pub fn array_assignment(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: "Array assignments must start with a leading '[' symbol".to_string(),
+            message: "Array assignments must be surrounded with `[]`".to_string(),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
