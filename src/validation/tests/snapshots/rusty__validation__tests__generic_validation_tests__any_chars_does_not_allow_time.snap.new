@@ -1,8 +1,0 @@
----
-source: src/validation/tests/generic_validation_tests.rs
-assertion_line: 1141
-expression: res
----
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Chars.", range: [SourceRange { range: 139..140 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Chars.", range: [SourceRange { range: 208..209 }], err_no: type__invalid_nature }
-

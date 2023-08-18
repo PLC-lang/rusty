@@ -760,7 +760,7 @@ impl<'i> TypeAnnotator<'i> {
                     .find_range_check_implementation_for(expected_type.get_type_information())
                     .map(|f| {
                         AstFactory::create_call_to_check_function_ast(
-                            f.get_call_name().to_string(),
+                            f.get_call_name(),
                             right_side.clone(),
                             sub_range.clone(),
                             &annotated_left_side.get_location(),

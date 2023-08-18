@@ -1,8 +1,0 @@
----
-source: src/validation/tests/generic_validation_tests.rs
-assertion_line: 1361
-expression: res
----
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Char.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Char.", range: [SourceRange { range: 212..213 }], err_no: type__invalid_nature }
-

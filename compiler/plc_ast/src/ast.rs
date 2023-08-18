@@ -1234,10 +1234,10 @@ pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
 pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
     match enum_element {
         AstStatement::Reference { name, .. } => name.to_string(),
-        AstStatement::Assignment { left, .. } => {
-            left.get_flat_reference_name()
-                .map(|it| it.to_string()).expect("left of assignment not a reference")
-        }
+        AstStatement::Assignment { left, .. } => left
+            .get_flat_reference_name()
+            .map(|it| it.to_string())
+            .expect("left of assignment not a reference"),
         _ => {
             unreachable!("expected {:?} to be a Reference or Assignment", enum_element);
         }
@@ -1511,7 +1511,10 @@ impl AstFactory {
         stmt: AstStatement,
         location: &SourceRange,
         id_provider: &mut T,
-    ) -> AstStatement where T : FnMut() -> AstId{
+    ) -> AstStatement
+    where
+        T: FnMut() -> AstId,
+    {
         let new_location = (location.get_start()..stmt.get_location().get_end()).into();
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Cast(Box::new(stmt)),
@@ -1545,17 +1548,17 @@ impl AstFactory {
     }
 
     pub fn create_call_to_with_ids(
-        function_name: String,
+        function_name: &str,
         parameters: Vec<AstStatement>,
         location: &SourceRange,
         mut id_provider: IdProvider,
     ) -> AstStatement {
         AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: function_name,
-                location: location.clone(),
-                id: id_provider.next_id(),
-            }),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_reference(function_name, location, id_provider.next_id()),
+                None,
+                id_provider.next_id(),
+            )),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: parameters,
                 id: id_provider.next_id(),
@@ -1566,7 +1569,7 @@ impl AstFactory {
     }
 
     pub fn create_call_to_check_function_ast(
-        check_function_name: String,
+        check_function_name: &str,
         parameter: AstStatement,
         sub_range: Range<AstStatement>,
         location: &SourceRange,

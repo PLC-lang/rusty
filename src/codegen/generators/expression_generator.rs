@@ -690,7 +690,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
                 .index
-                .find_variable(None, segments!(qualified_name))
+                .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
             self.assign_output_value(&CallParameterAssignment {
@@ -727,7 +727,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
                     (Some(class_ptr), call_ptr)
                 }
-                PouIndexEntry::Action { .. } if matches!(operator, AstStatement::ReferenceExpr { .. }) => {
+                // TODO: find a more reliable way to make sure if this is a call into a local action!!
+                PouIndexEntry::Action { .. }
+                    if matches!(operator, AstStatement::ReferenceExpr { base: None, .. }) =>
+                {
                     // special handling for local actions, get the parameter from the function context
                     function_context
                         .function
@@ -1253,7 +1256,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
                 .index
-                .find_variable(None, qualified_name.split('.').collect::<Vec<_>>().as_slice())
+                .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
 
@@ -2055,13 +2058,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
                 if let AstStatement::Assignment { left, right, .. } = assignment {
-                    if let AstStatement::Reference { name: variable_name, location, .. } = &**left {
+                    if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+                        self.annotations.get(left.as_ref())
+                    {
                         let member: &VariableIndexEntry =
-                            self.index.find_member(struct_name, variable_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(
-                                    &qualified_name(struct_name, variable_name),
-                                    location.clone(),
-                                )
+                            self.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
+                                Diagnostic::unresolved_reference(qualified_name, left.get_location())
                             })?;
 
                         let index_in_parent = member.get_location_in_parent();

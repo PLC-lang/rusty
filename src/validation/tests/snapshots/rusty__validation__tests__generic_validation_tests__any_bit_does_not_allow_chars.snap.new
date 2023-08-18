@@ -1,8 +1,0 @@
----
-source: src/validation/tests/generic_validation_tests.rs
-assertion_line: 1042
-expression: res
----
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Bit.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Bit.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
-

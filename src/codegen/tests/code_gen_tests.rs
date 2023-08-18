@@ -2175,6 +2175,38 @@ fn typed_enums_are_generated() {
 }
 
 #[test]
+fn typed_enums_are_used_properly() {
+    let result = codegen(
+        "
+        TYPE MyEnum: BYTE(red := 5, yellow, green);
+        END_TYPE
+
+        TYPE MyEnum2: UINT(red := 15, yellow, green);
+        END_TYPE
+        
+        TYPE MyEnum3: DINT(red := 25, yellow, green);
+        END_TYPE
+
+        PROGRAM prg
+            VAR 
+                x: BYTE;
+                y: UINT;
+                z: DINT;
+            END_VAR
+
+            x := MyEnum#yellow;
+            y := MyEnum2#yellow;
+            z := MyEnum3#yellow;
+
+            // z := yellow; //what will this be?
+            END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn typed_enums_with_initializers_are_generated() {
     let result = codegen(
         "

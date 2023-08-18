@@ -1,6 +1,0 @@
----
-source: src/validation/tests/reference_resolve_tests.rs
-assertion_line: 196
-expression: res
----
-

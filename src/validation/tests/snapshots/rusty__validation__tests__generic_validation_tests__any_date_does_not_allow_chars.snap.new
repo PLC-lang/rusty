@@ -1,8 +1,0 @@
----
-source: src/validation/tests/generic_validation_tests.rs
-assertion_line: 1546
-expression: res
----
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Date.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Date.", range: [SourceRange { range: 207..208 }], err_no: type__invalid_nature }
-
