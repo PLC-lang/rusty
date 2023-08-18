@@ -6,12 +6,14 @@
 <a href="#6" id="6">6</a>
 <a href="#7" id="7">7</a>
 <a href="#8" id="8">8</a>
+<a href="#9" id="9">9</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::env;
-
 <span class="kw">fn </span>main() {
     <span class="comment">//Initialize the logging
     </span>env_logger::init();
     <span class="kw">let </span>args: Vec&lt;String&gt; = env::args().collect();
-    plc_driver::compile(<span class="kw-2">&amp;</span>args).unwrap();
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = plc_driver::compile(<span class="kw-2">&amp;</span>args) {
+        err.exit()
+    }
 }
 </code></pre></div></section></main></body></html>
