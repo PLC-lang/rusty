@@ -576,6 +576,8 @@ pub struct UserTypeDeclaration {
     pub location: SourceRange,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
+    /// If the datatype has been auto generated, this shows how it was originally called
+    pub original_name: Option<String>,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -584,6 +586,7 @@ impl Debug for UserTypeDeclaration {
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
             .field("scope", &self.scope)
+            .field("original_name", &self.original_name)
             .finish()
     }
 }

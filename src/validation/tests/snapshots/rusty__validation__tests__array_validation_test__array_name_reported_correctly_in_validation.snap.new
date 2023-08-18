@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/array_validation_test.rs
+assertion_line: 312
+expression: res
+---
+SemanticError { message: "Array __prg_arr has a size of 1, but 2 elements were provided", range: [SourceRange { range: 57..62 }], err_no: arr__invalid_array_assignment }
+

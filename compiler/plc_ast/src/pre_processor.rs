@@ -74,7 +74,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
-                        let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
+                        let data_type = UserTypeDeclaration {
+                            data_type,
+                            initializer: None,
+                            location,
+                            scope,
+                            original_name: Some(name.to_string()),
+                        };
                         new_types.push(data_type);
                     }
                 }
@@ -174,6 +180,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
             },
             initializer: None,
             scope: Some(pou.name.clone()),
+            original_name: Some(binding.name.to_string()),
             location: pou.location.clone(),
         };
         types.push(data_type);
@@ -201,7 +208,13 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
             {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
-                let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
+                let data_type = UserTypeDeclaration {
+                    data_type,
+                    initializer: None,
+                    location,
+                    scope,
+                    original_name: Some(pou.name.to_string()),
+                };
                 types.push(data_type);
             }
         }

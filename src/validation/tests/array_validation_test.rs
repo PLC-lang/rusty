@@ -296,3 +296,18 @@ fn assignment_multiplied_statement() {
 
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn array_name_reported_correctly_in_validation() {
+    let diagnostics = parse_and_validate(
+        "
+		PROGRAM prg 
+		VAR
+		    arr : ARRAY[1..1] OF DINT := [1,2];
+		END_VAR
+		END_PROGRAM
+	",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}
