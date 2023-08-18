@@ -16,7 +16,7 @@ use std::{
 };
 
 use ast::provider::IdProvider;
-use cli::CompileParameters;
+use cli::{CompileParameters, ParameterError};
 use plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
@@ -71,7 +71,43 @@ pub struct LinkOptions {
     pub linker: Option<String>,
 }
 
-pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), Diagnostic> {
+#[derive(Debug)]
+pub enum CompileError {
+    Diagnostic(Diagnostic),
+    Parameter(ParameterError),
+}
+
+impl From<Diagnostic> for CompileError {
+    fn from(value: Diagnostic) -> Self {
+        Self::Diagnostic(value)
+    }
+}
+impl From<ParameterError> for CompileError {
+    fn from(value: ParameterError) -> Self {
+        Self::Parameter(value)
+    }
+}
+
+impl CompileError {
+    pub fn exit(&self) {
+        match self {
+            CompileError::Diagnostic(err) => {
+                println!("{err:#?}");
+                std::process::exit(1)
+            }
+            CompileError::Parameter(err) => err.exit(),
+        }
+    }
+
+    pub fn into_diagnostic(self) -> Option<Diagnostic> {
+        let CompileError::Diagnostic(res) = self else {
+            return None
+        };
+        Some(res)
+    }
+}
+
+pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), CompileError> {
     //Parse the arguments
     let compile_parameters = CompileParameters::parse(args)?;
     let project = get_project(&compile_parameters)?;
@@ -124,7 +160,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), D
     // 3 : Resolve
     .annotate(id_provider, &diagnostician)?;
     // 4 : Validate
-    annotated_project.validate(&diagnostician)?;
+    annotated_project.validate(&mut diagnostician)?;
     // 5 : Codegen
     if !compile_parameters.is_check() {
         generate(

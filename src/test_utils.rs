@@ -8,6 +8,7 @@ pub mod tests {
         provider::IdProvider,
     };
     use plc_diagnostics::{
+        diagnostician::Diagnostician,
         diagnostics::Diagnostic,
         reporter::{DiagnosticReporter, ResolvedDiagnostics},
     };
@@ -34,7 +35,7 @@ pub mod tests {
 
     #[cfg(test)]
     impl DiagnosticReporter for ListBasedDiagnosticReporter {
-        fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
             self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
         }
 
@@ -110,6 +111,18 @@ pub mod tests {
         let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
+    }
+
+    pub fn parse_and_validate_buffered(src: &str) -> String {
+        let diagnostics = parse_and_validate(src);
+        let mut reporter = Diagnostician::buffered();
+
+        let id = reporter.register_file("snapshot".to_string(), src.to_string());
+        reporter.handle(Some(id), diagnostics);
+
+        reporter.buffer().expect(
+            "This should be unreachable, otherwise somethings wrong with the buffered codespan reporter",
+        )
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {

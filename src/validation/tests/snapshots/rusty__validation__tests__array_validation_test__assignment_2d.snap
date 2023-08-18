@@ -1,15 +1,65 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 73..108 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 156..189 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 249..308 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 371..426 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 555..580 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 594..623 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 637..670 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr has a size of 10, but 11 elements were provided", range: [SourceRange { range: 683..718 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_nested has a size of 10, but 15 elements were provided", range: [SourceRange { range: 808..867 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 889..944 }], err_no: arr__invalid_array_assignment }
+error: Array __main_arr has a size of 10, but 11 elements were provided
+  ┌─ snapshot:4:43
+  │
+4 │         arr       : ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  │                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 10, but 11 elements were provided
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ snapshot:5:47
+  │
+5 │         arr_alt     : ARRAY[1..2, 1..5] OF DINT := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+  │                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array __main_arr_nested has a size of 10, but 15 elements were provided
+  ┌─ snapshot:7:57
+  │
+7 │         arr_nested    : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
+  │                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array __main_arr_nested has a size of 10, but 15 elements were provided
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ snapshot:8:62
+  │
+8 │         arr_nested_alt  : ARRAY[1..2] OF ARRAY[1..5] OF DINT := ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
+  │                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:14:12
+   │
+14 │       arr := (1, 2, 3, 4, 5, 6, 7, 8, 9);
+   │               ^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:15:12
+   │
+15 │       arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:16:12
+   │
+16 │       arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array __main_arr has a size of 10, but 11 elements were provided
+   ┌─ snapshot:17:11
+   │
+17 │       arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+   │              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 10, but 11 elements were provided
+
+error: Array __main_arr_nested has a size of 10, but 15 elements were provided
+   ┌─ snapshot:20:19
+   │
+20 │       arr_nested    := [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
+   │                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array __main_arr_nested has a size of 10, but 15 elements were provided
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:21:21
+   │
+21 │       arr_nested    := ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
 

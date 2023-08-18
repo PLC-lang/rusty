@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "Array __main_arr has a size of 5, but 6 elements were provided", range: [SourceRange { range: 66..84 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 125..141 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 237..247 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 261..274 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 288..304 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr has a size of 5, but 6 elements were provided", range: [SourceRange { range: 317..335 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 361..362 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 375..388 }], err_no: arr__invalid_array_assignment }
+error: Array __main_arr has a size of 5, but 6 elements were provided
+  ┌─ snapshot:4:36
+  │
+4 │         arr     : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
+  │                                          ^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 5, but 6 elements were provided
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ snapshot:5:40
+  │
+5 │         arr_alt   : ARRAY[1..5] OF DINT := (1, 2, 3, 4, 5, 6);
+  │                                             ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:11:12
+   │
+11 │       arr := (1, 2, 3, 4);
+   │               ^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:12:12
+   │
+12 │       arr := (1, 2, 3, 4, 5);
+   │               ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:13:12
+   │
+13 │       arr := (1, 2, 3, 4, 5, 6);
+   │               ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array __main_arr has a size of 5, but 6 elements were provided
+   ┌─ snapshot:14:11
+   │
+14 │       arr := [1, 2, 3, 4, 5, 6];
+   │              ^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 5, but 6 elements were provided
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:15:25
+   │
+15 │       arr := [1, 2, 3, 4, 5);
+   │                            ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ snapshot:16:12
+   │
+16 │       arr := (1, 2, 3, 4, 5];
+   │               ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
 

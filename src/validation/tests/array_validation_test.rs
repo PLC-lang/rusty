@@ -1,9 +1,10 @@
-use crate::assert_validation_snapshot;
-use crate::test_utils::tests::parse_and_validate;
+use insta::assert_snapshot;
+
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn array_access_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 			VAR_GLOBAL CONSTANT
 				start : INT := 1;
@@ -44,12 +45,12 @@ fn array_access_validation() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn array_initialization_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION main : DINT
 		VAR
@@ -76,12 +77,12 @@ fn array_initialization_validation() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn array_access_dimension_mismatch() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION fn : DINT
 			VAR_INPUT {ref}
@@ -103,12 +104,12 @@ fn array_access_dimension_mismatch() {
     );
 
     assert_eq!(diagnostics.len(), 4);
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn assignment_1d() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION main : DINT
 			VAR
@@ -129,12 +130,12 @@ fn assignment_1d() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn assignment_2d() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION main : DINT
 			VAR
@@ -160,12 +161,12 @@ fn assignment_2d() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn assignment_3d() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION main : DINT
 			VAR
@@ -190,12 +191,12 @@ fn assignment_3d() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn assignment_structs() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		TYPE FOO : STRUCT
 			idx : DINT;
@@ -220,13 +221,13 @@ fn assignment_structs() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 #[ignore = "Needs to be re-checked"]
 fn exceeding_size_structs() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		TYPE Foo : STRUCT
 			idx: DINT;
@@ -259,12 +260,12 @@ fn exceeding_size_structs() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics)
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn assignment_multiplied_statement() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
 		FUNCTION main : DINT
 			VAR
@@ -294,5 +295,5 @@ fn assignment_multiplied_statement() {
 		",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
