@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "Expected array access with 1 dimensions, found 2", range: [SourceRange { range: 178..182 }], err_no: vla__invalid_array_access }
-SemanticError { message: "Expected array access with 1 dimensions, found 2", range: [SourceRange { range: 197..201 }], err_no: vla__invalid_array_access }
-SemanticError { message: "Expected array access with 1 dimensions, found 3", range: [SourceRange { range: 216..223 }], err_no: vla__invalid_array_access }
-SemanticError { message: "Expected array access with 1 dimensions, found 3", range: [SourceRange { range: 238..245 }], err_no: vla__invalid_array_access }
+error: Expected array access with 1 dimensions, found 2
+   ┌─ snapshot:13:8
+   │
+13 │       arr[0, 1] := 1;
+   │           ^^^^ Expected array access with 1 dimensions, found 2
+
+error: Expected array access with 1 dimensions, found 2
+   ┌─ snapshot:14:8
+   │
+14 │       vla[0, 1] := 1;
+   │           ^^^^ Expected array access with 1 dimensions, found 2
+
+error: Expected array access with 1 dimensions, found 3
+   ┌─ snapshot:15:8
+   │
+15 │       arr[0, 1, 2] := 1;
+   │           ^^^^^^^ Expected array access with 1 dimensions, found 3
+
+error: Expected array access with 1 dimensions, found 3
+   ┌─ snapshot:16:8
+   │
+16 │       vla[0, 1, 2] := 1;
+   │           ^^^^^^^ Expected array access with 1 dimensions, found 3
+
 

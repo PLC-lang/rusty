@@ -103,7 +103,6 @@ fn array_access_dimension_mismatch() {
 		",
     );
 
-    assert_eq!(diagnostics.len(), 4);
     assert_snapshot!(diagnostics);
 }
 
