@@ -237,8 +237,8 @@ fn enum_literals_are_annotated() {
                 Animal#Cat;  //Animal
 
                 // make sure these dont accidentally resolve to wrong enum
-                Animal#Green;   //Animal (invalid cast, validation must handle this)
-                Color#Dog;      //Color (invalid cast, validation must handle this)
+                Animal#Green;   //INVALID (invalid cast, validation must handle this)
+                Color#Dog;      //INVALID (invalid cast, validation must handle this)
                 invalid#Dog;    //invalid (VOID)
                 Animal.Dog;     //Dog (invalid access, validation must handle this)
                 PRG.Cat;        //invalid (VOID)
@@ -252,7 +252,7 @@ fn enum_literals_are_annotated() {
     let actual_resolves: Vec<&str> =
         statements.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
     assert_eq!(
-        vec!["Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "Animal", "Color", "VOID", "Animal", "VOID"],
+        vec!["Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "VOID", "VOID", "VOID", "Animal", "VOID"],
         actual_resolves
     )
 }
@@ -326,9 +326,7 @@ fn casted_inner_literals_are_annotated() {
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
-    //TODO: explain in commit: change of stragy here, we no longer lie, we annotate the statement as its targe type, the literal as what it is
-    //and let the validation decide whether this is feasable or not
-    let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "REAL", "REAL", "DINT", "BOOL"];
+    let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
     let actual_types: Vec<&str> = statements
         .iter()
         .map(

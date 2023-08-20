@@ -11,6 +11,7 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+use inkwell::values::BasicValueUse;
 use itertools::enumerate;
 use plc_ast::{
     ast::{
@@ -1567,8 +1568,10 @@ impl<'i> TypeAnnotator<'i> {
                         AstStatement::Literal { kind: AstLiteral::Integer(_), .. }
                     ) {
                         self.annotate(stmt, StatementAnnotation::value(BOOL_TYPE));
+                        self.annotate(reference, StatementAnnotation::value(BOOL_TYPE));
                     } else {
-                        self.annotate(stmt, annotation);
+                        self.annotate(stmt, annotation.clone());
+                        self.annotate(reference, annotation);
                     }
 
                     self.maybe_annotate_vla(new_ctx, stmt);
@@ -1576,31 +1579,24 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Cast(target), Some(qualifier)) => {
-                if let Some(annotation) = self
-                    // test if we find an enum member
-                    .get_annotation_from_flat_reference(
-                        target.as_ref(),
-                        Some(qualifier.as_str()),
-                        &ctx.with_resolving_strategy(vec![ResolvingScope::Variable]),
-                    )
-                    // look for normal variable that should be casted
-                    .or_else(|| {
-                        self.get_annotation_from_flat_reference(
-                            target.as_ref(),
-                            None,
-                            &ctx.with_resolving_strategy(vec![ResolvingScope::Variable]),
-                        )
-                    })
+                if let Some(base_type) = base.and_then(|base| self.annotation_map.get_type(base, self.index))
                 {
-                    //enum access
-                    // if matches!(annotation, StatementAnnotation::Variable { .. }) {
-                    // //     // e.g. enum access
-                    //     self.annotate(stmt, annotation.clone());
-                    // } else {
-                    self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
-                    // }
-                    self.annotate(target.as_ref(), StatementAnnotation::value(qualifier.as_str()));
-                    // self.annotation_map.annotate_type_hint(target.as_ref(), StatementAnnotation::value(qualifier.as_str()))
+                    // if base is an enum, we need to look for members of this specific enum
+                    let optional_enum_qualifier = Some(qualifier.as_str()).filter(|_| base_type.is_enum());
+                    if let Some(annotation) = self.get_annotation_from_flat_reference(
+                        target,
+                        optional_enum_qualifier,
+                        &ctx.with_resolving_strategy(vec![ResolvingScope::Variable]),
+                    ) {
+                        self.annotate(target.as_ref(), annotation);
+                        self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
+
+                        if let AstStatement::Literal { .. } = target.as_ref() {
+                            // treate casted literals as the casted type
+                            self.annotate(target.as_ref(), StatementAnnotation::value(qualifier.as_str()));
+                        }
+
+                    }
                 }
             }
             (ReferenceAccess::Index(_), Some(base)) => {
@@ -1708,9 +1704,20 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 })
             }
-            (AstStatement::Literal { .. }, Some(_)) => {
+            (AstStatement::Literal { .. }, base) => {
                 self.visit_statement_literals(ctx, reference);
-                self.annotation_map.get(reference).cloned() // return what we just annotated //TODO not elegant, we need to clone
+                let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
+                                                                                      // see if this was casted
+                if let Some((base_type, literal_type)) = base.and_then(|base| self.index.find_type(base)).zip(
+                    literal_annotation
+                        .as_ref()
+                        .and_then(|a| self.annotation_map.get_type_for_annotation(self.index, &a)),
+                ) {
+                    if base_type != literal_type {
+                        return Some(StatementAnnotation::value(base_type.get_name()))
+                    }
+                }
+                literal_annotation
             }
             (AstStatement::DirectAccess { access, index, .. }, Some(_)) => {
                 // x.%X1 - bit access

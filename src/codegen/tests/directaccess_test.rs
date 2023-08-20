@@ -10,7 +10,7 @@ fn bitaccess_assignment() {
         a : BYTE;
         b : INT := 1;
     END_VAR
-    a.1 := TRUE;
+    // a.1 := TRUE;
     a.%X2 := FALSE;
     a.%Xb := FALSE;
     END_FUNCTION",

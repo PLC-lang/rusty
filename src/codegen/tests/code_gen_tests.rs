@@ -2198,8 +2198,7 @@ fn typed_enums_are_used_properly() {
             y := MyEnum2#yellow;
             z := MyEnum3#yellow;
 
-            // z := yellow; //what will this be?
-            END_PROGRAM
+        END_PROGRAM
         ",
     );
 

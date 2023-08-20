@@ -13,7 +13,7 @@ use crate::{
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         is_same_type_class, DataType, DataTypeInformation, Dimension, StringEncoding, VarArgs, DINT_TYPE,
-        INT_SIZE, INT_TYPE, LINT_TYPE,
+        INT_SIZE, INT_TYPE, LINT_TYPE, DataTypeInformationProvider,
     },
 };
 use inkwell::{
@@ -26,7 +26,10 @@ use inkwell::{
     AddressSpace, FloatPredicate, IntPredicate,
 };
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{
+        flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
+        SourceRange,
+    },
     literals::AstLiteral,
 };
 use plc_util::convention::qualified_name;
@@ -2578,20 +2581,51 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
             (ReferenceAccess::Member(member), base) => {
-                let base = base.map(|it| self.generate_expression_value(it)).transpose()?;
+                let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-                let member_name = member.get_flat_reference_name().unwrap_or("unknown");
-                self.create_llvm_pointer_value_for_reference(
-                    base.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
-                    self.get_load_name(member).as_deref().unwrap_or(member_name),
-                    original_expression,
-                )
-                .map(ExpressionValue::LValue)
+
+                if let AstStatement::DirectAccess { access, index, .. } = member.as_ref() {
+
+                    let datatype = base.map(|b| self.get_type_hint_for(b)).transpose()?.unwrap_or_else(|| self.index.get_void_type()).get_type_information();
+                    let expression_type = self.get_type_hint_for(member.as_ref())?;
+                    //Generate and load the index value
+                    let rhs = self.generate_direct_access_index(access, index, datatype, expression_type)?;
+                    //Shift the qualifer value right by the index value
+                    let value = self.generate_expression(index)?;
+                    let shift = self.llvm.builder.build_right_shift(
+                        value.into_int_value(),
+                        rhs,
+                        expression_type.get_type_information().is_signed_int(),
+                        "shift",
+                    );
+                    //Trunc the result to the get only the target size
+                    let llvm_target_type = self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type();
+                    let result = self.llvm.builder.build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
+                    Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
+                }else{
+
+                    
+                    let member_name = member.get_flat_reference_name().unwrap_or("unknown");
+                    self.create_llvm_pointer_value_for_reference(
+                        base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
+                        self.get_load_name(member).as_deref().unwrap_or(member_name),
+                        original_expression,
+                    )
+                    .map(ExpressionValue::LValue)
+                }
             }
             (ReferenceAccess::Index(access), Some(base)) => {
                 self.generate_element_pointer_for_array(None, base, access).map(ExpressionValue::LValue)
             }
-            (ReferenceAccess::Cast(target), Some(_)) => self.generate_expression_value(target),
+            (ReferenceAccess::Cast(target), Some(_)) => {
+                if matches!(target.as_ref(), AstStatement::Reference { .. }) {
+                    let mr =
+                        AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
+                    self.generate_expression_value(&mr)
+                } else {
+                    self.generate_expression_value(target.as_ref())
+                }
+            }
 
             (ReferenceAccess::Deref, Some(base)) => {
                 let ptr = self.generate_expression_value(base)?;
