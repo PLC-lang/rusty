@@ -914,15 +914,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // Generate the element pointer, then...
-        let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
-            // Passed a literal to a byref parameter?
-            // TODO: find more defensive solution - check early
-            let value = self.generate_expression(argument)?;
-            let argument = self.llvm.builder.build_alloca(value.get_type(), "");
-            self.llvm.builder.build_store(argument, value);
+        let value = {
+            let value = self.generate_expression_value(argument)?;
+            match value {
+                ExpressionValue::LValue(v) => v,
+                ExpressionValue::RValue(v) => {
+                    // Passed a literal to a byref parameter?
+                    let value = self.generate_expression(argument)?;
+                    let argument = self.llvm.builder.build_alloca(value.get_type(), "");
+                    self.llvm.builder.build_store(argument, value);
+                    argument
+                }
+            }
+        };
 
-            Ok(argument)
-        })?;
+        // let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+        //     // Passed a literal to a byref parameter?
+        //     // TODO: find more defensive solution - check early
+        //     let value = self.generate_expression(argument)?;
+        //     let argument = self.llvm.builder.build_alloca(value.get_type(), "");
+        //     self.llvm.builder.build_store(argument, value);
+
+        //     Ok(argument)
+        // })?;
 
         // ...check if we can bitcast a reference to their hinted type
         if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {

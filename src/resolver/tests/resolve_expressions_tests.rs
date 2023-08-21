@@ -3098,6 +3098,60 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
 }
 
 #[test]
+fn call_explicit_parameter_name_is_resolved() {
+    //GIVEN
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR_INPUT
+                a: INT;
+                b: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM PRG
+		VAR
+			f : fb;
+		END_VAR
+            f(b:= 1, a:= 3);
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    // should be the call statement
+    // should contain array access as operator
+    let AstStatement::CallStatement { parameters, .. } = &unit.implementations[1].statements[0] else { unreachable!("expected callstatement")};
+    let AstStatement::Assignment { left: b, .. } = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0] else { unreachable!()};
+    let AstStatement::Assignment { left: a, .. } = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[1] else { unreachable!()};
+
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: DINT_TYPE.to_string(),
+            qualified_name: "fb.b".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(b.as_ref())
+    );
+
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: INT_TYPE.to_string(),
+            qualified_name: "fb.a".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(a)
+    );
+}
+
+#[test]
 fn call_on_function_block_array() {
     //GIVEN
     let id_provider = IdProvider::default();

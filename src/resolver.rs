@@ -300,6 +300,47 @@ impl TypeAnnotator<'_> {
                 id: ctx.id_provider.next_id(),
             })
     }
+
+    /// visits a literal 
+    fn do_visit_maybe_casted_literal(&mut self, ctx: &VisitorContext<'_>, literal: &AstStatement, optional_cast: Option<&str>) {
+        if let Some(optional_cast) = optional_cast {
+                let t = self.index.find_effective_type_by_name(optional_cast).unwrap_or_else(|| self.index.get_void_type()).get_type_information();
+            // special handling for unlucky casted-strings where caste-type does not match the literal encoding
+                    // ´STRING#"abc"´ or ´WSTRING#'abc'´
+                match (t, literal) {
+                    (
+                        DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
+                        AstStatement::Literal {
+                            kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ true }),
+                            ..
+                        },
+                    )
+                    | (
+                        DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
+                        AstStatement::Literal {
+                            kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ false }),
+                            ..
+                        },
+                    ) => {
+                        // visit the target-statement as if the programmer used the correct quotes to prevent
+                        // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
+                        self.visit_statement(
+                            ctx,
+                            &AstStatement::new_literal(
+                                AstLiteral::new_string(value.clone(), !is_wide),
+                                literal.get_id(),
+                                literal.get_location(),
+                            ),
+                        );
+                    }
+                    _ => self.visit_statement(ctx, literal)
+                }
+                
+        }else {
+            self.visit_compare_statement(ctx, literal);
+        }
+
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1448,7 +1489,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
-                    self.visit_statement(&ctx.with_pou(lhs), left);
+                    self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), left);
                 } else {
                     self.visit_statement(ctx, left);
                 }
@@ -1705,6 +1746,8 @@ impl<'i> TypeAnnotator<'i> {
                 })
             }
             (AstStatement::Literal { .. }, base) => {
+                // self.do_visit_maybe_casted_literal(ctx, reference, base);
+
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
                                                                                       // see if this was casted
@@ -1935,10 +1978,12 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Value { resulting_type } => {
                     // make sure we come from an array or function_block access
                     match operator {
-                        AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
-                        AstStatement::PointerAccess { .. } => {
-                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string())
-                        }
+                        AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_),.. } => Some(resulting_type.clone()),
+                        AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. } => 
+                        // AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
+                        // AstStatement::PointerAccess { .. } => {
+                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
+                        // }
                         _ => None,
                     }
                 }

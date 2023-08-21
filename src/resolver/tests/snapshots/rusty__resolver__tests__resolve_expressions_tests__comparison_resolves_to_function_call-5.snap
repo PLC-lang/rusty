@@ -7,8 +7,13 @@ Some(
         statement: BinaryExpression {
             operator: Or,
             left: CallStatement {
-                operator: Reference {
-                    name: "STRING_EQUAL",
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "STRING_EQUAL",
+                        },
+                    ),
+                    base: None,
                 },
                 parameters: Some(
                     ExpressionList {
@@ -34,8 +39,13 @@ Some(
                 ),
             },
             right: CallStatement {
-                operator: Reference {
-                    name: "STRING_GREATER",
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Reference {
+                            name: "STRING_GREATER",
+                        },
+                    ),
+                    base: None,
                 },
                 parameters: Some(
                     ExpressionList {

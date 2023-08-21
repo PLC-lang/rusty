@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/function_tests.rs
-assertion_line: 370
 expression: codegen(src)
 ---
 ; ModuleID = 'main'

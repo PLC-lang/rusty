@@ -353,16 +353,17 @@ fn return_variable_in_nested_call() {
     // GIVEN a call statement where we take the adr of the return-variable
     let src = "
         FUNCTION main : DINT
-        VAR
-            x1, x2 : DINT;
-        END_VAR
-        x1 := SMC_Read(
-                    ValAddr := ADR(main));
+            VAR
+                x1, x2 : DINT;
+            END_VAR
+            x1 := SMC_Read(
+                        ValAddr := ADR(main));
         END_FUNCTION
+
         FUNCTION SMC_Read : DINT
-        VAR_INPUT
-            ValAddr : LWORD;
-        END_VAR
+            VAR_INPUT
+                ValAddr : LWORD;
+            END_VAR
         END_FUNCTION
           ";
 

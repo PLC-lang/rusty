@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/reference_resolve_tests.rs
+assertion_line: 252
+expression: res
+---
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 411..416 }], err_no: reference__expected }
+

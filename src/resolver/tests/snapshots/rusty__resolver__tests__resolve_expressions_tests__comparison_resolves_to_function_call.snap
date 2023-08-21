@@ -5,8 +5,13 @@ expression: "format!(\"{annotation:#?}\")"
 Some(
     ReplacementAst {
         statement: CallStatement {
-            operator: Reference {
-                name: "STRING_EQUAL",
+            operator: ReferenceExpr {
+                kind: Member(
+                    Reference {
+                        name: "STRING_EQUAL",
+                    },
+                ),
+                base: None,
             },
             parameters: Some(
                 ExpressionList {
