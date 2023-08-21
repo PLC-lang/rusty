@@ -12,8 +12,8 @@ use crate::{
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, Dimension, StringEncoding, VarArgs, DINT_TYPE,
-        INT_SIZE, INT_TYPE, LINT_TYPE, DataTypeInformationProvider,
+        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
 use inkwell::{
@@ -2583,28 +2583,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-
                 if let AstStatement::DirectAccess { access, index, .. } = member.as_ref() {
-
-                    let datatype = base.map(|b| self.get_type_hint_for(b)).transpose()?.unwrap_or_else(|| self.index.get_void_type()).get_type_information();
-                    let expression_type = self.get_type_hint_for(member.as_ref())?;
+                    let (Some(base), Some(base_value)) = (base, base_value) else {
+                        return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
+                    };
+                    let loaded_base_value = base_value.as_r_value(self.llvm, self.get_load_name(base));
+                    let datatype = self.get_type_hint_info_for(member)?;
+                    let expression_type = self.get_type_hint_for(base)?;
                     //Generate and load the index value
                     let rhs = self.generate_direct_access_index(access, index, datatype, expression_type)?;
                     //Shift the qualifer value right by the index value
-                    let value = self.generate_expression(index)?;
                     let shift = self.llvm.builder.build_right_shift(
-                        value.into_int_value(),
+                        loaded_base_value.into_int_value(),
                         rhs,
                         expression_type.get_type_information().is_signed_int(),
                         "shift",
                     );
                     //Trunc the result to the get only the target size
-                    let llvm_target_type = self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type();
-                    let result = self.llvm.builder.build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
+                    let result =
+                        self.llvm.builder.build_int_truncate_or_bit_cast(shift, self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(), "");
                     Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
-                }else{
-
-                    
+                } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
                     self.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),

@@ -1062,10 +1062,14 @@ impl AstStatement {
 
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
-        } else {
-            false
+        match self {
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. }
+            | AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(reference), base, .. } => {
+                reference.has_direct_access()
+                    || base.as_ref().map(|it| it.has_direct_access()).unwrap_or(false)
+            }
+            AstStatement::DirectAccess { .. } => true,
+            _ => false,
         }
     }
 
@@ -1533,11 +1537,11 @@ impl AstFactory {
         location: &SourceRange,
     ) -> AstStatement {
         AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: function_name,
-                location: location.clone(),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_reference(&function_name, location, id),
+                None,
                 id,
-            }),
+            )),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: parameters,
                 id: parameter_list_id,

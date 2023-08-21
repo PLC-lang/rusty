@@ -456,8 +456,17 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             }
             (Some(base), Some(KeywordDot)) => {
                 lexer.advance();
+                    let member = parse_sub_single_leaf_expression(lexer)?;
+                    let member = if let AstStatement::Literal { kind: AstLiteral::Integer(_), id, .. } = &member {
+                        // if we wrote something like "x.3" we parse this as "x.%X3"
+                        let location = member.get_location();
+                        AstStatement::DirectAccess { access: DirectAccessType::Bit, index: Box::new(member), location, id: lexer.next_id() }
+                    }else{
+                        member
+                    };
+
                 current = Some(AstFactory::create_member_reference(
-                    parse_sub_single_leaf_expression(lexer)?,
+                    member,
                     Some(base),
                     lexer.next_id(),
                 ));
