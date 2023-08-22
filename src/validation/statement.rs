@@ -65,45 +65,77 @@ pub fn visit_statement<T: AnnotationMap>(
             match access {
                 ReferenceAccess::Member(m) => {
                     visit_statement(validator, m.as_ref(), context);
-                },
+
+                    if let (AstStatement::DirectAccess { access, index, .. }, Some(target_type)) = (
+                        m.as_ref(),
+                        base.as_deref().map(|base| context.annotations.get_hint_or_void(base, &context.index).get_type_information()),
+                    ) {
+                        if target_type.is_int() {
+            if !helper::is_compatible(access, target_type, context.index) {
+                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                    &format!("{access:?}"),
+                    access.get_bit_width(),
+                    m.get_location(),
+                ))
+            } else {
+                validate_access_index(validator, context, index, access, target_type, &m.get_location());
+            }
+        } else {
+            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                &format!("{access:?}"),
+                access.get_bit_width(),
+                m.get_location(),
+            ))
+        }
+                    }
+                }
                 ReferenceAccess::Index(i) => {
                     if let Some(base) = base {
                         visit_array_access(validator, base, i, context)
-                    }else{
-                        validator.diagnostics().push(Diagnostic::invalid_operation("Index-Access requires an array-value.", statement.get_location()));
+                    } else {
+                        validator.diagnostics().push(Diagnostic::invalid_operation(
+                            "Index-Access requires an array-value.",
+                            statement.get_location(),
+                        ));
                     }
-                },
+                }
                 ReferenceAccess::Cast(c) => {
                     visit_statement(validator, c.as_ref(), context);
-                },
+                }
                 ReferenceAccess::Deref => {
                     if let Some(base) = base {
                         visit_statement(validator, base, context)
-                    }else{
-                        validator.diagnostics().push(Diagnostic::invalid_operation("Dereferencing requires a pointer-value.", statement.get_location()));
+                    } else {
+                        validator.diagnostics().push(Diagnostic::invalid_operation(
+                            "Dereferencing requires a pointer-value.",
+                            statement.get_location(),
+                        ));
                     }
                     //ignore
-                },
-                ReferenceAccess::Address =>  {
+                }
+                ReferenceAccess::Address => {
                     if let Some(base) = base {
                         visit_statement(validator, base, context)
-                    }else{
-                        validator.diagnostics().push(Diagnostic::invalid_operation("Address-of requires a value.", statement.get_location()));
+                    } else {
+                        validator.diagnostics().push(Diagnostic::invalid_operation(
+                            "Address-of requires a value.",
+                            statement.get_location(),
+                        ));
                     }
-                },
+                }
             }
         }
-        AstStatement::QualifiedReference { elements, .. } => {
-            elements.iter().for_each(|element| visit_statement(validator, element, context));
-            validate_qualified_reference(validator, elements, context);
-        }
+        // AstStatement::QualifiedReference { elements, .. } => {
+        //     elements.iter().for_each(|element| visit_statement(validator, element, context));
+        //     validate_qualified_reference(validator, elements, context);
+        // }
         AstStatement::Reference { name, location, .. } => {
             validate_reference(validator, statement, name, location, context);
         }
-        AstStatement::ArrayAccess { reference, access, .. } => {
-            visit_all_statements!(validator, context, reference, access);
-            visit_array_access(validator, reference, access, context);
-        }
+        // AstStatement::ArrayAccess { reference, access, .. } => {
+        //     visit_all_statements!(validator, context, reference, access);
+        //     visit_array_access(validator, reference, access, context);
+        // }
         // AstStatement::PointerAccess { reference, id } => (),
         // AstStatement::DirectAccess { access, index, location, id } => (),
         // AstStatement::HardwareAccess { direction, access, address, location, id } => (),
