@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/literals_validation_tests.rs
+assertion_line: 103
+expression: res
+---
+SyntaxError { message: "Could not resolve reference to x", range: [SourceRange { range: 30..31 }], err_no: reference__unresolved }
+

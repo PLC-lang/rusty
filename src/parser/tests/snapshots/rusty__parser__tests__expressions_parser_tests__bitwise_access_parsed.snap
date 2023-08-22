@@ -5,8 +5,11 @@ expression: "&prg.statements"
 [
     ReferenceExpr {
         kind: Member(
-            LiteralInteger {
-                value: 0,
+            DirectAccess {
+                access: Bit,
+                index: LiteralInteger {
+                    value: 0,
+                },
             },
         ),
         base: Some(

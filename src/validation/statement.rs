@@ -1,7 +1,7 @@
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
@@ -14,7 +14,7 @@ use crate::{
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
-        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
+        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE, VOID_TYPE,
     },
     Diagnostic,
 };
@@ -56,6 +56,42 @@ pub fn visit_statement<T: AnnotationMap>(
         }
         AstStatement::MultipliedStatement { element, .. } => {
             visit_statement(validator, element, context);
+        }
+        AstStatement::ReferenceExpr { access, base, .. } => {
+            if let Some(base) = base {
+                visit_statement(validator, base, context);
+            }
+
+            match access {
+                ReferenceAccess::Member(m) => {
+                    visit_statement(validator, m.as_ref(), context);
+                },
+                ReferenceAccess::Index(i) => {
+                    if let Some(base) = base {
+                        visit_array_access(validator, base, i, context)
+                    }else{
+                        validator.diagnostics().push(Diagnostic::invalid_operation("Index-Access requires an array-value.", statement.get_location()));
+                    }
+                },
+                ReferenceAccess::Cast(c) => {
+                    visit_statement(validator, c.as_ref(), context);
+                },
+                ReferenceAccess::Deref => {
+                    if let Some(base) = base {
+                        visit_statement(validator, base, context)
+                    }else{
+                        validator.diagnostics().push(Diagnostic::invalid_operation("Dereferencing requires a pointer-value.", statement.get_location()));
+                    }
+                    //ignore
+                },
+                ReferenceAccess::Address =>  {
+                    if let Some(base) = base {
+                        visit_statement(validator, base, context)
+                    }else{
+                        validator.diagnostics().push(Diagnostic::invalid_operation("Address-of requires a value.", statement.get_location()));
+                    }
+                },
+            }
         }
         AstStatement::QualifiedReference { elements, .. } => {
             elements.iter().for_each(|element| visit_statement(validator, element, context));
@@ -520,7 +556,7 @@ fn validate_unary_expression(
     value: &AstStatement,
     location: &SourceRange,
 ) {
-    // TODO: 
+    // TODO:
     // if operator == &Operator::Address {
     //     match value {
     //         AstStatement::Reference { .. }

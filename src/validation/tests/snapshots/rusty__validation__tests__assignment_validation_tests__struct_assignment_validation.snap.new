@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+assertion_line: 674
+expression: res
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT1' to 'REAL'", range: [SourceRange { range: 758..777 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRUCT1'", range: [SourceRange { range: 794..813 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 870..892 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Could not resolve reference to var_struct1", range: [SourceRange { range: 924..935 }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to var_struct1", range: [SourceRange { range: 978..989 }], err_no: reference__unresolved }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 978..1002 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 1077..1107 }], err_no: var__invalid_assignment }
+

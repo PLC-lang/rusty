@@ -456,20 +456,21 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             }
             (Some(base), Some(KeywordDot)) => {
                 lexer.advance();
-                    let member = parse_sub_single_leaf_expression(lexer)?;
-                    let member = if let AstStatement::Literal { kind: AstLiteral::Integer(_), id, .. } = &member {
-                        // if we wrote something like "x.3" we parse this as "x.%X3"
-                        let location = member.get_location();
-                        AstStatement::DirectAccess { access: DirectAccessType::Bit, index: Box::new(member), location, id: lexer.next_id() }
-                    }else{
-                        member
-                    };
+                let member = parse_sub_single_leaf_expression(lexer)?;
+                let member = if let AstStatement::Literal { kind: AstLiteral::Integer(_), id, .. } = &member {
+                    // if we wrote something like "x.3" we parse this as "x.%X3"
+                    let location = member.get_location();
+                    AstStatement::DirectAccess {
+                        access: DirectAccessType::Bit,
+                        index: Box::new(member),
+                        location,
+                        id: lexer.next_id(),
+                    }
+                } else {
+                    member
+                };
 
-                current = Some(AstFactory::create_member_reference(
-                    member,
-                    Some(base),
-                    lexer.next_id(),
-                ));
+                current = Some(AstFactory::create_member_reference(member, Some(base), lexer.next_id()));
             }
             (_, Some(TypeCastPrefix)) => {
                 let location_start = lexer.location();
@@ -492,33 +493,32 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             }
             (Some(base), Some(KeywordSquareParensOpen)) => {
                 lexer.advance();
-                current = parse_any_in_region(
+                let index_reference = parse_any_in_region(
                     lexer,
                     vec![KeywordSquareParensClose],
-                    |lexer: &mut ParseSession<'_>| {
-                        Some({
-                            AstFactory::create_index_reference(
-                                parse_expression(lexer),
-                                Some(base),
-                                lexer.next_id(),
-                            )
-                        })
-                    },
+                    parse_expression,
                 );
+                let new_location = base.get_location().span(&lexer.last_location());
+                current = Some({
+                    AstFactory::create_index_reference(
+                        index_reference,
+                        Some(base),
+                        lexer.next_id(),
+                        new_location,
+                    )
+                })
             }
             (Some(base), Some(OperatorDeref)) => {
                 lexer.advance();
-                current =
-                    Some(AstFactory::create_deref_reference(base, lexer.next_id(), lexer.last_location()))
+                let new_location = base.get_location().span(&lexer.last_location());
+                current = Some(AstFactory::create_deref_reference(base, lexer.next_id(), new_location))
             }
             (None, Some(OperatorAmp)) => {
                 lexer.advance();
                 let op_location = lexer.last_location();
-                current = Some(AstFactory::create_address_of_reference(
-                    parse_qualified_reference2(lexer)?,
-                    lexer.next_id(),
-                    op_location,
-                ))
+                let base = parse_qualified_reference2(lexer)?;
+                let new_location = op_location.span(&base.get_location());
+                current = Some(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
             }
             // Some(KeywordParensOpen)
             (last_current, _) => {

@@ -1543,6 +1543,26 @@ fn reference_location_test() {
 }
 
 #[test]
+fn qualified_reference_location_test() {
+    let source = "PROGRAM prg a.b.c;aa.bb.cc[2];aaa.bbb.ccc^;&aaa.bbb.ccc; END_PROGRAM";
+    let parse_result = parse(source).0;
+
+    let unit = &parse_result.implementations[0];
+
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a.b.c");
+
+    let location = &unit.statements[1].get_location();
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aa.bb.cc[2]");
+
+    let location = &unit.statements[2].get_location();
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aaa.bbb.ccc^");
+
+    let location = &unit.statements[3].get_location();
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "&aaa.bbb.ccc");
+}
+
+#[test]
 fn expressions_location_test() {
     let source = "
     PROGRAM prg 

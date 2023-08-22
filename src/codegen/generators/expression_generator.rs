@@ -1340,13 +1340,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
+                let Some(reference_annotation) = self.annotations.get(reference) else {
+                    unreachable!("unresolved reference");
+                };
                 let Some(dt) = self.annotations.get_type(reference, self.index) else {
                     // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
                     unreachable!("unresolved reference")
                 };
 
                 if dt.get_type_information().is_vla() {
-                    self.generate_element_pointer_for_vla(reference, access)
+                    self.generate_element_pointer_for_vla(self.generate_expression_value(reference)?, reference_annotation, access)
                         .map_err(|_| unreachable!("invalid access statement"))
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
@@ -2497,27 +2500,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime
     fn generate_element_pointer_for_vla(
         &self,
-        reference: &AstStatement,
+        reference: ExpressionValue<'ink>,
+        reference_annotation: &StatementAnnotation,
         access: &AstStatement,
+        
     ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
-        let annotation = match reference {
-            AstStatement::Reference { .. } => self.annotations.get(reference),
-            AstStatement::ArrayAccess { reference, .. } => self.annotations.get(reference.as_ref()),
-            _ => unreachable!(),
+
+        //TODO: do we really need this? 
+        // let annotation = match reference {
+       //     AstStatement::Reference { .. } => self.annotations.get(reference),
+        //     AstStatement::ArrayAccess { reference, .. } => self.annotations.get(reference.as_ref()),
+        //     _ => unreachable!(),
+        // };
+
+        let StatementAnnotation::Variable { qualified_name, resulting_type: reference_type,  .. } = reference_annotation else {
+            unreachable!(); 
         };
 
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = annotation else {
-            unreachable!()
-        };
-
+        //TODO: do we really need this
         // if the vla parameter is by-ref, we need to dereference the pointer
-        let struct_ptr = self.auto_deref_if_necessary(
-            self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
-            reference,
-        );
+        // let struct_ptr = self.auto_deref_if_necessary(
+        //     self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
+        //     reference,
+        // );
+        let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
@@ -2527,9 +2536,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
 
         // get lengths of dimensions
-        let Some(type_) = self.annotations.get_type(reference, self.index) else {
-            unreachable!()
-        };
+        let type_ = self.index.get_type_information_or_void(reference_type);
         let Some(ndims) = type_.get_type_information().get_dimensions() else {
             unreachable!()
         };
@@ -2631,7 +2638,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
             (ReferenceAccess::Index(access), Some(base)) => {
-                self.generate_element_pointer_for_array(None, base, access).map(ExpressionValue::LValue)
+                if self.annotations.get_type_or_void(base, self.index).is_vla() {
+                    //TODO: expect
+                    self.generate_element_pointer_for_vla(self.generate_expression_value(base)?, self.annotations.get(base).expect(""), access.as_ref())
+                        .map_err(|_| unreachable!("invalid access statement"))
+                        .map(ExpressionValue::LValue)
+                } else {
+                    self.generate_element_pointer_for_array(None, base, access).map(ExpressionValue::LValue)
+                }
             }
             (ReferenceAccess::Cast(target), Some(_)) => {
                 if matches!(target.as_ref(), AstStatement::Reference { .. }) {

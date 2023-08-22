@@ -1118,7 +1118,8 @@ impl AstStatement {
     }
 
     pub fn is_qualified_reference(&self) -> bool {
-        matches!(self, AstStatement::QualifiedReference { .. })
+        matches!(self, AstStatement::ReferenceExpr { .. })
+
     }
 
     pub fn is_hardware_access(&self) -> bool {
@@ -1457,12 +1458,8 @@ impl AstFactory {
         index: AstStatement,
         base: Option<AstStatement>,
         id: AstId,
+        location: SourceRange
     ) -> AstStatement {
-        let location = base
-            .as_ref()
-            .as_ref()
-            .map(|it| it.get_location().span(&index.get_location()))
-            .unwrap_or_else(|| index.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
             base: base.map(Box::new),
@@ -1474,9 +1471,8 @@ impl AstFactory {
     pub fn create_address_of_reference(
         base: AstStatement,
         id: AstId,
-        operator_location: SourceRange,
+        location: SourceRange,
     ) -> AstStatement {
-        let location = operator_location.span(&base.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Address,
             base: Some(Box::new(base)),
@@ -1488,9 +1484,8 @@ impl AstFactory {
     pub fn create_deref_reference(
         base: AstStatement,
         id: AstId,
-        operator_location: SourceRange,
+        location: SourceRange,
     ) -> AstStatement {
-        let location = operator_location.span(&base.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Deref,
             base: Some(Box::new(base)),

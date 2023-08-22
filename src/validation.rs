@@ -6,7 +6,7 @@ use crate::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
     },
-    resolver::AnnotationMap,
+    resolver::{AnnotationMap, StatementAnnotation},
     Diagnostic,
 };
 
@@ -48,13 +48,14 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
     }
 
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
-        match stmt {
-            AstStatement::Reference { name, .. } => Some(name.as_str()),
-            AstStatement::QualifiedReference { elements, .. } => {
-                elements.last().and_then(|it| self.annotations.get_call_name(it))
-            }
-            _ => None,
-        }
+        self.annotations.get_call_name(stmt)
+        // match stmt {
+        //     AstStatement::Reference { name, .. } => Some(name.as_str()),
+        //     AstStatement::QualifiedReference { elements, .. } => {
+        //         elements.last().and_then(|it| self.annotations.get_call_name(it))
+        //     }
+        //     _ => None,
+        // }
         .and_then(|pou_name| {
             self.index
                 // check if this is an instance of a function block and get the type name

@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+assertion_line: 768
+expression: res
+---
+
