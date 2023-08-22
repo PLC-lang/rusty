@@ -300,47 +300,7 @@ impl TypeAnnotator<'_> {
                 id: ctx.id_provider.next_id(),
             })
     }
-
-    /// visits a literal 
-    fn do_visit_maybe_casted_literal(&mut self, ctx: &VisitorContext<'_>, literal: &AstStatement, optional_cast: Option<&str>) {
-        if let Some(optional_cast) = optional_cast {
-                let t = self.index.find_effective_type_by_name(optional_cast).unwrap_or_else(|| self.index.get_void_type()).get_type_information();
-            // special handling for unlucky casted-strings where caste-type does not match the literal encoding
-                    // ´STRING#"abc"´ or ´WSTRING#'abc'´
-                match (t, literal) {
-                    (
-                        DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-                        AstStatement::Literal {
-                            kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ true }),
-                            ..
-                        },
-                    )
-                    | (
-                        DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-                        AstStatement::Literal {
-                            kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ false }),
-                            ..
-                        },
-                    ) => {
-                        // visit the target-statement as if the programmer used the correct quotes to prevent
-                        // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
-                        self.visit_statement(
-                            ctx,
-                            &AstStatement::new_literal(
-                                AstLiteral::new_string(value.clone(), !is_wide),
-                                literal.get_id(),
-                                literal.get_location(),
-                            ),
-                        );
-                    }
-                    _ => self.visit_statement(ctx, literal)
-                }
-                
-        }else {
-            self.visit_compare_statement(ctx, literal);
-        }
-
-    }
+   
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1620,10 +1580,16 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Cast(target), Some(qualifier)) => {
+                // STRING#"abc"
+                //  base
                 if let Some(base_type) = base.and_then(|base| self.annotation_map.get_type(base, self.index))
                 {
                     // if base is an enum, we need to look for members of this specific enum
                     let optional_enum_qualifier = Some(qualifier.as_str()).filter(|_| base_type.is_enum());
+                    if ctx.is_in_a_body() {
+                        accept_cast_string_literal(&mut self.string_literals, base_type, target);
+                    }
+
                     if let Some(annotation) = self.get_annotation_from_flat_reference(
                         target,
                         optional_enum_qualifier,
@@ -2259,3 +2225,34 @@ impl ResolvingScope {
         strategy
     }
 }
+
+    /// registers the resulting string-literal if the given literal is a String with a different encoding than what is
+    /// requested from given cast_type (e.g. STRING#"i am utf16", or WSTRING#'i am utf8')
+    fn accept_cast_string_literal(literals: &mut StringLiterals, cast_type: &typesystem::DataType, literal: &AstStatement) {
+        // check if we need to register an additional string-literal 
+        match (cast_type.get_type_information(), literal) {
+            (
+                DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
+                AstStatement::Literal {
+                    kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ true }),
+                    ..
+                },
+            ) | (
+                DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
+                AstStatement::Literal {
+                    kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ false }),
+                    ..
+                },
+            )  => {
+                // re-register the string-literal in the opposite encoding
+                if *is_wide {
+                    literals.utf08.insert(value.to_string());
+                }else{
+                    literals.utf16.insert(value.to_string());
+                }
+            }
+            _ => { 
+                //ignore
+            }
+        }
+    }
