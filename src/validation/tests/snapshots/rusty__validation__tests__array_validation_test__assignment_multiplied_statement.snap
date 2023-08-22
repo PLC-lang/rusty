@@ -3,61 +3,61 @@ source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
 error: Array __main_arr_1d has a size of 5, but 6 elements were provided
-  ┌─ snapshot:4:37
+  ┌─ <internal>:4:37
   │
 4 │         arr_1d : ARRAY[1..5] OF DINT := [6(0)];
   │                                         ^^^^^^ Array __main_arr_1d has a size of 5, but 6 elements were provided
 
 error: Array __main_arr_2d has a size of 10, but 11 elements were provided
-  ┌─ snapshot:6:43
+  ┌─ <internal>:6:43
   │
 6 │         arr_2d : ARRAY[1..2, 1..5] OF DINT := [11(0)];
   │                                               ^^^^^^^ Array __main_arr_2d has a size of 10, but 11 elements were provided
 
 error: Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
-  ┌─ snapshot:7:59
+  ┌─ <internal>:7:59
   │
 7 │         arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [11(0)];
   │                                                               ^^^^^^^ Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
 
 error: Array __main_arr_3d has a size of 8, but 9 elements were provided
-  ┌─ snapshot:9:49
+  ┌─ <internal>:9:49
   │
 9 │         arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := [9(0)];
   │                                                     ^^^^^^ Array __main_arr_3d has a size of 8, but 9 elements were provided
 
 error: Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
-   ┌─ snapshot:10:74
+   ┌─ <internal>:10:74
    │
 10 │         arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [9(0)];
    │                                                                              ^^^^^^ Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
 
 error: Array __main_arr_1d has a size of 5, but 6 elements were provided
-   ┌─ snapshot:21:14
+   ┌─ <internal>:21:14
    │
 21 │       arr_1d := [6(0)];
    │                 ^^^^^^ Array __main_arr_1d has a size of 5, but 6 elements were provided
 
 error: Array __main_arr_2d has a size of 10, but 11 elements were provided
-   ┌─ snapshot:22:14
+   ┌─ <internal>:22:14
    │
 22 │       arr_2d := [11(0)];
    │                 ^^^^^^^ Array __main_arr_2d has a size of 10, but 11 elements were provided
 
 error: Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
-   ┌─ snapshot:23:21
+   ┌─ <internal>:23:21
    │
 23 │       arr_2d_nested := [11(0)];
    │                        ^^^^^^^ Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
 
 error: Array __main_arr_3d has a size of 8, but 9 elements were provided
-   ┌─ snapshot:24:14
+   ┌─ <internal>:24:14
    │
 24 │       arr_3d := [9(0)];
    │                 ^^^^^^ Array __main_arr_3d has a size of 8, but 9 elements were provided
 
 error: Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
-   ┌─ snapshot:25:21
+   ┌─ <internal>:25:21
    │
 25 │       arr_3d_nested := [9(0)];
    │                        ^^^^^^ Array __main_arr_3d_nested has a size of 8, but 9 elements were provided

@@ -41,7 +41,7 @@ pub fn parse_file(
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
     diagnostician.register_file(location.to_string(), source.to_string());
-    diagnostician.handle(None, errors);
+    diagnostician.handle(errors);
     unit
 }
 

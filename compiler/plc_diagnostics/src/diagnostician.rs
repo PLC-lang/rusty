@@ -36,20 +36,22 @@ impl Diagnostician {
     /// some code snippet but no file per-se. Instead when registering code snippets via
     /// [`Diagnostician::register_file`] we get a handle associated with that given code which we can
     /// use here to get a correct report.
-    pub fn handle(&mut self, id: Option<usize>, diagnostics: Vec<Diagnostic>) {
+    pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
         let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
             message: d.get_message().to_string(),
             severity: self.assess(d),
             main_location: ResolvedLocation {
-                file_handle: id
-                    .unwrap_or(self.get_file_handle(d.get_location().get_file_name()).unwrap_or(usize::MAX)),
+                file_handle: self
+                    .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))
+                    .unwrap_or(usize::MAX),
                 range: d.get_location().to_range(),
             },
             additional_locations: d.get_secondary_locations().map(|it| {
                 it.iter()
                     .map(|l| ResolvedLocation {
-                        file_handle: id
-                            .unwrap_or(self.get_file_handle(l.get_file_name()).unwrap_or(usize::MAX)),
+                        file_handle: self
+                            .get_file_handle(l.get_file_name().or(Some("<internal>")))
+                            .unwrap_or(usize::MAX),
                         range: l.to_range(),
                     })
                     .collect()

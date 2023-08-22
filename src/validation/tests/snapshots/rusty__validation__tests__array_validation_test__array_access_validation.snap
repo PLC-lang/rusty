@@ -3,49 +3,49 @@ source: src/validation/tests/array_validation_test.rs
 expression: "&diagnostics"
 ---
 error: Array access must be in the range 2..3
-   ┌─ snapshot:29:12
+   ┌─ <internal>:29:12
    │
 29 │       multi[1,4]; // out of range
    │               ^ Array access must be in the range 2..3
 
 error: Array access must be in the range 2..3
-   ┌─ snapshot:30:14
+   ┌─ <internal>:30:14
    │
 30 │       nested[1][4]; // out of range
    │                 ^ Array access must be in the range 2..3
 
 error: Array access must be in the range 0..1
-   ┌─ snapshot:31:8
+   ┌─ <internal>:31:8
    │
 31 │       arr[3]; // out of range
    │           ^ Array access must be in the range 0..1
 
 error: Array access must be in the range -2..2
-   ┌─ snapshot:32:19
+   ┌─ <internal>:32:19
    │
 32 │       negative_start[-4]; // out of range
    │                      ^^ Array access must be in the range -2..2
 
 error: Array access must be in the range -3..-1
-   ┌─ snapshot:33:13
+   ┌─ <internal>:33:13
    │
 33 │       negative[-4]; // out of range
    │                ^^ Array access must be in the range -3..-1
 
 error: Array access must be in the range 1..2
-   ┌─ snapshot:34:10
+   ┌─ <internal>:34:10
    │
 34 │       const[3]; // out of range
    │             ^ Array access must be in the range 1..2
 
 error: Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
-   ┌─ snapshot:35:8
+   ┌─ <internal>:35:8
    │
 35 │       arr[string_ref]; // invalid type for array access
    │           ^^^^^^^^^^ Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
 
 error: Invalid type INT for array access. Only variables of Array types are allowed
-   ┌─ snapshot:36:12
+   ┌─ <internal>:36:12
    │
 36 │       int_ref[1]; // not an array
    │               ^ Invalid type INT for array access. Only variables of Array types are allowed

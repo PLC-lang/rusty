@@ -205,14 +205,14 @@ impl AnnotatedProject {
         // perform global validation
         let mut validator = Validator::new();
         validator.perform_global_validation(&self.index);
-        diagnostician.handle(None, validator.diagnostics());
+        diagnostician.handle(validator.diagnostics());
 
         //Perform per unit validation
         self.units.iter().for_each(|(unit, _, _)| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
-            diagnostician.handle(None, validator.diagnostics());
+            diagnostician.handle(validator.diagnostics());
         });
         Ok(())
     }

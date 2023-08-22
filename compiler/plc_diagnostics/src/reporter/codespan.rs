@@ -1,7 +1,7 @@
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFiles,
-    term::termcolor::{Buffer, ColorChoice, StandardStream},
+    term::termcolor::{Buffer, ColorChoice, StandardStream, WriteColor},
 };
 
 use crate::diagnostician::Severity;
@@ -14,6 +14,45 @@ enum Writer {
 
     /// Indicates that the writer will redirect its output to the terminal
     Stream(StandardStream),
+}
+
+impl std::io::Write for Writer {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            Writer::Buffer(writer) => writer.write(buf),
+            Writer::Stream(writer) => writer.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            Writer::Buffer(writer) => writer.flush(),
+            Writer::Stream(writer) => writer.flush(),
+        }
+    }
+}
+
+impl WriteColor for Writer {
+    fn supports_color(&self) -> bool {
+        match self {
+            Writer::Buffer(writer) => writer.supports_color(),
+            Writer::Stream(writer) => writer.supports_color(),
+        }
+    }
+
+    fn set_color(&mut self, spec: &codespan_reporting::term::termcolor::ColorSpec) -> std::io::Result<()> {
+        match self {
+            Writer::Buffer(writer) => writer.set_color(spec),
+            Writer::Stream(writer) => writer.set_color(spec),
+        }
+    }
+
+    fn reset(&mut self) -> std::io::Result<()> {
+        match self {
+            Writer::Buffer(writer) => writer.reset(),
+            Writer::Stream(writer) => writer.reset(),
+        }
+    }
 }
 
 /// A reporter that reports diagnostics using [`codespan_reporting`].
@@ -35,14 +74,7 @@ impl CodeSpanDiagnosticReporter {
     }
 
     fn emit(&mut self, diag: Diagnostic<usize>) -> Result<(), codespan_reporting::files::Error> {
-        match &mut self.writer {
-            Writer::Buffer(buffer) => {
-                codespan_reporting::term::emit(buffer, &self.config, &self.files, &diag)
-            }
-            Writer::Stream(writer) => {
-                codespan_reporting::term::emit(writer, &self.config, &self.files, &diag)
-            }
-        }
+        codespan_reporting::term::emit(&mut self.writer, &self.config, &self.files, &diag)
     }
 }
 

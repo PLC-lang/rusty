@@ -117,8 +117,8 @@ pub mod tests {
         let diagnostics = parse_and_validate(src);
         let mut reporter = Diagnostician::buffered();
 
-        let id = reporter.register_file("snapshot".to_string(), src.to_string());
-        reporter.handle(Some(id), diagnostics);
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        reporter.handle(diagnostics);
 
         reporter.buffer().expect(
             "This should be unreachable, otherwise somethings wrong with the buffered codespan reporter",
