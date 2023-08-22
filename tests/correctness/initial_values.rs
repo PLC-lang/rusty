@@ -1358,12 +1358,12 @@ fn initial_value_in_array_of_struct() {
 	END_TYPE
 
 	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := (70, 80));
+		str : myStruct := (a := 50, b := 60, c := [70, 80]);
 	END_VAR
 
 	PROGRAM main
 	VAR_TEMP
-		arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), str);
+		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
 	END_VAR
 	VAR
 		a, b, c, d : DINT;
