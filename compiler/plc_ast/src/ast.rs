@@ -818,7 +818,7 @@ pub enum AstStatement {
         id: AstId,
     },
     ReturnStatement {
-        /// Flag that indicates the return statement will take place only if the condition evaluates to true.
+        /// Indicates that the given condition must evaluate to true in order for the return to take place.
         /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
         condition: Option<Box<AstStatement>>,
         location: SourceRange,
