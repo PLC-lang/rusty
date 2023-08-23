@@ -36,13 +36,6 @@ use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
-
-macro_rules! segments {
-    ($string:expr) => {
-        $string.split('.').collect::<Vec<&str>>().as_slice()
-    };
-}
-
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     pub llvm: &'b Llvm<'a>,

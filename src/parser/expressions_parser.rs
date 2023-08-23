@@ -7,9 +7,8 @@ use crate::{
     Diagnostic,
 };
 use core::str::Split;
-use logos::Source;
 use plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
 };
 use regex::{Captures, Regex};
@@ -174,7 +173,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
     }
     // created nested statements if necessary (e.g. &&)
-    let init = parse_parenthesized_expression(lexer);
+    let init = parse_leaf_expression(lexer);
     operators.iter().rev().fold(init, |expression, operator| {
         let expression_location = expression.get_location();
         let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
@@ -203,28 +202,6 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     })
 }
 
-// PARENTHESIZED (...)
-fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
-    parse_leaf_expression(lexer)
-    // let result = match lexer.token {
-    //     KeywordParensOpen => {
-    //         lexer.advance();
-    //         super::parse_any_in_region(lexer, vec![KeywordParensClose], parse_expression)
-    //     }
-    //     _ => parse_leaf_expression(lexer),
-    // };
-    // we might deal with a deref after a paren-expr
-    // match parse_access_modifiers(lexer, result) {
-    //     Ok(statement) => statement,
-    //     Err(diagnostic) => {
-    //         let statement =
-    //             AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
-    //         lexer.accept_diagnostic(diagnostic);
-    //         statement
-    //     }
-    // }
-}
-
 fn to_operator(token: &Token) -> Option<Operator> {
     match token {
         OperatorPlus => Some(Operator::Plus),
@@ -251,7 +228,7 @@ fn to_operator(token: &Token) -> Option<Operator> {
 fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     let literal_parse_result = match lexer.token {
         OperatorMultiplication => parse_vla_range(lexer),
-        _ => parse_qualified_reference2(lexer),
+        _ => parse_qualified_reference(lexer),
     };
 
     match literal_parse_result {
@@ -280,16 +257,6 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             lexer.accept_diagnostic(diagnostic);
             statement
         }
-    }
-}
-
-/// a leaf expression in a qualifed-reference (e.g a.b <-- )
-fn parse_sub_single_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
-    // we want to force a integer number, not a exponent or something :-/
-    if lexer.token == LiteralInteger {
-        parse_strict_literal_integer(lexer)
-    } else {
-        parse_single_leafe_expression(lexer)
     }
 }
 
@@ -393,21 +360,7 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
     Ok(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
-pub fn parse_qualified_reference2(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    // let segment = if lexer.try_consume(&KeywordParensOpen) {
-    //     parse_any_in_region(lexer, vec![KeywordParensClose, KeywordSemicolon], |lexer| {
-    //         parse_expression(lexer)
-    //     })
-    // } else {
-    //     parse_single_leafe_expression(lexer)?
-    // };
-    // //wrap in refExpression if necessary
-    // let segment = if matches!(segment, AstStatement::Reference { .. }) {
-    //     AstFactory::create_member_reference(segment, None, lexer.next_id())
-    // } else {
-    //     segment
-    // };
-
+pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let reference = parse_qualified_reference_with_base(lexer)?;
 
     if lexer.try_consume(&KeywordParensOpen) {
@@ -460,26 +413,19 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             }
             (Some(base), Some(KeywordDot)) => {
                 lexer.advance();
-                let member = parse_sub_single_leaf_expression(lexer)?;
-                let member = if let AstStatement::Literal { kind: AstLiteral::Integer(_), id, .. } = &member {
-                    // if we wrote something like "x.3" we parse this as "x.%X3"
-                    let location = member.get_location();
-                    AstStatement::DirectAccess {
-                        access: DirectAccessType::Bit,
-                        index: Box::new(member),
-                        location,
-                        id: lexer.next_id(),
-                    }
+                let member = if lexer.token == LiteralInteger {
+                    let index = parse_strict_literal_integer(lexer)?;
+                    let location = index.get_location();
+                    AstFactory::create_direct_access(DirectAccessType::Bit, index, lexer.next_id(), location)
                 } else {
-                    member
+                    parse_single_leafe_expression(lexer)?
                 };
-
                 current = Some(AstFactory::create_member_reference(member, Some(base), lexer.next_id()));
             }
             (_, Some(TypeCastPrefix)) => {
                 let location_start = lexer.location();
                 let mut type_name = lexer.slice_and_advance();
-                type_name.pop();
+                type_name.pop(); // get rid of the "#" at the end
                 let stmt = parse_single_leafe_expression(lexer)?;
                 let end = stmt.get_location();
                 let type_range =
@@ -517,11 +463,10 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             (None, Some(OperatorAmp)) => {
                 lexer.advance();
                 let op_location = lexer.last_location();
-                let base = parse_qualified_reference2(lexer)?;
+                let base = parse_qualified_reference(lexer)?;
                 let new_location = op_location.span(&base.get_location());
                 current = Some(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
             }
-            // Some(KeywordParensOpen)
             (last_current, _) => {
                 current = last_current; // exit the loop
             }
@@ -531,61 +476,6 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
         Ok(current)
     } else {
         parse_single_leafe_expression(lexer)
-    }
-}
-
-pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let start: usize = lexer.range().start;
-    let mut reference_elements = vec![parse_reference_access(lexer)?];
-    while lexer.try_consume(&KeywordDot) {
-        let segment = match lexer.token {
-            //Is this an integer?
-            LiteralInteger => {
-                let number = parse_strict_literal_integer(lexer)?;
-                let location = number.get_location().clone();
-                Ok(AstStatement::DirectAccess {
-                    access: DirectAccessType::Bit,
-                    index: Box::new(number),
-                    location,
-                    id: lexer.next_id(),
-                })
-            }
-            //Is this a direct access?
-            DirectAccess(access) => parse_direct_access(lexer, access),
-            _ => parse_reference_access(lexer),
-        }?;
-
-        //Is this a direct access?
-        reference_elements.push(segment);
-    }
-
-    let reference = match &reference_elements[..] {
-        [single_element] => single_element.clone(),
-        [_elements @ ..] => {
-            AstStatement::QualifiedReference { elements: reference_elements, id: lexer.next_id() }
-        }
-    };
-
-    if lexer.try_consume(&KeywordParensOpen) {
-        // Call Statement
-        let call_statement = if lexer.try_consume(&KeywordParensClose) {
-            AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(None),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
-                id: lexer.next_id(),
-            }
-        } else {
-            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(Some(parse_expression_list(lexer))),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
-                id: lexer.next_id(),
-            })
-        };
-        Ok(call_statement)
-    } else {
-        Ok(reference)
     }
 }
 
@@ -599,45 +489,19 @@ fn parse_direct_access(
     //The next token can either be an integer or an identifier
     let index = match lexer.token {
         LiteralInteger => parse_strict_literal_integer(lexer),
-        Identifier => parse_reference_access(lexer),
+        Identifier => {
+            let location = lexer.location();
+            Ok(AstFactory::create_member_reference(
+                AstFactory::create_reference(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
+                None,
+                lexer.next_id(),
+            ))
+        }
         _ => Err(Diagnostic::unexpected_token_found("Integer or Reference", lexer.slice(), lexer.location())),
     }?;
 
     let location = (location.get_start()..lexer.last_location().get_end()).into();
     Ok(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
-}
-
-pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let location = lexer.location();
-
-    let reference = AstFactory::create_member_reference(
-        AstFactory::create_reference(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
-        None,
-        lexer.next_id(),
-    );
-    parse_access_modifiers(lexer, reference)
-}
-
-fn parse_access_modifiers(
-    lexer: &mut ParseSession,
-    original_reference: AstStatement,
-) -> Result<AstStatement, Diagnostic> {
-    let mut reference = original_reference;
-    // //If (while) we hit a dereference, parse and append the dereference to the result
-    // while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref { //TODO What happens here?
-    //     if lexer.try_consume(&KeywordSquareParensOpen) {
-    //         let access = parse_expression(lexer);
-    //         lexer.consume_or_report(KeywordSquareParensClose);
-    //         reference = AstStatement::ArrayAccess {
-    //             reference: Box::new(reference),
-    //             access: Box::new(access),
-    //             id: lexer.next_id(),
-    //         };
-    //     } else if lexer.try_consume(&OperatorDeref) {
-    //         reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
-    //     }
-    // }
-    Ok(reference)
 }
 
 fn parse_literal_number_with_modifier(
@@ -659,8 +523,8 @@ fn parse_literal_number_with_modifier(
 }
 
 fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<AstStatement, Diagnostic> {
-    //correct the location if we just parsed a minus before
     let location = if is_negative {
+        //correct the location if we just parsed a minus before
         (lexer.last_range.start..lexer.location().get_end()).into()
     } else {
         lexer.location()

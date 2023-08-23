@@ -1103,9 +1103,7 @@ impl AstStatement {
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match self {
-            AstStatement::ReferenceExpr {
-                access: ReferenceAccess::Member(reference), ..
-            } => {
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } => {
                 if let AstStatement::Reference { name, .. } = reference.as_ref() {
                     Some(name)
                 } else {
@@ -1119,7 +1117,6 @@ impl AstStatement {
 
     pub fn is_qualified_reference(&self) -> bool {
         matches!(self, AstStatement::ReferenceExpr { .. })
-
     }
 
     pub fn is_hardware_access(&self) -> bool {
@@ -1458,7 +1455,7 @@ impl AstFactory {
         index: AstStatement,
         base: Option<AstStatement>,
         id: AstId,
-        location: SourceRange
+        location: SourceRange,
     ) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
@@ -1468,11 +1465,7 @@ impl AstFactory {
         }
     }
 
-    pub fn create_address_of_reference(
-        base: AstStatement,
-        id: AstId,
-        location: SourceRange,
-    ) -> AstStatement {
+    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Address,
             base: Some(Box::new(base)),
@@ -1481,17 +1474,22 @@ impl AstFactory {
         }
     }
 
-    pub fn create_deref_reference(
-        base: AstStatement,
-        id: AstId,
-        location: SourceRange,
-    ) -> AstStatement {
+    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Deref,
             base: Some(Box::new(base)),
             id,
             location,
         }
+    }
+
+    pub fn create_direct_access(
+        access: DirectAccessType,
+        index: AstStatement,
+        id: AstId,
+        location: SourceRange,
+    ) -> AstStatement {
+        AstStatement::DirectAccess { access, index: Box::new(index), location, id }
     }
 
     /// creates a new binary statement
