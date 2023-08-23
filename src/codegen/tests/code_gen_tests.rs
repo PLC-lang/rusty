@@ -1,8 +1,7 @@
+use plc_diagnostics::diagnostics::Diagnostic;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program},
-};
+use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {

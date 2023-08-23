@@ -6,23 +6,26 @@ use inkwell::{
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
-
-use crate::{
+use plc_ast::{
     ast::{
-        self, flatten_expression_list, AstLiteral, AstStatement, CompilationUnit, GenericBinding,
+        self, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
         LinkageType, SourceRange, SourceRangeFactory, TypeNature,
     },
+    literals::AstLiteral,
+    provider::IdProvider,
+};
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::Diagnostic,
     index::Index,
-    lexer::{self, IdProvider},
-    parser,
+    lexer, parser,
     resolver::{
         self,
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem,
+    typesystem::{self, get_literal_actual_signed_type_name},
     validation::{Validator, Validators},
 };
 
@@ -93,7 +96,7 @@ lazy_static! {
                         return;
                     };
 
-                    let params = ast::flatten_expression_list(params);
+                    let params = flatten_expression_list(params);
 
                     if params.len() > 1 {
                         validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
@@ -435,7 +438,7 @@ fn generate_variable_length_array_bound_function<'ink>(
         // e.g. LOWER_BOUND(arr, 1)
         AstStatement::Literal { kind, .. } => {
             let AstLiteral::Integer(value) = kind else {
-                let Some(type_name) = kind.get_literal_actual_signed_type_name(false) else {
+                let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
                     unreachable!("type cannot be VOID")
                 };
                 return Err(Diagnostic::codegen_error(
@@ -541,7 +544,8 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
         "<builtin>",
     )
     .0;
-    crate::ast::pre_process(&mut unit, id_provider);
+
+    pre_process(&mut unit, id_provider);
     unit
 }
 

@@ -1,12 +1,16 @@
 use std::collections::HashMap;
 
+use plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+
 use crate::{
-    ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{symbol::SymbolLocation, Index, PouIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataType, DataTypeInformation, StringEncoding, STRING_TYPE, WSTRING_TYPE},
+    typesystem::{
+        self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
+        SINT_TYPE, STRING_TYPE, TIME_TYPE, USINT_TYPE, WSTRING_TYPE,
+    },
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -53,10 +57,8 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    /// Updates the generic information of a function call
-    /// It collects all candidates for a generic function
-    /// Then chooses the best fitting function signature
-    /// And reannotates the function with the found information
+    /// Updates the generic information of a function call. It collects all candidates for a generic function
+    /// then chooses the best fitting function signature and reannotates the function with the found information.
     pub(crate) fn update_generic_call_statement(
         &mut self,
         generics_candidates: HashMap<String, Vec<String>>,
@@ -204,7 +206,7 @@ impl<'i> TypeAnnotator<'i> {
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
-                let name = format!("{name}__{inner_type_name}");
+                let name = format!("{name}__{inner_type_name}"); // TODO: Naming convention (see plc_util/src/convention.rs)
                 let new_type_info =
                     DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: true };
 
@@ -242,7 +244,7 @@ impl<'i> TypeAnnotator<'i> {
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
         let mut variadic_parameters = Vec::new();
-        for (i, p) in ast::flatten_expression_list(s).iter().enumerate() {
+        for (i, p) in flatten_expression_list(s).iter().enumerate() {
             if let Ok((location_in_parent, passed_parameter, ..)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
@@ -359,7 +361,7 @@ impl<'i> TypeAnnotator<'i> {
         let mut generic_map: HashMap<String, GenericType> = HashMap::new();
         for GenericBinding { name, nature } in generics {
             let smallest_possible_type =
-                self.index.find_effective_type_info(nature.get_smallest_possible_type());
+                self.index.find_effective_type_info(get_smallest_possible_type(nature));
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
@@ -436,7 +438,7 @@ pub fn generic_name_resolver(
         .map(|it| {
             generic_map.get(&it.name).map(|it| it.derived_type.as_str()).unwrap_or_else(|| it.name.as_str())
         })
-        .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}"))
+        .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
 /// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
@@ -446,4 +448,19 @@ pub fn no_generic_name_resolver(
     _: &HashMap<String, GenericType>,
 ) -> String {
     generic_name_resolver(qualified_name, &[], &HashMap::new())
+}
+
+pub fn get_smallest_possible_type(nature: &TypeNature) -> &str {
+    match nature {
+        TypeNature::Magnitude | TypeNature::Num | TypeNature::Int => USINT_TYPE,
+        TypeNature::Real => REAL_TYPE,
+        TypeNature::Unsigned => USINT_TYPE,
+        TypeNature::Signed => SINT_TYPE,
+        TypeNature::Duration => TIME_TYPE,
+        TypeNature::Bit => BOOL_TYPE,
+        TypeNature::Chars | TypeNature::Char => CHAR_TYPE,
+        TypeNature::String => STRING_TYPE,
+        TypeNature::Date => DATE_TYPE,
+        _ => "",
+    }
 }

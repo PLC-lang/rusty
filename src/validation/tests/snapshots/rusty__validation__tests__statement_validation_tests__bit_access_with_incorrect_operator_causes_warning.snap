@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Could not resolve reference to n1", range: [SourceRange { range: 287..289 }], err_no: reference__unresolved }
+ImprovementSuggestion { message: "If you meant to access a bit, use %Xn1 instead.", range: [SourceRange { range: 287..289 }] }
+

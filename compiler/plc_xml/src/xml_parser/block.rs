@@ -1,4 +1,4 @@
-use plc::ast::{AstStatement, SourceRange};
+use ast::ast::{AstStatement, SourceRange};
 
 use crate::model::{block::Block, fbd::NodeIndex};
 

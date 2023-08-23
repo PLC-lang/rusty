@@ -7,12 +7,10 @@ use super::{
     ADDRESS_SPACE_GENERIC,
 };
 use crate::{
-    ast::{AstStatement, NewLines},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
     },
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
@@ -25,10 +23,7 @@ use crate::{
 /// - declares a global instance if the POU is a PROGRAM
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 
-use crate::{
-    ast::{Implementation, PouType, SourceRange},
-    index::Index,
-};
+use crate::index::Index;
 use indexmap::{IndexMap, IndexSet};
 use inkwell::{
     module::Module,
@@ -40,6 +35,8 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
+use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -774,7 +771,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 // renerate return statement
                 let call_name = function_context.linking_context.get_call_name();
-                let var_name = format!("{call_name}_ret");
+                let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
                 let ret_name = ret_v.get_qualified_name();
                 let value_ptr =
                     local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {

@@ -1,13 +1,17 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{ast::DataTypeDeclaration, lexer::IdProvider, typesystem};
+use std::collections::HashMap;
 
-use super::{
-    super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
-    create_binary_expression, create_cast_statement, create_literal_int, create_reference,
-    flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
+use plc_util::convention::internal_type_name;
+
+use crate::{
+    ast::{
+        flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+    },
+    literals::AstLiteral,
+    provider::IdProvider,
 };
-use std::{collections::HashMap, vec};
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
@@ -59,7 +63,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                 {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
 
-                    let type_name = typesystem::create_internal_type_name("", name);
+                    let type_name = internal_type_name("", name);
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
                         location: SourceRange::undefined(), //return_type.get_location(),
@@ -143,15 +147,15 @@ fn build_enum_initializer(
 ) -> AstStatement {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
-        let enum_ref = create_reference(last_element, location, id_provider.next_id());
-        create_binary_expression(
-            create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+        let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        AstFactory::create_binary_expression(
+            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
-            create_literal_int(1, location, id_provider.next_id()),
+            AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )
     } else {
-        create_literal_int(0, location, id_provider.next_id())
+        AstStatement::new_literal(AstLiteral::new_integer(0), id_provider.next_id(), location.clone())
     }
 }
 
@@ -159,7 +163,8 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
     let mut generic_types = HashMap::new();
     let mut types = vec![];
     for binding in &pou.generics {
-        let new_name = format!("__{}__{}", pou.name, binding.name);
+        let new_name = format!("__{}__{}", pou.name, binding.name); // TODO: Naming convention (see plc_util/src/convention.rs)
+
         //Generate a type for the generic
         let data_type = UserTypeDeclaration {
             data_type: DataType::GenericType {
@@ -186,7 +191,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
-            let type_name = format!("__{}_return", &pou.name);
+            let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
             let type_ref = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name.clone(),
                 location: return_type.get_location(),
@@ -220,8 +225,7 @@ fn pre_process_variable_data_type(
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
 ) {
-    let new_type_name =
-        typesystem::create_internal_type_name(format!("{container_name}_").as_str(), variable.name.as_str());
+    let new_type_name = internal_type_name(&format!("{container_name}_"), &variable.name);
     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
         variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
@@ -239,7 +243,7 @@ fn add_nested_datatypes(
     types: &mut Vec<UserTypeDeclaration>,
     location: &SourceRange,
 ) {
-    let new_type_name = format!("{container_name}_");
+    let new_type_name = format!("{container_name}_"); // TODO: Naming convention (see plc_util/src/convention.rs)
     if let Some(DataTypeDeclaration::DataTypeDefinition { mut data_type, location: inner_location, scope }) =
         datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {

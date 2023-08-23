@@ -1,8 +1,8 @@
 use itertools::Itertools;
+use plc_ast::ast::{PouType, SourceRange};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
-    ast::{PouType, SourceRange},
-    diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
 };

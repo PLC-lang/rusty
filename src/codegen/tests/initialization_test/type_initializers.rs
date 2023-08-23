@@ -1,5 +1,6 @@
+use plc_diagnostics::diagnostics::Diagnostic;
+
 use crate::{
-    diagnostics::Diagnostic,
     test_utils::tests::{codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate},
     DebugLevel,
 };
@@ -583,4 +584,52 @@ fn partly_uninitialized_const_struct_will_not_report_errors() {
         "#,
     );
     assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn enums_with_inline_initializer_do_not_report_errors() {
+    let diagnostics = parse_and_validate(
+        r#"            
+        VAR_GLOBAL
+              x : (red, yellow, green) := red;
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                y : (redy := 1, yellowy := 2, greeny := 3) := greeny;
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;
+                // or
+                var2 : (x5, x6, x7) := x7;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn enums_with_inline_initializer_are_initialized() {
+    let res = codegen(
+        r#"            
+        VAR_GLOBAL
+              x : (red, yellow, green) := 2;
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                y : (redy := 1, yellowy := 2, greeny := 3) := 2;
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := x1;
+                // or
+                var2 : (x5, x6, x7) := x7;
+
+                var3 : (x8, x9) := yellow;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+    insta::assert_snapshot!(res);
 }

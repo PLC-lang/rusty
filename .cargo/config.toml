@@ -1,11 +1,19 @@
 [alias]
-xtask = "run --package xtask --"
+# Compiling in release mode is necessary as we benchmark compiler internal crates such as the lexer / parser.
+xtask = "run --release --package xtask --"
+metrics = "run --release --package xtask -- metrics"
+metrics-sql = "run --release --package xtask --features=sql -- metrics"
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [target.aarch64-unknown-linux-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=lld","-C", "link-arg=--target=aarch64-linux-gnu"]
+rustflags = [
+    "-C",
+    "link-arg=-fuse-ld=lld",
+    "-C",
+    "link-arg=--target=aarch64-linux-gnu",
+]
 linker = "clang"
 
 [target.x86_64-pc-windows-msvc]

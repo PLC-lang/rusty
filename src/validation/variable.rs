@@ -1,13 +1,13 @@
-use crate::{
-    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
-    index::const_expressions::ConstExpression,
-    resolver::AnnotationMap,
-    Diagnostic,
-};
+use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
+    array::{validate_array_assignment, Wrapper},
+    statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
-    validate_for_array_assignment, ValidationContext, Validator, Validators,
+    ValidationContext, Validator, Validators,
 };
 
 pub fn visit_variable_block<T: AnnotationMap>(
@@ -101,8 +101,12 @@ fn validate_variable<T: AnnotationMap>(
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
-            validate_for_array_assignment(validator, expressions, context);
+        if let Some(initializer) = &variable.initializer {
+            // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
+            // assignment as a whole whereas the second function call (`visit_statement`) validates the
+            // initializer in case it has further sub-assignments.
+            validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            visit_statement(validator, initializer, context);
         }
 
         match v_entry
@@ -130,7 +134,20 @@ fn validate_variable<T: AnnotationMap>(
                     variable.location.clone(),
                 ));
             }
-            _ => {}
+            _ => {
+                if let Some(rhs) = variable.initializer.as_ref() {
+                    validate_enum_variant_assignment(
+                        validator,
+                        context
+                            .index
+                            .get_effective_type_or_void_by_name(v_entry.get_type_name())
+                            .get_type_information(),
+                        context.annotations.get_type_or_void(rhs, context.index).get_type_information(),
+                        v_entry.get_qualified_name(),
+                        rhs.get_location(),
+                    )
+                }
+            }
         }
 
         // check if we declared a constant fb-instance or class-instance
@@ -144,8 +161,9 @@ fn validate_variable<T: AnnotationMap>(
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::test_utils::tests::parse_and_validate;
-    use crate::Diagnostic;
+    use plc_diagnostics::diagnostics::Diagnostic;
+
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn validate_empty_struct_declaration() {
@@ -192,5 +210,27 @@ mod variable_validator_tests {
                 Diagnostic::empty_variable_block((112..114).into())
             ]
         );
+    }
+
+    #[test]
+    fn validate_enum_variant_initializer() {
+        let diagnostics = parse_and_validate(
+            "VAR_GLOBAL
+                x : (red, yellow, green) := 2; // error
+            END_VAR
+    
+            PROGRAM  main
+            VAR
+                y : (metallic := 1, matte := 2, neon := 3) := red; // error
+            END_VAR
+            VAR
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow; // error
+                var2 : (x5, x6, x7) := neon; // error
+                var3 : (a, b, c) := 7; // error
+            END_VAR
+            END_PROGRAM",
+        );
+
+        assert_validation_snapshot!(diagnostics);
     }
 }

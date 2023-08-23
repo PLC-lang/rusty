@@ -1,19 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::ops::Range;
-use logos::Filter;
-use logos::Lexer;
-use logos::Logos;
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
+use logos::{Filter, Lexer, Logos};
+use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
+use plc_ast::provider::IdProvider;
+use plc_diagnostics::diagnostics::Diagnostic;
 pub use tokens::Token;
-
-use crate::ast::AstId;
-use crate::ast::DirectAccessType;
-use crate::ast::HardwareAccessType;
-use crate::ast::SourceRange;
-use crate::ast::SourceRangeFactory;
-use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
@@ -303,11 +294,11 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
         .chars()
         .nth(1)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccessType::Bit),
-            'b' => Some(crate::ast::DirectAccessType::Byte),
-            'w' => Some(crate::ast::DirectAccessType::Word),
-            'd' => Some(crate::ast::DirectAccessType::DWord),
-            'l' => Some(crate::ast::DirectAccessType::LWord),
+            'x' => Some(DirectAccessType::Bit),
+            'b' => Some(DirectAccessType::Byte),
+            'w' => Some(DirectAccessType::Word),
+            'd' => Some(DirectAccessType::DWord),
+            'l' => Some(DirectAccessType::LWord),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -322,10 +313,10 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
         .chars()
         .nth(1)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'i' => Some(crate::ast::HardwareAccessType::Input),
-            'q' => Some(crate::ast::HardwareAccessType::Output),
-            'm' => Some(crate::ast::HardwareAccessType::Memory),
-            'g' => Some(crate::ast::HardwareAccessType::Global),
+            'i' => Some(HardwareAccessType::Input),
+            'q' => Some(HardwareAccessType::Output),
+            'm' => Some(HardwareAccessType::Memory),
+            'g' => Some(HardwareAccessType::Global),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -335,39 +326,17 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
         .chars()
         .nth(2)
         .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccessType::Bit),
-            'b' => Some(crate::ast::DirectAccessType::Byte),
-            'w' => Some(crate::ast::DirectAccessType::Word),
-            'd' => Some(crate::ast::DirectAccessType::DWord),
-            'l' => Some(crate::ast::DirectAccessType::LWord),
-            '*' => Some(crate::ast::DirectAccessType::Template),
+            'x' => Some(DirectAccessType::Bit),
+            'b' => Some(DirectAccessType::Byte),
+            'w' => Some(DirectAccessType::Word),
+            'd' => Some(DirectAccessType::DWord),
+            'l' => Some(DirectAccessType::LWord),
+            '*' => Some(DirectAccessType::Template),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
 
     Some((hardware_type, access))
-}
-
-#[derive(Clone)]
-//TODO: This belongs to the AST
-pub struct IdProvider {
-    current_id: Arc<AtomicUsize>,
-}
-
-impl IdProvider {
-    pub fn next_id(&mut self) -> AstId {
-        self.current_id.fetch_add(1, Ordering::Relaxed)
-    }
-
-    pub fn with_offset(offset: usize) -> Self {
-        IdProvider { current_id: Arc::new(AtomicUsize::new(offset)) }
-    }
-}
-
-impl Default for IdProvider {
-    fn default() -> Self {
-        IdProvider { current_id: Arc::new(AtomicUsize::new(1)) }
-    }
 }
 
 #[cfg(test)]
@@ -381,23 +350,4 @@ pub fn lex_with_ids(
     location_factory: SourceRangeFactory,
 ) -> ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
-}
-
-#[cfg(test)]
-mod id_tests {
-    use super::IdProvider;
-
-    #[test]
-    fn id_provider_generates_unique_ids_over_clones() {
-        let mut id1 = IdProvider::default();
-
-        assert_eq!(id1.next_id(), 1);
-
-        let mut id2 = id1.clone();
-        assert_eq!(id2.next_id(), 2);
-
-        assert_eq!(id1.next_id(), 3);
-
-        assert_eq!(id2.next_id(), 4);
-    }
 }

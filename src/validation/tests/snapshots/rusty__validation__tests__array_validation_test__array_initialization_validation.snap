@@ -1,13 +1,15 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 314..318 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 325..326 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 449..453 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 460..461 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 497..500 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 507..508 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 603..607 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 614..615 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 169..206 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 202..206 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 267..303 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 299..300 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 362..366 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 456..457 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 506..507 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 557..561 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 656..657 }], err_no: arr__invalid_array_assignment }
 

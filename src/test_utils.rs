@@ -3,16 +3,21 @@ pub mod tests {
 
     use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
+    use plc_ast::{
+        ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+        provider::IdProvider,
+    };
+    use plc_diagnostics::{
+        diagnostics::Diagnostic,
+        reporter::{DiagnosticReporter, ResolvedDiagnostics},
+    };
     use source::{Compilable, SourceCode, SourceContainer};
 
     use crate::{
-        ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        diagnostics::{Diagnostic, DiagnosticReporter, ResolvedDiagnostics},
         index::{self, Index},
-        lexer::{self, IdProvider},
-        parser,
+        lexer, parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
         DebugLevel, Validator,
@@ -43,7 +48,7 @@ pub mod tests {
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             "test.st",
         )
     }
@@ -52,10 +57,10 @@ pub mod tests {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             "test.st",
         );
-        ast::pre_process(&mut unit, id_provider);
+        pre_process(&mut unit, id_provider);
         (unit, diagnostic)
     }
 
@@ -80,10 +85,10 @@ pub mod tests {
         };
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
-            ast::LinkageType::Internal,
+            LinkageType::Internal,
             source_path,
         );
-        ast::pre_process(&mut unit, id_provider);
+        pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
         (unit, index)
     }

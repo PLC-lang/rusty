@@ -1,7 +1,10 @@
+use plc_ast::{
+    ast::{flatten_expression_list, AstStatement},
+    provider::IdProvider,
+};
+
 use crate::{
     assert_type_and_hint,
-    ast::{self, flatten_expression_list, AstStatement},
-    lexer::IdProvider,
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
@@ -180,7 +183,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
         assert_eq!(Some("myFunc__DINT__INT"), annotations.get_call_name(operator));
         //parameters should have the correct type
         if let Some(parameters) = &**parameters {
-            if let [x, y, z] = ast::flatten_expression_list(parameters)[..] {
+            if let [x, y, z] = flatten_expression_list(parameters)[..] {
                 if let AstStatement::Assignment { left, right, .. } = x {
                     assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
                     assert_type_and_hint!(&annotations, &index, right, INT_TYPE, Some(DINT_TYPE));
@@ -218,7 +221,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
         assert_eq!(Some("myFunc__DINT__INT"), annotations.get_call_name(operator));
         //parameters should have the correct type
         if let Some(parameters) = &**parameters {
-            if let [x, y, z] = ast::flatten_expression_list(parameters)[..] {
+            if let [x, y, z] = flatten_expression_list(parameters)[..] {
                 assert_type_and_hint!(&annotations, &index, x, INT_TYPE, Some(DINT_TYPE));
                 assert_type_and_hint!(&annotations, &index, y, DINT_TYPE, Some(DINT_TYPE));
                 assert_type_and_hint!(&annotations, &index, z, INT_TYPE, Some(INT_TYPE));
@@ -240,7 +243,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
         assert_eq!(Some("myFunc__REAL__SINT"), annotations.get_call_name(operator));
         //parameters should have the correct type
         if let Some(parameters) = &**parameters {
-            if let [x, y, z] = ast::flatten_expression_list(parameters)[..] {
+            if let [x, y, z] = flatten_expression_list(parameters)[..] {
                 assert_type_and_hint!(&annotations, &index, x, REAL_TYPE, Some(REAL_TYPE));
                 assert_type_and_hint!(&annotations, &index, y, DINT_TYPE, Some(REAL_TYPE));
                 assert_type_and_hint!(&annotations, &index, z, SINT_TYPE, Some(SINT_TYPE));
@@ -286,7 +289,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
         parameters_list
             .iter()
             .find(|it| {
-                matches!(it, AstStatement::Assignment { left, .. } 
+                matches!(it, AstStatement::Assignment { left, .. }
                         if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
             })
             .unwrap()
@@ -300,7 +303,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
             assert_eq!(Some("myFunc"), annotations.get_call_name(operator));
             //parameters should have the correct type
             if let Some(parameters) = &**parameters {
-                let parameters_list = ast::flatten_expression_list(parameters);
+                let parameters_list = flatten_expression_list(parameters);
                 let [x, y, z] = [
                     get_parameter_with_name(&parameters_list, "x"),
                     get_parameter_with_name(&parameters_list, "y"),
@@ -360,7 +363,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         parameters_list
             .iter()
             .find(|it| {
-                matches!(it, AstStatement::Assignment { left, .. } 
+                matches!(it, AstStatement::Assignment { left, .. }
             if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
             })
             .unwrap()
@@ -374,7 +377,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             assert_eq!(Some("myFunc__DINT__INT"), annotations.get_call_name(operator));
             //parameters should have the correct type
             if let Some(parameters) = &**parameters {
-                let parameters_list = ast::flatten_expression_list(parameters);
+                let parameters_list = flatten_expression_list(parameters);
                 let [x, y, z] = [
                     get_parameter_with_name(&parameters_list, "x"),
                     get_parameter_with_name(&parameters_list, "y"),
@@ -586,7 +589,7 @@ fn generic_call_gets_cast_to_biggest_type() {
     assert_type_and_hint!(&annotations, &index, call, LREAL_TYPE, None);
     //Call returns LREAL
     if let AstStatement::CallStatement { parameters, .. } = call {
-        let params = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, params[0], SINT_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, params[2], LREAL_TYPE, Some(LREAL_TYPE));
@@ -1049,4 +1052,37 @@ fn generic_function_sharing_a_datatype_name_resolves() {
     } else {
         unreachable!("This should always be a call statement.")
     }
+}
+
+#[test]
+fn generic_external_function_having_same_name_as_local_variable() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        {external}
+        FUNCTION echo <T: ANY_INT> : INT
+            VAR_INPUT
+                val : T;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                echo : DINT;
+            END_VAR
+            echo := echo(2);
+            main := echo;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[1].statements[0];
+
+    let AstStatement::Assignment { right, .. } = statement else { unreachable!() };
+    assert_eq!(
+        annotations.get(right).unwrap(),
+        &StatementAnnotation::Value { resulting_type: "INT".to_string() }
+    );
 }

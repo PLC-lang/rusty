@@ -1,15 +1,11 @@
+use plc_ast::ast::{DirectAccessType, HardwareAccessType};
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
 };
 
-use crate::{
-    ast::{DirectAccessType, HardwareAccessType},
-    diagnostics::{Diagnostic, ErrNo},
-    expression_path::ExpressionPath,
-    index::Index,
-    ConfigFormat,
-};
+use crate::{expression_path::ExpressionPath, index::Index, ConfigFormat};
 
 trait SerializeWithContext {
     fn serialize<S>(&self, ctx: &Index, serializer: S) -> Result<S::Ok, S::Error>

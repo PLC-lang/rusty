@@ -19,6 +19,140 @@ fn actions_container_no_name() {
 }
 
 #[test]
+fn class_has_implementation() {
+    // GIVEN CLASS with an implementation
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS myCLASS 
+        VAR 
+            LIGHT: BOOL;
+        END_VAR
+            LIGHT := TRUE;
+        END_CLASS
+    ",
+    );
+    // THEN there should be one diagnostic -> Class cannot have implementation
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn program_has_super_class() {
+    // GIVEN PROGRAM with a super class
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        END_CLASS
+
+        PROGRAM prog EXTENDS cls
+        END_PROGRAM 
+    ",
+    );
+    // THEN there should be one diagnostic -> Program cannot have super class
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn function_has_super_class() {
+    // GIVEN FUNCTION with a super class
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        END_CLASS
+
+        FUNCTION func EXTENDS cls
+        END_FUNCTION 
+    ",
+    );
+    // THEN there should be one diagnostic -> Function cannot have super class
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn class_with_return_type() {
+    // GIVEN class with a return type
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls : INT
+        END_CLASS
+    ",
+    );
+    // THEN there should be one diagnostic -> Class cannot have a return type
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn in_out_variable_not_allowed_in_class() {
+    // GIVEN class with a VAR_IN_OUT
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        VAR_IN_OUT
+            var1 : BOOL;
+        END_VAR
+        END_CLASS
+    ",
+    );
+    // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn input_variable_not_allowed_in_class() {
+    // GIVEN class with a VAR_INPUT
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        VAR_INPUT
+            var1 : BOOL;
+        END_VAR
+        END_CLASS
+    ",
+    );
+    // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn output_variable_not_allowed_in_class() {
+    // GIVEN class with a VAR_OUTPUT
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        VAR_OUTPUT
+            var1 : BOOL;
+        END_VAR
+        END_CLASS
+    ",
+    );
+    // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn local_variable_allowed_in_class() {
+    // GIVEN class with a VAR
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        "
+        CLASS cls
+        VAR
+            var1 : BOOL;
+        END_VAR
+        END_CLASS
+    ",
+    );
+    // THEN there should be no diagnostic -> Class can have local var block
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
 fn do_not_validate_external() {
     // GIVEN an external program with a simple assignment
     // for this kind of assignment our validator would report

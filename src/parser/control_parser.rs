@@ -1,10 +1,14 @@
+use plc_ast::{
+    ast::{AstFactory, AstStatement},
+    control_statements::ConditionalBlock,
+};
+use plc_diagnostics::diagnostics::Diagnostic;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::*,
     expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
-    Diagnostic,
 };
 
 use super::ParseSession;
@@ -72,12 +76,12 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let end = lexer.last_range.end;
 
-    AstStatement::IfStatement {
-        blocks: conditional_blocks,
+    AstFactory::create_if_statement(
+        conditional_blocks,
         else_block,
-        location: lexer.source_range_factory.create_range(start..end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -103,22 +107,22 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let step = if lexer.token == KeywordBy {
         lexer.advance(); // BY
-        Some(Box::new(parse_expression(lexer)))
+        Some(parse_expression(lexer))
     } else {
         None
     };
 
     lexer.consume_or_report(KeywordDo); // DO
 
-    AstStatement::ForLoopStatement {
-        counter: Box::new(counter_expression),
-        start: Box::new(start_expression),
-        end: Box::new(end_expression),
-        by_step: step,
-        body: parse_body_in_region(lexer, vec![KeywordEndFor]),
-        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        id: lexer.next_id(),
-    }
+    AstFactory::create_for_loop(
+        counter_expression,
+        start_expression,
+        end_expression,
+        step,
+        parse_body_in_region(lexer, vec![KeywordEndFor]),
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -128,12 +132,12 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     let condition = parse_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
-    AstStatement::WhileLoopStatement {
-        condition: Box::new(condition),
-        body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
-        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        id: lexer.next_id(),
-    }
+    AstFactory::create_while_statement(
+        condition,
+        parse_body_in_region(lexer, vec![KeywordEndWhile]),
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -147,19 +151,19 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
         AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     };
 
-    AstStatement::RepeatLoopStatement {
-        condition: Box::new(condition),
+    AstFactory::create_repeat_statement(
+        condition,
         body,
-        location: lexer.source_range_factory.create_range(start..lexer.range().end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.next_id(),
+    )
 }
 
 fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
-    let selector = Box::new(parse_expression(lexer));
+    let selector = parse_expression(lexer);
 
     expect_token!(
         lexer,
@@ -211,11 +215,11 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     };
 
     let end = lexer.last_range.end;
-    AstStatement::CaseStatement {
+    AstFactory::create_case_statement(
         selector,
         case_blocks,
         else_block,
-        location: lexer.source_range_factory.create_range(start..end),
-        id: lexer.next_id(),
-    }
+        lexer.source_range_factory.create_range(start..end),
+        lexer.next_id(),
+    )
 }

@@ -11,19 +11,23 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+use plc_ast::{
+    ast::{
+        self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+    },
+    control_statements::AstControlStatement,
+    literals::{Array, AstLiteral, StringValue},
+    provider::IdProvider,
+};
+use plc_util::convention::{internal_type_name, qualified_name};
 
 pub mod const_evaluator;
 pub mod generics;
 
 use crate::{
-    ast::{
-        self, create_not_expression, create_or_expression, flatten_expression_list, Array, AstId, AstLiteral,
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, StringValue, TypeNature,
-        UserTypeDeclaration, Variable,
-    },
     builtins::{self, BuiltIn},
     index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -194,17 +198,17 @@ impl TypeAnnotator<'_> {
         let mut ctx = ctx.clone();
         let call_statement = match operator {
             // a <> b expression is handled as Not(Equal(a,b))
-            Operator::NotEqual => create_not_expression(
+            Operator::NotEqual => AstFactory::create_not_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 statement.get_location(),
             ),
             // a <= b expression is handled as a = b OR a < b
-            Operator::LessOrEqual => create_or_expression(
+            Operator::LessOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Less, left, right, statement),
             ),
             // a >= b expression is handled as a = b OR a > b
-            Operator::GreaterOrEqual => create_or_expression(
+            Operator::GreaterOrEqual => AstFactory::create_or_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 self.create_typed_compare_call_statement(
                     &mut ctx,
@@ -243,7 +247,7 @@ impl TypeAnnotator<'_> {
 
         cmp_function_name
             .map(|name| {
-                crate::ast::create_call_to(
+                AstFactory::create_call_to(
                     name,
                     vec![left.clone(), right.clone()],
                     ctx.id_provider.next_id(),
@@ -270,9 +274,9 @@ pub enum StatementAnnotation {
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
         qualified_name: String,
-        /// denotes wheter this variable is declared as a constant
+        /// denotes whether this variable is declared as a constant
         constant: bool,
-        /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
@@ -676,6 +680,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
+        //TODO dependency on super class
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
@@ -700,7 +705,7 @@ impl<'i> TypeAnnotator<'i> {
                     .index
                     .find_range_check_implementation_for(expected_type.get_type_information())
                     .map(|f| {
-                        crate::ast::create_call_to_check_function_ast(
+                        AstFactory::create_call_to_check_function_ast(
                             f.get_call_name().to_string(),
                             right_side.clone(),
                             sub_range.clone(),
@@ -875,8 +880,24 @@ impl<'i> TypeAnnotator<'i> {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 let ctx = ctx.with_qualifier(inner_type.get_name().to_string());
+
                 if inner_type.get_type_information().is_struct() {
-                    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                    let expressions = match initializer {
+                        // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive "could not resolve reference" errors
+                        AstStatement::ExpressionList { expressions, .. } => Some(expressions),
+
+                        // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
+                        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
+                            Some(AstStatement::ExpressionList { expressions, .. }) => Some(expressions),
+                            _ => None,
+                        },
+
+                        // ...anything else is uninteresting
+                        _ => None,
+                    };
+
+                    if let Some(expressions) = expressions {
                         for e in expressions {
                             // annotate with the arrays inner_type
                             self.annotation_map.annotate_type_hint(
@@ -885,11 +906,13 @@ impl<'i> TypeAnnotator<'i> {
                                     resulting_type: inner_type.get_name().to_string(),
                                 },
                             );
+
                             self.visit_statement(&ctx, e);
                         }
                     }
                 }
             }
+
             // the array of struct might be a member of another struct
             DataTypeInformation::Struct { members, .. } => {
                 let flattened = ast::flatten_expression_list(initializer);
@@ -990,50 +1013,49 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::IfStatement { blocks, else_block, .. } => {
-                blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::If(stmt), .. } => {
+                stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|e| self.visit_statement(ctx, e));
+                stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
             }
-            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
-                visit_all_statements!(self, ctx, counter, start, end);
-                if let Some(by_step) = by_step {
+            AstStatement::ControlStatement { kind: AstControlStatement::ForLoop(stmt), .. } => {
+                visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
+                if let Some(by_step) = &stmt.by_step {
                     self.visit_statement(ctx, by_step);
                 }
                 //Hint annotate start, end and step with the counter's real type
-                if let Some(type_name) =
-                    self.annotation_map.get_type(counter, self.index).map(typesystem::DataType::get_name)
+                if let Some(type_name) = self
+                    .annotation_map
+                    .get_type(&stmt.counter, self.index)
+                    .map(typesystem::DataType::get_name)
                 {
                     let annotation = StatementAnnotation::value(type_name);
-                    self.annotation_map.annotate_type_hint(start, annotation.clone());
-                    self.annotation_map.annotate_type_hint(end, annotation.clone());
-                    if let Some(by_step) = by_step {
+                    self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
+                    self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
+                    if let Some(by_step) = &stmt.by_step {
                         self.annotation_map.annotate_type_hint(by_step, annotation);
                     }
                 }
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::WhileLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
+            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }
+            | AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.condition);
+                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::RepeatLoopStatement { condition, body, .. } => {
-                self.visit_statement(ctx, condition);
-                body.iter().for_each(|s| self.visit_statement(ctx, s));
-            }
-            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
-                self.visit_statement(ctx, selector);
-                let selector_type = self.annotation_map.get_type(selector, self.index).cloned();
-                case_blocks.iter().for_each(|b| {
+            AstStatement::ControlStatement { kind: AstControlStatement::Case(stmt), .. } => {
+                self.visit_statement(ctx, &stmt.selector);
+                let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
+                stmt.case_blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     if let Some(selector_type) = &selector_type {
                         self.update_expected_types(selector_type, b.condition.as_ref());
                     }
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
-                else_block.iter().for_each(|s| self.visit_statement(ctx, s));
+                stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
             }
             AstStatement::CaseCondition { condition, .. } => self.visit_statement(ctx, condition),
             _ => {
@@ -1239,72 +1261,64 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
-                            || {
-                                self.index
-                                    .find_pou(format!("{qualifier}.{name}").as_str())
-                                    .map(|it| it.into())
-                            },
+                            || self.index.find_method(qualifier, name).map(|it| it.into()),
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
                 } else {
-                    // if we see no qualifier, we try some strategies ...
+                    // if we see no qualifier, we try some strategies...
                     ctx.pou
                         .and_then(|qualifier| {
-                            // ... first look at POU-local variables
+                            // ...first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
                                 .and_then(|m| {
-                                    // #604 needed for recursive function calls
-                                    // if we are in a call statement and the member name equals the pou name
-                                    // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
-                                    if ctx.is_call & (m.get_name() == qualifier) {
-                                        // return `None` because this would be foo.foo pointing to the function return
-                                        // we need the POU
-                                        None
-                                    } else {
-                                        Some(m)
+                                    // If we're dealing with a call statement, check if...
+                                    if ctx.is_call {
+                                        // ...the POU name is the same as the member, which indicates a
+                                        // recursive function call (e.g. `FUNCTION foo : INT foo(); END_FUNCTION`)
+                                        if m.get_name() == qualifier {
+                                            return None; // We need the POU instead
+                                        }
+
+                                        // ...there exists a **function** with the same name as the member,
+                                        // which indicates that we would incorrectly annotate a call statement as a variable.
+                                        // Note: We explicitily check for functions because e.g. FBs can be callable variables
+                                        if self.index.find_pou(name).is_some_and(|it| it.is_function()) {
+                                            return None; // We need the POU instead
+                                        }
                                     }
+
+                                    Some(to_variable_annotation(m, self.index, ctx.constant))
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                                .or_else(|| {
-                                    // ... then check if we're in a method and we're referencing
-                                    // a member variable of the corresponding class
-                                    self.index
-                                        .find_pou(qualifier)
-                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
-                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
-                                        .and_then(|class_name| self.index.find_member(class_name, name))
-                                        .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                                })
-                                .or_else(|| {
-                                    // try to find a local action with this name
-                                    self.index
-                                        .find_pou(format!("{qualifier}.{name}").as_str())
-                                        .map(StatementAnnotation::from)
-                                })
+                                //TODO find parent of super class to start the search
+                                // ...then check if we're in a method and we're referencing
+                                // a member variable of the corresponding class
+                                .or(self
+                                    .index
+                                    .find_pou(qualifier)
+                                    .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+                                    .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                    .and_then(|class_name| self.index.find_member(class_name, name))
+                                    .map(|v| to_variable_annotation(v, self.index, ctx.constant)))
+                                // try to find a local action with this name
+                                .or(self
+                                    .index
+                                    .find_pou(&qualified_name(qualifier, name))
+                                    .map(StatementAnnotation::from))
                         })
-                        .or_else(|| {
-                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
-                            ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
-                                self.index
-                                    .find_pou(format!("{}.{name}", it.get_container()).as_str())
-                                    .map(Into::into)
-                            })
-                        })
-                        .or_else(|| {
-                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
-                            {
-                                let index = self.index;
-                                index.find_pou(name).map(|it| it.into())
-                            }
-                        })
-                        .or_else(|| {
-                            // ... last option is a global variable, where we ignore the current pou's name as a qualifier
-                            self.index
-                                .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
-                        })
+                        // ...then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+                        .or(ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
+                            self.index.find_pou(&qualified_name(it.get_container(), name)).map(Into::into)
+                        }))
+                        // ...then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+                        .or(self.index.find_pou(name).map(|it| it.into()))
+                        // ...last option is a global variable, where we ignore the current pou's name as a qualifier
+                        .or(self
+                            .index
+                            .find_global_variable(name)
+                            .map(|v| to_variable_annotation(v, self.index, ctx.constant)))
                 };
+
                 if let Some(annotation) = annotation {
                     self.annotate(statement, annotation);
                     self.maybe_annotate_vla(ctx, statement);
@@ -1733,21 +1747,21 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
     match access {
-        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
-        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
-        crate::ast::DirectAccessType::Word => WORD_TYPE,
-        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
-        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
-        crate::ast::DirectAccessType::Template => VOID_TYPE,
+        DirectAccessType::Bit => BOOL_TYPE,
+        DirectAccessType::Byte => BYTE_TYPE,
+        DirectAccessType::Word => WORD_TYPE,
+        DirectAccessType::DWord => DWORD_TYPE,
+        DirectAccessType::LWord => LWORD_TYPE,
+        DirectAccessType::Template => VOID_TYPE,
     }
 }
 
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
-    let new_type_name = typesystem::create_internal_type_name(prefix, len.to_string().as_str());
+    let new_type_name = internal_type_name(prefix, len.to_string().as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
@@ -1766,7 +1780,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
+    let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {

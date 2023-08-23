@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 
 use crate::{
-    ast::literals::{Array, AstLiteral, StringValue},
-    ast::{AstId, AstStatement, Operator, SourceRange},
     index::{
         const_expressions::{ConstExpression, ConstId, UnresolvableKind},
         Index,
@@ -740,3 +738,7 @@ macro_rules! compare_expression {
     }
 }
 use compare_expression;
+use plc_ast::{
+    ast::{AstId, AstStatement, Operator, SourceRange},
+    literals::{Array, AstLiteral, StringValue},
+};

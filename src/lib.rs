@@ -24,7 +24,6 @@ use clap::clap_derive::ArgEnum;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use diagnostics::Diagnostic;
 use inkwell::targets::{self, TargetMachine, TargetTriple};
 
 #[cfg(test)]
@@ -32,11 +31,9 @@ use resolver::TypeAnnotator;
 #[cfg(test)]
 use validation::Validator;
 
-pub mod ast;
 pub mod builtins;
 pub mod codegen;
 mod datalayout;
-pub mod diagnostics;
 pub mod expression_path;
 pub mod hardware_binding;
 pub mod index;
@@ -179,17 +176,12 @@ pub enum OptimizationLevel {
     Aggressive,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DebugLevel {
+    #[default]
     None,
     VariablesOnly,
     Full,
-}
-
-impl Default for DebugLevel {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

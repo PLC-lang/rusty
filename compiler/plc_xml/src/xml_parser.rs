@@ -1,12 +1,13 @@
-use plc::{
+use ast::{
     ast::{
         AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType,
         SourceRange, SourceRangeFactory,
     },
-    diagnostics::{Diagnostic, Diagnostician},
-    lexer::{self, IdProvider},
-    parser::expressions_parser::parse_expression,
+    provider::IdProvider,
 };
+use plc::{lexer, parser::expressions_parser::parse_expression};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+
 use quick_xml::events::Event;
 
 use crate::{

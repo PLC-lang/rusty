@@ -1,4 +1,4 @@
-use plc::ast::{AstStatement, Operator};
+use ast::ast::{AstStatement, Operator};
 
 use crate::model::{
     fbd::{Node, NodeIndex},
