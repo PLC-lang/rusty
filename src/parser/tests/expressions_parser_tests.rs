@@ -1027,7 +1027,6 @@ fn amp_as_and_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
@@ -1042,7 +1041,6 @@ fn amp_as_and_with_address_test() {
     END_PROGRAM
     ";
     let result = parse(src).0;
-    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 

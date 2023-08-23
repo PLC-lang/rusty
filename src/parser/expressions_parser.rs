@@ -143,7 +143,11 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let right = parse_unary_expression(lexer);
         left = AstStatement::CallStatement {
-            operator: Box::new(AstFactory::create_reference("EXPT", &op_location, lexer.next_id())),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_reference("EXPT", &op_location, lexer.next_id()),
+                None,
+                lexer.next_id(),
+            )),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: vec![left, right],
                 id: lexer.next_id(),
@@ -493,11 +497,8 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             }
             (Some(base), Some(KeywordSquareParensOpen)) => {
                 lexer.advance();
-                let index_reference = parse_any_in_region(
-                    lexer,
-                    vec![KeywordSquareParensClose],
-                    parse_expression,
-                );
+                let index_reference =
+                    parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
                 let new_location = base.get_location().span(&lexer.last_location());
                 current = Some({
                     AstFactory::create_index_reference(

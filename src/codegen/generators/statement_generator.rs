@@ -201,7 +201,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.register_debug_location(left_statement);
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
-            //TODO: must we only consider statements that end in an direct access??
             return self.generate_direct_access_assignment(left_statement, right_statement);
         }
         //TODO: Also hacky but for now we cannot generate assignments for hardware access

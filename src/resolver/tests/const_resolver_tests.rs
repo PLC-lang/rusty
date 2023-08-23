@@ -118,7 +118,6 @@ fn const_variables_default_value_compile_time_evaluation() {
 }
 
 #[test]
-#[ignore = "needs codegen first!"] //TODO: reactivate this
 fn const_enum_variable_default_value_compile_time_evaluation() {
     // GIVEN an enum with its first value using a const-initializer
     let ir = codegen(
@@ -1062,8 +1061,6 @@ fn nested_array_literals_type_resolving() {
         index.find_effective_type_by_name(a.get_type_name())
     );
 
-    println!("{initializer:#?}");
-
     //check the initializer's array-element's types
     if let AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(e) }), .. } = initializer {
         if let Some(DataTypeInformation::Array { inner_type_name, .. }) =
@@ -1160,7 +1157,6 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
                         {
                             //check if the inner thing really got the BYTE hint
                             // multiplied-element = 2
-                            println!("{:#?}", multiplied_element.as_ref());
                             assert_eq!(
                                 annotations.get_type_hint(multiplied_element.as_ref(), &index),
                                 index.find_effective_type_by_name("BYTE")

@@ -945,7 +945,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    // TODO: can this be done witin the real visiting?
+    // FIXME: can this be done witin the real visiting?
     fn annotate_array_of_struct(
         &mut self,
         expected_type: &typesystem::DataType,

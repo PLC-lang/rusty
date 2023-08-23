@@ -1,7 +1,0 @@
----
-source: src/validation/tests/statement_validation_tests.rs
-assertion_line: 1322
-expression: res
----
-SyntaxError { message: "Could not resolve reference to n1", range: [SourceRange { range: 284..286 }], err_no: reference__unresolved }
-

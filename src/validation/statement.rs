@@ -67,9 +67,16 @@ pub fn visit_statement<T: AnnotationMap>(
                     visit_statement(validator, m.as_ref(), context);
 
                     if let Some(reference_name) = statement.get_flat_reference_name() {
-                        validate_reference(validator, statement, reference_name, &m.get_location(), context);
+                        validate_reference(
+                            validator,
+                            statement,
+                            base.as_deref(),
+                            reference_name,
+                            &m.get_location(),
+                            context,
+                        );
                     }
-                   validate_direct_access(m, base.as_deref(), context, validator, statement);
+                    validate_direct_access(m, base.as_deref(), context, validator);
                 }
                 ReferenceAccess::Index(i) => {
                     if let Some(base) = base {
@@ -208,52 +215,34 @@ fn validate_direct_access<T: AnnotationMap>(
     base: Option<&AstStatement>,
     context: &ValidationContext<T>,
     validator: &mut Validator,
-    full_expression: &AstStatement,
 ) {
-    match (
-        m,
-        // FIXME: should we consider the hint if one is available?
-        base.and_then(|base| context.annotations.get(base)),
-    ) {
-        (AstStatement::DirectAccess { access, index, .. }, Some(base_annotation)) => {
-            let base_type = context.annotations.get_type_for_annotation(context.index, base_annotation).unwrap_or(context.index.get_void_type()).get_type_information();
-            if base_type.is_int() {
-                if !helper::is_compatible(access, base_type, context.index) {
-                    validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                        &format!("{access:?}"),
-                        access.get_bit_width(),
-                        m.get_location(),
-                    ))
-                } else {
-                    validate_access_index(validator, context, index, access, base_type, &m.get_location());
-                }
-            } else {
+    if let (AstStatement::DirectAccess { access, index, .. }, Some(base_annotation)) = (
+            m,
+            // FIXME: should we consider the hint if one is available?
+            base.and_then(|base| context.annotations.get(base)),
+        ) {
+        let base_type = context
+            .annotations
+            .get_type_for_annotation(context.index, base_annotation)
+            .unwrap_or(context.index.get_void_type())
+            .get_type_information();
+        if base_type.is_int() {
+            if !helper::is_compatible(access, base_type, context.index) {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess(
                     &format!("{access:?}"),
                     access.get_bit_width(),
                     m.get_location(),
                 ))
+            } else {
+                validate_access_index(validator, context, index, access, base_type, &m.get_location());
             }
+        } else {
+            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                &format!("{access:?}"),
+                access.get_bit_width(),
+                m.get_location(),
+            ))
         }
-        (_, Some(StatementAnnotation::Value { .. })) |
-        (_, Some(StatementAnnotation::Variable { .. }))
-         => {
-            // we typed base.SOMETHING
-            // and the whole thing could not be resolved, while SOMETHING can be resolved
-            if !context.annotations.has_type_annotation(full_expression)
-                && context.annotations.has_type_annotation(m)
-            {
-                // the whole expression does not resolve to anything
-                // so maybe the user wanted a bit-access?
-                let name = m.get_flat_reference_name().unwrap_or("...");
-                validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
-                    // FIXME: rephrase message to also include other direct-access
-                    message: format!("If you meant to access a bit, use %X{name} instead.",),
-                    range: vec![m.get_location()],
-                });
-            }
-        }
-        _ => {}
     }
 }
 
@@ -434,6 +423,7 @@ fn validate_access_index<T: AnnotationMap>(
 fn validate_reference<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstStatement,
+    base: Option<&AstStatement>,
     ref_name: &str,
     location: &SourceRange,
     context: &ValidationContext<T>,
@@ -441,6 +431,24 @@ fn validate_reference<T: AnnotationMap>(
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
+
+        // was this meant as a direct access?
+        // FIXME: find a way to solve this without re-resolving this name
+        if let Some(alternative_target_type) =
+            context.index.find_variable(context.qualifier, &[ref_name]).and_then(|alternative_target| {
+                context.index.find_effective_type_by_name(alternative_target.get_type_name())
+            })
+        {
+            if base.is_some() && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
+            {
+                // we accessed a member that does not exist, but we could find a global/local variable that fits
+                validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                    // FIXME: rephrase message to also include other direct-access
+                    message: format!("If you meant to access a bit, use %X{ref_name} instead.",),
+                    range: vec![location.clone()],
+                });
+            }
+        }
     } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
@@ -657,7 +665,6 @@ fn validate_unary_expression(
     value: &AstStatement,
     location: &SourceRange,
 ) {
-    // TODO:
     // if operator == &Operator::Address {
     //     match value {
     //         AstStatement::Reference { .. }

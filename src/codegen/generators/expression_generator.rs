@@ -730,7 +730,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
                     (Some(class_ptr), call_ptr)
                 }
-                // TODO: find a more reliable way to make sure if this is a call into a local action!!
+                // FIXME: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
                     if matches!(operator, AstStatement::ReferenceExpr { base: None, .. }) =>
                 {
@@ -918,7 +918,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let value = self.generate_expression_value(argument)?;
             match value {
                 ExpressionValue::LValue(v) => v,
-                ExpressionValue::RValue(v) => {
+                ExpressionValue::RValue(_v) => {
                     // Passed a literal to a byref parameter?
                     let value = self.generate_expression(argument)?;
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "");
@@ -927,16 +927,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
         };
-
-        // let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
-        //     // Passed a literal to a byref parameter?
-        //     // TODO: find more defensive solution - check early
-        //     let value = self.generate_expression(argument)?;
-        //     let argument = self.llvm.builder.build_alloca(value.get_type(), "");
-        //     self.llvm.builder.build_store(argument, value);
-
-        //     Ok(argument)
-        // })?;
 
         // ...check if we can bitcast a reference to their hinted type
         if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
@@ -2509,23 +2499,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
-        //TODO: do we really need this? 
-        // let annotation = match reference {
-       //     AstStatement::Reference { .. } => self.annotations.get(reference),
-        //     AstStatement::ArrayAccess { reference, .. } => self.annotations.get(reference.as_ref()),
-        //     _ => unreachable!(),
-        // };
 
-        let StatementAnnotation::Variable { qualified_name, resulting_type: reference_type,  .. } = reference_annotation else {
+        let StatementAnnotation::Variable { resulting_type: reference_type,  .. } = reference_annotation else {
             unreachable!(); 
         };
 
-        //TODO: do we really need this
-        // if the vla parameter is by-ref, we need to dereference the pointer
-        // let struct_ptr = self.auto_deref_if_necessary(
-        //     self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?,
-        //     reference,
-        // );
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
@@ -2639,7 +2617,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             (ReferenceAccess::Index(access), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
-                    //TODO: expect
+                    //FIXME: expect
                     self.generate_element_pointer_for_vla(self.generate_expression_value(base)?, self.annotations.get(base).expect(""), access.as_ref())
                         .map_err(|_| unreachable!("invalid access statement"))
                         .map(ExpressionValue::LValue)

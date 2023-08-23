@@ -1004,7 +1004,7 @@ impl Index {
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
     /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     pub fn find_fully_qualified_variable(&self, fully_qualified_name: &str) -> Option<&VariableIndexEntry> {
-        //TODO: did we change here anything?????
+        //FIXME: did we change here anything?????
 
         let segments: Vec<&str> = fully_qualified_name.split('.').collect();
         let (q, segments) = if segments.len() > 1 {

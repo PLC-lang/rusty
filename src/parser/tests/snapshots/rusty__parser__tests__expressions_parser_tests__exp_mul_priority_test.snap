@@ -34,8 +34,13 @@ CompilationUnit {
                         base: None,
                     },
                     right: CallStatement {
-                        operator: Reference {
-                            name: "EXPT",
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Reference {
+                                    name: "EXPT",
+                                },
+                            ),
+                            base: None,
                         },
                         parameters: Some(
                             ExpressionList {
