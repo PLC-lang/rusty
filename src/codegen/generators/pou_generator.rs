@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     data_type_generator::get_default_for,
-    expression_generator::ExpressionCodeGenerator,
+    expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::{GlobalValueExt, Llvm},
     statement_generator::{FunctionContext, StatementCodeGenerator},
     ADDRESS_SPACE_GENERIC,
@@ -754,6 +754,39 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             self.llvm.builder.build_return(None);
         }
+        Ok(())
+    }
+
+    pub fn generate_return_statement_with_condition<'a>(
+        &'a self,
+        function_context: &'a FunctionContext<'ink, 'a>,
+        local_index: &'a LlvmTypedIndex<'ink>,
+        condition: &AstStatement,
+    ) -> Result<(), Diagnostic> {
+        /*
+        1. Check if condition is true
+        2. True     => Call generate_return_statement
+        3. False    => Continue function as if nothing happened
+        */
+        let expression_generator =
+            ExpressionCodeGenerator::new_context_free(&self.llvm, self.index, self.annotations, local_index);
+
+        let condition = expression_generator.generate_expression(condition)?;
+
+        let condition_block = self.llvm.context.append_basic_block(function_context.function, "condition");
+        let continue_block = self.llvm.context.append_basic_block(function_context.function, "continue");
+
+        self.llvm.builder.build_conditional_branch(
+            to_i1(condition.into_int_value(), &self.llvm.builder),
+            condition_block,
+            continue_block,
+        );
+
+        self.llvm.builder.position_at_end(condition_block);
+        self.generate_return_statement(function_context, local_index)?;
+
+        self.llvm.builder.position_at_end(continue_block);
+
         Ok(())
     }
 

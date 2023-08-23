@@ -125,11 +125,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::ControlStatement { kind: ctl_statement, .. } => {
                 self.generate_control_statement(ctl_statement)?
             }
-            AstStatement::ReturnStatement { .. } => {
-                self.register_debug_location(statement);
-                self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
-                self.generate_buffer_block();
-            }
+            AstStatement::ReturnStatement { condition, .. } => match condition {
+                Some(condition) => {
+                    self.register_debug_location(statement);
+                    self.pou_generator.generate_return_statement_with_condition(
+                        self.function_context,
+                        self.llvm_index,
+                        condition,
+                    )?;
+                }
+                None => {
+                    self.register_debug_location(statement);
+                    self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
+                }
+            },
             AstStatement::ExitStatement { location, .. } => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);

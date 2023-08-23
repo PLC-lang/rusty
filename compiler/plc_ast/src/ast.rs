@@ -818,6 +818,9 @@ pub enum AstStatement {
         id: AstId,
     },
     ReturnStatement {
+        /// Flag that indicates the return statement will take place only if the condition evaluates to true.
+        /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
+        condition: Option<Box<AstStatement>>,
         location: SourceRange,
         id: AstId,
     },
@@ -927,7 +930,14 @@ impl Debug for AstStatement {
             AstStatement::CaseCondition { condition, .. } => {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
-            AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ReturnStatement { condition, .. } => {
+                if let Some(condition) = condition {
+                    f.debug_struct(&format!("ReturnStatement (with condition: {condition:?}")).finish()
+                } else {
+                    f.debug_struct("ReturnStatement").finish()
+                }
+            }
+
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
             AstStatement::CastStatement { target, type_name, .. } => {

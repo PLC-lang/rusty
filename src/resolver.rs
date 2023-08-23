@@ -1439,6 +1439,11 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
+            AstStatement::ReturnStatement { condition, .. } => {
+                if let Some(condition) = condition {
+                    self.visit_statement(ctx, condition)
+                }
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }
