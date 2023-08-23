@@ -8,9 +8,13 @@ use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 
 /// Represents the type of source a SourceContainer holds
+#[derive(Clone, Copy, Debug)]
 pub enum SourceType {
     /// A normal text file, the content of the file could be parsed
     Text,
+
+    /// An xml file, probably cfc
+    Xml,
 
     /// Unknown type, probably a binary
     Unknown,
@@ -30,6 +34,8 @@ pub trait SourceContainer {
         if let Some(ext) = self.get_location().and_then(|it| it.extension()) {
             match ext.to_str() {
                 Some("o") | Some("so") | Some("exe") => SourceType::Unknown,
+                //XXX: file ending vs first line? (<?xml ...)
+                Some("cfc") | Some("fbd") | Some("xml") => SourceType::Xml,
                 _ => SourceType::Text,
             }
         } else {
@@ -81,7 +87,8 @@ impl SourceCodeFactory for &str {
 
 impl<T: AsRef<Path>> SourceContainer for T {
     fn load_source(&self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        if matches!(self.get_type(), SourceType::Text) {
+        let source_type = self.get_type();
+        if matches!(source_type, SourceType::Text | SourceType::Xml) {
             let mut file = File::open(self).map_err(|err| err.to_string())?;
             let source = create_source_code(&mut file, encoding)?;
 
