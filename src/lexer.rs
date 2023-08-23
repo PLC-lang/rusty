@@ -1,13 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::ops::Range;
-use logos::Filter;
-use logos::Lexer;
-use logos::Logos;
+use logos::{Filter, Lexer, Logos};
+use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 pub use tokens::Token;
-
-use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
 
 #[cfg(test)]
 mod tests;
