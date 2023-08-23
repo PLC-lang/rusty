@@ -5,11 +5,8 @@ use ast::{
     },
     provider::IdProvider,
 };
-use plc::{
-    diagnostics::{Diagnostic, Diagnostician},
-    lexer,
-    parser::expressions_parser::parse_expression,
-};
+use plc::{lexer, parser::expressions_parser::parse_expression};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
 use quick_xml::events::Event;
 

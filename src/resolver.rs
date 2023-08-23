@@ -884,6 +884,7 @@ impl<'i> TypeAnnotator<'i> {
                 if inner_type.get_type_information().is_struct() {
                     let expressions = match initializer {
                         // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive "could not resolve reference" errors
                         AstStatement::ExpressionList { expressions, .. } => Some(expressions),
 
                         // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`

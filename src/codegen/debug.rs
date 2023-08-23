@@ -12,10 +12,10 @@ use inkwell::{
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 use plc_ast::ast::{LinkageType, SourceRange};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    diagnostics::Diagnostic,
     index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,

@@ -5,7 +5,7 @@ mod tests {
         provider::IdProvider,
     };
     use insta::assert_debug_snapshot;
-    use plc::diagnostics::Diagnostic;
+    use plc_diagnostics::diagnostics::Diagnostic;
 
     use crate::{
         serializer::{

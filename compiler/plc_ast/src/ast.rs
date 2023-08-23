@@ -1126,6 +1126,10 @@ impl AstStatement {
     pub fn is_binary_expression(&self) -> bool {
         matches!(self, AstStatement::BinaryExpression { .. })
     }
+
+    pub fn is_literal_array(&self) -> bool {
+        matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -73,9 +73,8 @@ fn stdlib_string_function_headers_compile_to_ir() {
 
     let temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    assert_eq!(
-        compile(&["plc", file.as_str(), "-o", &path, "--ir"]),
-        Ok(()),
+    assert!(
+        compile(&["plc", file.as_str(), "-o", &path, "--ir"]).is_ok(),
         "Expected file to compile without errors"
     )
 }

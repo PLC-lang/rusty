@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array __main_arr_init has size 10, but 11 were provided", range: [SourceRange { range: 171..206 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_nested_init has size 10, but 11 were provided", range: [SourceRange { range: 268..307 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr has size 10, but 11 were provided", range: [SourceRange { range: 331..366 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr has size 10, but 11 were provided", range: [SourceRange { range: 379..412 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr_nested has size 10, but 11 were provided", range: [SourceRange { range: 436..475 }], err_no: arr__invalid_array_assignment }
+

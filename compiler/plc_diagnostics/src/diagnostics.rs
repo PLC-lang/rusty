@@ -1,19 +1,8 @@
-use std::{
-    collections::HashMap,
-    error::Error,
-    fmt::{self, Display},
-    ops::Range,
-};
+use std::{error::Error, ops::Range};
 
-use codespan_reporting::{
-    diagnostic::Label,
-    files::{Files, Location, SimpleFile, SimpleFiles},
-    term::termcolor::{ColorChoice, StandardStream},
-};
-use inkwell::support::LLVMString;
 use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
-use crate::index::VariableType;
+use crate::errno::ErrNo;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -24,94 +13,6 @@ pub enum Diagnostic {
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec<SourceRange> },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec<Diagnostic>, err_no: ErrNo },
-}
-
-#[allow(non_camel_case_types)]
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
-pub enum ErrNo {
-    undefined,
-
-    //general
-    general__io_err,
-    general__param_err,
-    duplicate_symbol,
-
-    //syntax
-    syntax__generic_error,
-    syntax__missing_token,
-    syntax__unexpected_token,
-
-    //semantic
-    // pou related
-    pou__missing_return_type,
-    pou__unexpected_return_type,
-    pou__unsupported_return_type,
-    pou__empty_variable_block,
-    pou__missing_action_container,
-    pou__recursive_data_structure,
-
-    // call
-    call__invalid_parameter_type,
-    call__invalid_parameter_count,
-
-    //variable related
-    var__unresolved_constant,
-    var__invalid_constant_block,
-    var__invalid_constant,
-    var__cannot_assign_to_const,
-    var__invalid_assignment,
-    var__missing_type,
-    var__assigning_to_var_input_ref,
-    var__overflow,
-    var__invalid_enum_variant,
-
-    //array related
-    arr__invalid_array_assignment,
-
-    // VLA related
-    vla__invalid_container,
-    vla__invalid_array_access,
-    vla__dimension_idx_out_of_bounds,
-
-    //reference related
-    reference__unresolved,
-    reference__illegal_access,
-    reference__expected,
-
-    //type related
-    type__cast_error,
-    type__unknown_type,
-    type__invalid_type,
-    type__literal_out_of_range,
-    type__incompatible_literal_cast,
-    type__incompatible_directaccess,
-    type__incompatible_directaccess_variable,
-    type__incompatible_directaccess_range,
-    type__incompatible_arrayaccess_range,
-    type__incompatible_arrayaccess_variable,
-    type__incompatible_arrayaccess_type,
-    type__expected_literal,
-    type__invalid_nature,
-    type__unknown_nature,
-    type__unresolved_generic,
-    type__incompatible_size,
-    type__invalid_operation,
-    type__invalid_name,
-
-    //codegen related
-    codegen__general,
-    codegen__missing_function,
-    codegen__missing_compare_function,
-
-    //Debug code
-    debug_general,
-    //linker
-    linker__generic_error,
-
-    //switch case
-    case__duplicate_condition,
-    case__case_condition_outside_case_statement,
-    case__invalid_case_condition,
 }
 
 impl<T: Error> From<T> for Diagnostic {
@@ -137,15 +38,6 @@ impl Diagnostic {
                 Diagnostic::ImprovementSuggestion { message, range }
             }
             _ => self,
-        }
-    }
-
-    pub fn get_affected_ranges(&self) -> &[SourceRange] {
-        match self {
-            Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::SemanticError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
-            _ => &[],
         }
     }
 
@@ -471,9 +363,9 @@ impl Diagnostic {
         Diagnostic::GeneralError { message: reason.to_string(), err_no: ErrNo::general__param_err }
     }
 
-    pub fn llvm_error(file: &str, llvm_error: &LLVMString) -> Diagnostic {
+    pub fn llvm_error(file: &str, llvm_error: &str) -> Diagnostic {
         Diagnostic::GeneralError {
-            message: format!("{file}: Internal llvm error: {:}", llvm_error.to_string()),
+            message: format!("{file}: Internal llvm error: {:}", llvm_error),
             err_no: ErrNo::general__io_err,
         }
     }
@@ -675,23 +567,15 @@ impl Diagnostic {
 
     pub fn invalid_argument_type(
         parameter_name: &str,
-        parameter_type: VariableType,
+        parameter_type: &str,
         range: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Expected a reference for parameter {parameter_name} because their type is {parameter_type:?}"
+                "Expected a reference for parameter {parameter_name} because their type is {parameter_type}"
             ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
-        }
-    }
-
-    pub fn duplicate_pou(name: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Duplicate POU {name}"),
-            range: vec![range],
-            err_no: ErrNo::duplicate_symbol,
         }
     }
 
@@ -703,7 +587,7 @@ impl Diagnostic {
         }
     }
 
-    pub(crate) fn global_name_conflict(
+    pub fn global_name_conflict(
         name: &str,
         location: SourceRange,
         conflicts: Vec<SourceRange>,
@@ -711,7 +595,7 @@ impl Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
     }
 
-    pub(crate) fn global_name_conflict_with_text(
+    pub fn global_name_conflict_with_text(
         name: &str,
         location: SourceRange,
         conflicts: Vec<SourceRange>,
@@ -734,17 +618,17 @@ impl Diagnostic {
         }
     }
 
-    pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
+    pub fn array_assignment(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: "Array initializer must be an initializer list!".to_string(),
+            message: "Array assignments must be surrounded with `[]`".to_string(),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
     }
 
-    pub fn array_expected_identifier_or_round_bracket(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Expected identifier or '('".to_string(),
+    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided"),
             range: vec![range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }
@@ -816,358 +700,11 @@ impl Diagnostic {
     }
 }
 
-/// a diagnostics severity
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Severity {
-    Error,
-    Warning,
-    _Info,
-}
-
-impl Display for Severity {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let severity = match self {
-            Severity::Error => "error",
-            Severity::Warning => "warning",
-            Severity::_Info => "info",
-        };
-        write!(f, "{severity}")
-    }
-}
-
-/// the assessor determins the severity of a diagnostic
-/// this trait allows for different implementations for different usecases
-/// (e.g. default, compiler-settings, tests)
-pub trait DiagnosticAssessor {
-    /// determines the severity of the given diagnostic
-    fn assess(&self, d: &Diagnostic) -> Severity;
-}
-
-/// the default assessor will treat ImprovementSuggestions as warnings
-/// and everything else as errors
-#[derive(Default)]
-pub struct DefaultDiagnosticAssessor {}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ResolvedLocation {
-    pub file_handle: usize,
-    pub range: Range<usize>,
-}
-
-impl ResolvedLocation {
-    pub fn is_internal(&self) -> bool {
-        self.range == SourceRange::undefined().to_range()
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ResolvedDiagnostics {
-    pub message: String,
-    pub severity: Severity,
-    pub main_location: ResolvedLocation,
-    pub additional_locations: Option<Vec<ResolvedLocation>>,
-}
-
-impl DiagnosticAssessor for DefaultDiagnosticAssessor {
-    fn assess(&self, d: &Diagnostic) -> Severity {
-        match d {
-            // improvements become warnings
-            Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
-            // everything else becomes an error
-            _ => Severity::Error,
-        }
-    }
-}
-
-/// the DiagnosticReporter decides on the format and where to report the diagnostic to.
-/// possible implementations could print to either std-out, std-err or a file, etc.
-pub trait DiagnosticReporter {
-    /// reports the given diagnostic
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]);
-    /// register the given path & src and returns an ID to indicate
-    /// a relationship the given src (diagnostics for this src need
-    /// to use this id)
-    fn register(&mut self, path: String, src: String) -> usize;
-}
-
-/// a DiagnosticReporter that reports diagnostics using codespan_reporting
-pub struct CodeSpanDiagnosticReporter {
-    files: SimpleFiles<String, String>,
-    config: codespan_reporting::term::Config,
-    writer: StandardStream,
-}
-
-impl CodeSpanDiagnosticReporter {
-    /// creates a new reporter with the given codespan_reporting configuration
-    fn new(config: codespan_reporting::term::Config, writer: StandardStream) -> Self {
-        CodeSpanDiagnosticReporter { files: SimpleFiles::new(), config, writer }
-    }
-}
-
-impl Default for CodeSpanDiagnosticReporter {
-    /// creates the default CodeSpanDiagnosticReporter reporting to StdErr, with colors
-    fn default() -> Self {
-        Self::new(
-            codespan_reporting::term::Config {
-                display_style: codespan_reporting::term::DisplayStyle::Rich,
-                tab_width: 2,
-                styles: codespan_reporting::term::Styles::default(),
-                chars: codespan_reporting::term::Chars::default(),
-                start_context_lines: 5,
-                end_context_lines: 3,
-            },
-            StandardStream::stderr(ColorChoice::Always),
-        )
-    }
-}
-
-impl DiagnosticReporter for CodeSpanDiagnosticReporter {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
-        for d in diagnostics {
-            let diagnostic_factory = match d.severity {
-                Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
-                Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
-                Severity::_Info => codespan_reporting::diagnostic::Diagnostic::note(),
-            };
-
-            let mut labels = vec![Label::primary(d.main_location.file_handle, d.main_location.range.clone())
-                .with_message(d.message.as_str())];
-
-            if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(
-                    additional_locations.iter().map(|it| {
-                        Label::secondary(it.file_handle, it.range.clone()).with_message("see also")
-                    }),
-                );
-            }
-
-            let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());
-
-            let result =
-                codespan_reporting::term::emit(&mut self.writer.lock(), &self.config, &self.files, &diag);
-            if result.is_err() && d.main_location.is_internal() {
-                eprintln!("<internal>: {}", d.message);
-            }
-        }
-    }
-
-    fn register(&mut self, path: String, src: String) -> usize {
-        self.files.add(path, src)
-    }
-}
-
-/// a DiagnosticReporter that reports diagnostics using clang-format
-pub struct ClangFormatDiagnosticReporter {
-    files: SimpleFiles<String, String>,
-}
-
-impl ClangFormatDiagnosticReporter {
-    fn new() -> Self {
-        ClangFormatDiagnosticReporter { files: SimpleFiles::new() }
-    }
-}
-
-impl Default for ClangFormatDiagnosticReporter {
-    fn default() -> Self {
-        ClangFormatDiagnosticReporter::new()
-    }
-}
-
-impl DiagnosticReporter for ClangFormatDiagnosticReporter {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
-        for diagnostic in diagnostics {
-            let file_id = diagnostic.main_location.file_handle;
-            let location = &diagnostic.main_location;
-
-            let file = self.files.get(file_id).ok();
-            let start = self.files.location(file_id, location.range.start).ok();
-            let end = self.files.location(file_id, location.range.end).ok();
-
-            let res = self.build_diagnostic_msg(
-                file,
-                start.as_ref(),
-                end.as_ref(),
-                &diagnostic.severity,
-                &diagnostic.message,
-            );
-
-            eprintln!("{res}");
-        }
-    }
-    fn register(&mut self, path: String, src: String) -> usize {
-        self.files.add(path, src)
-    }
-}
-
-impl ClangFormatDiagnosticReporter {
-    /// returns diagnostic message in clang format
-    /// file-name:{range}: severity: message
-    /// optional parameters that are none will not be included
-    fn build_diagnostic_msg(
-        &self,
-        file: Option<&SimpleFile<String, String>>,
-        start: Option<&Location>,
-        end: Option<&Location>,
-        severity: &Severity,
-        msg: &str,
-    ) -> String {
-        let mut str = String::new();
-        // file name
-        if let Some(f) = file {
-            str.push_str(format!("{}:", f.name().as_str()).as_str());
-            // range
-            if let Some(s) = start {
-                if let Some(e) = end {
-                    // if start and end are equal there is no need to show the range
-                    if s.eq(e) {
-                        str.push_str(format!("{}:{}: ", s.line_number, s.column_number).as_str());
-                    } else {
-                        str.push_str(
-                            format!(
-                                "{}:{}:{{{}:{}-{}:{}}}: ",
-                                s.line_number,
-                                s.column_number,
-                                s.line_number,
-                                s.column_number,
-                                e.line_number,
-                                e.column_number
-                            )
-                            .as_str(),
-                        );
-                    }
-                }
-            } else {
-                str.push(' ');
-            }
-        }
-        // severity
-        str.push_str(format!("{severity}: ").as_str());
-        // msg
-        str.push_str(msg);
-
-        str
-    }
-}
-
-/// a DiagnosticReporter that swallows all diagnostics
-#[derive(Default)]
-pub struct NullDiagnosticReporter {
-    last_id: usize,
-}
-
-impl DiagnosticReporter for NullDiagnosticReporter {
-    fn report(&self, _diagnostics: &[ResolvedDiagnostics]) {
-        //ignore
-    }
-
-    fn register(&mut self, _path: String, _src: String) -> usize {
-        // at least provide some unique ids
-        self.last_id += 1;
-        self.last_id
-    }
-}
-
-/// the Diagnostician handle's Diangostics with the help of a
-/// assessor and a reporter
-pub struct Diagnostician {
-    pub reporter: Box<dyn DiagnosticReporter>,
-    pub assessor: Box<dyn DiagnosticAssessor>,
-    pub(crate) filename_fileid_mapping: HashMap<String, usize>,
-}
-
-impl Diagnostician {
-    /// registers the given source-code at the diagnostician, so it can
-    /// preview errors in the source
-    /// returns the id to use to reference the given file
-    pub fn register_file(&mut self, id: String, src: String) -> usize {
-        let handle = self.reporter.register(id.clone(), src);
-        self.filename_fileid_mapping.insert(id, handle);
-        handle
-    }
-
-    /// creates a null-diagnostician that does not report diagnostics
-    pub fn null_diagnostician() -> Diagnostician {
-        Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            reporter: Box::<NullDiagnosticReporter>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
-    /// creates a clang-format-diagnostician that reports diagnostics in clang format
-    pub fn clang_format_diagnostician() -> Diagnostician {
-        Diagnostician {
-            reporter: Box::<ClangFormatDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
-    /// assess and reports the given diagnostics
-    pub fn handle(&self, diagnostics: Vec<Diagnostic>) {
-        let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
-            message: d.get_message().to_string(),
-            severity: self.assess(d),
-            main_location: ResolvedLocation {
-                file_handle: self
-                    .get_file_handle(d.get_location().get_file_name())
-                    .unwrap_or(usize::max_value()),
-                range: d.get_location().to_range(),
-            },
-            additional_locations: d.get_secondary_locations().map(|it| {
-                it.iter()
-                    .map(|l| ResolvedLocation {
-                        file_handle: self.get_file_handle(l.get_file_name()).unwrap_or(usize::max_value()),
-                        range: l.to_range(),
-                    })
-                    .collect()
-            }),
-        });
-
-        self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
-    }
-
-    fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
-        file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
-    }
-}
-
-impl DiagnosticReporter for Diagnostician {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
-        //delegate to reporter
-        self.reporter.report(diagnostics);
-    }
-
-    fn register(&mut self, path: String, src: String) -> usize {
-        //delegate to reporter
-        self.reporter.register(path, src)
-    }
-}
-
-impl DiagnosticAssessor for Diagnostician {
-    fn assess(&self, d: &Diagnostic) -> Severity {
-        //delegate to assesor
-        self.assessor.assess(d)
-    }
-}
-
-//This clippy lint is wrong her because the trait is expecting dyn
-#[allow(clippy::derivable_impls)]
-impl Default for Diagnostician {
-    fn default() -> Self {
-        Self {
-            reporter: Box::<CodeSpanDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-}
-
 #[cfg(test)]
-mod diagnostics_tests {
+mod tests {
     use codespan_reporting::files::{Location, SimpleFile};
 
-    use super::ClangFormatDiagnosticReporter;
+    use crate::{diagnostician::Severity, reporter::clang::ClangFormatDiagnosticReporter};
 
     #[test]
     fn test_build_diagnostic_msg() {
@@ -1179,7 +716,7 @@ mod diagnostics_tests {
             Some(&file),
             Some(&start),
             Some(&end),
-            &super::Severity::Error,
+            &Severity::Error,
             "This is an error",
         );
 
@@ -1196,7 +733,7 @@ mod diagnostics_tests {
             Some(&file),
             Some(&start),
             Some(&end),
-            &super::Severity::Error,
+            &Severity::Error,
             "This is an error",
         );
 
@@ -1207,13 +744,8 @@ mod diagnostics_tests {
     fn test_build_diagnostic_msg_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
         let file = SimpleFile::new("test.st".to_string(), "source".to_string());
-        let res = reporter.build_diagnostic_msg(
-            Some(&file),
-            None,
-            None,
-            &super::Severity::Error,
-            "This is an error",
-        );
+        let res =
+            reporter.build_diagnostic_msg(Some(&file), None, None, &Severity::Error, "This is an error");
 
         assert_eq!(res, "test.st: error: This is an error");
     }
@@ -1227,7 +759,7 @@ mod diagnostics_tests {
             None,
             Some(&start),
             Some(&end),
-            &super::Severity::Error,
+            &Severity::Error,
             "This is an error",
         );
 
@@ -1237,8 +769,7 @@ mod diagnostics_tests {
     #[test]
     fn test_build_diagnostic_msg_no_file_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
-        let res =
-            reporter.build_diagnostic_msg(None, None, None, &super::Severity::Error, "This is an error");
+        let res = reporter.build_diagnostic_msg(None, None, None, &Severity::Error, "This is an error");
 
         assert_eq!(res, "error: This is an error");
     }

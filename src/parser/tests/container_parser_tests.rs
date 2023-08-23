@@ -1,4 +1,5 @@
-use crate::{test_utils::tests::parse, Diagnostic};
+use crate::test_utils::tests::parse;
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 #[test]

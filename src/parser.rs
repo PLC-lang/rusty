@@ -7,15 +7,14 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_util::convention::qualified_name;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    diagnostics::Diagnostician,
     expect_token,
     lexer::{self, ParseSession, Token, Token::*},
     typesystem::DINT_TYPE,
-    Diagnostic,
 };
 
 use self::{

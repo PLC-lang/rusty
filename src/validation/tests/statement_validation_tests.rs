@@ -1,5 +1,7 @@
+use plc_diagnostics::diagnostics::Diagnostic;
+
+use crate::assert_validation_snapshot;
 use crate::test_utils::tests::parse_and_validate;
-use crate::{assert_validation_snapshot, Diagnostic};
 
 #[test]
 fn assign_pointer_to_too_small_type_result_in_an_error() {
