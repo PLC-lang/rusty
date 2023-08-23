@@ -182,6 +182,32 @@ fn cast_expressions_of_enum_with_direct_access_resolves_types() {
 }
 
 #[test]
+fn direct_access_using_enum_values_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRs
+            VAR
+                x : INT;
+            END_VAR
+
+            x.%XBIT01;
+            x.%XBIT02;
+            x.BIT01;
+            x.BIT02;
+        END_PROGRAM
+        TYPE MyEnum : (BIT01:=0,BIT02,BIT03); END_TYPE
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[2], VOID_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[3], VOID_TYPE, None);
+}
+
+#[test]
 fn binary_expressions_resolves_types_for_mixed_signed_ints() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
@@ -2194,6 +2220,58 @@ fn struct_members_initializers_type_hint_test() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn struct_member_explicit_initialization_test() {
+    // GIVEN a struct-initialization with explicit assignments
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION main : DINT
+		VAR
+			x	 		: myStruct;
+		END_VAR
+			x	:= (var1 := 1, var2 := 7);
+		END_FUNCTION
+		
+		TYPE myStruct : STRUCT
+				var1 : DINT;
+				var2 : BYTE;
+			END_STRUCT
+		END_TYPE",
+        id_provider.clone(),
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // THEN the initializers assignments have correct annotations
+    let AstStatement::Assignment { right, ..} = &unit.implementations[0].statements[0] else { unreachable!()};
+    let AstStatement::ExpressionList { expressions, id } = right.as_ref() else {unreachable!()};
+
+    let AstStatement::Assignment{left, ..} = &expressions[0] else {unreachable!()};
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "DINT".to_string(),
+            qualified_name: "myStruct.var1".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(left)
+    );
+
+    let AstStatement::Assignment{left, ..} = &expressions[1] else {unreachable!()};
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "BYTE".to_string(),
+            qualified_name: "myStruct.var2".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(left)
+    );
 }
 
 #[test]

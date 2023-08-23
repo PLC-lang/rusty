@@ -80,7 +80,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     if let Err(msg) = res {
         assert_eq!(
             Diagnostic::codegen_error(
-                r#"cannot generate call statement for "Reference { name: \"external\" }""#,
+                r#"cannot generate call statement for "ReferenceExpr { kind: Member(Reference { name: \"external\" }), base: None }""#,
                 SourceRange::in_file(30..38, "external_file.st")
             ),
             msg

@@ -98,7 +98,9 @@ fn literal_cast_with_non_literal() {
     let diagnostics = parse_and_validate(
         "PROGRAM exp 
             INT#[x]; 
-        END_PROGRAM",
+        END_PROGRAM
+        
+        VAR_GLOBAL x : INT; END_VAR",
     );
     assert_validation_snapshot!(&diagnostics);
 }

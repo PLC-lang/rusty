@@ -66,28 +66,10 @@ pub fn visit_statement<T: AnnotationMap>(
                 ReferenceAccess::Member(m) => {
                     visit_statement(validator, m.as_ref(), context);
 
-                    if let (AstStatement::DirectAccess { access, index, .. }, Some(target_type)) = (
-                        m.as_ref(),
-                        base.as_deref().map(|base| context.annotations.get_hint_or_void(base, &context.index).get_type_information()),
-                    ) {
-                        if target_type.is_int() {
-            if !helper::is_compatible(access, target_type, context.index) {
-                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                    &format!("{access:?}"),
-                    access.get_bit_width(),
-                    m.get_location(),
-                ))
-            } else {
-                validate_access_index(validator, context, index, access, target_type, &m.get_location());
-            }
-        } else {
-            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                &format!("{access:?}"),
-                access.get_bit_width(),
-                m.get_location(),
-            ))
-        }
+                    if let Some(reference_name) = statement.get_flat_reference_name() {
+                        validate_reference(validator, statement, reference_name, &m.get_location(), context);
                     }
+                   validate_direct_access(m, base.as_deref(), context, validator, statement);
                 }
                 ReferenceAccess::Index(i) => {
                     if let Some(base) = base {
@@ -101,6 +83,22 @@ pub fn visit_statement<T: AnnotationMap>(
                 }
                 ReferenceAccess::Cast(c) => {
                     visit_statement(validator, c.as_ref(), context);
+
+                    // see if we try to cast a literal
+                    if let (
+                        AstStatement::Literal { kind: literal, .. },
+                        Some(StatementAnnotation::Type { type_name }),
+                    ) = (c.as_ref(), base.as_ref().and_then(|it| context.annotations.get(it)))
+                    {
+                        validate_cast_literal(
+                            validator,
+                            literal,
+                            c.as_ref(),
+                            type_name.as_str(),
+                            &statement.get_location(),
+                            context,
+                        );
+                    }
                 }
                 ReferenceAccess::Deref => {
                     if let Some(base) = base {
@@ -115,7 +113,8 @@ pub fn visit_statement<T: AnnotationMap>(
                 }
                 ReferenceAccess::Address => {
                     if let Some(base) = base {
-                        visit_statement(validator, base, context)
+                        visit_statement(validator, base, context);
+                        validate_address_of_expression(validator, base, statement.get_location(), context);
                     } else {
                         validator.diagnostics().push(Diagnostic::invalid_operation(
                             "Address-of requires a value.",
@@ -129,9 +128,9 @@ pub fn visit_statement<T: AnnotationMap>(
         //     elements.iter().for_each(|element| visit_statement(validator, element, context));
         //     validate_qualified_reference(validator, elements, context);
         // }
-        AstStatement::Reference { name, location, .. } => {
-            validate_reference(validator, statement, name, location, context);
-        }
+        // AstStatement::Reference { name, location, .. } => {
+        //     validate_reference(validator, statement, name, location, context);
+        // }
         // AstStatement::ArrayAccess { reference, access, .. } => {
         //     visit_all_statements!(validator, context, reference, access);
         //     visit_array_access(validator, reference, access, context);
@@ -186,6 +185,76 @@ pub fn visit_statement<T: AnnotationMap>(
         _ => {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+fn validate_address_of_expression<T: AnnotationMap>(
+    validator: &mut Validator,
+    target: &AstStatement,
+    location: SourceRange,
+    context: &ValidationContext<T>,
+) {
+    let a = context.annotations.get(target);
+    //FIXME: resolver should also annotate information whether this results in an LValue or RValue
+    // array-access results in a value, but it is an LValue :-(
+    if !matches!(a, Some(StatementAnnotation::Variable { .. }))
+        && !matches!(target, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. })
+    {
+        validator.push_diagnostic(Diagnostic::invalid_operation("Invalid address-of operation", location));
+    }
+}
+
+fn validate_direct_access<T: AnnotationMap>(
+    m: &AstStatement,
+    base: Option<&AstStatement>,
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    full_expression: &AstStatement,
+) {
+    match (
+        m,
+        // FIXME: should we consider the hint if one is available?
+        base.and_then(|base| context.annotations.get(base)),
+    ) {
+        (AstStatement::DirectAccess { access, index, .. }, Some(base_annotation)) => {
+            let base_type = context.annotations.get_type_for_annotation(context.index, base_annotation).unwrap_or(context.index.get_void_type()).get_type_information();
+            if base_type.is_int() {
+                if !helper::is_compatible(access, base_type, context.index) {
+                    validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                        &format!("{access:?}"),
+                        access.get_bit_width(),
+                        m.get_location(),
+                    ))
+                } else {
+                    validate_access_index(validator, context, index, access, base_type, &m.get_location());
+                }
+            } else {
+                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                    &format!("{access:?}"),
+                    access.get_bit_width(),
+                    m.get_location(),
+                ))
+            }
+        }
+        (_, Some(StatementAnnotation::Value { .. })) |
+        (_, Some(StatementAnnotation::Variable { .. }))
+         => {
+            // we typed base.SOMETHING
+            // and the whole thing could not be resolved, while SOMETHING can be resolved
+            if !context.annotations.has_type_annotation(full_expression)
+                && context.annotations.has_type_annotation(m)
+            {
+                // the whole expression does not resolve to anything
+                // so maybe the user wanted a bit-access?
+                let name = m.get_flat_reference_name().unwrap_or("...");
+                validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                    // FIXME: rephrase message to also include other direct-access
+                    message: format!("If you meant to access a bit, use %X{name} instead.",),
+                    range: vec![m.get_location()],
+                });
+            }
+        }
+        _ => {}
+    }
 }
 
 fn validate_control_statement<T: AnnotationMap>(
@@ -349,7 +418,7 @@ fn validate_access_index<T: AnnotationMap>(
                 ))
             }
         }
-        AstStatement::Reference { .. } => {
+        AstStatement::ReferenceExpr { .. } => {
             let ref_type = context.annotations.get_type_or_void(access_index, context.index);
             if !ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_variable(

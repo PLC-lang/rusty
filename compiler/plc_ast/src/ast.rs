@@ -1104,7 +1104,7 @@ impl AstStatement {
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match self {
             AstStatement::ReferenceExpr {
-                access: ReferenceAccess::Member(reference), base: None, ..
+                access: ReferenceAccess::Member(reference), ..
             } => {
                 if let AstStatement::Reference { name, .. } = reference.as_ref() {
                     Some(name)
