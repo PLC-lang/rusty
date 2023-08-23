@@ -19,11 +19,9 @@ entry:
 
 condition_body:                                   ; preds = %entry
   ret void
-
-buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %buffer_block, %entry
+continue:                                         ; preds = %condition_body, %entry
   ret void
 }
 

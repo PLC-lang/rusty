@@ -19,11 +19,9 @@ entry:
 condition_body:                                   ; preds = %entry
   %smaller_than_ten_ret = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret
-
-buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %buffer_block, %entry
+continue:                                         ; preds = %condition_body, %entry
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
 }
