@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.2/src/termios/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.8/src/termios/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustix/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1271,6 +1271,157 @@
 <a href="#1271" id="1271">1271</a>
 <a href="#1272" id="1272">1272</a>
 <a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::backend::c;
 <span class="kw">use crate</span>::{backend, io};
 <span class="kw">use </span>bitflags::bitflags;
@@ -1304,15 +1455,19 @@
     #[cfg(any(
         linux_like,
         target_env = <span class="string">&quot;newlib&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
         target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
         target_os = <span class="string">&quot;redox&quot;
     </span>))]
     </span><span class="kw">pub </span>line_discipline: c::cc_t,
 
     <span class="doccomment">/// How are various special control codes handled?
     </span><span class="attr">#[doc(alias = <span class="string">&quot;c_cc&quot;</span>)]
+    #[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
     </span><span class="kw">pub </span>special_codes: SpecialCodes,
+
+    <span class="attr">#[cfg(target_os = <span class="string">&quot;nto&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) __reserved: [c::c_uint; <span class="number">3</span>],
 
     <span class="doccomment">/// Line discipline.
     </span><span class="comment">// On PowerPC, this field comes after `c_cc`.
@@ -1324,21 +1479,29 @@
     ///
     /// On Linux and BSDs, this is the arbitrary integer speed value. On all
     /// other platforms, this is the encoded speed value.
+    </span><span class="attr">#[cfg(not(any(solarish, all(libc, target_env = <span class="string">&quot;newlib&quot;</span>), target_os = <span class="string">&quot;aix&quot;</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) input_speed: c::speed_t,
 
     <span class="doccomment">/// See the `output_speed` and `set_output_seed` functions.
     ///
     /// On Linux and BSDs, this is the integer speed value. On all other
     /// platforms, this is the encoded speed value.
+    </span><span class="attr">#[cfg(not(any(solarish, all(libc, target_env = <span class="string">&quot;newlib&quot;</span>), target_os = <span class="string">&quot;aix&quot;</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) output_speed: c::speed_t,
+
+    <span class="doccomment">/// How are various special control codes handled?
+    </span><span class="attr">#[doc(alias = <span class="string">&quot;c_cc&quot;</span>)]
+    #[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
+    </span><span class="kw">pub </span>special_codes: SpecialCodes,
 }
 
 <span class="kw">impl </span>Termios {
-    <span class="doccomment">/// `cfmakeraw(self)`—Set a `Termios` value to the settings for &quot;raw&quot; mode.
+    <span class="doccomment">/// `cfmakeraw(self)`—Set a `Termios` value to the settings for “raw” mode.
     ///
     /// In raw mode, input is available a byte at a time, echoing is disabled,
     /// and special terminal input and output codes are disabled.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;cfmakeraw&quot;</span>)]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;nto&quot;</span>))]
+    #[doc(alias = <span class="string">&quot;cfmakeraw&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>make_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         backend::termios::syscalls::cfmakeraw(<span class="self">self</span>)
@@ -1361,8 +1524,20 @@
             <span class="self">self</span>.input_speed <span class="kw">as </span>u32
         }
 
+        <span class="comment">// On illumos, `input_speed` is not present.
+        </span><span class="attr">#[cfg(any(solarish, all(libc, target_env = <span class="string">&quot;newlib&quot;</span>), target_os = <span class="string">&quot;aix&quot;</span>))]
+        </span><span class="kw">unsafe </span>{
+            speed::decode(c::cfgetispeed(<span class="kw">crate</span>::utils::as_ptr(<span class="self">self</span>).cast())).unwrap()
+        }
+
         <span class="comment">// On other platforms, it&#39;s the encoded speed.
-        </span><span class="attr">#[cfg(not(any(linux_kernel, bsd)))]
+        </span><span class="attr">#[cfg(not(any(
+            linux_kernel,
+            bsd,
+            solarish,
+            all(libc, target_env = <span class="string">&quot;newlib&quot;</span>),
+            target_os = <span class="string">&quot;aix&quot;
+        </span>)))]
         </span>{
             speed::decode(<span class="self">self</span>.input_speed).unwrap()
         }
@@ -1382,8 +1557,20 @@
             <span class="self">self</span>.output_speed <span class="kw">as </span>u32
         }
 
+        <span class="comment">// On illumos, `output_speed` is not present.
+        </span><span class="attr">#[cfg(any(solarish, all(libc, target_env = <span class="string">&quot;newlib&quot;</span>), target_os = <span class="string">&quot;aix&quot;</span>))]
+        </span><span class="kw">unsafe </span>{
+            speed::decode(c::cfgetospeed(<span class="kw">crate</span>::utils::as_ptr(<span class="self">self</span>).cast())).unwrap()
+        }
+
         <span class="comment">// On other platforms, it&#39;s the encoded speed.
-        </span><span class="attr">#[cfg(not(any(linux_kernel, bsd)))]
+        </span><span class="attr">#[cfg(not(any(
+            linux_kernel,
+            bsd,
+            solarish,
+            all(libc, target_env = <span class="string">&quot;newlib&quot;</span>),
+            target_os = <span class="string">&quot;aix&quot;
+        </span>)))]
         </span>{
             speed::decode(<span class="self">self</span>.output_speed).unwrap()
         }
@@ -1396,7 +1583,8 @@
     /// encoded constant value. Not all implementations support all integer
     /// values; use the constants in the [`speed`] module for likely-supported
     /// speeds.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;cfsetspeed&quot;</span>)]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;nto&quot;</span>))]
+    #[doc(alias = <span class="string">&quot;cfsetspeed&quot;</span>)]
     #[doc(alias = <span class="string">&quot;CBAUD&quot;</span>)]
     #[doc(alias = <span class="string">&quot;CBAUDEX&quot;</span>)]
     #[doc(alias = <span class="string">&quot;CIBAUD&quot;</span>)]
@@ -1453,8 +1641,8 @@
         <span class="attr">#[cfg(any(
             linux_like,
             target_env = <span class="string">&quot;newlib&quot;</span>,
-            target_os = <span class="string">&quot;haiku&quot;</span>,
             target_os = <span class="string">&quot;fuchsia&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;</span>,
             target_os = <span class="string">&quot;redox&quot;
         </span>))]
         </span>{
@@ -1500,7 +1688,7 @@
         </span><span class="kw">const </span>ICRNL = c::ICRNL;
 
         <span class="doccomment">/// `IUCLC`
-        </span><span class="attr">#[cfg(any(linux_kernel, solarish, target_os = <span class="string">&quot;haiku&quot;</span>))]
+        </span><span class="attr">#[cfg(any(linux_kernel, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
         </span><span class="kw">const </span>IUCLC = c::IUCLC;
 
         <span class="doccomment">/// `IXON`
@@ -1519,14 +1707,12 @@
 
         <span class="doccomment">/// `IUTF8`
         </span><span class="attr">#[cfg(not(any(
+            freebsdlike,
+            netbsdlike,
             solarish,
             target_os = <span class="string">&quot;aix&quot;</span>,
-            target_os = <span class="string">&quot;dragonfly&quot;</span>,
             target_os = <span class="string">&quot;emscripten&quot;</span>,
-            target_os = <span class="string">&quot;freebsd&quot;</span>,
             target_os = <span class="string">&quot;haiku&quot;</span>,
-            target_os = <span class="string">&quot;netbsd&quot;</span>,
-            target_os = <span class="string">&quot;openbsd&quot;</span>,
             target_os = <span class="string">&quot;redox&quot;</span>,
         )))]
         </span><span class="kw">const </span>IUTF8 = c::IUTF8;
@@ -1544,9 +1730,8 @@
         <span class="doccomment">/// `OLCUC`
         </span><span class="attr">#[cfg(not(any(
             apple,
+            freebsdlike,
             target_os = <span class="string">&quot;aix&quot;</span>,
-            target_os = <span class="string">&quot;dragonfly&quot;</span>,
-            target_os = <span class="string">&quot;freebsd&quot;</span>,
             target_os = <span class="string">&quot;netbsd&quot;</span>,
             target_os = <span class="string">&quot;redox&quot;</span>,
         )))]
@@ -1789,7 +1974,7 @@
         </span><span class="kw">const </span>CLOCAL = c::CLOCAL;
 
         <span class="doccomment">/// `CRTSCTS`
-        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
+        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
         </span><span class="kw">const </span>CRTSCTS = c::CRTSCTS;
 
         <span class="doccomment">/// `CMSPAR`
@@ -1799,6 +1984,7 @@
             target_os = <span class="string">&quot;aix&quot;</span>,
             target_os = <span class="string">&quot;emscripten&quot;</span>,
             target_os = <span class="string">&quot;haiku&quot;</span>,
+            target_os = <span class="string">&quot;nto&quot;</span>,
             target_os = <span class="string">&quot;redox&quot;</span>,
         )))]
         </span><span class="kw">const </span>CMSPAR = c::CMSPAR;
@@ -1806,7 +1992,7 @@
 }
 
 <span class="macro">bitflags! </span>{
-    <span class="doccomment">/// Flags controlling &quot;local&quot; terminal modes.
+    <span class="doccomment">/// Flags controlling “local” terminal modes.
     </span><span class="attr">#[repr(transparent)]
     #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
     </span><span class="kw">pub struct </span>LocalModes: c::tcflag_t {
@@ -1819,7 +2005,7 @@
         </span><span class="kw">const </span>ECHOCTL = c::ECHOCTL;
 
         <span class="doccomment">/// `ECHOPRT`
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
         </span><span class="kw">const </span>ECHOPRT = c::ECHOPRT;
 
         <span class="doccomment">/// `ECHOKE`
@@ -1827,15 +2013,15 @@
         </span><span class="kw">const </span>ECHOKE = c::ECHOKE;
 
         <span class="doccomment">/// `FLUSHO`
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
         </span><span class="kw">const </span>FLUSHO = c::FLUSHO;
 
         <span class="doccomment">/// `PENDIN`
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
         </span><span class="kw">const </span>PENDIN = c::PENDIN;
 
         <span class="doccomment">/// `EXTPROC`
-        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
+        </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
         </span><span class="kw">const </span>EXTPROC = c::EXTPROC;
 
         <span class="doccomment">/// `ISIG`
@@ -2033,7 +2219,7 @@
     <span class="doccomment">/// Translate from a `c::speed_t` code to an arbitrary integer speed value
     /// `u32`.
     </span><span class="attr">#[cfg(not(any(linux_kernel, bsd)))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode(encoded_speed: c::speed_t) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>decode(encoded_speed: c::speed_t) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">match </span>encoded_speed {
             c::B0 =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
             c::B50 =&gt; <span class="prelude-val">Some</span>(<span class="number">50</span>),
@@ -2055,35 +2241,73 @@
             </span>c::B57600 =&gt; <span class="prelude-val">Some</span>(<span class="number">57600</span>),
             <span class="attr">#[cfg(not(target_os = <span class="string">&quot;aix&quot;</span>))]
             </span>c::B115200 =&gt; <span class="prelude-val">Some</span>(<span class="number">115_200</span>),
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;aix&quot;</span>))]
+            <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
             </span>c::B230400 =&gt; <span class="prelude-val">Some</span>(<span class="number">230_400</span>),
             <span class="attr">#[cfg(not(any(
                 apple,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;
             </span>)))]
             </span>c::B460800 =&gt; <span class="prelude-val">Some</span>(<span class="number">460_800</span>),
-            <span class="attr">#[cfg(not(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                solarish,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;
+            </span>)))]
             </span>c::B500000 =&gt; <span class="prelude-val">Some</span>(<span class="number">500_000</span>),
-            <span class="attr">#[cfg(not(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                solarish,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;
+            </span>)))]
             </span>c::B576000 =&gt; <span class="prelude-val">Some</span>(<span class="number">576_000</span>),
             <span class="attr">#[cfg(not(any(
                 apple,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;
             </span>)))]
             </span>c::B921600 =&gt; <span class="prelude-val">Some</span>(<span class="number">921_600</span>),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>c::B1000000 =&gt; <span class="prelude-val">Some</span>(<span class="number">1_000_000</span>),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>c::B1152000 =&gt; <span class="prelude-val">Some</span>(<span class="number">1_152_000</span>),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>c::B1500000 =&gt; <span class="prelude-val">Some</span>(<span class="number">1_500_000</span>),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>c::B2000000 =&gt; <span class="prelude-val">Some</span>(<span class="number">2_000_000</span>),
             <span class="attr">#[cfg(not(any(
                 target_arch = <span class="string">&quot;sparc&quot;</span>,
@@ -2091,6 +2315,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span>c::B2500000 =&gt; <span class="prelude-val">Some</span>(<span class="number">2_500_000</span>),
@@ -2100,6 +2325,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span>c::B3000000 =&gt; <span class="prelude-val">Some</span>(<span class="number">3_000_000</span>),
@@ -2109,6 +2335,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span>c::B3500000 =&gt; <span class="prelude-val">Some</span>(<span class="number">3_500_000</span>),
@@ -2118,6 +2345,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span>c::B4000000 =&gt; <span class="prelude-val">Some</span>(<span class="number">4_000_000</span>),
@@ -2128,7 +2356,7 @@
     <span class="doccomment">/// Translate from an arbitrary `u32` arbitrary integer speed value to a
     /// `c::speed_t` code.
     </span><span class="attr">#[cfg(not(bsd))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode(speed: u32) -&gt; <span class="prelude-ty">Option</span>&lt;c::speed_t&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>encode(speed: u32) -&gt; <span class="prelude-ty">Option</span>&lt;c::speed_t&gt; {
         <span class="kw">match </span>speed {
             <span class="number">0 </span>=&gt; <span class="prelude-val">Some</span>(c::B0),
             <span class="number">50 </span>=&gt; <span class="prelude-val">Some</span>(c::B50),
@@ -2150,35 +2378,73 @@
             </span><span class="number">57600 </span>=&gt; <span class="prelude-val">Some</span>(c::B57600),
             <span class="attr">#[cfg(not(target_os = <span class="string">&quot;aix&quot;</span>))]
             </span><span class="number">115_200 </span>=&gt; <span class="prelude-val">Some</span>(c::B115200),
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;aix&quot;</span>))]
+            <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
             </span><span class="number">230_400 </span>=&gt; <span class="prelude-val">Some</span>(c::B230400),
             <span class="attr">#[cfg(not(any(
                 apple,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
-                target_os = <span class="string">&quot;openbsd&quot;
-            </span>)))]
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;openbsd&quot;</span>,
+            )))]
             </span><span class="number">460_800 </span>=&gt; <span class="prelude-val">Some</span>(c::B460800),
-            <span class="attr">#[cfg(not(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                solarish,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;
+            </span>)))]
             </span><span class="number">500_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B500000),
-            <span class="attr">#[cfg(not(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                solarish,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;
+            </span>)))]
             </span><span class="number">576_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B576000),
             <span class="attr">#[cfg(not(any(
                 apple,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;
             </span>)))]
             </span><span class="number">921_600 </span>=&gt; <span class="prelude-val">Some</span>(c::B921600),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span><span class="number">1_000_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B1000000),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span><span class="number">1_152_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B1152000),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span><span class="number">1_500_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B1500000),
-            <span class="attr">#[cfg(not(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                bsd,
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span><span class="number">2_000_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B2000000),
             <span class="attr">#[cfg(not(any(
                 target_arch = <span class="string">&quot;sparc&quot;</span>,
@@ -2186,6 +2452,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span><span class="number">2_500_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B2500000),
@@ -2195,6 +2462,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span><span class="number">3_000_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B3000000),
@@ -2204,6 +2472,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span><span class="number">3_500_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B3500000),
@@ -2213,6 +2482,7 @@
                 bsd,
                 target_os = <span class="string">&quot;aix&quot;</span>,
                 target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;nto&quot;</span>,
                 target_os = <span class="string">&quot;solaris&quot;</span>,
             )))]
             </span><span class="number">4_000_000 </span>=&gt; <span class="prelude-val">Some</span>(c::B4000000),
@@ -2269,14 +2539,11 @@
 
     <span class="doccomment">/// `VSWTC`
     </span><span class="attr">#[cfg(not(any(
-        apple,
+        bsd,
         solarish,
         target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
         target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub const </span>VSWTC: <span class="self">Self </span>= <span class="self">Self</span>(c::VSWTC <span class="kw">as </span>usize);
 
@@ -2411,31 +2678,51 @@
         <span class="comment">// On everything except PowerPC, `termios` matches `termios2` except for
         // the addition of `c_ispeed` and `c_ospeed`.
         </span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;powerpc&quot;</span>, target_arch = <span class="string">&quot;powerpc64&quot;</span>)))]
-        </span><span class="macro">assert_eq!</span>(
+        </span><span class="macro">const_assert_eq!</span>(
             <span class="macro">memoffset::offset_of!</span>(Termios, input_speed),
             core::mem::size_of::&lt;c::termios&gt;()
         );
 
         <span class="comment">// On PowerPC, `termios2` is `termios`.
         </span><span class="attr">#[cfg(any(target_arch = <span class="string">&quot;powerpc&quot;</span>, target_arch = <span class="string">&quot;powerpc64&quot;</span>))]
-        </span><span class="macro">assert_eq!</span>(
-            core::mem::size_of::&lt;c::termios2&gt;(),
-            core::mem::size_of::&lt;c::termios&gt;()
-        );
+        </span><span class="macro">assert_eq_size!</span>(c::termios2, c::termios);
     }
 
     <span class="attr">#[cfg(not(linux_raw))]
     </span>{
-        <span class="attr">#[cfg(not(all(
-            target_env = <span class="string">&quot;gnu&quot;</span>,
-            any(
-                target_arch = <span class="string">&quot;sparc&quot;</span>,
-                target_arch = <span class="string">&quot;sparc64&quot;</span>,
-                target_arch = <span class="string">&quot;mips&quot;</span>,
-                target_arch = <span class="string">&quot;mips64&quot;
-            </span>)
-        )))]
+        <span class="comment">// On Mips, Sparc, and Android, the libc lacks the ospeed and ispeed
+        // fields.
+        </span><span class="attr">#[cfg(all(
+            not(all(
+                target_env = <span class="string">&quot;gnu&quot;</span>,
+                any(
+                    target_arch = <span class="string">&quot;mips&quot;</span>,
+                    target_arch = <span class="string">&quot;mips32r6&quot;</span>,
+                    target_arch = <span class="string">&quot;mips64&quot;</span>,
+                    target_arch = <span class="string">&quot;mips64r6&quot;</span>,
+                    target_arch = <span class="string">&quot;sparc&quot;</span>,
+                    target_arch = <span class="string">&quot;sparc64&quot;
+                </span>)
+            )),
+            not(all(libc, target_os = <span class="string">&quot;android&quot;</span>))
+        ))]
         </span><span class="macro">check_renamed_type!</span>(Termios, termios);
+        <span class="attr">#[cfg(not(all(
+            not(all(
+                target_env = <span class="string">&quot;gnu&quot;</span>,
+                any(
+                    target_arch = <span class="string">&quot;mips&quot;</span>,
+                    target_arch = <span class="string">&quot;mips32r6&quot;</span>,
+                    target_arch = <span class="string">&quot;mips64&quot;</span>,
+                    target_arch = <span class="string">&quot;mips64r6&quot;</span>,
+                    target_arch = <span class="string">&quot;sparc&quot;</span>,
+                    target_arch = <span class="string">&quot;sparc64&quot;
+                </span>)
+            )),
+            not(all(libc, target_os = <span class="string">&quot;android&quot;</span>))
+        )))]
+        </span><span class="macro">const_assert!</span>(core::mem::size_of::&lt;Termios&gt;() &gt;= core::mem::size_of::&lt;c::termios&gt;());
+
         <span class="macro">check_renamed_struct_renamed_field!</span>(Termios, termios, input_modes, c_iflag);
         <span class="macro">check_renamed_struct_renamed_field!</span>(Termios, termios, output_modes, c_oflag);
         <span class="macro">check_renamed_struct_renamed_field!</span>(Termios, termios, control_modes, c_cflag);
@@ -2443,8 +2730,8 @@
         <span class="attr">#[cfg(any(
             linux_like,
             target_env = <span class="string">&quot;newlib&quot;</span>,
-            target_os = <span class="string">&quot;haiku&quot;</span>,
             target_os = <span class="string">&quot;fuchsia&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;</span>,
             target_os = <span class="string">&quot;redox&quot;
         </span>))]
         </span><span class="macro">check_renamed_struct_renamed_field!</span>(Termios, termios, line_discipline, c_line);
@@ -2472,11 +2759,16 @@
 }
 
 <span class="attr">#[test]
-#[cfg(not(any(solarish, target_os = <span class="string">&quot;emscripten&quot;</span>)))]
+#[cfg(not(any(
+    solarish,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;
+</span>)))]
 </span><span class="kw">fn </span>termios_legacy() {
     <span class="comment">// Check that our doc aliases above are correct.
-    </span><span class="macro">assert_eq!</span>(c::EXTA, c::B19200);
-    <span class="macro">assert_eq!</span>(c::EXTB, c::B38400);
+    </span><span class="macro">const_assert_eq!</span>(c::EXTA, c::B19200);
+    <span class="macro">const_assert_eq!</span>(c::EXTB, c::B38400);
 }
 
 <span class="attr">#[cfg(bsd)]
@@ -2484,10 +2776,10 @@
 </span><span class="kw">fn </span>termios_bsd() {
     <span class="comment">// On BSD platforms we can assume that the `B*` constants have their
     // arbitrary integer speed value. Confirm this.
-    </span><span class="macro">assert_eq!</span>(c::B0, <span class="number">0</span>);
-    <span class="macro">assert_eq!</span>(c::B50, <span class="number">50</span>);
-    <span class="macro">assert_eq!</span>(c::B19200, <span class="number">19200</span>);
-    <span class="macro">assert_eq!</span>(c::B38400, <span class="number">38400</span>);
+    </span><span class="macro">const_assert_eq!</span>(c::B0, <span class="number">0</span>);
+    <span class="macro">const_assert_eq!</span>(c::B50, <span class="number">50</span>);
+    <span class="macro">const_assert_eq!</span>(c::B19200, <span class="number">19200</span>);
+    <span class="macro">const_assert_eq!</span>(c::B38400, <span class="number">38400</span>);
 }
 
 <span class="attr">#[test]
@@ -2515,26 +2807,36 @@
     <span class="comment">// When using `termios2`, we assume that we can add the optional actions
     // value to the ioctl request code. Test this assumption.
 
-    </span><span class="macro">assert_eq!</span>(c::TCSETS2, c::TCSETS2 + <span class="number">0</span>);
-    <span class="macro">assert_eq!</span>(c::TCSETSW2, c::TCSETS2 + <span class="number">1</span>);
-    <span class="macro">assert_eq!</span>(c::TCSETSF2, c::TCSETS2 + <span class="number">2</span>);
+    </span><span class="macro">const_assert_eq!</span>(c::TCSETS2, c::TCSETS2 + <span class="number">0</span>);
+    <span class="macro">const_assert_eq!</span>(c::TCSETSW2, c::TCSETS2 + <span class="number">1</span>);
+    <span class="macro">const_assert_eq!</span>(c::TCSETSF2, c::TCSETS2 + <span class="number">2</span>);
 
-    <span class="macro">assert_eq!</span>(c::TCSANOW - c::TCSANOW, <span class="number">0</span>);
-    <span class="macro">assert_eq!</span>(c::TCSADRAIN - c::TCSANOW, <span class="number">1</span>);
-    <span class="macro">assert_eq!</span>(c::TCSAFLUSH - c::TCSANOW, <span class="number">2</span>);
+    <span class="macro">const_assert_eq!</span>(c::TCSANOW - c::TCSANOW, <span class="number">0</span>);
+    <span class="macro">const_assert_eq!</span>(c::TCSADRAIN - c::TCSANOW, <span class="number">1</span>);
+    <span class="macro">const_assert_eq!</span>(c::TCSAFLUSH - c::TCSANOW, <span class="number">2</span>);
 
     <span class="comment">// MIPS is different here.
-    </span><span class="attr">#[cfg(any(target_arch = <span class="string">&quot;mips&quot;</span>, target_arch = <span class="string">&quot;mips64&quot;</span>))]
+    </span><span class="attr">#[cfg(any(
+        target_arch = <span class="string">&quot;mips&quot;</span>,
+        target_arch = <span class="string">&quot;mips32r6&quot;</span>,
+        target_arch = <span class="string">&quot;mips64&quot;</span>,
+        target_arch = <span class="string">&quot;mips64r6&quot;
+    </span>))]
     </span>{
         <span class="macro">assert_eq!</span>(i128::from(c::TCSANOW) - i128::from(c::TCSETS), <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(i128::from(c::TCSADRAIN) - i128::from(c::TCSETS), <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(i128::from(c::TCSAFLUSH) - i128::from(c::TCSETS), <span class="number">2</span>);
     }
-    <span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;mips&quot;</span>, target_arch = <span class="string">&quot;mips64&quot;</span>)))]
+    <span class="attr">#[cfg(not(any(
+        target_arch = <span class="string">&quot;mips&quot;</span>,
+        target_arch = <span class="string">&quot;mips32r6&quot;</span>,
+        target_arch = <span class="string">&quot;mips64&quot;</span>,
+        target_arch = <span class="string">&quot;mips64r6&quot;
+    </span>)))]
     </span>{
-        <span class="macro">assert_eq!</span>(c::TCSANOW, <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(c::TCSADRAIN, <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(c::TCSAFLUSH, <span class="number">2</span>);
+        <span class="macro">const_assert_eq!</span>(c::TCSANOW, <span class="number">0</span>);
+        <span class="macro">const_assert_eq!</span>(c::TCSADRAIN, <span class="number">1</span>);
+        <span class="macro">const_assert_eq!</span>(c::TCSAFLUSH, <span class="number">2</span>);
     }
 }
 
@@ -2542,6 +2844,6 @@
 #[test]
 </span><span class="kw">fn </span>termios_cibaud() {
     <span class="comment">// Test an assumption.
-    </span><span class="macro">assert_eq!</span>(c::CIBAUD, c::CBAUD &lt;&lt; c::IBSHIFT);
+    </span><span class="macro">const_assert_eq!</span>(c::CIBAUD, c::CBAUD &lt;&lt; c::IBSHIFT);
 }
 </code></pre></div></section></main></body></html>

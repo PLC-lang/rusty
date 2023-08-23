@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_bigint/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_bigint/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -288,10 +288,6 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
@@ -302,10 +298,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-</span><span class="doccomment">//! A Big integer (signed version: `BigInt`, unsigned version: `BigUint`).
+</span><span class="doccomment">//! Big Integer Types for Rust
 //!
-//! A `BigUint` is represented as a vector of `BigDigit`s.
-//! A `BigInt` is a combination of `BigUint` and `Sign`.
+//! * A [`BigUint`] is unsigned and represented as a vector of digits.
+//! * A [`BigInt`] is signed and is a combination of [`BigUint`] and [`Sign`].
 //!
 //! Common numerical operations are overloaded, so we can treat them
 //! the same way we treat other numbers.
@@ -316,7 +312,6 @@
 //! # fn main() {
 //! use num_bigint::BigUint;
 //! use num_traits::{Zero, One};
-//! use std::mem::replace;
 //!
 //! // Calculate large fibonacci numbers.
 //! fn fib(n: usize) -&gt; BigUint {
@@ -324,8 +319,8 @@
 //!     let mut f1: BigUint = One::one();
 //!     for _ in 0..n {
 //!         let f2 = f0 + &amp;f1;
-//!         // This is a low cost way of swapping f0 with f1 and f1 with f2.
-//!         f0 = replace(&amp;mut f1, f2);
+//!         f0 = f1;
+//!         f1 = f2;
 //!     }
 //!     f0
 //! }
@@ -389,7 +384,7 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">mod </span>std_alloc {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>std::borrow::Cow;
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;quickcheck&quot;</span>))]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;quickcheck&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>std::boxed::Box;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>std::string::String;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>std::vec::Vec;
@@ -402,7 +397,7 @@
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 </span><span class="kw">mod </span>std_alloc {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>alloc::borrow::Cow;
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;quickcheck&quot;</span>))]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;quickcheck&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>alloc::boxed::Box;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>alloc::string::String;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>alloc::vec::Vec;
@@ -496,9 +491,6 @@
 
     <span class="doccomment">/// Extract the original value, if available. The value will be available
     /// if the type before conversion was either [`BigInt`] or [`BigUint`].
-    ///
-    /// [`BigInt`]: struct.BigInt.html
-    /// [`BigUint`]: struct.BigUint.html
     </span><span class="kw">pub fn </span>into_original(<span class="self">self</span>) -&gt; T {
         <span class="self">self</span>.original
     }
@@ -534,26 +526,26 @@
 </span><span class="kw">pub use </span><span class="kw">crate</span>::bigrand::{RandBigInt, RandomBits, UniformBigInt, UniformBigUint};
 
 <span class="kw">mod </span>big_digit {
-    <span class="doccomment">/// A `BigDigit` is a `BigUint`&#39;s composing element.
+    <span class="doccomment">/// A [`BigDigit`] is a [`BigUint`]&#39;s composing element.
     </span><span class="attr">#[cfg(not(u64_digit))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>BigDigit = u32;
     <span class="attr">#[cfg(u64_digit)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>BigDigit = u64;
 
-    <span class="doccomment">/// A `DoubleBigDigit` is the internal type used to do the computations.  Its
-    /// size is the double of the size of `BigDigit`.
+    <span class="doccomment">/// A [`DoubleBigDigit`] is the internal type used to do the computations.  Its
+    /// size is the double of the size of [`BigDigit`].
     </span><span class="attr">#[cfg(not(u64_digit))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DoubleBigDigit = u64;
     <span class="attr">#[cfg(u64_digit)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DoubleBigDigit = u128;
 
-    <span class="doccomment">/// A `SignedDoubleBigDigit` is the signed version of `DoubleBigDigit`.
+    <span class="doccomment">/// A [`SignedDoubleBigDigit`] is the signed version of [`DoubleBigDigit`].
     </span><span class="attr">#[cfg(not(u64_digit))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SignedDoubleBigDigit = i64;
     <span class="attr">#[cfg(u64_digit)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SignedDoubleBigDigit = i128;
 
-    <span class="comment">// `DoubleBigDigit` size dependent
+    <span class="comment">// [`DoubleBigDigit`] size dependent
     </span><span class="attr">#[cfg(not(u64_digit))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BITS: u8 = <span class="number">32</span>;
     <span class="attr">#[cfg(u64_digit)]
@@ -574,13 +566,13 @@
         (n &amp; LO_MASK) <span class="kw">as </span>BigDigit
     }
 
-    <span class="doccomment">/// Split one `DoubleBigDigit` into two `BigDigit`s.
+    <span class="doccomment">/// Split one [`DoubleBigDigit`] into two [`BigDigit`]s.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_doublebigdigit(n: DoubleBigDigit) -&gt; (BigDigit, BigDigit) {
         (get_hi(n), get_lo(n))
     }
 
-    <span class="doccomment">/// Join two `BigDigit`s into one `DoubleBigDigit`
+    <span class="doccomment">/// Join two [`BigDigit`]s into one [`DoubleBigDigit`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_doublebigdigit(hi: BigDigit, lo: BigDigit) -&gt; DoubleBigDigit {
         DoubleBigDigit::from(lo) | (DoubleBigDigit::from(hi) &lt;&lt; BITS)

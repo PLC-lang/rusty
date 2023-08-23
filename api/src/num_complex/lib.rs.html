@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-complex-0.4.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_complex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_complex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-complex-0.4.4/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_complex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_complex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2885,6 +2885,19 @@
 <a href="#2885" id="2885">2885</a>
 <a href="#2886" id="2886">2886</a>
 <a href="#2887" id="2887">2887</a>
+<a href="#2888" id="2888">2888</a>
+<a href="#2889" id="2889">2889</a>
+<a href="#2890" id="2890">2890</a>
+<a href="#2891" id="2891">2891</a>
+<a href="#2892" id="2892">2892</a>
+<a href="#2893" id="2893">2893</a>
+<a href="#2894" id="2894">2894</a>
+<a href="#2895" id="2895">2895</a>
+<a href="#2896" id="2896">2896</a>
+<a href="#2897" id="2897">2897</a>
+<a href="#2898" id="2898">2898</a>
+<a href="#2899" id="2899">2899</a>
+<a href="#2900" id="2900">2900</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2013 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
@@ -3229,6 +3242,9 @@
     <span class="doccomment">/// Raises `self` to a floating point power.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>powf(<span class="self">self</span>, exp: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>exp.is_zero() {
+            <span class="kw">return </span><span class="self">Self</span>::one();
+        }
         <span class="comment">// formula: x^y = (ρ e^(i θ))^y = ρ^y e^(i θ y)
         // = from_polar(ρ^y, θ y)
         </span><span class="kw">let </span>(r, theta) = <span class="self">self</span>.to_polar();
@@ -3248,22 +3264,11 @@
     <span class="doccomment">/// Raises `self` to a complex power.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>powc(<span class="self">self</span>, exp: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
-        <span class="comment">// formula: x^y = (a + i b)^(c + i d)
-        // = (ρ e^(i θ))^c (ρ e^(i θ))^(i d)
-        //    where ρ=|x| and θ=arg(x)
-        // = ρ^c e^(−d θ) e^(i c θ) ρ^(i d)
-        // = p^c e^(−d θ) (cos(c θ)
-        //   + i sin(c θ)) (cos(d ln(ρ)) + i sin(d ln(ρ)))
-        // = p^c e^(−d θ) (
-        //   cos(c θ) cos(d ln(ρ)) − sin(c θ) sin(d ln(ρ))
-        //   + i(cos(c θ) sin(d ln(ρ)) + sin(c θ) cos(d ln(ρ))))
-        // = p^c e^(−d θ) (cos(c θ + d ln(ρ)) + i sin(c θ + d ln(ρ)))
-        // = from_polar(p^c e^(−d θ), c θ + d ln(ρ))
-        </span><span class="kw">let </span>(r, theta) = <span class="self">self</span>.to_polar();
-        <span class="self">Self</span>::from_polar(
-            r.powf(exp.re) * (-exp.im * theta).exp(),
-            exp.re * theta + exp.im * r.ln(),
-        )
+        <span class="kw">if </span>exp.is_zero() {
+            <span class="kw">return </span><span class="self">Self</span>::one();
+        }
+        <span class="comment">// formula: x^y = exp(y * ln(x))
+        </span>(exp * <span class="self">self</span>.ln()).exp()
     }
 
     <span class="doccomment">/// Raises a floating point number to the complex power `self`.
@@ -4602,6 +4607,9 @@
 
     <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;libm&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>float {
+
+        <span class="kw">use </span>core::f64::INFINITY;
+
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>num_traits::{Float, Pow};
 
@@ -4795,6 +4803,19 @@
                 Complex::new(<span class="number">1.65826</span>, -<span class="number">0.33502</span>),
                 <span class="number">1e-5
             </span>));
+            <span class="kw">let </span>z = Complex::new(<span class="number">0.0</span>, <span class="number">0.0</span>);
+            <span class="macro">assert!</span>(close(z.powc(b), z));
+            <span class="macro">assert!</span>(z.powc(Complex64::new(<span class="number">0.</span>, INFINITY)).is_nan());
+            <span class="macro">assert!</span>(z.powc(Complex64::new(<span class="number">10.</span>, INFINITY)).is_nan());
+            <span class="macro">assert!</span>(z.powc(Complex64::new(INFINITY, INFINITY)).is_nan());
+            <span class="macro">assert!</span>(close(z.powc(Complex64::new(INFINITY, <span class="number">0.</span>)), z));
+            <span class="macro">assert!</span>(z.powc(Complex64::new(-<span class="number">1.</span>, <span class="number">0.</span>)).re.is_infinite());
+            <span class="macro">assert!</span>(z.powc(Complex64::new(-<span class="number">1.</span>, <span class="number">0.</span>)).im.is_nan());
+
+            <span class="kw">for </span>c <span class="kw">in </span>all_consts.iter() {
+                <span class="macro">assert_eq!</span>(c.powc(_0_0i), _1_0i);
+            }
+            <span class="macro">assert_eq!</span>(_nan_nani.powc(_0_0i), _1_0i);
         }
 
         <span class="attr">#[test]
@@ -4804,6 +4825,11 @@
             <span class="macro">assert!</span>(close_to_tol(c.powf(<span class="number">3.5</span>), expected, <span class="number">1e-5</span>));
             <span class="macro">assert!</span>(close_to_tol(Pow::pow(c, <span class="number">3.5_f64</span>), expected, <span class="number">1e-5</span>));
             <span class="macro">assert!</span>(close_to_tol(Pow::pow(c, <span class="number">3.5_f32</span>), expected, <span class="number">1e-5</span>));
+
+            <span class="kw">for </span>c <span class="kw">in </span>all_consts.iter() {
+                <span class="macro">assert_eq!</span>(c.powf(<span class="number">0.0</span>), _1_0i);
+            }
+            <span class="macro">assert_eq!</span>(_nan_nani.powf(<span class="number">0.0</span>), _1_0i);
         }
 
         <span class="attr">#[test]

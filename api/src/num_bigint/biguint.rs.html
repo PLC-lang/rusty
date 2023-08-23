@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.3/src/biguint.rs`."><title>biguint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_bigint/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/biguint.rs`."><title>biguint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../num_bigint/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1101,6 +1101,33 @@
 <a href="#1101" id="1101">1101</a>
 <a href="#1102" id="1102">1102</a>
 <a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::big_digit::{<span class="self">self</span>, BigDigit};
 <span class="kw">use </span><span class="kw">crate</span>::std_alloc::{String, Vec};
 
@@ -1386,6 +1413,9 @@
     <span class="doccomment">/// Returns `true` if the number is a multiple of `other`.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>is_multiple_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>BigUint) -&gt; bool {
+        <span class="kw">if </span>other.is_zero() {
+            <span class="kw">return </span><span class="self">self</span>.is_zero();
+        }
         (<span class="self">self </span>% other).is_zero()
     }
 
@@ -1604,13 +1634,13 @@
     }
 }
 
-<span class="doccomment">/// A generic trait for converting a value to a `BigUint`.
+<span class="doccomment">/// A generic trait for converting a value to a [`BigUint`].
 </span><span class="kw">pub trait </span>ToBigUint {
-    <span class="doccomment">/// Converts the value of `self` to a `BigUint`.
+    <span class="doccomment">/// Converts the value of `self` to a [`BigUint`].
     </span><span class="kw">fn </span>to_biguint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BigUint&gt;;
 }
 
-<span class="doccomment">/// Creates and initializes a `BigUint`.
+<span class="doccomment">/// Creates and initializes a [`BigUint`].
 ///
 /// The digits are in little-endian base matching `BigDigit`.
 </span><span class="attr">#[inline]
@@ -1619,7 +1649,7 @@
 }
 
 <span class="kw">impl </span>BigUint {
-    <span class="doccomment">/// Creates and initializes a `BigUint`.
+    <span class="doccomment">/// Creates and initializes a [`BigUint`].
     ///
     /// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.
     </span><span class="attr">#[inline]
@@ -1638,7 +1668,7 @@
         big
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`.
+    <span class="doccomment">/// Creates and initializes a [`BigUint`].
     ///
     /// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.
     </span><span class="attr">#[inline]
@@ -1648,7 +1678,7 @@
         big
     }
 
-    <span class="doccomment">/// Assign a value to a `BigUint`.
+    <span class="doccomment">/// Assign a value to a [`BigUint`].
     ///
     /// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.
     </span><span class="attr">#[inline]
@@ -1664,7 +1694,7 @@
         <span class="self">self</span>.normalize();
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`.
+    <span class="doccomment">/// Creates and initializes a [`BigUint`].
     ///
     /// The bytes are in big-endian byte order.
     ///
@@ -1689,11 +1719,11 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>v = bytes.to_vec();
             v.reverse();
-            BigUint::from_bytes_le(<span class="kw-2">&amp;*</span>v)
+            BigUint::from_bytes_le(<span class="kw-2">&amp;</span>v)
         }
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`.
+    <span class="doccomment">/// Creates and initializes a [`BigUint`].
     ///
     /// The bytes are in little-endian byte order.
     </span><span class="attr">#[inline]
@@ -1705,7 +1735,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`. The input slice must contain
+    <span class="doccomment">/// Creates and initializes a [`BigUint`]. The input slice must contain
     /// ascii/utf8 characters in [0-9a-zA-Z].
     /// `radix` must be in the range `2...36`.
     ///
@@ -1727,7 +1757,7 @@
         BigUint::from_str_radix(s, radix).ok()
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`. Each u8 of the input slice is
+    <span class="doccomment">/// Creates and initializes a [`BigUint`]. Each `u8` of the input slice is
     /// interpreted as one digit of the number
     /// and must therefore be less than `radix`.
     ///
@@ -1747,7 +1777,7 @@
         convert::from_radix_be(buf, radix)
     }
 
-    <span class="doccomment">/// Creates and initializes a `BigUint`. Each u8 of the input slice is
+    <span class="doccomment">/// Creates and initializes a [`BigUint`]. Each `u8` of the input slice is
     /// interpreted as one digit of the number
     /// and must therefore be less than `radix`.
     ///
@@ -1767,7 +1797,7 @@
         convert::from_radix_le(buf, radix)
     }
 
-    <span class="doccomment">/// Returns the byte representation of the `BigUint` in big-endian byte order.
+    <span class="doccomment">/// Returns the byte representation of the [`BigUint`] in big-endian byte order.
     ///
     /// # Examples
     ///
@@ -1784,7 +1814,7 @@
         v
     }
 
-    <span class="doccomment">/// Returns the byte representation of the `BigUint` in little-endian byte order.
+    <span class="doccomment">/// Returns the byte representation of the [`BigUint`] in little-endian byte order.
     ///
     /// # Examples
     ///
@@ -1803,7 +1833,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns the `u32` digits representation of the `BigUint` ordered least significant digit
+    <span class="doccomment">/// Returns the `u32` digits representation of the [`BigUint`] ordered least significant digit
     /// first.
     ///
     /// # Examples
@@ -1821,7 +1851,7 @@
         <span class="self">self</span>.iter_u32_digits().collect()
     }
 
-    <span class="doccomment">/// Returns the `u64` digits representation of the `BigUint` ordered least significant digit
+    <span class="doccomment">/// Returns the `u64` digits representation of the [`BigUint`] ordered least significant digit
     /// first.
     ///
     /// # Examples
@@ -1840,7 +1870,7 @@
         <span class="self">self</span>.iter_u64_digits().collect()
     }
 
-    <span class="doccomment">/// Returns an iterator of `u32` digits representation of the `BigUint` ordered least
+    <span class="doccomment">/// Returns an iterator of `u32` digits representation of the [`BigUint`] ordered least
     /// significant digit first.
     ///
     /// # Examples
@@ -1858,7 +1888,7 @@
         U32Digits::new(<span class="self">self</span>.data.as_slice())
     }
 
-    <span class="doccomment">/// Returns an iterator of `u64` digits representation of the `BigUint` ordered least
+    <span class="doccomment">/// Returns an iterator of `u64` digits representation of the [`BigUint`] ordered least
     /// significant digit first.
     ///
     /// # Examples
@@ -1897,7 +1927,7 @@
 
     <span class="doccomment">/// Returns the integer in the requested base in big-endian digit order.
     /// The output is not given in a human readable alphabet but as a zero
-    /// based u8 number.
+    /// based `u8` number.
     /// `radix` must be in the range `2...256`.
     ///
     /// # Examples
@@ -1935,7 +1965,7 @@
         convert::to_radix_le(<span class="self">self</span>, radix)
     }
 
-    <span class="doccomment">/// Determines the fewest bits necessary to express the `BigUint`.
+    <span class="doccomment">/// Determines the fewest bits necessary to express the [`BigUint`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="kw">if </span><span class="self">self</span>.is_zero() {
@@ -1958,7 +1988,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns a normalized `BigUint`.
+    <span class="doccomment">/// Returns a normalized [`BigUint`].
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>normalized(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; BigUint {
         <span class="self">self</span>.normalize();
@@ -2059,6 +2089,30 @@
     }
 }
 
+<span class="kw">impl </span>num_traits::FromBytes <span class="kw">for </span>BigUint {
+    <span class="kw">type </span>Bytes = [u8];
+
+    <span class="kw">fn </span>from_be_bytes(bytes: <span class="kw-2">&amp;</span><span class="self">Self</span>::Bytes) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_bytes_be(bytes)
+    }
+
+    <span class="kw">fn </span>from_le_bytes(bytes: <span class="kw-2">&amp;</span><span class="self">Self</span>::Bytes) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_bytes_le(bytes)
+    }
+}
+
+<span class="kw">impl </span>num_traits::ToBytes <span class="kw">for </span>BigUint {
+    <span class="kw">type </span>Bytes = Vec&lt;u8&gt;;
+
+    <span class="kw">fn </span>to_be_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bytes {
+        <span class="self">self</span>.to_bytes_be()
+    }
+
+    <span class="kw">fn </span>to_le_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Bytes {
+        <span class="self">self</span>.to_bytes_le()
+    }
+}
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>IntDigits {
     <span class="kw">fn </span>digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[BigDigit];
     <span class="kw">fn </span>digits_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;BigDigit&gt;;
@@ -2090,7 +2144,7 @@
     }
 }
 
-<span class="doccomment">/// Convert a u32 chunk (len is either 1 or 2) to a single u64 digit
+<span class="doccomment">/// Convert a `u32` chunk (len is either 1 or 2) to a single `u64` digit
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>u32_chunk_to_u64(chunk: <span class="kw-2">&amp;</span>[u32]) -&gt; u64 {
     <span class="comment">// raw could have odd length

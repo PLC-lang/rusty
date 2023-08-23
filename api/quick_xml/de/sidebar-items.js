@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DeError","DeEvent","PayloadEvent"],"fn":["from_reader","from_str"],"struct":["Deserializer","IoReader","NoEntityResolver","SliceReader","Text"],"trait":["EntityResolver","XmlRead"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-2.7.0/src/rwlock.rs`."><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-2.8.0/src/rwlock.rs`."><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -968,23 +968,271 @@
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
 <a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
 <span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::mem::{<span class="self">self</span>, ManuallyDrop};
 <span class="kw">use </span>std::ops::{Deref, DerefMut};
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::process;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
-<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::ptr::{<span class="self">self</span>, NonNull};
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span>event_listener::{Event, EventListener};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>futures;
+<span class="kw">mod </span>raw;
 
-<span class="kw">use </span><span class="kw">crate</span>::futures::Lock;
-<span class="kw">use crate</span>::{Mutex, MutexGuard};
-
-<span class="kw">const </span>WRITER_BIT: usize = <span class="number">1</span>;
-<span class="kw">const </span>ONE_READER: usize = <span class="number">2</span>;
+<span class="kw">use </span><span class="self">self</span>::futures::{
+    Read, ReadArc, UpgradableRead, UpgradableReadArc, Upgrade, UpgradeArc, Write, WriteArc,
+};
+<span class="kw">use </span><span class="self">self</span>::raw::{RawRwLock, RawUpgrade};
 
 <span class="doccomment">/// An async reader-writer lock.
 ///
@@ -1015,23 +1263,9 @@
 /// # })
 /// ```
 </span><span class="kw">pub struct </span>RwLock&lt;T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// Acquired by the writer.
-    </span>mutex: Mutex&lt;()&gt;,
-
-    <span class="doccomment">/// Event triggered when the last reader is dropped.
-    </span>no_readers: Event,
-
-    <span class="doccomment">/// Event triggered when the writer is dropped.
-    </span>no_writer: Event,
-
-    <span class="doccomment">/// Current state of the lock.
-    ///
-    /// The least significant bit (`WRITER_BIT`) is set to 1 when a writer is holding the lock or
-    /// trying to acquire it.
-    ///
-    /// The upper bits contain the number of currently active readers. Each active reader
-    /// increments the state by `ONE_READER`.
-    </span>state: AtomicUsize,
+    <span class="doccomment">/// The underlying locking implementation.
+    /// Doesn&#39;t depend on `T`.
+    </span>raw: RawRwLock,
 
     <span class="doccomment">/// The inner value.
     </span>value: UnsafeCell&lt;T&gt;,
@@ -1050,12 +1284,11 @@
     ///
     /// let lock = RwLock::new(0);
     /// ```
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>new(t: T) -&gt; RwLock&lt;T&gt; {
         RwLock {
-            mutex: Mutex::new(()),
-            no_readers: Event::new(),
-            no_writer: Event::new(),
-            state: AtomicUsize::new(<span class="number">0</span>),
+            raw: RawRwLock::new(),
             value: UnsafeCell::new(t),
         }
     }
@@ -1070,8 +1303,72 @@
     /// let lock = RwLock::new(5);
     /// assert_eq!(lock.into_inner(), 5);
     /// ```
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
         <span class="self">self</span>.value.into_inner()
+    }
+
+    <span class="doccomment">/// Attempts to acquire an an owned, reference-counted read lock.
+    ///
+    /// If a read lock could not be acquired at this time, then [`None`] is returned. Otherwise, a
+    /// guard is returned that releases the lock when dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::RwLock;
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.read_arc().await;
+    /// assert_eq!(*reader, 1);
+    ///
+    /// assert!(lock.try_read_arc().is_some());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_read_arc(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockReadGuardArc&lt;T&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.try_read() {
+            <span class="kw">let </span>arc = <span class="self">self</span>.clone();
+
+            <span class="comment">// SAFETY: we previously acquired a read lock.
+            </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ RwLockReadGuardArc::from_arc(arc) })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Acquires an owned, reference-counted read lock.
+    ///
+    /// Returns a guard that releases the lock when dropped.
+    ///
+    /// Note that attempts to acquire a read lock will block if there are also concurrent attempts
+    /// to acquire a write lock.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::RwLock;
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.read_arc().await;
+    /// assert_eq!(*reader, 1);
+    ///
+    /// assert!(lock.try_read_arc().is_some());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>read_arc&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; ReadArc&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        ReadArc {
+            raw: <span class="self">self</span>.raw.read(),
+            lock: <span class="self">self</span>,
+        }
     }
 }
 
@@ -1095,32 +1392,16 @@
     /// assert!(lock.try_read().is_some());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.load(Ordering::Acquire);
-
-        <span class="kw">loop </span>{
-            <span class="comment">// If there&#39;s a writer holding the lock or attempting to acquire it, we cannot acquire
-            // a read lock here.
-            </span><span class="kw">if </span>state &amp; WRITER_BIT != <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">None</span>;
-            }
-
-            <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-            </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
-                process::abort();
-            }
-
-            <span class="comment">// Increment the number of readers.
-            </span><span class="kw">match </span><span class="self">self</span>.state.compare_exchange(
-                state,
-                state + ONE_READER,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(RwLockReadGuard(<span class="self">self</span>)),
-                <span class="prelude-val">Err</span>(s) =&gt; state = s,
-            }
-        }
+        <span class="kw">if </span><span class="self">self</span>.raw.try_read() {
+            <span class="prelude-val">Some</span>(RwLockReadGuard {
+                lock: <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
+                value: <span class="self">self</span>.value.get(),
+            })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="doccomment">/// Acquires a read lock.
@@ -1144,11 +1425,11 @@
     /// assert!(lock.try_read().is_some());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         Read {
-            lock: <span class="self">self</span>,
-            state: <span class="self">self</span>.state.load(Ordering::Acquire),
-            listener: <span class="prelude-val">None</span>,
+            raw: <span class="self">self</span>.raw.read(),
+            value: <span class="self">self</span>.value.get(),
         }
     }
 
@@ -1176,37 +1457,19 @@
     /// *writer = 2;
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_upgradable_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        <span class="comment">// First try grabbing the mutex.
-        </span><span class="kw">let </span>lock = <span class="self">self</span>.mutex.try_lock()<span class="question-mark">?</span>;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.load(Ordering::Acquire);
-
-        <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-        </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
-            process::abort();
-        }
-
-        <span class="comment">// Increment the number of readers.
-        </span><span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.state.compare_exchange(
-                state,
-                state + ONE_READER,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(RwLockUpgradableReadGuard {
-                        reader: RwLockReadGuard(<span class="self">self</span>),
-                        reserved: lock,
-                    })
-                }
-                <span class="prelude-val">Err</span>(s) =&gt; state = s,
-            }
-        }
+        <span class="kw">if </span><span class="self">self</span>.raw.try_upgradable_read() {
+            <span class="prelude-val">Some</span>(RwLockUpgradableReadGuard {
+                lock: <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
+                value: <span class="self">self</span>.value.get(),
+            })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Attempts to acquire a read lock with the possiblity to upgrade to a write lock.
+    <span class="doccomment">/// Acquires a read lock with the possiblity to upgrade to a write lock.
     ///
     /// Returns a guard that releases the lock when dropped.
     ///
@@ -1232,10 +1495,82 @@
     /// *writer = 2;
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>upgradable_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         UpgradableRead {
+            raw: <span class="self">self</span>.raw.upgradable_read(),
+            value: <span class="self">self</span>.value.get(),
+        }
+    }
+
+    <span class="doccomment">/// Attempts to acquire an owned, reference-counted read lock with the possiblity to
+    /// upgrade to a write lock.
+    ///
+    /// If a read lock could not be acquired at this time, then [`None`] is returned. Otherwise, a
+    /// guard is returned that releases the lock when dropped.
+    ///
+    /// Upgradable read lock reserves the right to be upgraded to a write lock, which means there
+    /// can be at most one upgradable read lock at a time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.upgradable_read_arc().await;
+    /// assert_eq!(*reader, 1);
+    /// assert_eq!(*lock.try_read_arc().unwrap(), 1);
+    ///
+    /// let mut writer = RwLockUpgradableReadGuardArc::upgrade(reader).await;
+    /// *writer = 2;
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_upgradable_read_arc(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockUpgradableReadGuardArc&lt;T&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.try_upgradable_read() {
+            <span class="prelude-val">Some</span>(RwLockUpgradableReadGuardArc { lock: <span class="self">self</span>.clone() })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Acquires an owned, reference-counted read lock with the possiblity
+    /// to upgrade to a write lock.
+    ///
+    /// Returns a guard that releases the lock when dropped.
+    ///
+    /// Upgradable read lock reserves the right to be upgraded to a write lock, which means there
+    /// can be at most one upgradable read lock at a time.
+    ///
+    /// Note that attempts to acquire an upgradable read lock will block if there are concurrent
+    /// attempts to acquire another upgradable read lock or a write lock.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.upgradable_read_arc().await;
+    /// assert_eq!(*reader, 1);
+    /// assert_eq!(*lock.try_read_arc().unwrap(), 1);
+    ///
+    /// let mut writer = RwLockUpgradableReadGuardArc::upgrade(reader).await;
+    /// *writer = 2;
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>upgradable_read_arc&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; UpgradableReadArc&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        UpgradableReadArc {
+            raw: <span class="self">self</span>.raw.upgradable_read(),
             lock: <span class="self">self</span>,
-            acquire: <span class="self">self</span>.mutex.lock(),
         }
     }
 
@@ -1257,19 +1592,12 @@
     /// assert!(lock.try_write().is_none());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        <span class="comment">// First try grabbing the mutex.
-        </span><span class="kw">let </span>lock = <span class="self">self</span>.mutex.try_lock()<span class="question-mark">?</span>;
-
-        <span class="comment">// If there are no readers, grab the write lock.
-        </span><span class="kw">if </span><span class="self">self
-            </span>.state
-            .compare_exchange(<span class="number">0</span>, WRITER_BIT, Ordering::AcqRel, Ordering::Acquire)
-            .is_ok()
-        {
+        <span class="kw">if </span><span class="self">self</span>.raw.try_write() {
             <span class="prelude-val">Some</span>(RwLockWriteGuard {
-                writer: RwLockWriteGuardInner(<span class="self">self</span>),
-                reserved: lock,
+                lock: <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
+                value: <span class="self">self</span>.value.get(),
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -1292,10 +1620,64 @@
     /// assert!(lock.try_read().is_none());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         Write {
+            raw: <span class="self">self</span>.raw.write(),
+            value: <span class="self">self</span>.value.get(),
+        }
+    }
+
+    <span class="doccomment">/// Attempts to acquire an owned, reference-counted write lock.
+    ///
+    /// If a write lock could not be acquired at this time, then [`None`] is returned. Otherwise, a
+    /// guard is returned that releases the lock when dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::RwLock;
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// assert!(lock.try_write_arc().is_some());
+    /// let reader = lock.read_arc().await;
+    /// assert!(lock.try_write_arc().is_none());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_write_arc(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;RwLockWriteGuardArc&lt;T&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.try_write() {
+            <span class="prelude-val">Some</span>(RwLockWriteGuardArc { lock: <span class="self">self</span>.clone() })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Acquires an owned, reference-counted write lock.
+    ///
+    /// Returns a guard that releases the lock when dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::RwLock;
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let writer = lock.write_arc().await;
+    /// assert!(lock.try_read_arc().is_none());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>write_arc&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; WriteArc&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        WriteArc {
+            raw: <span class="self">self</span>.raw.write(),
             lock: <span class="self">self</span>,
-            state: WriteState::Acquiring(<span class="self">self</span>.mutex.lock()),
         }
     }
 
@@ -1316,6 +1698,8 @@
     /// assert_eq!(*lock.read().await, 2);
     /// # })
     /// ```
+    </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value.get() }
     }
@@ -1338,266 +1722,53 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>RwLock&lt;T&gt; {
-    <span class="kw">fn </span>from(val: T) -&gt; RwLock&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(val: T) -&gt; RwLock&lt;T&gt; {
         RwLock::new(val)
     }
 }
 
 <span class="kw">impl</span>&lt;T: Default + <span class="question-mark">?</span>Sized&gt; Default <span class="kw">for </span>RwLock&lt;T&gt; {
-    <span class="kw">fn </span>default() -&gt; RwLock&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; RwLock&lt;T&gt; {
         RwLock::new(Default::default())
-    }
-}
-
-<span class="doccomment">/// The future returned by [`RwLock::read`].
-</span><span class="kw">pub struct </span>Read&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// The lock that is being acquired.
-    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
-
-    <span class="doccomment">/// The last-observed state of the lock.
-    </span>state: usize,
-
-    <span class="doccomment">/// The listener for the &quot;no writers&quot; event.
-    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Read { .. }&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
-
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
-
-        <span class="kw">loop </span>{
-            <span class="kw">if </span>this.state &amp; WRITER_BIT == <span class="number">0 </span>{
-                <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-                </span><span class="kw">if </span>this.state &gt; std::isize::MAX <span class="kw">as </span>usize {
-                    process::abort();
-                }
-
-                <span class="comment">// If nobody is holding a write lock or attempting to acquire it, increment the
-                // number of readers.
-                </span><span class="kw">match </span>this.lock.state.compare_exchange(
-                    this.state,
-                    this.state + ONE_READER,
-                    Ordering::AcqRel,
-                    Ordering::Acquire,
-                ) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(RwLockReadGuard(this.lock)),
-                    <span class="prelude-val">Err</span>(s) =&gt; this.state = s,
-                }
-            } <span class="kw">else </span>{
-                <span class="comment">// Start listening for &quot;no writer&quot; events.
-                </span><span class="kw">let </span>load_ordering = <span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
-                    listener @ <span class="prelude-val">None </span>=&gt; {
-                        <span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(this.lock.no_writer.listen());
-
-                        <span class="comment">// Make sure there really is no writer.
-                        </span>Ordering::SeqCst
-                    }
-
-                    <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
-                        <span class="comment">// Wait for the writer to finish.
-                        </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
-                        this.listener = <span class="prelude-val">None</span>;
-
-                        <span class="comment">// Notify the next reader waiting in list.
-                        </span>this.lock.no_writer.notify(<span class="number">1</span>);
-
-                        <span class="comment">// Check the state again.
-                        </span>Ordering::Acquire
-                    }
-                };
-
-                <span class="comment">// Reload the state.
-                </span>this.state = this.lock.state.load(load_ordering);
-            }
-        }
-    }
-}
-
-<span class="doccomment">/// The future returned by [`RwLock::upgradable_read`].
-</span><span class="kw">pub struct </span>UpgradableRead&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// The lock that is being acquired.
-    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
-
-    <span class="doccomment">/// The mutex we are trying to acquire.
-    </span>acquire: Lock&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;UpgradableRead { .. }&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
-
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
-
-        <span class="comment">// Acquire the mutex.
-        </span><span class="kw">let </span>mutex_guard = <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span>this.acquire).poll(cx));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>state = this.lock.state.load(Ordering::Acquire);
-
-        <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-        </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
-            process::abort();
-        }
-
-        <span class="comment">// Increment the number of readers.
-        </span><span class="kw">loop </span>{
-            <span class="kw">match </span>this.lock.state.compare_exchange(
-                state,
-                state + ONE_READER,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span>Poll::Ready(RwLockUpgradableReadGuard {
-                        reader: RwLockReadGuard(this.lock),
-                        reserved: mutex_guard,
-                    });
-                }
-                <span class="prelude-val">Err</span>(s) =&gt; state = s,
-            }
-        }
-    }
-}
-
-<span class="doccomment">/// The future returned by [`RwLock::write`].
-</span><span class="kw">pub struct </span>Write&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// The lock that is being acquired.
-    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
-
-    <span class="doccomment">/// Current state fof this future.
-    </span>state: WriteState&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-}
-
-<span class="kw">enum </span>WriteState&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// We are currently acquiring the inner mutex.
-    </span>Acquiring(Lock&lt;<span class="lifetime">&#39;a</span>, ()&gt;),
-
-    <span class="doccomment">/// We are currently waiting for readers to finish.
-    </span>WaitingReaders {
-        <span class="doccomment">/// Our current write guard.
-        </span>guard: <span class="prelude-ty">Option</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;,
-
-        <span class="doccomment">/// The listener for the &quot;no readers&quot; event.
-        </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
-    },
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Write { .. }&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
-
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
-
-        <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span>this.state {
-                WriteState::Acquiring(lock) =&gt; {
-                    <span class="comment">// First grab the mutex.
-                    </span><span class="kw">let </span>mutex_guard = <span class="macro">ready!</span>(Pin::new(lock).poll(cx));
-
-                    <span class="comment">// Set `WRITER_BIT` and create a guard that unsets it in case this future is canceled.
-                    </span><span class="kw">let </span>new_state = this.lock.state.fetch_or(WRITER_BIT, Ordering::SeqCst);
-                    <span class="kw">let </span>guard = RwLockWriteGuard {
-                        writer: RwLockWriteGuardInner(this.lock),
-                        reserved: mutex_guard,
-                    };
-
-                    <span class="comment">// If we just acquired the writer lock, return it.
-                    </span><span class="kw">if </span>new_state == WRITER_BIT {
-                        <span class="kw">return </span>Poll::Ready(guard);
-                    }
-
-                    <span class="comment">// Start waiting for the readers to finish.
-                    </span>this.state = WriteState::WaitingReaders {
-                        guard: <span class="prelude-val">Some</span>(guard),
-                        listener: <span class="prelude-val">Some</span>(this.lock.no_readers.listen()),
-                    };
-                }
-
-                WriteState::WaitingReaders {
-                    guard,
-                    <span class="kw-2">ref mut </span>listener,
-                } =&gt; {
-                    <span class="kw">let </span>load_ordering = <span class="kw">if </span>listener.is_some() {
-                        Ordering::Acquire
-                    } <span class="kw">else </span>{
-                        Ordering::SeqCst
-                    };
-
-                    <span class="comment">// Check the state again.
-                    </span><span class="kw">if </span>this.lock.state.load(load_ordering) == WRITER_BIT {
-                        <span class="comment">// We are the only ones holding the lock, return it.
-                        </span><span class="kw">return </span>Poll::Ready(guard.take().unwrap());
-                    }
-
-                    <span class="comment">// Wait for the readers to finish.
-                    </span><span class="kw">match </span>listener {
-                        <span class="prelude-val">None </span>=&gt; {
-                            <span class="comment">// Register a listener.
-                            </span><span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(this.lock.no_readers.listen());
-                        }
-
-                        <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>evl) =&gt; {
-                            <span class="comment">// Wait for the readers to finish.
-                            </span><span class="macro">ready!</span>(Pin::new(evl).poll(cx));
-                            <span class="kw-2">*</span>listener = <span class="prelude-val">None</span>;
-                        }
-                    };
-                }
-            }
-        }
     }
 }
 
 <span class="doccomment">/// A guard that releases the read lock when dropped.
 </span><span class="attr">#[clippy::has_significant_drop]
-</span><span class="kw">pub struct </span>RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;);
+</span><span class="kw">pub struct </span>RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// Reference to underlying locking implementation.
+    /// Doesn&#39;t depend on `T`.
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawRwLock,
+
+    <span class="doccomment">/// Pointer to the value protected by the lock. Covariant in `T`.
+    </span>value: <span class="kw-2">*const </span>T,
+}
 
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Decrement the number of readers.
-        </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.state.fetch_sub(ONE_READER, Ordering::SeqCst) &amp; !WRITER_BIT == ONE_READER {
-            <span class="comment">// If this was the last reader, trigger the &quot;no readers&quot; event.
-            </span><span class="self">self</span>.<span class="number">0</span>.no_readers.notify(<span class="number">1</span>);
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are dropping a read guard.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.lock.read_unlock();
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
@@ -1605,32 +1776,119 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>.value.get() }
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.value }
+    }
+}
+
+<span class="doccomment">/// An owned, reference-counting guard that releases the read lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
+</span><span class="kw">pub struct </span>RwLockReadGuardArc&lt;T&gt; {
+    <span class="doccomment">/// **WARNING**: This doesn&#39;t actually point to a `T`!
+    /// It points to a `RwLock&lt;T&gt;`, via a pointer obtained with `Arc::into_raw`.
+    /// We lie for covariance.
+    </span>lock: NonNull&lt;T&gt;,
+}
+
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Send <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Sync <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; RwLockReadGuardArc&lt;T&gt; {
+    <span class="doccomment">/// Constructs the underlying `Arc` back from the underlying `RwLock`.
+    ///
+    /// # Safety
+    ///
+    /// Both the returned `Arc` and the guard will decrement their reference
+    /// counts on drop! So one of the two must be forgotten.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">unsafe fn </span>inner_arc(guard: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; ManuallyDrop&lt;Arc&lt;RwLock&lt;T&gt;&gt;&gt; {
+        ManuallyDrop::new(Arc::from_raw(guard.lock.as_ptr().cast()))
+    }
+
+    <span class="doccomment">/// Constructs a guard from the underlying `Arc`.
+    ///
+    /// # Safety
+    ///
+    /// A read lock must be acquired before calling this.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">unsafe fn </span>from_arc(arc: Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>ptr = Arc::into_raw(arc);
+
+        <span class="self">Self </span>{
+            lock: NonNull::new(ptr <span class="kw">as </span><span class="kw-2">*mut </span>RwLock&lt;T&gt; <span class="kw">as </span><span class="kw-2">*mut </span>T).unwrap(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are in `drop`, decrementing the reference count
+        // on purpose.
+        // We hold a read lock on the `RwLock`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>arc = ManuallyDrop::into_inner(<span class="self">Self</span>::inner_arc(<span class="self">self</span>));
+            arc.raw.read_unlock();
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: fmt::Display&gt; fmt::Display <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>RwLockReadGuardArc&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="comment">// SAFETY: we use `ManuallyDrop` to avoid double-drop.
+        // We hold a read lock on the `RwLock`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>arc = <span class="self">Self</span>::inner_arc(<span class="self">self</span>);
+            <span class="kw-2">&amp;*</span>arc.value.get()
+        }
     }
 }
 
 <span class="doccomment">/// A guard that releases the upgradable read lock when dropped.
 </span><span class="attr">#[clippy::has_significant_drop]
 </span><span class="kw">pub struct </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    reader: RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-    reserved: MutexGuard&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
+    <span class="doccomment">/// Reference to underlying locking implementation.
+    /// Doesn&#39;t depend on `T`.
+    /// This guard holds a lock on the witer mutex!
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawRwLock,
+
+    <span class="doccomment">/// Pointer to the value protected by the lock. Invariant in `T`
+    /// as the upgradable lock could provide write access.
+    </span>value: <span class="kw-2">*mut </span>T,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are dropping an upgradable read guard.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.lock.upgradable_read_unlock();
+        }
+    }
 }
 
 <span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="doccomment">/// Converts this guard into a writer guard.
-    </span><span class="kw">fn </span>into_writer(<span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="kw">let </span>writer = RwLockWriteGuard {
-            writer: RwLockWriteGuardInner(<span class="self">self</span>.reader.<span class="number">0</span>),
-            reserved: <span class="self">self</span>.reserved,
-        };
-        mem::forget(<span class="self">self</span>.reader);
-        writer
-    }
-
     <span class="doccomment">/// Downgrades into a regular reader guard.
     ///
     /// # Examples
@@ -1651,8 +1909,19 @@
     /// assert!(lock.try_upgradable_read().is_some());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        guard.reader
+        <span class="kw">let </span>upgradable = ManuallyDrop::new(guard);
+
+        <span class="comment">// SAFETY: `guard` is an upgradable read lock.
+        </span><span class="kw">unsafe </span>{
+            upgradable.lock.downgrade_upgradable_read();
+        };
+
+        RwLockReadGuard {
+            lock: upgradable.lock,
+            value: upgradable.value,
+        }
     }
 
     <span class="doccomment">/// Attempts to upgrade into a write lock.
@@ -1680,16 +1949,17 @@
     /// let writer = RwLockUpgradableReadGuard::try_upgrade(reader).unwrap();
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_upgrade(guard: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;, <span class="self">Self</span>&gt; {
         <span class="comment">// If there are no readers, grab the write lock.
-        </span><span class="kw">if </span>guard
-            .reader
-            .<span class="number">0
-            </span>.state
-            .compare_exchange(ONE_READER, WRITER_BIT, Ordering::AcqRel, Ordering::Acquire)
-            .is_ok()
-        {
-            <span class="prelude-val">Ok</span>(guard.into_writer())
+        // SAFETY: `guard` is an upgradable read guard
+        </span><span class="kw">if unsafe </span>{ guard.lock.try_upgrade() } {
+            <span class="kw">let </span>reader = ManuallyDrop::new(guard);
+
+            <span class="prelude-val">Ok</span>(RwLockWriteGuard {
+                lock: reader.lock,
+                value: reader.value,
+            })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(guard)
         }
@@ -1712,32 +1982,28 @@
     /// *writer = 2;
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>upgrade(guard: <span class="self">Self</span>) -&gt; Upgrade&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="comment">// Set `WRITER_BIT` and decrement the number of readers at the same time.
-        </span>guard
-            .reader
-            .<span class="number">0
-            </span>.state
-            .fetch_sub(ONE_READER - WRITER_BIT, Ordering::SeqCst);
-
-        <span class="comment">// Convert into a write guard that unsets `WRITER_BIT` in case this future is canceled.
-        </span><span class="kw">let </span>guard = guard.into_writer();
+        <span class="kw">let </span>reader = ManuallyDrop::new(guard);
 
         Upgrade {
-            guard: <span class="prelude-val">Some</span>(guard),
-            listener: <span class="prelude-val">None</span>,
+            <span class="comment">// SAFETY: `reader` is an upgradable read guard
+            </span>raw: <span class="kw">unsafe </span>{ reader.lock.upgrade() },
+            value: reader.value,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
@@ -1745,92 +2011,197 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.reader.<span class="number">0</span>.value.get() }
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.value }
     }
 }
 
-<span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuard::upgrade`].
-</span><span class="kw">pub struct </span>Upgrade&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// The guard that we are upgrading to.
-    </span>guard: <span class="prelude-ty">Option</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;,
-
-    <span class="doccomment">/// The event listener we are waiting on.
-    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+<span class="doccomment">/// An owned, reference-counting guard that releases the upgradable read lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
+</span><span class="kw">pub struct </span>RwLockUpgradableReadGuardArc&lt;T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// We want invariance, so no need for pointer tricks.
+    </span>lock: Arc&lt;RwLock&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Upgrade&quot;</span>).finish()
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are dropping an upgradable read guard.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.lock.raw.upgradable_read_unlock();
+        }
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
+    }
+}
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
-        <span class="kw">let </span>guard = this
-            .guard
-            .as_mut()
-            .expect(<span class="string">&quot;cannot poll future after completion&quot;</span>);
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
+    }
+}
 
-        <span class="comment">// If there are readers, we need to wait for them to finish.
-        </span><span class="kw">loop </span>{
-            <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.listener.is_some() {
-                Ordering::Acquire
-            } <span class="kw">else </span>{
-                Ordering::SeqCst
-            };
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
 
-            <span class="comment">// See if the number of readers is zero.
-            </span><span class="kw">let </span>state = guard.writer.<span class="number">0</span>.state.load(load_ordering);
-            <span class="kw">if </span>state == WRITER_BIT {
-                <span class="kw">break</span>;
-            }
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.lock.value.get() }
+    }
+}
 
-            <span class="comment">// If there are readers, wait for them to finish.
-            </span><span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
-                listener @ <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// Start listening for &quot;no readers&quot; events.
-                    </span><span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(guard.writer.<span class="number">0</span>.no_readers.listen());
-                }
-
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
-                    <span class="comment">// Wait for the readers to finish.
-                    </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
-                    this.listener = <span class="prelude-val">None</span>;
-                }
-            }
+<span class="kw">impl</span>&lt;T&gt; RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="doccomment">/// Downgrades into a regular reader guard.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.upgradable_read_arc().await;
+    /// assert_eq!(*reader, 1);
+    ///
+    /// assert!(lock.try_upgradable_read_arc().is_none());
+    ///
+    /// let reader = RwLockUpgradableReadGuardArc::downgrade(reader);
+    ///
+    /// assert!(lock.try_upgradable_read_arc().is_some());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuardArc&lt;T&gt; {
+        <span class="comment">// SAFETY: we hold an upgradable read lock, which we are downgrading.
+        </span><span class="kw">unsafe </span>{
+            guard.lock.raw.downgrade_upgradable_read();
         }
 
-        <span class="comment">// We are done.
-        </span>Poll::Ready(this.guard.take().unwrap())
+        <span class="comment">// SAFETY: we just downgraded to a read lock.
+        </span><span class="kw">unsafe </span>{ RwLockReadGuardArc::from_arc(<span class="self">Self</span>::into_arc(guard)) }
     }
 }
 
-<span class="kw">struct </span>RwLockWriteGuardInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; RwLockUpgradableReadGuardArc&lt;T&gt; {
+    <span class="doccomment">/// Consumes the lock (without dropping) and returns the underlying `Arc`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>into_arc(guard: <span class="self">Self</span>) -&gt; Arc&lt;RwLock&lt;T&gt;&gt; {
+        <span class="kw">let </span>guard = ManuallyDrop::new(guard);
+        <span class="comment">// SAFETY: `guard` is not used after this
+        </span><span class="kw">unsafe </span>{ ptr::read(<span class="kw-2">&amp;</span>guard.lock) }
+    }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockWriteGuardInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Unset `WRITER_BIT`.
-        </span><span class="self">self</span>.<span class="number">0</span>.state.fetch_and(!WRITER_BIT, Ordering::SeqCst);
-        <span class="comment">// Trigger the &quot;no writer&quot; event.
-        </span><span class="self">self</span>.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
+    <span class="doccomment">/// Attempts to upgrade into a write lock.
+    ///
+    /// If a write lock could not be acquired at this time, then [`None`] is returned. Otherwise,
+    /// an upgraded guard is returned that releases the write lock when dropped.
+    ///
+    /// This function can only fail if there are other active read locks.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.upgradable_read_arc().await;
+    /// assert_eq!(*reader, 1);
+    ///
+    /// let reader2 = lock.read_arc().await;
+    /// let reader = RwLockUpgradableReadGuardArc::try_upgrade(reader).unwrap_err();
+    ///
+    /// drop(reader2);
+    /// let writer = RwLockUpgradableReadGuardArc::try_upgrade(reader).unwrap();
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_upgrade(guard: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockWriteGuardArc&lt;T&gt;, <span class="self">Self</span>&gt; {
+        <span class="comment">// SAFETY: We hold an upgradable read guard.
+        </span><span class="kw">if unsafe </span>{ guard.lock.raw.try_upgrade() } {
+            <span class="prelude-val">Ok</span>(RwLockWriteGuardArc {
+                lock: <span class="self">Self</span>::into_arc(guard),
+            })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(guard)
+        }
+    }
+
+    <span class="doccomment">/// Upgrades into a write lock.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let reader = lock.upgradable_read_arc().await;
+    /// assert_eq!(*reader, 1);
+    ///
+    /// let mut writer = RwLockUpgradableReadGuardArc::upgrade(reader).await;
+    /// *writer = 2;
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>upgrade(guard: <span class="self">Self</span>) -&gt; UpgradeArc&lt;T&gt; {
+        <span class="comment">// We need to do some ugly lying about lifetimes;
+        // See the comment on the `raw` field of `ArcUpgrade`
+        // for an explanation.
+
+        // SAFETY: we hold an upgradable read guard.
+        </span><span class="kw">let </span>raw: RawUpgrade&lt;<span class="lifetime">&#39;_</span>&gt; = <span class="kw">unsafe </span>{ guard.lock.raw.upgrade() };
+
+        <span class="comment">// SAFETY: see above explanation.
+        </span><span class="kw">let </span>raw: RawUpgrade&lt;<span class="lifetime">&#39;static</span>&gt; = <span class="kw">unsafe </span>{ mem::transmute(raw) };
+
+        UpgradeArc {
+            raw: ManuallyDrop::new(raw),
+            lock: ManuallyDrop::new(<span class="self">Self</span>::into_arc(guard)),
+        }
     }
 }
 
 <span class="doccomment">/// A guard that releases the write lock when dropped.
 </span><span class="attr">#[clippy::has_significant_drop]
 </span><span class="kw">pub struct </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    writer: RwLockWriteGuardInner&lt;<span class="lifetime">&#39;a</span>, T&gt;,
-    reserved: MutexGuard&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
+    <span class="doccomment">/// Reference to underlying locking implementation.
+    /// Doesn&#39;t depend on `T`.
+    /// This guard holds a lock on the witer mutex!
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawRwLock,
+
+    <span class="doccomment">/// Pointer to the value protected by the lock. Invariant in `T`.
+    </span>value: <span class="kw-2">*mut </span>T,
 }
 
 <span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are dropping a write lock
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.lock.write_unlock();
+        }
+    }
+}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Downgrades into a regular reader guard.
@@ -1854,21 +2225,19 @@
     /// assert!(lock.try_read().is_some());
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="comment">// Atomically downgrade state.
-        </span>guard
-            .writer
-            .<span class="number">0
-            </span>.state
-            .fetch_add(ONE_READER - WRITER_BIT, Ordering::SeqCst);
+        <span class="kw">let </span>write = ManuallyDrop::new(guard);
 
-        <span class="comment">// Trigger the &quot;no writer&quot; event.
-        </span>guard.writer.<span class="number">0</span>.no_writer.notify(<span class="number">1</span>);
+        <span class="comment">// SAFETY: `write` is a write guard
+        </span><span class="kw">unsafe </span>{
+            write.lock.downgrade_write();
+        }
 
-        <span class="comment">// Convert into a read guard and return.
-        </span><span class="kw">let </span>new_guard = RwLockReadGuard(guard.writer.<span class="number">0</span>);
-        mem::forget(guard.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
-        </span>new_guard
+        RwLockReadGuard {
+            lock: write.lock,
+            value: write.value,
+        }
     }
 
     <span class="doccomment">/// Downgrades into an upgradable reader guard.
@@ -1895,32 +2264,32 @@
     /// assert!(RwLockUpgradableReadGuard::try_upgrade(reader).is_ok())
     /// # })
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>downgrade_to_upgradable(guard: <span class="self">Self</span>) -&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="comment">// Atomically downgrade state.
-        </span>guard
-            .writer
-            .<span class="number">0
-            </span>.state
-            .fetch_add(ONE_READER - WRITER_BIT, Ordering::SeqCst);
+        <span class="kw">let </span>write = ManuallyDrop::new(guard);
 
-        <span class="comment">// Convert into an upgradable read guard and return.
-        </span><span class="kw">let </span>new_guard = RwLockUpgradableReadGuard {
-            reader: RwLockReadGuard(guard.writer.<span class="number">0</span>),
-            reserved: guard.reserved,
-        };
-        mem::forget(guard.writer); <span class="comment">// `RwLockWriteGuardInner::drop()` should not be called!
-        </span>new_guard
+        <span class="comment">// SAFETY: `write` is a write guard
+        </span><span class="kw">unsafe </span>{
+            write.lock.downgrade_to_upgradable();
+        }
+
+        RwLockUpgradableReadGuard {
+            lock: write.lock,
+            value: write.value,
+        }
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
@@ -1928,14 +2297,147 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.writer.<span class="number">0</span>.value.get() }
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.value }
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.writer.<span class="number">0</span>.value.get() }
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value }
+    }
+}
+
+<span class="doccomment">/// An owned, reference-counted guard that releases the write lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
+</span><span class="kw">pub struct </span>RwLockWriteGuardArc&lt;T: <span class="question-mark">?</span>Sized&gt; {
+    lock: Arc&lt;RwLock&lt;T&gt;&gt;,
+}
+
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: we are dropping a write lock.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.lock.raw.write_unlock();
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; RwLockWriteGuardArc&lt;T&gt; {
+    <span class="doccomment">/// Downgrades into a regular reader guard.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockWriteGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let mut writer = lock.write_arc().await;
+    /// *writer += 1;
+    ///
+    /// assert!(lock.try_read_arc().is_none());
+    ///
+    /// let reader = RwLockWriteGuardArc::downgrade(writer);
+    /// assert_eq!(*reader, 2);
+    ///
+    /// assert!(lock.try_read_arc().is_some());
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>downgrade(guard: <span class="self">Self</span>) -&gt; RwLockReadGuardArc&lt;T&gt; {
+        <span class="comment">// SAFETY: `write` is a write guard
+        </span><span class="kw">unsafe </span>{
+            guard.lock.raw.downgrade_write();
+        }
+
+        <span class="comment">// SAFETY: we just downgraded to a read lock
+        </span><span class="kw">unsafe </span>{ RwLockReadGuardArc::from_arc(<span class="self">Self</span>::into_arc(guard)) }
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; RwLockWriteGuardArc&lt;T&gt; {
+    <span class="doccomment">/// Consumes the lock (without dropping) and returns the underlying `Arc`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>into_arc(guard: <span class="self">Self</span>) -&gt; Arc&lt;RwLock&lt;T&gt;&gt; {
+        <span class="kw">let </span>guard = ManuallyDrop::new(guard);
+        <span class="comment">// SAFETY: `guard` is not used after this
+        </span><span class="kw">unsafe </span>{ ptr::read(<span class="kw-2">&amp;</span>guard.lock) }
+    }
+
+    <span class="doccomment">/// Downgrades into an upgradable reader guard.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures_lite::future::block_on(async {
+    /// use std::sync::Arc;
+    /// use async_lock::{RwLock, RwLockUpgradableReadGuardArc, RwLockWriteGuardArc};
+    ///
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let mut writer = lock.write_arc().await;
+    /// *writer += 1;
+    ///
+    /// assert!(lock.try_read_arc().is_none());
+    ///
+    /// let reader = RwLockWriteGuardArc::downgrade_to_upgradable(writer);
+    /// assert_eq!(*reader, 2);
+    ///
+    /// assert!(lock.try_write_arc().is_none());
+    /// assert!(lock.try_read_arc().is_some());
+    ///
+    /// assert!(RwLockUpgradableReadGuardArc::try_upgrade(reader).is_ok())
+    /// # })
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>downgrade_to_upgradable(guard: <span class="self">Self</span>) -&gt; RwLockUpgradableReadGuardArc&lt;T&gt; {
+        <span class="comment">// SAFETY: `guard` is a write guard
+        </span><span class="kw">unsafe </span>{
+            guard.lock.raw.downgrade_to_upgradable();
+        }
+
+        RwLockUpgradableReadGuardArc {
+            lock: <span class="self">Self</span>::into_arc(guard),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.lock.value.get() }
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>RwLockWriteGuardArc&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.lock.value.get() }
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1374,7 +1374,7 @@ configurations:</p>
     .ascii_case_insensitive(<span class="bool-val">true</span>)
     .build(<span class="kw-2">&amp;</span>[<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;bruce&quot;</span>, <span class="string">&quot;triskaidekaphobia&quot;</span>, <span class="string">&quot;springsteen&quot;</span>])
     .unwrap();
-<span class="macro">assert_eq!</span>(<span class="number">9_128</span>, ac.memory_usage());
+<span class="macro">assert_eq!</span>(<span class="number">10_879</span>, ac.memory_usage());
 
 <span class="kw">let </span>ac = AhoCorasick::builder()
     .kind(<span class="prelude-val">Some</span>(AhoCorasickKind::ContiguousNFA))

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["parse_expression","parse_expression_list","parse_qualified_reference","parse_reference_access","parse_strict_literal_integer"]};

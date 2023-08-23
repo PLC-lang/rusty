@@ -1459,6 +1459,11 @@
 <a href="#1459" id="1459">1459</a>
 <a href="#1460" id="1460">1460</a>
 <a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1782,6 +1787,11 @@
             new_lines,
         }
     }
+
+    <span class="kw">pub fn </span>with_implementations(<span class="kw-2">mut </span><span class="self">self</span>, implementations: Vec&lt;Implementation&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.implementations = implementations;
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// imports all elements of the other CompilationUnit into this CompilationUnit
     ///
