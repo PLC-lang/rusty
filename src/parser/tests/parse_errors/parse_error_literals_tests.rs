@@ -1,8 +1,9 @@
 use plc_ast::{
-    ast::{AstStatement, DataType, SourceRange, UserTypeDeclaration},
+    ast::{AstStatement, DataType, UserTypeDeclaration},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 use crate::test_utils::tests::parse;
 

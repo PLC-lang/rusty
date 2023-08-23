@@ -1,9 +1,10 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
-    SourceRange, Variable, VariableBlock, VariableBlockType,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 #[test]

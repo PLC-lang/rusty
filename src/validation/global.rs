@@ -1,6 +1,7 @@
 use itertools::Itertools;
-use plc_ast::ast::{PouType, SourceRange};
+use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},

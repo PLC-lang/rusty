@@ -1,8 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
-use plc_ast::ast::SourceRange;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use plc_util::convention::qualified_name;
 use std::collections::HashMap;
 

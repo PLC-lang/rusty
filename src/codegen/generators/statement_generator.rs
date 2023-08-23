@@ -18,12 +18,11 @@ use inkwell::{
     values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 use plc_ast::{
-    ast::{
-        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess, SourceRange,
-    },
+    ast::{flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess},
     control_statements::{AstControlStatement, ConditionalBlock},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceRange;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {

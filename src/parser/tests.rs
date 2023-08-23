@@ -1,7 +1,8 @@
 use plc_ast::{
-    ast::{AstFactory, AstStatement, ReferenceAccess, SourceRange},
+    ast::{AstFactory, AstStatement, ReferenceAccess},
     literals::AstLiteral,
 };
+use plc_source::source_location::SourceRange;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;

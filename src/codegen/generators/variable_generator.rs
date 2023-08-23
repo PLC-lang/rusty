@@ -8,8 +8,9 @@ use crate::{
 };
 use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
-use plc_ast::ast::{LinkageType, SourceRange};
+use plc_ast::ast::LinkageType;
 use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_source::source_location::SourceRange;
 
 use super::{
     data_type_generator::get_default_for,

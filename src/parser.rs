@@ -1,16 +1,18 @@
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
         DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
-        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        PolymorphismMode, Pou, PouType, ReferenceAccess, TypeNature, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_source::source_location::{SourceRange, SourceRangeFactory};
 use plc_util::convention::qualified_name;
 
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     expect_token,
     lexer::{self, ParseSession, Token, Token::*},

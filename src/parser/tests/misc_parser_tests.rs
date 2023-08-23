@@ -7,13 +7,13 @@ use crate::{parser::tests::empty_stmt, test_utils::tests::parse};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstStatement, DataTypeDeclaration, Implementation,
-        LinkageType, Operator, Pou, PouType, ReferenceAccess, SourceRange, Variable, VariableBlock,
-        VariableBlockType,
+        LinkageType, Operator, Pou, PouType, ReferenceAccess, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 #[test]

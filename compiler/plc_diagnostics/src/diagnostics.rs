@@ -1,6 +1,7 @@
 use std::{error::Error, ops::Range};
 
-use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
+use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
+use plc_source::source_location::SourceRange;
 
 use crate::errno::ErrNo;
 

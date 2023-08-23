@@ -1,7 +1,8 @@
 use std::time::Instant;
 
 use plc::lexer;
-use plc_ast::{ast::SourceRangeFactory, provider::IdProvider};
+use plc_ast::provider::IdProvider;
+use plc_source::source_location::SourceRangeFactory;
 
 use crate::reporter::DurationWrapper;
 

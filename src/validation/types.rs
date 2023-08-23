@@ -1,5 +1,6 @@
-use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 use crate::{
     index::Index,

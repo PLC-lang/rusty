@@ -1,9 +1,10 @@
 use crate::test_utils::tests::parse;
 use plc_ast::{
-    ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, UserTypeDeclaration, Variable},
+    ast::{AstStatement, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 #[test]

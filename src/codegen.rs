@@ -35,8 +35,9 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
-use plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
+use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 mod debug;
 pub(crate) mod generators;

@@ -1,13 +1,11 @@
 use ast::{
-    ast::{
-        AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType,
-        SourceRange, SourceRangeFactory,
-    },
+    ast::{AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
 };
 use plc::{lexer, parser::expressions_parser::parse_expression};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
+use plc_source::source_location::{SourceRange, SourceRangeFactory};
 use quick_xml::events::Event;
 
 use crate::{

@@ -1,6 +1,7 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
 use insta::assert_snapshot;
-use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable};
+use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, Variable};
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 #[test]

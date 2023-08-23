@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use plc_ast::ast::SourceRange;
+use plc_source::source_location::SourceRange;
 
 use crate::diagnostician::Severity;
 

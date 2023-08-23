@@ -1633,6 +1633,7 @@ name = "plc_ast"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "plc_source",
  "plc_util",
  "serde",
 ]
@@ -1651,6 +1652,7 @@ version = "0.1.0"
 dependencies = [
  "codespan-reporting",
  "plc_ast",
+ "plc_source",
 ]
 
 [[package]]
@@ -1714,6 +1716,7 @@ dependencies = [
  "logos",
  "plc_ast",
  "plc_diagnostics",
+ "plc_source",
  "quick-xml",
  "rusty",
 ]
@@ -2992,6 +2995,7 @@ dependencies = [
  "async-std",
  "clap 4.3.23",
  "plc_ast",
+ "plc_source",
  "rusty",
  "serde",
  "serde_json",

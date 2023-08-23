@@ -35,8 +35,9 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
-use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceRange;
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,

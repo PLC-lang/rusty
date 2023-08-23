@@ -1,6 +1,7 @@
-use ast::ast::{AstFactory, AstStatement, SourceRange};
+use ast::ast::{AstFactory, AstStatement};
 
 use crate::model::{block::Block, fbd::NodeIndex};
+use plc_source::source_location::SourceRange;
 
 use super::ParseSession;
 

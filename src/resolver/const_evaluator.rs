@@ -7,6 +7,7 @@ use crate::{
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
+use plc_source::source_location::SourceRange;
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -736,6 +737,6 @@ macro_rules! compare_expression {
 }
 use compare_expression;
 use plc_ast::{
-    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
+    ast::{AstId, AstStatement, Operator, ReferenceAccess},
     literals::{Array, AstLiteral, StringValue},
 };

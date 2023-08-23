@@ -9,12 +9,13 @@ use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, SourceRange, SourceRangeFactory, TypeNature,
+        LinkageType, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::{SourceRange, SourceRangeFactory};
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},

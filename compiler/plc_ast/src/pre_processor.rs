@@ -7,11 +7,12 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+        Operator, Pou, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
+use plc_source::source_location::SourceRange;
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs

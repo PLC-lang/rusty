@@ -4,7 +4,7 @@ pub mod tests {
     use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
     use plc_ast::{
-        ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+        ast::{pre_process, CompilationUnit, LinkageType},
         provider::IdProvider,
     };
     use plc_diagnostics::{
@@ -12,7 +12,7 @@ pub mod tests {
         diagnostics::Diagnostic,
         reporter::{DiagnosticReporter, ResolvedDiagnostics},
     };
-    use source::{Compilable, SourceCode, SourceContainer};
+    use plc_source::{source_location::SourceRangeFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,

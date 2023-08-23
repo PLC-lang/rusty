@@ -7,10 +7,11 @@ use crate::{
 };
 use core::str::Split;
 use plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator},
     literals::{AstLiteral, Time},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 

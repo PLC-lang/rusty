@@ -17,10 +17,11 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::{AstStatement, SourceRange};
+use plc_ast::ast::AstStatement;
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_diagnostics::errno::ErrNo;
+use plc_source::source_location::SourceRange;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types

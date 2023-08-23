@@ -3,9 +3,10 @@ use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType, SourceRange,
+    AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
 };
 use plc_ast::literals::AstLiteral;
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 #[test]

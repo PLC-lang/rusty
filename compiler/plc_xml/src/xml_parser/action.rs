@@ -1,4 +1,5 @@
-use ast::ast::{AstStatement, Implementation, PouType as AstPouType, SourceRange};
+use ast::ast::{AstStatement, Implementation, PouType as AstPouType};
+use plc_source::source_location::SourceRange;
 
 use crate::model::action::Action;
 

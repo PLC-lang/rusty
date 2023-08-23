@@ -7,7 +7,7 @@ use std::{
 
 use crate::{CompileOptions, LinkOptions};
 use ast::{
-    ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 use encoding_rs::Encoding;
@@ -27,7 +27,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::SourceContainer;
+use source_code::{source_location::SourceRange, SourceContainer};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have

@@ -5,10 +5,11 @@ use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    Pou, PouType, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {

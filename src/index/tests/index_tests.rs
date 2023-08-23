@@ -1,9 +1,10 @@
 use plc_ast::ast::{
     pre_process, AstStatement, DataType, DataTypeDeclaration, GenericBinding, LinkageType, Operator,
-    SourceRange, SourceRangeFactory, TypeNature, UserTypeDeclaration, Variable,
+    TypeNature, UserTypeDeclaration, Variable,
 };
 use plc_ast::literals::AstLiteral;
 use plc_ast::provider::IdProvider;
+use plc_source::source_location::{SourceRange, SourceRangeFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 

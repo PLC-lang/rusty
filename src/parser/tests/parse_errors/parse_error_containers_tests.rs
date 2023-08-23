@@ -2,10 +2,10 @@
 use crate::{lexer::Token, test_utils::tests::parse};
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    AccessModifier, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable, VariableBlock,
-    VariableBlockType,
+    AccessModifier, DataTypeDeclaration, LinkageType, PouType, Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 use pretty_assertions::*;
 
 /*

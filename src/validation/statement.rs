@@ -1,11 +1,12 @@
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess},
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 use super::{
     array::{validate_array_assignment, Wrapper},

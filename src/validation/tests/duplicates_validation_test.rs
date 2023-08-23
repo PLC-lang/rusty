@@ -1,7 +1,8 @@
 use plc_ast::{
-    ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceRangeFactory;
 
 use crate::{
     assert_validation_snapshot,

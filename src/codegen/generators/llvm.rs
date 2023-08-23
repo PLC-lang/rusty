@@ -9,8 +9,8 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
-use plc_ast::ast::SourceRange;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceRange;
 
 use super::ADDRESS_SPACE_GENERIC;
 

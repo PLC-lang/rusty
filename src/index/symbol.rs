@@ -1,7 +1,8 @@
 // Copyright (c) 2022 Ghaith Hachem and Mathias Rieder
 
 use indexmap::IndexMap;
-use plc_ast::ast::{NewLines, SourceRange};
+use plc_ast::ast::NewLines;
+use plc_source::source_location::SourceRange;
 use std::hash::Hash;
 
 /// Location information of a Symbol in the index consisting of the line_number
