@@ -111,7 +111,7 @@ fn no_early_return() {
 
 #[test]
 fn early_return_negated() {
-    // GIVEN a CFC function which returns early if a given argument is 5 and
+    // GIVEN a CFC function which returns early if a given argument is NOT 5 and
     // otherwise modifies the argument to be 10
     let st_file = get_test_file("cfc/early_return_negated.st");
     let cfc_file = get_test_file("cfc/early_return_negated.cfc");
@@ -119,6 +119,6 @@ fn early_return_negated() {
     // WHEN passing 5 as an argument
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
 
-    // THEN it will early return, leaving the argument unmodified (i.e. 5)
+    // THEN it will NOT return early, modifying the argument to be 10
     assert_eq!(res, 10);
 }
