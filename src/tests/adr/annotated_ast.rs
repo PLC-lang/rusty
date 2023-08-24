@@ -6,7 +6,6 @@ use crate::{
 
 use super::util_macros::{
     annotate, deconstruct_assignment, deconstruct_binary_expression, deconstruct_call_statement,
-    deconstruct_qualified_reference,
 };
 
 /// # Architecture Design Record: Annotated AST

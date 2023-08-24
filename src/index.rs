@@ -1009,7 +1009,7 @@ impl Index {
         let segments: Vec<&str> = fully_qualified_name.split('.').collect();
         let (q, segments) = if segments.len() > 1 {
             // (Some(segments[0]), segments.iter().skip(1).copied().collect::<Vec<&str>>())\
-            (Some(segments.iter().take(segments.len()-1).join(".")), vec![*segments.last().unwrap()])
+            (Some(segments.iter().take(segments.len() - 1).join(".")), vec![*segments.last().unwrap()])
         } else {
             (None, segments)
         };

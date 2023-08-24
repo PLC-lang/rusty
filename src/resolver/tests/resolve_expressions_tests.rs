@@ -2,10 +2,7 @@ use core::panic;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
-    ast::{
-        flatten_expression_list, AstStatement, DataType, DirectAccessType, Pou, ReferenceAccess, SourceRange,
-        UserTypeDeclaration,
-    },
+    ast::{flatten_expression_list, AstStatement, DataType, Pou, ReferenceAccess, UserTypeDeclaration},
     control_statements::{AstControlStatement, CaseStatement},
     literals::{Array, AstLiteral},
     provider::IdProvider,
@@ -14,7 +11,7 @@ use plc_ast::{
 use crate::{
     index::{ArgumentType, Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
-    test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
         LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
@@ -2247,7 +2244,7 @@ fn struct_member_explicit_initialization_test() {
 
     // THEN the initializers assignments have correct annotations
     let AstStatement::Assignment { right, ..} = &unit.implementations[0].statements[0] else { unreachable!()};
-    let AstStatement::ExpressionList { expressions, id } = right.as_ref() else {unreachable!()};
+    let AstStatement::ExpressionList { expressions, ..} = right.as_ref() else {unreachable!()};
 
     let AstStatement::Assignment{left, ..} = &expressions[0] else {unreachable!()};
     assert_eq!(
@@ -3110,8 +3107,12 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
         assert_type_and_hint!(&annotations, &index, right, INT_TYPE, Some(DWORD_TYPE));
 
-        if let AstStatement::PointerAccess { reference, .. } = right.as_ref() {
+        if let AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, base: Some(reference), .. } =
+            right.as_ref()
+        {
             assert_type_and_hint!(&annotations, &index, reference, ptr_type, None);
+        } else {
+            unreachable!()
         }
     } else {
         unreachable!()

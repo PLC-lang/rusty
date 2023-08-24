@@ -329,15 +329,13 @@ fn casted_inner_literals_are_annotated() {
     let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
     let actual_types: Vec<&str> = statements
         .iter()
-        .map(
-            |it| {
-                if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
-                    target.as_ref()
-                } else {
-                    panic!("no cast")
-                }
-            },
-        )
+        .map(|it| {
+            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+                target.as_ref()
+            } else {
+                panic!("no cast")
+            }
+        })
         .map(|it| annotations.get_type_or_void(it, &index).get_name())
         .collect();
 

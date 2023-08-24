@@ -224,41 +224,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                 //TODO lvalue/rvalue stuff
             }
-
-            // AstStatement::Reference { .. } => {
-            //     if let Some(StatementAnnotation::Variable {
-            //         qualified_name,
-            //         resulting_type,
-            //         constant: true,
-            //         ..
-            //     }) = self.annotations.get(expression)
-            //     {
-            //         if self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-            //             self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            //         } else {
-            //             // constant propagation
-            //             self.generate_constant_expression(qualified_name, expression)
-            //         }
-            //     } else {
-            //         // general reference generation
-            //         self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            //     }
-            // }
-            // AstStatement::QualifiedReference { elements, .. } => {
-            //     //If direct access, don't load pointers
-            //     if expression.has_direct_access() {
-            //         //Split the qualified reference at the last element
-            //         self.generate_directaccess(elements).map(ExpressionValue::RValue)
-            //     } else {
-            //         self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            //     }
-            // }
-            AstStatement::ArrayAccess { .. } => {
-                self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            }
-            AstStatement::PointerAccess { .. } => {
-                self.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            }
             AstStatement::BinaryExpression { left, right, operator, .. } => self
                 .generate_binary_expression(left, right, operator, expression)
                 .map(ExpressionValue::RValue),
@@ -347,55 +312,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
             self.create_llvm_generic_binary_expression(left, right, expression)
-        }
-    }
-
-    fn generate_directaccess(&self, elements: &[AstStatement]) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        let (expression, last) = match elements {
-            [qualifier, last] => {
-                // a.%w1
-                (qualifier.clone(), last)
-            }
-            [qualifier @ .., last_qualifier, last] => {
-                // a.b.c.%w1
-                let id = last_qualifier.get_id();
-                (
-                    AstStatement::QualifiedReference {
-                        elements: [qualifier, &[last_qualifier.clone()]].concat().to_vec(),
-                        id,
-                    },
-                    last,
-                )
-            }
-            _ => {
-                return Err(Diagnostic::codegen_error(
-                    &format!("Invalid direct-access: {elements:?}"),
-                    SourceRange::undefined(),
-                ));
-            }
-        };
-
-        //Generate a load for the qualifer
-        // a.%b1.%x1
-        let value = self.generate_expression(&expression)?;
-        let expression_type = self.get_type_hint_for(&expression)?;
-        if let AstStatement::DirectAccess { access, index, .. } = last {
-            //Generate and load the index value
-            let datatype = self.get_type_hint_info_for(last)?;
-            let rhs = self.generate_direct_access_index(access, index, datatype, expression_type)?;
-            //Shift the qualifer value right by the index value
-            let shift = self.llvm.builder.build_right_shift(
-                value.into_int_value(),
-                rhs,
-                expression_type.get_type_information().is_signed_int(),
-                "shift",
-            );
-            //Trunc the result to the get only the target size
-            let llvm_target_type = self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type();
-            let result = self.llvm.builder.build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
-            Ok(result.as_basic_value_enum())
-        } else {
-            unreachable!()
         }
     }
 
@@ -1297,65 +1213,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .map(|it| it.get_basic_value_enum().into_pointer_value())
     }
 
-    pub fn generate_element_pointer_from_elements(
-        &self,
-        elements: &[AstStatement],
-        location: SourceRange,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let mut qualifier: Option<PointerValue> = None;
-        for e in elements {
-            qualifier = Some(self.do_generate_element_pointer(qualifier, e)?);
-        }
-        qualifier.ok_or_else(|| {
-            Diagnostic::codegen_error(&format!("Cannot generate a LValue for {elements:?}"), location)
-        })
-    }
-
-    fn do_generate_element_pointer(
-        &self,
-        qualifier: Option<PointerValue<'ink>>,
-        reference_statement: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
-        match reference_statement {
-            AstStatement::Reference { name, .. } => self.create_llvm_pointer_value_for_reference(
-                qualifier.as_ref(),
-                name.as_str(),
-                reference_statement,
-            ),
-            AstStatement::ArrayAccess { reference, access, .. } => {
-                let Some(reference_annotation) = self.annotations.get(reference) else {
-                    unreachable!("unresolved reference");
-                };
-                let Some(dt) = self.annotations.get_type(reference, self.index) else {
-                    // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
-                    unreachable!("unresolved reference")
-                };
-
-                if dt.get_type_information().is_vla() {
-                    self.generate_element_pointer_for_vla(self.generate_expression_value(reference)?, reference_annotation, access)
-                        .map_err(|_| unreachable!("invalid access statement"))
-                } else {
-                    self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
-                }
-            }
-            AstStatement::PointerAccess { reference, .. } => {
-                self.do_generate_element_pointer(qualifier, reference).map(|it| self.deref(it))
-            }
-            AstStatement::Literal { kind: AstLiteral::String(sv), .. } => if sv.is_wide() {
-                self.llvm_index.find_utf16_literal_string(sv.value())
-            } else {
-                self.llvm_index.find_utf08_literal_string(sv.value())
-            }
-            .map(|it| it.as_pointer_value())
-            .ok_or_else(|| unreachable!("All string literals have to be constants")),
-            _ => Err(Diagnostic::codegen_error(
-                &format!("Cannot generate a LValue for {reference_statement:?}"),
-                reference_statement.get_location(),
-            )),
-        }
-        .map(|it| self.auto_deref_if_necessary(it, reference_statement))
-    }
-
     /// geneartes a gep for the given reference with an optional qualifier
     ///
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
@@ -1501,7 +1358,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
     fn generate_element_pointer_for_array(
         &self,
-        qualifier: Option<&PointerValue<'ink>>,
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
@@ -2472,10 +2328,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
                 .or_else(|| Some(self.temp_variable_prefix.clone())),
             AstStatement::Reference { name, .. } => Some(format!("{}{}", name, self.temp_variable_suffix)),
-            AstStatement::QualifiedReference { .. } => Some(self.temp_variable_prefix.clone()),
-            AstStatement::PointerAccess { .. } | AstStatement::ArrayAccess { .. } => {
-                Some("load_tmpVar".to_string())
-            }
             _ => None,
         }
     }
@@ -2486,15 +2338,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         reference: ExpressionValue<'ink>,
         reference_annotation: &StatementAnnotation,
         access: &AstStatement,
-        
     ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
-
         let StatementAnnotation::Variable { resulting_type: reference_type,  .. } = reference_annotation else {
-            unreachable!(); 
+            unreachable!();
         };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
@@ -2611,11 +2461,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Index(access), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
                     //FIXME: expect
-                    self.generate_element_pointer_for_vla(self.generate_expression_value(base)?, self.annotations.get(base).expect(""), access.as_ref())
-                        .map_err(|_| unreachable!("invalid access statement"))
-                        .map(ExpressionValue::LValue)
+                    self.generate_element_pointer_for_vla(
+                        self.generate_expression_value(base)?,
+                        self.annotations.get(base).expect(""),
+                        access.as_ref(),
+                    )
+                    .map_err(|_| unreachable!("invalid access statement"))
+                    .map(ExpressionValue::LValue)
                 } else {
-                    self.generate_element_pointer_for_array(None, base, access).map(ExpressionValue::LValue)
+                    self.generate_element_pointer_for_array(base, access).map(ExpressionValue::LValue)
                 }
             }
             (ReferenceAccess::Cast(target), Some(_)) => {

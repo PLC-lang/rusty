@@ -468,15 +468,6 @@ fn ids_are_assigned_to_case_statements() {
 #[test]
 fn id_implementation_for_all_statements() {
     assert_eq!(
-        AstStatement::ArrayAccess {
-            access: Box::new(empty_stmt()),
-            reference: Box::new(empty_stmt()),
-            id: 7
-        }
-        .get_id(),
-        7
-    );
-    assert_eq!(
         AstStatement::Assignment { left: Box::new(empty_stmt()), right: Box::new(empty_stmt()), id: 7 }
             .get_id(),
         7
@@ -540,7 +531,6 @@ fn id_implementation_for_all_statements() {
             .get_id(),
         7
     );
-    assert_eq!(AstStatement::QualifiedReference { elements: vec![], id: 7 }.get_id(), 7);
     assert_eq!(
         AstStatement::RangeStatement { start: Box::new(empty_stmt()), end: Box::new(empty_stmt()), id: 7 }
             .get_id(),
@@ -570,11 +560,6 @@ fn at(location: Range<usize>) -> AstStatement {
 
 #[test]
 fn location_implementation_for_all_statements() {
-    assert_eq!(
-        AstStatement::ArrayAccess { reference: Box::new(at(0..1)), access: Box::new(at(2..4)), id: 7 }
-            .get_location(),
-        (0..4).into()
-    );
     assert_eq!(
         AstStatement::Assignment { left: Box::new(at(0..2)), right: Box::new(at(3..8)), id: 7 }
             .get_location(),
@@ -640,10 +625,6 @@ fn location_implementation_for_all_statements() {
         AstStatement::OutputAssignment { left: Box::new(at(0..3)), right: Box::new(at(4..9)), id: 7 }
             .get_location(),
         (0..9).into()
-    );
-    assert_eq!(
-        AstStatement::QualifiedReference { elements: vec![at(0..3), at(4..5)], id: 7 }.get_location(),
-        (0..5).into()
     );
     assert_eq!(
         AstStatement::RangeStatement { start: Box::new(at(0..3)), end: Box::new(at(6..9)), id: 7 }

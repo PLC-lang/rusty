@@ -741,10 +741,6 @@ pub enum AstStatement {
         id: AstId,
     },
     // Expressions
-    QualifiedReference {
-        elements: Vec<AstStatement>,
-        id: AstId,
-    },
     ReferenceExpr {
         access: ReferenceAccess,
         base: Option<Box<AstStatement>>,
@@ -754,15 +750,6 @@ pub enum AstStatement {
     Reference {
         name: String,
         location: SourceRange,
-        id: AstId,
-    },
-    ArrayAccess {
-        reference: Box<AstStatement>,
-        access: Box<AstStatement>,
-        id: AstId,
-    },
-    PointerAccess {
-        reference: Box<AstStatement>,
         id: AstId,
     },
     DirectAccess {
@@ -853,9 +840,6 @@ impl Debug for AstStatement {
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal { kind, .. } => kind.fmt(f),
             AstStatement::Reference { name, .. } => f.debug_struct("Reference").field("name", name).finish(),
-            AstStatement::QualifiedReference { elements, .. } => {
-                f.debug_struct("QualifiedReference").field("elements", elements).finish()
-            }
             AstStatement::BinaryExpression { operator, left, right, .. } => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -926,12 +910,6 @@ impl Debug for AstStatement {
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            AstStatement::ArrayAccess { reference, access, .. } => {
-                f.debug_struct("ArrayAccess").field("reference", reference).field("access", access).finish()
-            }
-            AstStatement::PointerAccess { reference, .. } => {
-                f.debug_struct("PointerAccess").field("reference", reference).finish()
-            }
             AstStatement::DirectAccess { access, index, .. } => {
                 f.debug_struct("DirectAccess").field("access", access).field("index", index).finish()
             }
@@ -978,11 +956,6 @@ impl AstStatement {
             AstStatement::DefaultValue { location, .. } => location.clone(),
             AstStatement::Literal { location, .. } => location.clone(),
             AstStatement::Reference { location, .. } => location.clone(),
-            AstStatement::QualifiedReference { elements, .. } => {
-                let first = elements.first().map_or_else(SourceRange::undefined, |it| it.get_location());
-                let last = elements.last().map_or_else(SourceRange::undefined, |it| it.get_location());
-                first.span(&last)
-            }
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1012,12 +985,6 @@ impl AstStatement {
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::ControlStatement { location, .. } => location.clone(),
-            AstStatement::ArrayAccess { reference, access, .. } => {
-                let reference_loc = reference.get_location();
-                let access_loc = access.get_location();
-                reference_loc.span(&access_loc)
-            }
-            AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),
             AstStatement::HardwareAccess { location, .. } => location.clone(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
@@ -1036,10 +1003,7 @@ impl AstStatement {
             AstStatement::DefaultValue { id, .. } => *id,
             AstStatement::Literal { id, .. } => *id,
             AstStatement::MultipliedStatement { id, .. } => *id,
-            AstStatement::QualifiedReference { id, .. } => *id,
             AstStatement::Reference { id, .. } => *id,
-            AstStatement::ArrayAccess { id, .. } => *id,
-            AstStatement::PointerAccess { id, .. } => *id,
             AstStatement::DirectAccess { id, .. } => *id,
             AstStatement::HardwareAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
@@ -1124,19 +1088,11 @@ impl AstStatement {
     }
 
     pub fn is_array_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::ArrayAccess { .. }))
-        } else {
-            matches!(self, AstStatement::ArrayAccess { .. })
-        }
+        matches!(self, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. })
     }
 
     pub fn is_pointer_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::PointerAccess { .. }))
-        } else {
-            matches!(self, AstStatement::PointerAccess { .. })
-        }
+        matches!(self, AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. })
     }
 
     pub fn can_be_assigned_to(&self) -> bool {

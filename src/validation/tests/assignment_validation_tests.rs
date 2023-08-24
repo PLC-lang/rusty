@@ -525,7 +525,7 @@ fn pointer_assignment_validation() {
     END_FUNCTION
     "#,
     );
-    
+
     assert_validation_snapshot!(&diagnostics);
 }
 

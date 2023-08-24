@@ -370,4 +370,3 @@ fn return_variable_in_nested_call() {
     // we want a call passing the return-variable as apointer (actually the adress as a LWORD)
     insta::assert_snapshot!(codegen(src));
 }
-

@@ -20,8 +20,7 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, DirectAccessType, NewLines, Operator,
-        ReferenceAccess, SourceRange,
+        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess, SourceRange,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
 };
@@ -259,7 +258,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         //Left pointe
-        let left_expression_value = exp_gen.generate_expression_value(&target)?;
+        let left_expression_value = exp_gen.generate_expression_value(target)?;
         let left_value = left_expression_value.as_r_value(self.llvm, None).into_int_value();
         let left = left_expression_value.get_basic_value_enum().into_pointer_value();
         // let left_value = self.llvm.load_pointer(&left, "").into_int_value();
@@ -746,13 +745,11 @@ fn collect_base_and_direct_access_for_assignment(
 ) -> Option<(&AstStatement, Vec<&AstStatement>)> {
     let mut current = Some(left_statement);
     let mut access_sequence = Vec::new();
-    let mut base_expression = None;
     while let Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base, .. }) = current {
         if matches!(m.as_ref(), AstStatement::DirectAccess { .. }) {
             access_sequence.insert(0, m.as_ref());
             current = base.as_deref();
         } else {
-            base_expression = current;
             break;
         }
     }
