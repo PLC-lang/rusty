@@ -22,6 +22,14 @@ impl SourceLocationFactory {
     pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceLocation {
         SourceLocation { span: CodeSpan::Range(range), file: self.file }
     }
+
+    pub fn create_id_location(&self, id: usize) -> SourceLocation {
+        SourceLocation { span: CodeSpan::Id(id), file: self.file }
+    }
+
+    pub fn create_file_only_location(&self) -> SourceLocation {
+        SourceLocation { span: CodeSpan::None, file: self.file }
+    }
 }
 
 /// Represents the location of a code element in a source code

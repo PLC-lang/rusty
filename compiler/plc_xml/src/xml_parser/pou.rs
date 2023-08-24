@@ -1,5 +1,4 @@
 use ast::ast::{AstStatement, Implementation};
-use plc_source::source_location::SourceLocation;
 
 use crate::model::pou::Pou;
 
@@ -31,8 +30,8 @@ impl Pou {
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
             statements,
-            location: SourceLocation::undefined(),
-            name_location: SourceLocation::undefined(),
+            location: session.create_file_only_location(),
+            name_location: session.create_file_only_location(),
             overriding: false,
             generic: false,
             access: None,

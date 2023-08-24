@@ -154,6 +154,14 @@ impl<'parse> ParseSession<'parse> {
     fn create_range(&self, range: core::ops::Range<usize>) -> SourceLocation {
         self.range_factory.create_range(range)
     }
+
+    fn create_id_location(&self, id: usize) -> SourceLocation {
+        self.range_factory.create_id_location(id)
+    }
+
+    fn create_file_only_location(&self) -> SourceLocation {
+        self.range_factory.create_file_only_location()
+    }
 }
 
 impl From<PouType> for AstPouType {

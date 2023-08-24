@@ -30,12 +30,11 @@ impl FunctionBlockVariable {
     pub(crate) fn transform(&self, session: &ParseSession) -> AstStatement {
         if self.negated {
             let ident = session.parse_expression(&self.expression);
-            let location = ident.get_location();
 
             AstStatement::UnaryExpression {
                 operator: Operator::Not,
                 value: Box::new(ident),
-                location,
+                location: session.create_id_location(self.local_id),
                 id: session.next_id(),
             }
         } else {
