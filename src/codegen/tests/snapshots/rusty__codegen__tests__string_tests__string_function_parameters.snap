@@ -19,6 +19,8 @@ entry:
   store i16 0, i16* %foo, align 2
   %foo_ret = load i16, i16* %foo, align 2
   ret i16 %foo_ret
+
+buffer_block:                                     ; No predecessors!
   %foo_ret1 = load i16, i16* %foo, align 2
   ret i16 %foo_ret1
 }

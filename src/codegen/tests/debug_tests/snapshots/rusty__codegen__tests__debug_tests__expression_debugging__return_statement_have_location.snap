@@ -12,6 +12,8 @@ entry:
   store i32 0, i32* %myFunc, align 4, !dbg !7
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !7
   ret i32 %myFunc_ret, !dbg !7
+
+buffer_block:                                     ; No predecessors!
   %myFunc_ret1 = load i32, i32* %myFunc, align 4, !dbg !7
   ret i32 %myFunc_ret1, !dbg !7
 }

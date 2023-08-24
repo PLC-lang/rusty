@@ -137,6 +137,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 None => {
                     self.register_debug_location(statement);
                     self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
+                    self.generate_buffer_block(); // TODO: This is not needed on x86 but if removed segfaults on ARM
                 }
             },
             AstStatement::ExitStatement { location, .. } => {
