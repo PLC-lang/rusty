@@ -1,5 +1,5 @@
-use diagnostics::Diagnostic;
 use plc::Target;
+use plc_diagnostics::diagnostics::Diagnostic;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -39,6 +39,7 @@ pub struct ProjectConfig {
     pub files: Vec<PathBuf>,
     #[serde(default)]
     pub compile_type: FormatOption,
+    #[serde(default)]
     pub output: Option<String>,
     #[serde(default)]
     pub libraries: Vec<LibraryConfig>,
@@ -181,6 +182,7 @@ mod tests {
         assert_eq!(test_project.name, proj.name);
         assert_eq!(test_project.files, proj.files);
         assert_eq!(test_project.compile_type, proj.compile_type);
+        assert_eq!(test_project.output, proj.output);
         let proj_lib = proj.libraries;
         let testproj_lib = test_project.libraries;
         assert_eq!(testproj_lib[0].name, proj_lib[0].name);

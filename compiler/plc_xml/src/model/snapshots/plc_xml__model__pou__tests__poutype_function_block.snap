@@ -1,0 +1,15 @@
+---
+source: compiler/plc_xml/src/model/pou.rs
+expression: "Pou::visit(&mut reader)"
+---
+Ok(
+    Pou {
+        name: "foo",
+        pou_type: FunctionBlock,
+        body: Body {
+            function_block_diagram: None,
+        },
+        actions: [],
+        interface: None,
+    },
+)

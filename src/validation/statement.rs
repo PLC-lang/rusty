@@ -5,8 +5,12 @@ use plc_ast::{
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
-use super::{validate_for_array_assignment, ValidationContext, Validator, Validators};
+use super::{
+    array::{validate_array_assignment, Wrapper},
+    ValidationContext, Validator, Validators,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -16,7 +20,6 @@ use crate::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
-    Diagnostic,
 };
 
 macro_rules! visit_all_statements {
@@ -72,7 +75,6 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, value, context);
         }
         AstStatement::ExpressionList { expressions, .. } => {
-            validate_for_array_assignment(validator, expressions, context);
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
         AstStatement::RangeStatement { start, end, .. } => {
@@ -83,6 +85,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, right, context);
 
             validate_assignment(validator, right, Some(left), &statement.get_location(), context);
+            validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
         AstStatement::OutputAssignment { left, right, .. } => {
             visit_statement(validator, left, context);
@@ -623,7 +626,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
 
         _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
             param.get_name(),
-            param.get_variable_type(),
+            &param.get_variable_type().to_string(),
             arg.get_location(),
         )),
     }

@@ -5,6 +5,7 @@ use plc_ast::ast::{
     AccessModifier, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable, VariableBlock,
     VariableBlockType,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 /*

@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: res
+---
+SemanticError { message: "Array __main_arr has a size of 5, but 6 elements were provided", range: [SourceRange { range: 66..84 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 125..141 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 237..247 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 261..274 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 288..304 }], err_no: arr__invalid_array_assignment }
+SemanticError { message: "Array __main_arr has a size of 5, but 6 elements were provided", range: [SourceRange { range: 317..335 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 361..362 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 375..388 }], err_no: arr__invalid_array_assignment }
+

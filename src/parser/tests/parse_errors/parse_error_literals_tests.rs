@@ -2,8 +2,9 @@ use plc_ast::{
     ast::{AstStatement, DataType, SourceRange, UserTypeDeclaration},
     literals::AstLiteral,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{test_utils::tests::parse, Diagnostic};
+use crate::test_utils::tests::parse;
 
 #[test]
 fn illegal_literal_time_missing_segments_test() {

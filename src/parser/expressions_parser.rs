@@ -4,13 +4,13 @@ use crate::{
     lexer::Token::*,
     lexer::{ParseSession, Token},
     parser::parse_any_in_region,
-    Diagnostic,
 };
 use core::str::Split;
 use plc_ast::{
     ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 

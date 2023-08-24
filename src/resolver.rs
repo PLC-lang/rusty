@@ -290,9 +290,9 @@ pub enum StatementAnnotation {
         resulting_type: String,
         /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
         qualified_name: String,
-        /// denotes wheter this variable is declared as a constant
+        /// denotes whether this variable is declared as a constant
         constant: bool,
-        /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
@@ -711,6 +711,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
+        //TODO dependency on super class
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
@@ -932,6 +933,7 @@ impl<'i> TypeAnnotator<'i> {
                 if inner_type.get_type_information().is_struct() {
                     let expressions = match initializer {
                         // Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
+                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive "could not resolve reference" errors
                         AstStatement::ExpressionList { expressions, .. } => Some(expressions),
 
                         // Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`

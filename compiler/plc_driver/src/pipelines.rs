@@ -10,7 +10,6 @@ use ast::{
     ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
     provider::IdProvider,
 };
-use diagnostics::{Diagnostic, Diagnostician};
 use encoding_rs::Encoding;
 use indexmap::IndexSet;
 use plc::{
@@ -22,6 +21,7 @@ use plc::{
     validation::Validator,
     ConfigFormat, Target,
 };
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, errno::ErrNo};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -57,7 +57,13 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
+
+                let parse_func = match loaded_source.get_type() {
+                    source_code::SourceType::Text => parse_file,
+                    source_code::SourceType::Xml => cfc::xml_parser::parse_file,
+                    source_code::SourceType::Unknown => unreachable!(),
+                };
+                Ok(parse_func(
                     &loaded_source.source,
                     loaded_source.get_location_str(),
                     LinkageType::Internal,
@@ -372,7 +378,7 @@ impl AnnotatedProject {
         let hw_conf = plc::hardware_binding::collect_hardware_configuration(&self.index)?;
         let generated_conf = plc::hardware_binding::generate_hardware_configuration(&hw_conf, format)?;
         File::create(location).and_then(|mut it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::GeneralError { err_no: diagnostics::ErrNo::general__io_err, message: it.to_string() }
+            Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message: it.to_string() }
         })?;
         Ok(())
     }
@@ -487,7 +493,7 @@ impl GeneratedProject<'_> {
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
-                    FormatOption::Shared | FormatOption::PIC => {
+                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => {
                         linker.build_shared_obj(output_location).map_err(Into::into)
                     }
                     FormatOption::Object | FormatOption::Relocatable => {

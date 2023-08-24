@@ -1,9 +1,9 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
+use plc_diagnostics::diagnostics::Diagnostic;
 use which::which;
 
-use crate::diagnostics::Diagnostic;
 use std::{
     error::Error,
     path::{Path, PathBuf},

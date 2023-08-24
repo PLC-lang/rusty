@@ -14,10 +14,10 @@ use plc_ast::{
     literals::AstLiteral,
     provider::IdProvider,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    diagnostics::Diagnostic,
     index::Index,
     lexer, parser,
     resolver::{

@@ -1,7 +1,6 @@
 use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
@@ -9,6 +8,7 @@ use plc_ast::ast::{
     Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
@@ -158,6 +158,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.super_class.clone().as_deref(),
             ));
             index.register_pou_type(datatype);
         }
@@ -175,6 +176,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.name,
                 pou.linkage,
                 symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.super_class.clone(),
             ));
             index.register_pou_type(datatype);
         }

@@ -13,6 +13,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
     literals::AstLiteral,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
 
 #[test]
@@ -73,6 +74,7 @@ fn exponent_literals_parsed_as_variables() {
         name_location: SourceRange::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
+        super_class: None,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pou:#?}").as_str());
     let implementation = &parse_result.implementations[0];

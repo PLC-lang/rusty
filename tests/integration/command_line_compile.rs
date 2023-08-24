@@ -61,3 +61,20 @@ fn hardware_conf_full_pass_toml() {
     //clean up
     let _foo = fs::remove_file("toml");
 }
+
+#[test]
+fn stdlib_string_function_headers_compile_to_ir() {
+    let mut path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("libs");
+    path.push("stdlib");
+    path.push("iec61131-st");
+    path.push("string_functions.st");
+    let file = path.display().to_string();
+
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    assert!(
+        compile(&["plc", file.as_str(), "-o", &path, "--ir"]).is_ok(),
+        "Expected file to compile without errors"
+    )
+}

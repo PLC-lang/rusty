@@ -36,6 +36,7 @@ pub struct Pou {
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
+    pub super_class: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -318,6 +319,11 @@ impl CompilationUnit {
             file_name: file_name.to_string(),
             new_lines,
         }
+    }
+
+    pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
+        self.implementations = implementations;
+        self
     }
 
     /// imports all elements of the other CompilationUnit into this CompilationUnit
@@ -1139,6 +1145,10 @@ impl AstStatement {
 
     pub fn is_binary_expression(&self) -> bool {
         matches!(self, AstStatement::BinaryExpression { .. })
+    }
+
+    pub fn is_literal_array(&self) -> bool {
+        matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
     }
 }
 

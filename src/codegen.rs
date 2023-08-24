@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use std::{
     cell::RefCell,
     ops::Deref,
@@ -18,7 +17,6 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    diagnostics::Diagnostic,
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
     DebugLevel, OptimizationLevel, Target,
@@ -38,6 +36,7 @@ use inkwell::{
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 use plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 mod debug;
 pub(crate) mod generators;
@@ -270,10 +269,10 @@ impl<'ink> GeneratedModule<'ink> {
             FormatOption::Object | FormatOption::Relocatable => {
                 self.persist_as_static_obj(output, target, optimization_level)
             }
-            FormatOption::PIC | FormatOption::Static => {
+            FormatOption::PIC | FormatOption::Shared | FormatOption::Static => {
                 self.persist_to_shared_pic_object(output, target, optimization_level)
             }
-            FormatOption::Shared => self.persist_to_shared_object(output, target, optimization_level),
+            FormatOption::NoPIC => self.persist_to_shared_object(output, target, optimization_level),
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
         }
@@ -333,10 +332,13 @@ impl<'ink> GeneratedModule<'ink> {
             .and_then(|it| {
                 self.module
                     .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
-                    .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
+                    .map_err(|it| {
+                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                    })
                     .and_then(|_| {
-                        it.write_to_file(&self.module, FileType::Object, output.as_path())
-                            .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
+                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(|it| {
+                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                        })
                     })
             })
             .map(|_| output)

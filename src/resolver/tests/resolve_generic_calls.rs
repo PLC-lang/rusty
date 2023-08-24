@@ -1053,3 +1053,36 @@ fn generic_function_sharing_a_datatype_name_resolves() {
         unreachable!("This should always be a call statement.")
     }
 }
+
+#[test]
+fn generic_external_function_having_same_name_as_local_variable() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        {external}
+        FUNCTION echo <T: ANY_INT> : INT
+            VAR_INPUT
+                val : T;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                echo : DINT;
+            END_VAR
+            echo := echo(2);
+            main := echo;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[1].statements[0];
+
+    let AstStatement::Assignment { right, .. } = statement else { unreachable!() };
+    assert_eq!(
+        annotations.get(right).unwrap(),
+        &StatementAnnotation::Value { resulting_type: "INT".to_string() }
+    );
+}

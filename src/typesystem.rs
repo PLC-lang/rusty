@@ -673,6 +673,31 @@ impl DataTypeInformation {
             _ => false,
         }
     }
+
+    /// Returns the array length if [`DataTypeInformation`] is of variant [`DataTypeInformation::Array`] and
+    /// None otherwise.
+    ///
+    /// For example calling this function on `ARRAY[1..5] OF DINT`, `ARRAY[1..2, 1..5] OF DINT` and
+    /// `ARRAY[1..3] OF ARRAY[1..5]` yields `5`, `10` and `15` respectively.
+    pub fn get_array_length(&self, index: &Index) -> Option<usize> {
+        fn intrinsic_array_type<'index>(index: &'index Index, name: &str) -> &'index DataType {
+            let effective_type = index.get_effective_type_or_void_by_name(name);
+
+            match effective_type.get_type_information() {
+                DataTypeInformation::Array { inner_type_name, .. } => {
+                    intrinsic_array_type(index, inner_type_name)
+                }
+                _ => effective_type,
+            }
+        }
+
+        let DataTypeInformation::Array { inner_type_name, .. } = self else { return None };
+        let inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
+        let inner_type_size = inner_type_info.get_size_in_bits(index);
+        let arr_size = self.get_size_in_bits(index);
+
+        Some((arr_size / inner_type_size) as usize)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
