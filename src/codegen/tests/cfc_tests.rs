@@ -1,11 +1,19 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::codegen;
+use crate::test_utils::tests::codegen_temp;
 
 #[test]
-#[ignore = "Currently not working because when adding `plc_xml` as a dependency Cargo will tell me i'm dumb for adding a cyclic dependency"]
 fn conditional_return() {
-    let result = codegen(content::CONDITIONAL_RETURN);
+    let result = codegen_temp(content::CONDITIONAL_RETURN).unwrap();
+    assert_snapshot!(result)
+}
+
+#[test]
+fn conditional_return_negated() {
+    let result = codegen_temp(
+        &content::CONDITIONAL_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#),
+    )
+    .unwrap();
     assert_snapshot!(result)
 }
 

@@ -46,6 +46,7 @@ pretty_assertions = "1.3.0"
 driver = { path = "./compiler/plc_driver/", package = "plc_driver" }
 source = { path = "./compiler/plc_source/", package = "plc_source" }
 project = { path = "./compiler/plc_project/", package = "plc_project" }
+plc_xml = { path = "./compiler/plc_xml" }
 serial_test = "*"
 tempfile = "3"
 encoding_rs.workspace = true

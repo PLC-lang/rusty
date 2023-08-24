@@ -161,6 +161,67 @@ pub mod tests {
             .map(|module| module.persist_to_string())
     }
 
+    // TODO: Rename
+    // TODO(volsa): Remove #[cfg(test)] once cyclic dependency issue is resolved (i.e. parser & codegen in own crates)
+    #[cfg(test)]
+    pub fn codegen_temp(src: &str) -> Result<String, Diagnostic> {
+        let mut id_provider = IdProvider::default();
+        let (unit, index) = do_index_temp(src, id_provider.clone());
+
+        let (mut index, ..) = evaluate_constants(index);
+        let (mut annotations, dependencies, literals) =
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        index.import(std::mem::take(&mut annotations.new_index));
+
+        let context = CodegenContext::create();
+        let path = PathBuf::from_str("src").ok();
+        let mut code_generator = crate::codegen::CodeGen::new(
+            &context,
+            path.as_deref(),
+            "main",
+            crate::OptimizationLevel::None,
+            DebugLevel::None,
+        );
+        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+        let llvm_index =
+            code_generator.generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)?;
+
+        code_generator
+            .generate(&context, &unit, &annotations, &index, &llvm_index)
+            .map(|module| module.persist_to_string())
+    }
+
+    // TODO: Rename
+    // TODO(volsa): Remove #[cfg(test)] once cyclic dependency issue is resolved (i.e. parser & codegen in own crates)
+    #[cfg(test)]
+    fn do_index_temp<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
+        use plc_diagnostics::diagnostician::Diagnostician;
+
+        let source = src.into();
+        let source_str = &source.source;
+        let source_path = source.get_location_str();
+        let mut index = Index::default();
+        //Import builtins
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+
+        index.import(index::visitor::visit(&builtins));
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        let mut unit = plc_xml::xml_parser::parse_file(
+            source_str,
+            source_path,
+            LinkageType::Internal,
+            id_provider.clone(),
+            &mut Diagnostician::null_diagnostician(), // TODO: Should this be a null diagnostician?
+        );
+        pre_process(&mut unit, id_provider);
+        index.import(index::visitor::visit(&unit));
+        (unit, index)
+    }
+
     pub fn codegen_with_debug(src: &str) -> String {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
