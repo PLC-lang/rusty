@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, SourceRange};
+use ast::ast::{AstStatement, Operator, SourceRange};
 
 use crate::model::{
     control::{Control, ControlKind},
@@ -33,8 +33,20 @@ fn transform_return(control: &Control, session: &ParseSession, index: &NodeIndex
         Node::Connector(_) => todo!(),
     };
 
+    // XXX: Introduce trait for negation, because we'll probably need it more often
+    let possibly_negated_condition = if control.negated {
+        AstStatement::UnaryExpression {
+            operator: Operator::Not,
+            location: condition.get_location(),
+            value: Box::new(condition),
+            id: session.next_id(),
+        }
+    } else {
+        condition
+    };
+
     AstStatement::ReturnStatement {
-        condition: Some(Box::new(condition)),
+        condition: Some(Box::new(possibly_negated_condition)),
         location: SourceRange::undefined(),
         id: session.next_id(),
     }

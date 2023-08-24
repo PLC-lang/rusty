@@ -305,7 +305,7 @@ mod tests {
     use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
     use super::{
-        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou, XReturn,
+        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou,
         XTextDeclaration, XVariable,
     };
 
