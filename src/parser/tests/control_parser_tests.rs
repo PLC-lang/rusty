@@ -41,7 +41,7 @@ fn test_return_statement() {
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
-    assert_eq!(format!("{stmt:?}"), "ReturnStatement");
+    assert_eq!(format!("{stmt:?}"), "ReturnStatement { condition: None }");
 }
 
 #[test]

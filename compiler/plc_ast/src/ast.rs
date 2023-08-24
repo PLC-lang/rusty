@@ -931,11 +931,7 @@ impl Debug for AstStatement {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
             AstStatement::ReturnStatement { condition, .. } => {
-                if let Some(condition) = condition {
-                    f.debug_struct(&format!("ReturnStatement (with condition: {condition:?}")).finish()
-                } else {
-                    f.debug_struct("ReturnStatement").finish()
-                }
+                f.debug_struct("ReturnStatement").field("condition", condition).finish()
             }
 
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
