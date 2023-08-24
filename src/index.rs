@@ -1065,7 +1065,8 @@ impl Index {
 
         let segments: Vec<&str> = fully_qualified_name.split('.').collect();
         let (q, segments) = if segments.len() > 1 {
-            // (Some(segments[0]), segments.iter().skip(1).copied().collect::<Vec<&str>>())\
+            // the last segment is th ename, everything before ist qualifier
+            // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
             (Some(segments.iter().take(segments.len() - 1).join(".")), vec![*segments.last().unwrap()])
         } else {
             (None, segments)

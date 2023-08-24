@@ -195,7 +195,7 @@ fn validate_address_of_expression<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     let a = context.annotations.get(target);
-    //FIXME: resolver should also annotate information whether this results in an LValue or RValue
+    //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(
     if !matches!(a, Some(StatementAnnotation::Variable { .. }))
         && !matches!(target, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. })
@@ -389,8 +389,7 @@ fn validate_reference<T: AnnotationMap>(
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
-                    // FIXME: rephrase message to also include other direct-access
-                    message: format!("If you meant to access a bit, use %X{ref_name} instead.",),
+                    message: format!("If you meant to directly access a bit/byte/word/.., use %X/%B/%W{ref_name} instead.",),
                     range: vec![location.clone()],
                 });
             }
@@ -704,7 +703,7 @@ fn validate_assignment<T: AnnotationMap>(
                 location.clone(),
             ));
         } else if !matches!(right, AstStatement::Literal { .. }) {
-            // FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            // TODO: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }

@@ -1,3 +1,5 @@
+use plc_ast::ast::{AstStatement, ReferenceAccess};
+
 use crate::{
     index::{ArgumentType, VariableType},
     resolver::{AnnotationMap, StatementAnnotation},
@@ -130,27 +132,37 @@ fn different_types_of_annotations() {
         Some(&StatementAnnotation::Value { resulting_type: "DINT".into() })
     );
 
-    // FIXME: rewrite this
     // Main.in
-    // let segments = deconstruct_qualified_reference!(&statements[3]);
+    let qualified_reference = &statements[3];
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(member)  ,base: Some(qualifier) , ..} = qualified_reference else {unreachable!()};
     // // Main resolves to a Program
-    // assert_eq!(
-    //     annotations.get(&segments[0]),
-    //     Some(&StatementAnnotation::Program { qualified_name: "Main".into() })
-    // );
-    // //in resolves to the variable in
-    // assert_eq!(
-    //     annotations.get(&segments[1]),
-    //     Some(&StatementAnnotation::Variable {
-    //         qualified_name: "Main.in".into(),
-    //         resulting_type: "INT".into(),
-    //         constant: false,
-    //         is_auto_deref: false,
-    //         argument_type: ArgumentType::ByVal(VariableType::Input),
-    //     })
-    // );
-    // // the qualified statement gets the annotation of the last segment (in this case "Main.in" of type INT)
-    // assert_eq!(annotations.get(&statements[3]), annotations.get(&segments[1]));
+    assert_eq!(
+        annotations.get(qualifier),
+        Some(&StatementAnnotation::Program { qualified_name: "Main".into() })
+    );
+    // in resolves to the member variable
+    assert_eq!(
+        annotations.get(member),
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.in".into(),
+            resulting_type: "INT".into(),
+            constant: false,
+            is_auto_deref: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+        })
+    );
+
+    // the whole Main.in also resolves to the member variable
+    assert_eq!(
+        annotations.get(qualified_reference),
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.in".into(),
+            resulting_type: "INT".into(),
+            constant: false,
+            is_auto_deref: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+        })
+    );
 }
 
 /// The resolver (the component that annotates the AST) not only annnotates the real datatype
