@@ -574,7 +574,7 @@ fn pre_processing_generates_inline_enums_global() {
         },
         var_data_type
     );
-    assert_eq!(src[var_data_type.get_location().to_range()].to_string(), "(a,b,c)".to_string());
+    assert_eq!(src[var_data_type.get_location().to_range().unwrap()].to_string(), "(a,b,c)".to_string());
 
     assert_eq!(
         &"__global_inline_enum".to_string(),
@@ -1732,7 +1732,7 @@ fn a_program_pou_is_indexed() {
             linkage: LinkageType::Internal,
             location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
 
-            instance_variable: VariableIndexEntry {
+            instance_variable: Box::new(VariableIndexEntry {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
                 initial_value: None,
@@ -1744,7 +1744,7 @@ fn a_program_pou_is_indexed() {
                 binding: None,
                 source_location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
                 varargs: None,
-            }
+            })
         }),
         index.find_pou("myProgram"),
     );
@@ -2013,7 +2013,10 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    source_location: SymbolLocation {
+                        source_range: SourceLocation::undefined(),
+                        line_number: 0
+                    },
                     varargs: None
                 },
                 VariableIndexEntry {
@@ -2026,7 +2029,10 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    source_location: SymbolLocation {
+                        source_range: SourceLocation::undefined(),
+                        line_number: 0
+                    },
                     varargs: None
                 }
             ],

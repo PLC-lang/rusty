@@ -2,5 +2,5 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 564..568 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(564..568) }], err_no: var__invalid_assignment }
 

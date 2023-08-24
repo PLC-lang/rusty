@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceRange { range: 168..171 }, SourceRange { range: 310..313 }], err_no: duplicate_symbol }
-SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceRange { range: 310..313 }, SourceRange { range: 168..171 }], err_no: duplicate_symbol }
+SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(168..171) }, SourceLocation { span: Range(310..313) }], err_no: duplicate_symbol }
+SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(310..313) }, SourceLocation { span: Range(168..171) }], err_no: duplicate_symbol }
 

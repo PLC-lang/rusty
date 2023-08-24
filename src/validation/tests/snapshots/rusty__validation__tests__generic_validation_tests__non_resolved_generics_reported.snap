@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Could not resolve generic type T with nature String", range: [SourceRange { range: 94..101 }], err_no: type__unresolved_generic }
+SyntaxError { message: "Could not resolve generic type T with nature String", range: [SourceLocation { span: Range(94..101) }], err_no: type__unresolved_generic }
 

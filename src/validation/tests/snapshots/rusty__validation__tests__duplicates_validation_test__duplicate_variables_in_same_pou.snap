@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceRange { range: 65..66 }, SourceRange { range: 133..134 }], err_no: duplicate_symbol }
-SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceRange { range: 133..134 }, SourceRange { range: 65..66 }], err_no: duplicate_symbol }
+SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceLocation { span: Range(65..66) }, SourceLocation { span: Range(133..134) }], err_no: duplicate_symbol }
+SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceLocation { span: Range(133..134) }, SourceLocation { span: Range(65..66) }], err_no: duplicate_symbol }
 

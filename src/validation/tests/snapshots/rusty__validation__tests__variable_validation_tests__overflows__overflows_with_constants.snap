@@ -2,5 +2,5 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceRange { range: 52..93 }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(52..93) }], err_no: var__overflow }
 

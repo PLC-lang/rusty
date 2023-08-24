@@ -2,5 +2,5 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-SemanticError { message: "Variable Length Arrays are not allowed to be defined inside a Program", range: [SourceRange { range: 53..56 }], err_no: vla__invalid_container }
+SemanticError { message: "Variable Length Arrays are not allowed to be defined inside a Program", range: [SourceLocation { span: Range(53..56) }], err_no: vla__invalid_container }
 

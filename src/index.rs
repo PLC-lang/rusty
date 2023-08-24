@@ -389,7 +389,7 @@ pub enum PouIndexEntry {
     Program {
         name: String,
         instance_struct_name: String,
-        instance_variable: VariableIndexEntry,
+        instance_variable: Box<VariableIndexEntry>,
         linkage: LinkageType,
         location: SymbolLocation,
     },
@@ -447,7 +447,7 @@ impl PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
-            instance_variable,
+            instance_variable: Box::new(instance_variable),
             linkage,
             location,
         }
@@ -1286,7 +1286,7 @@ impl Index {
         self.pous
             .values()
             .filter_map(|p| match p {
-                PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable),
+                PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable.as_ref()),
                 _ => None,
             })
             .collect()

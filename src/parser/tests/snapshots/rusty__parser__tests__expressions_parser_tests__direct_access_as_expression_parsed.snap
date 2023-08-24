@@ -44,8 +44,10 @@ CompilationUnit {
                                     value: 1,
                                 },
                             ],
-                            location: SourceRange {
-                                range: 32..40,
+                            location: SourceLocation {
+                                span: Range(
+                                    32..40,
+                                ),
                             },
                         },
                     },
@@ -67,8 +69,10 @@ CompilationUnit {
                                 value: 200,
                             },
                         ],
-                        location: SourceRange {
-                            range: 52..61,
+                        location: SourceLocation {
+                            span: Range(
+                                52..61,
+                            ),
                         },
                     },
                 },
@@ -91,8 +95,10 @@ CompilationUnit {
                                     value: 5,
                                 },
                             ],
-                            location: SourceRange {
-                                range: 73..80,
+                            location: SourceLocation {
+                                span: Range(
+                                    73..80,
+                                ),
                             },
                         },
                         right: LiteralInteger {
@@ -101,11 +107,15 @@ CompilationUnit {
                     },
                 },
             ],
-            location: SourceRange {
-                range: 25..101,
+            location: SourceLocation {
+                span: Range(
+                    25..101,
+                ),
             },
-            name_location: SourceRange {
-                range: 13..16,
+            name_location: SourceLocation {
+                span: Range(
+                    13..16,
+                ),
             },
             overriding: false,
             generic: false,

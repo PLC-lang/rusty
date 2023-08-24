@@ -2,9 +2,9 @@
 source: src/validation/variable.rs
 expression: res
 ---
-SemanticError { message: "Assigned value is not a variant of main.y", range: [SourceRange { range: 196..199 }], err_no: var__invalid_enum_variant }
-SemanticError { message: "Assigned value is not a variant of main.var1", range: [SourceRange { range: 300..306 }], err_no: var__invalid_enum_variant }
-SemanticError { message: "Assigned value is not a variant of main.var2", range: [SourceRange { range: 356..360 }], err_no: var__invalid_enum_variant }
-SemanticError { message: "Assigned value is not a variant of main.var3", range: [SourceRange { range: 407..408 }], err_no: var__invalid_enum_variant }
-SemanticError { message: "Assigned value is not a variant of x", range: [SourceRange { range: 55..56 }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.y", range: [SourceLocation { span: Range(196..199) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.var1", range: [SourceLocation { span: Range(300..306) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.var2", range: [SourceLocation { span: Range(356..360) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of main.var3", range: [SourceLocation { span: Range(407..408) }], err_no: var__invalid_enum_variant }
+SemanticError { message: "Assigned value is not a variant of x", range: [SourceLocation { span: Range(55..56) }], err_no: var__invalid_enum_variant }
 

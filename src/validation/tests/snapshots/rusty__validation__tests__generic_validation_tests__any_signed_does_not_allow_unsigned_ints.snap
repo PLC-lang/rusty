@@ -2,8 +2,8 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. USINT is no Signed.", range: [SourceRange { range: 135..136 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UINT is no Signed.", range: [SourceRange { range: 209..210 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Signed.", range: [SourceRange { range: 278..279 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Signed.", range: [SourceRange { range: 347..348 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. USINT is no Signed.", range: [SourceLocation { span: Range(135..136) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UINT is no Signed.", range: [SourceLocation { span: Range(209..210) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Signed.", range: [SourceLocation { span: Range(278..279) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Signed.", range: [SourceLocation { span: Range(347..348) }], err_no: type__invalid_nature }
 

@@ -2,6 +2,6 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceLocation { span: Range(137..138) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceLocation { span: Range(206..207) }], err_no: type__invalid_nature }
 

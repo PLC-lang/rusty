@@ -2,6 +2,6 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Literal '3.14' is not compatible to REAL", range: [SourceRange { range: 180..191 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal \"3.14\" is not compatible to LREAL", range: [SourceRange { range: 252..264 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal '3.14' is not compatible to REAL", range: [SourceLocation { span: Range(180..191) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal \"3.14\" is not compatible to LREAL", range: [SourceLocation { span: Range(252..264) }], err_no: type__incompatible_literal_cast }
 

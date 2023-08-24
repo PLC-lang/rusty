@@ -1,8 +1,8 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceRange { range: 223..224 }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceRange { range: 247..248 }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceRange { range: 270..271 }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceLocation { span: Range(223..224) }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceLocation { span: Range(247..248) }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "Bit-Wise access requires a Numerical type larger than 1 bits", range: [SourceLocation { span: Range(270..271) }], err_no: type__incompatible_directaccess }
 

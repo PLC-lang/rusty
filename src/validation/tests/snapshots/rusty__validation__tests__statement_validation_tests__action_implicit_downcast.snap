@@ -2,6 +2,6 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 213..221 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to 'STRING'", range: [SourceRange { range: 276..283 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(213..221) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to 'STRING'", range: [SourceLocation { span: Range(276..283) }], err_no: var__invalid_assignment }
 

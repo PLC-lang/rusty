@@ -2,24 +2,24 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SemanticError { message: "This will overflow for type SINT", range: [SourceRange { range: 108..121 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type SINT", range: [SourceRange { range: 177..189 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type USINT", range: [SourceRange { range: 245..256 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type USINT", range: [SourceRange { range: 310..322 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceRange { range: 398..414 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceRange { range: 470..485 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UINT", range: [SourceRange { range: 541..552 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UINT", range: [SourceRange { range: 606..621 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type DINT", range: [SourceRange { range: 698..721 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type DINT", range: [SourceRange { range: 785..807 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UDINT", range: [SourceRange { range: 871..882 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UDINT", range: [SourceRange { range: 944..966 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LINT", range: [SourceRange { range: 1051..1086 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LINT", range: [SourceRange { range: 1162..1196 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type ULINT", range: [SourceRange { range: 1272..1283 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type ULINT", range: [SourceRange { range: 1357..1392 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceRange { range: 1487..1510 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceRange { range: 1570..1593 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceRange { range: 1679..1711 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceRange { range: 1782..1814 }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type SINT", range: [SourceLocation { span: Range(108..121) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type SINT", range: [SourceLocation { span: Range(177..189) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type USINT", range: [SourceLocation { span: Range(245..256) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type USINT", range: [SourceLocation { span: Range(310..322) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(398..414) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(470..485) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(541..552) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(606..621) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type DINT", range: [SourceLocation { span: Range(698..721) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type DINT", range: [SourceLocation { span: Range(785..807) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type UDINT", range: [SourceLocation { span: Range(871..882) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type UDINT", range: [SourceLocation { span: Range(944..966) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LINT", range: [SourceLocation { span: Range(1051..1086) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LINT", range: [SourceLocation { span: Range(1162..1196) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type ULINT", range: [SourceLocation { span: Range(1272..1283) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type ULINT", range: [SourceLocation { span: Range(1357..1392) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(1487..1510) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(1570..1593) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(1679..1711) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(1782..1814) }], err_no: var__overflow }
 

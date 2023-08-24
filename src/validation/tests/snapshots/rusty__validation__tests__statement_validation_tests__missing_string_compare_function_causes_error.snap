@@ -1,13 +1,13 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 33..43 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 89..99 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 145..155 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 201..211 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 257..267 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 257..267 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 313..323 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 313..323 }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(33..43) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(89..99) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(145..155) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(201..211) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(257..267) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(257..267) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(313..323) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(313..323) }], err_no: codegen__missing_compare_function }
 

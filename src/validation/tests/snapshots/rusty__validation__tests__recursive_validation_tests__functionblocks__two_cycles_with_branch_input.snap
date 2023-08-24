@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceRange { range: 592..593 }, SourceRange { range: 769..770 }, SourceRange { range: 919..920 }, SourceRange { range: 1057..1058 }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceRange { range: 166..167 }, SourceRange { range: 304..305 }, SourceRange { range: 442..443 }, SourceRange { range: 592..593 }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceLocation { span: Range(592..593) }, SourceLocation { span: Range(769..770) }, SourceLocation { span: Range(919..920) }, SourceLocation { span: Range(1057..1058) }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceLocation { span: Range(166..167) }, SourceLocation { span: Range(304..305) }, SourceLocation { span: Range(442..443) }, SourceLocation { span: Range(592..593) }], err_no: pou__recursive_data_structure }
 

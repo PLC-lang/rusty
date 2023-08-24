@@ -2,9 +2,9 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceRange { range: 205..206 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceRange { range: 273..274 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceRange { range: 340..341 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceRange { range: 408..409 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceLocation { span: Range(138..139) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceLocation { span: Range(205..206) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceLocation { span: Range(273..274) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(340..341) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(408..409) }], err_no: type__invalid_nature }
 

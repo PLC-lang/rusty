@@ -2,7 +2,7 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 973..995 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1077..1097 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1227..1258 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(973..995) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceLocation { span: Range(1077..1097) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(1227..1258) }], err_no: var__invalid_assignment }
 

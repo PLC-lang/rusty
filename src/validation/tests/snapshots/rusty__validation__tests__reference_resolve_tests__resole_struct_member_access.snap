@@ -2,10 +2,10 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: res
 ---
-SyntaxError { message: "Could not resolve reference to field10", range: [SourceRange { range: 694..701 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field20", range: [SourceRange { range: 721..728 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field30", range: [SourceRange { range: 748..755 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceRange { range: 955..965 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceRange { range: 989..999 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceRange { range: 1023..1033 }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field10", range: [SourceLocation { span: Range(694..701) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field20", range: [SourceLocation { span: Range(721..728) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to field30", range: [SourceLocation { span: Range(748..755) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceLocation { span: Range(955..965) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceLocation { span: Range(989..999) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceLocation { span: Range(1023..1033) }], err_no: reference__unresolved }
 

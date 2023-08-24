@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "DWord-Wise access for type LWORD must be in the range 0..1", range: [SourceRange { range: 107..110 }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "DWord-Wise access for type LWORD must be in the range 0..1", range: [SourceLocation { span: Range(107..110) }], err_no: type__incompatible_directaccess_range }
 

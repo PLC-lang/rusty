@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid constant y - Functionblock- and Class-instances cannot be delcared constant", range: [SourceRange { range: 320..321 }], err_no: var__invalid_constant }
-SyntaxError { message: "Invalid constant z - Functionblock- and Class-instances cannot be delcared constant", range: [SourceRange { range: 342..343 }], err_no: var__invalid_constant }
+SyntaxError { message: "Invalid constant y - Functionblock- and Class-instances cannot be delcared constant", range: [SourceLocation { span: Range(320..321) }], err_no: var__invalid_constant }
+SyntaxError { message: "Invalid constant z - Functionblock- and Class-instances cannot be delcared constant", range: [SourceLocation { span: Range(342..343) }], err_no: var__invalid_constant }
 

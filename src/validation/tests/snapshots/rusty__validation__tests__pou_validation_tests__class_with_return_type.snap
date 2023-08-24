@@ -2,5 +2,5 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "A class cannot have a return type", range: [SourceRange { range: 15..18 }], err_no: syntax__generic_error }
+SyntaxError { message: "A class cannot have a return type", range: [SourceLocation { span: Range(15..18) }], err_no: syntax__generic_error }
 

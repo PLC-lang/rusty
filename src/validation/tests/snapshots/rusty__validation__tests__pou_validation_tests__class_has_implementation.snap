@@ -2,5 +2,5 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "A class cannot have an implementation", range: [SourceRange { range: 90..122 }], err_no: syntax__generic_error }
+SyntaxError { message: "A class cannot have an implementation", range: [SourceLocation { span: Range(90..122) }], err_no: syntax__generic_error }
 

@@ -1,18 +1,18 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceRange { range: 431..439 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Chars.", range: [SourceRange { range: 431..439 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceRange { range: 441..453 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Chars.", range: [SourceRange { range: 441..453 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceRange { range: 455..465 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Chars.", range: [SourceRange { range: 455..465 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceRange { range: 467..475 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Chars.", range: [SourceRange { range: 467..475 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'STRING'", range: [SourceRange { range: 477..485 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Chars.", range: [SourceRange { range: 477..485 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceRange { range: 496..504 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DATE' to 'STRING'", range: [SourceRange { range: 506..514 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Chars.", range: [SourceRange { range: 506..514 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceLocation { span: Range(431..439) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Chars.", range: [SourceLocation { span: Range(431..439) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceLocation { span: Range(441..453) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Chars.", range: [SourceLocation { span: Range(441..453) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceLocation { span: Range(455..465) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Chars.", range: [SourceLocation { span: Range(455..465) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(467..475) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Chars.", range: [SourceLocation { span: Range(467..475) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'STRING'", range: [SourceLocation { span: Range(477..485) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Chars.", range: [SourceLocation { span: Range(477..485) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceLocation { span: Range(496..504) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DATE' to 'STRING'", range: [SourceLocation { span: Range(506..514) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Chars.", range: [SourceLocation { span: Range(506..514) }], err_no: type__invalid_nature }
 

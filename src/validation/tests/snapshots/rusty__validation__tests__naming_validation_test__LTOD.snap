@@ -2,6 +2,6 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "LTOD can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 5..9 }], err_no: type__invalid_name }
-SyntaxError { message: "LTOD: Ambiguous datatype.", range: [SourceRange { range: 5..9 }, SourceRange { range: 0..0 }], err_no: duplicate_symbol }
+SyntaxError { message: "LTOD can not be used as a name because it is a built-in datatype", range: [SourceLocation { span: Range(5..9) }], err_no: type__invalid_name }
+SyntaxError { message: "LTOD: Ambiguous datatype.", range: [SourceLocation { span: Range(5..9) }, SourceLocation { span: None }], err_no: duplicate_symbol }
 

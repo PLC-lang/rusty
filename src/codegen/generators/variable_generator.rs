@@ -55,7 +55,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                     if let Some(PouIndexEntry::Program { instance_variable, .. }) =
                         self.global_index.find_pou(name).as_ref()
                     {
-                        Some((name.as_str(), instance_variable))
+                        Some((name.as_str(), instance_variable.as_ref()))
                     } else {
                         None
                     }

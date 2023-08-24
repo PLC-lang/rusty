@@ -67,11 +67,15 @@ CompilationUnit {
                     },
                 },
             ],
-            location: SourceRange {
-                range: 32..60,
+            location: SourceLocation {
+                span: Range(
+                    32..60,
+                ),
             },
-            name_location: SourceRange {
-                range: 14..17,
+            name_location: SourceLocation {
+                span: Range(
+                    14..17,
+                ),
             },
             overriding: false,
             generic: false,

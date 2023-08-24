@@ -89,11 +89,15 @@ CompilationUnit {
             linkage: Internal,
             pou_type: Function,
             statements: [],
-            location: SourceRange {
-                range: 150..162,
+            location: SourceLocation {
+                span: Range(
+                    150..162,
+                ),
             },
-            name_location: SourceRange {
-                range: 18..21,
+            name_location: SourceLocation {
+                span: Range(
+                    18..21,
+                ),
             },
             overriding: false,
             generic: false,
@@ -155,11 +159,15 @@ CompilationUnit {
                     ),
                 },
             ],
-            location: SourceRange {
-                range: 215..270,
+            location: SourceLocation {
+                span: Range(
+                    215..270,
+                ),
             },
-            name_location: SourceRange {
-                range: 174..178,
+            name_location: SourceLocation {
+                span: Range(
+                    174..178,
+                ),
             },
             overriding: false,
             generic: false,

@@ -74,8 +74,10 @@ fn programs_state_is_stored_in_a_struct() {
                         binding: None,
                         source_location: SymbolLocation {
                             line_number: 2,
-                            source_range: SourceRange {
-                                range: 43..44,
+                            source_range: SourceLocation {
+                                span: Range(
+                                    43..44,
+                                ),
                             },
                         },
                         varargs: None,
@@ -94,8 +96,10 @@ fn programs_state_is_stored_in_a_struct() {
                         binding: None,
                         source_location: SymbolLocation {
                             line_number: 3,
-                            source_range: SourceRange {
-                                range: 83..85,
+                            source_range: SourceLocation {
+                                span: Range(
+                                    83..85,
+                                ),
                             },
                         },
                         varargs: None,
@@ -114,8 +118,10 @@ fn programs_state_is_stored_in_a_struct() {
                         binding: None,
                         source_location: SymbolLocation {
                             line_number: 4,
-                            source_range: SourceRange {
-                                range: 123..124,
+                            source_range: SourceLocation {
+                                span: Range(
+                                    123..124,
+                                ),
                             },
                         },
                         varargs: None,
@@ -134,8 +140,10 @@ fn programs_state_is_stored_in_a_struct() {
                         binding: None,
                         source_location: SymbolLocation {
                             line_number: 5,
-                            source_range: SourceRange {
-                                range: 163..164,
+                            source_range: SourceLocation {
+                                span: Range(
+                                    163..164,
+                                ),
                             },
                         },
                         varargs: None,
@@ -154,8 +162,10 @@ fn programs_state_is_stored_in_a_struct() {
                         binding: None,
                         source_location: SymbolLocation {
                             line_number: 6,
-                            source_range: SourceRange {
-                                range: 203..205,
+                            source_range: SourceLocation {
+                                span: Range(
+                                    203..205,
+                                ),
                             },
                         },
                         varargs: None,
@@ -168,8 +178,10 @@ fn programs_state_is_stored_in_a_struct() {
             nature: Any,
             location: SymbolLocation {
                 line_number: 1,
-                source_range: SourceRange {
-                    range: 13..21,
+                source_range: SourceLocation {
+                    span: Range(
+                        13..21,
+                    ),
                 },
             },
         },

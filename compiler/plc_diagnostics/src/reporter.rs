@@ -1,6 +1,4 @@
-use std::ops::Range;
-
-use plc_source::source_location::SourceLocation;
+use plc_source::source_location::CodeSpan;
 
 use crate::diagnostician::Severity;
 
@@ -26,12 +24,12 @@ pub trait DiagnosticReporter {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedLocation {
     pub file_handle: usize,
-    pub range: Range<usize>,
+    pub range: CodeSpan,
 }
 
 impl ResolvedLocation {
     pub(crate) fn is_internal(&self) -> bool {
-        self.range == SourceLocation::undefined().to_range()
+        self.range == CodeSpan::None
     }
 }
 

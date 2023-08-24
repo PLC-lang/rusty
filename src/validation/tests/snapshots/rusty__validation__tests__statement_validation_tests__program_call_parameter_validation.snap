@@ -2,8 +2,8 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 354..358 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 360..364 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 420..434 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 602..606 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceLocation { span: Range(354..358) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceLocation { span: Range(360..364) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(420..434) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(602..606) }], err_no: var__invalid_assignment }
 

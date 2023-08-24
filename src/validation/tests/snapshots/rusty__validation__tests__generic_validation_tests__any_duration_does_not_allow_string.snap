@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceRange { range: 145..146 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Duration.", range: [SourceRange { range: 145..146 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'TIME'", range: [SourceRange { range: 222..223 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WSTRING is no Duration.", range: [SourceRange { range: 222..223 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(145..146) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. STRING is no Duration.", range: [SourceLocation { span: Range(145..146) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'TIME'", range: [SourceLocation { span: Range(222..223) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WSTRING is no Duration.", range: [SourceLocation { span: Range(222..223) }], err_no: type__invalid_nature }
 

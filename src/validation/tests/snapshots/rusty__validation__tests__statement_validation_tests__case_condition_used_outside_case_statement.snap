@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceRange { range: 50..70 }], err_no: case__case_condition_outside_case_statement }
-SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceRange { range: 79..81 }], err_no: case__case_condition_outside_case_statement }
+SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceLocation { span: Range(50..70) }], err_no: case__case_condition_outside_case_statement }
+SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceLocation { span: Range(79..81) }], err_no: case__case_condition_outside_case_statement }
 
