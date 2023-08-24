@@ -21,7 +21,7 @@ use plc_ast::ast::AstStatement;
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_diagnostics::errno::ErrNo;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
@@ -235,7 +235,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     Err(Diagnostic::invalid_type_nature(
                         effective_type.get_name(),
                         "ANY_INT",
-                        SourceRange::undefined(),
+                        SourceLocation::undefined(),
                     ))
                 }
             }
@@ -251,7 +251,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
 
                 let string_size = size
                     .as_int_value(self.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))?
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))?
                     as u32;
                 Ok(base_type.array_type(string_size).into())
             }
@@ -432,12 +432,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .map(|dimension| {
                 dimension
                     .get_length(self.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))
             })
             .collect::<Result<Vec<u32>, Diagnostic>>()?
             .into_iter()
             .reduce(|a, b| a * b)
-            .ok_or_else(|| Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined()))?;
+            .ok_or_else(|| {
+                Diagnostic::codegen_error("Invalid array dimensions", SourceLocation::undefined())
+            })?;
 
         let result = match inner_type {
             BasicTypeEnum::IntType(ty) => ty.array_type(len),

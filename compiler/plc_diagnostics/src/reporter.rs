@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::diagnostician::Severity;
 
@@ -31,7 +31,7 @@ pub struct ResolvedLocation {
 
 impl ResolvedLocation {
     pub(crate) fn is_internal(&self) -> bool {
-        self.range == SourceRange::undefined().to_range()
+        self.range == SourceLocation::undefined().to_range()
     }
 }
 

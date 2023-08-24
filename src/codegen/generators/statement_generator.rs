@@ -22,7 +22,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, ConditionalBlock},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {
@@ -378,7 +378,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let step_by_value = by_step.as_ref().map_or_else(
-            || self.llvm.create_const_numeric(&counter_statement.get_type(), "1", SourceRange::undefined()),
+            || {
+                self.llvm.create_const_numeric(
+                    &counter_statement.get_type(),
+                    "1",
+                    SourceLocation::undefined(),
+                )
+            },
             |step| {
                 self.register_debug_location(step);
                 expression_generator.generate_expression(step)

@@ -37,7 +37,7 @@ use inkwell::{
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 mod debug;
 pub(crate) mod generators;
@@ -307,7 +307,7 @@ impl<'ink> GeneratedModule<'ink> {
         let target = inkwell::targets::Target::from_triple(&triple).map_err(|it| {
             Diagnostic::codegen_error(
                 &format!("Invalid target-tripple '{triple}' - {it:?}"),
-                SourceRange::undefined(),
+                SourceLocation::undefined(),
             )
         })?;
         let machine = target
@@ -321,7 +321,7 @@ impl<'ink> GeneratedModule<'ink> {
                 CodeModel::Default,
             )
             .ok_or_else(|| {
-                Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
+                Diagnostic::codegen_error("Cannot create target machine.", SourceLocation::undefined())
             });
 
         //Make sure all parents exist
@@ -406,7 +406,7 @@ impl<'ink> GeneratedModule<'ink> {
         if self.module.write_bitcode_to_path(&output) {
             Ok(output)
         } else {
-            Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceRange::undefined()))
+            Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
         }
     }
 

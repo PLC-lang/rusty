@@ -1,7 +1,7 @@
 use std::{error::Error, ops::Range};
 
 use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::errno::ErrNo;
 
@@ -9,10 +9,10 @@ pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Diagnostic {
-    SyntaxError { message: String, range: Vec<SourceRange>, err_no: ErrNo },
-    SemanticError { message: String, range: Vec<SourceRange>, err_no: ErrNo },
+    SyntaxError { message: String, range: Vec<SourceLocation>, err_no: ErrNo },
+    SemanticError { message: String, range: Vec<SourceLocation>, err_no: ErrNo },
     GeneralError { message: String, err_no: ErrNo },
-    ImprovementSuggestion { message: String, range: Vec<SourceRange> },
+    ImprovementSuggestion { message: String, range: Vec<SourceLocation> },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec<Diagnostic>, err_no: ErrNo },
 }
 
@@ -24,7 +24,7 @@ impl<T: Error> From<T> for Diagnostic {
 
 impl Diagnostic {
     /// Creates a new diagnostic with additional ranges
-    pub fn with_extra_ranges(self, ranges: &[SourceRange]) -> Diagnostic {
+    pub fn with_extra_ranges(self, ranges: &[SourceLocation]) -> Diagnostic {
         match self {
             Diagnostic::SyntaxError { message, mut range, err_no } => {
                 range.extend_from_slice(ranges);
@@ -42,7 +42,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
+    pub fn syntax_error(message: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
             range: vec![range],
@@ -50,7 +50,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceRange) -> Diagnostic {
+    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Unexpected token: expected {expected} but found {found}"),
             range: vec![range],
@@ -58,7 +58,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unexpected_initializer_on_function_return(range: SourceRange) -> Diagnostic {
+    pub fn unexpected_initializer_on_function_return(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Return types cannot have a default value".into(),
             range: vec![range],
@@ -66,7 +66,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
+    pub fn return_type_not_supported(pou_type: &PouType, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("POU Type {pou_type:?} does not support a return type. Did you mean Function?"),
             range: vec![range],
@@ -82,7 +82,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn function_return_missing(range: SourceRange) -> Diagnostic {
+    pub fn function_return_missing(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Function Return type missing".into(),
             range: vec![range],
@@ -90,7 +90,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_function(location: SourceRange) -> Diagnostic {
+    pub fn missing_function(location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Cannot generate code outside of function context.".into(),
             range: vec![location],
@@ -101,7 +101,7 @@ impl Diagnostic {
     pub fn missing_compare_function(
         function_name: &str,
         data_type: &str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
@@ -112,7 +112,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_token(expected_token: &str, range: SourceRange) -> Diagnostic {
+    pub fn missing_token(expected_token: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing expected Token {expected_token}"),
             range: vec![range],
@@ -120,14 +120,14 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_action_container(range: SourceRange) -> Diagnostic {
+    pub fn missing_action_container(range: SourceLocation) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: "Missing Actions Container Name".to_string(),
             range: vec![range],
         }
     }
 
-    pub fn unresolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
+    pub fn unresolved_reference(reference: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Could not resolve reference to {reference:}"),
             range: vec![location],
@@ -135,7 +135,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn illegal_access(reference: &str, location: SourceRange) -> Diagnostic {
+    pub fn illegal_access(reference: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Illegal access to private member {reference:}"),
             range: vec![location],
@@ -143,7 +143,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unresolved_generic_type(symbol: &str, nature: &str, location: SourceRange) -> Diagnostic {
+    pub fn unresolved_generic_type(symbol: &str, nature: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Could not resolve generic type {symbol} with nature {nature}"),
             range: vec![location],
@@ -151,7 +151,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unknown_type(type_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn unknown_type(type_name: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Unknown type: {type_name:}"),
             range: vec![location],
@@ -159,7 +159,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn casting_error(type_name: &str, target_type: &str, location: SourceRange) -> Diagnostic {
+    pub fn casting_error(type_name: &str, target_type: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Cannot cast from {type_name:} to {target_type:}"),
             range: vec![location],
@@ -170,7 +170,7 @@ impl Diagnostic {
     pub fn incompatible_directaccess(
         access_type: &str,
         access_size: u64,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
@@ -185,7 +185,7 @@ impl Diagnostic {
         access_type: &str,
         target_type: &str,
         access_range: Range<u64>,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
@@ -197,7 +197,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_directaccess_variable(access_type: &str, location: SourceRange) -> Diagnostic {
+    pub fn incompatible_directaccess_variable(access_type: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid type {access_type} for direct variable access. Only variables of Integer types are allowed",
@@ -207,7 +207,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_array_access_range(range: Range<i64>, location: SourceRange) -> Diagnostic {
+    pub fn incompatible_array_access_range(range: Range<i64>, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Array access must be in the range {}..{}", range.start, range.end),
             range: vec![location],
@@ -215,7 +215,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_array_access_variable(access_type: &str, location: SourceRange) -> Diagnostic {
+    pub fn incompatible_array_access_variable(access_type: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid type {access_type} for array access. Only variables of Array types are allowed",
@@ -225,7 +225,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_array_access_type(access_type: &str, location: SourceRange) -> Diagnostic {
+    pub fn incompatible_array_access_type(access_type: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid type {access_type} for array access. Only variables of Integer types are allowed to access an array",
@@ -238,7 +238,7 @@ impl Diagnostic {
     pub fn incompatible_literal_cast(
         cast_type: &str,
         literal_type: &str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Literal {literal_type} is not compatible to {cast_type}"),
@@ -247,7 +247,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn literal_expected(location: SourceRange) -> Diagnostic {
+    pub fn literal_expected(location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Expected literal".into(),
             range: vec![location],
@@ -255,7 +255,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn literal_out_of_range(literal: &str, range_hint: &str, location: SourceRange) -> Diagnostic {
+    pub fn literal_out_of_range(literal: &str, range_hint: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Literal {literal} out of range ({range_hint})"),
             range: vec![location],
@@ -263,7 +263,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn reference_expected(location: SourceRange) -> Diagnostic {
+    pub fn reference_expected(location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Expression is not assignable".into(),
             range: vec![location],
@@ -271,7 +271,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
+    pub fn empty_variable_block(location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Variable block is empty".into(),
             range: vec![location],
@@ -282,7 +282,7 @@ impl Diagnostic {
     pub fn unresolved_constant(
         constant_name: &str,
         reason: Option<&str>,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
@@ -294,7 +294,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
+    pub fn invalid_constant_block(location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "This variable block does not support the CONSTANT modifier".to_string(),
             range: vec![location],
@@ -302,7 +302,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn invalid_constant(constant_name: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid constant {constant_name} - Functionblock- and Class-instances cannot be delcared constant",
@@ -312,7 +312,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Cannot assign to CONSTANT '{qualified_name}'"),
             range: vec![location],
@@ -320,14 +320,14 @@ impl Diagnostic {
         }
     }
 
-    pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn cannot_generate_initializer(variable_name: &str, location: SourceLocation) -> Diagnostic {
         Self::codegen_error(
             &format!("Cannot generate literal initializer for '{variable_name}': Value cannot be derived"),
             location,
         )
     }
 
-    pub fn codegen_error(message: &str, location: SourceRange) -> Diagnostic {
+    pub fn codegen_error(message: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.into(),
             range: vec![location],
@@ -371,21 +371,21 @@ impl Diagnostic {
         }
     }
 
-    pub fn cannot_generate_from_empty_literal(type_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn cannot_generate_from_empty_literal(type_name: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::codegen_error(
             format!("Cannot generate {type_name} from empty literal").as_str(),
             location,
         )
     }
 
-    pub fn cannot_generate_string_literal(type_name: &str, location: SourceRange) -> Diagnostic {
+    pub fn cannot_generate_string_literal(type_name: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::codegen_error(
             format!("Cannot generate String-Literal for type {type_name}").as_str(),
             location,
         )
     }
 
-    pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceRange) -> Diagnostic {
+    pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"),
             range: vec![location],
@@ -393,7 +393,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_type_nature(actual: &str, expected: &str, location: SourceRange) -> Diagnostic {
+    pub fn invalid_type_nature(actual: &str, expected: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Invalid type nature for generic argument. {actual} is no {expected}."),
             range: vec![location],
@@ -401,7 +401,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unknown_type_nature(nature: &str, location: SourceRange) -> Diagnostic {
+    pub fn unknown_type_nature(nature: &str, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Unknown type nature {nature}."),
             range: vec![location],
@@ -409,7 +409,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_datatype(reason: Option<&str>, location: SourceRange) -> Diagnostic {
+    pub fn missing_datatype(reason: Option<&str>, location: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing datatype {}", reason.unwrap_or("")),
             range: vec![location],
@@ -417,7 +417,12 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_type_size(nature: &str, size: u32, error: &str, location: SourceRange) -> Diagnostic {
+    pub fn incompatible_type_size(
+        nature: &str,
+        size: u32,
+        error: &str,
+        location: SourceLocation,
+    ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("The type {nature} {size} is too small to {error} Pointer"),
             range: vec![location],
@@ -439,18 +444,18 @@ impl Diagnostic {
         }
     }
 
-    pub fn get_location(&self) -> SourceRange {
+    pub fn get_location(&self) -> SourceLocation {
         match self {
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
             | Diagnostic::ImprovementSuggestion { range, .. } => {
-                range.get(0).cloned().unwrap_or_else(SourceRange::undefined)
+                range.get(0).cloned().unwrap_or_else(SourceLocation::undefined)
             }
-            _ => SourceRange::undefined(),
+            _ => SourceLocation::undefined(),
         }
     }
 
-    pub fn get_secondary_locations(&self) -> Option<&[SourceRange]> {
+    pub fn get_secondary_locations(&self) -> Option<&[SourceLocation]> {
         match self {
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
@@ -476,7 +481,7 @@ impl Diagnostic {
     /**
      * relocates the given diagnostic to the given location if possible and returns it back
      */
-    pub fn relocate(it: Diagnostic, new_location: SourceRange) -> Diagnostic {
+    pub fn relocate(it: Diagnostic, new_location: SourceLocation) -> Diagnostic {
         match it {
             Diagnostic::SyntaxError { message, err_no, .. } => {
                 Diagnostic::SyntaxError { message, range: vec![new_location], err_no }
@@ -488,14 +493,14 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
+    pub fn invalid_pragma_location(message: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!("Invalid pragma location: {message}"),
             range: vec![range],
         }
     }
 
-    pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
+    pub fn non_constant_case_condition(case: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("{case}. Non constant variables are not supported in case conditions"),
             range: vec![range],
@@ -503,7 +508,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn duplicate_case_condition(value: &i128, range: SourceRange) -> Diagnostic {
+    pub fn duplicate_case_condition(value: &i128, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Duplicate condition value: {value}. Occurred more than once!"),
             range: vec![range],
@@ -511,7 +516,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn case_condition_used_outside_case_statement(range: SourceRange) -> Diagnostic {
+    pub fn case_condition_used_outside_case_statement(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Case condition used outside of case statement! Did you mean to use ';'?".into(),
             range: vec![range],
@@ -519,7 +524,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_case_condition(range: SourceRange) -> Diagnostic {
+    pub fn invalid_case_condition(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Invalid case condition!".into(),
             range: vec![range],
@@ -527,7 +532,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_inout_parameter(parameter: &str, range: SourceRange) -> Diagnostic {
+    pub fn missing_inout_parameter(parameter: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing inout parameter: {parameter}"),
             range: vec![range],
@@ -535,7 +540,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_parameter_type(range: SourceRange) -> Diagnostic {
+    pub fn invalid_parameter_type(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Cannot mix implicit and explicit call parameters!".into(),
             range: vec![range],
@@ -543,7 +548,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_parameter_count(expected: usize, received: usize, range: SourceRange) -> Diagnostic {
+    pub fn invalid_parameter_count(expected: usize, received: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
@@ -556,7 +561,7 @@ impl Diagnostic {
     pub fn implicit_downcast(
         actual_type_name: &str,
         assigned_type_name: &str,
-        range: SourceRange,
+        range: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!(
@@ -569,7 +574,7 @@ impl Diagnostic {
     pub fn invalid_argument_type(
         parameter_name: &str,
         parameter_type: &str,
-        range: SourceRange,
+        range: SourceLocation,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
@@ -580,7 +585,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_type_name(name: &str, range: Vec<SourceRange>) -> Diagnostic {
+    pub fn invalid_type_name(name: &str, range: Vec<SourceLocation>) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("{name} can not be used as a name because it is a built-in datatype"),
             range,
@@ -590,16 +595,16 @@ impl Diagnostic {
 
     pub fn global_name_conflict(
         name: &str,
-        location: SourceRange,
-        conflicts: Vec<SourceRange>,
+        location: SourceLocation,
+        conflicts: Vec<SourceLocation>,
     ) -> Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
     }
 
     pub fn global_name_conflict_with_text(
         name: &str,
-        location: SourceRange,
-        conflicts: Vec<SourceRange>,
+        location: SourceLocation,
+        conflicts: Vec<SourceLocation>,
         additional_text: &str,
     ) -> Diagnostic {
         let mut locations = vec![location];
@@ -611,7 +616,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_operation(message: &str, range: SourceRange) -> Diagnostic {
+    pub fn invalid_operation(message: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
             range: vec![range],
@@ -619,7 +624,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn array_assignment(range: SourceRange) -> Diagnostic {
+    pub fn array_assignment(range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Array assignments must be surrounded with `[]`".to_string(),
             range: vec![range],
@@ -627,7 +632,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceRange) -> Diagnostic {
+    pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided"),
             range: vec![range],
@@ -635,7 +640,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn recursive_datastructure(path: &str, range: Vec<SourceRange>) -> Diagnostic {
+    pub fn recursive_datastructure(path: &str, range: Vec<SourceLocation>) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Recursive data structure `{path}` has infinite size"),
             range,
@@ -643,7 +648,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn vla_by_val_warning(range: SourceRange) -> Diagnostic {
+    pub fn vla_by_val_warning(range: SourceLocation) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: "Variable Length Arrays are always by-ref, even when declared in a by-value block"
                 .to_string(),
@@ -651,11 +656,11 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_vla_container(message: String, range: SourceRange) -> Diagnostic {
+    pub fn invalid_vla_container(message: String, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
     }
 
-    pub fn invalid_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
+    pub fn invalid_array_access(expected: usize, actual: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Expected array access with {expected} dimensions, found {actual}"),
             range: vec![range],
@@ -663,7 +668,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_range_statement(entity: &AstStatement, range: SourceRange) -> Diagnostic {
+    pub fn invalid_range_statement(entity: &AstStatement, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],
@@ -671,7 +676,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn var_input_ref_assignment(location: SourceRange) -> Diagnostic {
+    pub fn var_input_ref_assignment(location: SourceLocation) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message:
                 "VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead."
@@ -680,11 +685,11 @@ impl Diagnostic {
         }
     }
 
-    pub fn overflow(message: String, location: SourceRange) -> Diagnostic {
+    pub fn overflow(message: String, location: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError { message, range: vec![location], err_no: ErrNo::var__overflow }
     }
 
-    pub fn index_out_of_bounds(range: SourceRange) -> Diagnostic {
+    pub fn index_out_of_bounds(range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Index out of bounds.".into(),
             range: vec![range],
@@ -692,7 +697,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn enum_variant_mismatch(enum_type: &str, range: SourceRange) -> Diagnostic {
+    pub fn enum_variant_mismatch(enum_type: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Assigned value is not a variant of {enum_type}"),
             range: vec![range],

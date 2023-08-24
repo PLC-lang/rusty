@@ -6,7 +6,7 @@ use plc_ast::ast::{
     VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 /*
@@ -62,7 +62,7 @@ fn missing_comma_in_call_parameters() {
         format!(
             "{:#?}",
             vec![AstStatement::CallStatement {
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 operator: Box::new(ref_to("buz")),
                 parameters: Box::new(Some(AstStatement::ExpressionList {
                     expressions: vec![ref_to("a"), ref_to("b"),],
@@ -103,7 +103,7 @@ fn illegal_semicolon_in_call_parameters() {
             "{:#?}",
             vec![
                 AstStatement::CallStatement {
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     operator: Box::new(ref_to("buz")),
                     parameters: Box::new(Some(AstStatement::ExpressionList {
                         expressions: vec![ref_to("a"), ref_to("b")],
@@ -263,16 +263,16 @@ fn invalid_variable_name_error_recovery() {
                 constant: false,
                 access: AccessModifier::Protected,
                 retain: false,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 variables: vec![Variable {
                     name: "c".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },],
                 variable_block_type: VariableBlockType::Local,
                 linkage: LinkageType::Internal,
@@ -1281,10 +1281,10 @@ fn pointer_type_without_to_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -1316,10 +1316,10 @@ fn pointer_type_with_wrong_keyword_to_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "tu".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };

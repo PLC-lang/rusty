@@ -37,7 +37,7 @@ use inkwell::{
 };
 use plc_ast::ast::{AstStatement, Implementation, NewLines, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -428,7 +428,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
                 &format!("Unsupported return type {return_type:?}"),
-                SourceRange::undefined(),
+                SourceLocation::undefined(),
             )),
         }
     }
@@ -523,7 +523,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
         function_context: &FunctionContext<'ink, '_>,
-        location: &SourceRange,
+        location: &SourceLocation,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         let members = self.index.get_pou_members(type_name);
@@ -746,7 +746,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
                             &format!("Cannot generate return variable for {call_name:}"),
-                            SourceRange::undefined(),
+                            SourceLocation::undefined(),
                         )
                     })?;
                 let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());

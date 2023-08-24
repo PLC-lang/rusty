@@ -1,7 +1,7 @@
 use plc_ast::ast::AstStatement;
 use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
@@ -39,14 +39,14 @@ fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstS
 }
 
 fn create_int_literal(v: i128) -> AstStatement {
-    AstStatement::Literal { kind: AstLiteral::new_integer(v), id: 0, location: SourceRange::undefined() }
+    AstStatement::Literal { kind: AstLiteral::new_integer(v), id: 0, location: SourceLocation::undefined() }
 }
 
 fn create_string_literal(v: &str, wide: bool) -> AstStatement {
     AstStatement::Literal {
         kind: AstLiteral::new_string(v.to_string(), wide),
         id: 0,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     }
 }
 
@@ -54,12 +54,12 @@ fn create_real_literal(v: f64) -> AstStatement {
     AstStatement::Literal {
         kind: AstLiteral::new_real(format!("{v:}")),
         id: 0,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     }
 }
 
 fn create_bool_literal(v: bool) -> AstStatement {
-    AstStatement::Literal { kind: AstLiteral::new_bool(v), id: 0, location: SourceRange::undefined() }
+    AstStatement::Literal { kind: AstLiteral::new_bool(v), id: 0, location: SourceLocation::undefined() }
 }
 
 #[test]
@@ -892,7 +892,7 @@ fn const_string_initializers_should_be_converted() {
         Some(AstStatement::Literal {
             kind: AstLiteral::new_string("World".into(), false),
             id: 0,
-            location: SourceRange::undefined()
+            location: SourceLocation::undefined()
         })
     );
     debug_assert_eq!(
@@ -900,7 +900,7 @@ fn const_string_initializers_should_be_converted() {
         Some(AstStatement::Literal {
             kind: AstLiteral::new_string("Hello".into(), true),
             id: 0,
-            location: SourceRange::undefined()
+            location: SourceLocation::undefined()
         })
     );
 }
@@ -936,7 +936,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
         Some(AstStatement::Literal {
             kind: AstLiteral::new_real("6.283".into()),
             id: 0,
-            location: SourceRange::undefined()
+            location: SourceLocation::undefined()
         })
     );
 

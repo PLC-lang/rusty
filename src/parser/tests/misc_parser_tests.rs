@@ -13,7 +13,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -50,28 +50,28 @@ fn exponent_literals_parsed_as_variables() {
         poly_mode: None,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "E2".into(),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
             variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
             access: AccessModifier::Internal,
             constant: false,
             retain: false,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![Variable {
                 name: "E3".into(),
                 data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "E4".into(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }],
         }],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
@@ -88,7 +88,7 @@ fn exponent_literals_parsed_as_variables() {
             right: Box::new(AstStatement::Literal {
                 kind: AstLiteral::new_real("1.0E6".into()),
                 id: 0,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             id: 0,
         }],
@@ -514,7 +514,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        AstFactory::create_if_statement(Vec::new(), Vec::new(), SourceRange::undefined(), 7).get_id(),
+        AstFactory::create_if_statement(Vec::new(), Vec::new(), SourceLocation::undefined(), 7).get_id(),
         7
     );
     assert_eq!(AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_id(), 7);

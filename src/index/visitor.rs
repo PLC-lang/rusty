@@ -9,7 +9,7 @@ use plc_ast::ast::{
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
@@ -580,11 +580,11 @@ fn visit_variable_length_array(
             (
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_array_name,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_dimensions_name,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             )
         } else {
@@ -614,10 +614,10 @@ fn visit_variable_length_array(
                         name: Some(member_array_name),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: dummy_array_name,
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         }),
                     },
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     scope: None,
                 },
                 DataTypeDeclaration::DataTypeDefinition {
@@ -629,12 +629,12 @@ fn visit_variable_length_array(
                                     start: Box::new(AstStatement::new_literal(
                                         AstLiteral::new_integer(0),
                                         0,
-                                        SourceRange::undefined(),
+                                        SourceLocation::undefined(),
                                     )),
                                     end: Box::new(AstStatement::new_literal(
                                         AstLiteral::new_integer(1),
                                         0,
-                                        SourceRange::undefined(),
+                                        SourceLocation::undefined(),
                                     )),
                                     id: 0,
                                 })
@@ -643,11 +643,11 @@ fn visit_variable_length_array(
                         },
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         }),
                         is_variable_length: false,
                     },
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     scope: None,
                 },
             )
@@ -661,7 +661,7 @@ fn visit_variable_length_array(
             data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         },
         // Dimensions Array
         Variable {
@@ -669,7 +669,7 @@ fn visit_variable_length_array(
             data_type_declaration: dim_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         },
     ];
 
@@ -796,7 +796,7 @@ fn visit_struct(
                     &UserTypeDeclaration {
                         data_type: data_type.clone(),
                         initializer: None,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: scope.clone(),
                     },
                     symbol_location_factory,

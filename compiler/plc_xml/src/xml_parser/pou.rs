@@ -1,5 +1,5 @@
 use ast::ast::{AstStatement, Implementation};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::pou::Pou;
 
@@ -31,8 +31,8 @@ impl Pou {
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
+            name_location: SourceLocation::undefined(),
             overriding: false,
             generic: false,
             access: None,

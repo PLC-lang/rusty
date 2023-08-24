@@ -1,5 +1,5 @@
 use ast::ast::{AstStatement, Implementation, PouType as AstPouType};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::action::Action;
 
@@ -19,8 +19,8 @@ impl Action {
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
+            name_location: SourceLocation::undefined(),
             overriding: false,
             generic: false,
             access: None,

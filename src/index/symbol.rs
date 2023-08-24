@@ -2,7 +2,7 @@
 
 use indexmap::IndexMap;
 use plc_ast::ast::NewLines;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use std::hash::Hash;
 
 /// Location information of a Symbol in the index consisting of the line_number
@@ -12,7 +12,7 @@ pub struct SymbolLocation {
     /// the line-number of this symbol in the source-file
     pub line_number: u32,
     /// the exact location of the symbol and the file_name
-    pub source_range: SourceRange,
+    pub source_range: SourceLocation,
 }
 
 /// A multi-map implementation with a stable order of elements. When iterating
@@ -106,7 +106,10 @@ impl SymbolLocation {
     /// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     pub fn internal() -> SymbolLocation {
-        SymbolLocation { line_number: SymbolLocation::INTERNAL_LINE, source_range: SourceRange::undefined() }
+        SymbolLocation {
+            line_number: SymbolLocation::INTERNAL_LINE,
+            source_range: SourceLocation::undefined(),
+        }
     }
 
     pub fn is_internal(&self) -> bool {
@@ -138,7 +141,7 @@ impl<'a> SymbolLocationFactory<'a> {
     /// creats a new SymbolLocation for the given source_range and automatically calculates
     /// the resulting line-number usign the source_range's start and the factory's
     /// NewLines
-    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
+    pub fn create_symbol_location(&self, source_range: &SourceLocation) -> SymbolLocation {
         SymbolLocation {
             source_range: source_range.clone(),
             line_number: self.new_lines.get_line_nr(source_range.get_start()),

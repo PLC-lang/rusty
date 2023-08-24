@@ -13,7 +13,7 @@ use inkwell::{
 };
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
@@ -335,7 +335,7 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| it.get_range(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
-            .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?;
+            .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
@@ -661,7 +661,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::String { size: string_size, encoding, .. } => {
                     let length = string_size
                         .as_int_value(index)
-                        .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?;
+                        .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
                     self.create_string_type(name, length, *encoding, size, alignment, index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }

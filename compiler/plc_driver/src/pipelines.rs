@@ -27,7 +27,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::{source_location::SourceRange, SourceContainer};
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -430,7 +430,7 @@ impl GeneratedProject<'_> {
                         a.merge(b)
                     })
                     .ok_or_else(|| {
-                        Diagnostic::codegen_error("Could not create bitcode", SourceRange::undefined())
+                        Diagnostic::codegen_error("Could not create bitcode", SourceLocation::undefined())
                     })??;
                 codegen.persist_to_bitcode(output_location)
             }
@@ -446,7 +446,7 @@ impl GeneratedProject<'_> {
                         a.merge(b)
                     })
                     .ok_or_else(|| {
-                        Diagnostic::codegen_error("Could not create ir", SourceRange::undefined())
+                        Diagnostic::codegen_error("Could not create ir", SourceLocation::undefined())
                     })??;
                 codegen.persist_to_ir(output_location)
             }

@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use plc::lexer;
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::SourceRangeFactory;
+use plc_source::source_location::SourceLocationFactory;
 
 use crate::reporter::DurationWrapper;
 
@@ -16,7 +16,8 @@ impl Task for Lexer {
 
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
         let content = std::fs::read_to_string(format!("./xtask/res/{}", self.0)).unwrap();
-        let mut lexer = lexer::lex_with_ids(&content, IdProvider::default(), SourceRangeFactory::internal());
+        let mut lexer =
+            lexer::lex_with_ids(&content, IdProvider::default(), SourceLocationFactory::internal());
 
         let now = Instant::now();
         while !lexer.is_end_of_stream() {

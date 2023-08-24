@@ -6,7 +6,7 @@ use plc_ast::ast::{
     AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
 };
 use plc_ast::literals::AstLiteral;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -735,12 +735,12 @@ fn literal_real_test() {
 fn cast(data_type: &str, value: AstStatement) -> AstStatement {
     AstFactory::create_cast_statement(
         AstFactory::create_member_reference(
-            AstFactory::create_identifier(data_type, &SourceRange::undefined(), 0),
+            AstFactory::create_identifier(data_type, &SourceLocation::undefined(), 0),
             None,
             0,
         ),
         value,
-        &SourceRange::undefined(),
+        &SourceLocation::undefined(),
         0,
     )
 }
@@ -787,7 +787,7 @@ fn literal_cast_parse_test() {
 
     let ast_string = format!("{statement:#?}");
     fn literal(value: AstLiteral) -> AstStatement {
-        AstStatement::Literal { kind: value, location: SourceRange::undefined(), id: 0 }
+        AstStatement::Literal { kind: value, location: SourceLocation::undefined(), id: 0 }
     }
 
     assert_eq!(
@@ -1613,16 +1613,16 @@ fn sized_string_as_function_return() {
                 is_wide: false,
                 size: Some(AstStatement::Literal {
                     kind: AstLiteral::new_integer(10),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
@@ -1649,17 +1649,17 @@ fn array_type_as_function_return() {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".into(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 bounds: AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
                         id: 0,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         kind: AstLiteral::new_integer(0),
                     }),
                     end: Box::new(AstStatement::Literal {
                         id: 0,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         kind: AstLiteral::new_integer(10),
                     }),
                     id: 0,
@@ -1667,12 +1667,12 @@ fn array_type_as_function_return() {
                 name: None,
                 is_variable_length: false,
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,

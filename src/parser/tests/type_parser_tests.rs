@@ -4,7 +4,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -50,36 +50,36 @@ fn simple_struct_type_can_be_parsed() {
                         name: "One".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                     },
                     Variable {
                         name: "Two".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                     },
                     Variable {
                         name: "Three".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                     },
                 ),
             },
             initializer: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         }
     );
@@ -164,7 +164,7 @@ fn type_alias_can_be_parsed() {
                 bounds: None,
             },
             initializer: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         }
     );
@@ -190,24 +190,24 @@ fn array_type_can_be_parsed_test() {
                 bounds: AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
                         kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         id: 0,
                     }),
                     end: Box::new(AstStatement::Literal {
                         kind: AstLiteral::new_integer(8),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         id: 0,
                     }),
                     id: 0,
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 is_variable_length: false,
             },
             initializer: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         }
     );
@@ -240,7 +240,7 @@ fn string_type_can_be_parsed_test() {
                     is_wide: false,
                 },
                 initializer: None,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 scope: None,
             },
             UserTypeDeclaration {
@@ -255,10 +255,10 @@ fn string_type_can_be_parsed_test() {
                 },
                 initializer: Some(AstStatement::Literal {
                     kind: AstLiteral::new_string("abc".into(), false),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 scope: None,
             }
         ]
@@ -290,7 +290,7 @@ fn wide_string_type_can_be_parsed_test() {
                 is_wide: true,
             },
             initializer: None,
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         }
     );
@@ -316,19 +316,19 @@ fn subrangetype_can_be_parsed() {
                 bounds: Some(AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
                         kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         id: 0,
                     }),
                     end: Box::new(AstStatement::Literal {
                         kind: AstLiteral::new_integer(1000),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         id: 0,
                     }),
                     id: 0,
                 }),
                 referenced_type: "UINT".to_string(),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
@@ -401,10 +401,10 @@ fn pointer_type_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -432,10 +432,10 @@ fn ref_type_test() {
             name: Some("SampleReference".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -461,10 +461,10 @@ fn global_pointer_declaration() {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
@@ -480,10 +480,10 @@ fn global_pointer_declaration() {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
@@ -519,11 +519,11 @@ fn variable_length_array_can_be_parsed() {
                 bounds: AstStatement::VlaRangeStatement { id: 0 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 is_variable_length: true,
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
@@ -561,11 +561,11 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 is_variable_length: true,
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
@@ -591,11 +591,11 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 is_variable_length: true,
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,

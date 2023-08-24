@@ -4,7 +4,7 @@ use logos::{Filter, Lexer, Logos};
 use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::{SourceRange, SourceRangeFactory};
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 pub use tokens::Token;
 
 #[cfg(test)]
@@ -22,7 +22,7 @@ pub struct ParseSession<'a> {
     pub last_range: Range<usize>,
     pub parse_progress: usize,
     id_provider: IdProvider,
-    pub source_range_factory: SourceRangeFactory,
+    pub source_range_factory: SourceLocationFactory,
     pub scope: Option<String>,
 }
 
@@ -44,7 +44,7 @@ impl<'a> ParseSession<'a> {
     pub fn new(
         l: Lexer<'a, Token>,
         id_provider: IdProvider,
-        source_range_factory: SourceRangeFactory,
+        source_range_factory: SourceLocationFactory,
     ) -> ParseSession<'a> {
         let mut lexer = ParseSession {
             lexer: l,
@@ -155,11 +155,11 @@ impl<'a> ParseSession<'a> {
         self.lexer.slice()
     }
 
-    pub fn location(&self) -> SourceRange {
+    pub fn location(&self) -> SourceLocation {
         self.source_range_factory.create_range(self.range())
     }
 
-    pub fn last_location(&self) -> SourceRange {
+    pub fn last_location(&self) -> SourceLocation {
         self.source_range_factory.create_range(self.last_range.clone())
     }
 
@@ -342,13 +342,13 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal())
 }
 
 pub fn lex_with_ids(
     source: &str,
     id_provider: IdProvider,
-    location_factory: SourceRangeFactory,
+    location_factory: SourceLocationFactory,
 ) -> ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }

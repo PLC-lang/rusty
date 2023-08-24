@@ -32,10 +32,10 @@ pub struct Pou {
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-    /// the SourceRange of the whole POU
-    pub location: SourceRange,
-    /// the SourceRange of the POU's name
-    pub name_location: SourceRange,
+    /// the SourceLocation of the whole POU
+    pub location: SourceLocation,
+    /// the SourceLocation of the POU's name
+    pub name_location: SourceLocation,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
@@ -201,8 +201,8 @@ pub struct Implementation {
     pub linkage: LinkageType,
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
-    pub location: SourceRange,
-    pub name_location: SourceRange,
+    pub location: SourceLocation,
+    pub name_location: SourceLocation,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -380,7 +380,7 @@ pub struct VariableBlock {
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
     pub linkage: LinkageType,
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl Debug for VariableBlock {
@@ -398,7 +398,7 @@ pub struct Variable {
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstStatement>,
     pub address: Option<AstStatement>,
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl Debug for Variable {
@@ -427,7 +427,7 @@ impl Variable {
 
 pub trait DiagnosticInfo {
     fn get_description(&self) -> String;
-    fn get_location(&self) -> SourceRange;
+    fn get_location(&self) -> SourceLocation;
 }
 
 impl DiagnosticInfo for AstStatement {
@@ -435,15 +435,15 @@ impl DiagnosticInfo for AstStatement {
         format!("{self:?}")
     }
 
-    fn get_location(&self) -> SourceRange {
+    fn get_location(&self) -> SourceLocation {
         self.get_location()
     }
 }
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
-    DataTypeReference { referenced_type: String, location: SourceRange },
-    DataTypeDefinition { data_type: DataType, location: SourceRange, scope: Option<String> },
+    DataTypeReference { referenced_type: String, location: SourceLocation },
+    DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
 }
 
 impl Debug for DataTypeDeclaration {
@@ -467,7 +467,7 @@ impl DataTypeDeclaration {
         }
     }
 
-    pub fn get_location(&self) -> SourceRange {
+    pub fn get_location(&self) -> SourceLocation {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
@@ -484,7 +484,7 @@ impl DataTypeDeclaration {
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstStatement>,
-    pub location: SourceRange,
+    pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
 }
@@ -574,7 +574,7 @@ impl DataType {
     pub fn replace_data_type_with_reference_to(
         &mut self,
         type_name: String,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Option<DataTypeDeclaration> {
         match self {
             DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } => {
@@ -588,7 +588,7 @@ impl DataType {
 fn replace_reference(
     referenced_type: &mut Box<DataTypeDeclaration>,
     type_name: String,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) -> Option<DataTypeDeclaration> {
     if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
         return None;
@@ -626,31 +626,31 @@ pub enum ReferenceAccess {
 #[derive(Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     // a placeholder that indicates a default value of a datatype
     DefaultValue {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     // Literals
     Literal {
         kind: AstLiteral,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 
     CastStatement {
         target: Box<AstStatement>,
         type_name: String,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     MultipliedStatement {
         multiplier: u32,
         element: Box<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     // Expressions
@@ -658,24 +658,24 @@ pub enum AstStatement {
         access: ReferenceAccess,
         base: Option<Box<AstStatement>>,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     },
     Identifier {
         name: String,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     DirectAccess {
         access: DirectAccessType,
         index: Box<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     HardwareAccess {
         direction: HardwareAccessType,
         access: DirectAccessType,
         address: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     BinaryExpression {
@@ -687,7 +687,7 @@ pub enum AstStatement {
     UnaryExpression {
         operator: Operator,
         value: Box<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ExpressionList {
@@ -718,13 +718,13 @@ pub enum AstStatement {
     CallStatement {
         operator: Box<AstStatement>,
         parameters: Box<Option<AstStatement>>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     // Control Statements
     ControlStatement {
         kind: AstControlStatement,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 
@@ -733,15 +733,15 @@ pub enum AstStatement {
         id: AstId,
     },
     ExitStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ContinueStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ReturnStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 }
@@ -865,7 +865,7 @@ impl AstStatement {
             vec![self]
         }
     }
-    pub fn get_location(&self) -> SourceRange {
+    pub fn get_location(&self) -> SourceLocation {
         match self {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
             AstStatement::DefaultValue { location, .. } => location.clone(),
@@ -878,8 +878,9 @@ impl AstStatement {
             }
             AstStatement::UnaryExpression { location, .. } => location.clone(),
             AstStatement::ExpressionList { expressions, .. } => {
-                let first = expressions.first().map_or_else(SourceRange::undefined, |it| it.get_location());
-                let last = expressions.last().map_or_else(SourceRange::undefined, |it| it.get_location());
+                let first =
+                    expressions.first().map_or_else(SourceLocation::undefined, |it| it.get_location());
+                let last = expressions.last().map_or_else(SourceLocation::undefined, |it| it.get_location());
                 first.span(&last)
             }
             AstStatement::RangeStatement { start, end, .. } => {
@@ -887,7 +888,7 @@ impl AstStatement {
                 let end_loc = end.get_location();
                 start_loc.span(&end_loc)
             }
-            AstStatement::VlaRangeStatement { .. } => SourceRange::undefined(), // internal type only
+            AstStatement::VlaRangeStatement { .. } => SourceLocation::undefined(), // internal type only
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1019,19 +1020,19 @@ impl AstStatement {
             || self.is_hardware_access()
     }
 
-    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> Self {
+    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -> Self {
         AstStatement::Literal { kind, id, location }
     }
 
-    pub fn new_integer(value: i128, id: AstId, location: SourceRange) -> Self {
+    pub fn new_integer(value: i128, id: AstId, location: SourceLocation) -> Self {
         AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
     }
 
-    pub fn new_real(value: String, id: AstId, location: SourceRange) -> Self {
+    pub fn new_real(value: String, id: AstId, location: SourceLocation) -> Self {
         AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
     }
 
-    pub fn new_string(value: impl Into<String>, is_wide: bool, id: AstId, location: SourceRange) -> Self {
+    pub fn new_string(value: impl Into<String>, is_wide: bool, id: AstId, location: SourceLocation) -> Self {
         AstStatement::Literal {
             kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
             location,
@@ -1200,7 +1201,7 @@ mod tests {
 pub struct AstFactory {}
 
 impl AstFactory {
-    pub fn empty_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn empty_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement::EmptyStatement { location, id }
     }
 
@@ -1208,7 +1209,7 @@ impl AstFactory {
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
@@ -1225,7 +1226,7 @@ impl AstFactory {
         end: AstStatement,
         by_step: Option<AstStatement>,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
@@ -1245,7 +1246,7 @@ impl AstFactory {
     pub fn create_while_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
@@ -1259,7 +1260,7 @@ impl AstFactory {
     pub fn create_repeat_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
@@ -1274,7 +1275,7 @@ impl AstFactory {
         selector: AstStatement,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement::ControlStatement {
@@ -1299,7 +1300,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
+    pub fn create_not_expression(operator: AstStatement, location: SourceLocation) -> AstStatement {
         AstStatement::UnaryExpression {
             id: operator.get_id(),
             value: Box::new(operator),
@@ -1309,7 +1310,7 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstStatement {
         AstStatement::Identifier { id, location: location.clone(), name: name.to_string() }
     }
 
@@ -1334,7 +1335,7 @@ impl AstFactory {
         index: AstStatement,
         base: Option<AstStatement>,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
@@ -1344,7 +1345,11 @@ impl AstFactory {
         }
     }
 
-    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn create_address_of_reference(
+        base: AstStatement,
+        id: AstId,
+        location: SourceLocation,
+    ) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Address,
             base: Some(Box::new(base)),
@@ -1353,7 +1358,7 @@ impl AstFactory {
         }
     }
 
-    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Deref,
             base: Some(Box::new(base)),
@@ -1366,7 +1371,7 @@ impl AstFactory {
         access: DirectAccessType,
         index: AstStatement,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement::DirectAccess { access, index: Box::new(index), location, id }
     }
@@ -1385,7 +1390,7 @@ impl AstFactory {
     pub fn create_cast_statement(
         type_name: AstStatement,
         stmt: AstStatement,
-        location: &SourceRange,
+        location: &SourceLocation,
         id: AstId,
     ) -> AstStatement {
         let new_location = (location.get_start()..stmt.get_location().get_end()).into();
@@ -1403,7 +1408,7 @@ impl AstFactory {
         parameters: Vec<AstStatement>,
         id: usize,
         parameter_list_id: usize,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> AstStatement {
         AstStatement::CallStatement {
             operator: Box::new(AstFactory::create_member_reference(
@@ -1423,7 +1428,7 @@ impl AstFactory {
     pub fn create_call_to_with_ids(
         function_name: &str,
         parameters: Vec<AstStatement>,
-        location: &SourceRange,
+        location: &SourceLocation,
         mut id_provider: IdProvider,
     ) -> AstStatement {
         AstStatement::CallStatement {
@@ -1445,7 +1450,7 @@ impl AstFactory {
         check_function_name: &str,
         parameter: AstStatement,
         sub_range: Range<AstStatement>,
-        location: &SourceRange,
+        location: &SourceLocation,
         id_provider: IdProvider,
     ) -> AstStatement {
         AstFactory::create_call_to_with_ids(

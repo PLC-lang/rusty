@@ -10,7 +10,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
-use plc_source::source_location::{SourceRange, SourceRangeFactory};
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use plc_util::convention::qualified_name;
 
 use crate::{
@@ -38,7 +38,7 @@ pub fn parse_file(
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> CompilationUnit {
-    let location_factory = SourceRangeFactory::for_file(location);
+    let location_factory = SourceLocationFactory::for_file(location);
     let (unit, errors) = parse(lexer::lex_with_ids(source, id_provider, location_factory), linkage, location);
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
@@ -168,7 +168,7 @@ fn parse_pou(
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
 
         let (name, name_location) =
-            parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceRange::undefined())); // parse POU name
+            parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceLocation::undefined())); // parse POU name
 
         let generics = parse_generics(lexer);
 
@@ -446,7 +446,7 @@ fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
 
 /// parse identifier and advance if successful
 /// returns the identifier as a String and the SourceRange of the parsed name
-fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceRange)> {
+fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceLocation)> {
     let pou_name = lexer.slice().to_string();
     if lexer.token == Identifier {
         lexer.advance();
@@ -468,7 +468,7 @@ fn parse_implementation(
     call_name: &str,
     type_name: &str,
     generic: bool,
-    name_location: SourceRange,
+    name_location: SourceLocation,
 ) -> Implementation {
     let start = lexer.range().start;
     let statements = parse_body_standalone(lexer);
@@ -773,7 +773,7 @@ fn parse_string_type_definition(
 
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
-    let location: SourceRange = (start..end).into();
+    let location: SourceLocation = (start..end).into();
 
     match (size, &name) {
         (Some(size), _) => Some(DataTypeDeclaration::DataTypeDefinition {
@@ -1006,7 +1006,7 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
 
 fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
-    let mut var_names: Vec<(String, SourceRange)> = vec![];
+    let mut var_names: Vec<(String, SourceLocation)> = vec![];
     while lexer.token == Identifier {
         let location = lexer.location();
         let identifier_end = location.get_end();

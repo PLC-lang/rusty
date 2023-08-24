@@ -3,7 +3,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::test_utils::tests::parse;
 
@@ -175,7 +175,7 @@ fn string_with_round_parens_can_be_parsed() {
                     location: (69..102).into(),
                     id: 0,
                 }),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 scope: None,
             },
             UserTypeDeclaration {
@@ -189,7 +189,7 @@ fn string_with_round_parens_can_be_parsed() {
                     is_wide: false,
                 },
                 initializer: None,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 scope: None,
             }
         ]

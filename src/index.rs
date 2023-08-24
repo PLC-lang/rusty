@@ -10,7 +10,7 @@ use plc_ast::ast::{
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 
 use self::{
@@ -61,7 +61,7 @@ pub struct HardwareBinding {
     /// A list of entries that form this binding
     pub entries: Vec<ConstId>,
     /// The location in the original source-file
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl HardwareBinding {
@@ -756,7 +756,8 @@ impl TypeIndex {
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
-        self.find_type(type_name).ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+        self.find_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -1169,7 +1170,7 @@ impl Index {
     pub fn get_effective_type_by_name(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists

@@ -3,29 +3,35 @@ use std::{
     ops::Range,
 };
 
-pub struct SourceRangeFactory {
+pub struct SourceLocationFactory {
     file: Option<&'static str>,
 }
 
-impl SourceRangeFactory {
+impl SourceLocationFactory {
     /// constructs a SourceRangeFactory used for internally generated code (e.g. builtins)
     pub fn internal() -> Self {
-        SourceRangeFactory { file: None }
+        SourceLocationFactory { file: None }
     }
 
     /// constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
     pub fn for_file(file_name: &'static str) -> Self {
-        SourceRangeFactory { file: Some(file_name) }
+        SourceLocationFactory { file: Some(file_name) }
     }
 
     /// creates a new SourceRange using the factory's file_name
-    pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range, file: self.file }
+    pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceLocation {
+        SourceLocation { range, file: self.file }
     }
 }
 
+/// Represents the location of a code element in a source code
+pub enum CodeSpan {
+    Id(usize),
+    Range(Range<usize>),
+}
+
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct SourceRange {
+pub struct SourceLocation {
     /// the start and end offset in the source-file
     range: core::ops::Range<usize>,
     /// the name of the file if available. if there is no file available
@@ -34,7 +40,7 @@ pub struct SourceRange {
     file: Option<&'static str>,
 }
 
-impl Debug for SourceRange {
+impl Debug for SourceLocation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut f = f.debug_struct("SourceRange");
         f.field("range", &self.range);
@@ -45,20 +51,20 @@ impl Debug for SourceRange {
     }
 }
 
-impl SourceRange {
+impl SourceLocation {
     /// Constructs a new SourceRange with the given range and filename
-    pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceRange {
-        SourceRange { range, file: Some(file_name) }
+    pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceLocation {
+        SourceLocation { range, file: Some(file_name) }
     }
 
     /// Constructs a new SourceRange without the file_name attribute
-    pub fn without_file(range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range, file: None }
+    pub fn without_file(range: core::ops::Range<usize>) -> SourceLocation {
+        SourceLocation { range, file: None }
     }
 
     /// Constructs an undefined SourceRange with a 0..0 range and no filename
-    pub fn undefined() -> SourceRange {
-        SourceRange { range: 0..0, file: None }
+    pub fn undefined() -> SourceLocation {
+        SourceLocation { range: 0..0, file: None }
     }
 
     /// returns the start-offset of this source-range
@@ -73,8 +79,8 @@ impl SourceRange {
 
     /// returns a new SourceRange that spans `this` and the `other` range.
     /// In other words this results in `self.start .. other.end`
-    pub fn span(&self, other: &SourceRange) -> SourceRange {
-        SourceRange { range: self.get_start()..other.get_end(), file: self.get_file_name() }
+    pub fn span(&self, other: &SourceLocation) -> SourceLocation {
+        SourceLocation { range: self.get_start()..other.get_end(), file: self.get_file_name() }
     }
 
     /// converts this SourceRange into a Range
@@ -93,20 +99,8 @@ impl SourceRange {
     }
 }
 
-impl From<std::ops::Range<usize>> for SourceRange {
-    fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::without_file(range)
+impl From<std::ops::Range<usize>> for SourceLocation {
+    fn from(range: std::ops::Range<usize>) -> SourceLocation {
+        SourceLocation::without_file(range)
     }
 }
-/*
-/// Represents the location of a code element in a source code
-pub enum ElementLocation {
-    IdLocation(usize),
-    TextLocation(Range<usize>),
-}
-
-pub struct SourceLocation {
-    element_location: ElementLocation,
-    source_path: Option<&'static str>,
-}
-*/

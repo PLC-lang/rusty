@@ -11,7 +11,7 @@ use plc_ast::{
     literals::{AstLiteral, Time},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
@@ -587,13 +587,17 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
     }
 }
 
-fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
+fn parse_number<F: FromStr>(text: &str, location: &SourceLocation) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
         Diagnostic::syntax_error(format!("Failed parsing number {text}").as_str(), location.clone())
     })
 }
 
-fn parse_date_from_string(text: &str, location: SourceRange, id: AstId) -> Result<AstStatement, Diagnostic> {
+fn parse_date_from_string(
+    text: &str,
+    location: SourceLocation,
+    id: AstId,
+) -> Result<AstStatement, Diagnostic> {
     let mut segments = text.split('-');
 
     //we can safely expect 3 numbers
@@ -669,7 +673,7 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
 
 fn parse_time_of_day(
     time: &mut Split<char>,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) -> Result<(u32, u32, u32, u32), Diagnostic> {
     let hour = parse_number::<u32>(time.next().expect("expected hours"), location)?;
     let min = parse_number::<u32>(time.next().expect("expected minutes"), location)?;
@@ -855,7 +859,7 @@ fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<AstSt
 fn parse_literal_real(
     lexer: &mut ParseSession,
     integer: String,
-    integer_range: SourceRange,
+    integer_range: SourceLocation,
     is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
     if lexer.token == LiteralInteger {

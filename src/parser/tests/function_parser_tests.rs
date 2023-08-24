@@ -4,7 +4,7 @@ use plc_ast::ast::{
     Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -199,26 +199,26 @@ fn varargs_parameters_can_be_parsed() {
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
             constant: false,
             access: AccessModifier::Protected,
             retain: false,
             variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: false },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 Variable {
                     name: "args2".into(),
@@ -226,21 +226,21 @@ fn varargs_parameters_can_be_parsed() {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
-                                location: SourceRange::undefined(),
+                                location: SourceLocation::undefined(),
                             })),
                             sized: false,
                         },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             ],
         }],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         poly_mode: None,
         generics: vec![],
         linkage: LinkageType::Internal,
@@ -269,26 +269,26 @@ fn sized_varargs_parameters_can_be_parsed() {
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
             constant: false,
             access: AccessModifier::Protected,
             retain: false,
             variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: true },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 Variable {
                     name: "args2".into(),
@@ -296,21 +296,21 @@ fn sized_varargs_parameters_can_be_parsed() {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
-                                location: SourceRange::undefined(),
+                                location: SourceLocation::undefined(),
                             })),
                             sized: true,
                         },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             ],
         }],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         poly_mode: None,
         generics: vec![],
         linkage: LinkageType::Internal,
@@ -474,9 +474,9 @@ fn function_inline_struct_return_unsupported() {
                 variables: vec![
                     Variable {
                         name: "x".into(),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                             referenced_type: "INT".into()
                         },
                         initializer: None,
@@ -484,9 +484,9 @@ fn function_inline_struct_return_unsupported() {
                     },
                     Variable {
                         name: "y".into(),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                             referenced_type: "INT".into()
                         },
                         initializer: None,

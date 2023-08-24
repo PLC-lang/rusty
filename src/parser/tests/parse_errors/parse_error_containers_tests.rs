@@ -5,7 +5,7 @@ use plc_ast::ast::{
     AccessModifier, DataTypeDeclaration, LinkageType, PouType, Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 /*
@@ -191,16 +191,16 @@ fn unclosed_var_container() {
                 access: AccessModifier::Protected,
                 retain: false,
                 variable_block_type: VariableBlockType::Local,
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 variables: vec![Variable {
                     name: "a".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }],
                 linkage: LinkageType::Internal,
             }

@@ -5,7 +5,7 @@ use ast::{
 use plc::{lexer, parser::expressions_parser::parse_expression};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
-use plc_source::source_location::{SourceRange, SourceRangeFactory};
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use quick_xml::events::Event;
 
 use crate::{
@@ -81,7 +81,7 @@ pub(crate) struct ParseSession<'parse> {
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: &'static str,
-    range_factory: SourceRangeFactory,
+    range_factory: SourceLocationFactory,
 }
 
 impl<'parse> ParseSession<'parse> {
@@ -96,7 +96,7 @@ impl<'parse> ParseSession<'parse> {
             id_provider,
             linkage,
             file_name,
-            range_factory: SourceRangeFactory::for_file(file_name),
+            range_factory: SourceLocationFactory::for_file(file_name),
         }
     }
 
@@ -120,7 +120,7 @@ impl<'parse> ParseSession<'parse> {
             lexer::lex_with_ids(
                 content,
                 self.id_provider.clone(),
-                SourceRangeFactory::for_file(self.file_name),
+                SourceLocationFactory::for_file(self.file_name),
             ),
             self.linkage,
             self.file_name,
@@ -132,7 +132,7 @@ impl<'parse> ParseSession<'parse> {
         parse_expression(&mut lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
-            SourceRangeFactory::for_file(self.file_name),
+            SourceLocationFactory::for_file(self.file_name),
         ))
     }
 
@@ -151,7 +151,7 @@ impl<'parse> ParseSession<'parse> {
         self.id_provider.clone().next_id()
     }
 
-    fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
+    fn create_range(&self, range: core::ops::Range<usize>) -> SourceLocation {
         self.range_factory.create_range(range)
     }
 }

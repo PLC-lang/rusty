@@ -1,7 +1,7 @@
 use ast::ast::{AstFactory, AstStatement};
 
 use crate::model::{block::Block, fbd::NodeIndex};
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use super::ParseSession;
 
@@ -21,7 +21,7 @@ impl Block {
             parameters,
             session.next_id(),
             session.next_id(),
-            &SourceRange::undefined(),
+            &SourceLocation::undefined(),
         )
     }
 }

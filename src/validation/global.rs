@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
@@ -31,7 +31,7 @@ impl GlobalValidator {
     fn report_name_conflict(
         &mut self,
         name: &str,
-        locations: &[&SourceRange],
+        locations: &[&SourceLocation],
         additional_text: Option<&str>,
     ) {
         for (idx, v) in locations.iter().enumerate() {
@@ -201,9 +201,9 @@ impl GlobalValidator {
 
     fn check_uniqueness_of_cluster<'a, T>(&mut self, cluster: T, additional_text: Option<&str>)
     where
-        T: Iterator<Item = (&'a str, &'a SourceRange)>,
+        T: Iterator<Item = (&'a str, &'a SourceLocation)>,
     {
-        let mut cluster_map: SymbolMap<&str, &SourceRange> = SymbolMap::default();
+        let mut cluster_map: SymbolMap<&str, &SourceLocation> = SymbolMap::default();
         for (name, loc) in cluster {
             cluster_map.insert(name, loc);
         }

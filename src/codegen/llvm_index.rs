@@ -2,7 +2,7 @@
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceRange;
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use std::collections::HashMap;
 
@@ -127,12 +127,12 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     pub fn get_associated_pou_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_pou_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {

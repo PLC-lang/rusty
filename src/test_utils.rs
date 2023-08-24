@@ -12,7 +12,7 @@ pub mod tests {
         diagnostics::Diagnostic,
         reporter::{DiagnosticReporter, ResolvedDiagnostics},
     };
-    use plc_source::{source_location::SourceRangeFactory, Compilable, SourceCode, SourceContainer};
+    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,
@@ -48,7 +48,7 @@ pub mod tests {
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal()),
             LinkageType::Internal,
             "test.st",
         )
@@ -57,7 +57,7 @@ pub mod tests {
     pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal()),
             LinkageType::Internal,
             "test.st",
         );
@@ -80,9 +80,9 @@ pub mod tests {
         }
 
         let range_factory = if source_path == "<internal>" {
-            SourceRangeFactory::internal()
+            SourceLocationFactory::internal()
         } else {
-            SourceRangeFactory::for_file(source_path)
+            SourceLocationFactory::for_file(source_path)
         };
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),

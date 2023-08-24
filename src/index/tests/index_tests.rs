@@ -4,7 +4,7 @@ use plc_ast::ast::{
 };
 use plc_ast::literals::AstLiteral;
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::{SourceRange, SourceRangeFactory};
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
@@ -730,10 +730,10 @@ fn pre_processing_generates_inline_pointers() {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: Some("foo".into()),
     };
@@ -743,7 +743,7 @@ fn pre_processing_generates_inline_pointers() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     let expected = &DataTypeDeclaration::DataTypeReference {
         referenced_type: "__foo_inline_pointer".to_string(),
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
@@ -767,10 +767,10 @@ fn pre_processing_generates_pointer_to_pointer_type() {
             name: Some("__pointer_to_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -783,10 +783,10 @@ fn pre_processing_generates_pointer_to_pointer_type() {
             name: Some("pointer_to_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__pointer_to_pointer".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -815,10 +815,10 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
             name: Some("__foo_inline_pointer_".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: Some("foo".into()),
     };
@@ -831,10 +831,10 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_pointer_".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: Some("foo".into()),
     };
@@ -845,7 +845,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
 
     let expected = &DataTypeDeclaration::DataTypeReference {
         referenced_type: "__foo_inline_pointer".to_string(),
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     };
     assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
 }
@@ -872,19 +872,19 @@ fn pre_processing_generates_inline_arrays() {
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -932,7 +932,7 @@ fn pre_processing_generates_inline_array_of_array() {
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -954,7 +954,7 @@ fn pre_processing_generates_inline_array_of_array() {
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -994,11 +994,11 @@ fn pre_processing_generates_array_of_array_type() {
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -1016,11 +1016,11 @@ fn pre_processing_generates_array_of_array_type() {
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__arr_arr".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         initializer: None,
         scope: None,
     };
@@ -1057,9 +1057,9 @@ fn pre_processing_nested_array_in_struct() {
                 name: "field1".to_string(),
                 data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "__MyStruct_field1".to_string(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
                 initializer: None,
                 address: None,
             }],
@@ -1078,19 +1078,19 @@ fn pre_processing_nested_array_in_struct() {
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(4),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -1124,19 +1124,19 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -1154,19 +1154,19 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array__".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -1184,19 +1184,19 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: AstStatement::RangeStatement {
                 start: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(0),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 end: Box::new(AstStatement::Literal {
                     kind: AstLiteral::new_integer(1),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
-                location: SourceRange::undefined(),
+                location: SourceLocation::undefined(),
             }),
             is_variable_length: false,
         },
@@ -1239,7 +1239,7 @@ fn pre_processing_generates_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         scope: Some("myFunc".into()),
     };
 
@@ -1273,7 +1273,7 @@ fn pre_processing_generates_nested_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         scope: Some("myFunc".into()),
     };
 
@@ -1334,7 +1334,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal()),
         LinkageType::Internal,
         "test.st",
     );
@@ -1376,7 +1376,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal()),
         LinkageType::Internal,
         "test.st",
     );
@@ -1412,7 +1412,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal()),
         LinkageType::Internal,
         "test.st",
     );
@@ -1439,7 +1439,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal()),
         LinkageType::Internal,
         "test.st",
     );
@@ -1509,7 +1509,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal()),
         LinkageType::Internal,
         "test.st",
     );
