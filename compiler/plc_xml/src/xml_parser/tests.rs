@@ -27,19 +27,20 @@ mod tests {
 
     #[test]
     fn simple_return() {
-        let statement = &parse(content::EARLY_RETURN).0.implementations[0].statements[0];
-        assert_debug_snapshot!(statement);
+        let statements = &parse(content::EARLY_RETURN).0.implementations[0].statements;
+        assert_eq!(statements.len(), 2);
+        assert_debug_snapshot!(statements[0]);
     }
 
     #[test]
     fn simple_return_negated() {
-        let statement = &parse(
-            &content::EARLY_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#),
-        )
-        .0
-        .implementations[0]
-            .statements[0];
-        assert_debug_snapshot!(statement);
+        let content =
+            &content::EARLY_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#);
+
+        let statements = &parse(&content).0.implementations[0].statements;
+
+        assert_eq!(statements.len(), 2);
+        assert_debug_snapshot!(statements[0]);
     }
 
     #[test]
