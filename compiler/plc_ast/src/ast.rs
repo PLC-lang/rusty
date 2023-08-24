@@ -1085,7 +1085,7 @@ impl AstStatement {
         }
     }
 
-    pub fn is_qualified_reference(&self) -> bool {
+    pub fn is_reference(&self) -> bool {
         matches!(self, AstStatement::ReferenceExpr { .. })
     }
 
@@ -1104,7 +1104,7 @@ impl AstStatement {
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
             || self.is_flat_reference()
-            || self.is_qualified_reference()
+            || self.is_reference()
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()

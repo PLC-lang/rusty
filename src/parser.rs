@@ -927,7 +927,7 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> AstStatement {
-    match expressions_parser::parse_qualified_reference(lexer) {
+    match expressions_parser::parse_call_statement(lexer) {
         Ok(statement) => statement,
         Err(diagnostic) => {
             let statement =

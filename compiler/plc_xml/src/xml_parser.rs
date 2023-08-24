@@ -75,7 +75,7 @@ fn parse(
     };
 
     // transform the data model into rusty AST statements and add them to the compilation unit
-    (unit.with_implementations(parser.parse_model()), diagnostics)
+    (dbg!(unit.with_implementations(parser.parse_model())), diagnostics)
 }
 
 pub(crate) struct ParseSession<'parse> {

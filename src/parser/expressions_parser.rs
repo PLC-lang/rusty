@@ -228,7 +228,7 @@ fn to_operator(token: &Token) -> Option<Operator> {
 fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     let literal_parse_result = match lexer.token {
         OperatorMultiplication => parse_vla_range(lexer),
-        _ => parse_qualified_reference(lexer),
+        _ => parse_call_statement(lexer),
     };
 
     match literal_parse_result {
@@ -260,7 +260,10 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     }
 }
 
-fn parse_single_leafe_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
+/// parse an expression at the bottom of the parse-tree.
+/// leaf-expressions are literals, identifier, direct-access and parenthesized expressions
+/// (since the parentheses change the parse-priority)
+fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstStatement, Diagnostic> {
     // Check if we're dealing with a number that has an explicit '+' or '-' sign...
 
     match lexer.token {
@@ -360,9 +363,10 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
     Ok(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
-pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let reference = parse_qualified_reference_with_base(lexer)?;
+pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    let reference = parse_qualified_reference(lexer)?;
 
+    // is this a callstatement?
     if lexer.try_consume(&KeywordParensOpen) {
         let start = reference.get_location().get_start();
         // Call Statement
@@ -387,7 +391,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     }
 }
 
-pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let mut current = None;
     let mut pos = lexer.parse_progress - 1; // force an initial loop
 
@@ -401,9 +405,9 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                 .into_iter()
                 .find(|it| lexer.token == *it),
         ) {
+            // No base, No token -> Beginning of a qualified reference
             (None, None) => {
-                //beginning of a chain
-                let exp = parse_single_leafe_expression(lexer)?;
+                let exp = parse_atomic_leaf_expression(lexer)?;
                 // pack if this is something to be resolved
                 current = if matches!(exp, AstStatement::Reference { .. }) {
                     Some(AstFactory::create_member_reference(exp, None, lexer.next_id()))
@@ -411,6 +415,7 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                     Some(exp)
                 };
             }
+            // base._ -> a segment of a qualified reference, we stand right after the dot
             (Some(base), Some(KeywordDot)) => {
                 lexer.advance();
                 let member = if lexer.token == LiteralInteger {
@@ -418,15 +423,17 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
                     let location = index.get_location();
                     AstFactory::create_direct_access(DirectAccessType::Bit, index, lexer.next_id(), location)
                 } else {
-                    parse_single_leafe_expression(lexer)?
+                    parse_atomic_leaf_expression(lexer)?
                 };
                 current = Some(AstFactory::create_member_reference(member, Some(base), lexer.next_id()));
             }
+            // CAST-Statement: INT#a.b.c
+            // this means INT#(a.b.c) rather than (INT#a).b.c
             (_, Some(TypeCastPrefix)) => {
                 let location_start = lexer.location();
                 let mut type_name = lexer.slice_and_advance();
                 type_name.pop(); // get rid of the "#" at the end
-                let stmt = parse_single_leafe_expression(lexer)?;
+                let stmt = parse_atomic_leaf_expression(lexer)?;
                 let end = stmt.get_location();
                 let type_range =
                     (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
@@ -463,7 +470,10 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
             (None, Some(OperatorAmp)) => {
                 lexer.advance();
                 let op_location = lexer.last_location();
-                let base = parse_qualified_reference(lexer)?;
+                // the address-of-operator has different order compared ot other segments, we first see the operator, then
+                // we expect the expression. so writing &a.b.c is more of &(a.b.c) instead of (&a).b.c.
+                // So we expect NO base, and operator and we parse the base now
+                let base = parse_call_statement(lexer)?;
                 let new_location = op_location.span(&base.get_location());
                 current = Some(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
             }
@@ -475,7 +485,7 @@ pub fn parse_qualified_reference_with_base(lexer: &mut ParseSession) -> Result<A
     if let Some(current) = current {
         Ok(current)
     } else {
-        parse_single_leafe_expression(lexer)
+        parse_atomic_leaf_expression(lexer)
     }
 }
 

@@ -1512,7 +1512,10 @@ impl<'i> TypeAnnotator<'i> {
                         }
                         ResolvingScope::POU => {
                             // qualified POU is action/method
-                            self.index.find_pou(format!("{base}.{name}").as_str()).map(|action| action.into())
+                            self.index
+                                .find_pou(format!("{base}.{name}").as_str())
+                                .or_else(|| self.index.find_method(base, name))
+                                .map(|action| action.into())
                         }
                         _ => None,
                     }

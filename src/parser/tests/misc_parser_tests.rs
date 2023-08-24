@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{parser::tests::ref_to, Diagnostic};
+use crate::parser::tests::ref_to;
 use core::panic;
 use std::{collections::HashSet, ops::Range};
 
