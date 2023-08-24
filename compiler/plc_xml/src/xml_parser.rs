@@ -63,8 +63,9 @@ fn parse(
 ) -> (CompilationUnit, Vec<Diagnostic>) {
     // transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let Ok(project) = visit(source) else {
-        todo!("cfc errors need to be transformed into diagnostics")
+    let project = match visit(source) {
+        Ok(project) => project,
+        Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
 
     // create a new parse session

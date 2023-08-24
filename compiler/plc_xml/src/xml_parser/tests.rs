@@ -12,7 +12,7 @@ mod tests {
             with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
             XOutVariable, XPou, XRelPosition,
         },
-        xml_parser::{self, tests::ASSIGNMENT_A_B},
+        xml_parser::{self, tests::content},
     };
 
     fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -21,7 +21,7 @@ mod tests {
 
     #[test]
     fn variable_assignment() {
-        let pou = xml_parser::visit(ASSIGNMENT_A_B).unwrap();
+        let pou = xml_parser::visit(content::ASSIGNMENT_A_B).unwrap();
         assert_debug_snapshot!(pou);
     }
 
@@ -124,7 +124,8 @@ mod tests {
     }
 }
 
-const ASSIGNMENT_A_B: &str = r#"
+mod content {
+    pub(super) const ASSIGNMENT_A_B: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="thistimereallyeasy" pouType="program">
             <interface>
@@ -162,4 +163,5 @@ const ASSIGNMENT_A_B: &str = r#"
                 </FBD>
             </body>
         </pou>
-"#;
+    "#;
+}
