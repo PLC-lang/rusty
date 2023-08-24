@@ -1,10 +1,10 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: dbg!(left.get_location())
+expression: operator.get_location()
 ---
 SourceLocation {
     span: Id(
-        2,
+        3,
     ),
     file: Some(
         "<internal>.cfc",

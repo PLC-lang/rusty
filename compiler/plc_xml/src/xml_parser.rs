@@ -127,13 +127,14 @@ impl<'parse> ParseSession<'parse> {
         ))
     }
 
-    fn parse_expression(&self, expr: &str) -> AstStatement {
+    fn parse_expression(&self, expr: &str, local_id: usize) -> AstStatement {
         // TODO: diagnostics not handled
         parse_expression(&mut lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
             SourceLocationFactory::for_file(self.file_name),
         ))
+        .set_location(self.range_factory.create_id_location(local_id))
     }
 
     fn parse_model(&self) -> Vec<Implementation> {

@@ -151,6 +151,11 @@ impl SourceLocation {
     pub fn get_span(&self) -> &CodeSpan {
         &self.span
     }
+
+    pub fn replace_with(&mut self, new_location: SourceLocation) {
+        self.span = new_location.span;
+        self.file = new_location.file;
+    }
 }
 
 impl From<std::ops::Range<usize>> for SourceLocation {

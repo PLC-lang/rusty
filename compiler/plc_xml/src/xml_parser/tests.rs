@@ -285,14 +285,6 @@ mod tests {
                         </connectionPointOut>
                         <expression>1</expression>
                     </inVariable>
-                    <outVariable localId="6" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                        <position x="320" y="180"/>
-                        <connectionPointIn>
-                            <relPosition x="0" y="10"/>
-                            <connection refLocalId="3"/>
-                        </connectionPointIn>
-                        <expression>x</expression>
-                    </outVariable>
                 </FBD>
             </body>
         </pou>

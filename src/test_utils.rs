@@ -54,6 +54,13 @@ pub mod tests {
         )
     }
 
+    pub fn parse_with(
+        src: &str,
+        parser: fn(&str) -> (CompilationUnit, Vec<Diagnostic>),
+    ) -> (CompilationUnit, Vec<Diagnostic>) {
+        parser(src)
+    }
+
     pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(

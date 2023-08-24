@@ -1064,6 +1064,56 @@ impl AstStatement {
     pub fn is_literal(&self) -> bool {
         matches!(self, AstStatement::Literal { .. })
     }
+    pub fn set_location(self, new_location: SourceLocation) -> Self {
+        match self {
+            AstStatement::EmptyStatement { location: _, id } => {
+                AstStatement::EmptyStatement { location: new_location, id }
+            }
+            AstStatement::DefaultValue { location: _, id } => {
+                AstStatement::DefaultValue { location: new_location, id }
+            }
+            AstStatement::Literal { kind, location: _, id } => {
+                AstStatement::Literal { kind, location: new_location, id }
+            }
+            AstStatement::CastStatement { target, type_name, location: _, id } => {
+                AstStatement::CastStatement { target, type_name, location: new_location, id }
+            }
+            AstStatement::MultipliedStatement { multiplier, element, location: _, id } => {
+                AstStatement::MultipliedStatement { multiplier, element, location: new_location, id }
+            }
+            AstStatement::DirectAccess { access, index, location: _, id } => {
+                AstStatement::DirectAccess { access, index, location: new_location, id }
+            }
+            AstStatement::HardwareAccess { direction, access, address, location: _, id } => {
+                AstStatement::HardwareAccess { direction, access, address, location: new_location, id }
+            }
+            AstStatement::UnaryExpression { operator, value, location: _, id } => {
+                AstStatement::UnaryExpression { operator, value, location: new_location, id }
+            }
+            AstStatement::CallStatement { operator, parameters, location: _, id } => {
+                AstStatement::CallStatement { operator, parameters, location: new_location, id }
+            }
+            AstStatement::ControlStatement { kind, location: _, id } => {
+                AstStatement::ControlStatement { kind, location: new_location, id }
+            }
+            AstStatement::ExitStatement { location: _, id } => {
+                AstStatement::ExitStatement { location: new_location, id }
+            }
+            AstStatement::ContinueStatement { location: _, id } => {
+                AstStatement::ContinueStatement { location: new_location, id }
+            }
+            AstStatement::ReturnStatement { location: _, id } => {
+                AstStatement::ReturnStatement { location: new_location, id }
+            }
+            AstStatement::ReferenceExpr { access, base, id, location: _ } => {
+                Self::ReferenceExpr { access, base, id, location: new_location }
+            }
+            AstStatement::Identifier { name, location: _, id } => {
+                AstStatement::Identifier { name, location: new_location, id }
+            }
+            _ => self,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
