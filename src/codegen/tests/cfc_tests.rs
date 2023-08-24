@@ -4,22 +4,22 @@ use crate::test_utils::tests::codegen;
 
 #[test]
 #[ignore = "Currently not working because when adding `plc_xml` as a dependency Cargo will tell me i'm dumb for adding a cyclic dependency"]
-fn early_return() {
-    let result = codegen(content::EARLY_RETURN);
+fn conditional_return() {
+    let result = codegen(content::CONDITIONAL_RETURN);
     assert_snapshot!(result)
 }
 
 mod content {
-    pub(super) const EARLY_RETURN: &str = r#"
+    pub(super) const CONDITIONAL_RETURN: &str = r#"
     <?xml version="1.0" encoding="UTF-8"?>
-    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="early_return" pouType="functionBlock">
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
         <interface>
             <localVars/>
             <addData>
                 <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
                     <textDeclaration>
                         <content>
-                            FUNCTION_BLOCK early_return
+                            FUNCTION_BLOCK conditional_return
                             VAR_INPUT
                                 val : DINT;
                             END_VAR

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="early_return" pouType="functionBlock">
+<pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
     <interface>
         <localVars/>
         <addData>
             <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
                 <textDeclaration>
                     <content>
-FUNCTION_BLOCK early_return
+FUNCTION_BLOCK conditional_return
 VAR_INPUT
 	val : DINT;
 END_VAR</content>

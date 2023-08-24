@@ -26,16 +26,16 @@ mod tests {
     }
 
     #[test]
-    fn simple_return() {
-        let statements = &parse(content::EARLY_RETURN).0.implementations[0].statements;
+    fn conditional_return() {
+        let statements = &parse(content::CONDITIONAL_RETURN).0.implementations[0].statements;
         assert_eq!(statements.len(), 2);
         assert_debug_snapshot!(statements[0]);
     }
 
     #[test]
-    fn simple_return_negated() {
+    fn conditional_return_negated() {
         let content =
-            &content::EARLY_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#);
+            &content::CONDITIONAL_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#);
 
         let statements = &parse(&content).0.implementations[0].statements;
 
@@ -183,16 +183,16 @@ mod content {
         </pou>
     "#;
 
-    pub(super) const EARLY_RETURN: &str = r#"
+    pub(super) const CONDITIONAL_RETURN: &str = r#"
     <?xml version="1.0" encoding="UTF-8"?>
-    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="early_return" pouType="functionBlock">
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
         <interface>
             <localVars/>
             <addData>
                 <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
                     <textDeclaration>
                         <content>
-    FUNCTION_BLOCK early_return
+    FUNCTION_BLOCK conditional_return
     VAR_INPUT
         val : DINT;
     END_VAR</content>

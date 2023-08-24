@@ -82,11 +82,11 @@ fn function_returns() {
 }
 
 #[test]
-fn early_return() {
+fn conditional_return_evaluating_true() {
     // GIVEN a CFC function which returns early if a given argument is 5 and
     // otherwise modifies the argument to be 10
-    let st_file = get_test_file("cfc/early_return.st");
-    let cfc_file = get_test_file("cfc/early_return.cfc");
+    let st_file = get_test_file("cfc/conditional_return_evaluating_true.st");
+    let cfc_file = get_test_file("cfc/conditional_return.cfc");
 
     // WHEN passing 5 as an argument
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
@@ -96,11 +96,11 @@ fn early_return() {
 }
 
 #[test]
-fn no_early_return() {
+fn conditional_return_evaluating_false() {
     // GIVEN a CFC function which returns early if a given argument is 5 and
     // otherwise modifies the argument to be 10
-    let st_file = get_test_file("cfc/no_early_return.st");
-    let cfc_file = get_test_file("cfc/early_return.cfc");
+    let st_file = get_test_file("cfc/conditional_return_evaluating_false.st");
+    let cfc_file = get_test_file("cfc/conditional_return.cfc");
 
     // WHEN passing 0 as an argument
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
@@ -110,11 +110,11 @@ fn no_early_return() {
 }
 
 #[test]
-fn early_return_negated() {
+fn conditional_return_evaluating_true_negated() {
     // GIVEN a CFC function which returns early if a given argument is NOT 5 and
     // otherwise modifies the argument to be 10
-    let st_file = get_test_file("cfc/early_return_negated.st");
-    let cfc_file = get_test_file("cfc/early_return_negated.cfc");
+    let st_file = get_test_file("cfc/conditional_return_evaluating_true_negated.st");
+    let cfc_file = get_test_file("cfc/conditional_return_negated.cfc");
 
     // WHEN passing 5 as an argument
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});

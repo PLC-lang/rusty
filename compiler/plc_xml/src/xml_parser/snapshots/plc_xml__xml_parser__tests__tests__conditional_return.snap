@@ -1,0 +1,17 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: "statements[0]"
+---
+ReturnStatement {
+    condition: Some(
+        BinaryExpression {
+            operator: Equal,
+            left: Reference {
+                name: "val",
+            },
+            right: LiteralInteger {
+                value: 5,
+            },
+        },
+    ),
+}
