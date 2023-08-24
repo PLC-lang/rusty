@@ -9,7 +9,7 @@ use crate::{
     xml_parser::Parseable,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Connector {
     pub kind: ConnectorKind,
     pub name: String,
@@ -30,7 +30,7 @@ impl Connector {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum ConnectorKind {
     Source,
     Sink,
@@ -43,8 +43,8 @@ impl Parseable for Connector {
         let next = reader.peek()?;
         let kind = match &next {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"connector" => ConnectorKind::Sink,
-                b"continuation" => ConnectorKind::Source,
+                b"connector" => ConnectorKind::Source,
+                b"continuation" => ConnectorKind::Sink,
                 _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
             },
 

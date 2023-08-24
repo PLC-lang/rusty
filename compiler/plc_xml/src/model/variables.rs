@@ -5,7 +5,9 @@ use crate::xml_parser::Parseable;
 use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
 use std::{collections::HashMap, str::FromStr};
 
-#[derive(Debug, PartialEq)]
+use super::fbd::NodeId;
+
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
@@ -16,13 +18,13 @@ pub(crate) struct BlockVariable {
     pub enable: Option<bool>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Edge {
     Falling,
     Rising,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Storage {
     Set,
     Reset,
@@ -40,6 +42,10 @@ impl BlockVariable {
             enable: hm.get("enable").map(|it| it == "true"),
         })
     }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -50,7 +56,7 @@ pub(crate) enum VariableKind {
     Temp,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct FunctionBlockVariable {
     pub kind: VariableKind,
     pub local_id: usize,
@@ -70,6 +76,10 @@ impl FunctionBlockVariable {
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
         })
+    }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
     }
 }
 

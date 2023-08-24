@@ -9,7 +9,7 @@ use crate::{
     xml_parser::Parseable,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Control {
     pub kind: ControlKind,
     pub name: Option<String>,
@@ -32,7 +32,7 @@ impl Control {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum ControlKind {
     Jump,
     Label,

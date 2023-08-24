@@ -1,11 +1,16 @@
-use std::cmp::Ordering;
+use std::{borrow::BorrowMut, cmp::Ordering};
 
 use indexmap::IndexMap;
 use quick_xml::events::Event;
 
 use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
-use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
+use super::{
+    block::Block,
+    connector::{Connector, ConnectorKind},
+    control::Control,
+    variables::FunctionBlockVariable,
+};
 
 /// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
@@ -16,7 +21,7 @@ pub(crate) struct FunctionBlockDiagram {
     pub nodes: NodeIndex,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Node {
     Block(Block),
     FunctionBlockVariable(FunctionBlockVariable),
@@ -105,7 +110,57 @@ impl Parseable for FunctionBlockDiagram {
         }
 
         nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
+        resolve_connection_points(&mut nodes);
         Ok(FunctionBlockDiagram { nodes })
+    }
+}
+
+fn resolve_connection_points(nodes: &mut NodeIndex) {
+    fn find_source_connections(nodes: &NodeIndex) -> IndexMap<&str, NodeId> {
+        nodes
+            .iter()
+            .filter_map(|(_, node)| {
+                if let Node::Connector(Connector {
+                    kind: ConnectorKind::Source, name, ref_local_id, ..
+                }) = node
+                {
+                    if let Some(ref_id) = ref_local_id {
+                        Some((name.as_str(), *ref_id))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<IndexMap<&str, NodeId>>()
+    }
+
+    let lookup = nodes.clone(); // this smells real bad
+
+    let source_connections = find_source_connections(&lookup);
+
+    for (_, node) in nodes {
+        match dbg!(node) {
+            Node::Block(block) => todo!(),
+            Node::FunctionBlockVariable(fbd_var) => {
+                let Some(ref_id) = fbd_var.ref_local_id else {
+                    continue
+                };
+
+                if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
+                    lookup.get(&ref_id)
+                {
+                    let Some(actual_source) = &source_connections.get(name.as_str()).copied() else {
+                        todo!("unconnected source")
+                    };
+
+                    let _ = std::mem::replace(&mut fbd_var.ref_local_id, dbg!(Some(*actual_source)));
+                }
+            }
+            Node::Control(control) => todo!(),
+            _ => continue,
+        };
     }
 }
 

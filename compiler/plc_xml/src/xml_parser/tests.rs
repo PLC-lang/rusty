@@ -26,6 +26,75 @@ mod tests {
     }
 
     #[test]
+    fn connection_sink_source() {
+        let src = r#"<?xml version="1.0" encoding="UTF-8"?>
+        <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myConnection" pouType="function">
+            <interface>
+                <localVars/>
+                <addData>
+                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                        <textDeclaration>
+                            <content>
+        FUNCTION myConnection : DINT
+        VAR_INPUT
+            x: DINT;
+        END_VAR
+        VAR_TEMP
+            y: DINT;
+        END_VAR
+                    </content>
+                        </textDeclaration>
+                    </data>
+                </addData>
+            </interface>
+            <body>
+                <FBD>
+                    <connector name="s1" localId="1" height="20" width="54">
+                        <position x="450" y="330"/>
+                        <connectionPointIn>
+                            <relPosition x="0" y="10"/>
+                            <connection refLocalId="2"/>
+                        </connectionPointIn>
+                    </connector>
+                    <continuation name="s1" localId="3" height="20" width="64">
+                        <position x="710" y="340"/>
+                        <connectionPointOut>
+                            <relPosition x="64" y="10"/>
+                        </connectionPointOut>
+                    </continuation>
+                    <inVariable localId="2" height="20" width="80" negated="false">
+                        <position x="340" y="330"/>
+                        <connectionPointOut>
+                            <relPosition x="80" y="10"/>
+                        </connectionPointOut>
+                        <expression>x</expression>
+                    </inVariable>
+                    <outVariable localId="4" height="20" width="124" executionOrderId="0" negated="false" storage="none">
+                        <position x="840" y="340"/>
+                        <connectionPointIn>
+                            <relPosition x="0" y="10"/>
+                            <connection refLocalId="3"/>
+                        </connectionPointIn>
+                        <expression>myConnection</expression>
+                    </outVariable>
+                    <outVariable localId="5" height="20" width="80" executionOrderId="1" negated="false" storage="none">
+                        <position x="840" y="220"/>
+                        <connectionPointIn>
+                            <relPosition x="0" y="10"/>
+                            <connection refLocalId="3"/>
+                        </connectionPointIn>
+                        <expression>y</expression>
+                    </outVariable>
+                </FBD>
+            </body>
+        </pou>
+           
+        "#;
+
+        assert_debug_snapshot!(xml_parser::visit(src).unwrap());
+    }
+
+    #[test]
     fn model_is_sorted_by_execution_order() {
         let src = r#"
         <?xml version="1.0" encoding="UTF-8"?>

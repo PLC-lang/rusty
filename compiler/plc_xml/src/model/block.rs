@@ -6,7 +6,7 @@ use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_pars
 
 use super::variables::BlockVariable;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Block {
     pub local_id: usize,
     pub type_name: String,
