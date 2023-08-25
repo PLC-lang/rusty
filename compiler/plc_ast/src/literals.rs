@@ -38,14 +38,14 @@ pub enum AstLiteral {
     Array(Array),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Date {
     year: i32,
     month: u32,
     day: u32,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DateAndTime {
     year: i32,
     month: u32,

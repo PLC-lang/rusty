@@ -11,6 +11,7 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+use plc_ast::visitor::Acceptor;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
@@ -18,8 +19,9 @@ use plc_ast::{
         UserTypeDeclaration, Variable,
     },
     control_statements::AstControlStatement,
-    literals::{Array, AstLiteral, StringValue},
+    literals::{Array, AstLiteral, Date, DateAndTime, StringValue},
     provider::IdProvider,
+    visitor::Visitor,
 };
 use plc_util::convention::internal_type_name;
 
@@ -51,6 +53,24 @@ macro_rules! visit_all_statements {
        visit_all_statements!($self, $ctx, $($tail),+)
      };
    }
+
+pub trait Resolve: std::fmt::Debug {
+    fn resolve(&self, annotator: &mut TypeAnnotator) {
+        println!("Visiting {self:?}")
+    }
+}
+
+impl Resolve for i128 {}
+impl Resolve for DateAndTime {}
+impl Resolve for Date {}
+
+impl<'i> Visitor for TypeAnnotator<'i> {
+    type ActionType = &'i dyn Resolve;
+
+    fn visit(&mut self, item: Self::ActionType) {
+        item.resolve(self)
+    }
+}
 
 /// Context object passed by the visitor
 /// Denotes the current context of expressions (e.g. the current pou, a defined context, etc.)
@@ -1129,6 +1149,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::BinaryExpression { left, right, operator, .. } => {
                 visit_all_statements!(self, ctx, left, right);
+                //Execute Annotations
                 let statement_type = {
                     let left_type = self
                         .annotation_map
@@ -1783,6 +1804,7 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_literals(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
             AstStatement::Literal { kind, .. } => {
+                kind.accept(self);
                 match kind {
                     AstLiteral::Bool { .. } => {
                         self.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
