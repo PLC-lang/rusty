@@ -37,16 +37,22 @@ impl SourceLocationFactory {
 pub enum CodeSpan {
     /// The ID of the element in a sourcefile
     Id(usize),
+    /// An element with an internal ID and a range
+    InnerRange { id: usize, range: Range<usize> },
+    /// An element spanning multiple IDs
+    Combined(Vec<CodeSpan>),
     /// the start and end offset in the source-file
     Range(Range<usize>),
     /// The location does not point anywhere in the file
     None,
 }
+
 impl CodeSpan {
     pub fn get_end(&self) -> usize {
         match self {
             CodeSpan::Id(id) => *id,
-            CodeSpan::Range(range) => range.end,
+            CodeSpan::Range(range) | CodeSpan::InnerRange { range, .. } => range.end,
+            CodeSpan::Combined(elements) => elements.last().map_or(0, Self::get_end),
             CodeSpan::None => 0,
         }
     }
@@ -54,15 +60,16 @@ impl CodeSpan {
     pub fn get_start(&self) -> usize {
         match self {
             CodeSpan::Id(id) => *id,
-            CodeSpan::Range(range) => range.start,
+            CodeSpan::Range(range) | CodeSpan::InnerRange { range, .. } => range.start,
+            CodeSpan::Combined(elements) => elements.last().map_or(0, Self::get_start),
             CodeSpan::None => 0,
         }
     }
 
     pub fn to_range(&self) -> Option<Range<usize>> {
         match self {
-            CodeSpan::Range(range) => Some(range.clone()),
-            CodeSpan::Id(_) | CodeSpan::None => None,
+            CodeSpan::Range(range) | CodeSpan::InnerRange { range, .. } => Some(range.clone()),
+            _ => None,
         }
     }
 }
@@ -118,18 +125,44 @@ impl SourceLocation {
     /// returns a new SourceRange that spans `this` and the `other` range.
     /// In other words this results in `self.start .. other.end`
     pub fn span(&self, other: &SourceLocation) -> SourceLocation {
-        let range = match (&self.span, &other.span) {
-            (CodeSpan::Id(start), CodeSpan::Id(end)) => Some(*start..*end),
-            (CodeSpan::Id(start), CodeSpan::Range(range)) => Some(*start..range.end),
-            (CodeSpan::Id(id), CodeSpan::None) | (CodeSpan::None, CodeSpan::Id(id)) => Some(*id..*id),
-            (CodeSpan::Range(range), CodeSpan::Id(end)) => Some(range.start..*end),
-            (CodeSpan::Range(start), CodeSpan::Range(end)) => Some(start.start..end.end),
-            (CodeSpan::Range(range), CodeSpan::None) | (CodeSpan::None, CodeSpan::Range(range)) => {
-                Some(range.clone())
+        let span = match (&self.span, &other.span) {
+            (CodeSpan::Id(start), CodeSpan::Id(end)) => {
+                CodeSpan::Combined(vec![CodeSpan::Id(*start), CodeSpan::Id(*end)])
             }
-            (CodeSpan::None, CodeSpan::None) => None,
+            (CodeSpan::Range(range), CodeSpan::Id(id)) | (CodeSpan::Id(id), CodeSpan::Range(range)) => {
+                CodeSpan::InnerRange { id: *id, range: range.clone() }
+            }
+            (CodeSpan::Range(start), CodeSpan::Range(end)) => CodeSpan::Range(start.start..end.end),
+            (CodeSpan::None, CodeSpan::None) => CodeSpan::None,
+            (CodeSpan::Id(id), CodeSpan::InnerRange { id: other_id, range })
+            | (CodeSpan::InnerRange { id, range }, CodeSpan::Id(other_id)) => todo!(),
+            (CodeSpan::Combined(span), CodeSpan::Id(id)) | (CodeSpan::Id(id), CodeSpan::Combined(span)) => {
+                todo!()
+            }
+            (
+                CodeSpan::InnerRange { id, range },
+                CodeSpan::InnerRange { id: other_id, range: other_range },
+            ) => todo!(),
+            (CodeSpan::Combined(_), CodeSpan::InnerRange { id, range })
+            | (CodeSpan::InnerRange { id, range }, CodeSpan::Combined(_)) => todo!(),
+            (CodeSpan::Range(_), CodeSpan::InnerRange { id, range })
+            | (CodeSpan::InnerRange { id, range }, CodeSpan::Range(_)) => todo!(),
+            (CodeSpan::Combined(_), CodeSpan::Combined(_)) => todo!(),
+            (CodeSpan::Combined(_), CodeSpan::Range(_)) | (CodeSpan::Range(_), CodeSpan::Combined(_)) => {
+                todo!()
+            }
+
+            (CodeSpan::InnerRange { .. }, CodeSpan::None)
+            | (CodeSpan::Combined(_), CodeSpan::None)
+            | (CodeSpan::None, CodeSpan::InnerRange { .. })
+            | (CodeSpan::None, CodeSpan::Combined(_))
+            | (CodeSpan::Id(_), CodeSpan::None)
+            | (CodeSpan::None, CodeSpan::Id(_))
+            | (CodeSpan::Range(_), CodeSpan::None)
+            | (CodeSpan::None, CodeSpan::Range(_)) => {
+                unreachable!("Expansion of {:?} and {:?}, not possible", self.span, other.span)
+            }
         };
-        let span = range.map(CodeSpan::Range).unwrap_or(CodeSpan::None);
         SourceLocation { span, file: self.get_file_name() }
     }
 
