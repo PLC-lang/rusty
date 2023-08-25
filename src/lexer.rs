@@ -92,12 +92,6 @@ impl<'a> ParseSession<'a> {
         false
     }
 
-    /// Tries to consume any of the given tokens. It returns `Option<&Token>` if it was able to consume,
-    /// it returns `None` if none of the given tokens could be parsed.
-    pub fn try_consume_any<'t>(&mut self, tokens: &'t [Token]) -> Option<&'t Token> {
-        tokens.iter().find(|it| self.try_consume(it))
-    }
-
     pub fn consume_or_report(&mut self, token: Token) {
         if !self.try_consume(&token) {
             self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
