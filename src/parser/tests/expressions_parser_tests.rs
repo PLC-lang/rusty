@@ -740,7 +740,7 @@ fn cast(data_type: &str, value: AstStatement) -> AstStatement {
         ),
         value,
         &SourceRange::undefined(),
-        &mut || 0,
+        0,
     )
 }
 

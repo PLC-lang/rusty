@@ -445,7 +445,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                     ),
                     stmt,
                     &location_start.span(&end),
-                    &mut || lexer.next_id(),
+                    lexer.next_id(),
                 ));
             }
             (Some(base), Some(KeywordSquareParensOpen)) => {

@@ -796,21 +796,6 @@ impl<'i> TypeAnnotator<'i> {
                 // find out left's type and update a type hint for right
                 if let (
                     typesystem::DataTypeInformation::Struct { name: qualifier, .. },
-                    AstStatement::Reference { name: variable_name, .. }, // TODO is this wrong?
-                ) = (expected_type.get_type_information(), left.as_ref())
-                {
-                    if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name()) {
-                            self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
-                            self.annotation_map.annotate_type_hint(
-                                right.as_ref(),
-                                StatementAnnotation::value(v.get_type_name()),
-                            );
-                            self.update_expected_types(target_type, right);
-                        }
-                    }
-                } else if let (
-                    typesystem::DataTypeInformation::Struct { name: qualifier, .. },
                     Some(variable_name),
                 ) = (expected_type.get_type_information(), left.as_ref().get_flat_reference_name())
                 {

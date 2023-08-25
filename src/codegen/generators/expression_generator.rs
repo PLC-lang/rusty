@@ -221,8 +221,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 };
                 Ok(val)
-
-                //TODO lvalue/rvalue stuff
             }
             AstStatement::BinaryExpression { left, right, operator, .. } => self
                 .generate_binary_expression(left, right, operator, expression)
@@ -389,12 +387,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ))
                 }
             }
-            //TODO
-            // Operator::Address => {
-            //     //datatype is a pointer to the address
-            //     //value is the address
-            //     self.generate_element_pointer(expression).map(|result| result.as_basic_value_enum())
-            // }
             _ => unimplemented!(),
         };
         value
@@ -501,7 +493,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if !pou.is_function() {
             let parameter_struct = match arguments_list.first() {
                 Some(v) => v.into_pointer_value(),
-                None => self.generate_element_pointer(operator)?,
+                None => self.generate_lvalue(operator)?,
             };
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
@@ -554,7 +546,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 && !matches!(expression, AstStatement::EmptyStatement { .. })
             {
                 {
-                    let assigned_output = self.generate_element_pointer(expression)?;
+                    let assigned_output = self.generate_lvalue(expression)?;
 
                     let assigned_output_type =
                         self.annotations.get_type_or_void(expression, self.index).get_type_information();
@@ -634,12 +626,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // no function
             let (class_ptr, call_ptr) = match pou {
                 PouIndexEntry::Method { .. } => {
-                    let class_ptr = self.generate_element_pointer(operator)?;
+                    let class_ptr = self.generate_lvalue(operator)?;
                     let call_ptr =
                         self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
                     (Some(class_ptr), call_ptr)
                 }
-                // FIXME: find a more reliable way to make sure if this is a call into a local action!!
+                // TODO: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
                     if matches!(operator, AstStatement::ReferenceExpr { base: None, .. }) =>
                 {
@@ -651,7 +643,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
                 }
                 _ => {
-                    let call_ptr = self.generate_element_pointer(operator)?;
+                    let call_ptr = self.generate_lvalue(operator)?;
                     (None, call_ptr)
                 }
             };
@@ -1144,7 +1136,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         })?;
                     builder.build_alloca(temp_type, "empty_varinout").as_basic_value_enum()
                 } else {
-                    self.generate_element_pointer(expression)?.as_basic_value_enum()
+                    self.generate_lvalue(expression)?.as_basic_value_enum()
                 };
                 builder.build_store(pointer_to_param, generated_exp);
             } else {
@@ -1197,18 +1189,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
-    /// generates an gep-statement and returns the resulting pointer and DataTypeInfo
+    /// generates an gep-statement and returns the resulting pointer
     ///
-    /// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)
-    pub fn generate_element_pointer(
+    /// - `reference_statement` - the statement to get an lvalue from
+    pub fn generate_lvalue(
         &self,
         reference_statement: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        // if let AstStatement::QualifiedReference { elements, .. } = reference_statement {
-        //     self.generate_element_pointer_from_elements(elements, reference_statement.get_location())
-        // } else {
-        //     self.do_generate_element_pointer(None, reference_statement)
-        // }
         self.generate_expression_value(reference_statement)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
     }
@@ -2415,6 +2402,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
     }
 
+    /// generates a reference expression (member, index, deref, etc.)
+    ///
+    /// - `access` the ReferenceAccess of the reference to generate
+    /// - `base` the "previous" segment of an optional qualified reference-access
+    /// - `original_expression` the original ast-statement used to report Diagnostics
     fn generate_reference_expression(
         &self,
         access: &ReferenceAccess,
@@ -2422,6 +2414,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         original_expression: &AstStatement,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
+
+            // expressions like `base.member`, or just `member`
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
@@ -2429,25 +2423,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
                         return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
                     };
-                    let loaded_base_value = base_value.as_r_value(self.llvm, self.get_load_name(base));
-                    let datatype = self.get_type_hint_info_for(member)?;
-                    let expression_type = self.get_type_hint_for(base)?;
-                    //Generate and load the index value
-                    let rhs = self.generate_direct_access_index(access, index, datatype, expression_type)?;
-                    //Shift the qualifer value right by the index value
-                    let shift = self.llvm.builder.build_right_shift(
-                        loaded_base_value.into_int_value(),
-                        rhs,
-                        expression_type.get_type_information().is_signed_int(),
-                        "shift",
-                    );
-                    //Trunc the result to the get only the target size
-                    let result = self.llvm.builder.build_int_truncate_or_bit_cast(
-                        shift,
-                        self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
-                        "",
-                    );
-                    Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
+                    self.generate_direct_access_expression(base, &base_value, member, access, index)
                 } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
                     self.create_llvm_pointer_value_for_reference(
@@ -2458,21 +2434,26 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .map(ExpressionValue::LValue)
                 }
             }
-            (ReferenceAccess::Index(access), Some(base)) => {
+
+            // expressions like: base[idx]
+            (ReferenceAccess::Index(array_idx), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
-                    //FIXME: expect
+                    // vla array needs special handling
                     self.generate_element_pointer_for_vla(
                         self.generate_expression_value(base)?,
                         self.annotations.get(base).expect(""),
-                        access.as_ref(),
+                        array_idx.as_ref(),
                     )
                     .map_err(|_| unreachable!("invalid access statement"))
                     .map(ExpressionValue::LValue)
                 } else {
-                    self.generate_element_pointer_for_array(base, access).map(ExpressionValue::LValue)
+                    // normal array expression
+                    self.generate_element_pointer_for_array(base, array_idx).map(ExpressionValue::LValue)
                 }
             }
-            (ReferenceAccess::Cast(target), Some(_)) => {
+
+            // INT#target (INT = base)
+            (ReferenceAccess::Cast(target), Some(_base)) => {
                 if matches!(target.as_ref(), AstStatement::Reference { .. }) {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
@@ -2482,6 +2463,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
 
+            // base^
             (ReferenceAccess::Deref, Some(base)) => {
                 let ptr = self.generate_expression_value(base)?;
                 Ok(ExpressionValue::LValue(
@@ -2491,19 +2473,55 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ))
             }
 
+            // &base
             (ReferenceAccess::Address, Some(base)) => {
                 let lvalue = self.generate_expression_value(base)?;
                 Ok(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
             }
 
-            (ReferenceAccess::Index(_), None)
-            | (ReferenceAccess::Cast(_), None)
-            | (ReferenceAccess::Deref, None)
-            | (ReferenceAccess::Address, None) => Err(Diagnostic::codegen_error(
-                "This type of ReferenceExpr needs a base-expression.",
+            (ReferenceAccess::Index(_), None) // [idx];
+            | (ReferenceAccess::Cast(_), None) // INT#;
+            | (ReferenceAccess::Deref, None)  // ^;
+            | (ReferenceAccess::Address, None) // &;
+                => Err(Diagnostic::codegen_error(
+                "Expected a base-expressions, but found none.",
                 original_expression.get_location(),
             )),
         }
+    }
+
+    /// generates a direct-access expression like `x.%B4`
+    /// - `qualifier` the qualifier statement (see `x` above)
+    /// - `qualifier_value` the generated value of the qualifier
+    /// - `member` the member AstStatement (see `%B4`above)
+    /// - `access` the type of access (see `B` above)
+    fn generate_direct_access_expression(
+        &self,
+        qualifier: &AstStatement,
+        qualifier_value: &ExpressionValue<'ink>,
+        member: &AstStatement,
+        access: &DirectAccessType,
+        index: &AstStatement,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
+        let datatype = self.get_type_hint_info_for(member)?;
+        let base_type = self.get_type_hint_for(qualifier)?;
+        //Generate and load the index value
+        let rhs = self.generate_direct_access_index(access, index, datatype, base_type)?;
+        //Shift the qualifer value right by the index value
+        let shift = self.llvm.builder.build_right_shift(
+            loaded_base_value.into_int_value(),
+            rhs,
+            base_type.get_type_information().is_signed_int(),
+            "shift",
+        );
+        //Trunc the result to the get only the target size
+        let result = self.llvm.builder.build_int_truncate_or_bit_cast(
+            shift,
+            self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
+            "",
+        );
+        Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
     }
 }
 

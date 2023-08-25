@@ -379,7 +379,7 @@ fn validate_reference<T: AnnotationMap>(
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
 
         // was this meant as a direct access?
-        // FIXME: find a way to solve this without re-resolving this name
+        // TODO: find a way to solve this without re-resolving this name
         if let Some(alternative_target_type) =
             context.index.find_variable(context.qualifier, &[ref_name]).and_then(|alternative_target| {
                 context.index.find_effective_type_by_name(alternative_target.get_type_name())

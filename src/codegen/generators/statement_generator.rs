@@ -390,7 +390,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator.generate_element_pointer(counter)?;
+        let ptr = expression_generator.generate_lvalue(counter)?;
         builder.build_store(ptr, next);
 
         //Loop back

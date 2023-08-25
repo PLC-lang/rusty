@@ -1473,20 +1473,17 @@ impl AstFactory {
     }
 
     /// creates a new cast statement
-    pub fn create_cast_statement<T>(
+    pub fn create_cast_statement(
         type_name: AstStatement,
         stmt: AstStatement,
         location: &SourceRange,
-        id_provider: &mut T,
-    ) -> AstStatement
-    where
-        T: FnMut() -> AstId,
-    {
+        id: AstId,
+    ) -> AstStatement {
         let new_location = (location.get_start()..stmt.get_location().get_end()).into();
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Cast(Box::new(stmt)),
             base: Some(Box::new(type_name)),
-            id: id_provider(),
+            id,
             location: new_location,
         }
     }
