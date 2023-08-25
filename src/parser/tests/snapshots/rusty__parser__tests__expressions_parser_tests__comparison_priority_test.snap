@@ -8,7 +8,7 @@ BinaryExpression {
         operator: Less,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -22,7 +22,7 @@ BinaryExpression {
         operator: Greater,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),

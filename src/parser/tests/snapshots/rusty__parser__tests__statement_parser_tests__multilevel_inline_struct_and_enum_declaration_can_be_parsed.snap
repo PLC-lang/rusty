@@ -18,7 +18,7 @@ Variable {
                                 expressions: [
                                     ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "red",
                                             },
                                         ),
@@ -26,7 +26,7 @@ Variable {
                                     },
                                     ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "yellow",
                                             },
                                         ),
@@ -34,7 +34,7 @@ Variable {
                                     },
                                     ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "green",
                                             },
                                         ),

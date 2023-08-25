@@ -385,7 +385,7 @@ fn evaluate_with_target_hint(
                 .and_then(|type_name| index.find_effective_type_info(type_name));
             match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
-                    if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                    if let AstStatement::Identifier { name: ref_name, .. } = target.as_ref() {
                         return index
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {

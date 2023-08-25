@@ -2314,7 +2314,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get_flat_reference_name()
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
                 .or_else(|| Some(self.temp_variable_prefix.clone())),
-            AstStatement::Reference { name, .. } => Some(format!("{}{}", name, self.temp_variable_suffix)),
+            AstStatement::Identifier { name, .. } => Some(format!("{}{}", name, self.temp_variable_suffix)),
             _ => None,
         }
     }
@@ -2454,7 +2454,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // INT#target (INT = base)
             (ReferenceAccess::Cast(target), Some(_base)) => {
-                if matches!(target.as_ref(), AstStatement::Reference { .. }) {
+                if matches!(target.as_ref(), AstStatement::Identifier { .. }) {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)

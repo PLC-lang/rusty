@@ -27,7 +27,7 @@ CompilationUnit {
                     operator: Multiplication,
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "a",
                             },
                         ),
@@ -36,7 +36,7 @@ CompilationUnit {
                     right: CallStatement {
                         operator: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "EXPT",
                                 },
                             ),
@@ -47,7 +47,7 @@ CompilationUnit {
                                 expressions: [
                                     ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "b",
                                             },
                                         ),
@@ -55,7 +55,7 @@ CompilationUnit {
                                     },
                                     ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "c",
                                             },
                                         ),

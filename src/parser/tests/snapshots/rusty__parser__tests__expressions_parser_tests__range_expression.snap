@@ -6,7 +6,7 @@ expression: statements
     RangeStatement {
         start: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "a",
                 },
             ),
@@ -14,7 +14,7 @@ expression: statements
         },
         end: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "b",
                 },
             ),
@@ -32,7 +32,7 @@ expression: statements
     RangeStatement {
         start: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "a",
                 },
             ),
@@ -48,7 +48,7 @@ expression: statements
         },
         end: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "a",
                 },
             ),

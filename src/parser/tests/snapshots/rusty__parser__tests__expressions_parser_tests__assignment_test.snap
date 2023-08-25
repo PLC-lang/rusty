@@ -6,7 +6,7 @@ expression: prg
     Assignment {
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -19,7 +19,7 @@ expression: prg
     Assignment {
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),

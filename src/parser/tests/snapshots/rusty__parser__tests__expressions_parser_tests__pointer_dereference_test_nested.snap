@@ -40,7 +40,7 @@ ReferenceExpr {
                                                             base: Some(
                                                                 ReferenceExpr {
                                                                     kind: Member(
-                                                                        Reference {
+                                                                        Identifier {
                                                                             name: "x",
                                                                         },
                                                                     ),

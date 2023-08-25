@@ -119,7 +119,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                             AstStatement::Assignment {
                                 id: id_provider.next_id(),
                                 left: Box::new(AstFactory::create_member_reference(
-                                    AstFactory::create_reference(
+                                    AstFactory::create_identifier(
                                         element_name,
                                         &location,
                                         id_provider.next_id(),
@@ -156,9 +156,9 @@ fn build_enum_initializer(
 ) -> AstStatement {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
-        let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        let enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
         let type_element = AstFactory::create_member_reference(
-            AstFactory::create_reference(enum_name, location, id_provider.next_id()),
+            AstFactory::create_identifier(enum_name, location, id_provider.next_id()),
             None,
             id_provider.next_id(),
         );

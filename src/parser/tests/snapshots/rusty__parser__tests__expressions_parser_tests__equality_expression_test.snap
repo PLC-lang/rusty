@@ -7,7 +7,7 @@ expression: prg
         operator: Equal,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -23,7 +23,7 @@ expression: prg
             operator: Minus,
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),

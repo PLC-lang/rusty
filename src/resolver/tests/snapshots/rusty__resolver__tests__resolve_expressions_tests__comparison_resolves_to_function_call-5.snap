@@ -9,7 +9,7 @@ Some(
             left: CallStatement {
                 operator: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "STRING_EQUAL",
                         },
                     ),
@@ -20,7 +20,7 @@ Some(
                         expressions: [
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "a",
                                     },
                                 ),
@@ -28,7 +28,7 @@ Some(
                             },
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "b",
                                     },
                                 ),
@@ -41,7 +41,7 @@ Some(
             right: CallStatement {
                 operator: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "STRING_GREATER",
                         },
                     ),
@@ -52,7 +52,7 @@ Some(
                         expressions: [
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "a",
                                     },
                                 ),
@@ -60,7 +60,7 @@ Some(
                             },
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "b",
                                     },
                                 ),

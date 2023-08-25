@@ -13,7 +13,7 @@ expression: statements
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -31,7 +31,7 @@ expression: statements
             kind: Index(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -41,7 +41,7 @@ expression: statements
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),

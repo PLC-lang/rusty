@@ -40,7 +40,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
                 AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
                 AstFactory::create_member_reference(
-                    AstStatement::Reference { name: "x".into(), location: SourceRange::undefined(), id: 0 },
+                    AstFactory::create_identifier("x".into(), &SourceRange::undefined(), 0),
                     None,
                     0
                 ),
@@ -61,7 +61,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let expected_ast = format!(
         "{:#?}",
         AstFactory::create_member_reference(
-            AstFactory::create_reference("x", &SourceRange::undefined(), 0),
+            AstFactory::create_identifier("x", &SourceRange::undefined(), 0),
             None,
             0
         )

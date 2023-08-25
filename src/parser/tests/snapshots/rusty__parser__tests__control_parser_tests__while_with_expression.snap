@@ -7,7 +7,7 @@ WhileLoopStatement {
         operator: Less,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),

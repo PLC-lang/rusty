@@ -6,7 +6,7 @@ BinaryExpression {
     operator: And,
     left: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "a",
             },
         ),
@@ -20,7 +20,7 @@ BinaryExpression {
                 operator: Or,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "b",
                         },
                     ),
@@ -28,7 +28,7 @@ BinaryExpression {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "c",
                         },
                     ),
@@ -38,7 +38,7 @@ BinaryExpression {
         },
         right: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "d",
                 },
             ),

@@ -108,7 +108,7 @@ CompilationUnit {
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "foo",
                             },
                         ),
@@ -120,7 +120,7 @@ CompilationUnit {
                                 Assignment {
                                     left: ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "input1",
                                             },
                                         ),
@@ -131,7 +131,7 @@ CompilationUnit {
                                 OutputAssignment {
                                     left: ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "output1",
                                             },
                                         ),
@@ -142,7 +142,7 @@ CompilationUnit {
                                 OutputAssignment {
                                     left: ReferenceExpr {
                                         kind: Member(
-                                            Reference {
+                                            Identifier {
                                                 name: "inout1",
                                             },
                                         ),

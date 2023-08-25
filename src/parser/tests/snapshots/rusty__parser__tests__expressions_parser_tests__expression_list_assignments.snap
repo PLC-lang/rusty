@@ -7,7 +7,7 @@ ExpressionList {
         Assignment {
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),
@@ -20,7 +20,7 @@ ExpressionList {
         Assignment {
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "y",
                     },
                 ),
@@ -33,7 +33,7 @@ ExpressionList {
         Assignment {
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "z",
                     },
                 ),

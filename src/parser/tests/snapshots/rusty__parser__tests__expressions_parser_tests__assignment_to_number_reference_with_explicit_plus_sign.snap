@@ -6,7 +6,7 @@ expression: statements
     Assignment {
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -19,7 +19,7 @@ expression: statements
     Assignment {
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -29,7 +29,7 @@ expression: statements
             operator: Plus,
             value: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),

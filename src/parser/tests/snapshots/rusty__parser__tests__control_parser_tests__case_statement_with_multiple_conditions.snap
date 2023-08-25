@@ -5,7 +5,7 @@ expression: statement
 CaseStatement {
     selector: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "StateMachine",
             },
         ),
@@ -19,7 +19,7 @@ CaseStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -34,7 +34,7 @@ CaseStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -42,7 +42,7 @@ CaseStatement {
                 },
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "yy",
                         },
                     ),
@@ -50,7 +50,7 @@ CaseStatement {
                 },
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "yyy",
                         },
                     ),
@@ -65,7 +65,7 @@ CaseStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "z",
                         },
                     ),

@@ -4,14 +4,14 @@ expression: "&prg.statements[0]"
 ---
 ReferenceExpr {
     kind: Member(
-        Reference {
+        Identifier {
             name: "x",
         },
     ),
     base: Some(
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "a",
                 },
             ),

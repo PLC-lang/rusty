@@ -734,7 +734,7 @@ fn literal_real_test() {
 fn cast(data_type: &str, value: AstStatement) -> AstStatement {
     AstFactory::create_cast_statement(
         AstFactory::create_member_reference(
-            AstFactory::create_reference(data_type, &SourceRange::undefined(), 0),
+            AstFactory::create_identifier(data_type, &SourceRange::undefined(), 0),
             None,
             0,
         ),

@@ -6,7 +6,7 @@ expression: pou.statements
     CallStatement {
         operator: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "buz",
                 },
             ),

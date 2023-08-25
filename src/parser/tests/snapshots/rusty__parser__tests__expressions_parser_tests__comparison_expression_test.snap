@@ -7,7 +7,7 @@ expression: prg
         operator: Less,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "a",
                 },
             ),
@@ -21,7 +21,7 @@ expression: prg
         operator: Greater,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "b",
                 },
             ),
@@ -35,7 +35,7 @@ expression: prg
         operator: LessOrEqual,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "c",
                 },
             ),
@@ -49,7 +49,7 @@ expression: prg
         operator: GreaterOrEqual,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "d",
                 },
             ),
@@ -62,7 +62,7 @@ expression: prg
     Assignment {
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "e",
                 },
             ),

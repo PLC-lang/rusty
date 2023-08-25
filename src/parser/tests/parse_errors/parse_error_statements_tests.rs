@@ -145,7 +145,7 @@ fn incomplete_statement_test() {
     },
     ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "x",
             },
         ),
@@ -192,7 +192,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
     },
     ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "x",
             },
         ),
@@ -229,7 +229,7 @@ fn mismatched_parantheses_recovery_test() {
     },
     ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "x",
             },
         ),
@@ -392,7 +392,7 @@ fn test_nested_if_with_missing_end_if() {
                                         Assignment {
                                             left: ReferenceExpr {
                                                 kind: Member(
-                                                    Reference {
+                                                    Identifier {
                                                         name: "x",
                                                     },
                                                 ),
@@ -400,7 +400,7 @@ fn test_nested_if_with_missing_end_if() {
                                             },
                                             right: ReferenceExpr {
                                                 kind: Member(
-                                                    Reference {
+                                                    Identifier {
                                                         name: "y",
                                                     },
                                                 ),
@@ -415,7 +415,7 @@ fn test_nested_if_with_missing_end_if() {
                         Assignment {
                             left: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "y",
                                     },
                                 ),
@@ -423,7 +423,7 @@ fn test_nested_if_with_missing_end_if() {
                             },
                             right: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "x",
                                     },
                                 ),
@@ -487,7 +487,7 @@ fn test_nested_for_with_missing_end_for() {
         ForLoopStatement {
             counter: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),
@@ -504,7 +504,7 @@ fn test_nested_for_with_missing_end_for() {
                 ForLoopStatement {
                     counter: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -521,7 +521,7 @@ fn test_nested_for_with_missing_end_for() {
                         Assignment {
                             left: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "y",
                                     },
                                 ),
@@ -529,7 +529,7 @@ fn test_nested_for_with_missing_end_for() {
                             },
                             right: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "x",
                                     },
                                 ),
@@ -541,7 +541,7 @@ fn test_nested_for_with_missing_end_for() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -549,7 +549,7 @@ fn test_nested_for_with_missing_end_for() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -591,7 +591,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                 operator: Equal,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -599,7 +599,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -610,7 +610,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -625,7 +625,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
         Assignment {
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "y",
                     },
                 ),
@@ -633,7 +633,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
             },
             right: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),
@@ -678,7 +678,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                         operator: Equal,
                         left: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),
@@ -686,7 +686,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                         },
                         right: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "y",
                                 },
                             ),
@@ -700,7 +700,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -708,7 +708,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -757,7 +757,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                         operator: Equal,
                         left: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),
@@ -765,7 +765,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                         },
                         right: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "y",
                                 },
                             ),
@@ -779,7 +779,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -787,7 +787,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -832,7 +832,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                 operator: Equal,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -840,7 +840,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -853,7 +853,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                         operator: Equal,
                         left: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),
@@ -861,7 +861,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                         },
                         right: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "y",
                                 },
                             ),
@@ -875,7 +875,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -883,7 +883,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -926,7 +926,7 @@ fn test_while_with_missing_semicolon_in_body() {
                 operator: Equal,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -934,7 +934,7 @@ fn test_while_with_missing_semicolon_in_body() {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -945,7 +945,7 @@ fn test_while_with_missing_semicolon_in_body() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -960,7 +960,7 @@ fn test_while_with_missing_semicolon_in_body() {
         Assignment {
             left: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "y",
                     },
                 ),
@@ -968,7 +968,7 @@ fn test_while_with_missing_semicolon_in_body() {
             },
             right: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),
@@ -1010,7 +1010,7 @@ fn test_nested_while_with_missing_end_while() {
                 operator: Equal,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -1018,7 +1018,7 @@ fn test_nested_while_with_missing_end_while() {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -1031,7 +1031,7 @@ fn test_nested_while_with_missing_end_while() {
                         operator: Equal,
                         left: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),
@@ -1039,7 +1039,7 @@ fn test_nested_while_with_missing_end_while() {
                         },
                         right: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "y",
                                 },
                             ),
@@ -1053,7 +1053,7 @@ fn test_nested_while_with_missing_end_while() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -1061,7 +1061,7 @@ fn test_nested_while_with_missing_end_while() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -1097,7 +1097,7 @@ fn test_while_with_missing_do() {
                 operator: Equal,
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -1105,7 +1105,7 @@ fn test_while_with_missing_do() {
                 },
                 right: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -1116,7 +1116,7 @@ fn test_while_with_missing_do() {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -1124,7 +1124,7 @@ fn test_while_with_missing_do() {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -1164,7 +1164,7 @@ fn test_case_body_with_missing_semicolon() {
         CaseStatement {
             selector: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "x",
                     },
                 ),
@@ -1174,7 +1174,7 @@ fn test_case_body_with_missing_semicolon() {
                 ConditionalBlock {
                     condition: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -1184,7 +1184,7 @@ fn test_case_body_with_missing_semicolon() {
                         Assignment {
                             left: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "y",
                                     },
                                 ),
@@ -1192,7 +1192,7 @@ fn test_case_body_with_missing_semicolon() {
                             },
                             right: ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "z",
                                     },
                                 ),
@@ -1226,7 +1226,7 @@ fn test_case_without_condition() {
     CaseStatement {
         selector: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -1245,7 +1245,7 @@ fn test_case_without_condition() {
                     Assignment {
                         left: ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),

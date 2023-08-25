@@ -12,7 +12,7 @@ UserTypeDeclaration {
             expressions: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "red",
                         },
                     ),
@@ -20,7 +20,7 @@ UserTypeDeclaration {
                 },
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "yellow",
                         },
                     ),
@@ -28,7 +28,7 @@ UserTypeDeclaration {
                 },
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "green",
                         },
                     ),

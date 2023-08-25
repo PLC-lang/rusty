@@ -7,7 +7,7 @@ expression: statement
         operator: Plus,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -15,7 +15,7 @@ expression: statement
         },
         right: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),
@@ -26,14 +26,14 @@ expression: statement
         operator: Equal,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -43,14 +43,14 @@ expression: statement
         },
         right: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "z",
                 },
             ),
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -63,14 +63,14 @@ expression: statement
         operator: Minus,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -80,14 +80,14 @@ expression: statement
         },
         right: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "z",
                 },
             ),
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
@@ -103,14 +103,14 @@ expression: statement
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),
                     base: Some(
                         ReferenceExpr {
                             kind: Member(
-                                Reference {
+                                Identifier {
                                     name: "x",
                                 },
                             ),
@@ -122,14 +122,14 @@ expression: statement
         },
         right: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "z",
                 },
             ),
             base: Some(
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "y",
                         },
                     ),

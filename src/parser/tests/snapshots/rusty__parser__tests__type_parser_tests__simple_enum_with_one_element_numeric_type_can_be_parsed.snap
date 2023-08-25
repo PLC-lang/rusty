@@ -10,7 +10,7 @@ UserTypeDeclaration {
         numeric_type: "INT",
         elements: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "red",
                 },
             ),

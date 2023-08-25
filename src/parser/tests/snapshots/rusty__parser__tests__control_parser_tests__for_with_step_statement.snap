@@ -5,7 +5,7 @@ expression: statement
 ForLoopStatement {
     counter: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "x",
             },
         ),

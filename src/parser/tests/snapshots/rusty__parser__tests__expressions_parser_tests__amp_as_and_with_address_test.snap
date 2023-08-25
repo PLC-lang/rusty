@@ -6,7 +6,7 @@ BinaryExpression {
     operator: And,
     left: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "b",
             },
         ),
@@ -17,7 +17,7 @@ BinaryExpression {
         base: Some(
             ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "c",
                     },
                 ),

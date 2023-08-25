@@ -5,7 +5,7 @@ expression: statement
 CallStatement {
     operator: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "fn",
             },
         ),
@@ -17,7 +17,7 @@ CallStatement {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -30,7 +30,7 @@ CallStatement {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -43,7 +43,7 @@ CallStatement {
                 OutputAssignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "z",
                             },
                         ),
@@ -51,7 +51,7 @@ CallStatement {
                     },
                     right: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "a",
                             },
                         ),

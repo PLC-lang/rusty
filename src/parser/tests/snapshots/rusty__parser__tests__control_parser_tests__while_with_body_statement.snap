@@ -9,7 +9,7 @@ WhileLoopStatement {
     body: [
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -17,7 +17,7 @@ WhileLoopStatement {
         },
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),

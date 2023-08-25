@@ -21,7 +21,7 @@ mod variable_parser_tests;
 /// helper function to create references
 pub fn ref_to(name: &str) -> AstStatement {
     AstStatement::ReferenceExpr {
-        access: ReferenceAccess::Member(Box::new(AstFactory::create_reference(
+        access: ReferenceAccess::Member(Box::new(AstFactory::create_identifier(
             name,
             &SourceRange::undefined(),
             0,

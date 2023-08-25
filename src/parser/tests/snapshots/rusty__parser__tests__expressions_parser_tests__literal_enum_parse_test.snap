@@ -5,14 +5,14 @@ expression: statement
 [
     ReferenceExpr {
         kind: Cast(
-            Reference {
+            Identifier {
                 name: "Val7",
             },
         ),
         base: Some(
             ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "MyEnum",
                     },
                 ),
@@ -22,14 +22,14 @@ expression: statement
     },
     ReferenceExpr {
         kind: Cast(
-            Reference {
+            Identifier {
                 name: "Val2",
             },
         ),
         base: Some(
             ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "MyEnum",
                     },
                 ),
@@ -39,14 +39,14 @@ expression: statement
     },
     ReferenceExpr {
         kind: Cast(
-            Reference {
+            Identifier {
                 name: "Val3",
             },
         ),
         base: Some(
             ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "MyEnum",
                     },
                 ),

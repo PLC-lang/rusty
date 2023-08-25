@@ -11,7 +11,7 @@ IfStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "x",
                         },
                     ),
@@ -22,7 +22,7 @@ IfStatement {
         ConditionalBlock {
             condition: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "y",
                     },
                 ),
@@ -31,7 +31,7 @@ IfStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "z",
                         },
                     ),
@@ -42,7 +42,7 @@ IfStatement {
         ConditionalBlock {
             condition: ReferenceExpr {
                 kind: Member(
-                    Reference {
+                    Identifier {
                         name: "w",
                     },
                 ),
@@ -51,7 +51,7 @@ IfStatement {
             body: [
                 ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "v",
                         },
                     ),
@@ -63,7 +63,7 @@ IfStatement {
     else_block: [
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "u",
                 },
             ),

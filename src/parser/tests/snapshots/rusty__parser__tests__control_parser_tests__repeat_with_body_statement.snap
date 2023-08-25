@@ -9,7 +9,7 @@ RepeatLoopStatement {
     body: [
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),
@@ -17,7 +17,7 @@ RepeatLoopStatement {
         },
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),

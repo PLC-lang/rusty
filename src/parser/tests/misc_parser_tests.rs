@@ -539,7 +539,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        AstStatement::Reference { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_id(),
+        AstStatement::Identifier { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_id(),
         7
     );
     assert_eq!(AstFactory::create_repeat_statement(empty_stmt(), vec![], (1..5).into(), 7).get_id(), 7);
@@ -634,7 +634,7 @@ fn location_implementation_for_all_statements() {
         (0..9).into()
     );
     assert_eq!(
-        AstStatement::Reference { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_location(),
+        AstStatement::Identifier { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_location(),
         (1..5).into()
     );
     assert_eq!(

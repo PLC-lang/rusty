@@ -13,7 +13,7 @@ UserTypeDeclaration {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "red",
                             },
                         ),
@@ -26,7 +26,7 @@ UserTypeDeclaration {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "yellow",
                             },
                         ),
@@ -39,7 +39,7 @@ UserTypeDeclaration {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "green",
                             },
                         ),

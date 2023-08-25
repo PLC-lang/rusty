@@ -4,7 +4,7 @@ expression: "&prg.statements[0]"
 ---
 ReferenceExpr {
     kind: Member(
-        Reference {
+        Identifier {
             name: "x",
         },
     ),

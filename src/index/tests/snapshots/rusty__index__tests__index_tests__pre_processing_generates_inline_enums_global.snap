@@ -12,7 +12,7 @@ EnumType {
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "a",
                         },
                     ),
@@ -25,7 +25,7 @@ EnumType {
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "b",
                         },
                     ),
@@ -35,14 +35,14 @@ EnumType {
                     operator: Plus,
                     left: ReferenceExpr {
                         kind: Cast(
-                            Reference {
+                            Identifier {
                                 name: "a",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "__global_inline_enum",
                                     },
                                 ),
@@ -58,7 +58,7 @@ EnumType {
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
-                        Reference {
+                        Identifier {
                             name: "c",
                         },
                     ),
@@ -68,14 +68,14 @@ EnumType {
                     operator: Plus,
                     left: ReferenceExpr {
                         kind: Cast(
-                            Reference {
+                            Identifier {
                                 name: "b",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
-                                    Reference {
+                                    Identifier {
                                         name: "__global_inline_enum",
                                     },
                                 ),

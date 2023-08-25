@@ -5,7 +5,7 @@ expression: statement
 CallStatement {
     operator: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "EXPT",
             },
         ),

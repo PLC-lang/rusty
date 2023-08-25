@@ -5,7 +5,7 @@ expression: pou.statements
 [
     ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "a",
             },
         ),

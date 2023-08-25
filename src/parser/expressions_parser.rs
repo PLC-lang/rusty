@@ -143,7 +143,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         let right = parse_unary_expression(lexer);
         left = AstStatement::CallStatement {
             operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_reference("EXPT", &op_location, lexer.next_id()),
+                AstFactory::create_identifier("EXPT", &op_location, lexer.next_id()),
                 None,
                 lexer.next_id(),
             )),
@@ -188,8 +188,8 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
             }
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            (Operator::Plus, AstStatement::Reference { name, .. }) => {
-                AstFactory::create_reference(name, &location, lexer.next_id())
+            (Operator::Plus, AstStatement::Identifier { name, .. }) => {
+                AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
             _ => AstStatement::UnaryExpression {
@@ -322,7 +322,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstState
 }
 
 fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstStatement {
-    AstFactory::create_reference(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id())
+    AstFactory::create_identifier(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id())
 }
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -409,7 +409,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             (None, None) => {
                 let exp = parse_atomic_leaf_expression(lexer)?;
                 // pack if this is something to be resolved
-                current = if matches!(exp, AstStatement::Reference { .. }) {
+                current = if matches!(exp, AstStatement::Identifier { .. }) {
                     Some(AstFactory::create_member_reference(exp, None, lexer.next_id()))
                 } else {
                     Some(exp)
@@ -439,7 +439,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                     (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
                 current = Some(AstFactory::create_cast_statement(
                     AstFactory::create_member_reference(
-                        AstFactory::create_reference(type_name.as_str(), &type_range, lexer.next_id()),
+                        AstFactory::create_identifier(type_name.as_str(), &type_range, lexer.next_id()),
                         None,
                         lexer.next_id(),
                     ),
@@ -502,7 +502,7 @@ fn parse_direct_access(
         Identifier => {
             let location = lexer.location();
             Ok(AstFactory::create_member_reference(
-                AstFactory::create_reference(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
+                AstFactory::create_identifier(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
                 None,
                 lexer.next_id(),
             ))

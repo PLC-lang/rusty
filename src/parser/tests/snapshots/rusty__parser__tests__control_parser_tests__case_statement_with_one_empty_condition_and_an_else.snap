@@ -5,7 +5,7 @@ expression: statement
 CaseStatement {
     selector: ReferenceExpr {
         kind: Member(
-            Reference {
+            Identifier {
                 name: "StateMachine",
             },
         ),
@@ -22,7 +22,7 @@ CaseStatement {
     else_block: [
         ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "y",
                 },
             ),

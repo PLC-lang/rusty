@@ -22,7 +22,7 @@ CompilationUnit {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "x",
                             },
                         ),
@@ -53,7 +53,7 @@ CompilationUnit {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "y",
                             },
                         ),
@@ -75,7 +75,7 @@ CompilationUnit {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            Reference {
+                            Identifier {
                                 name: "z",
                             },
                         ),

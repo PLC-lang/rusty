@@ -753,7 +753,7 @@ pub enum AstStatement {
         id: AstId,
         location: SourceRange,
     },
-    Reference {
+    Identifier {
         name: String,
         location: SourceRange,
         id: AstId,
@@ -845,7 +845,9 @@ impl Debug for AstStatement {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal { kind, .. } => kind.fmt(f),
-            AstStatement::Reference { name, .. } => f.debug_struct("Reference").field("name", name).finish(),
+            AstStatement::Identifier { name, .. } => {
+                f.debug_struct("Identifier").field("name", name).finish()
+            }
             AstStatement::BinaryExpression { operator, left, right, .. } => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -961,7 +963,7 @@ impl AstStatement {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
             AstStatement::DefaultValue { location, .. } => location.clone(),
             AstStatement::Literal { location, .. } => location.clone(),
-            AstStatement::Reference { location, .. } => location.clone(),
+            AstStatement::Identifier { location, .. } => location.clone(),
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1009,7 +1011,7 @@ impl AstStatement {
             AstStatement::DefaultValue { id, .. } => *id,
             AstStatement::Literal { id, .. } => *id,
             AstStatement::MultipliedStatement { id, .. } => *id,
-            AstStatement::Reference { id, .. } => *id,
+            AstStatement::Identifier { id, .. } => *id,
             AstStatement::DirectAccess { id, .. } => *id,
             AstStatement::HardwareAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
@@ -1049,21 +1051,21 @@ impl AstStatement {
         // TODO: figure out a better name for this...
         match self {
             AstStatement::Literal { kind, .. } => kind.is_cast_prefix_eligible(),
-            AstStatement::Reference { .. } => true,
+            AstStatement::Identifier { .. } => true,
             _ => false,
         }
     }
 
     /// Returns true if the current statement is a flat reference (e.g. `a`)
     pub fn is_flat_reference(&self) -> bool {
-        matches!(self, AstStatement::Reference { .. }) || {
+        matches!(self, AstStatement::Identifier { .. }) || {
             if let AstStatement::ReferenceExpr {
                 access: ReferenceAccess::Member(reference),
                 base: None,
                 ..
             } = self
             {
-                matches!(reference.as_ref(), AstStatement::Reference { .. })
+                matches!(reference.as_ref(), AstStatement::Identifier { .. })
             } else {
                 false
             }
@@ -1074,13 +1076,13 @@ impl AstStatement {
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match self {
             AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } => {
-                if let AstStatement::Reference { name, .. } = reference.as_ref() {
+                if let AstStatement::Identifier { name, .. } = reference.as_ref() {
                     Some(name)
                 } else {
                     None
                 }
             }
-            AstStatement::Reference { name, .. } => Some(name),
+            AstStatement::Identifier { name, .. } => Some(name),
             _ => None,
         }
     }
@@ -1197,7 +1199,7 @@ impl Display for Operator {
 pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| matches!(it, AstStatement::Reference { .. } | AstStatement::Assignment { .. }))
+        .filter(|it| matches!(it, AstStatement::Identifier { .. } | AstStatement::Assignment { .. }))
         .map(get_enum_element_name)
         .collect()
 }
@@ -1205,7 +1207,7 @@ pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
 /// expects a Reference or an Assignment
 pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
     match enum_element {
-        AstStatement::Reference { name, .. } => name.to_string(),
+        AstStatement::Identifier { name, .. } => name.to_string(),
         AstStatement::Assignment { left, .. } => left
             .get_flat_reference_name()
             .map(|it| it.to_string())
@@ -1399,9 +1401,9 @@ impl AstFactory {
         }
     }
 
-    /// creates a new reference
-    pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
-        AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
+    /// creates a new Identifier
+    pub fn create_identifier(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+        AstStatement::Identifier { id, location: location.clone(), name: name.to_string() }
     }
 
     pub fn create_member_reference(
@@ -1498,7 +1500,7 @@ impl AstFactory {
     ) -> AstStatement {
         AstStatement::CallStatement {
             operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_reference(&function_name, location, id),
+                AstFactory::create_identifier(&function_name, location, id),
                 None,
                 id,
             )),
@@ -1519,7 +1521,7 @@ impl AstFactory {
     ) -> AstStatement {
         AstStatement::CallStatement {
             operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_reference(function_name, location, id_provider.next_id()),
+                AstFactory::create_identifier(function_name, location, id_provider.next_id()),
                 None,
                 id_provider.next_id(),
             )),

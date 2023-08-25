@@ -7,7 +7,7 @@ RepeatLoopStatement {
         operator: Greater,
         left: ReferenceExpr {
             kind: Member(
-                Reference {
+                Identifier {
                     name: "x",
                 },
             ),

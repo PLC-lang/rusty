@@ -1438,7 +1438,7 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference {
-            AstStatement::Reference { name, .. } => ctx
+            AstStatement::Identifier { name, .. } => ctx
                 .resolve_strategy
                 .iter()
                 .find_map(|scope| scope.find_annotation(name, qualifier, self.index, ctx)),
@@ -1495,7 +1495,7 @@ impl<'i> TypeAnnotator<'i> {
                     unreachable!("VLA not allowed outside of POUs")
                 };
 
-            let name = if let AstStatement::Reference { name, .. } = statement {
+            let name = if let AstStatement::Identifier { name, .. } = statement {
                 name.as_str()
             } else {
                 statement.get_flat_reference_name().expect("must be a reference to a VLA")
