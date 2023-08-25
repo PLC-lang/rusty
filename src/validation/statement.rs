@@ -389,7 +389,9 @@ fn validate_reference<T: AnnotationMap>(
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: format!("If you meant to directly access a bit/byte/word/.., use %X/%B/%W{ref_name} instead.",),
+                    message: format!(
+                        "If you meant to directly access a bit/byte/word/.., use %X/%B/%W{ref_name} instead.",
+                    ),
                     range: vec![location.clone()],
                 });
             }

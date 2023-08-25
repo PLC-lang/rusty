@@ -1150,6 +1150,10 @@ impl AstStatement {
     pub fn is_literal_array(&self) -> bool {
         matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
     }
+
+    pub fn is_literal(&self) -> bool {
+        matches!(self, AstStatement::Literal { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

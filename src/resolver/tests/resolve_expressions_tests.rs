@@ -4503,15 +4503,16 @@ fn override_is_resolved() {
     let (unit, index) = index_with_ids(
         "
         CLASS cls
-        METHOD foo : INT
-        END_METHOD
-        METHOD bar : INT
-        END_METHOD
+            METHOD foo : INT
+            END_METHOD
+
+            METHOD bar : INT
+            END_METHOD
         END_CLASS
 
         CLASS cls2 EXTENDS cls
-        METHOD OVERRIDE foo : INT
-        END_METHOD
+            METHOD OVERRIDE foo : INT
+            END_METHOD
         END_CLASS
 
         FUNCTION_BLOCK fb
