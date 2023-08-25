@@ -67,10 +67,11 @@ impl Parseable for Control {
                 Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
                     b"connection" => attributes.extend(reader.attributes()?),
 
-                    // As opposed to e.g. inVariables, return elements do not store negation information in
-                    // attributes but rather in a seperate sub-element, i.e. `<negated value="false">` inside
-                    // the `<addData>` field. Hence when finding such an element we extract its information
-                    // from the `value` attribute.
+                    // As opposed to e.g. variables where the negation information is directly stored in its
+                    // attributes (e.g. `<inVariable negated="false" .../>`) return elements store their
+                    // negation information in a seperate nested element called `negated` with the form of
+                    // `<negated value="..."/>`.
+                    // Hence we search for a negate element and extract its information from their attributes.
                     b"negated" => {
                         let value = reader.attributes()?;
                         attributes.insert(

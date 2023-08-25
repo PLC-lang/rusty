@@ -757,35 +757,32 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(())
     }
 
-    pub fn generate_return_statement_with_condition<'a>(
+    /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
+    /// does nothing otherwise.
+    pub fn generate_conditional_return<'a>(
         &'a self,
         function_context: &'a FunctionContext<'ink, 'a>,
         local_index: &'a LlvmTypedIndex<'ink>,
         condition: &AstStatement,
     ) -> Result<(), Diagnostic> {
-        /*
-        1. Check if condition is true
-        2. True     => Call generate_return_statement
-        3. False    => Continue function as if nothing happened
-        */
         let expression_generator =
             ExpressionCodeGenerator::new_context_free(&self.llvm, self.index, self.annotations, local_index);
 
         let condition = expression_generator.generate_expression(condition)?;
 
-        let condition_block = self.llvm.context.append_basic_block(function_context.function, "condition");
-        let continue_block = self.llvm.context.append_basic_block(function_context.function, "continue");
+        let then_block = self.llvm.context.append_basic_block(function_context.function, "then_block");
+        let else_block = self.llvm.context.append_basic_block(function_context.function, "else_block");
 
         self.llvm.builder.build_conditional_branch(
             to_i1(condition.into_int_value(), &self.llvm.builder),
-            condition_block,
-            continue_block,
+            then_block,
+            else_block,
         );
 
-        self.llvm.builder.position_at_end(condition_block);
+        self.llvm.builder.position_at_end(then_block);
         self.generate_return_statement(function_context, local_index)?;
 
-        self.llvm.builder.position_at_end(continue_block);
+        self.llvm.builder.position_at_end(else_block);
 
         Ok(())
     }

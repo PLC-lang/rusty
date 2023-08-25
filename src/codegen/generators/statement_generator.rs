@@ -128,7 +128,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::ReturnStatement { condition, .. } => match condition {
                 Some(condition) => {
                     self.register_debug_location(statement);
-                    self.pou_generator.generate_return_statement_with_condition(
+                    self.pou_generator.generate_conditional_return(
                         self.function_context,
                         self.llvm_index,
                         condition,
@@ -137,7 +137,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 None => {
                     self.register_debug_location(statement);
                     self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
-                    self.generate_buffer_block(); // TODO: This is not needed on x86 but if removed segfaults on ARM
+                    self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 }
             },
             AstStatement::ExitStatement { location, .. } => {

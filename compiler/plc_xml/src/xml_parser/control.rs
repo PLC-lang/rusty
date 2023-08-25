@@ -1,8 +1,11 @@
 use ast::ast::{AstStatement, Operator, SourceRange};
 
-use crate::model::{
-    control::{Control, ControlKind},
-    fbd::{Node, NodeIndex},
+use crate::{
+    error::Error,
+    model::{
+        control::{Control, ControlKind},
+        fbd::{Node, NodeIndex},
+    },
 };
 
 use super::ParseSession;
@@ -17,20 +20,15 @@ impl Control {
     }
 }
 
-// TODO: Describe what's happening
+/// Takes a [`ControlKind::Return`] variant and transforms it into a [`AstStatement::ReturnStatement`] with
+/// its [`AstStatement::ReturnStatement::condition`] field populated.
 fn transform_return(control: &Control, session: &ParseSession, index: &NodeIndex) -> AstStatement {
-    let Some(ref_local_id) = control.ref_local_id else { unreachable!() };
-
+    let Some(ref_local_id) = control.ref_local_id else { todo!("error") };
     let Some(node) = index.get(&ref_local_id) else { todo!("error") };
+
     let condition = match node {
         Node::FunctionBlockVariable(variable) => variable.transform(session),
-
-        Node::Block(_) => todo!(),
-        Node::Control(control) => match control.kind {
-            ControlKind::Return => todo!("error, returns can not be chained"),
-            _ => todo!("..."), // TODO: Can we chain other control elements with a return?
-        },
-        Node::Connector(_) => todo!(),
+        _ => todo!("error"),
     };
 
     // XXX: Introduce trait for negation, because we'll probably need it more often
