@@ -147,7 +147,7 @@ fn representation_of_an_array_expression_reference() {
 /// deref operation act on the whole (qualified) reference expression, not just on the
 /// segment next to it
 #[test]
-fn representation_of_an_pointer_expression_reference() {
+fn representation_of_a_pointer_expression_reference() {
     let (unit, _) = parse_and_preprocess(
         "
     PROGRAM prg
@@ -204,6 +204,64 @@ fn representation_of_an_pointer_expression_reference() {
                         base: None,
                     },
                 ),
+            },
+        ),
+    }
+    "###);
+}
+
+/// A cast statement is also represented as a ReferenceExpression
+/// With its dedicated variant. We can think of it as a if the `#`
+/// acts as the delimiter, very much like the dot does for the member
+/// access.
+#[test]
+fn representation_of_an_cast_expression_reference() {
+    let (unit, _) = parse_and_preprocess(
+        "
+    PROGRAM prg
+        INT#3;
+        REAL#a;
+    END_PROGRAM
+    ",
+    );
+
+    let address_of = &unit.implementations[0].statements[0];
+    insta::assert_debug_snapshot!(address_of, @r###"
+    ReferenceExpr {
+        kind: Cast(
+            LiteralInteger {
+                value: 3,
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "INT",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+
+    let deref = &unit.implementations[0].statements[1];
+    insta::assert_debug_snapshot!(deref, @r###"
+    ReferenceExpr {
+        kind: Cast(
+            Identifier {
+                name: "a",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REAL",
+                    },
+                ),
+                base: None,
             },
         ),
     }

@@ -142,7 +142,7 @@ fn validate_reference_expression<T: AnnotationMap>(
             if let Some(base) = base {
                 visit_array_access(validator, base, i, context)
             } else {
-                validator.diagnostics().push(Diagnostic::invalid_operation(
+                validator.diagnostics.push(Diagnostic::invalid_operation(
                     "Index-Access requires an array-value.",
                     statement.get_location(),
                 ));
@@ -169,7 +169,7 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Deref => {
             if base.is_none() {
-                validator.diagnostics().push(Diagnostic::invalid_operation(
+                validator.diagnostics.push(Diagnostic::invalid_operation(
                     "Dereferencing requires a pointer-value.",
                     statement.get_location(),
                 ));
@@ -179,7 +179,7 @@ fn validate_reference_expression<T: AnnotationMap>(
             if let Some(base) = base {
                 validate_address_of_expression(validator, base, statement.get_location(), context);
             } else {
-                validator.diagnostics().push(Diagnostic::invalid_operation(
+                validator.diagnostics.push(Diagnostic::invalid_operation(
                     "Address-of requires a value.",
                     statement.get_location(),
                 ));
@@ -271,7 +271,7 @@ fn validate_control_statement<T: AnnotationMap>(
 }
 
 /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
-/// checks whether the type-prefix is valid
+/// checks whether the type-prefix is valid and if the target is a literal
 fn validate_cast_literal<T: AnnotationMap>(
     // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     validator: &mut Validator,
