@@ -634,7 +634,7 @@ fn validate_assignment<T: AnnotationMap>(
             ));
         } else if !matches!(right, AstStatement::Literal { .. }) {
             // FIXME: See https://github.com/PLC-lang/rusty/issues/857
-            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+            //validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -696,7 +696,7 @@ fn is_valid_assignment(
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
     // FIXME: See https://github.com/PLC-lang/rusty/issues/857
-    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
+        | is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) 
         | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
@@ -730,7 +730,7 @@ fn is_valid_string_to_char_assignment(
     false
 }
 
-fn _is_invalid_pointer_assignment(
+fn is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
@@ -963,23 +963,23 @@ fn validate_type_nature<T: AnnotationMap>(
     }
 }
 
-// fn validate_assignment_type_sizes<T: AnnotationMap>(
-//     validator: &mut Validator,
-//     left: &DataType,
-//     right: &DataType,
-//     location: &SourceRange,
-//     context: &ValidationContext<T>,
-// ) {
-//     if left.get_type_information().get_size(context.index)
-//         < right.get_type_information().get_size(context.index)
-//     {
-//         validator.push_diagnostic(Diagnostic::implicit_downcast(
-//             left.get_name(),
-//             right.get_name(),
-//             location.clone(),
-//         ))
-//     }
-// }
+fn _validate_assignment_type_sizes<T: AnnotationMap>(
+    validator: &mut Validator,
+    left: &DataType,
+    right: &DataType,
+    location: &SourceRange,
+    context: &ValidationContext<T>,
+) {
+    if left.get_type_information().get_size(context.index)
+        < right.get_type_information().get_size(context.index)
+    {
+        validator.push_diagnostic(Diagnostic::implicit_downcast(
+            left.get_name(),
+            right.get_name(),
+            location.clone(),
+        ))
+    }
+}
 
 mod helper {
     use std::ops::Range;
