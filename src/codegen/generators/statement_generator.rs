@@ -15,7 +15,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    values::{BasicValueEnum, FunctionValue},
+    values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 use plc_ast::{
     ast::{
@@ -207,8 +207,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return Ok(());
         }
         let exp_gen = self.create_expr_generator();
-        let left =
-            exp_gen.generate_expression_value(left_statement)?.get_basic_value_enum().into_pointer_value();
+        let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
+            it.get_basic_value_enum().try_into().map_err(|err| {
+                Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement.get_location())
+            })
+        })?;
 
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
@@ -257,11 +260,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 right_type
             };
 
-        //Left pointe
+        //Left pointer
         let left_expression_value = exp_gen.generate_expression_value(target)?;
         let left_value = left_expression_value.as_r_value(self.llvm, None).into_int_value();
         let left = left_expression_value.get_basic_value_enum().into_pointer_value();
-        // let left_value = self.llvm.load_pointer(&left, "").into_int_value();
         //Build index
         if let Some((element, direct_access)) = access_sequence.split_first() {
             let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {

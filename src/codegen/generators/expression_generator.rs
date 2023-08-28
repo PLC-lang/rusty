@@ -1196,8 +1196,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         reference_statement: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        self.generate_expression_value(reference_statement)
-            .map(|it| it.get_basic_value_enum().into_pointer_value())
+        self.generate_expression_value(reference_statement).and_then(|it| {
+            let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
+            v.map_err(|err| {
+                Diagnostic::codegen_error(format!("{err:?}").as_str(), reference_statement.get_location())
+            })
+        })
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
@@ -1352,7 +1356,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                // self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
                 if let DataTypeInformation::Array { dimensions, .. } =
                     self.get_type_hint_info_for(reference)?
                 {

@@ -93,9 +93,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let mut last_name: Option<String> = None;
 
                     fn extract_flat_ref_name(statement: &AstStatement) -> &str {
-                        statement
-                            .get_flat_reference_name()
-                            .unwrap_or_else(|| panic!("expected assignment, got {:?}", statement))
+                        statement.get_flat_reference_name().expect("expected assignment")
                     }
 
                     let initialized_enum_elements = flatten_expression_list(original_elements)

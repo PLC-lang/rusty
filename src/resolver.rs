@@ -1333,10 +1333,6 @@ impl<'i> TypeAnnotator<'i> {
             self.visit_statement(ctx, base);
         };
 
-        if let ReferenceAccess::Index(index) = access {
-            self.visit_statement(ctx, index);
-        }
-
         match (
             access,
             base.and_then(|it| {
@@ -1385,7 +1381,8 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            (ReferenceAccess::Index(_), Some(base)) => {
+            (ReferenceAccess::Index(index), Some(base)) => {
+                self.visit_statement(ctx, index);
                 if let Some(inner_type) = self
                     .index
                     .find_effective_type_info(base.as_str())
@@ -1441,7 +1438,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Identifier { name, .. } => ctx
                 .resolve_strategy
                 .iter()
-                .find_map(|scope| scope.find_annotation(name, qualifier, self.index, ctx)),
+                .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx)),
 
             AstStatement::Literal { .. } => {
                 self.visit_statement_literals(ctx, reference);
@@ -1924,7 +1921,7 @@ impl ResolvingScope {
     /// - `qualifier` an optional qualifier to prefix to the name,
     ///     if the qualifier is present, this method only resolves to targets with this qualifier
     /// - `index` the index to perform the lookups on
-    fn find_annotation(
+    fn resolve_name(
         &self,
         name: &str,
         qualifier: Option<&str>,
@@ -1962,7 +1959,7 @@ impl ResolvingScope {
                     index.find_pou(name).and_then(|pou| to_pou_annotation(pou, index)).or_else(|| {
                         ctx.pou.and_then(|pou|
                                 // retry with local pou as qualifier
-                                ResolvingScope::POU.find_annotation(name, Some(pou), index, ctx))
+                                ResolvingScope::POU.resolve_name(name, Some(pou), index, ctx))
                     })
                 }
             }
