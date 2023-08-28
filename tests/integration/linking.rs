@@ -134,7 +134,11 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
-            assert!(err.get_message().contains("lld: error: undefined symbol: func2"));
+            assert!(err
+                .into_diagnostic()
+                .unwrap()
+                .get_message()
+                .contains("lld: error: undefined symbol: func2"));
         }
         _ => panic!("Expected link failure"),
     }

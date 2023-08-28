@@ -19,11 +19,11 @@ verify = []
 [dependencies]
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
+plc_diagnostics = { path = "./compiler/plc_diagnostics" }
 logos = "0.12.0"
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = "1.6"
-codespan-reporting = "0.11.1"
 generational-arena = "0.2.8"
 regex = "1"
 serde = { version = "1.0", features = ["derive"] }
@@ -32,7 +32,7 @@ toml = "0.5"
 lazy_static = "1.4.0"
 shell-words = "1.1.0"
 itertools = "0.10.5"
-rusty-derive = { path = "rusty-derive" }
+plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = "140.0.0"
 which = "4.2.5"
 log.workspace = true
@@ -65,9 +65,10 @@ members = [
 	"compiler/plc_project",
 	"compiler/plc_source",
 	"compiler/plc_util",
-	"rusty-derive",
+	"compiler/plc_xml",
+	"compiler/plc_derive",
 ]
-default-members = [".", "compiler/plc_driver"]
+default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [

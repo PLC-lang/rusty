@@ -322,6 +322,11 @@ impl CompilationUnit {
         }
     }
 
+    pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
+        self.implementations = implementations;
+        self
+    }
+
     /// imports all elements of the other CompilationUnit into this CompilationUnit
     ///
     /// this will import all global_vars, units, implementations and types. The imported
@@ -1120,6 +1125,10 @@ impl AstStatement {
 
     pub fn is_binary_expression(&self) -> bool {
         matches!(self, AstStatement::BinaryExpression { .. })
+    }
+
+    pub fn is_literal_array(&self) -> bool {
+        matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
     }
 }
 

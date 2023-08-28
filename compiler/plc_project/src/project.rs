@@ -3,8 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use diagnostics::Diagnostic;
 use glob::glob;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},
@@ -200,7 +200,7 @@ impl Project<PathBuf> {
 
     pub fn with_output_name(self, output: Option<String>) -> Self {
         let mut proj = self;
-        proj.output = output;
+        proj.output = output.or(proj.output);
         proj
     }
 }
@@ -270,8 +270,8 @@ impl<S: SourceContainer> Project<S> {
             let input = self.get_name();
             match self.format {
                 FormatOption::Object | FormatOption::Relocatable => format!("{input}.o"),
-                FormatOption::Static => input.to_string(),
-                FormatOption::Shared | FormatOption::PIC => format!("{input}.so"),
+                FormatOption::Static => format!("{input}.out"),
+                FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => format!("{input}.so"),
                 FormatOption::Bitcode => format!("{input}.bc"),
                 FormatOption::IR => format!("{input}.ll"),
             }
