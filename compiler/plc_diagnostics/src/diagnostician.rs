@@ -31,11 +31,6 @@ impl Diagnostician {
     }
 
     /// Assess and reports the given diagnostics.
-    ///
-    /// Note that the `handle` argument should always be [`None`] except for unit tests, where we have
-    /// some code snippet but no file per-se. Instead when registering code snippets via
-    /// [`Diagnostician::register_file`] we get a handle associated with that given code which we can
-    /// use here to get a correct report.
     pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
         let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
             message: d.get_message().to_string(),

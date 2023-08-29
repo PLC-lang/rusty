@@ -212,7 +212,7 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
