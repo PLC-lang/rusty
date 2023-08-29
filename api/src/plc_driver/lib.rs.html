@@ -452,7 +452,7 @@
     </span><span class="comment">// 3 : Resolve
     </span>.annotate(id_provider, <span class="kw-2">&amp;</span>diagnostician)<span class="question-mark">?</span>;
     <span class="comment">// 4 : Validate
-    </span>annotated_project.validate(<span class="kw-2">&amp;</span>diagnostician)<span class="question-mark">?</span>;
+    </span>annotated_project.validate(<span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
     <span class="comment">// 5 : Codegen
     </span><span class="kw">if </span>!compile_parameters.is_check() {
         generate(

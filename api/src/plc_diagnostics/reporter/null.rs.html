@@ -26,7 +26,7 @@
 }
 
 <span class="kw">impl </span>DiagnosticReporter <span class="kw">for </span>NullDiagnosticReporter {
-    <span class="kw">fn </span>report(<span class="kw-2">&amp;</span><span class="self">self</span>, _diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
+    <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
         <span class="comment">//ignore
     </span>}
 

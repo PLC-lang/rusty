@@ -122,7 +122,7 @@
 }
 
 <span class="kw">impl </span>DiagnosticReporter <span class="kw">for </span>ClangFormatDiagnosticReporter {
-    <span class="kw">fn </span>report(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
+    <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
         <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
             <span class="kw">let </span>file_id = diagnostic.main_location.file_handle;
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>diagnostic.main_location;

@@ -146,6 +146,21 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use crate</span>::{
@@ -178,21 +193,23 @@
         file_name.and_then(|it| <span class="self">self</span>.filename_fileid_mapping.get(it).cloned())
     }
 
-    <span class="doccomment">/// assess and reports the given diagnostics
-    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostics: Vec&lt;Diagnostic&gt;) {
+    <span class="doccomment">/// Assess and reports the given diagnostics.
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: Vec&lt;Diagnostic&gt;) {
         <span class="kw">let </span>resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
             message: d.get_message().to_string(),
             severity: <span class="self">self</span>.assess(d),
             main_location: ResolvedLocation {
                 file_handle: <span class="self">self
-                    </span>.get_file_handle(d.get_location().get_file_name())
-                    .unwrap_or(usize::max_value()),
+                    </span>.get_file_handle(d.get_location().get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
+                    .unwrap_or(usize::MAX),
                 range: d.get_location().to_range(),
             },
             additional_locations: d.get_secondary_locations().map(|it| {
                 it.iter()
                     .map(|l| ResolvedLocation {
-                        file_handle: <span class="self">self</span>.get_file_handle(l.get_file_name()).unwrap_or(usize::max_value()),
+                        file_handle: <span class="self">self
+                            </span>.get_file_handle(l.get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
+                            .unwrap_or(usize::MAX),
                         range: l.to_range(),
                     })
                     .collect()
@@ -202,7 +219,7 @@
         <span class="self">self</span>.report(resolved_diagnostics.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().as_slice());
     }
 
-    <span class="doccomment">/// creates a null-diagnostician that does not report diagnostics
+    <span class="doccomment">/// Creates a null-diagnostician that does not report diagnostics
     </span><span class="kw">pub fn </span>null_diagnostician() -&gt; Diagnostician {
         Diagnostician {
             assessor: Box::&lt;DefaultDiagnosticAssessor&gt;::default(),
@@ -211,7 +228,16 @@
         }
     }
 
-    <span class="doccomment">/// creates a clang-format-diagnostician that reports diagnostics in clang format
+    <span class="doccomment">/// Creates a buffered-diagnostician that saves its reports in a buffer
+    </span><span class="kw">pub fn </span>buffered() -&gt; Diagnostician {
+        Diagnostician {
+            assessor: Box::&lt;DefaultDiagnosticAssessor&gt;::default(),
+            reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
+            filename_fileid_mapping: HashMap::new(),
+        }
+    }
+
+    <span class="doccomment">/// Creates a clang-format-diagnostician that reports diagnostics in clang format
     </span><span class="kw">pub fn </span>clang_format_diagnostician() -&gt; Diagnostician {
         Diagnostician {
             reporter: Box::&lt;ClangFormatDiagnosticReporter&gt;::default(),
@@ -222,7 +248,7 @@
 }
 
 <span class="kw">impl </span>DiagnosticReporter <span class="kw">for </span>Diagnostician {
-    <span class="kw">fn </span>report(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
+    <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
         <span class="comment">//delegate to reporter
         </span><span class="self">self</span>.reporter.report(diagnostics);
     }
@@ -230,6 +256,10 @@
     <span class="kw">fn </span>register(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: String, src: String) -&gt; usize {
         <span class="comment">//delegate to reporter
         </span><span class="self">self</span>.reporter.register(path, src)
+    }
+
+    <span class="kw">fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="self">self</span>.reporter.buffer()
     }
 }
 
