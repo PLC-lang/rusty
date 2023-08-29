@@ -37,7 +37,7 @@ mod tests {
         let content =
             &content::CONDITIONAL_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#);
 
-        let statements = &parse(&content).0.implementations[0].statements;
+        let statements = &parse(content).0.implementations[0].statements;
 
         assert_eq!(statements.len(), 2);
         assert_debug_snapshot!(statements[0]);

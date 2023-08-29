@@ -35,7 +35,7 @@ pub mod tests {
 
     #[cfg(test)]
     impl DiagnosticReporter for ListBasedDiagnosticReporter {
-        fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
             self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
         }
 
@@ -91,7 +91,7 @@ pub mod tests {
         };
 
         let mut unit = match mode {
-            Mode::ST => {
+            Mode::St => {
                 parser::parse(
                     lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
                     LinkageType::Internal,
@@ -100,7 +100,7 @@ pub mod tests {
                 .0
             }
 
-            Mode::CFC => {
+            Mode::Cfc => {
                 plc_xml::xml_parser::parse_file(
                     source_str,
                     source_path,
@@ -118,11 +118,11 @@ pub mod tests {
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
-        do_index(src, id_provider, Mode::ST)
+        do_index(src, id_provider, Mode::St)
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        do_index(src, id_provider, Mode::ST)
+        do_index(src, id_provider, Mode::St)
     }
 
     pub fn annotate_with_ids(
@@ -133,6 +133,18 @@ pub mod tests {
         let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
+    }
+
+    pub fn parse_and_validate_buffered(src: &str) -> String {
+        let diagnostics = parse_and_validate(src);
+        let mut reporter = Diagnostician::buffered();
+
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        reporter.handle(diagnostics);
+
+        reporter.buffer().expect(
+            "This should be unreachable, otherwise somethings wrong with the buffered codespan reporter",
+        )
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
@@ -154,11 +166,11 @@ pub mod tests {
     }
 
     pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
-        _codegen_debug_without_unwrap(src, debug_level, Mode::ST)
+        _codegen_debug_without_unwrap(src, debug_level, Mode::St)
     }
 
     pub fn codegen_debug_without_unwrap_cfc(src: &str) -> Result<String, Diagnostic> {
-        _codegen_debug_without_unwrap(src, DebugLevel::None, Mode::CFC)
+        _codegen_debug_without_unwrap(src, DebugLevel::None, Mode::Cfc)
     }
 
     /// Returns either a string or an error, in addition it always returns
@@ -172,8 +184,8 @@ pub mod tests {
     ) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
         let (unit, index) = match mode {
-            Mode::ST => do_index(src, id_provider.clone(), mode),
-            Mode::CFC => do_index(src, id_provider.clone(), mode),
+            Mode::St => do_index(src, id_provider.clone(), mode),
+            Mode::Cfc => do_index(src, id_provider.clone(), mode),
         };
 
         let (mut index, ..) = evaluate_constants(index);
@@ -201,8 +213,8 @@ pub mod tests {
 
     #[derive(Copy, Clone)]
     pub enum Mode {
-        ST,
-        CFC,
+        St,
+        Cfc,
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -274,7 +286,7 @@ pub mod tests {
         SourceCode: From<<T as Compilable>::T>,
     {
         let context = CodegenContext::create();
-        codegen_into_modules(&context, sources, debug_level, Mode::ST)
+        codegen_into_modules(&context, sources, debug_level, Mode::St)
             .unwrap()
             .into_iter()
             .map(|module| module.persist_to_string())

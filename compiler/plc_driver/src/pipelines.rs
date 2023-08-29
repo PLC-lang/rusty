@@ -207,7 +207,7 @@ pub struct AnnotatedProject {
 
 impl AnnotatedProject {
     /// Validates the project, reports any new diagnostics on the fly
-    pub fn validate(&self, diagnostician: &Diagnostician) -> Result<(), Diagnostic> {
+    pub fn validate(&self, diagnostician: &mut Diagnostician) -> Result<(), Diagnostic> {
         // perform global validation
         let mut validator = Validator::new();
         validator.perform_global_validation(&self.index);

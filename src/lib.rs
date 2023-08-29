@@ -46,16 +46,6 @@ mod test_utils;
 
 pub mod typesystem;
 pub mod validation;
-
-#[cfg(test)]
-mod tests {
-    mod adr;
-}
-
-#[macro_use]
-#[cfg(test)]
-extern crate pretty_assertions;
-
 extern crate shell_words;
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
@@ -208,4 +198,12 @@ impl OptimizationLevel {
     fn is_optimized(&self) -> bool {
         !matches!(self, OptimizationLevel::None)
     }
+}
+
+#[macro_use]
+#[cfg(test)]
+extern crate pretty_assertions;
+#[cfg(test)]
+mod tests {
+    mod adr;
 }

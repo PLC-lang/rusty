@@ -1,6 +1,6 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::{codegen_debug_without_unwrap_cfc, Mode};
+use crate::test_utils::tests::codegen_debug_without_unwrap_cfc;
 
 #[test]
 fn conditional_return() {
