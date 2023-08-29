@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 612..625 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 638..651 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 604..651 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 713..726 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 739..752 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 705..752 }], err_no: arr__invalid_array_assignment }
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:18:57
+   │
+18 │         foo_invalid_0   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                              ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:18:83
+   │
+18 │         foo_invalid_0   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                                                        ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:18:49
+   │
+18 │         foo_invalid_0   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:19:57
+   │
+19 │         foo_invalid_1   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                              ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:19:83
+   │
+19 │         foo_invalid_1   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                                                        ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:19:49
+   │
+19 │         foo_invalid_1   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+   │                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
 
