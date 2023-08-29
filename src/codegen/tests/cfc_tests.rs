@@ -1,16 +1,16 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::codegen_temp;
+use crate::test_utils::tests::{codegen_debug_without_unwrap_cfc, Mode};
 
 #[test]
 fn conditional_return() {
-    let result = codegen_temp(content::CONDITIONAL_RETURN).unwrap();
+    let result = codegen_debug_without_unwrap_cfc(content::CONDITIONAL_RETURN).unwrap();
     assert_snapshot!(result)
 }
 
 #[test]
 fn conditional_return_negated() {
-    let result = codegen_temp(
+    let result = codegen_debug_without_unwrap_cfc(
         &content::CONDITIONAL_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#),
     )
     .unwrap();

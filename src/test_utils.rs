@@ -8,6 +8,7 @@ pub mod tests {
         provider::IdProvider,
     };
     use plc_diagnostics::{
+        diagnostician::Diagnostician,
         diagnostics::Diagnostic,
         reporter::{DiagnosticReporter, ResolvedDiagnostics},
     };
@@ -64,7 +65,12 @@ pub mod tests {
         (unit, diagnostic)
     }
 
-    fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
+    #[cfg(test)]
+    fn do_index<T: Into<SourceCode>>(
+        src: T,
+        id_provider: IdProvider,
+        mode: Mode,
+    ) -> (CompilationUnit, Index) {
         let source = src.into();
         let source_str = &source.source;
         let source_path = source.get_location_str();
@@ -83,11 +89,28 @@ pub mod tests {
         } else {
             SourceRangeFactory::for_file(source_path)
         };
-        let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
-            LinkageType::Internal,
-            source_path,
-        );
+
+        let mut unit = match mode {
+            Mode::ST => {
+                parser::parse(
+                    lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
+                    LinkageType::Internal,
+                    source_path,
+                )
+                .0
+            }
+
+            Mode::CFC => {
+                plc_xml::xml_parser::parse_file(
+                    source_str,
+                    source_path,
+                    LinkageType::Internal,
+                    id_provider.clone(),
+                    &mut Diagnostician::null_diagnostician(), // TODO: Should this be a null diagnostician?
+                )
+            }
+        };
+
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
         (unit, index)
@@ -95,11 +118,11 @@ pub mod tests {
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
-        do_index(src, id_provider)
+        do_index(src, id_provider, Mode::ST)
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        do_index(src, id_provider)
+        do_index(src, id_provider, Mode::ST)
     }
 
     pub fn annotate_with_ids(
@@ -130,13 +153,28 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
+        _codegen_debug_without_unwrap(src, debug_level, Mode::ST)
+    }
+
+    pub fn codegen_debug_without_unwrap_cfc(src: &str) -> Result<String, Diagnostic> {
+        _codegen_debug_without_unwrap(src, DebugLevel::None, Mode::CFC)
+    }
+
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
+    pub fn _codegen_debug_without_unwrap(
+        src: &str,
+        debug_level: DebugLevel,
+        mode: Mode,
+    ) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
-        let (unit, index) = do_index(src, id_provider.clone());
+        let (unit, index) = match mode {
+            Mode::ST => do_index(src, id_provider.clone(), mode),
+            Mode::CFC => do_index(src, id_provider.clone(), mode),
+        };
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -161,65 +199,10 @@ pub mod tests {
             .map(|module| module.persist_to_string())
     }
 
-    // TODO: Rename
-    // TODO(volsa): Remove #[cfg(test)] once cyclic dependency issue is resolved (i.e. parser & codegen in own crates)
-    #[cfg(test)]
-    pub fn codegen_temp(src: &str) -> Result<String, Diagnostic> {
-        let mut id_provider = IdProvider::default();
-        let (unit, index) = do_index_temp(src, id_provider.clone());
-
-        let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
-        index.import(std::mem::take(&mut annotations.new_index));
-
-        let context = CodegenContext::create();
-        let path = PathBuf::from_str("src").ok();
-        let mut code_generator = crate::codegen::CodeGen::new(
-            &context,
-            path.as_deref(),
-            "main",
-            crate::OptimizationLevel::None,
-            DebugLevel::None,
-        );
-        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index =
-            code_generator.generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)?;
-
-        code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
-            .map(|module| module.persist_to_string())
-    }
-
-    // TODO: Rename
-    // TODO(volsa): Remove #[cfg(test)] once cyclic dependency issue is resolved (i.e. parser & codegen in own crates)
-    #[cfg(test)]
-    fn do_index_temp<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        use plc_diagnostics::diagnostician::Diagnostician;
-
-        let source = src.into();
-        let source_str = &source.source;
-        let source_path = source.get_location_str();
-        let mut index = Index::default();
-        //Import builtins
-        let builtins = builtins::parse_built_ins(id_provider.clone());
-
-        index.import(index::visitor::visit(&builtins));
-        // import built-in types like INT, BOOL, etc.
-        for data_type in get_builtin_types() {
-            index.register_type(data_type);
-        }
-
-        let mut unit = plc_xml::xml_parser::parse_file(
-            source_str,
-            source_path,
-            LinkageType::Internal,
-            id_provider.clone(),
-            &mut Diagnostician::null_diagnostician(), // TODO: Should this be a null diagnostician?
-        );
-        pre_process(&mut unit, id_provider);
-        index.import(index::visitor::visit(&unit));
-        (unit, index)
+    #[derive(Copy, Clone)]
+    pub enum Mode {
+        ST,
+        CFC,
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -234,6 +217,7 @@ pub mod tests {
         context: &CodegenContext,
         sources: T,
         debug_level: DebugLevel,
+        mode: Mode,
     ) -> Result<Vec<GeneratedModule<'_>>, Diagnostic>
     where
         SourceCode: From<<T as Compilable>::T>,
@@ -241,7 +225,7 @@ pub mod tests {
         let mut id_provider = IdProvider::default();
         let mut units = vec![];
         let mut index = Index::default();
-        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
+        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone(), mode)).for_each(
             |(unit, idx)| {
                 units.push(unit);
                 index.import(idx);
@@ -290,7 +274,7 @@ pub mod tests {
         SourceCode: From<<T as Compilable>::T>,
     {
         let context = CodegenContext::create();
-        codegen_into_modules(&context, sources, debug_level)
+        codegen_into_modules(&context, sources, debug_level, Mode::ST)
             .unwrap()
             .into_iter()
             .map(|module| module.persist_to_string())
