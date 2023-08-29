@@ -1,15 +1,65 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "Array __main_arr_1d has a size of 5, but 6 elements were provided", range: [SourceRange { range: 67..73 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d has a size of 10, but 11 elements were provided", range: [SourceRange { range: 118..125 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d_nested has a size of 10, but 11 elements were provided", range: [SourceRange { range: 185..192 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d has a size of 8, but 9 elements were provided", range: [SourceRange { range: 243..249 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d_nested has a size of 8, but 9 elements were provided", range: [SourceRange { range: 324..330 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_1d has a size of 5, but 6 elements were provided", range: [SourceRange { range: 504..510 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d has a size of 10, but 11 elements were provided", range: [SourceRange { range: 525..532 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_2d_nested has a size of 10, but 11 elements were provided", range: [SourceRange { range: 554..561 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d has a size of 8, but 9 elements were provided", range: [SourceRange { range: 576..582 }], err_no: arr__invalid_array_assignment }
-SemanticError { message: "Array __main_arr_3d_nested has a size of 8, but 9 elements were provided", range: [SourceRange { range: 604..610 }], err_no: arr__invalid_array_assignment }
+error: Array __main_arr_1d has a size of 5, but 6 elements were provided
+  ┌─ <internal>:4:37
+  │
+4 │         arr_1d : ARRAY[1..5] OF DINT := [6(0)];
+  │                                         ^^^^^^ Array __main_arr_1d has a size of 5, but 6 elements were provided
+
+error: Array __main_arr_2d has a size of 10, but 11 elements were provided
+  ┌─ <internal>:6:43
+  │
+6 │         arr_2d : ARRAY[1..2, 1..5] OF DINT := [11(0)];
+  │                                               ^^^^^^^ Array __main_arr_2d has a size of 10, but 11 elements were provided
+
+error: Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
+  ┌─ <internal>:7:59
+  │
+7 │         arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [11(0)];
+  │                                                               ^^^^^^^ Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
+
+error: Array __main_arr_3d has a size of 8, but 9 elements were provided
+  ┌─ <internal>:9:49
+  │
+9 │         arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := [9(0)];
+  │                                                     ^^^^^^ Array __main_arr_3d has a size of 8, but 9 elements were provided
+
+error: Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
+   ┌─ <internal>:10:74
+   │
+10 │         arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [9(0)];
+   │                                                                              ^^^^^^ Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
+
+error: Array __main_arr_1d has a size of 5, but 6 elements were provided
+   ┌─ <internal>:21:14
+   │
+21 │       arr_1d := [6(0)];
+   │                 ^^^^^^ Array __main_arr_1d has a size of 5, but 6 elements were provided
+
+error: Array __main_arr_2d has a size of 10, but 11 elements were provided
+   ┌─ <internal>:22:14
+   │
+22 │       arr_2d := [11(0)];
+   │                 ^^^^^^^ Array __main_arr_2d has a size of 10, but 11 elements were provided
+
+error: Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
+   ┌─ <internal>:23:21
+   │
+23 │       arr_2d_nested := [11(0)];
+   │                        ^^^^^^^ Array __main_arr_2d_nested has a size of 10, but 11 elements were provided
+
+error: Array __main_arr_3d has a size of 8, but 9 elements were provided
+   ┌─ <internal>:24:14
+   │
+24 │       arr_3d := [9(0)];
+   │                 ^^^^^^ Array __main_arr_3d has a size of 8, but 9 elements were provided
+
+error: Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
+   ┌─ <internal>:25:21
+   │
+25 │       arr_3d_nested := [9(0)];
+   │                        ^^^^^^ Array __main_arr_3d_nested has a size of 8, but 9 elements were provided
+
 
