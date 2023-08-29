@@ -1,7 +1,10 @@
 use ast::ast::AstStatement;
 use indexmap::IndexMap;
 
-use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
+use crate::model::{
+    connector::{Connector, ConnectorKind},
+    fbd::{FunctionBlockDiagram, Node, NodeId},
+};
 
 use super::ParseSession;
 
@@ -10,9 +13,10 @@ impl FunctionBlockDiagram {
     /// Only statements that are necessary for execution logic will be selected.
     pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
         let mut ast_association = IndexMap::new();
+
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
-        self.nodes.iter().for_each(|(id, _)| {
+        self.nodes.iter().filter(|(_, node)| !matches!(node, Node::Connector(_))).for_each(|(id, _)| {
             let (insert, remove_id) = self.transform_node(*id, session, &ast_association);
 
             if let Some(id) = remove_id {
@@ -71,7 +75,7 @@ impl FunctionBlockDiagram {
                 )
             }
             Node::Control(_) => todo!(),
-            Node::Connector(_) => todo!(),
+            Node::Connector(_) => unreachable!(),
         }
     }
 }

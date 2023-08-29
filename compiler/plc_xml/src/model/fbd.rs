@@ -115,6 +115,22 @@ impl Parseable for FunctionBlockDiagram {
     }
 }
 
+macro_rules! update_ref_id {
+    ($element:ident, $source_connections:ident, $lookup:ident) => {
+        if let Some(ref_id) = $element.ref_local_id {
+            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
+                $lookup.get(&ref_id)
+            {
+                let Some(actual_source) = $source_connections.get(name.as_str()).copied() else {
+                            todo!("unconnected source")
+                        };
+
+                let _ = std::mem::replace(&mut $element.ref_local_id, Some(actual_source));
+            }
+        }
+    };
+}
+
 fn resolve_connection_points(nodes: &mut NodeIndex) {
     fn find_source_connections(nodes: &NodeIndex) -> IndexMap<&str, NodeId> {
         nodes
@@ -140,25 +156,16 @@ fn resolve_connection_points(nodes: &mut NodeIndex) {
 
     let source_connections = find_source_connections(&lookup);
 
+    // TODO: negated - wait for AstFactory to be merged
     for (_, node) in nodes {
         match dbg!(node) {
-            Node::Block(block) => todo!(),
-            Node::FunctionBlockVariable(fbd_var) => {
-                let Some(ref_id) = fbd_var.ref_local_id else {
-                    continue
-                };
-
-                if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
-                    lookup.get(&ref_id)
-                {
-                    let Some(actual_source) = &source_connections.get(name.as_str()).copied() else {
-                        todo!("unconnected source")
-                    };
-
-                    let _ = std::mem::replace(&mut fbd_var.ref_local_id, dbg!(Some(*actual_source)));
+            Node::Block(block) => {
+                for var in &mut block.variables {
+                    update_ref_id!(var, source_connections, lookup);
                 }
             }
-            Node::Control(control) => todo!(),
+            Node::FunctionBlockVariable(fbd_var) => update_ref_id!(fbd_var, source_connections, lookup),
+            Node::Control(control) => update_ref_id!(control, source_connections, lookup),
             _ => continue,
         };
     }

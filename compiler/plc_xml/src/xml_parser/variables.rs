@@ -1,6 +1,7 @@
 use ast::ast::{AstStatement, Operator};
 
 use crate::model::{
+    connector::ConnectorKind,
     fbd::{Node, NodeIndex},
     variables::{BlockVariable, FunctionBlockVariable},
 };
@@ -19,7 +20,7 @@ impl BlockVariable {
             Some(Node::Block(block)) => Some(block.transform(session, index)),
             Some(Node::FunctionBlockVariable(var)) => Some(var.transform(session)),
             Some(Node::Control(_)) => todo!(),
-            Some(Node::Connector(_)) => todo!(),
+            Some(Node::Connector(_)) => unreachable!(),
             None => unreachable!(),
         }
     }
