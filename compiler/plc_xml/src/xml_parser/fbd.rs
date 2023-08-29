@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstStatement, SourceRange};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -70,7 +70,19 @@ impl FunctionBlockDiagram {
                     remove_id,
                 )
             }
-            Node::Control(control) => (control.transform(session, &self.nodes), None),
+            Node::Control(control) => {
+                match control.transform(session, &self.nodes) {
+                    Ok(value) => (value, None),
+                    Err(_) => {
+                        // TODO: Transform error into diagnostic, return EmptyStatement
+                        let empty = AstStatement::EmptyStatement {
+                            location: SourceRange::undefined(),
+                            id: session.next_id(),
+                        };
+                        (empty, None)
+                    }
+                }
+            }
             Node::Connector(_) => todo!(),
         }
     }

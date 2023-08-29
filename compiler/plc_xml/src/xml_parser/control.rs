@@ -11,7 +11,7 @@ use crate::{
 use super::ParseSession;
 
 impl Control {
-    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> AstStatement {
+    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> Result<AstStatement, Error> {
         match self.kind {
             ControlKind::Jump => unimplemented!(),
             ControlKind::Label => unimplemented!(),
@@ -20,11 +20,13 @@ impl Control {
     }
 }
 
-/// Takes a [`ControlKind::Return`] variant and transforms it into a [`AstStatement::ReturnStatement`] with
-/// its [`AstStatement::ReturnStatement::condition`] field populated.
-fn transform_return(control: &Control, session: &ParseSession, index: &NodeIndex) -> AstStatement {
-    let Some(ref_local_id) = control.ref_local_id else { todo!("error") };
-    let Some(node) = index.get(&ref_local_id) else { todo!("error") };
+fn transform_return(
+    control: &Control,
+    session: &ParseSession,
+    index: &NodeIndex,
+) -> Result<AstStatement, Error> {
+    let Some(ref_local_id) = control.ref_local_id else { todo!("error, empty return statement") };
+    let Some(node) = index.get(&ref_local_id) else { todo!("error, node doesn't exist") };
 
     let condition = match node {
         Node::FunctionBlockVariable(variable) => variable.transform(session),
@@ -43,11 +45,11 @@ fn transform_return(control: &Control, session: &ParseSession, index: &NodeIndex
         condition
     };
 
-    AstStatement::ReturnStatement {
+    Ok(AstStatement::ReturnStatement {
         condition: Some(Box::new(possibly_negated_condition)),
         location: SourceRange::undefined(),
         id: session.next_id(),
-    }
+    })
 }
 
 #[cfg(test)]
