@@ -1,15 +1,65 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 96..100 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 169..206 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 202..206 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 267..303 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 299..300 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 362..366 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 456..457 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 506..507 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 557..561 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Array assignments must be surrounded with `[]`", range: [SourceRange { range: 656..657 }], err_no: arr__invalid_array_assignment }
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:5:35
+  │
+5 │       arr2    : ARRAY[1..2] OF DINT := 1, 2;                        // Missing `[`
+  │                                        ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:6:41
+  │
+6 │       arr3    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2)));  // Missing `[`
+  │                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:6:74
+  │
+6 │       arr3    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2)));  // Missing `[`
+  │                                                                               ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:7:41
+  │
+7 │       arr4    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2));    // Missing `[`
+  │                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:7:73
+  │
+7 │       arr4    : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2));    // Missing `[`
+  │                                                                              ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:8:39
+  │
+8 │       arr_init  : ARRAY[1..2] OF DINT := (1, 2);                      // Missing `[`
+  │                                           ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:10:43
+   │
+10 │       y     : myStruct := (var1 := 1, var2 := 3, 4);                  // Missing `[`
+   │                                               ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:12:11
+   │
+12 │       arr := 1, 2;                                      // Missing `[`
+   │              ^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:13:12
+   │
+13 │       arr := (1, 2);                                      // Missing `[`
+   │               ^^^^ Array assignments must be surrounded with `[]`
+
+error: Array assignments must be surrounded with `[]`
+   ┌─ <internal>:15:29
+   │
+15 │       x := (var1 := 1, var2 := 3, 4);                             // Missing `[`
+   │                                ^ Array assignments must be surrounded with `[]`
+
 

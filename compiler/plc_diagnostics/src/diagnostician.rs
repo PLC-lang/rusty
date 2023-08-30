@@ -30,21 +30,23 @@ impl Diagnostician {
         file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
     }
 
-    /// assess and reports the given diagnostics
-    pub fn handle(&self, diagnostics: Vec<Diagnostic>) {
+    /// Assess and reports the given diagnostics.
+    pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
         let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
             message: d.get_message().to_string(),
             severity: self.assess(d),
             main_location: ResolvedLocation {
                 file_handle: self
-                    .get_file_handle(d.get_location().get_file_name())
-                    .unwrap_or(usize::max_value()),
+                    .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))
+                    .unwrap_or(usize::MAX),
                 range: d.get_location().to_range(),
             },
             additional_locations: d.get_secondary_locations().map(|it| {
                 it.iter()
                     .map(|l| ResolvedLocation {
-                        file_handle: self.get_file_handle(l.get_file_name()).unwrap_or(usize::max_value()),
+                        file_handle: self
+                            .get_file_handle(l.get_file_name().or(Some("<internal>")))
+                            .unwrap_or(usize::MAX),
                         range: l.to_range(),
                     })
                     .collect()
@@ -54,7 +56,7 @@ impl Diagnostician {
         self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
     }
 
-    /// creates a null-diagnostician that does not report diagnostics
+    /// Creates a null-diagnostician that does not report diagnostics
     pub fn null_diagnostician() -> Diagnostician {
         Diagnostician {
             assessor: Box::<DefaultDiagnosticAssessor>::default(),
@@ -63,7 +65,16 @@ impl Diagnostician {
         }
     }
 
-    /// creates a clang-format-diagnostician that reports diagnostics in clang format
+    /// Creates a buffered-diagnostician that saves its reports in a buffer
+    pub fn buffered() -> Diagnostician {
+        Diagnostician {
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
+            filename_fileid_mapping: HashMap::new(),
+        }
+    }
+
+    /// Creates a clang-format-diagnostician that reports diagnostics in clang format
     pub fn clang_format_diagnostician() -> Diagnostician {
         Diagnostician {
             reporter: Box::<ClangFormatDiagnosticReporter>::default(),
@@ -74,7 +85,7 @@ impl Diagnostician {
 }
 
 impl DiagnosticReporter for Diagnostician {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+    fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
         //delegate to reporter
         self.reporter.report(diagnostics);
     }
@@ -82,6 +93,10 @@ impl DiagnosticReporter for Diagnostician {
     fn register(&mut self, path: String, src: String) -> usize {
         //delegate to reporter
         self.reporter.register(path, src)
+    }
+
+    fn buffer(&self) -> Option<String> {
+        self.reporter.buffer()
     }
 }
 
