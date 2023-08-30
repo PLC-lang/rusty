@@ -2,8 +2,8 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
         DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
-        PolymorphismMode, Pou, PouType, SourceRange, SourceRangeFactory, TypeNature, UserTypeDeclaration,
-        Variable, VariableBlock, VariableBlockType,
+        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -700,7 +700,7 @@ fn parse_type_reference_type_definition(
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement::Reference { .. }) => {
+            Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -927,7 +927,7 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> AstStatement {
-    match expressions_parser::parse_qualified_reference(lexer) {
+    match expressions_parser::parse_call_statement(lexer) {
         Ok(statement) => statement,
         Err(diagnostic) => {
             let statement =

@@ -965,7 +965,6 @@ fn pre_processing_generates_inline_array_of_array() {
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
-    println!("{:#?}", var_data_type.get_location());
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__foo_inline_array".to_string(),

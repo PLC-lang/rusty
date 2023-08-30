@@ -1,3 +1,5 @@
+use insta::assert_debug_snapshot;
+
 use crate::test_utils::tests::parse;
 
 #[test]
@@ -295,35 +297,7 @@ fn struct_initializer_can_be_parsed() {
            ";
     let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
-    let expected = r#"Variable {
-    name: "x",
-    data_type: DataTypeReference {
-        referenced_type: "Point",
-    },
-    initializer: Some(
-        ExpressionList {
-            expressions: [
-                Assignment {
-                    left: Reference {
-                        name: "x",
-                    },
-                    right: LiteralInteger {
-                        value: 1,
-                    },
-                },
-                Assignment {
-                    left: Reference {
-                        name: "y",
-                    },
-                    right: LiteralInteger {
-                        value: 2,
-                    },
-                },
-            ],
-        },
-    ),
-}"#;
-    assert_eq!(expected, format!("{x:#?}").as_str());
+    assert_debug_snapshot!(x);
 }
 
 #[test]

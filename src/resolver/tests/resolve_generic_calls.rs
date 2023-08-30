@@ -290,7 +290,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
             .iter()
             .find(|it| {
                 matches!(it, AstStatement::Assignment { left, .. }
-                        if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
+                        if { matches!(&**left, AstStatement::ReferenceExpr {..} if { left.get_flat_reference_name() == Some(expected_name)})})
             })
             .unwrap()
     }
@@ -364,7 +364,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             .iter()
             .find(|it| {
                 matches!(it, AstStatement::Assignment { left, .. }
-            if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
+            if { matches!(&**left, AstStatement::ReferenceExpr{ ..} if {left.get_flat_reference_name() == Some(expected_name)})})
             })
             .unwrap()
     }

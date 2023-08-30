@@ -1323,3 +1323,28 @@ fn bit_access_with_incorrect_operator_causes_warning() {
 
     assert_validation_snapshot!(diagnostics);
 }
+
+#[test]
+fn invalid_cast_statement_causes_error() {
+    let diagnostics = parse_and_validate(
+        "PROGRAM mainProg
+            VAR_INPUT
+                s : STRUCT1;
+                i : INT;
+            END_VAR
+
+                i := INT#s.var1; // illegal, var1 cannot be found in INT
+                i := INT#i;      // ok
+                i := INT#4;      // ok
+        END_PROGRAM
+        
+        TYPE STRUCT1 :
+        STRUCT
+            var1 : DWORD;
+        END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    assert_validation_snapshot!(diagnostics);
+}

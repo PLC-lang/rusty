@@ -91,33 +91,40 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     if !matches!(original_elements, AstStatement::EmptyStatement { .. }) =>
                 {
                     let mut last_name: Option<String> = None;
+
+                    fn extract_flat_ref_name(statement: &AstStatement) -> &str {
+                        statement.get_flat_reference_name().expect("expected assignment")
+                    }
+
                     let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
                         .map(|it| match it {
-                            AstStatement::Reference { name, .. } => (name.clone(), None, it.get_location()),
                             AstStatement::Assignment { left, right, .. } => {
-                                let name = if let AstStatement::Reference { name, .. } = left.as_ref() {
-                                    name.clone()
-                                } else {
-                                    unreachable!("expected reference, got {:?}", left.as_ref())
-                                };
                                 //<element-name, initializer, location>
-                                (name, Some(*right.clone()), it.get_location())
+                                (
+                                    extract_flat_ref_name(left.as_ref()),
+                                    Some(*right.clone()),
+                                    it.get_location(),
+                                )
                             }
-                            _ => unreachable!("expected assignment, got {:?}", it),
+                            _ => (extract_flat_ref_name(it), None, it.get_location()),
                         })
                         .map(|(element_name, initializer, location)| {
                             let enum_literal = initializer.unwrap_or_else(|| {
                                 build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
-                            last_name = Some(element_name.clone());
+                            last_name = Some(element_name.to_string());
                             AstStatement::Assignment {
                                 id: id_provider.next_id(),
-                                left: Box::new(AstStatement::Reference {
-                                    id: id_provider.next_id(),
-                                    name: element_name,
-                                    location,
-                                }),
+                                left: Box::new(AstFactory::create_member_reference(
+                                    AstFactory::create_identifier(
+                                        element_name,
+                                        &location,
+                                        id_provider.next_id(),
+                                    ),
+                                    None,
+                                    id_provider.next_id(),
+                                )),
                                 right: Box::new(enum_literal),
                             }
                         })
@@ -147,9 +154,14 @@ fn build_enum_initializer(
 ) -> AstStatement {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
-        let enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        let enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
+        let type_element = AstFactory::create_member_reference(
+            AstFactory::create_identifier(enum_name, location, id_provider.next_id()),
+            None,
+            id_provider.next_id(),
+        );
         AstFactory::create_binary_expression(
-            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+            AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
             AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),

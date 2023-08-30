@@ -1,0 +1,7 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+LiteralInteger {
+    value: 3735928559,
+}

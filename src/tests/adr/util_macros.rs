@@ -34,17 +34,6 @@ macro_rules! deconstruct_call_statement {
 }
 pub(crate) use deconstruct_call_statement;
 
-macro_rules! deconstruct_qualified_reference {
-    ($src:expr) => {{
-        if let plc_ast::ast::AstStatement::QualifiedReference { elements, .. } = &$src {
-            elements
-        } else {
-            unreachable!();
-        }
-    }};
-}
-pub(crate) use deconstruct_qualified_reference;
-
 macro_rules! deconstruct_binary_expression {
     ($src:expr) => {{
         if let plc_ast::ast::AstStatement::BinaryExpression { left, right, .. } = &$src {
