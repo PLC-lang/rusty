@@ -4,8 +4,9 @@ use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, Assignment, AstFactory, AstStatement, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, SourceRange, TypeNature,
+    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -364,7 +365,7 @@ fn visit_data_type(
 
             for ele in ast::flatten_expression_list(elements) {
                 let element_name = ast::get_enum_element_name(ele);
-                if let AstStatement::Assignment { right, .. } = ele {
+                if let AstStatement::Assignment { data: Assignment { right, .. }, .. } = ele {
                     let init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
@@ -396,7 +397,11 @@ fn visit_data_type(
         }
 
         DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
-            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds {
+            let information = if let Some(AstStatement::RangeStatement {
+                data: RangeStatement { start, end },
+                ..
+            }) = bounds
+            {
                 DataTypeInformation::SubRange {
                     name: name.into(),
                     referenced_type: referenced_type.into(),
@@ -473,16 +478,16 @@ fn visit_data_type(
                 }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
-                    let len_plus_1 = AstStatement::BinaryExpression {
-                        id: statement.get_id(),
-                        left: Box::new(statement.clone()),
-                        operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::new_literal(
+                    let len_plus_1 = AstFactory::create_binary_expression(
+                        statement.clone(),
+                        ast::Operator::Plus,
+                        AstStatement::new_literal(
                             AstLiteral::new_integer(1),
                             statement.get_id(),
                             statement.get_location(),
-                        )),
-                    };
+                        ),
+                        statement.get_id(),
+                    );
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
                         len_plus_1,
@@ -624,18 +629,20 @@ fn visit_variable_length_array(
                         name: Some(member_dimensions_name),
                         bounds: AstStatement::ExpressionList {
                             expressions: (0..ndims)
-                                .map(|_| AstStatement::RangeStatement {
-                                    start: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(0),
+                                .map(|_| {
+                                    AstFactory::create_range_statement(
+                                        AstStatement::new_literal(
+                                            AstLiteral::new_integer(0),
+                                            0,
+                                            SourceRange::undefined(),
+                                        ),
+                                        AstStatement::new_literal(
+                                            AstLiteral::new_integer(1),
+                                            0,
+                                            SourceRange::undefined(),
+                                        ),
                                         0,
-                                        SourceRange::undefined(),
-                                    )),
-                                    end: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(1),
-                                        0,
-                                        SourceRange::undefined(),
-                                    )),
-                                    id: 0,
+                                    )
                                 })
                                 .collect::<_>(),
                             id: 0,
@@ -705,7 +712,7 @@ fn visit_array(
         .get_as_list()
         .iter()
         .map(|it| match it {
-            AstStatement::RangeStatement { start, end, .. } => {
+            AstStatement::RangeStatement { data: RangeStatement { start, end }, .. } => {
                 let constants = index.get_mut_const_expressions();
                 Ok(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(

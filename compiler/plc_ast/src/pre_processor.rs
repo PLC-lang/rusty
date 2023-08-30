@@ -6,8 +6,8 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+        flatten_expression_list, Assignment, AstFactory, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -99,7 +99,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
                         .map(|it| match it {
-                            AstStatement::Assignment { left, right, .. } => {
+                            AstStatement::Assignment { data: Assignment { left, right }, .. } => {
                                 //<element-name, initializer, location>
                                 (
                                     extract_flat_ref_name(left.as_ref()),
@@ -116,16 +116,18 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                             last_name = Some(element_name.to_string());
                             AstStatement::Assignment {
                                 id: id_provider.next_id(),
-                                left: Box::new(AstFactory::create_member_reference(
-                                    AstFactory::create_identifier(
-                                        element_name,
-                                        &location,
+                                data: Assignment {
+                                    left: Box::new(AstFactory::create_member_reference(
+                                        AstFactory::create_identifier(
+                                            element_name,
+                                            &location,
+                                            id_provider.next_id(),
+                                        ),
+                                        None,
                                         id_provider.next_id(),
-                                    ),
-                                    None,
-                                    id_provider.next_id(),
-                                )),
-                                right: Box::new(enum_literal),
+                                    )),
+                                    right: Box::new(enum_literal),
+                                },
                             }
                         })
                         .collect::<Vec<AstStatement>>();
