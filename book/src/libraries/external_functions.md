@@ -29,7 +29,7 @@ The interface of the function has to:
 - either be included with the `-i` flag
 - or be declared in `ST` using the `{external}` keyword
 
-When including multiple header files/function interfaces, the `-i` flag must precede each individual file. E.g. `-i file1.st -i file2.st -i file3.st`. Alternatively, when including an entire folder with `-i '/liblocation/*.st'`, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with `-i`).
+When including multiple header files/function interfaces, the `-i` flag must precede each individual file, e.g. `-i file1.st -i file2.st -i file3.st`. Alternatively, when including an entire folder with `-i '/liblocation/*.st'`, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with `-i`).
 
 ### Example
 
