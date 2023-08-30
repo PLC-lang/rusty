@@ -1,0 +1,48 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: And,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "a",
+                },
+            ),
+            base: None,
+        },
+        right: UnaryExpression {
+            operator: Not,
+            value: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "b",
+                    },
+                ),
+                base: None,
+            },
+        },
+    },
+    right: BinaryExpression {
+        operator: Xor,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "c",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "d",
+                },
+            ),
+            base: None,
+        },
+    },
+}

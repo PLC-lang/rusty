@@ -1,0 +1,17 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+ReferenceExpr {
+    kind: Deref,
+    base: Some(
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    ),
+}

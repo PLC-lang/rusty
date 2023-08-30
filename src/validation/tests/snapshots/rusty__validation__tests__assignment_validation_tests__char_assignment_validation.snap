@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'CHAR'", range: [SourceRange { range: 571..588 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'CHAR'", range: [SourceRange { range: 605..623 }], err_no: var__invalid_assignment }
@@ -23,8 +23,8 @@ SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", ra
 SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceRange { range: 1293..1312 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 1329..1344 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 1361..1383 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1400..1419 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1437..1459 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1477..1500 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1518..1544 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1400..1420 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1437..1460 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1477..1501 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1518..1545 }], err_no: var__invalid_assignment }
 

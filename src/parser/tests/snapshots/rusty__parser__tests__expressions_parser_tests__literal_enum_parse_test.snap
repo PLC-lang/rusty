@@ -1,0 +1,57 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+[
+    ReferenceExpr {
+        kind: Cast(
+            Identifier {
+                name: "Val7",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Cast(
+            Identifier {
+                name: "Val2",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Cast(
+            Identifier {
+                name: "Val3",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "MyEnum",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+]

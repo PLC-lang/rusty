@@ -1,12 +1,12 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 812..830 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 847..872 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 889..907 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceRange { range: 924..940 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceRange { range: 957..975 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 1094..1116 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 1173..1199 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 1094..1117 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 1173..1200 }], err_no: var__invalid_assignment }
 

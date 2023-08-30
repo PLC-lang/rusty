@@ -1,0 +1,29 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: Greater,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 1,
+        },
+    },
+    right: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "b1",
+            },
+        ),
+        base: None,
+    },
+}

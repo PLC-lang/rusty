@@ -1,0 +1,64 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+CallStatement {
+    operator: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "fn",
+            },
+        ),
+        base: None,
+    },
+    parameters: Some(
+        ExpressionList {
+            expressions: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 2,
+                    },
+                },
+                OutputAssignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "z",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+        },
+    ),
+}
