@@ -1,7 +1,8 @@
 use std::{num::ParseIntError, str::Utf8Error};
 
-// TODO(volsa): Categorize these errors, such that Error is only an enum with collections, e.g.
+// TODO(volsa): Categorize these errors, such that Error is only an enum with error-collections, e.g.
 //              enum Error { Deserialize(DeserializeError), Parse(ParseError), ... }
+//              enum DeserializeError { UnexpectedElement, Encoding, MissingAttribute, ... }
 pub enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
