@@ -6,8 +6,13 @@ ReturnStatement {
     condition: Some(
         BinaryExpression {
             operator: Equal,
-            left: Reference {
-                name: "val",
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "val",
+                    },
+                ),
+                base: None,
             },
             right: LiteralInteger {
                 value: 5,

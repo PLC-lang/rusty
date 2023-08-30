@@ -33,7 +33,7 @@ fn transform_return(
         _ => todo!("error"),
     };
 
-    // XXX: Introduce trait for negation, because we'll probably need it more often
+    // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often
     let possibly_negated_condition = if control.negated {
         AstStatement::UnaryExpression {
             operator: Operator::Not,
