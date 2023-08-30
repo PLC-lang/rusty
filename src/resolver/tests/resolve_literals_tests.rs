@@ -2,10 +2,11 @@ use plc_ast::{
     ast::{AstStatement, ReferenceAccess, TypeNature},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     assert_type_and_hint,
-    index::{symbol::SymbolLocation, ArgumentType},
+    index::ArgumentType,
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
@@ -59,7 +60,7 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
             },
-            location: SymbolLocation::internal()
+            location: SourceLocation::internal()
         }
     );
     assert_eq!(
@@ -72,7 +73,7 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)
             },
-            location: SymbolLocation::internal()
+            location: SourceLocation::internal()
         }
     );
 }

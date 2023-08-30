@@ -3,9 +3,13 @@ source: compiler/plc_xml/src/xml_parser/tests.rs
 expression: location
 ---
 SourceLocation {
-    span: Id(
-        3,
-    ),
+    span: Block {
+        local_id: 3,
+        execution_order: Some(
+            1,
+        ),
+        inner_range: None,
+    },
     file: Some(
         "<internal>.cfc",
     ),

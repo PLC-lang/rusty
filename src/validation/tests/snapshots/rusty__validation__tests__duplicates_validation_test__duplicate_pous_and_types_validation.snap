@@ -2,6 +2,6 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(62..65) }, SourceLocation { span: Range(25..28) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(25..28) }, SourceLocation { span: Range(62..65) }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 13, offset: 62 }..TextLocation { line: 2, column: 16, offset: 65 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 2, column: 13, offset: 62 }..TextLocation { line: 2, column: 16, offset: 65 }) }], err_no: duplicate_symbol }
 

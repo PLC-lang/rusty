@@ -181,8 +181,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn register_debug_location(&self, statement: &AstStatement) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");
-        let line = function_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = function_context.new_lines.get_column(line, statement.get_location().get_start());
+        let line = statement.get_location().get_line();
+        let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
@@ -552,7 +552,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                         Diagnostic::codegen_error(
                             &format!("Cannot build generate parameter: {parameter:#?}"),
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )
                     })?;
 
@@ -570,7 +570,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             expression.get_location(),
                             output,
                             output_value_type,
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )?;
                     } else {
                         let output_value = builder.build_load(output, "");
@@ -2120,7 +2120,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .as_basic_value_enum()),
             _ => Err(Diagnostic::codegen_error(
                 format!("illegal boolean expresspion for operator {operator:}").as_str(),
-                (left.get_location().get_start()..right.get_location().get_end()).into(),
+                left.get_location().span(&right.get_location()),
             )),
         }
     }

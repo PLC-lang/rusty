@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/codegen_error_messages_tests.rs
+expression: err
+---
+error: Some initial values were not generated
+  ┌─ <internal>:1:1
+  │
+1 │ 
+  │ ^ Some initial values were not generated
+
+

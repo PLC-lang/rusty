@@ -155,10 +155,8 @@ pub fn generate_data_types<'ink>(
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_extra_ranges(&[ty.location.source_range.clone()]))
-                    .unwrap_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(name, ty.location.source_range.clone())
-                    })
+                    .map(|diag| diag.with_extra_ranges(&[ty.location.clone()]))
+                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
         //Report the operation failure

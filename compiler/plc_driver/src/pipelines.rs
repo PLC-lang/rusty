@@ -63,13 +63,7 @@ impl ParsedProject {
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::Internal,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
@@ -84,13 +78,7 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::External,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
@@ -106,13 +94,7 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::External,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);

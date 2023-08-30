@@ -2,12 +2,12 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_sint' to '__func_arr_dint'", range: [SourceLocation { span: Range(976..984) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_int' to '__func_arr_dint'", range: [SourceLocation { span: Range(1004..1011) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lint' to '__func_arr_dint'", range: [SourceLocation { span: Range(1059..1067) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_real' to '__func_arr_dint'", range: [SourceLocation { span: Range(1087..1095) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lreal' to '__func_arr_dint'", range: [SourceLocation { span: Range(1115..1124) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_1_10' to '__func_arr_dint'", range: [SourceLocation { span: Range(1317..1330) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_10_100' to '__func_arr_dint'", range: [SourceLocation { span: Range(1350..1365) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_2d' to '__func_arr_dint'", range: [SourceLocation { span: Range(1442..1453) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_sint' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 17, offset: 976 }..TextLocation { line: 25, column: 25, offset: 984 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_int' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 17, offset: 1004 }..TextLocation { line: 26, column: 24, offset: 1011 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lint' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 17, offset: 1059 }..TextLocation { line: 28, column: 25, offset: 1067 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_real' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 17, offset: 1087 }..TextLocation { line: 29, column: 25, offset: 1095 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lreal' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 17, offset: 1115 }..TextLocation { line: 30, column: 26, offset: 1124 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_1_10' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 35, column: 17, offset: 1317 }..TextLocation { line: 35, column: 30, offset: 1330 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_10_100' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 36, column: 17, offset: 1350 }..TextLocation { line: 36, column: 32, offset: 1365 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_2d' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 17, offset: 1442 }..TextLocation { line: 39, column: 28, offset: 1453 }) }], err_no: var__invalid_assignment }
 

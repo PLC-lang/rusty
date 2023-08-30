@@ -256,51 +256,6 @@ impl PouType {
         }
     }
 }
-/**
- * A datastructure that stores the location of newline characters of a string.
- * It also offers some useful methods to determine the line-number of an offset-location.
- */
-#[derive(Debug, PartialEq, Eq)]
-pub struct NewLines {
-    line_breaks: Vec<usize>,
-}
-
-impl NewLines {
-    pub fn build(str: &str) -> NewLines {
-        let mut line_breaks = Vec::new();
-        let mut total_offset: usize = 0;
-        if !str.is_empty() {
-            // Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
-            for l in str.split('\n') {
-                total_offset += l.len() + 1;
-                line_breaks.push(total_offset);
-            }
-        }
-        NewLines { line_breaks }
-    }
-
-    ///
-    /// returns the 0 based line-nr of the given offset-location
-    ///
-    pub fn get_line_nr(&self, offset: usize) -> u32 {
-        (match self.line_breaks.binary_search(&offset) {
-            //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
-            Ok(line) => line + 1,
-            Err(line) => line,
-        }) as u32
-    }
-
-    ///
-    /// returns the 0 based column of the given offset-location
-    ///
-    pub fn get_column(&self, line: u32, offset: usize) -> u32 {
-        (if line > 0 {
-            self.line_breaks.get((line - 1) as usize).map(|l| offset - *l).unwrap_or(0)
-        } else {
-            offset
-        }) as u32
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
@@ -309,18 +264,16 @@ pub struct CompilationUnit {
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
-    pub new_lines: NewLines,
 }
 
 impl CompilationUnit {
-    pub fn new(file_name: &str, new_lines: NewLines) -> Self {
+    pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
-            new_lines,
         }
     }
 
@@ -1443,7 +1396,7 @@ impl AstFactory {
         location: &SourceLocation,
         id: AstId,
     ) -> AstStatement {
-        let new_location = (location.get_start()..stmt.get_location().get_end()).into();
+        let new_location = location.span(&stmt.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Cast(Box::new(stmt)),
             base: Some(Box::new(type_name)),

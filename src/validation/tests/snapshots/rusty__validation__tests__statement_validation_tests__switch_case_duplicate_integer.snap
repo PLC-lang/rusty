@@ -2,8 +2,8 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(222..228) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(249..258) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(279..287) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(308..311) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 4, offset: 222 }..TextLocation { line: 15, column: 10, offset: 228 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 4, offset: 249 }..TextLocation { line: 17, column: 13, offset: 258 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 4, offset: 279 }..TextLocation { line: 19, column: 12, offset: 287 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 4, offset: 308 }..TextLocation { line: 21, column: 7, offset: 311 }) }], err_no: case__duplicate_condition }
 

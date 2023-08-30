@@ -47,11 +47,8 @@ fn representation() {
                     location_in_parent: 0,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceLocation {
-                            span: None,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -67,11 +64,8 @@ fn representation() {
                     location_in_parent: 1,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceLocation {
-                            span: None,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -84,13 +78,18 @@ fn representation() {
             ),
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceLocation {
-                span: Range(
-                    79..95,
-                ),
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 22,
+                    offset: 79,
+                }..TextLocation {
+                    line: 3,
+                    column: 38,
+                    offset: 95,
+                },
+            ),
         },
     }
     "###);
@@ -107,11 +106,8 @@ fn representation() {
             auto_deref: false,
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 0,
-            source_range: SourceLocation {
-                span: None,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -133,11 +129,8 @@ fn representation() {
             ],
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 4294967295,
-            source_range: SourceLocation {
-                span: None,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -169,11 +162,8 @@ fn representation() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 0,
-            source_range: SourceLocation {
-                span: None,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -247,13 +237,18 @@ fn pass() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceLocation {
-                span: Range(
-                    70..89,
-                ),
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 24,
+                    offset: 70,
+                }..TextLocation {
+                    line: 3,
+                    column: 43,
+                    offset: 89,
+                },
+            ),
         },
     }
     "###);
@@ -278,11 +273,8 @@ fn pass() {
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceLocation {
-                        span: None,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },
@@ -298,11 +290,8 @@ fn pass() {
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceLocation {
-                        span: None,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },

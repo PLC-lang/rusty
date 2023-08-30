@@ -2,20 +2,20 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'USINT' to 'CHAR'", range: [SourceLocation { span: Range(134..135) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. USINT is no Char.", range: [SourceLocation { span: Range(134..135) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UINT' to 'CHAR'", range: [SourceLocation { span: Range(208..209) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UINT is no Char.", range: [SourceLocation { span: Range(208..209) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceLocation { span: Range(277..278) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Char.", range: [SourceLocation { span: Range(277..278) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'ULINT' to 'CHAR'", range: [SourceLocation { span: Range(346..347) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Char.", range: [SourceLocation { span: Range(346..347) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'SINT' to 'CHAR'", range: [SourceLocation { span: Range(415..416) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no Char.", range: [SourceLocation { span: Range(415..416) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceLocation { span: Range(488..489) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no Char.", range: [SourceLocation { span: Range(488..489) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceLocation { span: Range(556..557) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Char.", range: [SourceLocation { span: Range(556..557) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LINT' to 'CHAR'", range: [SourceLocation { span: Range(624..625) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no Char.", range: [SourceLocation { span: Range(624..625) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'USINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 134 }..TextLocation { line: 3, column: 53, offset: 135 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. USINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 134 }..TextLocation { line: 3, column: 53, offset: 135 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'UINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 208 }..TextLocation { line: 4, column: 58, offset: 209 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. UINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 208 }..TextLocation { line: 4, column: 58, offset: 209 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 52, offset: 277 }..TextLocation { line: 5, column: 53, offset: 278 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 52, offset: 277 }..TextLocation { line: 5, column: 53, offset: 278 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'ULINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 346 }..TextLocation { line: 6, column: 53, offset: 347 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 346 }..TextLocation { line: 6, column: 53, offset: 347 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'SINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 51, offset: 415 }..TextLocation { line: 8, column: 52, offset: 416 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. SINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 51, offset: 415 }..TextLocation { line: 8, column: 52, offset: 416 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 56, offset: 488 }..TextLocation { line: 9, column: 57, offset: 489 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. INT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 56, offset: 488 }..TextLocation { line: 9, column: 57, offset: 489 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 51, offset: 556 }..TextLocation { line: 10, column: 52, offset: 557 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 51, offset: 556 }..TextLocation { line: 10, column: 52, offset: 557 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'LINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 51, offset: 624 }..TextLocation { line: 11, column: 52, offset: 625 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. LINT is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 51, offset: 624 }..TextLocation { line: 11, column: 52, offset: 625 }) }], err_no: type__invalid_nature }
 

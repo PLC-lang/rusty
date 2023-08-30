@@ -1,7 +1,8 @@
+use insta::assert_snapshot;
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::assert_validation_snapshot;
-use crate::test_utils::tests::parse_and_validate;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn assign_pointer_to_too_small_type_result_in_an_error() {
@@ -1229,7 +1230,7 @@ fn allowed_assignable_types() {
 
 #[test]
 fn assignment_of_incompatible_types_is_reported() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     PROGRAM prog
     VAR
@@ -1244,18 +1245,7 @@ fn assignment_of_incompatible_types_is_reported() {
     END_PROGRAM
     "#,
     );
-
-    assert_eq!(diagnostics.len(), 4);
-
-    let ranges = &[(152..168), (199..216), (246..262), (293..310)];
-    let types =
-        &[("DINT", "STRING"), ("__prog_array_", "STRING"), ("STRING", "DINT"), ("STRING", "__prog_array_")];
-    for (idx, diag) in diagnostics.iter().enumerate() {
-        assert_eq!(
-            diag,
-            &Diagnostic::invalid_assignment(types[idx].0, types[idx].1, ranges[idx].to_owned().into())
-        )
-    }
+    assert_snapshot!(diagnostics);
 }
 
 #[test]

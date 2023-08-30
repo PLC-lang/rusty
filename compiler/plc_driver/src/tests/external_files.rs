@@ -1,6 +1,6 @@
 use plc::DebugLevel;
 use plc_diagnostics::diagnostics::Diagnostic;
-use source_code::{source_location::SourceLocation, SourceCode};
+use source_code::{source_location::SourceLocationFactory, SourceCode};
 
 use crate::tests::compile_to_string;
 
@@ -74,13 +74,14 @@ fn calling_external_file_function_without_including_file_results_in_error() {
         "external_file.st",
     );
     //External file is not included
+    let source_location_factory = SourceLocationFactory::for_source(&prog);
     let res = compile_to_string(vec![prog], vec![], None, DebugLevel::None);
 
     if let Err(msg) = res {
         assert_eq!(
             Diagnostic::codegen_error(
                 r#"cannot generate call statement for "ReferenceExpr { kind: Member(Identifier { name: \"external\" }), base: None }""#,
-                SourceLocation::in_file_ranged(30..38, "external_file.st")
+                source_location_factory.create_range(30..38)
             ),
             msg
         )

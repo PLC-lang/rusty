@@ -17,7 +17,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
+    index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -64,8 +64,8 @@ pub trait Debug<'ink> {
         llvm: &Llvm,
         scope: &FunctionValue,
         //Current line starts with 0
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     );
 
     /// Registers a new function for debugging, this method is responsible for registering a
@@ -77,7 +77,7 @@ pub trait Debug<'ink> {
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     );
 
     /// Registers a new datatype for debugging
@@ -94,7 +94,7 @@ pub trait Debug<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     );
 
     /// Creates a locally accessible variable.
@@ -122,8 +122,8 @@ pub trait Debug<'ink> {
         value: PointerValue<'ink>,
         scope: FunctionValue<'ink>,
         block: BasicBlock<'ink>,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     );
 
     /// When code generation is done, this method needs to be called to ensure the inner LLVM state
@@ -237,12 +237,12 @@ impl<'ink> DebugBuilder<'ink> {
         name: &str,
         size: u64,
         encoding: DebugEncoding,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     ) -> Result<(), Diagnostic> {
         let res = self
             .debug_info
             .create_basic_type(name, size, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location.source_range.clone()))?;
+            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))?;
         self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
@@ -252,7 +252,7 @@ impl<'ink> DebugBuilder<'ink> {
         name: &str,
         members: &[VariableIndexEntry],
         index: &Index,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     ) -> Result<(), Diagnostic> {
         //Create each type
         let index_types = members
@@ -264,7 +264,6 @@ impl<'ink> DebugBuilder<'ink> {
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
@@ -284,7 +283,7 @@ impl<'ink> DebugBuilder<'ink> {
                         file.as_debug_info_scope(),
                         member_name,
                         file,
-                        location.line_number.wrapping_add(1),
+                        location.get_line().wrapping_add(1) as u32,
                         size.bits().into(),
                         alignment.bits(),
                         running_offset.bits().into(),
@@ -303,7 +302,7 @@ impl<'ink> DebugBuilder<'ink> {
             file.as_debug_info_scope(),
             name,
             file,
-            location.line_number.wrapping_add(1),
+            location.get_line().wrapping_add(1) as u32,
             running_offset.bits().into(),
             struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
@@ -417,12 +416,11 @@ impl<'ink> DebugBuilder<'ink> {
         name: &str,
         referenced_type: &str,
         index: &Index,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     ) -> Result<(), Diagnostic> {
         let inner_dt = index.get_effective_type_by_name(referenced_type)?;
         let inner_type = self.get_or_create_debug_type(inner_dt, index)?;
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
@@ -431,7 +429,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             name,
             file,
-            location.line_number.wrapping_add(1),
+            location.get_line().wrapping_add(1) as u32,
             file.as_debug_info_scope(),
             inner_dt.get_type_information().get_alignment(index).bits(),
         );
@@ -472,11 +470,10 @@ impl<'ink> DebugBuilder<'ink> {
         pou: &PouIndexEntry,
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) -> DISubprogram {
         let location = pou.get_location();
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
@@ -487,12 +484,12 @@ impl<'ink> DebugBuilder<'ink> {
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             file,
-            location.line_number.wrapping_add(1),
+            location.get_line().wrapping_add(1) as u32,
             // entry for the function
             ditype,
             false, // TODO: what is this
             !is_external,
-            implementation_start + 1,
+            (implementation_start + 1) as u32,
             DIFlagsConstants::PUBLIC,
             self.optimization.is_optimized(),
         )
@@ -562,11 +559,10 @@ impl<'ink> DebugBuilder<'ink> {
         );
         let location = &variable.source_location;
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.line_number.wrapping_add(1);
+        let line = location.get_line().wrapping_add(1) as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -596,12 +592,18 @@ impl<'ink> DebugBuilder<'ink> {
 }
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
-    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: u32, column: u32) {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: usize, column: usize) {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.debug_info.create_debug_location(self.context, line + 1, column, scope, None);
+        let location = self.debug_info.create_debug_location(
+            self.context,
+            (line + 1) as u32,
+            column as u32,
+            scope,
+            None,
+        );
         llvm.builder.set_current_debug_location(location);
     }
 
@@ -612,7 +614,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) {
         let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
@@ -681,12 +683,11 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     ) {
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
             let debug_type = *debug_type;
             let file = location
-                .source_range
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
                 .unwrap_or_else(|| self.compile_unit.get_file());
@@ -695,7 +696,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 name,
                 "",
                 file,
-                location.line_number.wrapping_add(1),
+                location.get_line().wrapping_add(1) as u32,
                 debug_type.into(),
                 false,
                 None,
@@ -718,11 +719,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.line_number.wrapping_add(1);
+        let line = location.get_line().wrapping_add(1) as u32;
 
         let scope = scope
             .get_subprogram()
@@ -753,11 +753,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
-            .source_range
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.line_number.wrapping_add(1);
+        let line = location.get_line().wrapping_add(1) as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -788,11 +787,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let debug_type = *debug_type;
             let file = pou
                 .get_location()
-                .source_range
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
                 .unwrap_or_else(|| self.compile_unit.get_file());
-            let line = pou.get_location().line_number.wrapping_add(1);
+            let line = pou.get_location().get_line().wrapping_add(1) as u32;
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 pou.get_name(),
@@ -813,14 +811,20 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         value: PointerValue<'ink>,
         scope: FunctionValue<'ink>,
         block: BasicBlock<'ink>,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     ) {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.debug_info.create_debug_location(self.context, line + 1, column, scope, None);
+        let location = self.debug_info.create_debug_location(
+            self.context,
+            (line + 1) as u32,
+            column as u32,
+            scope,
+            None,
+        );
         self.debug_info.insert_declare_at_end(
             value,
             self.variables.get(name).copied(),
@@ -836,7 +840,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 }
 
 impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
-    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: u32, column: u32) {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: usize, column: usize) {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.set_debug_location(llvm, scope, line, column),
@@ -850,7 +854,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
@@ -877,7 +881,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-        location: &SymbolLocation,
+        location: &SourceLocation,
     ) {
         match self {
             Self::None => {}
@@ -924,8 +928,8 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         value: PointerValue<'ink>,
         scope: FunctionValue<'ink>,
         block: BasicBlock<'ink>,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     ) {
         match self {
             Self::None | Self::VariablesOnly(_) => {}

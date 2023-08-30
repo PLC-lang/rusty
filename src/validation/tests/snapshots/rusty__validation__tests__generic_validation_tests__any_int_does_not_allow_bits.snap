@@ -2,9 +2,9 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Int.", range: [SourceLocation { span: Range(137..138) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Int.", range: [SourceLocation { span: Range(205..206) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. WORD is no Int.", range: [SourceLocation { span: Range(273..274) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Int.", range: [SourceLocation { span: Range(342..343) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Int.", range: [SourceLocation { span: Range(411..412) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 51, offset: 205 }..TextLocation { line: 3, column: 52, offset: 206 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. WORD is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 273 }..TextLocation { line: 4, column: 52, offset: 274 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 52, offset: 342 }..TextLocation { line: 5, column: 53, offset: 343 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 411 }..TextLocation { line: 6, column: 53, offset: 412 }) }], err_no: type__invalid_nature }
 

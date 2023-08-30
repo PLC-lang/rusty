@@ -1,0 +1,5 @@
+---
+source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
+expression: diagnostics
+---
+

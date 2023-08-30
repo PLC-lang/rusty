@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Cannot assign to CONSTANT '__prg_state.OPEN'", range: [SourceLocation { span: Range(230..234) }], err_no: var__cannot_assign_to_const }
-SyntaxError { message: "Cannot assign to CONSTANT '__global_g_enum.B'", range: [SourceLocation { span: Range(253..254) }], err_no: var__cannot_assign_to_const }
-SyntaxError { message: "Cannot assign to CONSTANT 'Color.red'", range: [SourceLocation { span: Range(273..276) }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Cannot assign to CONSTANT '__prg_state.OPEN'", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 230 }..TextLocation { line: 12, column: 16, offset: 234 }) }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Cannot assign to CONSTANT '__global_g_enum.B'", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 12, offset: 253 }..TextLocation { line: 13, column: 13, offset: 254 }) }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Cannot assign to CONSTANT 'Color.red'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 12, offset: 273 }..TextLocation { line: 14, column: 15, offset: 276 }) }], err_no: var__cannot_assign_to_const }
 

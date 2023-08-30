@@ -23,13 +23,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 10,
-                source_range: SourceLocation {
-                    span: Range(
-                        167..171,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 10,
+                        column: 8,
+                        offset: 167,
+                    }..TextLocation {
+                        line: 10,
+                        column: 12,
+                        offset: 171,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -57,13 +62,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceLocation {
-                    span: Range(
-                        32..33,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 8,
+                        offset: 32,
+                    }..TextLocation {
+                        line: 2,
+                        column: 9,
+                        offset: 33,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -94,13 +104,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        104..105,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 104,
+                    }..TextLocation {
+                        line: 6,
+                        column: 9,
+                        offset: 105,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -131,13 +146,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        106..107,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 10,
+                        offset: 106,
+                    }..TextLocation {
+                        line: 6,
+                        column: 11,
+                        offset: 107,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -165,13 +185,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceLocation {
-                    span: Range(
-                        34..35,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 10,
+                        offset: 34,
+                    }..TextLocation {
+                        line: 2,
+                        column: 11,
+                        offset: 35,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -202,13 +227,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        104..105,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 104,
+                    }..TextLocation {
+                        line: 6,
+                        column: 9,
+                        offset: 105,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -239,13 +269,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        106..107,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 10,
+                        offset: 106,
+                    }..TextLocation {
+                        line: 6,
+                        column: 11,
+                        offset: 107,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -270,13 +305,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 12,
-                source_range: SourceLocation {
-                    span: Range(
-                        203..211,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 12,
+                        column: 12,
+                        offset: 203,
+                    }..TextLocation {
+                        line: 12,
+                        column: 20,
+                        offset: 211,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -304,13 +344,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 14,
-                source_range: SourceLocation {
-                    span: Range(
-                        228..232,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 14,
+                        column: 8,
+                        offset: 228,
+                    }..TextLocation {
+                        line: 14,
+                        column: 12,
+                        offset: 232,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -341,13 +386,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceLocation {
-                    span: Range(
-                        32..33,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 8,
+                        offset: 32,
+                    }..TextLocation {
+                        line: 2,
+                        column: 9,
+                        offset: 33,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -381,13 +431,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        104..105,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 104,
+                    }..TextLocation {
+                        line: 6,
+                        column: 9,
+                        offset: 105,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -421,13 +476,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        106..107,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 10,
+                        offset: 106,
+                    }..TextLocation {
+                        line: 6,
+                        column: 11,
+                        offset: 107,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -458,13 +518,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 2,
-                source_range: SourceLocation {
-                    span: Range(
-                        34..35,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 10,
+                        offset: 34,
+                    }..TextLocation {
+                        line: 2,
+                        column: 11,
+                        offset: 35,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -498,13 +563,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        104..105,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 104,
+                    }..TextLocation {
+                        line: 6,
+                        column: 9,
+                        offset: 105,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -538,13 +608,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceLocation {
-                    span: Range(
-                        106..107,
-                    ),
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 10,
+                        offset: 106,
+                    }..TextLocation {
+                        line: 6,
+                        column: 11,
+                        offset: 107,
+                    },
+                ),
             },
             varargs: None,
         },

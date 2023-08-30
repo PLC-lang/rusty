@@ -39,7 +39,7 @@ impl Diagnostician {
                 file_handle: self
                     .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))
                     .unwrap_or(usize::MAX),
-                range: d.get_location().get_span().clone(),
+                span: d.get_location().get_span().clone(),
             },
             additional_locations: d.get_secondary_locations().map(|it| {
                 it.iter()
@@ -47,7 +47,7 @@ impl Diagnostician {
                         file_handle: self
                             .get_file_handle(l.get_file_name().or(Some("<internal>")))
                             .unwrap_or(usize::MAX),
-                        range: l.get_span().clone(),
+                        span: l.get_span().clone(),
                     })
                     .collect()
             }),

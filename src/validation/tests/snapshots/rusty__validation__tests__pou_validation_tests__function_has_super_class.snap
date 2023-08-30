@@ -2,6 +2,6 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "A function cannot use EXTEND", range: [SourceLocation { span: Range(55..59) }], err_no: syntax__generic_error }
-SyntaxError { message: "Function Return type missing", range: [SourceLocation { span: Range(55..59) }], err_no: pou__missing_return_type }
+SyntaxError { message: "A function cannot use EXTEND", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 17, offset: 55 }..TextLocation { line: 4, column: 21, offset: 59 }) }], err_no: syntax__generic_error }
+SyntaxError { message: "Function Return type missing", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 17, offset: 55 }..TextLocation { line: 4, column: 21, offset: 59 }) }], err_no: pou__missing_return_type }
 

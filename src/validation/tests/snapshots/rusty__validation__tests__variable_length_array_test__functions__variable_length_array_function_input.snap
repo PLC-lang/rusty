@@ -2,5 +2,5 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-ImprovementSuggestion { message: "Variable Length Arrays are always by-ref, even when declared in a by-value block", range: [SourceLocation { span: Range(54..57) }] }
+ImprovementSuggestion { message: "Variable Length Arrays are always by-ref, even when declared in a by-value block", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 12, offset: 54 }..TextLocation { line: 3, column: 15, offset: 57 }) }] }
 

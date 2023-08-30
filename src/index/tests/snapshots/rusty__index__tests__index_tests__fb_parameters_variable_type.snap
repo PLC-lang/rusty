@@ -15,13 +15,18 @@ expression: members
         location_in_parent: 0,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceLocation {
-                span: Range(
-                    36..42,
-                ),
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 3,
+                    offset: 36,
+                }..TextLocation {
+                    line: 3,
+                    column: 9,
+                    offset: 42,
+                },
+            ),
         },
         varargs: None,
     },
@@ -37,13 +42,18 @@ expression: members
         location_in_parent: 1,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 6,
-            source_range: SourceLocation {
-                span: Range(
-                    76..83,
-                ),
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 6,
+                    column: 3,
+                    offset: 76,
+                }..TextLocation {
+                    line: 6,
+                    column: 10,
+                    offset: 83,
+                },
+            ),
         },
         varargs: None,
     },
@@ -59,13 +69,18 @@ expression: members
         location_in_parent: 2,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 9,
-            source_range: SourceLocation {
-                span: Range(
-                    117..123,
-                ),
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 9,
+                    column: 3,
+                    offset: 117,
+                }..TextLocation {
+                    line: 9,
+                    column: 9,
+                    offset: 123,
+                },
+            ),
         },
         varargs: None,
     },

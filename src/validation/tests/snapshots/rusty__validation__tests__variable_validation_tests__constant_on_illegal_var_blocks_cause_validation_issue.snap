@@ -2,10 +2,10 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(83..92) }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(145..155) }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(208..218) }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(447..456) }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(517..527) }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(588..598) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 12, offset: 83 }..TextLocation { line: 5, column: 21, offset: 92 }) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 145 }..TextLocation { line: 8, column: 22, offset: 155 }) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 12, offset: 208 }..TextLocation { line: 11, column: 22, offset: 218 }) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 16, offset: 447 }..TextLocation { line: 24, column: 25, offset: 456 }) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 16, offset: 517 }..TextLocation { line: 27, column: 26, offset: 527 }) }], err_no: var__invalid_constant_block }
+SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 16, offset: 588 }..TextLocation { line: 30, column: 26, offset: 598 }) }], err_no: var__invalid_constant_block }
 

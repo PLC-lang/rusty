@@ -202,17 +202,17 @@ impl<'a> ParseSession<'a> {
 
     pub fn recover_until_close(&mut self) {
         let mut hit = self.get_close_region_level(&self.token);
-        let start = self.location();
-        let mut end = self.location().get_end();
+        let start = self.range();
+        let mut end = self.range().end;
         while self.token != Token::End && hit.is_none() {
-            end = self.location().get_end();
+            end = self.range().end;
             self.advance();
             hit = self.closing_keywords.iter().rposition(|it| it.contains(&self.token));
         }
 
         //Did we recover in the while loop above?
-        if start.get_end() != self.location().get_end() {
-            let range = start.get_start()..end;
+        if start.end != self.range().end {
+            let range = start.start..end;
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
                 format!(
                     "{:?}",
@@ -342,7 +342,7 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal())
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal(source))
 }
 
 pub fn lex_with_ids(

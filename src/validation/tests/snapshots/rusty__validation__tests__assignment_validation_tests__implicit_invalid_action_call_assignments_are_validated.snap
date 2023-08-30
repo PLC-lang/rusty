@@ -2,6 +2,6 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'DINT'", range: [SourceLocation { span: Range(532..535) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'STRING'", range: [SourceLocation { span: Range(537..540) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 19, offset: 532 }..TextLocation { line: 23, column: 22, offset: 535 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 24, offset: 537 }..TextLocation { line: 23, column: 27, offset: 540 }) }], err_no: var__invalid_assignment }
 

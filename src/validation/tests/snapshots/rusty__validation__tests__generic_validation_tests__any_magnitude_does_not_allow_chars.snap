@@ -2,8 +2,8 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'USINT'", range: [SourceLocation { span: Range(143..144) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Magnitude.", range: [SourceLocation { span: Range(143..144) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'USINT'", range: [SourceLocation { span: Range(218..219) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Magnitude.", range: [SourceLocation { span: Range(218..219) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 143 }..TextLocation { line: 2, column: 58, offset: 144 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 143 }..TextLocation { line: 2, column: 58, offset: 144 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 218 }..TextLocation { line: 3, column: 59, offset: 219 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 218 }..TextLocation { line: 3, column: 59, offset: 219 }) }], err_no: type__invalid_nature }
 

@@ -204,7 +204,7 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug, &unit.new_lines)?;
+                    pou_generator.generate_implementation(implementation, &self.debug)?;
                 }
             }
         }

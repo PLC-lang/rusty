@@ -20,7 +20,7 @@ impl Block {
             parameters,
             session.next_id(),
             session.next_id(),
-            &session.create_id_location(self.local_id),
+            &session.create_block_location(self.local_id, self.execution_order_id),
         )
     }
 }

@@ -1508,23 +1508,23 @@ fn literals_location_test() {
 
     // 1
     let location = &unit.statements[0].get_location();
-    assert_eq!(location, &(12..13).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "7");
+    assert_eq!(location.to_range().unwrap(), (12..13));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "7");
 
     // 'hello'
     let location = &unit.statements[1].get_location();
-    assert_eq!(location, &(15..22).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "'hello'");
+    assert_eq!(location.to_range().unwrap(), (15..22));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "'hello'");
 
     // true
     let location = &unit.statements[2].get_location();
-    assert_eq!(location, &(24..28).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "TRUE");
+    assert_eq!(location.to_range().unwrap(), (24..28));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "TRUE");
 
     //3.1415
     let location = &unit.statements[3].get_location();
-    assert_eq!(location, &(30..36).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "3.1415")
+    assert_eq!(location.to_range().unwrap(), (30..36));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "3.1415")
 }
 
 #[test]
@@ -1535,13 +1535,13 @@ fn reference_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "bb");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "bb");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "ccc");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "ccc");
 }
 
 #[test]
@@ -1552,16 +1552,16 @@ fn qualified_reference_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a.b.c");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a.b.c");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aa.bb.cc[2]");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "aa.bb.cc[2]");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aaa.bbb.ccc^");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "aaa.bbb.ccc^");
 
     let location = &unit.statements[3].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "&aaa.bbb.ccc");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "&aaa.bbb.ccc");
 }
 
 #[test]
@@ -1579,19 +1579,19 @@ fn expressions_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a + b");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a + b");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "x + z - y + u - v");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "x + z - y + u - v");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "-x");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "-x");
 
     let location = &unit.statements[3].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "1..3");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "1..3");
 
     let location = &unit.statements[4].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a := a + 4");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a := a + 4");
 }
 
 #[test]

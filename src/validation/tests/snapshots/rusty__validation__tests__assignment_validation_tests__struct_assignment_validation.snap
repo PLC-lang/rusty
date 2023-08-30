@@ -2,9 +2,9 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT1' to 'REAL'", range: [SourceLocation { span: Range(758..777) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRUCT1'", range: [SourceLocation { span: Range(794..813) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(870..892) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(978..1002) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(1077..1107) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT1' to 'REAL'", range: [SourceLocation { span: Range(TextLocation { line: 45, column: 4, offset: 758 }..TextLocation { line: 45, column: 23, offset: 777 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 794 }..TextLocation { line: 46, column: 23, offset: 813 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 49, column: 4, offset: 870 }..TextLocation { line: 49, column: 26, offset: 892 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 52, column: 18, offset: 978 }..TextLocation { line: 52, column: 42, offset: 1002 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 55, column: 9, offset: 1077 }..TextLocation { line: 55, column: 39, offset: 1107 }) }], err_no: var__invalid_assignment }
 

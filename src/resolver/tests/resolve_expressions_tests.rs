@@ -7,6 +7,7 @@ use plc_ast::{
     literals::{Array, AstLiteral},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{ArgumentType, Index, VariableType},
@@ -97,7 +98,11 @@ fn cast_expression_literals_get_casted_types() {
         assert_eq!(
             format!(
                 "{:#?}",
-                AstStatement::Literal { kind: AstLiteral::Integer(0xFFFF), location: (0..0).into(), id: 0 }
+                AstStatement::Literal {
+                    kind: AstLiteral::Integer(0xFFFF),
+                    location: SourceLocation::undefined(),
+                    id: 0
+                }
             ),
             format!("{t:#?}")
         );
@@ -110,7 +115,11 @@ fn cast_expression_literals_get_casted_types() {
         assert_eq!(
             format!(
                 "{:#?}",
-                AstStatement::Literal { kind: AstLiteral::Integer(0xFFFF), location: (0..0).into(), id: 0 }
+                AstStatement::Literal {
+                    kind: AstLiteral::Integer(0xFFFF),
+                    location: SourceLocation::undefined(),
+                    id: 0
+                }
             ),
             format!("{t:#?}")
         );

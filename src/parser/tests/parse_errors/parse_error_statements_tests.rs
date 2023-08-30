@@ -1,11 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{lexer::Token, parser::tests::ref_to, test_utils::tests::parse};
-use insta::assert_debug_snapshot;
+use crate::{parser::tests::ref_to, test_utils::tests::parse_buffered};
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, AstStatement, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
     VariableBlock, VariableBlockType,
 };
-use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
@@ -30,11 +29,10 @@ fn missing_semicolon_after_call() {
                 END_PROGRAM
     ";
 
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found("KeywordSemicolon", "'foo()'", (76..81).into());
-    assert_eq!(diagnostics[0], expected);
+    assert_snapshot!(diagnostics);
 
     let pou = &compilation_unit.implementations[0];
     assert_debug_snapshot!(pou.statements);
@@ -52,9 +50,8 @@ fn missing_comma_in_call_parameters() {
                 END_PROGRAM
     ";
 
-    let (compilation_unit, diagnostics) = parse(src);
-    let expected = Diagnostic::unexpected_token_found("KeywordParensClose", "'c'", (58..59).into());
-    assert_eq!(diagnostics, vec![expected]);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
@@ -86,15 +83,8 @@ fn illegal_semicolon_in_call_parameters() {
                 END_PROGRAM
     ";
 
-    let (compilation_unit, diagnostics) = parse(src);
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordParensClose]", (57..58).into()),
-            Diagnostic::unexpected_token_found("KeywordParensClose", "';'", (57..58).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "')'", (60..61).into())
-        ]
-    );
+    let (compilation_unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
@@ -126,7 +116,7 @@ fn incomplete_statement_test() {
         END_PROGRAM
         ";
 
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -154,8 +144,7 @@ fn incomplete_statement_test() {
     },
 ]"#
     );
-
-    assert_eq!(diagnostics[0], Diagnostic::unexpected_token_found("Literal", ";", (41..42).into()));
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -167,7 +156,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
         END_PROGRAM
         ";
 
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -202,7 +191,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 ]"#
     );
 
-    assert_eq!(diagnostics[0], Diagnostic::unexpected_token_found("Literal", ")", (43..44).into()));
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -214,7 +203,7 @@ fn mismatched_parantheses_recovery_test() {
         END_PROGRAM
         ";
 
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -239,7 +228,7 @@ fn mismatched_parantheses_recovery_test() {
 ]"#
     );
 
-    assert_eq!(diagnostics[0], Diagnostic::missing_token("[KeywordParensClose]", (40..41).into()));
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -253,7 +242,7 @@ fn invalid_variable_name_error_recovery() {
         END_PROGRAM
         ";
 
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -279,15 +268,7 @@ fn invalid_variable_name_error_recovery() {
             }
         )
     );
-
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::unexpected_token_found(
-            format!("{:?}", Token::KeywordEndVar).as_str(),
-            "'4 : INT;'",
-            (77..85).into()
-        )
-    );
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -303,7 +284,7 @@ fn invalid_variable_data_type_error_recovery() {
         END_PROGRAM
         ";
 
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -319,18 +300,7 @@ fn invalid_variable_data_type_error_recovery() {
     variable_block_type: Local,
 }"#
     );
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("KeywordColon or KeywordComma", (53..54).into()),
-            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordSemicolon", (61..62).into()),
-            Diagnostic::missing_token("KeywordColon", (108..109).into()),
-            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordComma", (108..109).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "', : INT'", (108..115).into()),
-            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordSemicolon", (143..144).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -342,15 +312,9 @@ fn test_if_with_missing_semicolon_in_body() {
             END_IF
         END_PROGRAM
     ";
-    let (_, diagnostics) = parse(src);
+    let (_, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordSemicolon, KeywordColon]", (79..85).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_IF'", (79..85).into())
-        ]
-    );
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -364,15 +328,9 @@ fn test_nested_if_with_missing_end_if() {
             y := x;
         END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
+    let (unit, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordEndIf, KeywordElseIf, KeywordElse]", (145..156).into()),
-            Diagnostic::unexpected_token_found("KeywordEndIf", "'END_PROGRAM'", (145..156).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(format!("{:#?}", unit.implementations[0].statements), @r###"
     [
@@ -449,15 +407,8 @@ fn test_for_with_missing_semicolon_in_body() {
             END_FOR
         END_PROGRAM
     ";
-    let (_, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordSemicolon, KeywordColon]", (81..88).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_FOR'", (81..88).into())
-        ]
-    );
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -471,15 +422,8 @@ fn test_nested_for_with_missing_end_for() {
             x := y;
         END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordEndFor]", (159..170).into()),
-            Diagnostic::unexpected_token_found("KeywordEndFor", "'END_PROGRAM'", (159..170).into()),
-        ]
-    );
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -573,15 +517,9 @@ fn test_repeat_with_missing_semicolon_in_body() {
             y := x;     
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
+    let (unit, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordSemicolon, KeywordColon]", (69..74).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'UNTIL'", (69..74).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -657,16 +595,8 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                 y := x;     
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordUntil, KeywordEndRepeat]", (158..169).into()),
-            Diagnostic::unexpected_token_found("KeywordUntil", "'END_PROGRAM'", (158..169).into()),
-        ]
-    );
-
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
         @r###"
@@ -735,16 +665,9 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
             UNTIL
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
+    let (unit, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unexpected_token_found("Literal", "END_PROGRAM", (171..182).into()),
-            Diagnostic::missing_token("[KeywordEndRepeat]", (171..182).into()),
-            Diagnostic::unexpected_token_found("KeywordEndRepeat", "'END_PROGRAM'", (171..182).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -814,15 +737,8 @@ fn test_nested_repeat_with_missing_end_repeat() {
             UNTIL x = y
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordEndRepeat]", (177..188).into()),
-            Diagnostic::unexpected_token_found("KeywordEndRepeat", "'END_PROGRAM'", (177..188).into()),
-        ]
-    );
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -908,15 +824,9 @@ fn test_while_with_missing_semicolon_in_body() {
             y := x;     
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
+    let (unit, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordSemicolon, KeywordColon]", (77..86).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_WHILE'", (77..86).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -992,15 +902,8 @@ fn test_nested_while_with_missing_end_while() {
                 y := x;
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordEndWhile]", (156..167).into()),
-            Diagnostic::unexpected_token_found("KeywordEndWhile", "'END_PROGRAM'", (156..167).into()),
-        ]
-    );
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -1085,9 +988,8 @@ fn test_while_with_missing_do() {
             END_WHILE
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
-
-    assert_eq!(diagnostics, vec![Diagnostic::missing_token("KeywordDo", (55..56).into()),]);
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -1148,15 +1050,9 @@ fn test_case_body_with_missing_semicolon() {
            END_CASE
            END_PROGRAM
     ";
-    let (unit, diagnostics) = parse(src);
+    let (unit, diagnostics) = parse_buffered(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordSemicolon, KeywordColon]", (68..76).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_CASE'", (68..76).into()),
-        ]
-    );
+    assert_snapshot!(diagnostics);
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -1219,7 +1115,7 @@ fn test_case_without_condition() {
             END_PROGRAM
 
     ";
-    let (cu, diagnostics) = parse(src);
+    let (cu, diagnostics) = parse_buffered(src);
 
     assert_eq!(
         format!("{:#?}", cu.implementations[0].statements),
@@ -1263,8 +1159,7 @@ fn test_case_without_condition() {
     },
 ]"#
     );
-
-    assert_eq!(diagnostics, vec![Diagnostic::unexpected_token_found("Literal", ":", (85..86).into())]);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -1274,7 +1169,7 @@ fn pointer_type_without_to_test() {
             POINTER INT;
         END_TYPE 
         "#;
-    let (result, diagnostics) = parse(src);
+    let (result, diagnostics) = parse_buffered(src);
     let pointer_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -1290,16 +1185,7 @@ fn pointer_type_without_to_test() {
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
 
-    assert_eq!(
-        vec![
-            Diagnostic::ImprovementSuggestion {
-                message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: vec![(42..49).into()]
-            },
-            Diagnostic::unexpected_token_found("KeywordTo", "INT", (50..53).into())
-        ],
-        diagnostics
-    )
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -1309,7 +1195,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
             POINTER tu INT;
         END_TYPE 
         "#;
-    let (result, diagnostics) = parse(src);
+    let (result, diagnostics) = parse_buffered(src);
     let pointer_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -1324,17 +1210,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         scope: None,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
-    assert_eq!(
-        vec![
-            Diagnostic::ImprovementSuggestion {
-                message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: vec![(42..49).into()]
-            },
-            Diagnostic::unexpected_token_found("KeywordTo", "tu", (50..52).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'INT'", (53..56).into())
-        ],
-        diagnostics
-    )
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -1343,11 +1219,6 @@ fn bitwise_access_error_validation() {
     a.1e5;   // exponent illegal
     b.%f6;   // f is no valid direct access modifier
     END_PROGRAM";
-    let (_, diagnostics) = parse(src);
-    let errs = vec![
-        Diagnostic::unexpected_token_found("Integer", r#"Exponent value: 1e5"#, (19..22).into()),
-        Diagnostic::unexpected_token_found("Literal", r#"%"#, (52..53).into()),
-        Diagnostic::unexpected_token_found("KeywordSemicolon", "'%f6'", (52..55).into()),
-    ];
-    assert_eq!(errs, diagnostics);
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 }

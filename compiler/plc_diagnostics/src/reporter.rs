@@ -24,12 +24,12 @@ pub trait DiagnosticReporter {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedLocation {
     pub file_handle: usize,
-    pub range: CodeSpan,
+    pub span: CodeSpan,
 }
 
 impl ResolvedLocation {
     pub(crate) fn is_internal(&self) -> bool {
-        self.range == CodeSpan::None
+        self.span == CodeSpan::None
     }
 }
 

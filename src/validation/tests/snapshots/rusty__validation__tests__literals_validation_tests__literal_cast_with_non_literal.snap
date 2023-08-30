@@ -2,5 +2,5 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Expected literal", range: [SourceLocation { span: Range(25..32) }], err_no: type__expected_literal }
+SyntaxError { message: "Expected literal", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 12, offset: 25 }..TextLocation { line: 1, column: 19, offset: 32 }) }], err_no: type__expected_literal }
 

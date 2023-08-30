@@ -2,11 +2,11 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(812..830) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(847..872) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(889..907) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(924..940) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(957..975) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(1094..1117) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(1173..1200) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 812 }..TextLocation { line: 38, column: 22, offset: 830 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 847 }..TextLocation { line: 39, column: 29, offset: 872 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 889 }..TextLocation { line: 40, column: 22, offset: 907 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 924 }..TextLocation { line: 41, column: 20, offset: 940 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 957 }..TextLocation { line: 42, column: 22, offset: 975 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1094 }..TextLocation { line: 46, column: 27, offset: 1117 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1173 }..TextLocation { line: 48, column: 31, offset: 1200 }) }], err_no: var__invalid_assignment }
 

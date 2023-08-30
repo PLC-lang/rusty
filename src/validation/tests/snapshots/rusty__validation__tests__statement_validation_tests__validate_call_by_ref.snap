@@ -2,12 +2,12 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(589..590) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(592..593) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(616..617) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(646..647) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(706..707) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(709..710) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(733..734) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(763..764) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 20, offset: 589 }..TextLocation { line: 22, column: 21, offset: 590 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 23, offset: 592 }..TextLocation { line: 22, column: 24, offset: 593 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 20, offset: 616 }..TextLocation { line: 23, column: 21, offset: 617 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 23, offset: 646 }..TextLocation { line: 24, column: 24, offset: 647 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 20, offset: 706 }..TextLocation { line: 26, column: 21, offset: 707 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 23, offset: 709 }..TextLocation { line: 26, column: 24, offset: 710 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 20, offset: 733 }..TextLocation { line: 27, column: 21, offset: 734 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 23, offset: 763 }..TextLocation { line: 28, column: 24, offset: 764 }) }], err_no: call__invalid_parameter_type }
 

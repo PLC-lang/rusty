@@ -5,7 +5,10 @@ use ast::{
 use plc::{lexer, parser::expressions_parser::parse_expression};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use plc_source::{
+    source_location::{SourceLocation, SourceLocationFactory},
+    SourceCode, SourceContainer,
+};
 use quick_xml::events::Event;
 
 use crate::{
@@ -39,33 +42,33 @@ pub(crate) fn visit(content: &str) -> Result<Project, Error> {
 }
 
 pub fn parse_file(
-    source: &str,
-    location: &'static str,
+    source: SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> CompilationUnit {
-    let (unit, errors) = parse(source, location, linkage, id_provider);
+    let (unit, errors) = parse(&source, linkage, id_provider);
     //Register the source file with the diagnostician
-    diagnostician.register_file(location.to_string(), source.to_string());
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
     diagnostician.handle(errors);
     unit
 }
 
 fn parse(
-    source: &str,
-    location: &'static str,
+    source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
     // transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let Ok(project) = visit(source) else {
+    let Ok(project) = visit(&source.source) else {
         todo!("cfc errors need to be transformed into diagnostics")
     };
 
     // create a new parse session
-    let parser = ParseSession::new(&project, location, id_provider, linkage);
+    let source_location_factory = SourceLocationFactory::for_source(&source);
+    let parser =
+        ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
 
     // try to parse a declaration data field
     let Some((unit, diagnostics)) = parser.try_parse_declaration() else {
@@ -90,14 +93,9 @@ impl<'parse> ParseSession<'parse> {
         file_name: &'static str,
         id_provider: IdProvider,
         linkage: LinkageType,
+        range_factory: SourceLocationFactory,
     ) -> Self {
-        ParseSession {
-            project,
-            id_provider,
-            linkage,
-            file_name,
-            range_factory: SourceLocationFactory::for_file(file_name),
-        }
+        ParseSession { project, id_provider, linkage, file_name, range_factory }
     }
 
     /// parse the compilation unit from the addData field
@@ -117,24 +115,20 @@ impl<'parse> ParseSession<'parse> {
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration
         Some(plc::parser::parse(
-            lexer::lex_with_ids(
-                content,
-                self.id_provider.clone(),
-                SourceLocationFactory::for_file(self.file_name),
-            ),
+            lexer::lex_with_ids(content, self.id_provider.clone(), self.range_factory.clone()),
             self.linkage,
             self.file_name,
         ))
     }
 
-    fn parse_expression(&self, expr: &str, local_id: usize) -> AstStatement {
-        // TODO: diagnostics not handled
-        parse_expression(&mut lexer::lex_with_ids(
+    fn parse_expression(&self, expr: &str, local_id: usize, execution_order: Option<usize>) -> AstStatement {
+        let exp = parse_expression(&mut lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
-            SourceLocationFactory::for_file(self.file_name),
-        ))
-        .set_location(self.range_factory.create_id_location(local_id))
+            self.range_factory.clone(),
+        ));
+        let loc = exp.get_location();
+        exp.set_location(self.range_factory.create_block_location(local_id, execution_order).span(&loc))
     }
 
     fn parse_model(&self) -> Vec<Implementation> {
@@ -156,8 +150,8 @@ impl<'parse> ParseSession<'parse> {
         self.range_factory.create_range(range)
     }
 
-    fn create_id_location(&self, id: usize) -> SourceLocation {
-        self.range_factory.create_id_location(id)
+    fn create_block_location(&self, local_id: usize, execution_order: Option<usize>) -> SourceLocation {
+        self.range_factory.create_block_location(local_id, execution_order)
     }
 
     fn create_file_only_location(&self) -> SourceLocation {

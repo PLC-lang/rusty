@@ -2,10 +2,10 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Literal true is not compatible to STRING", range: [SourceLocation { span: Range(102..113) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal false is not compatible to WSTRING", range: [SourceLocation { span: Range(127..140) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 22 is not compatible to STRING", range: [SourceLocation { span: Range(155..164) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 33 is not compatible to WSTRING", range: [SourceLocation { span: Range(178..188) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 3.14 is not compatible to STRING", range: [SourceLocation { span: Range(203..214) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 1.0 is not compatible to WSTRING", range: [SourceLocation { span: Range(228..239) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal true is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 102 }..TextLocation { line: 6, column: 23, offset: 113 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal false is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 127 }..TextLocation { line: 7, column: 25, offset: 140 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 22 is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 12, offset: 155 }..TextLocation { line: 9, column: 21, offset: 164 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 33 is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 12, offset: 178 }..TextLocation { line: 10, column: 22, offset: 188 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 3.14 is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 203 }..TextLocation { line: 12, column: 23, offset: 214 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 1.0 is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 12, offset: 228 }..TextLocation { line: 13, column: 23, offset: 239 }) }], err_no: type__incompatible_literal_cast }
 

@@ -1,0 +1,18 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_pointer_type
+---
+UserTypeDeclaration {
+    data_type: PointerType {
+        name: Some(
+            "__foo_inline_pointer",
+        ),
+        referenced_type: DataTypeReference {
+            referenced_type: "__foo_inline_pointer_",
+        },
+    },
+    initializer: None,
+    scope: Some(
+        "foo",
+    ),
+}

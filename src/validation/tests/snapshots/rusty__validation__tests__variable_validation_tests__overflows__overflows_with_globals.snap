@@ -2,6 +2,6 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(43..48) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(73..82) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 23, offset: 43 }..TextLocation { line: 2, column: 28, offset: 48 }) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 23, offset: 73 }..TextLocation { line: 3, column: 32, offset: 82 }) }], err_no: var__overflow }
 

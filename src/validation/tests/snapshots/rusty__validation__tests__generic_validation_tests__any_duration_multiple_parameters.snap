@@ -2,13 +2,13 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Duration.", range: [SourceLocation { span: Range(434..442) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Duration.", range: [SourceLocation { span: Range(444..456) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Duration.", range: [SourceLocation { span: Range(458..468) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Duration.", range: [SourceLocation { span: Range(480..488) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(490..497) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Duration.", range: [SourceLocation { span: Range(490..497) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(499..507) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Duration.", range: [SourceLocation { span: Range(499..507) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Duration.", range: [SourceLocation { span: Range(509..517) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 434 }..TextLocation { line: 14, column: 21, offset: 442 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 444 }..TextLocation { line: 14, column: 35, offset: 456 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 37, offset: 458 }..TextLocation { line: 14, column: 47, offset: 468 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 480 }..TextLocation { line: 14, column: 67, offset: 488 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 490 }..TextLocation { line: 14, column: 76, offset: 497 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. STRING is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 490 }..TextLocation { line: 14, column: 76, offset: 497 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 499 }..TextLocation { line: 14, column: 86, offset: 507 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 499 }..TextLocation { line: 14, column: 86, offset: 507 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 509 }..TextLocation { line: 14, column: 96, offset: 517 }) }], err_no: type__invalid_nature }
 

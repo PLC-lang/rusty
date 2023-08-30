@@ -13,7 +13,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use regex::{Captures, Regex};
-use std::str::FromStr;
+use std::{ops::Range, str::FromStr};
 
 use super::parse_hardware_access;
 
@@ -152,7 +152,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
                 expressions: vec![left, right],
                 id: lexer.next_id(),
             })),
-            location: (start_location.get_start()..lexer.last_location().get_end()).into(),
+            location: start_location.span(&lexer.last_location()),
             id: lexer.next_id(),
         }
     }
@@ -162,7 +162,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
 // UNARY -x, NOT x
 fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     // collect all consecutive operators
-    let start = lexer.range().start;
+    let start_location = lexer.location();
     let mut operators = vec![];
     while let Some(operator) = match lexer.token {
         OperatorNot => Some(Operator::Not),
@@ -177,7 +177,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     let init = parse_leaf_expression(lexer);
     operators.iter().rev().fold(init, |expression, operator| {
         let expression_location = expression.get_location();
-        let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
+        let location = start_location.span(&expression_location);
 
         match (&operator, &expression) {
             (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
@@ -369,20 +369,20 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Di
 
     // is this a callstatement?
     if lexer.try_consume(&KeywordParensOpen) {
-        let start = reference.get_location().get_start();
+        let start_location = reference.get_location();
         // Call Statement
         let call_statement = if lexer.try_consume(&KeywordParensClose) {
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                location: start_location.span(&lexer.location()),
                 id: lexer.next_id(),
             }
         } else {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(Some(parse_expression_list(lexer))),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                location: start_location.span(&lexer.location()),
                 id: lexer.next_id(),
             })
         };
@@ -431,13 +431,16 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             // CAST-Statement: INT#a.b.c
             // this means INT#(a.b.c) rather than (INT#a).b.c
             (_, Some(TypeCastPrefix)) => {
-                let location_start = lexer.location();
+                let location_start = lexer.range().start;
+                let location = lexer.location();
                 let mut type_name = lexer.slice_and_advance();
                 type_name.pop(); // get rid of the "#" at the end
                 let stmt = parse_atomic_leaf_expression(lexer)?;
                 let end = stmt.get_location();
-                let type_range =
-                    (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
+                let type_range = lexer
+                    .source_range_factory
+                    .create_range(location_start..(location_start + type_name.len()))
+                    .into();
                 current = Some(AstFactory::create_cast_statement(
                     AstFactory::create_member_reference(
                         AstFactory::create_identifier(type_name.as_str(), &type_range, lexer.next_id()),
@@ -445,7 +448,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                         lexer.next_id(),
                     ),
                     stmt,
-                    &location_start.span(&end),
+                    &location.span(&end),
                     lexer.next_id(),
                 ));
             }
@@ -511,7 +514,7 @@ fn parse_direct_access(
         _ => Err(Diagnostic::unexpected_token_found("Integer or Reference", lexer.slice(), lexer.location())),
     }?;
 
-    let location = (location.get_start()..lexer.last_location().get_end()).into();
+    let location = location.span(&lexer.last_location());
     Ok(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
 }
 
@@ -536,21 +539,29 @@ fn parse_literal_number_with_modifier(
 fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<AstStatement, Diagnostic> {
     let location = if is_negative {
         //correct the location if we just parsed a minus before
-        (lexer.last_range.start..lexer.location().get_end()).into()
+        lexer.last_range.start..lexer.range().end
     } else {
-        lexer.location()
+        lexer.range()
     };
     let result = lexer.slice_and_advance();
     if result.to_lowercase().contains('e') {
         let value = result.replace('_', "");
         //Treat exponents as reals
-        return Ok(AstStatement::new_literal(AstLiteral::new_real(value), lexer.next_id(), location));
+        return Ok(AstStatement::new_literal(
+            AstLiteral::new_real(value),
+            lexer.next_id(),
+            lexer.source_range_factory.create_range(location),
+        ));
     } else if lexer.try_consume(&KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
     } else if lexer.try_consume(&KeywordParensOpen) {
-        let multiplier = result
-            .parse::<u32>()
-            .map_err(|e| Diagnostic::syntax_error(format!("{e}").as_str(), location.clone()))?;
+        let start = location.start;
+        let multiplier = result.parse::<u32>().map_err(|e| {
+            Diagnostic::syntax_error(
+                format!("{e}").as_str(),
+                lexer.source_range_factory.create_range(location),
+            )
+        })?;
         let element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
@@ -558,7 +569,7 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
         return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: lexer.source_range_factory.create_range(location.get_start()..end),
+            location: lexer.source_range_factory.create_range(start..end),
             id: lexer.next_id(),
         });
     }
@@ -569,7 +580,11 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     let value = result.parse::<i128>().expect("valid i128");
     let value = if is_negative { -value } else { value };
 
-    Ok(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+    Ok(AstStatement::new_literal(
+        AstLiteral::new_integer(value),
+        lexer.next_id(),
+        lexer.source_range_factory.create_range(location),
+    ))
 }
 
 /// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
@@ -859,11 +874,11 @@ fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<AstSt
 fn parse_literal_real(
     lexer: &mut ParseSession,
     integer: String,
-    integer_range: SourceLocation,
+    integer_range: Range<usize>,
     is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
     if lexer.token == LiteralInteger {
-        let start = integer_range.get_start();
+        let start = integer_range.start;
         let end = lexer.range().end;
         let fractional = lexer.slice_and_advance();
         let value = format!("{}{}.{}", if is_negative { "-" } else { "" }, integer, fractional);

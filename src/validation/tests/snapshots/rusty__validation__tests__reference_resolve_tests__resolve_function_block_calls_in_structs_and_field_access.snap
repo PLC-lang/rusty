@@ -2,10 +2,10 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: res
 ---
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(650..653) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to a", range: [SourceLocation { span: Range(654..655) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(664..667) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to b", range: [SourceLocation { span: Range(668..669) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(678..681) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(682..683) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 29, offset: 650 }..TextLocation { line: 24, column: 32, offset: 653 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to a", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 33, offset: 654 }..TextLocation { line: 24, column: 34, offset: 655 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 43, offset: 664 }..TextLocation { line: 24, column: 46, offset: 667 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to b", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 47, offset: 668 }..TextLocation { line: 24, column: 48, offset: 669 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to fb3", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 57, offset: 678 }..TextLocation { line: 24, column: 60, offset: 681 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 61, offset: 682 }..TextLocation { line: 24, column: 62, offset: 683 }) }], err_no: reference__unresolved }
 

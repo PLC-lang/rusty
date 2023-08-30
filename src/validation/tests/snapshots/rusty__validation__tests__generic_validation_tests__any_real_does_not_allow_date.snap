@@ -2,9 +2,9 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceLocation { span: Range(136..137) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceLocation { span: Range(203..204) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Real.", range: [SourceLocation { span: Range(271..272) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceLocation { span: Range(338..339) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceLocation { span: Range(406..407) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 55, offset: 136 }..TextLocation { line: 2, column: 56, offset: 137 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 50, offset: 203 }..TextLocation { line: 3, column: 51, offset: 204 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Real.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 271 }..TextLocation { line: 4, column: 52, offset: 272 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 50, offset: 338 }..TextLocation { line: 5, column: 51, offset: 339 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 51, offset: 406 }..TextLocation { line: 6, column: 52, offset: 407 }) }], err_no: type__invalid_nature }
 

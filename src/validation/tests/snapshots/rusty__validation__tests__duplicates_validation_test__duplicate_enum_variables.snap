@@ -2,6 +2,6 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(27..30) }, SourceLocation { span: Range(47..50) }], err_no: duplicate_symbol }
-SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(47..50) }, SourceLocation { span: Range(27..30) }], err_no: duplicate_symbol }
+SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 26, offset: 27 }..TextLocation { line: 1, column: 29, offset: 30 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 46, offset: 47 }..TextLocation { line: 1, column: 49, offset: 50 }) }], err_no: duplicate_symbol }
+SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 46, offset: 47 }..TextLocation { line: 1, column: 49, offset: 50 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 26, offset: 27 }..TextLocation { line: 1, column: 29, offset: 30 }) }], err_no: duplicate_symbol }
 

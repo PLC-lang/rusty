@@ -1,4 +1,4 @@
-use plc_diagnostics::diagnostics::Diagnostic;
+use insta::assert_snapshot;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::{codegen, codegen_without_unwrap};
@@ -109,12 +109,9 @@ END_VAR
 y := INT#"seven"; 
 END_PROGRAM
 "#,
-    );
-
-    assert_eq!(
-        result,
-        Err(Diagnostic::codegen_error("Cannot generate String-Literal for type INT", (44..51).into()))
-    );
+    )
+    .unwrap_err();
+    assert_snapshot!(result)
 }
 
 #[test]

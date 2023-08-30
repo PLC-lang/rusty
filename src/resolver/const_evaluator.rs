@@ -718,7 +718,7 @@ macro_rules! compare_expression {
             (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
                 Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceLocation::without_file_ranged(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
@@ -728,7 +728,7 @@ macro_rules! compare_expression {
             (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
                 Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceLocation::without_file_ranged(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),

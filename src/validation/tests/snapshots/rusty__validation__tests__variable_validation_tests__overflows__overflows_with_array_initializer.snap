@@ -2,5 +2,5 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(65..67) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 45, offset: 65 }..TextLocation { line: 2, column: 47, offset: 67 }) }], err_no: var__overflow }
 

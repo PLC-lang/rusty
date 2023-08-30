@@ -6,6 +6,7 @@ mod tests {
     };
     use insta::assert_debug_snapshot;
     use plc_diagnostics::diagnostics::Diagnostic;
+    use plc_source::SourceCode;
 
     use crate::{
         serializer::{
@@ -16,7 +17,8 @@ mod tests {
     };
 
     fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
-        xml_parser::parse(content, "test.cfc", LinkageType::Internal, IdProvider::default())
+        let source_code = SourceCode::new(content, "test.cfc");
+        xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
     }
 
     #[test]
@@ -125,8 +127,9 @@ mod tests {
 
     #[test]
     fn ast_generates_locations() {
+        let source_code = SourceCode::new(CALL_BLOCK, "<internal>.cfc");
         let (units, diagnostics) =
-            xml_parser::parse(CALL_BLOCK, "<internal>.cfc", LinkageType::Internal, IdProvider::default());
+            xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
         let impl1 = &units.implementations[0];
         //Deconstruct assignment and get locations
         let AstStatement::Assignment { left, right, .. }= &impl1.statements[0] else {
@@ -151,13 +154,11 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
     fn ast_diagnostic_locations() {
-        let (units, diagnostics) = xml_parser::parse(
-            ASSIGNMENT_TO_UNRESOLVED_REFERENCE,
-            "<internal>.cfc",
-            LinkageType::Internal,
-            IdProvider::default(),
-        );
+        let source_code = SourceCode::new(ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
+        let (units, diagnostics) =
+            xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
         let impl1 = &units.implementations[0];
         assert_debug_snapshot!(impl1);
         assert!(diagnostics.is_empty());

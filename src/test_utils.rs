@@ -48,28 +48,33 @@ pub mod tests {
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             "test.st",
         )
     }
 
-    pub fn parse_with(
-        src: &str,
-        parser: fn(&str) -> (CompilationUnit, Vec<Diagnostic>),
-    ) -> (CompilationUnit, Vec<Diagnostic>) {
-        parser(src)
+    pub fn parse_buffered(src: &str) -> (CompilationUnit, String) {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        let (unit, diagnostics) = parse(src);
+        reporter.handle(diagnostics);
+        (unit, reporter.buffer().unwrap_or_default())
     }
 
-    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, String) {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             "test.st",
         );
         pre_process(&mut unit, id_provider);
-        (unit, diagnostic)
+        reporter.handle(diagnostic);
+
+        (unit, reporter.buffer().unwrap_or_default())
     }
 
     fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
@@ -86,11 +91,7 @@ pub mod tests {
             index.register_type(data_type);
         }
 
-        let range_factory = if source_path == "<internal>" {
-            SourceLocationFactory::internal()
-        } else {
-            SourceLocationFactory::for_file(source_path)
-        };
+        let range_factory = SourceLocationFactory::for_source(&source);
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             LinkageType::Internal,
@@ -146,7 +147,7 @@ pub mod tests {
         validator.diagnostics()
     }
 
-    pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
+    pub fn codegen_without_unwrap(src: &str) -> Result<String, String> {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
@@ -154,7 +155,9 @@ pub mod tests {
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
         let (unit, index) = do_index(src, id_provider.clone());
 
@@ -173,12 +176,20 @@ pub mod tests {
             debug_level,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index =
-            code_generator.generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)?;
+        let llvm_index = code_generator
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+            .map_err(|err| {
+                reporter.handle(vec![err]);
+                reporter.buffer().unwrap()
+            })?;
 
         code_generator
             .generate(&context, &unit, &annotations, &index, &llvm_index)
             .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(vec![err]);
+                reporter.buffer().unwrap()
+            })
     }
 
     pub fn codegen_with_debug(src: &str) -> String {

@@ -1,0 +1,11 @@
+---
+source: src/parser/tests/parse_errors/parse_error_messages_test.rs
+expression: diagnostics
+---
+error: Could not resolve reference to CHARLIE
+  ┌─ <internal>:3:17
+  │
+3 │         IF TRUE CHARLIE
+  │                 ^^^^^^^ Could not resolve reference to CHARLIE
+
+

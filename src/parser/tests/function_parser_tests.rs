@@ -1,7 +1,8 @@
-use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
+use crate::test_utils::tests::{parse, parse_and_validate_buffered};
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType,
+    AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -15,13 +16,7 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(
-        prg.return_type.as_ref().unwrap(),
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "INT".to_string(),
-            location: (15..18).into(),
-        }
-    );
+    assert_debug_snapshot!(prg.return_type.as_ref().unwrap())
 }
 
 #[test]
@@ -441,23 +436,9 @@ fn function_inline_enum_return_unsupported() {
     // GIVEN FUNCTION returning an inline ENUM
     let function = "FUNCTION foo : (green, yellow, red) VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let (_parse_result, diagnostics) = parse(function);
+    let diagnostics = parse_and_validate_buffered(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::function_unsupported_return_type(&DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType {
-                name: None,
-                numeric_type: DINT_TYPE.to_string(),
-                elements: AstStatement::ExpressionList {
-                    expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
-                    id: 0,
-                }
-            },
-            location: (15..35).into(),
-            scope: Some("foo".into()),
-        })]
-    );
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -465,39 +446,9 @@ fn function_inline_struct_return_unsupported() {
     // GIVEN FUNCTION returning an inline STRUCT
     let function = "FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let (_parse_result, diagnostics) = parse(function);
+    let diagnostics = parse_and_validate_buffered(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert!(diagnostics.contains(&Diagnostic::function_unsupported_return_type(
-        &DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::StructType {
-                name: None,
-                variables: vec![
-                    Variable {
-                        name: "x".into(),
-                        location: SourceLocation::undefined(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceLocation::undefined(),
-                            referenced_type: "INT".into()
-                        },
-                        initializer: None,
-                        address: None,
-                    },
-                    Variable {
-                        name: "y".into(),
-                        location: SourceLocation::undefined(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceLocation::undefined(),
-                            referenced_type: "INT".into()
-                        },
-                        initializer: None,
-                        address: None,
-                    }
-                ],
-            },
-            location: (15..50).into(),
-            scope: Some("foo".into()),
-        }
-    )));
+    assert_snapshot!(diagnostics);
 }
 
 #[test]

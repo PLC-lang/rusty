@@ -2,8 +2,8 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: res
 ---
-SyntaxError { message: "Could not resolve reference to boo", range: [SourceLocation { span: Range(101..104) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(105..106) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(163..164) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to y", range: [SourceLocation { span: Range(187..188) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to boo", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 16, offset: 101 }..TextLocation { line: 4, column: 19, offset: 104 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 20, offset: 105 }..TextLocation { line: 4, column: 21, offset: 106 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to c", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 25, offset: 163 }..TextLocation { line: 6, column: 26, offset: 164 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to y", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 20, offset: 187 }..TextLocation { line: 7, column: 21, offset: 188 }) }], err_no: reference__unresolved }
 

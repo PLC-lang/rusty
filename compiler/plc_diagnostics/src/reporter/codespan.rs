@@ -106,13 +106,13 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
 
             let mut labels = vec![Label::primary(
                 d.main_location.file_handle,
-                d.main_location.range.to_range().unwrap_or_else(|| 0..0),
+                d.main_location.span.to_range().unwrap_or_else(|| 0..0),
             )
             .with_message(d.message.as_str())];
 
             if let Some(additional_locations) = &d.additional_locations {
                 labels.extend(additional_locations.iter().map(|it| {
-                    Label::secondary(it.file_handle, it.range.to_range().unwrap_or_else(|| 0..0))
+                    Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| 0..0))
                         .with_message("see also")
                 }));
             }

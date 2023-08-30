@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(462..465) }], err_no: type__invalid_operation }
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(479..483) }], err_no: type__invalid_operation }
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(497..502) }], err_no: type__invalid_operation }
+SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 12, offset: 462 }..TextLocation { line: 24, column: 15, offset: 465 }) }], err_no: type__invalid_operation }
+SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 12, offset: 479 }..TextLocation { line: 25, column: 16, offset: 483 }) }], err_no: type__invalid_operation }
+SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 12, offset: 497 }..TextLocation { line: 26, column: 17, offset: 502 }) }], err_no: type__invalid_operation }
 

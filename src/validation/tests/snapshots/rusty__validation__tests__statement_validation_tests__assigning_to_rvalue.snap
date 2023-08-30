@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(193..194) }], err_no: reference__expected }
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(213..214) }], err_no: reference__expected }
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(238..239) }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 12, offset: 193 }..TextLocation { line: 11, column: 13, offset: 194 }) }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 213 }..TextLocation { line: 12, column: 13, offset: 214 }) }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 17, offset: 238 }..TextLocation { line: 13, column: 18, offset: 239 }) }], err_no: reference__expected }
 

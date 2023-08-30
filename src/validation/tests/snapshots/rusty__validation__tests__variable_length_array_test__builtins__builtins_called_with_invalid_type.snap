@@ -2,12 +2,12 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(221..224) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(265..273) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(303..318) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(303..318) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(349..352) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(393..401) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(431..446) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(431..446) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 24, offset: 221 }..TextLocation { line: 9, column: 27, offset: 224 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 24, offset: 265 }..TextLocation { line: 10, column: 32, offset: 273 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 24, offset: 303 }..TextLocation { line: 11, column: 39, offset: 318 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 24, offset: 303 }..TextLocation { line: 11, column: 39, offset: 318 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 24, offset: 349 }..TextLocation { line: 13, column: 27, offset: 352 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 393 }..TextLocation { line: 14, column: 32, offset: 401 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 24, offset: 431 }..TextLocation { line: 15, column: 39, offset: 446 }) }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 24, offset: 431 }..TextLocation { line: 15, column: 39, offset: 446 }) }], err_no: var__invalid_assignment }
 
