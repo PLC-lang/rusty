@@ -74,7 +74,7 @@ impl FunctionBlockDiagram {
                 match control.transform(session, &self.nodes) {
                     Ok(value) => (value, None),
                     Err(_) => {
-                        // TODO: Transform error into diagnostic, return EmptyStatement
+                        // TODO: Store diagnostic, return EmptyStatement
                         let empty = AstStatement::EmptyStatement {
                             location: SourceRange::undefined(),
                             id: session.next_id(),
