@@ -1,0 +1,32 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+ForLoopStatement {
+    counter: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "z",
+            },
+        ),
+        base: None,
+    },
+    start: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "x",
+            },
+        ),
+        base: None,
+    },
+    end: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "y",
+            },
+        ),
+        base: None,
+    },
+    by_step: None,
+    body: [],
+}

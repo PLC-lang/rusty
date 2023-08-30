@@ -540,11 +540,11 @@ fn dot_statements() {
 fn range_statements() {
     let mut lexer = lex(r"123..ABC");
 
-    println!("{:?}", lexer.token);
+    assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    println!("{:?}", lexer.token);
+    assert_eq!(lexer.token, KeywordDotDot);
     lexer.advance();
-    println!("{:?}", lexer.token);
+    assert_eq!(lexer.token, Identifier);
     lexer.advance();
 }
 

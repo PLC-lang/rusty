@@ -1,6 +1,6 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
 use insta::assert_snapshot;
-use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable};
+use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable};
 use pretty_assertions::*;
 
 #[test]
@@ -39,7 +39,11 @@ fn empty_statements_are_parsed_before_a_statement() {
                 AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
                 AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
                 AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::Reference { name: "x".into(), location: SourceRange::undefined(), id: 0 },
+                AstFactory::create_member_reference(
+                    AstFactory::create_identifier("x".into(), &SourceRange::undefined(), 0),
+                    None,
+                    0
+                ),
             ]
         ),
     );
@@ -54,9 +58,14 @@ fn empty_statements_are_ignored_after_a_statement() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{statement:#?}");
-    let expected_ast = r#"Reference {
-    name: "x",
-}"#;
+    let expected_ast = format!(
+        "{:#?}",
+        AstFactory::create_member_reference(
+            AstFactory::create_identifier("x", &SourceRange::undefined(), 0),
+            None,
+            0
+        )
+    );
     assert_eq!(ast_string, expected_ast);
 }
 

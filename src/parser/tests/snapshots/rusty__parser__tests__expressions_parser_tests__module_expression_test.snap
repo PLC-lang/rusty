@@ -1,0 +1,13 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Modulo,
+    left: LiteralInteger {
+        value: 5,
+    },
+    right: LiteralInteger {
+        value: 2,
+    },
+}

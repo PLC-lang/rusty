@@ -1,7 +1,6 @@
 ---
 source: src/parser/tests/type_parser_tests.rs
-expression: "result.types[0]"
-
+expression: "result.user_types[0]"
 ---
 UserTypeDeclaration {
     data_type: EnumType {
@@ -11,14 +10,29 @@ UserTypeDeclaration {
         numeric_type: "INT",
         elements: ExpressionList {
             expressions: [
-                Reference {
-                    name: "red",
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "red",
+                        },
+                    ),
+                    base: None,
                 },
-                Reference {
-                    name: "yellow",
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "yellow",
+                        },
+                    ),
+                    base: None,
                 },
-                Reference {
-                    name: "green",
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "green",
+                        },
+                    ),
+                    base: None,
                 },
             ],
         },

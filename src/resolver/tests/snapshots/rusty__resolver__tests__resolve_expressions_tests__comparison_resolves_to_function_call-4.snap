@@ -1,5 +1,40 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-expression: "format!(\"{annotation:?}\")"
+expression: "format!(\"{annotation:#?}\")"
 ---
-Some(ReplacementAst { statement: CallStatement { operator: Reference { name: "STRING_GREATER" }, parameters: Some(ExpressionList { expressions: [Reference { name: "a" }, Reference { name: "b" }] }) } })
+Some(
+    ReplacementAst {
+        statement: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "STRING_GREATER",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "a",
+                                },
+                            ),
+                            base: None,
+                        },
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "b",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ],
+                },
+            ),
+        },
+    },
+)

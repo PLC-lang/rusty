@@ -47,7 +47,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } else {
                         Err(Diagnostic::codegen_error(
@@ -106,7 +106,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
@@ -431,7 +431,7 @@ fn generate_variable_length_array_bound_function<'ink>(
         ));
     };
 
-    let vla = generator.generate_element_pointer(params[0]).unwrap();
+    let vla = generator.generate_lvalue(params[0]).unwrap();
     let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
     let accessor = match params[1] {

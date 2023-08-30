@@ -1,0 +1,33 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+IfStatement {
+    blocks: [
+        ConditionalBlock {
+            condition: LiteralBool {
+                value: true,
+            },
+            body: [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: None,
+                },
+            ],
+        },
+    ],
+    else_block: [
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "y",
+                },
+            ),
+            base: None,
+        },
+    ],
+}

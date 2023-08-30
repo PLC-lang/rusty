@@ -106,27 +106,47 @@ CompilationUnit {
             pou_type: Program,
             statements: [
                 CallStatement {
-                    operator: Reference {
-                        name: "foo",
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
                     },
                     parameters: Some(
                         ExpressionList {
                             expressions: [
                                 Assignment {
-                                    left: Reference {
-                                        name: "input1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "input1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },
                                 OutputAssignment {
-                                    left: Reference {
-                                        name: "output1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "output1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },
                                 OutputAssignment {
-                                    left: Reference {
-                                        name: "inout1",
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "inout1",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                     right: EmptyStatement,
                                 },

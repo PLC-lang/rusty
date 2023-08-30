@@ -212,8 +212,8 @@ fn accessing_struct_members() {
       %x = getelementptr inbounds %Point, %Point* %topLeft, i32 0, i32 0
       %bottomRight = getelementptr inbounds %Rect, %Rect* %rect2, i32 0, i32 1
       %x1 = getelementptr inbounds %Point, %Point* %bottomRight, i32 0, i32 0
-      %load_ = load i16, i16* %x1, align 2
-      store i16 %load_, i16* %x, align 2
+      %load_x = load i16, i16* %x1, align 2
+      store i16 %load_x, i16* %x, align 2
       ret void
     }
     "###);

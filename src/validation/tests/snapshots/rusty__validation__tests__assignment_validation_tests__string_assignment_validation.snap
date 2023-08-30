@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
 SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'STRING'", range: [SourceRange { range: 548..567 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceRange { range: 584..604 }], err_no: var__invalid_assignment }
@@ -19,6 +19,6 @@ SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", r
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceRange { range: 1185..1205 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceRange { range: 1222..1239 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'", range: [SourceRange { range: 1256..1280 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1297..1318 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1376..1401 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1297..1319 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceRange { range: 1376..1402 }], err_no: var__invalid_assignment }
 
