@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 use quick_xml::events::Event;
 
@@ -7,18 +7,18 @@ use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_pars
 use super::{action::Action, body::Body, interface::Interface};
 
 #[derive(Debug, Default)]
-pub(crate) struct Pou {
-    pub name: String,
+pub(crate) struct Pou<'xml> {
+    pub name: Cow<'xml, str>,
     pub pou_type: PouType,
-    pub body: Body,
-    pub actions: Vec<Action>,
+    pub body: Body<'xml>,
+    pub actions: Vec<Action<'xml>>,
     pub interface: Option<Interface>,
 }
 
-impl Pou {
+impl<'xml> Pou<'xml> {
     fn with_attributes(self, attributes: HashMap<String, String>) -> Result<Self, Error> {
         Ok(Pou {
-            name: attributes.get_or_err("name")?,
+            name: Cow::from(attributes.get_or_err("name")?),
             pou_type: attributes.get_or_err("pouType").map(|it| it.parse())??,
             body: self.body,
             actions: self.actions,
@@ -58,7 +58,7 @@ impl TryFrom<&str> for PouType {
     }
 }
 
-impl Parseable for Pou {
+impl<'xml> Parseable for Pou<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

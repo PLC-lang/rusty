@@ -1,4 +1,7 @@
-use std::{borrow::BorrowMut, cmp::Ordering};
+use std::{
+    borrow::{BorrowMut, Cow},
+    cmp::Ordering,
+};
 
 use indexmap::IndexMap;
 use quick_xml::events::Event;
@@ -14,22 +17,22 @@ use super::{
 
 /// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
-pub(crate) type NodeIndex = IndexMap<NodeId, Node>;
+pub(crate) type NodeIndex<'xml> = IndexMap<NodeId, Node<'xml>>;
 
 #[derive(Debug, Default)]
-pub(crate) struct FunctionBlockDiagram {
-    pub nodes: NodeIndex,
+pub(crate) struct FunctionBlockDiagram<'xml> {
+    pub nodes: NodeIndex<'xml>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Node {
-    Block(Block),
-    FunctionBlockVariable(FunctionBlockVariable),
-    Control(Control),
-    Connector(Connector),
+pub(crate) enum Node<'xml> {
+    Block(Block<'xml>),
+    FunctionBlockVariable(FunctionBlockVariable<'xml>),
+    Control(Control<'xml>),
+    Connector(Connector<'xml>),
 }
 
-impl PartialOrd for Node {
+impl<'xml> PartialOrd for Node<'xml> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let left = self.get_exec_id();
         let right = other.get_exec_id();
@@ -43,7 +46,7 @@ impl PartialOrd for Node {
     }
 }
 
-impl Node {
+impl<'xml> Node<'xml> {
     pub(crate) fn get_exec_id(&self) -> Option<NodeId> {
         match self {
             Node::Block(val) => val.execution_order_id,
@@ -65,14 +68,14 @@ impl Node {
     fn get_name(&self) -> String {
         if let Node::Block(val) = self {
             // TODO: check if the out variables are named after the type- or instance-name
-            val.type_name.clone()
+            val.type_name.to_string()
         } else {
             "".into()
         }
     }
 }
 
-impl Parseable for FunctionBlockDiagram {
+impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
@@ -115,24 +118,23 @@ impl Parseable for FunctionBlockDiagram {
     }
 }
 
-macro_rules! update_ref_id {
+macro_rules! update_ref_id_if_needed {
     ($element:ident, $source_connections:ident, $lookup:ident) => {
         if let Some(ref_id) = $element.ref_local_id {
             if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
                 $lookup.get(&ref_id)
             {
-                let Some(actual_source) = $source_connections.get(name.as_str()).copied() else {
-                            todo!("unconnected source")
-                        };
-
-                let _ = std::mem::replace(&mut $element.ref_local_id, Some(actual_source));
+                let Some(actual_source) = $source_connections.get(name.as_ref()) else {
+                                                                            todo!("unconnected source")
+                                                                        };
+                $element.ref_local_id = Some(*actual_source);
             }
         }
     };
 }
 
 fn resolve_connection_points(nodes: &mut NodeIndex) {
-    fn find_source_connections(nodes: &NodeIndex) -> IndexMap<&str, NodeId> {
+    fn find_source_connections<'xml>(nodes: &'xml NodeIndex) -> IndexMap<&'xml str, NodeId> {
         nodes
             .iter()
             .filter_map(|(_, node)| {
@@ -141,9 +143,9 @@ fn resolve_connection_points(nodes: &mut NodeIndex) {
                 }) = node
                 {
                     if let Some(ref_id) = ref_local_id {
-                        Some((name.as_str(), *ref_id))
+                        Some((name.as_ref(), *ref_id))
                     } else {
-                        None
+                        None // TODO: diagnostic - source must have a sink
                     }
                 } else {
                     None
@@ -161,11 +163,13 @@ fn resolve_connection_points(nodes: &mut NodeIndex) {
         match dbg!(node) {
             Node::Block(block) => {
                 for var in &mut block.variables {
-                    update_ref_id!(var, source_connections, lookup);
+                    update_ref_id_if_needed!(var, source_connections, lookup);
                 }
             }
-            Node::FunctionBlockVariable(fbd_var) => update_ref_id!(fbd_var, source_connections, lookup),
-            Node::Control(control) => update_ref_id!(control, source_connections, lookup),
+            Node::FunctionBlockVariable(fbd_var) => {
+                update_ref_id_if_needed!(fbd_var, source_connections, lookup)
+            }
+            Node::Control(control) => update_ref_id_if_needed!(control, source_connections, lookup),
             _ => continue,
         };
     }

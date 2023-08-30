@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 use quick_xml::events::Event;
 
@@ -10,20 +10,20 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Control {
+pub(crate) struct Control<'xml> {
     pub kind: ControlKind,
-    pub name: Option<String>,
+    pub name: Option<Cow<'xml, str>>,
     pub local_id: usize,
     pub ref_local_id: Option<usize>,
     pub execution_order_id: Option<usize>,
     pub negated: bool,
 }
 
-impl Control {
+impl<'xml> Control<'xml> {
     pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
-            name: hm.remove("label"),
+            name: hm.remove("label").map(|it| Cow::from(it)),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
@@ -52,7 +52,7 @@ impl FromStr for ControlKind {
     }
 }
 
-impl Parseable for Control {
+impl<'xml> Parseable for Control<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

@@ -3,6 +3,7 @@ use quick_xml::events::Event;
 use crate::extensions::GetOrErr;
 use crate::xml_parser::Parseable;
 use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
+use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
 
 use super::fbd::NodeId;
@@ -57,22 +58,22 @@ pub(crate) enum VariableKind {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct FunctionBlockVariable {
+pub(crate) struct FunctionBlockVariable<'xml> {
     pub kind: VariableKind,
     pub local_id: usize,
     pub negated: bool,
-    pub expression: String,
+    pub expression: Cow<'xml, str>,
     pub execution_order_id: Option<usize>,
     pub ref_local_id: Option<usize>,
 }
 
-impl FunctionBlockVariable {
+impl<'xml> FunctionBlockVariable<'xml> {
     pub fn new(hm: HashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             negated: hm.get_or_err("negated").map(|it| it == "true")?,
-            expression: hm.get_or_err("expression")?,
+            expression: Cow::from(hm.get_or_err("expression")?),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
         })
@@ -123,7 +124,7 @@ impl FromStr for Storage {
     }
 }
 
-impl Parseable for FunctionBlockVariable {
+impl<'xml> Parseable for FunctionBlockVariable<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

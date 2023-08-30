@@ -8,7 +8,7 @@ use crate::model::{
 
 use super::ParseSession;
 
-impl FunctionBlockDiagram {
+impl<'xml> FunctionBlockDiagram<'xml> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {

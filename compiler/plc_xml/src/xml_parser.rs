@@ -78,17 +78,17 @@ fn parse(
     (unit.with_implementations(parser.parse_model()), diagnostics)
 }
 
-pub(crate) struct ParseSession<'parse> {
-    project: &'parse Project,
+pub(crate) struct ParseSession<'parse, 'xml> {
+    project: &'parse Project<'xml>,
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: &'static str,
     range_factory: SourceRangeFactory,
 }
 
-impl<'parse> ParseSession<'parse> {
+impl<'parse, 'xml> ParseSession<'parse, 'xml> {
     fn new(
-        project: &'parse Project,
+        project: &'parse Project<'xml>,
         file_name: &'static str,
         id_provider: IdProvider,
         linkage: LinkageType,

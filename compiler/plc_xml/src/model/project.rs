@@ -4,8 +4,8 @@ use super::pou::Pou;
 
 /// The Project root as specified in the official XSD
 #[derive(Debug)]
-pub(crate) struct Project {
-    pub pous: Vec<Pou>,
+pub(crate) struct Project<'xml> {
+    pub pous: Vec<Pou<'xml>>,
     /*
     attributes,
     dataTypes,
@@ -17,7 +17,7 @@ pub(crate) struct Project {
     */
 }
 
-impl Parseable for Project {
+impl<'xml> Parseable for Project<'xml> {
     type Item = Self;
 
     fn visit(_reader: &mut crate::reader::PeekableReader) -> Result<Self::Item, crate::error::Error> {
@@ -25,7 +25,7 @@ impl Parseable for Project {
     }
 }
 
-impl Project {
+impl<'xml> Project<'xml> {
     pub fn pou_entry(reader: &mut crate::reader::PeekableReader) -> Result<Self, crate::error::Error> {
         Ok(Project { pous: vec![Pou::visit(reader)?] })
     }
