@@ -1,16 +1,14 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
+    use std::{path::PathBuf, str::FromStr};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
         provider::IdProvider,
     };
     use plc_diagnostics::{
-        diagnostician::Diagnostician,
-        diagnostics::Diagnostic,
-        reporter::{DiagnosticReporter, ResolvedDiagnostics},
+        diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use source::{Compilable, SourceCode, SourceContainer};
 
@@ -24,26 +22,10 @@ pub mod tests {
         DebugLevel, Validator,
     };
 
-    ///a Diagnostic reporter that holds all diagnostics in a list
-    #[derive(Default)]
-    #[cfg(test)]
-    pub struct ListBasedDiagnosticReporter {
-        last_id: usize,
-        // RC to access from tests, RefCell to avoid changing the signature for the report() method
-        diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
-    }
-
-    #[cfg(test)]
-    impl DiagnosticReporter for ListBasedDiagnosticReporter {
-        fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
-            self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
-        }
-
-        fn register(&mut self, _path: String, _src: String) -> usize {
-            // at least provide some unique ids
-            self.last_id += 1;
-            self.last_id
-        }
+    #[derive(Copy, Clone)]
+    pub enum Mode {
+        St,
+        Cfc,
     }
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -166,27 +148,20 @@ pub mod tests {
     }
 
     pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
-        _codegen_debug_without_unwrap(src, debug_level, Mode::St)
+        codegen_debug(src, debug_level, Mode::St)
     }
 
     pub fn codegen_debug_without_unwrap_cfc(src: &str) -> Result<String, Diagnostic> {
-        _codegen_debug_without_unwrap(src, DebugLevel::None, Mode::Cfc)
+        codegen_debug(src, DebugLevel::None, Mode::Cfc)
     }
 
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn _codegen_debug_without_unwrap(
-        src: &str,
-        debug_level: DebugLevel,
-        mode: Mode,
-    ) -> Result<String, Diagnostic> {
+    fn codegen_debug(src: &str, debug_level: DebugLevel, mode: Mode) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
-        let (unit, index) = match mode {
-            Mode::St => do_index(src, id_provider.clone(), mode),
-            Mode::Cfc => do_index(src, id_provider.clone(), mode),
-        };
+        let (unit, index) = do_index(src, id_provider.clone(), mode);
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -209,12 +184,6 @@ pub mod tests {
         code_generator
             .generate(&context, &unit, &annotations, &index, &llvm_index)
             .map(|module| module.persist_to_string())
-    }
-
-    #[derive(Copy, Clone)]
-    pub enum Mode {
-        St,
-        Cfc,
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
