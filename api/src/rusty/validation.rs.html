@@ -152,13 +152,6 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -210,14 +203,7 @@
     }
 
     <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
-        <span class="kw">match </span>stmt {
-            AstStatement::Reference { name, .. } =&gt; <span class="prelude-val">Some</span>(name.as_str()),
-            AstStatement::QualifiedReference { elements, .. } =&gt; {
-                elements.last().and_then(|it| <span class="self">self</span>.annotations.get_call_name(it))
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
-        .and_then(|pou_name| {
+        <span class="self">self</span>.annotations.get_call_name(stmt).and_then(|pou_name| {
             <span class="self">self</span>.index
                 <span class="comment">// check if this is an instance of a function block and get the type name
                 </span>.find_callable_instance_variable(<span class="self">self</span>.qualifier, <span class="kw-2">&amp;</span>[pou_name])

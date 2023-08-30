@@ -602,7 +602,7 @@
                 code: |generator, params, location| {
                     <span class="kw">if let </span>[reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
@@ -661,7 +661,7 @@
                 code: |generator, params, location| {
                     <span class="kw">if let </span>[reference] = params {
                         generator
-                            .generate_element_pointer(reference)
+                            .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
@@ -986,7 +986,7 @@
         ));
     };
 
-    <span class="kw">let </span>vla = generator.generate_element_pointer(params[<span class="number">0</span>]).unwrap();
+    <span class="kw">let </span>vla = generator.generate_lvalue(params[<span class="number">0</span>]).unwrap();
     <span class="kw">let </span>dim = builder.build_struct_gep(vla, <span class="number">1</span>, <span class="string">&quot;dim&quot;</span>).unwrap();
 
     <span class="kw">let </span>accessor = <span class="kw">match </span>params[<span class="number">1</span>] {

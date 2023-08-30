@@ -1015,10 +1015,79 @@
 <a href="#1015" id="1015">1015</a>
 <a href="#1016" id="1016">1016</a>
 <a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
@@ -1077,27 +1146,19 @@
         AstStatement::MultipliedStatement { element, .. } =&gt; {
             visit_statement(validator, element, context);
         }
-        AstStatement::QualifiedReference { elements, .. } =&gt; {
-            elements.iter().for_each(|element| visit_statement(validator, element, context));
-            validate_qualified_reference(validator, elements, context);
+        AstStatement::ReferenceExpr { access, base, .. } =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                visit_statement(validator, base, context);
+            }
+
+            validate_reference_expression(access, validator, context, statement, base);
         }
-        AstStatement::Reference { name, location, .. } =&gt; {
-            validate_reference(validator, statement, name, location, context);
-        }
-        AstStatement::ArrayAccess { reference, access, .. } =&gt; {
-            <span class="macro">visit_all_statements!</span>(validator, context, reference, access);
-            visit_array_access(validator, reference, access, context);
-        }
-        <span class="comment">// AstStatement::PointerAccess { reference, id } =&gt; (),
-        // AstStatement::DirectAccess { access, index, location, id } =&gt; (),
-        // AstStatement::HardwareAccess { direction, access, address, location, id } =&gt; (),
-        </span>AstStatement::BinaryExpression { operator, left, right, .. } =&gt; {
+        AstStatement::BinaryExpression { operator, left, right, .. } =&gt; {
             <span class="macro">visit_all_statements!</span>(validator, context, left, right);
             visit_binary_expression(validator, statement, operator, left, right, context);
         }
-        AstStatement::UnaryExpression { operator, value, location, .. } =&gt; {
+        AstStatement::UnaryExpression { value, .. } =&gt; {
             visit_statement(validator, value, context);
-            validate_unary_expression(validator, operator, value, location);
         }
         AstStatement::ExpressionList { expressions, .. } =&gt; {
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
@@ -1140,6 +1201,131 @@
     validate_type_nature(validator, statement, context);
 }
 
+<span class="kw">fn </span>validate_reference_expression&lt;T: AnnotationMap&gt;(
+    access: <span class="kw-2">&amp;</span>ReferenceAccess,
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    statement: <span class="kw-2">&amp;</span>AstStatement,
+    base: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
+) {
+    <span class="kw">match </span>access {
+        ReferenceAccess::Member(m) =&gt; {
+            visit_statement(validator, m.as_ref(), context);
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(reference_name) = statement.get_flat_reference_name() {
+                validate_reference(
+                    validator,
+                    statement,
+                    base.as_deref(),
+                    reference_name,
+                    <span class="kw-2">&amp;</span>m.get_location(),
+                    context,
+                );
+            }
+            validate_direct_access(m, base.as_deref(), context, validator);
+        }
+        ReferenceAccess::Index(i) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                visit_array_access(validator, base, i, context)
+            } <span class="kw">else </span>{
+                validator.diagnostics.push(Diagnostic::invalid_operation(
+                    <span class="string">&quot;Index-Access requires an array-value.&quot;</span>,
+                    statement.get_location(),
+                ));
+            }
+        }
+        ReferenceAccess::Cast(c) =&gt; {
+            visit_statement(validator, c.as_ref(), context);
+
+            <span class="comment">// see if we try to cast a literal
+            </span><span class="kw">if let </span>(
+                AstStatement::Literal { kind: literal, .. },
+                <span class="prelude-val">Some</span>(StatementAnnotation::Type { type_name }),
+            ) = (c.as_ref(), base.as_ref().and_then(|it| context.annotations.get(it)))
+            {
+                validate_cast_literal(
+                    validator,
+                    literal,
+                    c.as_ref(),
+                    type_name.as_str(),
+                    <span class="kw-2">&amp;</span>statement.get_location(),
+                    context,
+                );
+            }
+        }
+        ReferenceAccess::Deref =&gt; {
+            <span class="kw">if </span>base.is_none() {
+                validator.diagnostics.push(Diagnostic::invalid_operation(
+                    <span class="string">&quot;Dereferencing requires a pointer-value.&quot;</span>,
+                    statement.get_location(),
+                ));
+            }
+        }
+        ReferenceAccess::Address =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                validate_address_of_expression(validator, base, statement.get_location(), context);
+            } <span class="kw">else </span>{
+                validator.diagnostics.push(Diagnostic::invalid_operation(
+                    <span class="string">&quot;Address-of requires a value.&quot;</span>,
+                    statement.get_location(),
+                ));
+            }
+        }
+    }
+}
+
+<span class="kw">fn </span>validate_address_of_expression&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    target: <span class="kw-2">&amp;</span>AstStatement,
+    location: SourceRange,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
+    <span class="kw">let </span>a = context.annotations.get(target);
+    <span class="comment">//TODO: resolver should also annotate information whether this results in an LValue or RValue
+    // array-access results in a value, but it is an LValue :-(
+    </span><span class="kw">if </span>!<span class="macro">matches!</span>(a, <span class="prelude-val">Some</span>(StatementAnnotation::Variable { .. }))
+        &amp;&amp; !<span class="macro">matches!</span>(target, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. })
+    {
+        validator.push_diagnostic(Diagnostic::invalid_operation(<span class="string">&quot;Invalid address-of operation&quot;</span>, location));
+    }
+}
+
+<span class="kw">fn </span>validate_direct_access&lt;T: AnnotationMap&gt;(
+    m: <span class="kw-2">&amp;</span>AstStatement,
+    base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+) {
+    <span class="kw">if let </span>(AstStatement::DirectAccess { access, index, .. }, <span class="prelude-val">Some</span>(base_annotation)) = (
+        m,
+        <span class="comment">// FIXME: should we consider the hint if one is available?
+        </span>base.and_then(|base| context.annotations.get(base)),
+    ) {
+        <span class="kw">let </span>base_type = context
+            .annotations
+            .get_type_for_annotation(context.index, base_annotation)
+            .unwrap_or(context.index.get_void_type())
+            .get_type_information();
+        <span class="kw">if </span>base_type.is_int() {
+            <span class="kw">if </span>!helper::is_compatible(access, base_type, context.index) {
+                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access:?}&quot;</span>),
+                    access.get_bit_width(),
+                    m.get_location(),
+                ))
+            } <span class="kw">else </span>{
+                validate_access_index(validator, context, index, access, base_type, <span class="kw-2">&amp;</span>m.get_location());
+            }
+        } <span class="kw">else </span>{
+            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access:?}&quot;</span>),
+                access.get_bit_width(),
+                m.get_location(),
+            ))
+        }
+    }
+}
+
 <span class="kw">fn </span>validate_control_statement&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     control_statement: <span class="kw-2">&amp;</span>AstControlStatement,
@@ -1171,7 +1357,7 @@
 }
 
 <span class="doccomment">/// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
-/// checks whether the type-prefix is valid
+/// checks whether the type-prefix is valid and if the target is a literal
 </span><span class="kw">fn </span>validate_cast_literal&lt;T: AnnotationMap&gt;(
     <span class="comment">// TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     </span>validator: <span class="kw-2">&amp;mut </span>Validator,
@@ -1229,54 +1415,6 @@
     }
 }
 
-<span class="kw">fn </span>validate_qualified_reference&lt;T: AnnotationMap&gt;(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
-    elements: <span class="kw-2">&amp;</span>[AstStatement],
-    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-) {
-    <span class="kw">let </span><span class="kw-2">mut </span>iter = elements.iter().rev();
-    <span class="kw">let </span>access = iter.next().zip(iter.next());
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((AstStatement::DirectAccess { access, index, location, .. }, reference)) = access {
-        <span class="kw">let </span>target_type =
-            context.annotations.get_type_or_void(reference, context.index).get_type_information();
-        <span class="kw">if </span>target_type.is_int() {
-            <span class="kw">if </span>!helper::is_compatible(access, target_type, context.index) {
-                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access:?}&quot;</span>),
-                    access.get_bit_width(),
-                    location.clone(),
-                ))
-            } <span class="kw">else </span>{
-                validate_access_index(validator, context, index, access, target_type, location);
-            }
-        } <span class="kw">else </span>{
-            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{access:?}&quot;</span>),
-                access.get_bit_width(),
-                location.clone(),
-            ))
-        }
-    } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="prelude-val">Some</span>((reference, accessed)) = access <span class="kw">else </span>{
-            <span class="kw">return
-        </span>};
-        <span class="kw">if </span>!context.annotations.has_type_annotation(reference) {
-            <span class="kw">let </span>AstStatement::Reference { name, location, .. } = reference <span class="kw">else </span>{
-                <span class="kw">return
-            </span>};
-
-            <span class="kw">if </span>context.annotations.get_type(accessed, context.index).is_none() {
-                <span class="kw">return</span>;
-            }
-
-            validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
-                message: <span class="macro">format!</span>(<span class="string">&quot;If you meant to access a bit, use %X{name} instead.&quot;</span>,),
-                range: <span class="macro">vec!</span>[location.clone()],
-            });
-        }
-    }
-}
-
 <span class="kw">fn </span>validate_access_index&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
@@ -1301,7 +1439,7 @@
                 ))
             }
         }
-        AstStatement::Reference { .. } =&gt; {
+        AstStatement::ReferenceExpr { .. } =&gt; {
             <span class="kw">let </span>ref_type = context.annotations.get_type_or_void(access_index, context.index);
             <span class="kw">if </span>!ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_variable(
@@ -1317,6 +1455,7 @@
 <span class="kw">fn </span>validate_reference&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     statement: <span class="kw-2">&amp;</span>AstStatement,
+    base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
     ref_name: <span class="kw-2">&amp;</span>str,
     location: <span class="kw-2">&amp;</span>SourceRange,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
@@ -1324,6 +1463,25 @@
     <span class="comment">// unresolved reference
     </span><span class="kw">if </span>!context.annotations.has_type_annotation(statement) {
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
+
+        <span class="comment">// was this meant as a direct access?
+        // TODO: find a way to solve this without re-resolving this name
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(alternative_target_type) =
+            context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[ref_name]).and_then(|alternative_target| {
+                context.index.find_effective_type_by_name(alternative_target.get_type_name())
+            })
+        {
+            <span class="kw">if </span>base.is_some() &amp;&amp; (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
+            {
+                <span class="comment">// we accessed a member that does not exist, but we could find a global/local variable that fits
+                </span>validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
+                    message: <span class="macro">format!</span>(
+                        <span class="string">&quot;If you meant to directly access a bit/byte/word/.., use %X/%B/%W{ref_name} instead.&quot;</span>,
+                    ),
+                    range: <span class="macro">vec!</span>[location.clone()],
+                });
+            }
+        }
     } <span class="kw">else if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
         context.annotations.get(statement)
     {
@@ -1534,26 +1692,6 @@
     <span class="bool-val">false
 </span>}
 
-<span class="kw">fn </span>validate_unary_expression(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
-    operator: <span class="kw-2">&amp;</span>Operator,
-    value: <span class="kw-2">&amp;</span>AstStatement,
-    location: <span class="kw-2">&amp;</span>SourceRange,
-) {
-    <span class="kw">if </span>operator == <span class="kw-2">&amp;</span>Operator::Address {
-        <span class="kw">match </span>value {
-            AstStatement::Reference { .. }
-            | AstStatement::QualifiedReference { .. }
-            | AstStatement::ArrayAccess { .. } =&gt; (),
-
-            <span class="kw">_ </span>=&gt; validator.push_diagnostic(Diagnostic::invalid_operation(
-                <span class="string">&quot;Invalid address-of operation&quot;</span>,
-                location.to_owned(),
-            )),
-        }
-    }
-}
-
 <span class="doccomment">/// Validates if an argument can be passed to a function with [`VariableType::Output`] and
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x =&gt; y)`). If neither is the case a diagnostic is generated.
@@ -1653,7 +1791,7 @@
                 location.clone(),
             ));
         } <span class="kw">else if </span>!<span class="macro">matches!</span>(right, AstStatement::Literal { .. }) {
-            <span class="comment">// FIXME: See https://github.com/PLC-lang/rusty/issues/857
+            <span class="comment">// TODO: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         </span>}
     }

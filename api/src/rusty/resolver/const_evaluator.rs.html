@@ -739,9 +739,6 @@
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
 <a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use crate</span>::{
@@ -1121,11 +1118,15 @@
                 location,
             )
         }
-        AstStatement::CastStatement { target, type_name, .. } =&gt; {
-            <span class="kw">let </span>dti = index.find_effective_type_info(type_name);
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Cast(target), base: <span class="prelude-val">Some</span>(type_name), ..
+        } =&gt; {
+            <span class="kw">let </span>dti = type_name
+                .get_flat_reference_name()
+                .and_then(|type_name| index.find_effective_type_info(type_name));
             <span class="kw">match </span>dti {
                 <span class="prelude-val">Some</span>(DataTypeInformation::Enum { name: enum_name, .. }) =&gt; {
-                    <span class="kw">if let </span>AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                    <span class="kw">if let </span>AstStatement::Identifier { name: ref_name, .. } = target.as_ref() {
                         <span class="kw">return </span>index
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {
@@ -1138,33 +1139,26 @@
                         <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.to_string()));
                     }
                 }
-                <span class="kw">_ </span>=&gt; {
-                    evaluate_with_target_hint(target, scope, index, <span class="prelude-val">Some</span>(type_name))<span class="question-mark">?</span>;
-                    <span class="prelude-val">Some</span>(get_cast_statement_literal(target, type_name, scope, index)<span class="question-mark">?</span>)
+                <span class="prelude-val">Some</span>(dti) =&gt; {
+                    evaluate_with_target_hint(target, scope, index, <span class="prelude-val">Some</span>(dti.get_name()))<span class="question-mark">?</span>;
+                    <span class="prelude-val">Some</span>(get_cast_statement_literal(target, dti.get_name(), scope, index)<span class="question-mark">?</span>)
                 }
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Cannot resolve unknown Type-Cast.&quot;</span>.to_string())),
             }
         }
-        AstStatement::Reference { name, .. } =&gt; index
-            .find_variable(scope, std::slice::from_ref(<span class="kw-2">&amp;</span>name.as_str()))
-            .map(|variable| resolve_const_reference(variable, name, index))
-            .transpose()<span class="question-mark">?
-            </span>.flatten(),
-        AstStatement::QualifiedReference { elements, .. } =&gt; {
-            <span class="comment">// we made sure that there are exactly two references
-            //TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here
-            </span><span class="kw">if </span>elements.len() == <span class="number">2 </span>{
-                <span class="kw">if let </span>(
-                    AstStatement::Reference { name: pou_name, .. },
-                    AstStatement::Reference { name: variable_name, .. },
-                ) = (<span class="kw-2">&amp;</span>elements[<span class="number">0</span>], <span class="kw-2">&amp;</span>elements[<span class="number">1</span>])
-                {
-                    <span class="kw">return </span>index
-                        .find_member(pou_name, variable_name)
-                        .ok_or_else(|| UnresolvableKind::Misc(<span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.to_string()))
-                        .and_then(|variable| resolve_const_reference(variable, variable_name, index));
-                }
-            }
-            <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Qualified references only allow references to qualified variables in the form of &#39;POU.variable&#39;&quot;</span>.to_string()));
+        AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. } =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = reference.get_flat_reference_name() {
+                index
+                    .find_variable(
+                        base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
+                        std::slice::from_ref(<span class="kw-2">&amp;</span>name),
+                    )
+                    .map(|variable| resolve_const_reference(variable, name, index))
+                    .transpose()<span class="question-mark">?
+                    </span>.flatten()
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         }
         AstStatement::BinaryExpression { left, right, operator, id, .. } =&gt; {
             <span class="kw">let </span>eval_left = evaluate(left, scope, index)<span class="question-mark">?</span>;
@@ -1483,7 +1477,7 @@
 }
 <span class="kw">use </span>compare_expression;
 <span class="kw">use </span>plc_ast::{
-    ast::{AstId, AstStatement, Operator, SourceRange},
+    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
     literals::{Array, AstLiteral, StringValue},
 };
 </code></pre></div></section></main></body></html>

@@ -1548,6 +1548,9 @@
 <a href="#1548" id="1548">1548</a>
 <a href="#1549" id="1549">1549</a>
 <a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -1555,6 +1558,7 @@
     typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>},
 };
 <span class="kw">use </span>indexmap::IndexMap;
+<span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
     TypeNature,
@@ -2612,11 +2616,13 @@
     </span><span class="kw">pub fn </span>find_fully_qualified_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, fully_qualified_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="kw">let </span>segments: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = fully_qualified_name.split(<span class="string">&#39;.&#39;</span>).collect();
         <span class="kw">let </span>(q, segments) = <span class="kw">if </span>segments.len() &gt; <span class="number">1 </span>{
-            (<span class="prelude-val">Some</span>(segments[<span class="number">0</span>]), segments.iter().skip(<span class="number">1</span>).copied().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;())
+            <span class="comment">// the last segment is th ename, everything before ist qualifier
+            // e.g. MyClass.MyMethod.x --&gt; qualifier: &quot;MyClass.MyMethod&quot;, name: &quot;x&quot;
+            </span>(<span class="prelude-val">Some</span>(segments.iter().take(segments.len() - <span class="number">1</span>).join(<span class="string">&quot;.&quot;</span>)), <span class="macro">vec!</span>[<span class="kw-2">*</span>segments.last().unwrap()])
         } <span class="kw">else </span>{
             (<span class="prelude-val">None</span>, segments)
         };
-        <span class="self">self</span>.find_variable(q, <span class="kw-2">&amp;</span>segments[..])
+        <span class="self">self</span>.find_variable(q.as_deref(), <span class="kw-2">&amp;</span>segments[..])
     }
 
     <span class="kw">pub fn </span>find_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, segments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {

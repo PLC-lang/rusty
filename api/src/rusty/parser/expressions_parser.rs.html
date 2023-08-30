@@ -886,6 +886,24 @@
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -895,7 +913,7 @@
 };
 <span class="kw">use </span>core::str::Split;
 <span class="kw">use </span>plc_ast::{
-    ast::{AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -1030,11 +1048,11 @@
         lexer.advance();
         <span class="kw">let </span>right = parse_unary_expression(lexer);
         left = AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: <span class="string">&quot;EXPT&quot;</span>.to_string(),
-                location: op_location,
-                id: lexer.next_id(),
-            }),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_identifier(<span class="string">&quot;EXPT&quot;</span>, <span class="kw-2">&amp;</span>op_location, lexer.next_id()),
+                <span class="prelude-val">None</span>,
+                lexer.next_id(),
+            )),
             parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
                 expressions: <span class="macro">vec!</span>[left, right],
                 id: lexer.next_id(),
@@ -1055,14 +1073,13 @@
         OperatorNot =&gt; <span class="prelude-val">Some</span>(Operator::Not),
         OperatorPlus =&gt; <span class="prelude-val">Some</span>(Operator::Plus),
         OperatorMinus =&gt; <span class="prelude-val">Some</span>(Operator::Minus),
-        OperatorAmp =&gt; <span class="prelude-val">Some</span>(Operator::Address),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     } {
         operators.push(operator);
         lexer.advance();
     }
     <span class="comment">// created nested statements if necessary (e.g. &amp;&amp;)
-    </span><span class="kw">let </span>init = parse_parenthesized_expression(lexer);
+    </span><span class="kw">let </span>init = parse_leaf_expression(lexer);
     operators.iter().rev().fold(init, |expression, operator| {
         <span class="kw">let </span>expression_location = expression.get_location();
         <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..expression_location.get_end());
@@ -1077,8 +1094,8 @@
             }
 
             <span class="comment">// Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            </span>(Operator::Plus, AstStatement::Reference { name, .. }) =&gt; {
-                AstStatement::Reference { name: name.to_owned(), location, id: lexer.next_id() }
+            </span>(Operator::Plus, AstStatement::Identifier { name, .. }) =&gt; {
+                AstFactory::create_identifier(name, <span class="kw-2">&amp;</span>location, lexer.next_id())
             }
 
             <span class="kw">_ </span>=&gt; AstStatement::UnaryExpression {
@@ -1089,27 +1106,6 @@
             },
         }
     })
-}
-
-<span class="comment">// PARENTHESIZED (...)
-</span><span class="kw">fn </span>parse_parenthesized_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
-    <span class="kw">let </span>result = <span class="kw">match </span>lexer.token {
-        KeywordParensOpen =&gt; {
-            lexer.advance();
-            <span class="kw">super</span>::parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], parse_expression)
-        }
-        <span class="kw">_ </span>=&gt; parse_leaf_expression(lexer),
-    };
-    <span class="comment">// we might deal with a deref after a paren-expr
-    </span><span class="kw">match </span>parse_access_modifiers(lexer, result) {
-        <span class="prelude-val">Ok</span>(statement) =&gt; statement,
-        <span class="prelude-val">Err</span>(diagnostic) =&gt; {
-            <span class="kw">let </span>statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
-            lexer.accept_diagnostic(diagnostic);
-            statement
-        }
-    }
 }
 
 <span class="kw">fn </span>to_operator(token: <span class="kw-2">&amp;</span>Token) -&gt; <span class="prelude-ty">Option</span>&lt;Operator&gt; {
@@ -1136,84 +1132,10 @@
 
 <span class="comment">// Literals, Identifiers, etc.
 </span><span class="kw">fn </span>parse_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
-    <span class="comment">//see if there&#39;s a cast
-    </span><span class="kw">let </span>literal_cast = <span class="kw">if </span>lexer.token == TypeCastPrefix {
-        <span class="kw">let </span>location = lexer.location();
-        <span class="kw">let </span><span class="kw-2">mut </span>a = lexer.slice_and_advance();
-        a.pop(); <span class="comment">//drop last char &#39;#&#39; - the lexer made sure it ends with a &#39;#&#39;
-        </span><span class="prelude-val">Some</span>((a, location))
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>};
     <span class="kw">let </span>literal_parse_result = <span class="kw">match </span>lexer.token {
-        <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
-        </span>OperatorPlus | OperatorMinus =&gt; {
-            <span class="kw">let </span>is_negative = lexer.token == OperatorMinus;
-            lexer.advance();
-
-            <span class="kw">match </span>lexer.token {
-                LiteralInteger =&gt; parse_literal_number(lexer, is_negative),
-                LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, is_negative),
-                LiteralIntegerOct =&gt; parse_literal_number_with_modifier(lexer, <span class="number">8</span>, is_negative),
-                LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, is_negative),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(
-                    <span class="string">&quot;Numeric Literal&quot;</span>,
-                    lexer.slice(),
-                    lexer.location(),
-                )),
-            }
-        }
         OperatorMultiplication =&gt; parse_vla_range(lexer),
-        <span class="comment">// ...and if not then this token may be anything
-        </span><span class="kw">_ </span>=&gt; <span class="kw">match </span>lexer.token {
-            Identifier =&gt; parse_qualified_reference(lexer),
-            HardwareAccess((hw_type, access_type)) =&gt; parse_hardware_access(lexer, hw_type, access_type),
-            LiteralInteger =&gt; parse_literal_number(lexer, <span class="bool-val">false</span>),
-            LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, <span class="bool-val">false</span>),
-            LiteralIntegerOct =&gt; parse_literal_number_with_modifier(lexer, <span class="number">8</span>, <span class="bool-val">false</span>),
-            LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, <span class="bool-val">false</span>),
-            LiteralDate =&gt; parse_literal_date(lexer),
-            LiteralTimeOfDay =&gt; parse_literal_time_of_day(lexer),
-            LiteralTime =&gt; parse_literal_time(lexer),
-            LiteralDateAndTime =&gt; parse_literal_date_and_time(lexer),
-            LiteralString =&gt; parse_literal_string(lexer, <span class="bool-val">false</span>),
-            LiteralWideString =&gt; parse_literal_string(lexer, <span class="bool-val">true</span>),
-            LiteralTrue =&gt; parse_bool_literal(lexer, <span class="bool-val">true</span>),
-            LiteralFalse =&gt; parse_bool_literal(lexer, <span class="bool-val">false</span>),
-            LiteralNull =&gt; parse_null_literal(lexer),
-            KeywordSquareParensOpen =&gt; parse_array_literal(lexer),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">if </span>lexer.closing_keywords.contains(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[KeywordParensClose])
-                    &amp;&amp; <span class="macro">matches!</span>(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
-                {
-                    <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;
-                    // we are probably in a call statement missing a parameter assignment &#39;foo(param := );
-                    // optional parameter assignments are allowed, validation should handle any unwanted cases
-                    </span><span class="prelude-val">Ok</span>(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Literal&quot;</span>, lexer.slice(), lexer.location()))
-                }
-            }
-        },
+        <span class="kw">_ </span>=&gt; parse_call_statement(lexer),
     };
-
-    <span class="kw">let </span>literal_parse_result = literal_parse_result.and_then(|statement| {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((cast, location)) = literal_cast {
-            <span class="comment">//check if there is something between the literal-type and the literal itself
-            </span><span class="kw">if </span>location.get_end() != statement.get_location().get_start() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::syntax_error(<span class="string">&quot;Incomplete statement&quot;</span>, location));
-            }
-
-            <span class="prelude-val">Ok</span>(AstStatement::CastStatement {
-                id: lexer.next_id(),
-                location: (location.get_start()..statement.get_location().get_end()).into(),
-                target: Box::new(statement),
-                type_name: cast,
-            })
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(statement)
-        }
-    });
 
     <span class="kw">match </span>literal_parse_result {
         <span class="prelude-val">Ok</span>(statement) =&gt; {
@@ -1242,6 +1164,71 @@
             statement
         }
     }
+}
+
+<span class="doccomment">/// parse an expression at the bottom of the parse-tree.
+/// leaf-expressions are literals, identifier, direct-access and parenthesized expressions
+/// (since the parentheses change the parse-priority)
+</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+    <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
+
+    </span><span class="kw">match </span>lexer.token {
+        OperatorPlus | OperatorMinus =&gt; {
+            <span class="kw">let </span>is_negative = lexer.token == OperatorMinus;
+            lexer.advance();
+
+            <span class="kw">match </span>lexer.token {
+                LiteralInteger =&gt; parse_literal_number(lexer, is_negative),
+                LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, is_negative),
+                LiteralIntegerOct =&gt; parse_literal_number_with_modifier(lexer, <span class="number">8</span>, is_negative),
+                LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, is_negative),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(
+                    <span class="string">&quot;Numeric Literal&quot;</span>,
+                    lexer.slice(),
+                    lexer.location(),
+                )),
+            }
+        }
+        KeywordParensOpen =&gt; {
+            parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
+                lexer.advance(); <span class="comment">// eat KeywordParensOpen
+                </span><span class="prelude-val">Ok</span>(parse_expression(lexer))
+            })
+        }
+        Identifier =&gt; <span class="prelude-val">Ok</span>(parse_identifier(lexer)),
+        HardwareAccess((hw_type, access_type)) =&gt; parse_hardware_access(lexer, hw_type, access_type),
+        LiteralInteger =&gt; parse_literal_number(lexer, <span class="bool-val">false</span>),
+        LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, <span class="bool-val">false</span>),
+        LiteralIntegerOct =&gt; parse_literal_number_with_modifier(lexer, <span class="number">8</span>, <span class="bool-val">false</span>),
+        LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, <span class="bool-val">false</span>),
+        LiteralDate =&gt; parse_literal_date(lexer),
+        LiteralTimeOfDay =&gt; parse_literal_time_of_day(lexer),
+        LiteralTime =&gt; parse_literal_time(lexer),
+        LiteralDateAndTime =&gt; parse_literal_date_and_time(lexer),
+        LiteralString =&gt; parse_literal_string(lexer, <span class="bool-val">false</span>),
+        LiteralWideString =&gt; parse_literal_string(lexer, <span class="bool-val">true</span>),
+        LiteralTrue =&gt; parse_bool_literal(lexer, <span class="bool-val">true</span>),
+        LiteralFalse =&gt; parse_bool_literal(lexer, <span class="bool-val">false</span>),
+        LiteralNull =&gt; parse_null_literal(lexer),
+        KeywordSquareParensOpen =&gt; parse_array_literal(lexer),
+        DirectAccess(access) =&gt; parse_direct_access(lexer, access),
+        <span class="kw">_ </span>=&gt; {
+            <span class="kw">if </span>lexer.closing_keywords.contains(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[KeywordParensClose])
+                &amp;&amp; <span class="macro">matches!</span>(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
+            {
+                <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;
+                // we are probably in a call statement missing a parameter assignment &#39;foo(param := );
+                // optional parameter assignments are allowed, validation should handle any unwanted cases
+                </span><span class="prelude-val">Ok</span>(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Literal&quot;</span>, lexer.slice(), lexer.location()))
+            }
+        }
+    }
+}
+
+<span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; AstStatement {
+    AstFactory::create_identifier(<span class="kw-2">&amp;</span>lexer.slice_and_advance(), <span class="kw-2">&amp;</span>lexer.last_location(), lexer.next_id())
 }
 
 <span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
@@ -1282,39 +1269,12 @@
     <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
-<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-    <span class="kw">let </span>start = lexer.range().start;
-    <span class="kw">let </span><span class="kw-2">mut </span>reference_elements = <span class="macro">vec!</span>[parse_reference_access(lexer)<span class="question-mark">?</span>];
-    <span class="kw">while </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot) {
-        <span class="kw">let </span>segment = <span class="kw">match </span>lexer.token {
-            <span class="comment">//Is this an integer?
-            </span>LiteralInteger =&gt; {
-                <span class="kw">let </span>number = parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
-                <span class="kw">let </span>location = number.get_location().clone();
-                <span class="prelude-val">Ok</span>(AstStatement::DirectAccess {
-                    access: DirectAccessType::Bit,
-                    index: Box::new(number),
-                    location,
-                    id: lexer.next_id(),
-                })
-            }
-            <span class="comment">//Is this a direct access?
-            </span>DirectAccess(access) =&gt; parse_direct_access(lexer, access),
-            <span class="kw">_ </span>=&gt; parse_reference_access(lexer),
-        }<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+    <span class="kw">let </span>reference = parse_qualified_reference(lexer)<span class="question-mark">?</span>;
 
-        <span class="comment">//Is this a direct access?
-        </span>reference_elements.push(segment);
-    }
-
-    <span class="kw">let </span>reference = <span class="kw">match </span><span class="kw-2">&amp;</span>reference_elements[..] {
-        [single_element] =&gt; single_element.clone(),
-        [_elements @ ..] =&gt; {
-            AstStatement::QualifiedReference { elements: reference_elements, id: lexer.next_id() }
-        }
-    };
-
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    <span class="comment">// is this a callstatement?
+    </span><span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+        <span class="kw">let </span>start = reference.get_location().get_start();
         <span class="comment">// Call Statement
         </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensClose) {
             AstStatement::CallStatement {
@@ -1337,6 +1297,104 @@
     }
 }
 
+<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">None</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = lexer.parse_progress - <span class="number">1</span>; <span class="comment">// force an initial loop
+
+    // as long as we parse something we keep eating stuff eagerly
+    </span><span class="kw">while </span>lexer.parse_progress &gt; pos {
+        pos = lexer.parse_progress;
+        <span class="kw">match </span>(
+            current,
+            <span class="comment">// only test for the tokens without eating it (Amp must not be consumed if it is in the middle of the chain)
+            </span>[KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp, TypeCastPrefix]
+                .into_iter()
+                .find(|it| lexer.token == <span class="kw-2">*</span>it),
+        ) {
+            <span class="comment">// No base, No token -&gt; Beginning of a qualified reference
+            </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
+                <span class="kw">let </span>exp = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
+                <span class="comment">// pack if this is something to be resolved
+                </span>current = <span class="kw">if </span><span class="macro">matches!</span>(exp, AstStatement::Identifier { .. }) {
+                    <span class="prelude-val">Some</span>(AstFactory::create_member_reference(exp, <span class="prelude-val">None</span>, lexer.next_id()))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(exp)
+                };
+            }
+            <span class="comment">// base._ -&gt; a segment of a qualified reference, we stand right after the dot
+            </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(KeywordDot)) =&gt; {
+                lexer.advance();
+                <span class="kw">let </span>member = <span class="kw">if </span>lexer.token == LiteralInteger {
+                    <span class="kw">let </span>index = parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>location = index.get_location();
+                    AstFactory::create_direct_access(DirectAccessType::Bit, index, lexer.next_id(), location)
+                } <span class="kw">else </span>{
+                    parse_atomic_leaf_expression(lexer)<span class="question-mark">?
+                </span>};
+                current = <span class="prelude-val">Some</span>(AstFactory::create_member_reference(member, <span class="prelude-val">Some</span>(base), lexer.next_id()));
+            }
+            <span class="comment">// CAST-Statement: INT#a.b.c
+            // this means INT#(a.b.c) rather than (INT#a).b.c
+            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(TypeCastPrefix)) =&gt; {
+                <span class="kw">let </span>location_start = lexer.location();
+                <span class="kw">let </span><span class="kw-2">mut </span>type_name = lexer.slice_and_advance();
+                type_name.pop(); <span class="comment">// get rid of the &quot;#&quot; at the end
+                </span><span class="kw">let </span>stmt = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
+                <span class="kw">let </span>end = stmt.get_location();
+                <span class="kw">let </span>type_range =
+                    (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
+                current = <span class="prelude-val">Some</span>(AstFactory::create_cast_statement(
+                    AstFactory::create_member_reference(
+                        AstFactory::create_identifier(type_name.as_str(), <span class="kw-2">&amp;</span>type_range, lexer.next_id()),
+                        <span class="prelude-val">None</span>,
+                        lexer.next_id(),
+                    ),
+                    stmt,
+                    <span class="kw-2">&amp;</span>location_start.span(<span class="kw-2">&amp;</span>end),
+                    lexer.next_id(),
+                ));
+            }
+            (<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(KeywordSquareParensOpen)) =&gt; {
+                lexer.advance();
+                <span class="kw">let </span>index_reference =
+                    parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSquareParensClose], parse_expression);
+                <span class="kw">let </span>new_location = base.get_location().span(<span class="kw-2">&amp;</span>lexer.last_location());
+                current = <span class="prelude-val">Some</span>({
+                    AstFactory::create_index_reference(
+                        index_reference,
+                        <span class="prelude-val">Some</span>(base),
+                        lexer.next_id(),
+                        new_location,
+                    )
+                })
+            }
+            (<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(OperatorDeref)) =&gt; {
+                lexer.advance();
+                <span class="kw">let </span>new_location = base.get_location().span(<span class="kw-2">&amp;</span>lexer.last_location());
+                current = <span class="prelude-val">Some</span>(AstFactory::create_deref_reference(base, lexer.next_id(), new_location))
+            }
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(OperatorAmp)) =&gt; {
+                lexer.advance();
+                <span class="kw">let </span>op_location = lexer.last_location();
+                <span class="comment">// the address-of-operator has different order compared ot other segments, we first see the operator, then
+                // we expect the expression. so writing &amp;a.b.c is more of &amp;(a.b.c) instead of (&amp;a).b.c.
+                // So we expect NO base, and operator and we parse the base now
+                </span><span class="kw">let </span>base = parse_call_statement(lexer)<span class="question-mark">?</span>;
+                <span class="kw">let </span>new_location = op_location.span(<span class="kw-2">&amp;</span>base.get_location());
+                current = <span class="prelude-val">Some</span>(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
+            }
+            (last_current, <span class="kw">_</span>) =&gt; {
+                current = last_current; <span class="comment">// exit the loop
+            </span>}
+        }
+    }
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(current) = current {
+        <span class="prelude-val">Ok</span>(current)
+    } <span class="kw">else </span>{
+        parse_atomic_leaf_expression(lexer)
+    }
+}
+
 <span class="kw">fn </span>parse_direct_access(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     access: DirectAccessType,
@@ -1347,41 +1405,19 @@
     <span class="comment">//The next token can either be an integer or an identifier
     </span><span class="kw">let </span>index = <span class="kw">match </span>lexer.token {
         LiteralInteger =&gt; parse_strict_literal_integer(lexer),
-        Identifier =&gt; parse_reference_access(lexer),
+        Identifier =&gt; {
+            <span class="kw">let </span>location = lexer.location();
+            <span class="prelude-val">Ok</span>(AstFactory::create_member_reference(
+                AstFactory::create_identifier(lexer.slice_and_advance().as_str(), <span class="kw-2">&amp;</span>location, lexer.next_id()),
+                <span class="prelude-val">None</span>,
+                lexer.next_id(),
+            ))
+        }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer or Reference&quot;</span>, lexer.slice(), lexer.location())),
     }<span class="question-mark">?</span>;
 
     <span class="kw">let </span>location = (location.get_start()..lexer.last_location().get_end()).into();
     <span class="prelude-val">Ok</span>(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
-}
-
-<span class="kw">pub fn </span>parse_reference_access(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-    <span class="kw">let </span>location = lexer.location();
-    <span class="kw">let </span>reference =
-        AstStatement::Reference { name: lexer.slice_and_advance(), location, id: lexer.next_id() };
-    parse_access_modifiers(lexer, reference)
-}
-
-<span class="kw">fn </span>parse_access_modifiers(
-    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-    original_reference: AstStatement,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>reference = original_reference;
-    <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result
-    </span><span class="kw">while </span>lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
-        <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) {
-            <span class="kw">let </span>access = parse_expression(lexer);
-            lexer.consume_or_report(KeywordSquareParensClose);
-            reference = AstStatement::ArrayAccess {
-                reference: Box::new(reference),
-                access: Box::new(access),
-                id: lexer.next_id(),
-            };
-        } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>OperatorDeref) {
-            reference = AstStatement::PointerAccess { reference: Box::new(reference), id: lexer.next_id() }
-        }
-    }
-    <span class="prelude-val">Ok</span>(reference)
 }
 
 <span class="kw">fn </span>parse_literal_number_with_modifier(
@@ -1403,9 +1439,9 @@
 }
 
 <span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-    <span class="comment">//correct the location if we just parsed a minus before
-    </span><span class="kw">let </span>location = <span class="kw">if </span>is_negative {
-        (lexer.last_range.start..lexer.location().get_end()).into()
+    <span class="kw">let </span>location = <span class="kw">if </span>is_negative {
+        <span class="comment">//correct the location if we just parsed a minus before
+        </span>(lexer.last_range.start..lexer.location().get_end()).into()
     } <span class="kw">else </span>{
         lexer.location()
     };

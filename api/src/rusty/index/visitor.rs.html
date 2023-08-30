@@ -1119,8 +1119,8 @@
         index.register_pou(PouIndexEntry::create_action_entry(
             implementation.name.as_str(),
             implementation.type_name.as_str(),
-            ast::LinkageType::Internal, <span class="comment">//TODO: where do I get correct linkage from?
-            </span>symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>implementation.name_location),
+            implementation.linkage,
+            symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>implementation.name_location),
         ));
         index.register_pou_type(datatype);
     }

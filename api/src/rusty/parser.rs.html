@@ -1100,8 +1100,8 @@
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
         DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
-        PolymorphismMode, Pou, PouType, SourceRange, SourceRangeFactory, TypeNature, UserTypeDeclaration,
-        Variable, VariableBlock, VariableBlockType,
+        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1798,7 +1798,7 @@
                     scope: lexer.scope.clone(),
                 }
             }
-            <span class="prelude-val">Some</span>(AstStatement::Reference { .. }) =&gt; {
+            <span class="prelude-val">Some</span>(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(<span class="kw">_</span>), .. }) =&gt; {
                 <span class="comment">// a enum with just one element
                 </span>DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -2025,7 +2025,7 @@
 }
 
 <span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
-    <span class="kw">match </span>expressions_parser::parse_qualified_reference(lexer) {
+    <span class="kw">match </span>expressions_parser::parse_call_statement(lexer) {
         <span class="prelude-val">Ok</span>(statement) =&gt; statement,
         <span class="prelude-val">Err</span>(diagnostic) =&gt; {
             <span class="kw">let </span>statement =

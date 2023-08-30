@@ -270,6 +270,18 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::collections::HashMap;
@@ -363,33 +375,40 @@
                     <span class="kw">if </span>!<span class="macro">matches!</span>(original_elements, AstStatement::EmptyStatement { .. }) =&gt;
                 {
                     <span class="kw">let </span><span class="kw-2">mut </span>last_name: <span class="prelude-ty">Option</span>&lt;String&gt; = <span class="prelude-val">None</span>;
+
+                    <span class="kw">fn </span>extract_flat_ref_name(statement: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="kw-2">&amp;</span>str {
+                        statement.get_flat_reference_name().expect(<span class="string">&quot;expected assignment&quot;</span>)
+                    }
+
                     <span class="kw">let </span>initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
                         .map(|it| <span class="kw">match </span>it {
-                            AstStatement::Reference { name, .. } =&gt; (name.clone(), <span class="prelude-val">None</span>, it.get_location()),
                             AstStatement::Assignment { left, right, .. } =&gt; {
-                                <span class="kw">let </span>name = <span class="kw">if let </span>AstStatement::Reference { name, .. } = left.as_ref() {
-                                    name.clone()
-                                } <span class="kw">else </span>{
-                                    <span class="macro">unreachable!</span>(<span class="string">&quot;expected reference, got {:?}&quot;</span>, left.as_ref())
-                                };
                                 <span class="comment">//&lt;element-name, initializer, location&gt;
-                                </span>(name, <span class="prelude-val">Some</span>(<span class="kw-2">*</span>right.clone()), it.get_location())
+                                </span>(
+                                    extract_flat_ref_name(left.as_ref()),
+                                    <span class="prelude-val">Some</span>(<span class="kw-2">*</span>right.clone()),
+                                    it.get_location(),
+                                )
                             }
-                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;expected assignment, got {:?}&quot;</span>, it),
+                            <span class="kw">_ </span>=&gt; (extract_flat_ref_name(it), <span class="prelude-val">None</span>, it.get_location()),
                         })
                         .map(|(element_name, initializer, location)| {
                             <span class="kw">let </span>enum_literal = initializer.unwrap_or_else(|| {
                                 build_enum_initializer(<span class="kw-2">&amp;</span>last_name, <span class="kw-2">&amp;</span>location, <span class="kw-2">&amp;mut </span>id_provider, enum_name)
                             });
-                            last_name = <span class="prelude-val">Some</span>(element_name.clone());
+                            last_name = <span class="prelude-val">Some</span>(element_name.to_string());
                             AstStatement::Assignment {
                                 id: id_provider.next_id(),
-                                left: Box::new(AstStatement::Reference {
-                                    id: id_provider.next_id(),
-                                    name: element_name,
-                                    location,
-                                }),
+                                left: Box::new(AstFactory::create_member_reference(
+                                    AstFactory::create_identifier(
+                                        element_name,
+                                        <span class="kw-2">&amp;</span>location,
+                                        id_provider.next_id(),
+                                    ),
+                                    <span class="prelude-val">None</span>,
+                                    id_provider.next_id(),
+                                )),
                                 right: Box::new(enum_literal),
                             }
                         })
@@ -419,9 +438,14 @@
 ) -&gt; AstStatement {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(last_element) = last_name.as_ref() {
         <span class="comment">// generate a `enum#last + 1` statement
-        </span><span class="kw">let </span>enum_ref = AstFactory::create_reference(last_element, location, id_provider.next_id());
+        </span><span class="kw">let </span>enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
+        <span class="kw">let </span>type_element = AstFactory::create_member_reference(
+            AstFactory::create_identifier(enum_name, location, id_provider.next_id()),
+            <span class="prelude-val">None</span>,
+            id_provider.next_id(),
+        );
         AstFactory::create_binary_expression(
-            AstFactory::create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+            AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
             AstStatement::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
             id_provider.next_id(),

@@ -2689,6 +2689,10 @@
 <a href="#2689" id="2689">2689</a>
 <a href="#2690" id="2690">2690</a>
 <a href="#2691" id="2691">2691</a>
+<a href="#2692" id="2692">2692</a>
+<a href="#2693" id="2693">2693</a>
+<a href="#2694" id="2694">2694</a>
+<a href="#2695" id="2695">2695</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2702,8 +2706,8 @@
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, Dimension, StringEncoding, VarArgs, DINT_TYPE,
-        INT_SIZE, INT_TYPE, LINT_TYPE,
+        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
 <span class="kw">use </span>inkwell::{
@@ -2716,7 +2720,10 @@
     AddressSpace, FloatPredicate, IntPredicate,
 };
 <span class="kw">use </span>plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{
+        flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
+        SourceRange,
+    },
     literals::AstLiteral,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
@@ -2724,7 +2731,6 @@
 <span class="kw">use </span>std::{collections::HashSet, vec};
 
 <span class="kw">use super</span>::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
-
 <span class="doccomment">/// the generator for expressions
 </span><span class="kw">pub struct </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="kw">pub </span>llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;a</span>&gt;,
@@ -2882,47 +2888,34 @@
         expression: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//see if this is a constant - maybe we can short curcuit this codegen
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = <span class="self">self</span>.annotations.get(expression) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(basic_value_enum) = <span class="self">self</span>.llvm_index.find_constant_value(qualified_name) {
-                <span class="comment">//this is a constant and we have a value for it
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(ExpressionValue::RValue(basic_value_enum));
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable {
+            qualified_name, constant: <span class="bool-val">true</span>, resulting_type, ..
+        }) = <span class="self">self</span>.annotations.get(expression)
+        {
+            <span class="kw">if </span>!<span class="self">self</span>.index.get_type_information_or_void(resulting_type).is_aggregate() {
+                <span class="comment">// constant propagation
+                </span><span class="kw">return </span><span class="self">self</span>.generate_constant_expression(qualified_name, expression);
             }
         }
         <span class="comment">// generate the expression
         </span><span class="kw">match </span>expression {
-            AstStatement::Reference { .. } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable {
-                    qualified_name,
-                    resulting_type,
-                    constant: <span class="bool-val">true</span>,
-                    ..
-                }) = <span class="self">self</span>.annotations.get(expression)
-                {
-                    <span class="kw">if </span><span class="self">self</span>.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                        <span class="self">self</span>.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                    } <span class="kw">else </span>{
-                        <span class="comment">// constant propagation
-                        </span><span class="self">self</span>.generate_constant_expression(qualified_name, expression)
+            AstStatement::ReferenceExpr { access, base, .. } =&gt; {
+                <span class="kw">let </span>res = <span class="self">self</span>.generate_reference_expression(access, base.as_deref(), expression)<span class="question-mark">?</span>;
+                <span class="kw">let </span>val = <span class="kw">match </span>res {
+                    ExpressionValue::LValue(val) =&gt; {
+                        ExpressionValue::LValue(<span class="self">self</span>.auto_deref_if_necessary(val, expression))
                     }
-                } <span class="kw">else </span>{
-                    <span class="comment">// general reference generation
-                    </span><span class="self">self</span>.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                }
-            }
-            AstStatement::QualifiedReference { elements, .. } =&gt; {
-                <span class="comment">//If direct access, don&#39;t load pointers
-                </span><span class="kw">if </span>expression.has_direct_access() {
-                    <span class="comment">//Split the qualified reference at the last element
-                    </span><span class="self">self</span>.generate_directaccess(elements).map(ExpressionValue::RValue)
-                } <span class="kw">else </span>{
-                    <span class="self">self</span>.generate_element_pointer(expression).map(ExpressionValue::LValue)
-                }
-            }
-            AstStatement::ArrayAccess { .. } =&gt; {
-                <span class="self">self</span>.generate_element_pointer(expression).map(ExpressionValue::LValue)
-            }
-            AstStatement::PointerAccess { .. } =&gt; {
-                <span class="self">self</span>.generate_element_pointer(expression).map(ExpressionValue::LValue)
+                    ExpressionValue::RValue(val) =&gt; {
+                        <span class="kw">let </span>val = <span class="kw">if </span>val.is_pointer_value() {
+                            <span class="self">self</span>.auto_deref_if_necessary(val.into_pointer_value(), expression)
+                                .as_basic_value_enum()
+                        } <span class="kw">else </span>{
+                            val
+                        };
+                        ExpressionValue::RValue(val)
+                    }
+                };
+                <span class="prelude-val">Ok</span>(val)
             }
             AstStatement::BinaryExpression { left, right, operator, .. } =&gt; <span class="self">self
                 </span>.generate_binary_expression(left, right, operator, expression)
@@ -3015,55 +3008,6 @@
         }
     }
 
-    <span class="kw">fn </span>generate_directaccess(<span class="kw-2">&amp;</span><span class="self">self</span>, elements: <span class="kw-2">&amp;</span>[AstStatement]) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>(expression, last) = <span class="kw">match </span>elements {
-            [qualifier, last] =&gt; {
-                <span class="comment">// a.%w1
-                </span>(qualifier.clone(), last)
-            }
-            [qualifier @ .., last_qualifier, last] =&gt; {
-                <span class="comment">// a.b.c.%w1
-                </span><span class="kw">let </span>id = last_qualifier.get_id();
-                (
-                    AstStatement::QualifiedReference {
-                        elements: [qualifier, <span class="kw-2">&amp;</span>[last_qualifier.clone()]].concat().to_vec(),
-                        id,
-                    },
-                    last,
-                )
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Invalid direct-access: {elements:?}&quot;</span>),
-                    SourceRange::undefined(),
-                ));
-            }
-        };
-
-        <span class="comment">//Generate a load for the qualifer
-        // a.%b1.%x1
-        </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(<span class="kw-2">&amp;</span>expression)<span class="question-mark">?</span>;
-        <span class="kw">let </span>expression_type = <span class="self">self</span>.get_type_hint_for(<span class="kw-2">&amp;</span>expression)<span class="question-mark">?</span>;
-        <span class="kw">if let </span>AstStatement::DirectAccess { access, index, .. } = last {
-            <span class="comment">//Generate and load the index value
-            </span><span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(last)<span class="question-mark">?</span>;
-            <span class="kw">let </span>rhs = <span class="self">self</span>.generate_direct_access_index(access, index, datatype, expression_type)<span class="question-mark">?</span>;
-            <span class="comment">//Shift the qualifer value right by the index value
-            </span><span class="kw">let </span>shift = <span class="self">self</span>.llvm.builder.build_right_shift(
-                value.into_int_value(),
-                rhs,
-                expression_type.get_type_information().is_signed_int(),
-                <span class="string">&quot;shift&quot;</span>,
-            );
-            <span class="comment">//Trunc the result to the get only the target size
-            </span><span class="kw">let </span>llvm_target_type = <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type();
-            <span class="kw">let </span>result = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(shift, llvm_target_type, <span class="string">&quot;&quot;</span>);
-            <span class="prelude-val">Ok</span>(result.as_basic_value_enum())
-        } <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        }
-    }
-
     <span class="kw">pub fn </span>generate_direct_access_index(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         access: <span class="kw-2">&amp;</span>DirectAccessType,
@@ -3138,11 +3082,6 @@
                     ))
                 }
             }
-            Operator::Address =&gt; {
-                <span class="comment">//datatype is a pointer to the address
-                //value is the address
-                </span><span class="self">self</span>.generate_element_pointer(expression).map(|result| result.as_basic_value_enum())
-            }
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
         };
         value
@@ -3165,7 +3104,7 @@
             </span>.or_else(|| <span class="self">self</span>.index.find_pou(qualified_name)))
             .or_else(||
                 <span class="comment">// some rare situations have a callstatement that&#39;s not properly annotated (e.g. checkRange-call of ranged datatypes)
-                </span><span class="kw">if let </span>AstStatement::Reference { name, .. } = operator {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = operator.get_flat_reference_name() {
                     <span class="self">self</span>.index.find_pou(name)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
@@ -3249,7 +3188,7 @@
         </span><span class="kw">if </span>!pou.is_function() {
             <span class="kw">let </span>parameter_struct = <span class="kw">match </span>arguments_list.first() {
                 <span class="prelude-val">Some</span>(v) =&gt; v.into_pointer_value(),
-                <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.generate_element_pointer(operator)<span class="question-mark">?</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>,
             };
             <span class="self">self</span>.assign_output_values(parameter_struct, implementation_name, parameters_list)<span class="question-mark">?
         </span>}
@@ -3302,7 +3241,7 @@
                 &amp;&amp; !<span class="macro">matches!</span>(expression, AstStatement::EmptyStatement { .. })
             {
                 {
-                    <span class="kw">let </span>assigned_output = <span class="self">self</span>.generate_element_pointer(expression)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>assigned_output = <span class="self">self</span>.generate_lvalue(expression)<span class="question-mark">?</span>;
 
                     <span class="kw">let </span>assigned_output_type =
                         <span class="self">self</span>.annotations.get_type_or_void(expression, <span class="self">self</span>.index).get_type_information();
@@ -3347,11 +3286,11 @@
         left: <span class="kw-2">&amp;</span>AstStatement,
         right: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">if let </span>AstStatement::Reference { name, .. } = left {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = <span class="self">self</span>.annotations.get(left) {
             <span class="kw">let </span>parameter = <span class="self">self
                 </span>.index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))<span class="question-mark">?</span>;
+                .find_fully_qualified_variable(qualified_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))<span class="question-mark">?</span>;
             <span class="kw">let </span>index = parameter.get_location_in_parent();
             <span class="self">self</span>.assign_output_value(<span class="kw-2">&amp;</span>CallParameterAssignment {
                 assignment_statement: right,
@@ -3382,12 +3321,15 @@
             <span class="comment">// no function
             </span><span class="kw">let </span>(class_ptr, call_ptr) = <span class="kw">match </span>pou {
                 PouIndexEntry::Method { .. } =&gt; {
-                    <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_element_pointer(operator)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
                     <span class="kw">let </span>call_ptr =
                         <span class="self">self</span>.allocate_function_struct_instance(implementation.get_call_name(), operator)<span class="question-mark">?</span>;
                     (<span class="prelude-val">Some</span>(class_ptr), call_ptr)
                 }
-                PouIndexEntry::Action { .. } <span class="kw">if </span><span class="macro">matches!</span>(operator, AstStatement::Reference { .. }) =&gt; {
+                <span class="comment">// TODO: find a more reliable way to make sure if this is a call into a local action!!
+                </span>PouIndexEntry::Action { .. }
+                    <span class="kw">if </span><span class="macro">matches!</span>(operator, AstStatement::ReferenceExpr { base: <span class="prelude-val">None</span>, .. }) =&gt;
+                {
                     <span class="comment">// special handling for local actions, get the parameter from the function context
                     </span>function_context
                         .function
@@ -3396,7 +3338,7 @@
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?
                 </span>}
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>call_ptr = <span class="self">self</span>.generate_element_pointer(operator)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>call_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
                     (<span class="prelude-val">None</span>, call_ptr)
                 }
             };
@@ -3568,15 +3510,19 @@
         }
 
         <span class="comment">// Generate the element pointer, then...
-        </span><span class="kw">let </span>value = <span class="self">self</span>.generate_element_pointer(argument).or_else::&lt;Diagnostic, <span class="kw">_</span>&gt;(|<span class="kw">_</span>| {
-            <span class="comment">// Passed a literal to a byref parameter?
-            // TODO: find more defensive solution - check early
-            </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?</span>;
-            <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">&quot;&quot;</span>);
-            <span class="self">self</span>.llvm.builder.build_store(argument, value);
-
-            <span class="prelude-val">Ok</span>(argument)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>value = {
+            <span class="kw">let </span>value = <span class="self">self</span>.generate_expression_value(argument)<span class="question-mark">?</span>;
+            <span class="kw">match </span>value {
+                ExpressionValue::LValue(v) =&gt; v,
+                ExpressionValue::RValue(_v) =&gt; {
+                    <span class="comment">// Passed a literal to a byref parameter?
+                    </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">&quot;&quot;</span>);
+                    <span class="self">self</span>.llvm.builder.build_store(argument, value);
+                    argument
+                }
+            }
+        };
 
         <span class="comment">// ...check if we can bitcast a reference to their hinted type
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(hint) = <span class="self">self</span>.annotations.get_type_hint(argument, <span class="self">self</span>.index) {
@@ -3885,7 +3831,7 @@
                         })<span class="question-mark">?</span>;
                     builder.build_alloca(temp_type, <span class="string">&quot;empty_varinout&quot;</span>).as_basic_value_enum()
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.generate_element_pointer(expression)<span class="question-mark">?</span>.as_basic_value_enum()
+                    <span class="self">self</span>.generate_lvalue(expression)<span class="question-mark">?</span>.as_basic_value_enum()
                 };
                 builder.build_store(pointer_to_param, generated_exp);
             } <span class="kw">else </span>{
@@ -3909,11 +3855,12 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>function_name = param_context.function_name;
         <span class="kw">let </span>parameter_struct = param_context.parameter_struct;
-        <span class="kw">if let </span>AstStatement::Reference { name, .. } = left {
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = <span class="self">self</span>.annotations.get(left) {
             <span class="kw">let </span>parameter = <span class="self">self
                 </span>.index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))<span class="question-mark">?</span>;
+                .find_fully_qualified_variable(qualified_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))<span class="question-mark">?</span>;
             <span class="kw">let </span>index = parameter.get_location_in_parent();
 
             <span class="comment">// don&#39;t generate param assignments for empty statements, with the exception
@@ -3933,78 +3880,23 @@
                     parameter_struct,
                 })<span class="question-mark">?</span>;
             };
-        };
+        }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// generates an gep-statement and returns the resulting pointer and DataTypeInfo
+    <span class="doccomment">/// generates an gep-statement and returns the resulting pointer
     ///
-    /// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)
-    </span><span class="kw">pub fn </span>generate_element_pointer(
+    /// - `reference_statement` - the statement to get an lvalue from
+    </span><span class="kw">pub fn </span>generate_lvalue(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         reference_statement: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">if let </span>AstStatement::QualifiedReference { elements, .. } = reference_statement {
-            <span class="self">self</span>.generate_element_pointer_from_elements(elements, reference_statement.get_location())
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.do_generate_element_pointer(<span class="prelude-val">None</span>, reference_statement)
-        }
-    }
-
-    <span class="kw">pub fn </span>generate_element_pointer_from_elements(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        elements: <span class="kw-2">&amp;</span>[AstStatement],
-        location: SourceRange,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>qualifier: <span class="prelude-ty">Option</span>&lt;PointerValue&gt; = <span class="prelude-val">None</span>;
-        <span class="kw">for </span>e <span class="kw">in </span>elements {
-            qualifier = <span class="prelude-val">Some</span>(<span class="self">self</span>.do_generate_element_pointer(qualifier, e)<span class="question-mark">?</span>);
-        }
-        qualifier.ok_or_else(|| {
-            Diagnostic::codegen_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate a LValue for {elements:?}&quot;</span>), location)
+        <span class="self">self</span>.generate_expression_value(reference_statement).and_then(|it| {
+            <span class="kw">let </span>v: <span class="prelude-ty">Result</span>&lt;PointerValue, <span class="kw">_</span>&gt; = it.get_basic_value_enum().try_into();
+            v.map_err(|err| {
+                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">&quot;{err:?}&quot;</span>).as_str(), reference_statement.get_location())
+            })
         })
-    }
-
-    <span class="kw">fn </span>do_generate_element_pointer(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        qualifier: <span class="prelude-ty">Option</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
-        reference_statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">match </span>reference_statement {
-            AstStatement::Reference { name, .. } =&gt; <span class="self">self</span>.create_llvm_pointer_value_for_reference(
-                qualifier.as_ref(),
-                name.as_str(),
-                reference_statement,
-            ),
-            AstStatement::ArrayAccess { reference, access, .. } =&gt; {
-                <span class="kw">let </span><span class="prelude-val">Some</span>(dt) = <span class="self">self</span>.annotations.get_type(reference, <span class="self">self</span>.index) <span class="kw">else </span>{
-                    <span class="comment">// XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
-                    </span><span class="macro">unreachable!</span>(<span class="string">&quot;unresolved reference&quot;</span>)
-                };
-
-                <span class="kw">if </span>dt.get_type_information().is_vla() {
-                    <span class="self">self</span>.generate_element_pointer_for_vla(reference, access)
-                        .map_err(|<span class="kw">_</span>| <span class="macro">unreachable!</span>(<span class="string">&quot;invalid access statement&quot;</span>))
-                } <span class="kw">else </span>{
-                    <span class="self">self</span>.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
-                }
-            }
-            AstStatement::PointerAccess { reference, .. } =&gt; {
-                <span class="self">self</span>.do_generate_element_pointer(qualifier, reference).map(|it| <span class="self">self</span>.deref(it))
-            }
-            AstStatement::Literal { kind: AstLiteral::String(sv), .. } =&gt; <span class="kw">if </span>sv.is_wide() {
-                <span class="self">self</span>.llvm_index.find_utf16_literal_string(sv.value())
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.llvm_index.find_utf08_literal_string(sv.value())
-            }
-            .map(|it| it.as_pointer_value())
-            .ok_or_else(|| <span class="macro">unreachable!</span>(<span class="string">&quot;All string literals have to be constants&quot;</span>)),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate a LValue for {reference_statement:?}&quot;</span>),
-                reference_statement.get_location(),
-            )),
-        }
-        .map(|it| <span class="self">self</span>.auto_deref_if_necessary(it, reference_statement))
     }
 
     <span class="doccomment">/// geneartes a gep for the given reference with an optional qualifier
@@ -4035,7 +3927,7 @@
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>gep = <span class="self">self</span>.llvm.get_member_pointer_from_struct(
+                    <span class="kw">let </span>gep: PointerValue&lt;<span class="lifetime">&#39;_</span>&gt; = <span class="self">self</span>.llvm.get_member_pointer_from_struct(
                         <span class="kw-2">*</span>qualifier,
                         member_location,
                         name,
@@ -4152,111 +4044,114 @@
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
     </span><span class="kw">fn </span>generate_element_pointer_for_array(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
         reference: <span class="kw-2">&amp;</span>AstStatement,
         access: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//Load the reference
-        </span><span class="self">self</span>.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
-            <span class="kw">if let </span>DataTypeInformation::Array { dimensions, .. } = <span class="self">self</span>.get_type_hint_info_for(reference)<span class="question-mark">? </span>{
-                <span class="comment">// make sure dimensions match statement list
-                </span><span class="kw">let </span>statements = access.get_as_list();
-                <span class="kw">if </span>statements.is_empty() || statements.len() != dimensions.len() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()));
-                }
+        </span><span class="self">self</span>.generate_expression_value(reference)
+            .map(|it| it.get_basic_value_enum().into_pointer_value())
+            .and_then(|lvalue| {
+                <span class="kw">if let </span>DataTypeInformation::Array { dimensions, .. } =
+                    <span class="self">self</span>.get_type_hint_info_for(reference)<span class="question-mark">?
+                </span>{
+                    <span class="comment">// make sure dimensions match statement list
+                    </span><span class="kw">let </span>statements = access.get_as_list();
+                    <span class="kw">if </span>statements.is_empty() || statements.len() != dimensions.len() {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()));
+                    }
 
-                <span class="comment">// e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
-                </span><span class="kw">let </span>lengths = dimensions
-                    .iter()
-                    .map(|d| d.get_length(<span class="self">self</span>.index))
-                    .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
-                    .map_err(|msg| {
-                        Diagnostic::codegen_error(
-                            <span class="macro">format!</span>(<span class="string">&quot;Invalid array dimensions access: {msg}&quot;</span>).as_str(),
-                            access.get_location(),
-                        )
-                    })<span class="question-mark">?</span>;
+                    <span class="comment">// e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
+                    </span><span class="kw">let </span>lengths = dimensions
+                        .iter()
+                        .map(|d| d.get_length(<span class="self">self</span>.index))
+                        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
+                        .map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                <span class="macro">format!</span>(<span class="string">&quot;Invalid array dimensions access: {msg}&quot;</span>).as_str(),
+                                access.get_location(),
+                            )
+                        })<span class="question-mark">?</span>;
 
-                <span class="comment">// the portion indicates how many elements are represented by the corresponding dimension
-                // the first dimensions corresponds to the number of elements of the rest of the dimensions
-                //          - portion = 6 (size to the right = 3 x 2 = 6)
-                //         /        - portion = 2 (because the size to the right of this dimension = 2)
-                //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
-                //                /         /
-                // [    4   ,    3    ,    2  ]
-                </span><span class="kw">let </span>dimension_portions = (<span class="number">0</span>..lengths.len())
-                    .map(|index| {
-                        <span class="kw">if </span>index == lengths.len() - <span class="number">1 </span>{
-                            <span class="number">1
-                        </span>} <span class="kw">else </span>{
-                            lengths[index + <span class="number">1</span>..lengths.len()].iter().product()
-                        }
-                    })
-                    .collect::&lt;Vec&lt;u32&gt;&gt;();
+                    <span class="comment">// the portion indicates how many elements are represented by the corresponding dimension
+                    // the first dimensions corresponds to the number of elements of the rest of the dimensions
+                    //          - portion = 6 (size to the right = 3 x 2 = 6)
+                    //         /        - portion = 2 (because the size to the right of this dimension = 2)
+                    //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
+                    //                /         /
+                    // [    4   ,    3    ,    2  ]
+                    </span><span class="kw">let </span>dimension_portions = (<span class="number">0</span>..lengths.len())
+                        .map(|index| {
+                            <span class="kw">if </span>index == lengths.len() - <span class="number">1 </span>{
+                                <span class="number">1
+                            </span>} <span class="kw">else </span>{
+                                lengths[index + <span class="number">1</span>..lengths.len()].iter().product()
+                            }
+                        })
+                        .collect::&lt;Vec&lt;u32&gt;&gt;();
 
-                <span class="kw">let </span>accessors_and_portions = statements
-                    .iter()
-                    .zip(dimensions)
-                    .map(|(statement, dimension)|
+                    <span class="kw">let </span>accessors_and_portions = statements
+                        .iter()
+                        .zip(dimensions)
+                        .map(|(statement, dimension)|
                             <span class="comment">// generate array-accessors
                             </span><span class="self">self</span>.generate_access_for_dimension(dimension, statement))
-                    .zip(dimension_portions);
+                        .zip(dimension_portions);
 
-                <span class="comment">// accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
-                </span><span class="kw">let </span>(index_access, <span class="kw">_</span>) = accessors_and_portions.fold(
-                    (<span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.i32_type().const_zero().as_basic_value_enum()), <span class="number">1</span>),
-                    |(accumulated_value, <span class="kw">_</span>), (current_v, current_portion)| {
-                        <span class="kw">let </span>result = accumulated_value.and_then(|last_v| {
-                            current_v.map(|v| {
-                                <span class="kw">let </span>current_portion_value = <span class="self">self
-                                    </span>.llvm
-                                    .i32_type()
-                                    .const_int(current_portion <span class="kw">as </span>u64, <span class="bool-val">false</span>)
-                                    .as_basic_value_enum();
-                                <span class="comment">// multiply the accessor with the dimension&#39;s portion
-                                </span><span class="kw">let </span>m_v = <span class="self">self</span>.create_llvm_int_binary_expression(
-                                    <span class="kw-2">&amp;</span>Operator::Multiplication,
-                                    current_portion_value,
-                                    v,
-                                );
-                                <span class="comment">// take the sum of the mulitlication and the previous accumulated_value
-                                // this now becomes the new accumulated value
-                                </span><span class="self">self</span>.create_llvm_int_binary_expression(<span class="kw-2">&amp;</span>Operator::Plus, m_v, last_v)
-                            })
-                        });
-                        (result, <span class="number">0 </span><span class="comment">/* the 0 will be ignored */</span>)
-                    },
-                );
+                    <span class="comment">// accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                    </span><span class="kw">let </span>(index_access, <span class="kw">_</span>) = accessors_and_portions.fold(
+                        (<span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.i32_type().const_zero().as_basic_value_enum()), <span class="number">1</span>),
+                        |(accumulated_value, <span class="kw">_</span>), (current_v, current_portion)| {
+                            <span class="kw">let </span>result = accumulated_value.and_then(|last_v| {
+                                current_v.map(|v| {
+                                    <span class="kw">let </span>current_portion_value = <span class="self">self
+                                        </span>.llvm
+                                        .i32_type()
+                                        .const_int(current_portion <span class="kw">as </span>u64, <span class="bool-val">false</span>)
+                                        .as_basic_value_enum();
+                                    <span class="comment">// multiply the accessor with the dimension&#39;s portion
+                                    </span><span class="kw">let </span>m_v = <span class="self">self</span>.create_llvm_int_binary_expression(
+                                        <span class="kw-2">&amp;</span>Operator::Multiplication,
+                                        current_portion_value,
+                                        v,
+                                    );
+                                    <span class="comment">// take the sum of the mulitlication and the previous accumulated_value
+                                    // this now becomes the new accumulated value
+                                    </span><span class="self">self</span>.create_llvm_int_binary_expression(<span class="kw-2">&amp;</span>Operator::Plus, m_v, last_v)
+                                })
+                            });
+                            (result, <span class="number">0 </span><span class="comment">/* the 0 will be ignored */</span>)
+                        },
+                    );
 
-                <span class="comment">// make sure we got an int-value
-                </span><span class="kw">let </span>index_access: IntValue = index_access.and_then(|it| {
-                    it.try_into().map_err(|<span class="kw">_</span>| {
-                        Diagnostic::codegen_error(<span class="string">&quot;non-numeric index-access&quot;</span>, access.get_location())
-                    })
-                })<span class="question-mark">?</span>;
+                    <span class="comment">// make sure we got an int-value
+                    </span><span class="kw">let </span>index_access: IntValue = index_access.and_then(|it| {
+                        it.try_into().map_err(|<span class="kw">_</span>| {
+                            Diagnostic::codegen_error(<span class="string">&quot;non-numeric index-access&quot;</span>, access.get_location())
+                        })
+                    })<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>accessor_sequence = <span class="kw">if </span>lvalue.get_type().get_element_type().is_array_type() {
-                    <span class="comment">// e.g.: [81 x i32]*
-                    // the first index (0) will point to the array -&gt; [81 x i32]
-                    // the second index (index_access) will point to the element in the array
-                    </span><span class="macro">vec!</span>[<span class="self">self</span>.llvm.i32_type().const_zero(), index_access]
-                } <span class="kw">else </span>{
-                    <span class="comment">// lvalue is a pointer to type -&gt; e.g.: i32*
-                    // only one index (index_access) is needed to access the element
+                    <span class="kw">let </span>accessor_sequence = <span class="kw">if </span>lvalue.get_type().get_element_type().is_array_type() {
+                        <span class="comment">// e.g.: [81 x i32]*
+                        // the first index (0) will point to the array -&gt; [81 x i32]
+                        // the second index (index_access) will point to the element in the array
+                        </span><span class="macro">vec!</span>[<span class="self">self</span>.llvm.i32_type().const_zero(), index_access]
+                    } <span class="kw">else </span>{
+                        <span class="comment">// lvalue is a pointer to type -&gt; e.g.: i32*
+                        // only one index (index_access) is needed to access the element
 
-                    // IGNORE the additional first index (0)
-                    // it would point to -&gt; i32
-                    // we can&#39;t access any element of i32
-                    </span><span class="macro">vec!</span>[index_access]
-                };
+                        // IGNORE the additional first index (0)
+                        // it would point to -&gt; i32
+                        // we can&#39;t access any element of i32
+                        </span><span class="macro">vec!</span>[index_access]
+                    };
 
-                <span class="comment">// load the access from that array
-                </span><span class="kw">let </span>pointer = <span class="self">self</span>.llvm.load_array_element(lvalue, <span class="kw-2">&amp;</span>accessor_sequence, <span class="string">&quot;tmpVar&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// load the access from that array
+                    </span><span class="kw">let </span>pointer = <span class="self">self</span>.llvm.load_array_element(lvalue, <span class="kw-2">&amp;</span>accessor_sequence, <span class="string">&quot;tmpVar&quot;</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(pointer);
-            }
-            <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()))
-        })
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(pointer);
+                }
+                <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()))
+            })
     }
 
     <span class="doccomment">/// generates the result of an pointer binary-expression
@@ -4707,13 +4602,12 @@
             <span class="kw">let </span><span class="kw-2">mut </span>member_values: Vec&lt;(u32, BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;)&gt; = Vec::new();
             <span class="kw">for </span>assignment <span class="kw">in </span>flatten_expression_list(assignments) {
                 <span class="kw">if let </span>AstStatement::Assignment { left, right, .. } = assignment {
-                    <span class="kw">if let </span>AstStatement::Reference { name: variable_name, location, .. } = <span class="kw-2">&amp;**</span>left {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) =
+                        <span class="self">self</span>.annotations.get(left.as_ref())
+                    {
                         <span class="kw">let </span>member: <span class="kw-2">&amp;</span>VariableIndexEntry =
-                            <span class="self">self</span>.index.find_member(struct_name, variable_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(
-                                    <span class="kw-2">&amp;</span>qualified_name(struct_name, variable_name),
-                                    location.clone(),
-                                )
+                            <span class="self">self</span>.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
+                                Diagnostic::unresolved_reference(qualified_name, left.get_location())
                             })<span class="question-mark">?</span>;
 
                         <span class="kw">let </span>index_in_parent = member.get_location_in_parent();
@@ -5110,13 +5004,15 @@
     <span class="doccomment">/// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
     </span><span class="kw">fn </span>get_load_name(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         <span class="kw">match </span>expression {
-            AstStatement::Reference { name, .. } =&gt; {
-                <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.temp_variable_prefix, name, <span class="self">self</span>.temp_variable_suffix))
-            }
-            AstStatement::QualifiedReference { .. } =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.temp_variable_prefix.clone()),
-            AstStatement::PointerAccess { .. } | AstStatement::ArrayAccess { .. } =&gt; {
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. }
+            | AstStatement::ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. } =&gt; {
                 <span class="prelude-val">Some</span>(<span class="string">&quot;load_tmpVar&quot;</span>.to_string())
             }
+            AstStatement::ReferenceExpr { .. } =&gt; expression
+                .get_flat_reference_name()
+                .map(|name| <span class="macro">format!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.temp_variable_prefix, name, <span class="self">self</span>.temp_variable_suffix))
+                .or_else(|| <span class="prelude-val">Some</span>(<span class="self">self</span>.temp_variable_prefix.clone())),
+            AstStatement::Identifier { name, .. } =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, name, <span class="self">self</span>.temp_variable_suffix)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -5124,27 +5020,19 @@
     <span class="doccomment">/// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime
     </span><span class="kw">fn </span>generate_element_pointer_for_vla(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        reference: <span class="kw-2">&amp;</span>AstStatement,
+        reference: ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        reference_annotation: <span class="kw-2">&amp;</span>StatementAnnotation,
         access: <span class="kw-2">&amp;</span>AstStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, ()&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
 
         <span class="comment">// array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
-        </span><span class="kw">let </span>annotation = <span class="kw">match </span>reference {
-            AstStatement::Reference { .. } =&gt; <span class="self">self</span>.annotations.get(reference),
-            AstStatement::ArrayAccess { reference, .. } =&gt; <span class="self">self</span>.annotations.get(reference.as_ref()),
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+
+        </span><span class="kw">let </span>StatementAnnotation::Variable { resulting_type: reference_type,  .. } = reference_annotation <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>();
         };
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = annotation <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        };
-
-        <span class="comment">// if the vla parameter is by-ref, we need to dereference the pointer
-        </span><span class="kw">let </span>struct_ptr = <span class="self">self</span>.auto_deref_if_necessary(
-            <span class="self">self</span>.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())<span class="question-mark">?</span>,
-            reference,
-        );
+        <span class="kw">let </span>struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
         <span class="comment">// GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
@@ -5154,9 +5042,7 @@
         </span><span class="kw">let </span>dim_arr_gep = builder.build_struct_gep(struct_ptr, <span class="number">1</span>, <span class="string">&quot;dim_arr&quot;</span>).unwrap();
 
         <span class="comment">// get lengths of dimensions
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(type_) = <span class="self">self</span>.annotations.get_type(reference, <span class="self">self</span>.index) <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        };
+        </span><span class="kw">let </span>type_ = <span class="self">self</span>.index.get_type_information_or_void(reference_type);
         <span class="kw">let </span><span class="prelude-val">Some</span>(ndims) = type_.get_type_information().get_dimensions() <span class="kw">else </span>{
             <span class="macro">unreachable!</span>()
         };
@@ -5213,6 +5099,128 @@
 
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ builder.build_in_bounds_gep(vla_arr_ptr, <span class="kw-2">&amp;</span>[accessor], <span class="string">&quot;arr_val&quot;</span>) })
     }
+
+    <span class="doccomment">/// generates a reference expression (member, index, deref, etc.)
+    ///
+    /// - `access` the ReferenceAccess of the reference to generate
+    /// - `base` the &quot;previous&quot; segment of an optional qualified reference-access
+    /// - `original_expression` the original ast-statement used to report Diagnostics
+    </span><span class="kw">fn </span>generate_reference_expression(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        access: <span class="kw-2">&amp;</span>ReferenceAccess,
+        base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+        original_expression: <span class="kw-2">&amp;</span>AstStatement,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">match </span>(access, base) {
+
+            <span class="comment">// expressions like `base.member`, or just `member`
+            </span>(ReferenceAccess::Member(member), base) =&gt; {
+                <span class="kw">let </span>base_value = base.map(|it| <span class="self">self</span>.generate_expression_value(it)).transpose()<span class="question-mark">?</span>;
+
+                <span class="kw">if let </span>AstStatement::DirectAccess { access, index, .. } = member.as_ref() {
+                    <span class="kw">let </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(base_value)) = (base, base_value) <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Cannot generate DirectAccess without base value.&quot;</span>, original_expression.get_location()));
+                    };
+                    <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, access, index)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>member_name = member.get_flat_reference_name().unwrap_or(<span class="string">&quot;unknown&quot;</span>);
+                    <span class="self">self</span>.create_llvm_pointer_value_for_reference(
+                        base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
+                        <span class="self">self</span>.get_load_name(member).as_deref().unwrap_or(member_name),
+                        original_expression,
+                    )
+                    .map(ExpressionValue::LValue)
+                }
+            }
+
+            <span class="comment">// expressions like: base[idx]
+            </span>(ReferenceAccess::Index(array_idx), <span class="prelude-val">Some</span>(base)) =&gt; {
+                <span class="kw">if </span><span class="self">self</span>.annotations.get_type_or_void(base, <span class="self">self</span>.index).is_vla() {
+                    <span class="comment">// vla array needs special handling
+                    </span><span class="self">self</span>.generate_element_pointer_for_vla(
+                        <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>,
+                        <span class="self">self</span>.annotations.get(base).expect(<span class="string">&quot;&quot;</span>),
+                        array_idx.as_ref(),
+                    )
+                    .map_err(|<span class="kw">_</span>| <span class="macro">unreachable!</span>(<span class="string">&quot;invalid access statement&quot;</span>))
+                    .map(ExpressionValue::LValue)
+                } <span class="kw">else </span>{
+                    <span class="comment">// normal array expression
+                    </span><span class="self">self</span>.generate_element_pointer_for_array(base, array_idx).map(ExpressionValue::LValue)
+                }
+            }
+
+            <span class="comment">// INT#target (INT = base)
+            </span>(ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(_base)) =&gt; {
+                <span class="kw">if </span><span class="macro">matches!</span>(target.as_ref(), AstStatement::Identifier { .. }) {
+                    <span class="kw">let </span>mr =
+                        AstFactory::create_member_reference(target.as_ref().clone(), <span class="prelude-val">None</span>, target.get_id());
+                    <span class="self">self</span>.generate_expression_value(<span class="kw-2">&amp;</span>mr)
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.generate_expression_value(target.as_ref())
+                }
+            }
+
+            <span class="comment">// base^
+            </span>(ReferenceAccess::Deref, <span class="prelude-val">Some</span>(base)) =&gt; {
+                <span class="kw">let </span>ptr = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(ExpressionValue::LValue(
+                    <span class="self">self</span>.llvm
+                        .load_pointer(<span class="kw-2">&amp;</span>ptr.get_basic_value_enum().into_pointer_value(), <span class="string">&quot;deref&quot;</span>)
+                        .into_pointer_value(),
+                ))
+            }
+
+            <span class="comment">// &amp;base
+            </span>(ReferenceAccess::Address, <span class="prelude-val">Some</span>(base)) =&gt; {
+                <span class="kw">let </span>lvalue = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
+            }
+
+            (ReferenceAccess::Index(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="comment">// [idx];
+            </span>| (ReferenceAccess::Cast(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="comment">// INT#;
+            </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)  <span class="comment">// ^;
+            </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>) <span class="comment">// &amp;;
+                </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
+                <span class="string">&quot;Expected a base-expressions, but found none.&quot;</span>,
+                original_expression.get_location(),
+            )),
+        }
+    }
+
+    <span class="doccomment">/// generates a direct-access expression like `x.%B4`
+    /// - `qualifier` the qualifier statement (see `x` above)
+    /// - `qualifier_value` the generated value of the qualifier
+    /// - `member` the member AstStatement (see `%B4`above)
+    /// - `access` the type of access (see `B` above)
+    </span><span class="kw">fn </span>generate_direct_access_expression(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        qualifier: <span class="kw-2">&amp;</span>AstStatement,
+        qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        member: <span class="kw-2">&amp;</span>AstStatement,
+        access: <span class="kw-2">&amp;</span>DirectAccessType,
+        index: <span class="kw-2">&amp;</span>AstStatement,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier));
+        <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
+        <span class="kw">let </span>base_type = <span class="self">self</span>.get_type_hint_for(qualifier)<span class="question-mark">?</span>;
+        <span class="comment">//Generate and load the index value
+        </span><span class="kw">let </span>rhs = <span class="self">self</span>.generate_direct_access_index(access, index, datatype, base_type)<span class="question-mark">?</span>;
+        <span class="comment">//Shift the qualifer value right by the index value
+        </span><span class="kw">let </span>shift = <span class="self">self</span>.llvm.builder.build_right_shift(
+            loaded_base_value.into_int_value(),
+            rhs,
+            base_type.get_type_information().is_signed_int(),
+            <span class="string">&quot;shift&quot;</span>,
+        );
+        <span class="comment">//Trunc the result to the get only the target size
+        </span><span class="kw">let </span>result = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
+            shift,
+            <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type(),
+            <span class="string">&quot;&quot;</span>,
+        );
+        <span class="prelude-val">Ok</span>(ExpressionValue::RValue(result.as_basic_value_enum()))
+    }
 }
 
 <span class="doccomment">/// Returns the information required to call a parameter implicitly in a function
@@ -5229,7 +5237,7 @@
     <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement {
         AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } =&gt; {
             <span class="comment">//explicit
-            </span><span class="kw">let </span>AstStatement::Reference { name: left_name, .. } = left.as_ref() <span class="kw">else </span>{
+            </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::reference_expected(param_statement.get_location()));
             };
             <span class="kw">let </span>loc = declared_parameters
