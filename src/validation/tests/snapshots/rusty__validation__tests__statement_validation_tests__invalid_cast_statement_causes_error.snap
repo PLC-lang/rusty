@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Could not resolve reference to var1", range: [SourceRange { range: 141..145 }], err_no: reference__unresolved }
+

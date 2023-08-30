@@ -1,0 +1,13 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+BinaryExpression {
+    operator: Or,
+    left: LiteralBool {
+        value: true,
+    },
+    right: LiteralBool {
+        value: false,
+    },
+}

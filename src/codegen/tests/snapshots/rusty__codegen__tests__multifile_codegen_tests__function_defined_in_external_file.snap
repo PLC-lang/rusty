@@ -67,7 +67,7 @@ source_filename = "prog.st"
 define void @prog(%prog* %0) {
 entry:
   %myFb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %load_ = load i32, i32* getelementptr inbounds (%prg.5, %prg.5* @prg_instance, i32 0, i32 0), align 4
+  %load_a = load i32, i32* getelementptr inbounds (%prg.5, %prg.5* @prg_instance, i32 0, i32 0), align 4
   call void @prg2(%prg2.6* @prg2_instance)
   %call = call i32 @func()
   call void @fb(%fb.4* %myFb)
