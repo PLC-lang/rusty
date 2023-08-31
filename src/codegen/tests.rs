@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-mod cfc_tests;
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod compare_instructions_tests;
