@@ -1,0 +1,32 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: codegen(src)
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  %x1 = alloca i32, align 4
+  %x2 = alloca i32, align 4
+  store i32 0, i32* %x1, align 4
+  store i32 0, i32* %x2, align 4
+  store i32 0, i32* %main, align 4
+  %0 = ptrtoint i32* %main to i64
+  %call = call i32 @SMC_Read(i64 %0)
+  store i32 %call, i32* %x1, align 4
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+
+define i32 @SMC_Read(i64 %0) {
+entry:
+  %SMC_Read = alloca i32, align 4
+  %ValAddr = alloca i64, align 8
+  store i64 %0, i64* %ValAddr, align 4
+  store i32 0, i32* %SMC_Read, align 4
+  %SMC_Read_ret = load i32, i32* %SMC_Read, align 4
+  ret i32 %SMC_Read_ret
+}
+

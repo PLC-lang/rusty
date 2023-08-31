@@ -1,0 +1,86 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: annotated_types
+---
+{
+    1: Function {
+        return_type: "DINT",
+        qualified_name: "foo",
+        call_name: None,
+    },
+    3: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var1",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+    2: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.input1",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        is_auto_deref: false,
+    },
+    6: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var2",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+    5: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.inout1",
+        constant: false,
+        argument_type: ByRef(
+            InOut,
+        ),
+        is_auto_deref: true,
+    },
+    8: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.output1",
+        constant: false,
+        argument_type: ByRef(
+            Output,
+        ),
+        is_auto_deref: true,
+    },
+    9: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var3",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+    12: Value {
+        resulting_type: "DINT",
+    },
+    14: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.var1",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+    13: Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo.foo",
+        constant: false,
+        argument_type: ByVal(
+            Return,
+        ),
+        is_auto_deref: false,
+    },
+}
