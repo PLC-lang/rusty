@@ -13,9 +13,9 @@ use std::{
 use indexmap::{IndexMap, IndexSet};
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, Operator, Pou, ReferenceAccess, TypeNature,
-        UserTypeDeclaration, Variable,
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstStatement, BinaryExpression,
+        CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou,
+        ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral, StringValue},
@@ -207,7 +207,7 @@ impl TypeAnnotator<'_> {
     }
 
     fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
-        let AstStatement::BinaryExpression { operator, left, right, .. } = statement else {
+        let AstStatement::BinaryExpression { data: BinaryExpression{ operator, left, right}, .. } = statement else {
             return;
         };
         let mut ctx = ctx.clone();
@@ -270,10 +270,10 @@ impl TypeAnnotator<'_> {
                     &statement.get_location(),
                 )
             })
-            .unwrap_or(AstStatement::EmptyStatement {
-                location: statement.get_location(),
-                id: ctx.id_provider.next_id(),
-            })
+            .unwrap_or(AstFactory::create_empty_statement(
+                statement.get_location(),
+                ctx.id_provider.next_id(),
+            ))
     }
 }
 
@@ -791,7 +791,7 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatement::Assignment { left, right, .. } => {
+            AstStatement::Assignment { data: Assignment { left, right }, .. } => {
                 // struct initialization (left := right)
                 // find out left's type and update a type hint for right
                 if let (
@@ -811,10 +811,10 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatement::MultipliedStatement { element: elements, .. } => {
+            AstStatement::MultipliedStatement { data, .. } => {
                 // n(elements)
                 //annotate the type to all multiplied elements
-                for ele in AstStatement::get_as_list(elements) {
+                for ele in AstStatement::get_as_list(&data.element) {
                     self.update_expected_types(expected_type, ele);
                 }
             }
@@ -824,9 +824,9 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatement::RangeStatement { start, end, .. } => {
-                self.update_expected_types(expected_type, start);
-                self.update_expected_types(expected_type, end);
+            AstStatement::RangeStatement { data, .. } => {
+                self.update_expected_types(expected_type, &data.start);
+                self.update_expected_types(expected_type, &data.end);
             }
             AstStatement::Literal { kind: AstLiteral::Integer { .. }, .. } => {
                 //special case -> promote a literal-Integer directly, not via type-hint
@@ -952,10 +952,10 @@ impl<'i> TypeAnnotator<'i> {
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else {
+                        let Some(AstStatement::Assignment { data, .. }) = flattened.get(idx) else {
                             continue;
                         };
-                        self.annotate_array_of_struct(data_type, right, ctx);
+                        self.annotate_array_of_struct(data_type, &data.right, ctx);
                     }
                 }
             }
@@ -1101,23 +1101,23 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate an expression statement
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
-            AstStatement::DirectAccess { access, index, .. } => {
+            AstStatement::DirectAccess { data, .. } => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
-                visit_all_statements!(self, &ctx, index);
-                let access_type = get_direct_access_type(access);
+                visit_all_statements!(self, &ctx, &data.index);
+                let access_type = get_direct_access_type(&data.access);
                 self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatement::HardwareAccess { access, .. } => {
-                let access_type = get_direct_access_type(access);
+            AstStatement::HardwareAccess { data, .. } => {
+                let access_type = get_direct_access_type(&data.access);
                 self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatement::BinaryExpression { left, right, operator, .. } => {
-                visit_all_statements!(self, ctx, left, right);
+            AstStatement::BinaryExpression { data, .. } => {
+                visit_all_statements!(self, ctx, &data.left, &data.right);
                 let statement_type = {
                     let left_type = self
                         .annotation_map
-                        .get_type_hint(left, self.index)
-                        .or_else(|| self.annotation_map.get_type(left, self.index))
+                        .get_type_hint(&data.left, self.index)
+                        .or_else(|| self.annotation_map.get_type(&data.left, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
                     // do not use for is_pointer() check
@@ -1125,8 +1125,8 @@ impl<'i> TypeAnnotator<'i> {
                         self.index.get_intrinsic_type_by_name(left_type.get_name()).get_type_information();
                     let right_type = self
                         .annotation_map
-                        .get_type_hint(right, self.index)
-                        .or_else(|| self.annotation_map.get_type(right, self.index))
+                        .get_type_hint(&data.right, self.index)
+                        .or_else(|| self.annotation_map.get_type(&data.right, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
                     // do not use for is_pointer() check
@@ -1149,7 +1149,7 @@ impl<'i> TypeAnnotator<'i> {
                             )
                         };
 
-                        let target_name = if operator.is_bool_type() {
+                        let target_name = if data.operator.is_bool_type() {
                             BOOL_TYPE.to_string()
                         } else {
                             bigger_type.get_name().to_string()
@@ -1162,10 +1162,10 @@ impl<'i> TypeAnnotator<'i> {
                             // if these types are different we need to update the 'other' type's annotation
                             let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
                             if bigger_is_right {
-                                self.update_expected_types(&bigger_type, left);
+                                self.update_expected_types(&bigger_type, &data.left);
                             }
                             if bigger_is_left {
-                                self.update_expected_types(&bigger_type, right);
+                                self.update_expected_types(&bigger_type, &data.right);
                             }
                         }
 
@@ -1174,16 +1174,16 @@ impl<'i> TypeAnnotator<'i> {
                         || right_type.get_type_information().is_pointer()
                     {
                         // get the target type of the binary expression
-                        let target_type = if operator.is_comparison_operator() {
+                        let target_type = if data.operator.is_comparison_operator() {
                             // compare instructions result in BOOL
                             // to generate valid IR code if a pointer is beeing compared to an integer
                             // we need to cast the int to the pointers size
                             if !left_type.get_type_information().is_pointer() {
                                 let left_type = left_type.clone(); // clone here, so we release the borrow on self
-                                self.annotate_to_pointer_size_if_necessary(&left_type, left);
+                                self.annotate_to_pointer_size_if_necessary(&left_type, &data.left);
                             } else if !right_type.get_type_information().is_pointer() {
                                 let right_type = right_type.clone(); // clone here, so we release the borrow on self
-                                self.annotate_to_pointer_size_if_necessary(&right_type, right);
+                                self.annotate_to_pointer_size_if_necessary(&right_type, &data.right);
                             }
                             BOOL_TYPE
                         } else if left_type.get_type_information().is_pointer() {
@@ -1192,7 +1192,7 @@ impl<'i> TypeAnnotator<'i> {
                             right_type.get_name()
                         };
                         Some(target_type.to_string())
-                    } else if operator.is_comparison_operator() {
+                    } else if data.operator.is_comparison_operator() {
                         //Annotate as the function call to XXX_EQUALS/LESS/GREATER..
                         self.visit_compare_statement(ctx, statement);
                         None
@@ -1205,19 +1205,19 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
-            AstStatement::UnaryExpression { value, operator, .. } => {
-                self.visit_statement(ctx, value);
+            AstStatement::UnaryExpression { data, .. } => {
+                self.visit_statement(ctx, &data.value);
 
-                let statement_type = if operator == &Operator::Minus {
+                let statement_type = if data.operator == Operator::Minus {
                     let inner_type =
-                        self.annotation_map.get_type_or_void(value, self.index).get_type_information();
+                        self.annotation_map.get_type_or_void(&data.value, self.index).get_type_information();
 
                     //keep the same type but switch to signed
                     typesystem::get_signed_type(inner_type, self.index).map(|it| it.get_name().to_string())
                 } else {
                     let inner_type = self
                         .annotation_map
-                        .get_type_or_void(value, self.index)
+                        .get_type_or_void(&data.value, self.index)
                         .get_type_information()
                         .get_name()
                         .to_string();
@@ -1234,34 +1234,34 @@ impl<'i> TypeAnnotator<'i> {
                 expressions.iter().for_each(|e| self.visit_statement(ctx, e))
             }
 
-            AstStatement::RangeStatement { start, end, .. } => {
-                visit_all_statements!(self, ctx, start, end);
+            AstStatement::RangeStatement { data, .. } => {
+                visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatement::Assignment { left, right, .. } => {
-                self.visit_statement(ctx, right);
+            AstStatement::Assignment { data, .. } => {
+                self.visit_statement(ctx, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
-                    self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), left);
+                    self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
                 } else {
-                    self.visit_statement(ctx, left);
+                    self.visit_statement(ctx, &data.left);
                 }
                 // give a type hint that we want the right side to be stored in the left's type
-                self.update_right_hand_side_expected_type(ctx, left, right);
+                self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }
-            AstStatement::OutputAssignment { left, right, .. } => {
-                visit_all_statements!(self, ctx, left, right);
+            AstStatement::OutputAssignment { data, .. } => {
+                visit_all_statements!(self, ctx, &data.left, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
-                    self.visit_statement(&ctx.with_pou(lhs), left);
+                    self.visit_statement(&ctx.with_pou(lhs), &data.left);
                 } else {
-                    self.visit_statement(ctx, left);
+                    self.visit_statement(ctx, &data.left);
                 }
-                self.update_right_hand_side_expected_type(ctx, left, right);
+                self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }
             AstStatement::CallStatement { .. } => {
                 self.visit_call_statement(statement, ctx);
             }
-            AstStatement::CastStatement { target, type_name, .. } => {
+            AstStatement::CastStatement { data: CastStatement { target, type_name }, .. } => {
                 //see if this type really exists
                 let data_type = self.index.find_effective_type_info(type_name);
                 let statement_to_annotation = if let Some(DataTypeInformation::Enum { name, .. }) = data_type
@@ -1312,8 +1312,8 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
-            AstStatement::ReferenceExpr { access, base, .. } => {
-                self.visit_reference_expr(access, base.as_deref(), statement, ctx);
+            AstStatement::ReferenceExpr { data, .. } => {
+                self.visit_reference_expr(&data.access, data.base.as_deref(), statement, ctx);
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
@@ -1458,10 +1458,10 @@ impl<'i> TypeAnnotator<'i> {
                 literal_annotation
             }
 
-            AstStatement::DirectAccess { access, index, .. } if qualifier.is_some() => {
+            AstStatement::DirectAccess { data, .. } if qualifier.is_some() => {
                 // x.%X1 - bit access
-                self.visit_statement(ctx, index.as_ref());
-                Some(StatementAnnotation::value(get_direct_access_type(access)))
+                self.visit_statement(ctx, data.index.as_ref());
+                Some(StatementAnnotation::value(get_direct_access_type(&data.access)))
             }
             _ => None,
         }
@@ -1518,12 +1518,11 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn visit_call_statement(&mut self, statement: &AstStatement, ctx: &VisitorContext) {
-        let (operator, parameters_stmt) =
-            if let AstStatement::CallStatement { operator, parameters, .. } = statement {
-                (operator.as_ref(), parameters.as_ref().as_ref())
-            } else {
-                unreachable!("Always a call statement");
-            };
+        let (operator, parameters_stmt) = if let AstStatement::CallStatement { data, .. } = statement {
+            (data.operator.as_ref(), data.parameters.as_ref().as_ref())
+        } else {
+            unreachable!("Always a call statement");
+        };
         // #604 needed for recursive function calls
         self.visit_statement(&ctx.with_resolving_strategy(ResolvingScope::call_operator_scopes()), operator);
         let operator_qualifier = self.get_call_name(operator);
@@ -1674,8 +1673,8 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Value { resulting_type } => {
                     // make sure we come from an array or function_block access
                     match operator {
-                        AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_),.. } => Some(resulting_type.clone()),
-                        AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. } =>
+                        AstStatement::ReferenceExpr { data: ReferenceExpr{access: ReferenceAccess::Index(_), ..},.. } => Some(resulting_type.clone()),
+                        AstStatement::ReferenceExpr { data: ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. } =>
                         // AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
                         // AstStatement::PointerAccess { .. } => {
                             self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
@@ -1747,8 +1746,8 @@ impl<'i> TypeAnnotator<'i> {
                     _ => {} // ignore literalNull, arrays (they are covered earlier)
                 }
             }
-            AstStatement::MultipliedStatement { element, .. } => {
-                self.visit_statement(ctx, element)
+            AstStatement::MultipliedStatement { data, .. } => {
+                self.visit_statement(ctx, &data.element)
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
             }
             _ => {}

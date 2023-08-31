@@ -1,4 +1,8 @@
-use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
+use crate::{
+    parser::tests::{empty_stmt, ref_to},
+    test_utils::tests::parse,
+    typesystem::DINT_TYPE,
+};
 use insta::assert_snapshot;
 use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable};
 use pretty_assertions::*;
@@ -9,17 +13,10 @@ fn empty_statements_are_are_parsed() {
     let result = parse(src).0;
 
     let prg = &result.implementations[0];
+
     assert_eq!(
         format!("{:?}", prg.statements),
-        format!(
-            "{:?}",
-            vec![
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-            ]
-        ),
+        format!("{:?}", vec![empty_stmt(), empty_stmt(), empty_stmt(), empty_stmt(),]),
     );
 }
 
@@ -35,10 +32,10 @@ fn empty_statements_are_parsed_before_a_statement() {
         format!(
             "{:?}",
             vec![
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                empty_stmt(),
+                empty_stmt(),
+                empty_stmt(),
+                empty_stmt(),
                 AstFactory::create_member_reference(
                     AstFactory::create_identifier("x".into(), &SourceRange::undefined(), 0),
                     None,

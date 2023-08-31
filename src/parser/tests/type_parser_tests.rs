@@ -1,4 +1,5 @@
 use crate::test_utils::tests::parse;
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
     ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, UserTypeDeclaration, Variable},
     literals::AstLiteral,
@@ -180,38 +181,7 @@ fn array_type_can_be_parsed_test() {
     );
 
     let ast_string = format!("{:#?}", &result.user_types[0]);
-
-    let expected_ast = format!(
-        "{:#?}",
-        &UserTypeDeclaration {
-            data_type: DataType::ArrayType {
-                name: Some("MyArray".to_string()),
-                bounds: AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(8),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    id: 0,
-                },
-                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
-                    location: SourceRange::undefined(),
-                }),
-                is_variable_length: false,
-            },
-            initializer: None,
-            location: SourceRange::undefined(),
-            scope: None,
-        }
-    );
-
-    assert_eq!(ast_string, expected_ast);
+    assert_snapshot!(ast_string);
 }
 
 #[test]
@@ -224,7 +194,6 @@ fn string_type_can_be_parsed_test() {
     );
 
     let ast_string = format!("{:#?}", &result.user_types);
-
     let expected_ast = format!(
         "{:#?}",
         vec![
@@ -307,34 +276,7 @@ fn subrangetype_can_be_parsed() {
     let (parse_result, ..) = parse(src);
 
     let x = &parse_result.global_vars[0].variables[0];
-    let expected = Variable {
-        name: "x".to_string(),
-        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::SubRangeType {
-                name: None,
-                bounds: Some(AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(1000),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    id: 0,
-                }),
-                referenced_type: "UINT".to_string(),
-            },
-            location: SourceRange::undefined(),
-            scope: None,
-        },
-        initializer: None,
-        address: None,
-        location: (0..0).into(),
-    };
-    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
+    assert_debug_snapshot!(x);
 }
 
 #[test]

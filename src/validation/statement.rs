@@ -1,7 +1,10 @@
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{
+        flatten_expression_list, AstStatement, DirectAccess, DirectAccessType, Operator, ReferenceAccess,
+        ReferenceExpr, SourceRange,
+    },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
@@ -52,49 +55,49 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(elements), .. }), .. } => {
             visit_statement(validator, elements.as_ref(), context);
         }
-        AstStatement::CastStatement { target, type_name, location, .. } => {
-            if let AstStatement::Literal { kind: literal, .. } = target.as_ref() {
-                validate_cast_literal(validator, literal, statement, type_name, location, context);
+        AstStatement::CastStatement { data, location, .. } => {
+            if let AstStatement::Literal { kind: literal, .. } = data.target.as_ref() {
+                validate_cast_literal(validator, literal, statement, &data.type_name, location, context);
             }
         }
-        AstStatement::MultipliedStatement { element, .. } => {
-            visit_statement(validator, element, context);
+        AstStatement::MultipliedStatement { data, .. } => {
+            visit_statement(validator, &data.element, context);
         }
-        AstStatement::ReferenceExpr { access, base, .. } => {
-            if let Some(base) = base {
+        AstStatement::ReferenceExpr { data, .. } => {
+            if let Some(base) = &data.base {
                 visit_statement(validator, base, context);
             }
 
-            validate_reference_expression(access, validator, context, statement, base);
+            validate_reference_expression(&data.access, validator, context, statement, &data.base);
         }
-        AstStatement::BinaryExpression { operator, left, right, .. } => {
-            visit_all_statements!(validator, context, left, right);
-            visit_binary_expression(validator, statement, operator, left, right, context);
+        AstStatement::BinaryExpression { data, .. } => {
+            visit_all_statements!(validator, context, &data.left, &data.right);
+            visit_binary_expression(validator, statement, &data.operator, &data.left, &data.right, context);
         }
-        AstStatement::UnaryExpression { value, .. } => {
-            visit_statement(validator, value, context);
+        AstStatement::UnaryExpression { data, .. } => {
+            visit_statement(validator, &data.value, context);
         }
         AstStatement::ExpressionList { expressions, .. } => {
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
-        AstStatement::RangeStatement { start, end, .. } => {
-            visit_all_statements!(validator, context, start, end);
+        AstStatement::RangeStatement { data, .. } => {
+            visit_all_statements!(validator, context, &data.start, &data.end);
         }
-        AstStatement::Assignment { left, right, .. } => {
-            visit_statement(validator, left, context);
-            visit_statement(validator, right, context);
+        AstStatement::Assignment { data, .. } => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
             validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
-        AstStatement::OutputAssignment { left, right, .. } => {
-            visit_statement(validator, left, context);
-            visit_statement(validator, right, context);
+        AstStatement::OutputAssignment { data, .. } => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
         }
-        AstStatement::CallStatement { operator, parameters, .. } => {
-            validate_call(validator, operator, parameters, &context.set_is_call());
+        AstStatement::CallStatement { data, .. } => {
+            validate_call(validator, &data.operator, &data.parameters, &context.set_is_call());
         }
         AstStatement::ControlStatement { kind, .. } => validate_control_statement(validator, kind, context),
         AstStatement::CaseCondition { condition, .. } => {
@@ -198,7 +201,10 @@ fn validate_address_of_expression<T: AnnotationMap>(
     //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(
     if !matches!(a, Some(StatementAnnotation::Variable { .. }))
-        && !matches!(target, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. })
+        && !matches!(
+            target,
+            AstStatement::ReferenceExpr { data: ReferenceExpr { access: ReferenceAccess::Index(_), .. }, .. }
+        )
     {
         validator.push_diagnostic(Diagnostic::invalid_operation("Invalid address-of operation", location));
     }
@@ -210,7 +216,7 @@ fn validate_direct_access<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
 ) {
-    if let (AstStatement::DirectAccess { access, index, .. }, Some(base_annotation)) = (
+    if let (AstStatement::DirectAccess { data: DirectAccess { access, index }, .. }, Some(base_annotation)) = (
         m,
         // FIXME: should we consider the hint if one is available?
         base.and_then(|base| context.annotations.get(base)),
@@ -621,8 +627,8 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
         // Output assignments are optional, e.g. `foo(bar => )` is considered valid
         (false, AstStatement::EmptyStatement { .. }) if matches!(ty, VariableType::Output) => (),
 
-        (false, AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. }) => {
-            validate_call_by_ref(validator, param, right);
+        (false, AstStatement::Assignment { data, .. } | AstStatement::OutputAssignment { data, .. }) => {
+            validate_call_by_ref(validator, param, &data.right);
         }
 
         _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(

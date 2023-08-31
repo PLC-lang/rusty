@@ -1152,13 +1152,11 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
                 {
                     // inner_multiplied_stmt = 2(2)
                     for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
-                        if let AstStatement::MultipliedStatement { element: multiplied_element, .. } =
-                            inner_multiplied_stmt
-                        {
+                        if let AstStatement::MultipliedStatement { data, .. } = inner_multiplied_stmt {
                             //check if the inner thing really got the BYTE hint
                             // multiplied-element = 2
                             assert_eq!(
-                                annotations.get_type_hint(multiplied_element.as_ref(), &index),
+                                annotations.get_type_hint(data.element.as_ref(), &index),
                                 index.find_effective_type_by_name("BYTE")
                             );
                         } else {

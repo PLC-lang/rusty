@@ -1,9 +1,9 @@
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
-        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, NewLines, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, SourceRange,
+        SourceRangeFactory, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -700,7 +700,10 @@ fn parse_type_reference_type_definition(
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+            Some(AstStatement::ReferenceExpr {
+                data: ReferenceExpr { access: ReferenceAccess::Member(_), .. },
+                ..
+            }) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -930,8 +933,7 @@ fn parse_reference(lexer: &mut ParseSession) -> AstStatement {
     match expressions_parser::parse_call_statement(lexer) {
         Ok(statement) => statement,
         Err(diagnostic) => {
-            let statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+            let statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
             lexer.accept_diagnostic(diagnostic);
             statement
         }
@@ -985,8 +987,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     if constant {
         // sneak in the DefaultValue-Statements if no initializers were defined
         variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
-            it.initializer =
-                Some(AstStatement::DefaultValue { location: it.location.clone(), id: lexer.next_id() });
+            it.initializer = Some(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));
         });
     }
 
@@ -1085,13 +1086,13 @@ fn parse_hardware_access(
                 }
             }
         }
-        Ok(AstStatement::HardwareAccess {
-            access: access_type,
-            direction: hardware_access_type,
+        Ok(AstFactory::create_hardware_access(
+            access_type,
+            hardware_access_type,
             address,
-            location: (start_location..lexer.last_range.end).into(),
-            id: lexer.next_id(),
-        })
+            (start_location..lexer.last_range.end).into(),
+            lexer.next_id(),
+        ))
     } else {
         Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
     }

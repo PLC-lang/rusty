@@ -27,7 +27,7 @@ use inkwell::{
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
-        SourceRange,
+        ReferenceExpr, SourceRange,
     },
     literals::AstLiteral,
 };
@@ -204,8 +204,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
         // generate the expression
         match expression {
-            AstStatement::ReferenceExpr { access, base, .. } => {
-                let res = self.generate_reference_expression(access, base.as_deref(), expression)?;
+            AstStatement::ReferenceExpr { data, .. } => {
+                let res =
+                    self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
                     ExpressionValue::LValue(val) => {
                         ExpressionValue::LValue(self.auto_deref_if_necessary(val, expression))
@@ -222,14 +223,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
-            AstStatement::BinaryExpression { left, right, operator, .. } => self
-                .generate_binary_expression(left, right, operator, expression)
+            AstStatement::BinaryExpression { data, .. } => self
+                .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
-            AstStatement::CallStatement { operator, parameters, .. } => {
-                self.generate_call_statement(operator, parameters)
+            AstStatement::CallStatement { data, .. } => {
+                self.generate_call_statement(&data.operator, &data.parameters)
             }
-            AstStatement::UnaryExpression { operator, value, .. } => {
-                self.generate_unary_expression(operator, value).map(ExpressionValue::RValue)
+            AstStatement::UnaryExpression { data, .. } => {
+                self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
             // TODO: Hardware access needs to be evaluated, see #648
             AstStatement::HardwareAccess { .. } => {
@@ -524,13 +525,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
         match param_context.assignment_statement {
-            AstStatement::OutputAssignment { left, right, .. }
-            | AstStatement::Assignment { left, right, .. } => self.generate_explicit_output_assignment(
-                param_context.parameter_struct,
-                param_context.function_name,
-                left,
-                right,
-            ),
+            AstStatement::OutputAssignment { data, .. } | AstStatement::Assignment { data, .. } => self
+                .generate_explicit_output_assignment(
+                    param_context.parameter_struct,
+                    param_context.function_name,
+                    &data.left,
+                    &data.right,
+                ),
             _ => self.generate_output_assignment(param_context),
         }
     }
@@ -633,7 +634,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 // TODO: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
-                    if matches!(operator, AstStatement::ReferenceExpr { base: None, .. }) =>
+                    if matches!(
+                        operator,
+                        AstStatement::ReferenceExpr { data: ReferenceExpr { base: None, .. }, .. }
+                    ) =>
                 {
                     // special handling for local actions, get the parameter from the function context
                     function_context
@@ -1080,9 +1084,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let parameter_value = match param_context.assignment_statement {
             // explicit call parameter: foo(param := value)
-            AstStatement::OutputAssignment { left, right, .. }
-            | AstStatement::Assignment { left, right, .. } => {
-                self.generate_formal_parameter(param_context, left, right)?;
+            AstStatement::OutputAssignment { data, .. } | AstStatement::Assignment { data, .. } => {
+                self.generate_formal_parameter(param_context, &data.left, &data.right)?;
                 None
             }
             // foo(x)
@@ -1786,7 +1789,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            AstStatement::CastStatement { target, .. } => self.generate_expression_value(target),
+            AstStatement::CastStatement { data, .. } => self.generate_expression_value(&data.target),
             _ => Err(cannot_generate_literal()),
         }
     }
@@ -1906,24 +1909,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
-                if let AstStatement::Assignment { left, right, .. } = assignment {
+                if let AstStatement::Assignment { data, .. } = assignment {
                     if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
-                        self.annotations.get(left.as_ref())
+                        self.annotations.get(data.left.as_ref())
                     {
                         let member: &VariableIndexEntry =
                             self.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(qualified_name, left.get_location())
+                                Diagnostic::unresolved_reference(qualified_name, data.left.get_location())
                             })?;
 
                         let index_in_parent = member.get_location_in_parent();
-                        let value = self.generate_expression(right)?;
+                        let value = self.generate_expression(data.right.as_ref())?;
 
                         uninitialized_members.remove(member);
                         member_values.push((index_in_parent, value));
                     } else {
                         return Err(Diagnostic::codegen_error(
                             "struct member lvalue required as left operand of assignment",
-                            left.get_location(),
+                            data.left.get_location(),
                         ));
                     }
                 } else {
@@ -2309,10 +2312,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
     fn get_load_name(&self, expression: &AstStatement) -> Option<String> {
         match expression {
-            AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. }
-            | AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. } => {
-                Some("load_tmpVar".to_string())
+            AstStatement::ReferenceExpr {
+                data: ReferenceExpr { access: ReferenceAccess::Deref, .. },
+                ..
             }
+            | AstStatement::ReferenceExpr {
+                data: ReferenceExpr { access: ReferenceAccess::Index(_), .. },
+                ..
+            } => Some("load_tmpVar".to_string()),
             AstStatement::ReferenceExpr { .. } => expression
                 .get_flat_reference_name()
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
@@ -2422,11 +2429,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-                if let AstStatement::DirectAccess { access, index, .. } = member.as_ref() {
+                if let AstStatement::DirectAccess { data, .. } = member.as_ref() {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
                         return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
                     };
-                    self.generate_direct_access_expression(base, &base_value, member, access, index)
+                    self.generate_direct_access_expression(base, &base_value, member, &data.access, &data.index)
                 } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
                     self.create_llvm_pointer_value_for_reference(
@@ -2540,16 +2547,16 @@ pub fn get_implicit_call_parameter<'a>(
     idx: usize,
 ) -> Result<(usize, &'a AstStatement, bool), Diagnostic> {
     let (location, param_statement, is_implicit) = match param_statement {
-        AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } => {
+        AstStatement::Assignment { data, .. } | AstStatement::OutputAssignment { data, .. } => {
             //explicit
-            let Some(left_name) = left.as_ref().get_flat_reference_name() else {
+            let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(Diagnostic::reference_expected(param_statement.get_location()));
             };
             let loc = declared_parameters
                 .iter()
                 .position(|p| p.get_name() == left_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))?;
-            (loc, right.as_ref(), false)
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
+            (loc, data.right.as_ref(), false)
         }
         _ => {
             //implicit

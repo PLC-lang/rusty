@@ -720,7 +720,7 @@ pub enum ReferenceAccess {
 pub enum AstStatement {
     EmptyStatement { data: EmptyStatement, location: SourceRange, id: AstId },
     // a placeholder that indicates a default value of a datatype
-    DefaultValue { data: DefaultVale, location: SourceRange, id: AstId },
+    DefaultValue { data: DefaultValue, location: SourceRange, id: AstId },
     // Literals
     Literal { kind: AstLiteral, location: SourceRange, id: AstId },
     CastStatement { data: CastStatement, location: SourceRange, id: AstId },
@@ -1228,6 +1228,24 @@ impl AstFactory {
         AstStatement::EmptyStatement { data: EmptyStatement {}, location, id }
     }
 
+    pub fn create_hardware_access(
+        access: DirectAccessType,
+        direction: HardwareAccessType,
+        address: Vec<AstStatement>,
+        location: SourceRange,
+        id: usize,
+    ) -> AstStatement {
+        AstStatement::HardwareAccess { data: HardwareAccess { access, direction, address }, location, id }
+    }
+
+    pub fn create_default_value(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement::DefaultValue { data: DefaultValue {}, location, id }
+    }
+
+    pub fn create_expression_list(expressions: Vec<AstStatement>, id: AstId) -> AstStatement {
+        AstStatement::ExpressionList { expressions, id }
+    }
+
     /// creates a new if-statement
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
@@ -1545,7 +1563,7 @@ impl AstFactory {
 pub struct EmptyStatement {}
 
 #[derive(Clone, PartialEq)]
-pub struct DefaultVale {}
+pub struct DefaultValue {}
 
 #[derive(Clone, PartialEq)]
 pub struct CastStatement {

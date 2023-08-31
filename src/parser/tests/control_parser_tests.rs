@@ -565,11 +565,11 @@ fn call_stmnt_location_test() {
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.get_start()..location.get_end()].to_string(), "foo(a:=3, b:=4)");
 
-    if let AstStatement::CallStatement { operator, parameters, .. } = &unit.statements[0] {
-        let operator_location = operator.as_ref().get_location();
+    if let AstStatement::CallStatement { data, .. } = &unit.statements[0] {
+        let operator_location = data.operator.as_ref().get_location();
         assert_eq!(source[operator_location.get_start()..operator_location.get_end()].to_string(), "foo");
 
-        let parameters_statement = parameters.as_ref().as_ref();
+        let parameters_statement = data.parameters.as_ref().as_ref();
         let parameters_location = parameters_statement.map(|it| it.get_location()).unwrap();
         assert_eq!(
             source[parameters_location.get_start()..parameters_location.get_end()].to_string(),

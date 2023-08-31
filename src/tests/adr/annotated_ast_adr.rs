@@ -1,4 +1,4 @@
-use plc_ast::ast::{AstStatement, ReferenceAccess};
+use plc_ast::ast::{AstStatement, ReferenceAccess, ReferenceExpr};
 
 use crate::{
     index::{ArgumentType, VariableType},
@@ -134,7 +134,7 @@ fn different_types_of_annotations() {
 
     // Main.in
     let qualified_reference = &statements[3];
-    let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(member)  ,base: Some(qualifier) , ..} = qualified_reference else {unreachable!()};
+    let AstStatement::ReferenceExpr { data: ReferenceExpr{access: ReferenceAccess::Member(member), base: Some(qualifier)} , ..} = qualified_reference else {unreachable!()};
     // // Main resolves to a Program
     assert_eq!(
         annotations.get(qualifier),

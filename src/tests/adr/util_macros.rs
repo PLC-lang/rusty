@@ -11,8 +11,8 @@ pub(crate) use annotate;
 
 macro_rules! deconstruct_assignment {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement::Assignment { left, right, .. } = $src {
-            (left, right)
+        if let plc_ast::ast::AstStatement::Assignment { data, .. } = $src {
+            (&data.left, &data.right)
         } else {
             unreachable!();
         }
@@ -22,10 +22,14 @@ pub(crate) use deconstruct_assignment;
 
 macro_rules! deconstruct_call_statement {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement::CallStatement { operator, parameters, .. } = $src {
+        if let plc_ast::ast::AstStatement::CallStatement { data, .. } = $src {
             (
-                operator,
-                parameters.as_ref().as_ref().map(plc_ast::ast::flatten_expression_list).unwrap_or_default(),
+                &data.operator,
+                data.parameters
+                    .as_ref()
+                    .as_ref()
+                    .map(plc_ast::ast::flatten_expression_list)
+                    .unwrap_or_default(),
             )
         } else {
             unreachable!();
@@ -36,8 +40,8 @@ pub(crate) use deconstruct_call_statement;
 
 macro_rules! deconstruct_binary_expression {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement::BinaryExpression { left, right, .. } = &$src {
-            (left, right)
+        if let plc_ast::ast::AstStatement::BinaryExpression { data, .. } = &$src {
+            (&data.left, &data.right)
         } else {
             unreachable!();
         }

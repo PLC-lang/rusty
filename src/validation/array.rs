@@ -59,7 +59,7 @@ pub(super) fn validate_array_assignment<T>(
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement {
         AstStatement::ExpressionList { .. } => 1,
-        AstStatement::MultipliedStatement { multiplier, .. } => *multiplier as usize,
+        AstStatement::MultipliedStatement { data, .. } => data.multiplier as usize,
         AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
                 expressions.iter().map(statement_to_array_length).sum::<usize>()
@@ -83,7 +83,7 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
 impl<'a> Wrapper<'a> {
     fn get_rhs(&self) -> Option<&'a AstStatement> {
         match self {
-            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(right),
+            Wrapper::Statement(AstStatement::Assignment { data, .. }) => Some(&data.right),
             Wrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
@@ -95,8 +95,8 @@ impl<'a> Wrapper<'a> {
     {
         match self {
             Wrapper::Statement(statement) => {
-                let AstStatement::Assignment { left, .. } = statement else { return None };
-                context.annotations.get_type(left, context.index).map(|it| it.get_type_information())
+                let AstStatement::Assignment { data, .. } = statement else { return None };
+                context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
             Wrapper::Variable(variable) => variable

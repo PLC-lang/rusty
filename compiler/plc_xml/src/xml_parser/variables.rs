@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, Operator};
+use ast::ast::{AstFactory, AstStatement, Operator};
 
 use crate::model::{
     fbd::{Node, NodeIndex},
@@ -32,12 +32,7 @@ impl FunctionBlockVariable {
             let ident = session.parse_expression(&self.expression);
             let location = ident.get_location();
 
-            AstStatement::UnaryExpression {
-                operator: Operator::Not,
-                value: Box::new(ident),
-                location,
-                id: session.next_id(),
-            }
+            AstFactory::create_unary_expression(Operator::Not, ident, location, session.next_id())
         } else {
             session.parse_expression(&self.expression)
         }

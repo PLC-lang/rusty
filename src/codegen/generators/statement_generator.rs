@@ -19,7 +19,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess, SourceRange,
+        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess,
+        ReferenceExpr, SourceRange,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
 };
@@ -120,8 +121,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::EmptyStatement { .. } => {
                 //nothing to generate
             }
-            AstStatement::Assignment { left, right, .. } => {
-                self.generate_assignment_statement(left, right)?;
+            AstStatement::Assignment { data, .. } => {
+                self.generate_assignment_statement(&data.left, &data.right)?;
             }
 
             AstStatement::ControlStatement { kind: ctl_statement, .. } => {
@@ -266,10 +267,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left = left_expression_value.get_basic_value_enum().into_pointer_value();
         //Build index
         if let Some((element, direct_access)) = access_sequence.split_first() {
-            let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
+            let mut rhs = if let AstStatement::DirectAccess { data, .. } = element {
                 exp_gen.generate_direct_access_index(
-                    access,
-                    index,
+                    &data.access,
+                    &data.index,
                     right_type.get_type_information(),
                     left_type,
                 )
@@ -280,10 +281,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 ))
             }?;
             for element in direct_access {
-                let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element {
+                let rhs_next = if let AstStatement::DirectAccess { data, .. } = element {
                     exp_gen.generate_direct_access_index(
-                        access,
-                        index,
+                        &data.access,
+                        &data.index,
                         right_type.get_type_information(),
                         left_type,
                     )
@@ -411,48 +412,37 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         start: &AstStatement,
         exp_gen: &'a ExpressionCodeGenerator,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let counter_end_ge = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        let counter_start_ge = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        let counter_end_le = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        let counter_start_le = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        let and_1 = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_le),
-            right: Box::new(counter_start_ge),
-        };
-        let and_2 = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_ge),
-            right: Box::new(counter_start_le),
-        };
-        let or = AstStatement::BinaryExpression {
-            id: self.annotations.get_bool_id(),
-            operator: Operator::Or,
-            left: Box::new(and_1),
-            right: Box::new(and_2),
-        };
+        let bool_id = self.annotations.get_bool_id();
+        let counter_end_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        let counter_start_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        let counter_end_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        let counter_start_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        let and_1 =
+            AstFactory::create_binary_expression(counter_end_le, Operator::And, counter_start_ge, bool_id);
+        let and_2 =
+            AstFactory::create_binary_expression(counter_end_ge, Operator::And, counter_start_le, bool_id);
+        let or = AstFactory::create_binary_expression(and_1, Operator::Or, and_2, bool_id);
+
         self.register_debug_location(&or);
         let or_eval = exp_gen.generate_expression(&or)?;
         Ok(or_eval)
@@ -494,14 +484,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&conditional_block.condition);
             for s in expressions {
-                if let AstStatement::RangeStatement { start, end, .. } = s {
+                if let AstStatement::RangeStatement { data, .. } = s {
                     //if this is a range statement, we generate an if (x >= start && x <= end) then the else-section
                     builder.position_at_end(current_else_block);
                     // since the if's generate additional blocks, we use the last one as the else-section
                     current_else_block = self.generate_case_range_condition(
                         selector,
-                        start.as_ref(),
-                        end.as_ref(),
+                        data.start.as_ref(),
+                        data.end.as_ref(),
                         case_block,
                     )?;
                 } else {
@@ -747,7 +737,11 @@ fn collect_base_and_direct_access_for_assignment(
 ) -> Option<(&AstStatement, Vec<&AstStatement>)> {
     let mut current = Some(left_statement);
     let mut access_sequence = Vec::new();
-    while let Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base, .. }) = current {
+    while let Some(AstStatement::ReferenceExpr {
+        data: ReferenceExpr { access: ReferenceAccess::Member(m), base },
+        ..
+    }) = current
+    {
         if matches!(m.as_ref(), AstStatement::DirectAccess { .. }) {
             access_sequence.insert(0, m.as_ref());
             current = base.as_deref();

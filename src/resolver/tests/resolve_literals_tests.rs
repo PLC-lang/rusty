@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstStatement, ReferenceAccess, TypeNature},
+    ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
 };
 
@@ -282,7 +282,11 @@ fn enum_literals_target_are_annotated() {
         annotations.get_type_or_void(color_red, &index).get_type_information()
     );
 
-    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = color_red {
+    if let AstStatement::ReferenceExpr {
+        data: ReferenceExpr { access: ReferenceAccess::Cast(target), .. },
+        ..
+    } = color_red
+    {
         // right type gets annotated
         assert_eq!(
             &DataTypeInformation::Enum {
@@ -330,7 +334,11 @@ fn casted_inner_literals_are_annotated() {
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
-            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+            if let AstStatement::ReferenceExpr {
+                data: ReferenceExpr { access: ReferenceAccess::Cast(target), .. },
+                ..
+            } = it
+            {
                 target.as_ref()
             } else {
                 panic!("no cast")
@@ -362,7 +370,11 @@ fn casted_literals_enums_are_annotated_correctly() {
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
-            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+            if let AstStatement::ReferenceExpr {
+                data: ReferenceExpr { access: ReferenceAccess::Cast(target), .. },
+                ..
+            } = it
+            {
                 target.as_ref()
             } else {
                 unreachable!();

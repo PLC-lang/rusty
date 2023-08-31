@@ -47,7 +47,7 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
             let statement = match statement {
                 //The right side of the assignment is the source of truth
-                AstStatement::Assignment { right, .. } => right,
+                AstStatement::Assignment { data, .. } => &data.right,
                 _ => statement,
             };
             //Find the statement's type
@@ -279,9 +279,9 @@ impl<'i> TypeAnnotator<'i> {
 
                         // for assignments we need to annotate the left side aswell
                         match parameter_stmt {
-                            AstStatement::Assignment { left, .. }
-                            | AstStatement::OutputAssignment { left, .. } => {
-                                self.annotate(left, StatementAnnotation::value(datatype.get_name()));
+                            AstStatement::Assignment { data, .. }
+                            | AstStatement::OutputAssignment { data, .. } => {
+                                self.annotate(&data.left, StatementAnnotation::value(datatype.get_name()));
                             }
                             _ => {}
                         }

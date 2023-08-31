@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstFactory, AstStatement};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -61,14 +61,7 @@ impl FunctionBlockDiagram {
                     })
                     .expect("Expected AST statement, found None");
 
-                (
-                    AstStatement::Assignment {
-                        left: Box::new(lhs),
-                        right: Box::new(rhs),
-                        id: session.next_id(),
-                    },
-                    remove_id,
-                )
+                (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
             Node::Control(_) => todo!(),
             Node::Connector(_) => todo!(),

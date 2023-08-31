@@ -2,8 +2,8 @@
 use crate::{lexer::Token, parser::tests::ref_to, test_utils::tests::parse};
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    AccessModifier, AstStatement, DataType, DataTypeDeclaration, LinkageType, SourceRange,
-    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, SourceRange, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
@@ -60,15 +60,12 @@ fn missing_comma_in_call_parameters() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![AstStatement::CallStatement {
-                location: SourceRange::undefined(),
-                operator: Box::new(ref_to("buz")),
-                parameters: Box::new(Some(AstStatement::ExpressionList {
-                    expressions: vec![ref_to("a"), ref_to("b"),],
-                    id: 0
-                })),
-                id: 0
-            }]
+            vec![AstFactory::create_call_statement(
+                ref_to("buz"),
+                Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], 0)),
+                0,
+                SourceRange::undefined()
+            )]
         )
     );
 }
@@ -96,20 +93,18 @@ fn illegal_semicolon_in_call_parameters() {
     );
 
     let pou = &compilation_unit.implementations[0];
+
     assert_eq!(
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
             vec![
-                AstStatement::CallStatement {
-                    location: SourceRange::undefined(),
-                    operator: Box::new(ref_to("buz")),
-                    parameters: Box::new(Some(AstStatement::ExpressionList {
-                        expressions: vec![ref_to("a"), ref_to("b")],
-                        id: 0
-                    })),
-                    id: 0
-                },
+                AstFactory::create_call_statement(
+                    ref_to("buz"),
+                    Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], 0)),
+                    0,
+                    SourceRange::undefined()
+                ),
                 ref_to("c")
             ]
         )

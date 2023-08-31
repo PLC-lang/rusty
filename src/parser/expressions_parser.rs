@@ -186,15 +186,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
                 AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
-            _ => AstFactory::create_unary_expression(*operator, expression, location, lexer.next_id())
-            
-            
-            // AstStatement::UnaryExpression {
-            //     operator: *operator,
-            //     value: Box::new(expression),
-            //     location,
-            //     id: lexer.next_id(),
-            // },
+            _ => AstFactory::create_unary_expression(*operator, expression, location, lexer.next_id()),
         }
     })
 }

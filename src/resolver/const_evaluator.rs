@@ -164,9 +164,11 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
 
             _ => false,
         },
-        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
+        AstStatement::Assignment { data, .. } => needs_evaluation(data.right.as_ref()),
         AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
+        AstStatement::RangeStatement { data, .. } => {
+            needs_evaluation(&data.start) || needs_evaluation(&data.end)
+        }
         _ => true,
     }
 }
@@ -378,7 +380,8 @@ fn evaluate_with_target_hint(
             )
         }
         AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Cast(target), base: Some(type_name), ..
+            data: ReferenceExpr { access: ReferenceAccess::Cast(target), base: Some(type_name) },
+            ..
         } => {
             let dti = type_name
                 .get_flat_reference_name()
@@ -405,7 +408,10 @@ fn evaluate_with_target_hint(
                 None => return Err(UnresolvableKind::Misc("Cannot resolve unknown Type-Cast.".to_string())),
             }
         }
-        AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. } => {
+        AstStatement::ReferenceExpr {
+            data: ReferenceExpr { access: ReferenceAccess::Member(reference), base },
+            ..
+        } => {
             if let Some(name) = reference.get_flat_reference_name() {
                 index
                     .find_variable(
@@ -419,7 +425,7 @@ fn evaluate_with_target_hint(
                 None
             }
         }
-        AstStatement::BinaryExpression { left, right, operator, id, .. } => {
+        AstStatement::BinaryExpression { data: BinaryExpression { left, right, operator }, id, .. } => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
@@ -461,7 +467,9 @@ fn evaluate_with_target_hint(
         }
 
         // NOT x
-        AstStatement::UnaryExpression { operator: Operator::Not, value, .. } => {
+        AstStatement::UnaryExpression {
+            data: UnaryExpression { operator: Operator::Not, value }, ..
+        } => {
             let eval = evaluate(value, scope, index)?;
             match eval.clone() {
                 Some(AstStatement::Literal { kind: AstLiteral::Bool(v), id, location }) => {
@@ -478,7 +486,9 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
-        AstStatement::UnaryExpression { operator: Operator::Minus, value, .. } => {
+        AstStatement::UnaryExpression {
+            data: UnaryExpression { operator: Operator::Minus, value }, ..
+        } => {
             match evaluate(value, scope, index)? {
                 Some(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) => {
                     Some(AstStatement::Literal { kind: AstLiteral::Integer(-v), id, location })
@@ -512,7 +522,11 @@ fn evaluate_with_target_hint(
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| AstStatement::ExpressionList { expressions: ie, id: *id })
         }
-        AstStatement::MultipliedStatement { element, id, multiplier, location } => {
+        AstStatement::MultipliedStatement {
+            data: MultipliedStatement { element, multiplier },
+            location,
+            id,
+        } => {
             let inner_elements = AstStatement::get_as_list(element.as_ref())
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -523,34 +537,29 @@ fn evaluate_with_target_hint(
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| {
                 if let [ie] = ie.as_slice() {
-                    AstStatement::MultipliedStatement {
-                        id: *id,
-                        element: Box::new(ie.clone()), //TODO
-                        multiplier: *multiplier,
-                        location: location.clone(),
-                    }
+                    AstFactory::create_multiplied_statement(*multiplier, ie.clone(), location.clone(), *id)
                 } else {
-                    AstStatement::MultipliedStatement {
-                        id: *id,
-                        element: Box::new(AstStatement::ExpressionList { expressions: ie, id: *id }),
-                        multiplier: *multiplier,
-                        location: location.clone(),
-                    }
+                    AstFactory::create_multiplied_statement(
+                        *multiplier,
+                        AstFactory::create_expression_list(ie, *id),
+                        location.clone(),
+                        *id,
+                    )
                 }
             })
         }
-        AstStatement::Assignment { left, right, id } => {
+        AstStatement::Assignment { data, id } => {
             //Right needs evaluation
-            if let Some(right) = evaluate(right, scope, index)? {
-                Some(AstStatement::Assignment { left: left.clone(), right: Box::new(right), id: *id })
+            if let Some(right) = evaluate(&data.right, scope, index)? {
+                Some(AstFactory::create_assignment(*data.left.clone(), right, *id))
             } else {
                 Some(initial.clone())
             }
         }
-        AstStatement::RangeStatement { start, end, id } => {
-            let start = Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
-            let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
-            Some(AstStatement::RangeStatement { start, end, id: *id })
+        AstStatement::RangeStatement { data, id } => {
+            let start = evaluate(&data.start, scope, index)?.unwrap_or_else(|| *data.start.to_owned());
+            let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
+            Some(AstFactory::create_range_statement(start, end, *id))
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
@@ -736,6 +745,9 @@ macro_rules! compare_expression {
 }
 use compare_expression;
 use plc_ast::{
-    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
+    ast::{
+        AstFactory, AstId, AstStatement, BinaryExpression, MultipliedStatement, Operator, ReferenceAccess,
+        ReferenceExpr, SourceRange, UnaryExpression,
+    },
     literals::{Array, AstLiteral, StringValue},
 };

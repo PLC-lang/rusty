@@ -451,8 +451,8 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatement::CastStatement { target, .. } => {
-            let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
+        AstStatement::CastStatement { data, .. } => {
+            let ExpressionValue::RValue(value) =  generator.generate_expression_value(&data.target)? else {
                 unreachable!()
             };
 

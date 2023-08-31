@@ -1650,19 +1650,19 @@ fn array_type_as_function_return() {
                     referenced_type: "INT".into(),
                     location: SourceRange::undefined(),
                 }),
-                bounds: AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::Literal {
+                bounds: AstFactory::create_range_statement(
+                    AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
                         kind: AstLiteral::new_integer(0),
-                    }),
-                    end: Box::new(AstStatement::Literal {
+                    },
+                    AstStatement::Literal {
                         id: 0,
                         location: SourceRange::undefined(),
                         kind: AstLiteral::new_integer(10),
-                    }),
-                    id: 0,
-                },
+                    },
+                    0,
+                ),
                 name: None,
                 is_variable_length: false,
             },
@@ -1706,22 +1706,16 @@ fn plus_minus_parse_tree_priority_test() {
     END_FUNCTION
     ",
     );
-
     assert_eq!(
         format!("{:#?}", ast.implementations[0].statements[0]),
         format!(
             "{:#?}",
-            AstStatement::BinaryExpression {
-                id: 0,
-                operator: Operator::Plus,
-                left: Box::new(AstStatement::BinaryExpression {
-                    id: 0,
-                    operator: Operator::Minus,
-                    left: Box::new(ref_to("a")),
-                    right: Box::new(ref_to("b")),
-                }),
-                right: Box::new(ref_to("c")),
-            }
+            AstFactory::create_binary_expression(
+                AstFactory::create_binary_expression(ref_to("a"), Operator::Minus, ref_to("b"), 0),
+                Operator::Plus,
+                ref_to("c"),
+                0
+            )
         )
     );
     assert_eq!(diagnostics.is_empty(), true);
@@ -1742,22 +1736,22 @@ fn mul_div_mod_parse_tree_priority_test() {
         format!("{:#?}", ast.implementations[0].statements[0]),
         format!(
             "{:#?}",
-            AstStatement::BinaryExpression {
-                id: 0,
-                operator: Operator::Modulo,
-                left: Box::new(AstStatement::BinaryExpression {
-                    id: 0,
-                    operator: Operator::Division,
-                    left: Box::new(AstStatement::BinaryExpression {
-                        id: 0,
-                        operator: Operator::Multiplication,
-                        left: Box::new(ref_to("a")),
-                        right: Box::new(ref_to("b")),
-                    }),
-                    right: Box::new(ref_to("c")),
-                }),
-                right: Box::new(ref_to("d")),
-            }
+            AstFactory::create_binary_expression(
+                AstFactory::create_binary_expression(
+                    AstFactory::create_binary_expression(
+                        ref_to("a"),
+                        Operator::Multiplication,
+                        ref_to("b"),
+                        0
+                    ),
+                    Operator::Division,
+                    ref_to("c"),
+                    0
+                ),
+                Operator::Modulo,
+                ref_to("d"),
+                0
+            )
         )
     );
     assert_eq!(diagnostics.is_empty(), true);

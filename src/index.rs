@@ -66,11 +66,12 @@ pub struct HardwareBinding {
 
 impl HardwareBinding {
     fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
-        if let AstStatement::HardwareAccess { access, address, direction, location, .. } = it {
+        if let AstStatement::HardwareAccess { data, location, .. } = it {
             Some(HardwareBinding {
-                access: *access,
-                direction: *direction,
-                entries: address
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
                     .iter()
                     .map(|expr| {
                         index.constant_expressions.add_constant_expression(
