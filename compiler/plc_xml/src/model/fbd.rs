@@ -163,31 +163,37 @@ fn get_inner_connection_ref<'a>(
 ///        ┗━━> OUT3
 /// ```
 fn resolve_connection_points<'xml>(nodes: &mut NodeIndex) {
+    fn get_connection_references<'b>(
+        node: &'b Node,
+        nodes: &'b IndexMap<usize, Node<'_>>,
+    ) -> Option<(&'b str, ConnectionReference<'b>)> {
+        if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
+            ref_local_id
+                .map(|ref_id| {
+                    if let Some(Node::Connector(Connector {
+                        kind: ConnectorKind::Sink,
+                        name: name_sink,
+                        ..
+                    })) = nodes.get(&ref_id)
+                    {
+                        // source points directly to another sink -> will be resolved via name
+                        Some((name.as_ref(), ConnectionReference::Name(name_sink)))
+                    } else {
+                        // source points to an assignable element -> will be resolved directly via ref ID
+                        Some((name.as_ref(), ConnectionReference::Id(ref_id)))
+                    }
+                })
+                .unwrap_or_else(|| None /* TODO: diagnostic */)
+        } else {
+            None
+        }
+    }
+
     let lookup = nodes.clone();
 
     let source_connections = lookup
         .iter()
-        .filter_map(|(_, node)| {
-            if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
-                ref_local_id
-                    .map(|ref_id| {
-                        // check if the source is directly connected to another sink
-                        if let Some(Node::Connector(Connector {
-                            kind: ConnectorKind::Sink,
-                            name: name_sink,
-                            ..
-                        })) = lookup.get(&ref_id)
-                        {
-                            Some((name.as_ref(), ConnectionReference::Name(name_sink)))
-                        } else {
-                            Some((name.as_ref(), ConnectionReference::Id(ref_id)))
-                        }
-                    })
-                    .unwrap_or_else(|| None /* TODO: diagnostic */)
-            } else {
-                None
-            }
-        })
+        .filter_map(|(_, node)| get_connection_references(node, &lookup))
         .collect::<IndexMap<_, _>>();
 
     nodes.into_iter().for_each(|(_, node)| {
