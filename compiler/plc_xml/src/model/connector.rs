@@ -25,7 +25,7 @@ impl<'xml> Connector<'xml> {
             name: Cow::from(hm.get_or_err("name")?),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
-            formal_parameter: hm.remove("formalParameter").map(|it| Cow::from(it)),
+            formal_parameter: hm.remove("formalParameter").map(Cow::from),
         })
     }
 }

@@ -20,7 +20,7 @@ impl<'xml> Block<'xml> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             type_name: Cow::from(hm.get_or_err("typeName")?),
-            instance_name: hm.remove("instanceName").map(|it| Cow::from(it)),
+            instance_name: hm.remove("instanceName").map(Cow::from),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             variables,
         })

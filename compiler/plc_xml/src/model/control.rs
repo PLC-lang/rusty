@@ -23,7 +23,7 @@ impl<'xml> Control<'xml> {
     pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
-            name: hm.remove("label").map(|it| Cow::from(it)),
+            name: hm.remove("label").map(Cow::from),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
