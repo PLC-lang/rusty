@@ -1,6 +1,5 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-assertion_line: 50
 expression: "parse(content::SINK_TO_SOURCE).0.implementations[0].statements"
 ---
 [
