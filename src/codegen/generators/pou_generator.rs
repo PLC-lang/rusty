@@ -765,8 +765,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         local_index: &'a LlvmTypedIndex<'ink>,
         condition: &AstStatement,
     ) -> Result<(), Diagnostic> {
-        let expression_generator =
+        let mut expression_generator =
             ExpressionCodeGenerator::new_context_free(&self.llvm, self.index, self.annotations, local_index);
+        expression_generator.function_context = Some(function_context); // TODO: Setting the context after calling `new_context_free` sounds hella wrong?
 
         let condition = expression_generator.generate_expression(condition)?;
 

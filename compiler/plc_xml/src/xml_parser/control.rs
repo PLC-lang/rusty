@@ -39,7 +39,7 @@ fn transform_return(
 
     let condition = match node {
         Node::FunctionBlockVariable(variable) => Ok(variable.transform(session)),
-        Node::Block(_) => unimplemented!(),
+        Node::Block(block) => Ok(block.transform(session, index)),
         
         _ => Err(Diagnostic::unexpected_nodes(vec![control.local_id, ref_local_id])),
     }?;

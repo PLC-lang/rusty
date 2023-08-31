@@ -122,3 +122,31 @@ fn conditional_return_evaluating_true_negated() {
     // THEN it will NOT return early, modifying the argument to be 10
     assert_eq!(res, 10);
 }
+
+#[test]
+fn conditional_return_block_evaluating_true() {
+    // GIVEN a CFC function which returns early if variable argument `a` is bigger than `b` and otherwise
+    // modifies an argument `res` to be 10
+    let st_file = get_test_file("cfc/conditional_return_block_evaluating_true.st");
+    let cfc_file = get_test_file("cfc/conditional_return_block.cfc");
+
+    // WHEN passing variables a = 1 and b = 0
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+
+    // THEN it will return early, leaving `res` unmodified
+    assert_eq!(res, 5);
+}
+
+#[test]
+fn conditional_return_block_evaluating_false() {
+    // GIVEN a CFC function which returns early if variable argument `a` is bigger than `b` and otherwise
+    // modifies an argument `res` to be 10
+    let st_file = get_test_file("cfc/conditional_return_block_evaluating_false.st");
+    let cfc_file = get_test_file("cfc/conditional_return_block.cfc");
+
+    // WHEN passing variables a = 0 and b = 1
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+
+    // THEN it will NOT return early, modifying `res` to be 10
+    assert_eq!(res, 10);
+}
