@@ -1,7 +1,6 @@
 ---
 source: src/index/tests/index_tests.rs
-expression: "ast.types[0].data_type"
-
+expression: "ast.user_types[0].data_type"
 ---
 EnumType {
     name: Some(
@@ -11,24 +10,45 @@ EnumType {
     elements: ExpressionList {
         expressions: [
             Assignment {
-                left: Reference {
-                    name: "a",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "a",
+                        },
+                    ),
+                    base: None,
                 },
                 right: LiteralInteger {
                     value: 0,
                 },
             },
             Assignment {
-                left: Reference {
-                    name: "b",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
                 },
                 right: BinaryExpression {
                     operator: Plus,
-                    left: CastStatement {
-                        type_name: "__global_inline_enum",
-                        target: Reference {
-                            name: "a",
-                        },
+                    left: ReferenceExpr {
+                        kind: Cast(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__global_inline_enum",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
                     },
                     right: LiteralInteger {
                         value: 1,
@@ -36,16 +56,32 @@ EnumType {
                 },
             },
             Assignment {
-                left: Reference {
-                    name: "c",
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "c",
+                        },
+                    ),
+                    base: None,
                 },
                 right: BinaryExpression {
                     operator: Plus,
-                    left: CastStatement {
-                        type_name: "__global_inline_enum",
-                        target: Reference {
-                            name: "b",
-                        },
+                    left: ReferenceExpr {
+                        kind: Cast(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__global_inline_enum",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
                     },
                     right: LiteralInteger {
                         value: 1,

@@ -4,17 +4,32 @@ expression: annotations.get(a_eq_b).unwrap()
 ---
 ReplacementAst {
     statement: CallStatement {
-        operator: Reference {
-            name: "STRING_EQUAL",
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "STRING_EQUAL",
+                },
+            ),
+            base: None,
         },
         parameters: Some(
             ExpressionList {
                 expressions: [
-                    Reference {
-                        name: "a",
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
                     },
-                    Reference {
-                        name: "b",
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
                     },
                 ],
             },

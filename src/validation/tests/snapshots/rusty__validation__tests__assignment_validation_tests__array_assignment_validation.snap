@@ -16,7 +16,7 @@ SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", ra
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1477..1503 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1520..1544 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1561..1587 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1647..1677 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1647..1678 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to '__main_v_arr_int_3'", range: [SourceRange { range: 1695..1716 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_3' to 'DINT'", range: [SourceRange { range: 1733..1754 }], err_no: var__invalid_assignment }
 

@@ -377,11 +377,15 @@ fn evaluate_with_target_hint(
                 location,
             )
         }
-        AstStatement::CastStatement { target, type_name, .. } => {
-            let dti = index.find_effective_type_info(type_name);
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Cast(target), base: Some(type_name), ..
+        } => {
+            let dti = type_name
+                .get_flat_reference_name()
+                .and_then(|type_name| index.find_effective_type_info(type_name));
             match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
-                    if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                    if let AstStatement::Identifier { name: ref_name, .. } = target.as_ref() {
                         return index
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {
@@ -394,33 +398,26 @@ fn evaluate_with_target_hint(
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
                 }
-                _ => {
-                    evaluate_with_target_hint(target, scope, index, Some(type_name))?;
-                    Some(get_cast_statement_literal(target, type_name, scope, index)?)
+                Some(dti) => {
+                    evaluate_with_target_hint(target, scope, index, Some(dti.get_name()))?;
+                    Some(get_cast_statement_literal(target, dti.get_name(), scope, index)?)
                 }
+                None => return Err(UnresolvableKind::Misc("Cannot resolve unknown Type-Cast.".to_string())),
             }
         }
-        AstStatement::Reference { name, .. } => index
-            .find_variable(scope, std::slice::from_ref(&name.as_str()))
-            .map(|variable| resolve_const_reference(variable, name, index))
-            .transpose()?
-            .flatten(),
-        AstStatement::QualifiedReference { elements, .. } => {
-            // we made sure that there are exactly two references
-            //TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here
-            if elements.len() == 2 {
-                if let (
-                    AstStatement::Reference { name: pou_name, .. },
-                    AstStatement::Reference { name: variable_name, .. },
-                ) = (&elements[0], &elements[1])
-                {
-                    return index
-                        .find_member(pou_name, variable_name)
-                        .ok_or_else(|| UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()))
-                        .and_then(|variable| resolve_const_reference(variable, variable_name, index));
-                }
+        AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. } => {
+            if let Some(name) = reference.get_flat_reference_name() {
+                index
+                    .find_variable(
+                        base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
+                        std::slice::from_ref(&name),
+                    )
+                    .map(|variable| resolve_const_reference(variable, name, index))
+                    .transpose()?
+                    .flatten()
+            } else {
+                None
             }
-            return Err(UnresolvableKind::Misc("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string()));
         }
         AstStatement::BinaryExpression { left, right, operator, id, .. } => {
             let eval_left = evaluate(left, scope, index)?;
@@ -739,6 +736,6 @@ macro_rules! compare_expression {
 }
 use compare_expression;
 use plc_ast::{
-    ast::{AstId, AstStatement, Operator, SourceRange},
+    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
     literals::{Array, AstLiteral, StringValue},
 };

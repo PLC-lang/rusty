@@ -1,0 +1,32 @@
+---
+source: src/parser/tests/control_parser_tests.rs
+expression: statement
+---
+CaseStatement {
+    selector: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "StateMachine",
+            },
+        ),
+        base: None,
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralInteger {
+                value: 1,
+            },
+            body: [],
+        },
+    ],
+    else_block: [
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "y",
+                },
+            ),
+            base: None,
+        },
+    ],
+}

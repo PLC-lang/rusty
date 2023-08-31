@@ -1,0 +1,17 @@
+---
+source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
+expression: pou.statements
+---
+[
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "buz",
+                },
+            ),
+            base: None,
+        },
+        parameters: None,
+    },
+]

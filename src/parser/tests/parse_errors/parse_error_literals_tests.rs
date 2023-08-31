@@ -202,5 +202,6 @@ fn literal_cast_with_space() {
     let src = "PROGRAM exp INT# 123; END_PROGRAM";
     let (_, diagnostics) = parse(src);
 
-    assert_eq!(vec![Diagnostic::syntax_error("Incomplete statement", (12..16).into())], diagnostics);
+    // THEN this should work
+    assert_eq!(Vec::<Diagnostic>::new(), diagnostics);
 }

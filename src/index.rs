@@ -5,6 +5,7 @@ use crate::{
     typesystem::{self, *},
 };
 use indexmap::IndexMap;
+use itertools::Itertools;
 use plc_ast::ast::{
     AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
     TypeNature,
@@ -1062,11 +1063,13 @@ impl Index {
     pub fn find_fully_qualified_variable(&self, fully_qualified_name: &str) -> Option<&VariableIndexEntry> {
         let segments: Vec<&str> = fully_qualified_name.split('.').collect();
         let (q, segments) = if segments.len() > 1 {
-            (Some(segments[0]), segments.iter().skip(1).copied().collect::<Vec<&str>>())
+            // the last segment is th ename, everything before ist qualifier
+            // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
+            (Some(segments.iter().take(segments.len() - 1).join(".")), vec![*segments.last().unwrap()])
         } else {
             (None, segments)
         };
-        self.find_variable(q, &segments[..])
+        self.find_variable(q.as_deref(), &segments[..])
     }
 
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {

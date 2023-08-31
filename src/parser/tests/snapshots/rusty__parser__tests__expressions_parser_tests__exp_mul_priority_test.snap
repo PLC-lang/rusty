@@ -25,21 +25,41 @@ CompilationUnit {
             statements: [
                 BinaryExpression {
                     operator: Multiplication,
-                    left: Reference {
-                        name: "a",
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
                     },
                     right: CallStatement {
-                        operator: Reference {
-                            name: "EXPT",
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "EXPT",
+                                },
+                            ),
+                            base: None,
                         },
                         parameters: Some(
                             ExpressionList {
                                 expressions: [
-                                    Reference {
-                                        name: "b",
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "b",
+                                            },
+                                        ),
+                                        base: None,
                                     },
-                                    Reference {
-                                        name: "c",
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "c",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                 ],
                             },
