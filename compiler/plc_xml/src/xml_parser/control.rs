@@ -2,8 +2,8 @@ use ast::ast::{AstStatement, Operator, SourceRange};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::model::{
-        control::{Control, ControlKind},
-        fbd::{Node, NodeIndex},
+    control::{Control, ControlKind},
+    fbd::{Node, NodeIndex},
 };
 
 use super::ParseSession;
@@ -27,20 +27,20 @@ fn transform_return(
     session: &ParseSession,
     index: &NodeIndex,
 ) -> Result<AstStatement, Diagnostic> {
-    let Some(ref_local_id) = control.ref_local_id else { 
+    let Some(ref_local_id) = control.ref_local_id else {
         // TODO: Remove SourceRange::undefined
         return Err(Diagnostic::empty_control_statement(SourceRange::undefined()))
     };
 
     let Some(node) = index.get(&ref_local_id) else {
         // TODO: Remove SourceRange::undefined
-        return Err(Diagnostic::undefined_node(ref_local_id, SourceRange::undefined())) 
+        return Err(Diagnostic::undefined_node(ref_local_id, SourceRange::undefined()))
     };
 
     let condition = match node {
         Node::FunctionBlockVariable(variable) => Ok(variable.transform(session)),
         Node::Block(block) => Ok(block.transform(session, index)),
-        
+
         _ => Err(Diagnostic::unexpected_nodes(vec![control.local_id, ref_local_id])),
     }?;
 
