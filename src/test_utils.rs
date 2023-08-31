@@ -22,12 +22,6 @@ pub mod tests {
         DebugLevel, Validator,
     };
 
-    #[derive(Copy, Clone)]
-    pub enum Mode {
-        St,
-        Cfc,
-    }
-
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
@@ -47,12 +41,7 @@ pub mod tests {
         (unit, diagnostic)
     }
 
-    #[cfg(test)]
-    fn do_index<T: Into<SourceCode>>(
-        src: T,
-        id_provider: IdProvider,
-        mode: Mode,
-    ) -> (CompilationUnit, Index) {
+    fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
         let source = src.into();
         let source_str = &source.source;
         let source_path = source.get_location_str();
@@ -72,26 +61,11 @@ pub mod tests {
             SourceRangeFactory::for_file(source_path)
         };
 
-        let mut unit = match mode {
-            Mode::St => {
-                parser::parse(
-                    lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
-                    LinkageType::Internal,
-                    source_path,
-                )
-                .0
-            }
-
-            Mode::Cfc => {
-                plc_xml::xml_parser::parse_file(
-                    source_str,
-                    source_path,
-                    LinkageType::Internal,
-                    id_provider.clone(),
-                    &mut Diagnostician::null_diagnostician(), // TODO: Should this be a null diagnostician?
-                )
-            }
-        };
+        let (mut unit, ..) = parser::parse(
+            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
+            LinkageType::Internal,
+            source_path,
+        );
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
@@ -100,11 +74,11 @@ pub mod tests {
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
-        do_index(src, id_provider, Mode::St)
+        do_index(src, id_provider)
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        do_index(src, id_provider, Mode::St)
+        do_index(src, id_provider)
     }
 
     pub fn annotate_with_ids(
@@ -147,21 +121,13 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
-        codegen_debug(src, debug_level, Mode::St)
-    }
-
-    pub fn codegen_debug_without_unwrap_cfc(src: &str) -> Result<String, Diagnostic> {
-        codegen_debug(src, DebugLevel::None, Mode::Cfc)
-    }
-
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    fn codegen_debug(src: &str, debug_level: DebugLevel, mode: Mode) -> Result<String, Diagnostic> {
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
-        let (unit, index) = do_index(src, id_provider.clone(), mode);
+        let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -198,7 +164,6 @@ pub mod tests {
         context: &CodegenContext,
         sources: T,
         debug_level: DebugLevel,
-        mode: Mode,
     ) -> Result<Vec<GeneratedModule<'_>>, Diagnostic>
     where
         SourceCode: From<<T as Compilable>::T>,
@@ -206,7 +171,7 @@ pub mod tests {
         let mut id_provider = IdProvider::default();
         let mut units = vec![];
         let mut index = Index::default();
-        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone(), mode)).for_each(
+        sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
             |(unit, idx)| {
                 units.push(unit);
                 index.import(idx);
@@ -255,7 +220,7 @@ pub mod tests {
         SourceCode: From<<T as Compilable>::T>,
     {
         let context = CodegenContext::create();
-        codegen_into_modules(&context, sources, debug_level, Mode::St)
+        codegen_into_modules(&context, sources, debug_level)
             .unwrap()
             .into_iter()
             .map(|module| module.persist_to_string())

@@ -765,9 +765,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         local_index: &'a LlvmTypedIndex<'ink>,
         condition: &AstStatement,
     ) -> Result<(), Diagnostic> {
-        let mut expression_generator =
-            ExpressionCodeGenerator::new_context_free(&self.llvm, self.index, self.annotations, local_index);
-        expression_generator.function_context = Some(function_context); // TODO: Setting the context after calling `new_context_free` sounds hella wrong?
+        let expression_generator = ExpressionCodeGenerator::new(
+            &self.llvm,
+            self.index,
+            self.annotations,
+            local_index,
+            function_context,
+            // TODO: This is definetely wrong, we have no Debug information here however
+            // Do we just propagate the debug information from the caller here?
+            &DebugBuilderEnum::None,
+        );
 
         let condition = expression_generator.generate_expression(condition)?;
 
