@@ -41,6 +41,16 @@ mod tests {
     }
 
     #[test]
+    fn direct_connection_of_sink_to_other_source_model() {
+        assert_debug_snapshot!(xml_parser::visit(content::SINK_TO_SOURCE).unwrap());
+    }
+
+    #[test]
+    fn direct_connection_of_sink_to_other_source_ast() {
+        assert_debug_snapshot!(parse(content::SINK_TO_SOURCE).0.implementations[0].statements);
+    }
+
+    #[test]
     fn function_returns() {
         let content = with_header(
             &XPou::init(
@@ -414,6 +424,71 @@ mod content {
                     </connectionPointIn>
                     <expression>y</expression>
                 </outVariable>
+            </FBD>
+        </body>
+    </pou>
+    "#;
+
+    pub(super) const SINK_TO_SOURCE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myConnection" pouType="function">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION myConnection : DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+                </content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <connector name="s1" localId="1" height="20" width="54">
+                    <position x="330" y="190"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="16"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s1" localId="3" height="20" width="64">
+                    <position x="420" y="190"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <outVariable localId="4" height="20" width="124" executionOrderId="3" negated="false" storage="none">
+                    <position x="720" y="190"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="20"/>
+                    </connectionPointIn>
+                    <expression>myConnection</expression>
+                </outVariable>
+                <inVariable localId="16" height="20" width="80" negated="false">
+                    <position x="190" y="190"/>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>x</expression>
+                </inVariable>
+                <connector name="s2" localId="21" height="20" width="54">
+                    <position x="520" y="190"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="3"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s2" localId="20" height="20" width="64">
+                    <position x="600" y="190"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
             </FBD>
         </body>
     </pou>

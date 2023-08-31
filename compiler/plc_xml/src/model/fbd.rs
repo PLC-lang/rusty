@@ -115,6 +115,11 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     }
 }
 
+enum ConnectionReference<'xml> {
+    Id(NodeId),
+    Name(&'xml str),
+}
+
 /// Checks if given node is pointing to a `Sink` and updates the referenced ID to directly point to the element referenced
 /// by the matching `Source`
 macro_rules! update_connection_ref_id_if_needed {
@@ -123,13 +128,25 @@ macro_rules! update_connection_ref_id_if_needed {
             if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
                 $nodes.get(&ref_id)
             {
-                let Some(actual_source) = $source_connections.get(name.as_ref()) else {
-                                                                            todo!("unconnected source")
-                                                                        };
-                $node.ref_local_id = Some(*actual_source);
+                $node.ref_local_id = get_inner_connection_ref(name.as_ref(), &$source_connections);
             }
         }
     };
+}
+
+fn get_inner_connection_ref<'a>(
+    name: &str,
+    source_connections: &IndexMap<&'a str, ConnectionReference<'a>>,
+) -> Option<NodeId> {
+    let Some(source) = source_connections.get(name) else {
+        todo!("unconnected source")
+    };
+
+    match source {
+        ConnectionReference::Id(id) => Some(*id),
+        // for direct sink-to-source connections, we need to recurse to find the actual value
+        ConnectionReference::Name(name) => get_inner_connection_ref(name.as_ref(), &source_connections),
+    }
 }
 
 /// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
@@ -146,20 +163,32 @@ macro_rules! update_connection_ref_id_if_needed {
 ///        ┗━━> OUT3
 /// ```
 fn resolve_connection_points<'xml>(nodes: &mut NodeIndex) {
-    let source_connections = nodes
+    let lookup = nodes.clone();
+
+    let source_connections = lookup
         .iter()
         .filter_map(|(_, node)| {
             if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
                 ref_local_id
-                    .map(|ref_id| Some((name.to_string(), ref_id)))
+                    .map(|ref_id| {
+                        // check if the source is directly connected to another sink
+                        if let Some(Node::Connector(Connector {
+                            kind: ConnectorKind::Sink,
+                            name: name_sink,
+                            ..
+                        })) = lookup.get(&ref_id)
+                        {
+                            Some((name.as_ref(), ConnectionReference::Name(name_sink)))
+                        } else {
+                            Some((name.as_ref(), ConnectionReference::Id(ref_id)))
+                        }
+                    })
                     .unwrap_or_else(|| None /* TODO: diagnostic */)
             } else {
                 None
             }
         })
-        .collect::<IndexMap<String, NodeId>>();
-
-    let lookup = nodes.clone();
+        .collect::<IndexMap<_, _>>();
 
     nodes.into_iter().for_each(|(_, node)| {
         match node {
