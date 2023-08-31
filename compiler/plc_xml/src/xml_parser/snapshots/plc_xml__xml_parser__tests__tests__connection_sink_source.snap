@@ -1,0 +1,122 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: "xml_parser::visit(src).unwrap()"
+---
+Project {
+    pous: [
+        Pou {
+            name: "myConnection",
+            pou_type: Function,
+            body: Body {
+                function_block_diagram: Some(
+                    FunctionBlockDiagram {
+                        nodes: {
+                            2: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 2,
+                                    negated: false,
+                                    expression: "x",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            7: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 7,
+                                    negated: false,
+                                    expression: "y",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            8: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 8,
+                                    negated: false,
+                                    expression: "y",
+                                    execution_order_id: Some(
+                                        0,
+                                    ),
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
+                                },
+                            ),
+                            9: Block(
+                                Block {
+                                    local_id: 9,
+                                    type_name: "myAdd",
+                                    instance_name: None,
+                                    execution_order_id: Some(
+                                        1,
+                                    ),
+                                    variables: [
+                                        BlockVariable {
+                                            kind: Input,
+                                            formal_parameter: "a",
+                                            negated: false,
+                                            ref_local_id: Some(
+                                                7,
+                                            ),
+                                            edge: None,
+                                            storage: None,
+                                            enable: None,
+                                        },
+                                        BlockVariable {
+                                            kind: Input,
+                                            formal_parameter: "b",
+                                            negated: false,
+                                            ref_local_id: Some(
+                                                2,
+                                            ),
+                                            edge: None,
+                                            storage: None,
+                                            enable: None,
+                                        },
+                                        BlockVariable {
+                                            kind: Output,
+                                            formal_parameter: "myAdd",
+                                            negated: false,
+                                            ref_local_id: None,
+                                            edge: None,
+                                            storage: None,
+                                            enable: None,
+                                        },
+                                    ],
+                                },
+                            ),
+                            4: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 4,
+                                    negated: false,
+                                    expression: "myConnection",
+                                    execution_order_id: Some(
+                                        2,
+                                    ),
+                                    ref_local_id: Some(
+                                        9,
+                                    ),
+                                },
+                            ),
+                        },
+                    },
+                ),
+            },
+            actions: [],
+            interface: Some(
+                Interface {
+                    add_data: Some(
+                        Data {
+                            content: "\n        FUNCTION myConnection : DINT\n        VAR_INPUT\n            x: DINT;\n        END_VAR\n        VAR_TEMP\n            y: DINT;\n        END_VAR\n                    \nEND_FUNCTION",
+                            handle: Implementation,
+                        },
+                    ),
+                },
+            ),
+        },
+    ],
+}

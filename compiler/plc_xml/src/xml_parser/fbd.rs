@@ -1,10 +1,7 @@
 use ast::ast::AstStatement;
 use indexmap::IndexMap;
 
-use crate::model::{
-    connector::{Connector, ConnectorKind},
-    fbd::{FunctionBlockDiagram, Node, NodeId},
-};
+use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
 use super::ParseSession;
 
@@ -16,7 +13,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
 
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
-        self.nodes.iter().filter(|(_, node)| !matches!(node, Node::Connector(_))).for_each(|(id, _)| {
+        self.nodes.iter().for_each(|(id, _)| {
             let (insert, remove_id) = self.transform_node(*id, session, &ast_association);
 
             if let Some(id) = remove_id {

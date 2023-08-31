@@ -1,10 +1,6 @@
-use std::{
-    borrow::{BorrowMut, Cow},
-    cmp::Ordering,
-};
-
 use indexmap::IndexMap;
 use quick_xml::events::Event;
+use std::cmp::Ordering;
 
 use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
@@ -114,65 +110,76 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
 
         nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
         resolve_connection_points(&mut nodes);
+
         Ok(FunctionBlockDiagram { nodes })
     }
 }
 
-macro_rules! update_ref_id_if_needed {
-    ($element:ident, $source_connections:ident, $lookup:ident) => {
-        if let Some(ref_id) = $element.ref_local_id {
+/// Checks if given node is pointing to a `Sink` and updates the referenced ID to directly point to the element referenced
+/// by the matching `Source`
+macro_rules! update_connection_ref_id_if_needed {
+    ($node:ident, $source_connections:ident, $nodes:ident) => {
+        if let Some(ref_id) = $node.ref_local_id {
             if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
-                $lookup.get(&ref_id)
+                $nodes.get(&ref_id)
             {
                 let Some(actual_source) = $source_connections.get(name.as_ref()) else {
                                                                             todo!("unconnected source")
                                                                         };
-                $element.ref_local_id = Some(*actual_source);
+                $node.ref_local_id = Some(*actual_source);
             }
         }
     };
 }
 
-fn resolve_connection_points(nodes: &mut NodeIndex) {
-    fn find_source_connections<'xml>(nodes: &'xml NodeIndex) -> IndexMap<&'xml str, NodeId> {
-        nodes
-            .iter()
-            .filter_map(|(_, node)| {
-                if let Node::Connector(Connector {
-                    kind: ConnectorKind::Source, name, ref_local_id, ..
-                }) = node
-                {
-                    if let Some(ref_id) = ref_local_id {
-                        Some((name.as_ref(), *ref_id))
-                    } else {
-                        None // TODO: diagnostic - source must have a sink
-                    }
-                } else {
+/// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
+/// if they are connected directly instead.
+///
+/// ```
+/// // assignments using sink and source
+/// INPUT  ━━━━> SOURCE         SINK ━┳━━> OUT1
+///                                   ┣━━> OUT2
+///                                   ┗━━> OUT3
+/// // resolve to
+/// INPUT  ━┳━━> OUT1
+///         ┣━━> OUT2
+///         ┗━━> OUT3
+/// ```
+fn resolve_connection_points<'xml>(nodes: &mut NodeIndex) {
+    let source_connections = nodes
+        .iter()
+        .filter_map(|(_, node)| {
+            if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
+                ref_local_id.map(|ref_id| Some((name.to_string(), ref_id))).unwrap_or_else(|| {
+                    todo!("diagnostic - unconnected source");
                     None
-                }
-            })
-            .collect::<IndexMap<&str, NodeId>>()
-    }
+                })
+            } else {
+                None
+            }
+        })
+        .collect::<IndexMap<String, NodeId>>();
 
-    let lookup = nodes.clone(); // this smells real bad
+    let lookup = nodes.clone();
 
-    let source_connections = find_source_connections(&lookup);
-
-    // TODO: negated - wait for AstFactory to be merged
-    for (_, node) in nodes {
-        match dbg!(node) {
+    nodes.into_iter().for_each(|(_, node)| {
+        match node {
             Node::Block(block) => {
                 for var in &mut block.variables {
-                    update_ref_id_if_needed!(var, source_connections, lookup);
+                    update_connection_ref_id_if_needed!(var, source_connections, lookup);
                 }
             }
             Node::FunctionBlockVariable(fbd_var) => {
-                update_ref_id_if_needed!(fbd_var, source_connections, lookup)
+                update_connection_ref_id_if_needed!(fbd_var, source_connections, lookup)
             }
-            Node::Control(control) => update_ref_id_if_needed!(control, source_connections, lookup),
-            _ => continue,
+            Node::Control(control) => {
+                update_connection_ref_id_if_needed!(control, source_connections, lookup)
+            }
+            _ => (),
         };
-    }
+    });
+
+    nodes.retain(|_, node| !matches!(node, Node::Connector(_)));
 }
 
 #[cfg(test)]

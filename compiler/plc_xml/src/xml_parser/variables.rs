@@ -1,7 +1,6 @@
 use ast::ast::{AstStatement, Operator};
 
 use crate::model::{
-    connector::ConnectorKind,
     fbd::{Node, NodeIndex},
     variables::{BlockVariable, FunctionBlockVariable},
 };

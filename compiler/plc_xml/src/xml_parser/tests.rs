@@ -69,26 +69,74 @@ mod tests {
                         </connectionPointOut>
                         <expression>x</expression>
                     </inVariable>
-                    <outVariable localId="4" height="20" width="124" executionOrderId="0" negated="false" storage="none">
-                        <position x="840" y="340"/>
+                    <outVariable localId="4" height="20" width="124" executionOrderId="2" negated="false" storage="none">
+                        <position x="1100" y="180"/>
                         <connectionPointIn>
                             <relPosition x="0" y="10"/>
-                            <connection refLocalId="3"/>
+                            <connection refLocalId="9" formalParameter="myAdd">
+                                <position x="1100" y="190"/>
+                                <position x="1070" y="190"/>
+                                <position x="1070" y="220"/>
+                                <position x="1050" y="220"/>
+                            </connection>
                         </connectionPointIn>
                         <expression>myConnection</expression>
                     </outVariable>
-                    <outVariable localId="5" height="20" width="80" executionOrderId="1" negated="false" storage="none">
-                        <position x="840" y="220"/>
+                    <inVariable localId="7" height="20" width="80" negated="false">
+                        <position x="830" y="200"/>
+                        <connectionPointOut>
+                            <relPosition x="80" y="10"/>
+                        </connectionPointOut>
+                        <expression>y</expression>
+                    </inVariable>
+                    <outVariable localId="8" height="20" width="80" executionOrderId="0" negated="false" storage="none">
+                        <position x="850" y="340"/>
                         <connectionPointIn>
                             <relPosition x="0" y="10"/>
                             <connection refLocalId="3"/>
                         </connectionPointIn>
                         <expression>y</expression>
                     </outVariable>
+                    <block localId="9" width="80" height="60" typeName="myAdd" executionOrderId="1">
+                        <position x="970" y="190"/>
+                        <inputVariables>
+                            <variable formalParameter="a" negated="false">
+                                <connectionPointIn>
+                                    <relPosition x="0" y="30"/>
+                                    <connection refLocalId="7">
+                                        <position x="970" y="220"/>
+                                        <position x="940" y="220"/>
+                                        <position x="940" y="210"/>
+                                        <position x="910" y="210"/>
+                                    </connection>
+                                </connectionPointIn>
+                            </variable>
+                            <variable formalParameter="b" negated="false">
+                                <connectionPointIn>
+                                    <relPosition x="0" y="50"/>
+                                    <connection refLocalId="3">
+                                        <position x="970" y="240"/>
+                                        <position x="860" y="240"/>
+                                        <position x="860" y="300"/>
+                                        <position x="810" y="300"/>
+                                        <position x="810" y="350"/>
+                                        <position x="774" y="350"/>
+                                    </connection>
+                                </connectionPointIn>
+                            </variable>
+                        </inputVariables>
+                        <inOutVariables/>
+                        <outputVariables>
+                            <variable formalParameter="myAdd" negated="false">
+                                <connectionPointOut>
+                                    <relPosition x="80" y="30"/>
+                                </connectionPointOut>
+                            </variable>
+                        </outputVariables>
+                    </block>
                 </FBD>
             </body>
         </pou>
-           
         "#;
 
         assert_debug_snapshot!(xml_parser::visit(src).unwrap());

@@ -80,3 +80,13 @@ fn function_returns() {
     // THEN it will return the correct value
     assert_eq!(res, 222);
 }
+#[test]
+fn connection_sink_source() {
+    // GIVEN a CFC program which assigns variables through a sink-source-pair and adds them together
+    let st_file = get_test_file("cfc/connection.st");
+    let cfc_file = get_test_file("cfc/connection.cfc");
+    // WHEN calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the result will have double the value of the initial value
+    assert_eq!(res, 4);
+}
