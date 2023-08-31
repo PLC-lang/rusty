@@ -26,8 +26,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
-        ReferenceExpr, SourceRange,
+        flatten_expression_list, AstFactory, AstStatement, AstStatementKind, DirectAccessType, Operator,
+        ReferenceAccess, ReferenceExpr, SourceRange,
     },
     literals::AstLiteral,
 };
@@ -203,8 +203,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
         // generate the expression
-        match expression {
-            AstStatement::ReferenceExpr { data, .. } => {
+        match expression.get_stmt() {
+            AstStatementKind::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
@@ -223,17 +223,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
-            AstStatement::BinaryExpression { data, .. } => self
+            AstStatementKind::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
-            AstStatement::CallStatement { data, .. } => {
+            AstStatementKind::CallStatement(data) => {
                 self.generate_call_statement(&data.operator, &data.parameters)
             }
-            AstStatement::UnaryExpression { data, .. } => {
+            AstStatementKind::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
             // TODO: Hardware access needs to be evaluated, see #648
-            AstStatement::HardwareAccess { .. } => {
+            AstStatementKind::HardwareAccess { .. } => {
                 Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
             //fallback
@@ -524,8 +524,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
-        match param_context.assignment_statement {
-            AstStatement::OutputAssignment { data, .. } | AstStatement::Assignment { data, .. } => self
+        match param_context.assignment_statement.get_stmt() {
+            AstStatementKind::OutputAssignment(data) | AstStatementKind::Assignment(data) => self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
                     param_context.function_name,
@@ -544,7 +544,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
             if matches!(parameter.get_variable_type(), VariableType::Output)
-                && !matches!(expression, AstStatement::EmptyStatement { .. })
+                && !matches!(expression.get_stmt(), AstStatementKind::EmptyStatement { .. })
             {
                 {
                     let assigned_output = self.generate_lvalue(expression)?;
@@ -635,8 +635,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // TODO: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
                     if matches!(
-                        operator,
-                        AstStatement::ReferenceExpr { data: ReferenceExpr { base: None, .. }, .. }
+                        operator.get_stmt(),
+                        AstStatementKind::ReferenceExpr(ReferenceExpr { base: None, .. })
                     ) =>
                 {
                     // special handling for local actions, get the parameter from the function context
@@ -710,7 +710,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
                 } else {
                     // by val
-                    if !matches!(parameter, AstStatement::EmptyStatement { .. }) {
+                    if !parameter.is_empty_statement() {
                         self.generate_argument_by_val(type_name, parameter)?
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
@@ -798,7 +798,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         type_name: &str,
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if matches!(argument, AstStatement::EmptyStatement { .. }) {
+        if argument.is_empty_statement() {
             // Uninitialized var_output / var_in_out
             let v_type = self
                 .llvm_index
@@ -1082,9 +1082,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
-        let parameter_value = match param_context.assignment_statement {
+        let parameter_value = match param_context.assignment_statement.get_stmt() {
             // explicit call parameter: foo(param := value)
-            AstStatement::OutputAssignment { data, .. } | AstStatement::Assignment { data, .. } => {
+            AstStatementKind::OutputAssignment(data) | AstStatementKind::Assignment(data) => {
                 self.generate_formal_parameter(param_context, &data.left, &data.right)?;
                 None
             }
@@ -1132,7 +1132,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
 
                 //expression may be empty -> generate a local variable for it
-                let generated_exp = if matches!(expression, AstStatement::EmptyStatement { .. }) {
+                let generated_exp = if expression.is_empty_statement() {
                     let temp_type =
                         self.llvm_index.find_associated_type(inner_type_name).ok_or_else(|| {
                             Diagnostic::unknown_type(parameter.get_name(), expression.get_location())
@@ -1180,7 +1180,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
                 DataTypeInformation::Pointer { auto_deref: true, .. }
             );
-            if !matches!(right, AstStatement::EmptyStatement { .. }) || is_auto_deref {
+            if right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment_statement: right,
                     function_name,
@@ -1742,8 +1742,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             )
         };
 
-        match literal_statement {
-            AstStatement::Literal { kind, location, .. } => match kind {
+        let location = &literal_statement.get_location();
+        match literal_statement.get_stmt() {
+            AstStatementKind::Literal(kind) => match kind {
                 AstLiteral::Bool(b) => self.llvm.create_const_bool(*b).map(ExpressionValue::RValue),
                 AstLiteral::Integer(i, ..) => self
                     .generate_numeric_literal(literal_statement, i.to_string().as_str())
@@ -1774,11 +1775,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
-            AstStatement::MultipliedStatement { .. } => {
+            AstStatementKind::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
             // if there is an expression-list this might be a struct-initialization or array-initialization
-            AstStatement::ExpressionList { .. } => {
+            AstStatementKind::ExpressionList { .. } => {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
@@ -1788,8 +1789,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
-            AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            AstStatement::CastStatement { data, .. } => self.generate_expression_value(&data.target),
+            AstStatementKind::Assignment { .. } => self.generate_literal_struct(literal_statement),
+            AstStatementKind::CastStatement(data) => self.generate_expression_value(&data.target),
             _ => Err(cannot_generate_literal()),
         }
     }
@@ -1909,7 +1910,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
-                if let AstStatement::Assignment { data, .. } = assignment {
+                if let AstStatementKind::Assignment(data) = assignment.stmt {
                     if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
                         self.annotations.get(data.left.as_ref())
                     {
@@ -2028,8 +2029,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // flatten_expression_list will will return a vec of only assignments
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
-                match elements {
-                    AstStatement::ExpressionList { expressions, .. } => expressions.iter().collect(),
+                match elements.get_stmt() {
+                    AstStatementKind::ExpressionList(expressions) => expressions.iter().collect(),
                     _ => unreachable!("This should always be an expression list"),
                 }
             } else {
@@ -2311,20 +2312,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
     fn get_load_name(&self, expression: &AstStatement) -> Option<String> {
-        match expression {
-            AstStatement::ReferenceExpr {
-                data: ReferenceExpr { access: ReferenceAccess::Deref, .. },
-                ..
+        match expression.get_stmt() {
+            AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. })
+            | AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }) => {
+                Some("load_tmpVar".to_string())
             }
-            | AstStatement::ReferenceExpr {
-                data: ReferenceExpr { access: ReferenceAccess::Index(_), .. },
-                ..
-            } => Some("load_tmpVar".to_string()),
-            AstStatement::ReferenceExpr { .. } => expression
+            AstStatementKind::ReferenceExpr { .. } => expression
                 .get_flat_reference_name()
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
                 .or_else(|| Some(self.temp_variable_prefix.clone())),
-            AstStatement::Identifier { name, .. } => Some(format!("{}{}", name, self.temp_variable_suffix)),
+            AstStatementKind::Identifier ( name, .. ) => {
+                Some(format!("{}{}", name, self.temp_variable_suffix))
+            }
             _ => None,
         }
     }
@@ -2429,7 +2428,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-                if let AstStatement::DirectAccess { data, .. } = member.as_ref() {
+                if let AstStatementKind::DirectAccess (data) = member.as_ref().get_stmt() {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
                         return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
                     };
@@ -2464,7 +2463,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // INT#target (INT = base)
             (ReferenceAccess::Cast(target), Some(_base)) => {
-                if matches!(target.as_ref(), AstStatement::Identifier { .. }) {
+                if target.as_ref().is_identifier() {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)
@@ -2546,8 +2545,8 @@ pub fn get_implicit_call_parameter<'a>(
     declared_parameters: &[&VariableIndexEntry],
     idx: usize,
 ) -> Result<(usize, &'a AstStatement, bool), Diagnostic> {
-    let (location, param_statement, is_implicit) = match param_statement {
-        AstStatement::Assignment { data, .. } | AstStatement::OutputAssignment { data, .. } => {
+    let (location, param_statement, is_implicit) = match param_statement.get_stmt() {
+        AstStatementKind::Assignment(data) | AstStatementKind::OutputAssignment(data) => {
             //explicit
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(Diagnostic::reference_expected(param_statement.get_location()));
