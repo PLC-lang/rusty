@@ -135,25 +135,24 @@ macro_rules! update_connection_ref_id_if_needed {
 /// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
 /// if they are connected directly instead.
 ///
-/// ```
+/// ```st
 /// // assignments using sink and source
-/// INPUT  ━━━━> SOURCE         SINK ━┳━━> OUT1
-///                                   ┣━━> OUT2
-///                                   ┗━━> OUT3
+/// INPUT ━━━━> SOURCE ┅┅┅> SINK ━┳━━> OUT1
+///                               ┣━━> OUT2
+///                               ┗━━> OUT3
 /// // resolve to
-/// INPUT  ━┳━━> OUT1
-///         ┣━━> OUT2
-///         ┗━━> OUT3
+/// INPUT ━┳━━> OUT1
+///        ┣━━> OUT2
+///        ┗━━> OUT3
 /// ```
 fn resolve_connection_points<'xml>(nodes: &mut NodeIndex) {
     let source_connections = nodes
         .iter()
         .filter_map(|(_, node)| {
             if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
-                ref_local_id.map(|ref_id| Some((name.to_string(), ref_id))).unwrap_or_else(|| {
-                    todo!("diagnostic - unconnected source");
-                    None
-                })
+                ref_local_id
+                    .map(|ref_id| Some((name.to_string(), ref_id)))
+                    .unwrap_or_else(|| None /* TODO: diagnostic */)
             } else {
                 None
             }

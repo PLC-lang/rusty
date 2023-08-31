@@ -84,9 +84,60 @@ fn function_returns() {
 fn connection_sink_source() {
     // GIVEN a CFC program which assigns variables through a sink-source-pair and adds them together
     let st_file = get_test_file("cfc/connection.st");
-    let cfc_file = get_test_file("cfc/connection.cfc");
+    let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
     // WHEN calling the program
     let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
     // THEN the result will have double the value of the initial value
     assert_eq!(res, 4);
+}
+
+#[cfg(test)]
+mod codegen {
+    use std::{
+        fs::{self, File},
+        io::Read,
+    };
+
+    use driver::compile;
+    use insta::assert_snapshot;
+
+    use super::*;
+    #[test]
+    fn variable_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
+
+        let result_file = tempfile::NamedTempFile::new().unwrap();
+        let path = result_file.path();
+        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
+        let mut f = File::open(path).expect("Temp-file should have been generated");
+        let mut content = String::new();
+        let _ = f.read_to_string(&mut content);
+
+        //Verify file content
+        assert_snapshot!(content);
+
+        //clean up
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    #[ignore = "block-to-block connections not yet implemented"]
+    fn block_result_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_block_source_multi_sink.cfc");
+
+        let result_file = tempfile::NamedTempFile::new().unwrap();
+        let path = result_file.path();
+        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
+        let mut f = File::open(path).expect("Temp-file should have been generated");
+        let mut content = String::new();
+        let _ = f.read_to_string(&mut content);
+
+        //Verify file content
+        assert_snapshot!(content);
+
+        //clean up
+        let _ = fs::remove_file(path);
+    }
 }
