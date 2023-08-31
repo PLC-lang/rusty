@@ -666,7 +666,7 @@ fn parse_pointer_definition(
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
-                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end).into(),
+                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
             initializer,

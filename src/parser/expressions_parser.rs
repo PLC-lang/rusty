@@ -439,8 +439,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 let end = stmt.get_location();
                 let type_range = lexer
                     .source_range_factory
-                    .create_range(location_start..(location_start + type_name.len()))
-                    .into();
+                    .create_range(location_start..(location_start + type_name.len()));
                 current = Some(AstFactory::create_cast_statement(
                     AstFactory::create_member_reference(
                         AstFactory::create_identifier(type_name.as_str(), &type_range, lexer.next_id()),

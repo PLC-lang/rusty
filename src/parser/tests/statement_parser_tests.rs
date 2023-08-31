@@ -41,7 +41,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
                 AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
                 AstFactory::create_member_reference(
-                    AstFactory::create_identifier("x".into(), &SourceLocation::undefined(), 0),
+                    AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
                     None,
                     0
                 ),

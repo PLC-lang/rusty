@@ -21,6 +21,7 @@ mod action;
 mod block;
 mod fbd;
 mod pou;
+#[cfg(test)]
 mod tests;
 mod variables;
 
@@ -66,7 +67,7 @@ fn parse(
     };
 
     // create a new parse session
-    let source_location_factory = SourceLocationFactory::for_source(&source);
+    let source_location_factory = SourceLocationFactory::for_source(source);
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
 

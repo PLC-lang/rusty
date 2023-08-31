@@ -1,35 +1,33 @@
-#[cfg(test)]
-mod tests {
-    use ast::{
-        ast::{flatten_expression_list, AstStatement, CompilationUnit, LinkageType},
-        provider::IdProvider,
-    };
-    use insta::assert_debug_snapshot;
-    use plc_diagnostics::diagnostics::Diagnostic;
-    use plc_source::SourceCode;
+use ast::{
+    ast::{flatten_expression_list, AstStatement, CompilationUnit, LinkageType},
+    provider::IdProvider,
+};
+use insta::assert_debug_snapshot;
+use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::SourceCode;
 
-    use crate::{
-        serializer::{
-            with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable,
-            XOutVariable, XPou, XRelPosition,
-        },
-        xml_parser,
-    };
+use crate::{
+    serializer::{
+        with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
+        XPou, XRelPosition,
+    },
+    xml_parser,
+};
 
-    fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
-        let source_code = SourceCode::new(content, "test.cfc");
-        xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
-    }
+fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+    let source_code = SourceCode::new(content, "test.cfc");
+    xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
+}
 
-    #[test]
-    fn variable_assignment() {
-        let pou = xml_parser::visit(ASSIGNMENT_A_B).unwrap();
-        assert_debug_snapshot!(pou);
-    }
+#[test]
+fn variable_assignment() {
+    let pou = xml_parser::visit(ASSIGNMENT_A_B).unwrap();
+    assert_debug_snapshot!(pou);
+}
 
-    #[test]
-    fn model_is_sorted_by_execution_order() {
-        let src = r#"
+#[test]
+fn model_is_sorted_by_execution_order() {
+    let src = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="thistimereallyeasy" pouType="program">
             <interface>
@@ -85,88 +83,86 @@ mod tests {
         </pou>
         "#;
 
-        assert_debug_snapshot!(xml_parser::visit(src).unwrap());
-    }
+    assert_debug_snapshot!(xml_parser::visit(src).unwrap());
+}
 
-    #[test]
-    fn function_returns() {
-        let content = with_header(
-            &XPou::init(
-                "FuncyReturn",
-                "function",
-                "FUNCTION FuncyReturn : DINT
+#[test]
+fn function_returns() {
+    let content = with_header(
+        &XPou::init(
+            "FuncyReturn",
+            "function",
+            "FUNCTION FuncyReturn : DINT
                         VAR_INPUT
                             a : DINT;
                         END_VAR",
-            )
-            .with_body(
-                XBody::new().with_fbd(
-                    XFbd::new()
-                        .with_in_variable(
-                            XInVariable::init("1", false).with_expression(XExpression::new().with_data("a")),
-                        )
-                        .with_out_variable(
-                            XOutVariable::init("2", false)
-                                .with_attribute("executionOrderId", "0")
-                                .with_expression(XExpression::new().with_data("FuncyReturn"))
-                                .with_connection_point_in(
-                                    XConnectionPointIn::new()
-                                        .with_rel_position(XRelPosition::init().close())
-                                        .with_connection(
-                                            XConnection::new().with_attribute("refLocalId", "1").close(),
-                                        ),
-                                ),
-                        ),
-                ),
-            )
-            .serialize(),
-        );
+        )
+        .with_body(
+            XBody::new().with_fbd(
+                XFbd::new()
+                    .with_in_variable(
+                        XInVariable::init("1", false).with_expression(XExpression::new().with_data("a")),
+                    )
+                    .with_out_variable(
+                        XOutVariable::init("2", false)
+                            .with_attribute("executionOrderId", "0")
+                            .with_expression(XExpression::new().with_data("FuncyReturn"))
+                            .with_connection_point_in(
+                                XConnectionPointIn::new()
+                                    .with_rel_position(XRelPosition::init().close())
+                                    .with_connection(
+                                        XConnection::new().with_attribute("refLocalId", "1").close(),
+                                    ),
+                            ),
+                    ),
+            ),
+        )
+        .serialize(),
+    );
 
-        assert_debug_snapshot!(xml_parser::visit(&content).unwrap());
-    }
+    assert_debug_snapshot!(xml_parser::visit(&content).unwrap());
+}
 
-    #[test]
-    fn ast_generates_locations() {
-        let source_code = SourceCode::new(CALL_BLOCK, "<internal>.cfc");
-        let (units, diagnostics) =
-            xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
-        let impl1 = &units.implementations[0];
-        //Deconstruct assignment and get locations
-        let AstStatement::Assignment { left, right, .. }= &impl1.statements[0] else {
+#[test]
+fn ast_generates_locations() {
+    let source_code = SourceCode::new(CALL_BLOCK, "<internal>.cfc");
+    let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
+    let impl1 = &units.implementations[0];
+    //Deconstruct assignment and get locations
+    let AstStatement::Assignment { left, right, .. }= &impl1.statements[0] else {
             panic!("Not an assignment");
         };
-        assert_debug_snapshot!(left.get_location());
-        assert_debug_snapshot!(right.get_location());
-        //Deconstruct call statement and get locations
-        let AstStatement::CallStatement { operator, parameters, location, .. } = &impl1.statements[1] else {
+    assert_debug_snapshot!(left.get_location());
+    assert_debug_snapshot!(right.get_location());
+    //Deconstruct call statement and get locations
+    let AstStatement::CallStatement { operator, parameters, location, .. } = &impl1.statements[1] else {
             panic!("Not a call statement");
         };
-        assert_debug_snapshot!(location);
-        assert_debug_snapshot!(operator.get_location());
-        let parameters = parameters.as_ref().as_ref().unwrap();
-        let parameters = flatten_expression_list(parameters);
-        for param in parameters {
-            assert_debug_snapshot!(param.get_location());
-        }
-
-        assert_debug_snapshot!(impl1);
-        assert!(diagnostics.is_empty());
+    assert_debug_snapshot!(location);
+    assert_debug_snapshot!(operator.get_location());
+    let parameters = parameters.as_ref().as_ref().unwrap();
+    let parameters = flatten_expression_list(parameters);
+    for param in parameters {
+        assert_debug_snapshot!(param.get_location());
     }
 
-    #[test]
-    #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
-    fn ast_diagnostic_locations() {
-        let source_code = SourceCode::new(ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
-        let (units, diagnostics) =
-            xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
-        let impl1 = &units.implementations[0];
-        assert_debug_snapshot!(impl1);
-        assert!(diagnostics.is_empty());
-        //Run resolve and validate
-        todo!("Validation in tests not yet done")
-    }
+    assert_debug_snapshot!(impl1);
+    assert!(diagnostics.is_empty());
+}
 
-    const ASSIGNMENT_A_B: &str = r#"
+#[test]
+#[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
+fn ast_diagnostic_locations() {
+    let source_code = SourceCode::new(ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
+    let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
+    let impl1 = &units.implementations[0];
+    assert_debug_snapshot!(impl1);
+    assert!(diagnostics.is_empty());
+    //Run resolve and validate
+    todo!("Validation in tests not yet done")
+}
+
+const ASSIGNMENT_A_B: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="thistimereallyeasy" pouType="program">
             <interface>
@@ -206,7 +202,7 @@ mod tests {
         </pou>
     "#;
 
-    const CALL_BLOCK: &str = r#"
+const CALL_BLOCK: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>
@@ -292,7 +288,7 @@ mod tests {
         
     "#;
 
-    const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
+const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>
@@ -337,4 +333,3 @@ mod tests {
         </pou>
         
     "#;
-}
