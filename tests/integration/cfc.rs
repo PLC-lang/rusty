@@ -150,3 +150,47 @@ fn conditional_return_block_evaluating_false() {
     // THEN it will NOT return early, modifying `res` to be 10
     assert_eq!(res, 10);
 }
+
+// TODO: These are temporare until we polished `test_utils` to also support CFC
+#[cfg(test)]
+mod ir {
+    use std::io::Read;
+
+    use driver::compile;
+    use insta::assert_snapshot;
+
+    use crate::get_test_file;
+
+    // TODO: Currently not working because of temp-file
+    #[test]
+    fn conditional_return() {
+        let st_file = get_test_file("cfc/conditional_return_evaluating_false.st");
+        let cfc_file = get_test_file("cfc/conditional_return.cfc");
+
+        let output_file = tempfile::NamedTempFile::new().unwrap();
+        let output_file_path = output_file.path().to_string_lossy();
+        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
+
+        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
+        let mut output_file_content = String::new();
+        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        // output_file_content = output_file_content.lines().into_iter().skip(2).collect::<String>();
+
+        assert_snapshot!(output_file_content);
+    }
+
+    #[test]
+    fn conditional_return_simple() {
+        let cfc_file = get_test_file("cfc/conditional_return.cfc");
+
+        let output_file = tempfile::NamedTempFile::new().unwrap();
+        let output_file_path = output_file.path().to_string_lossy();
+        compile(&["plc", &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
+
+        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
+        let mut output_file_content = String::new();
+        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+
+        assert_snapshot!(output_file_content);
+    }
+}
