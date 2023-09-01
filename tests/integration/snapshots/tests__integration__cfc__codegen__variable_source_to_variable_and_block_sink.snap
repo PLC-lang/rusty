@@ -1,10 +1,7 @@
 ---
 source: tests/integration/cfc.rs
-expression: content
+expression: output_file_content_without_headers.join(LINE_ENDING)
 ---
-; ModuleID = '/tmp/.tmp16oLtT/tests/integration/data/cfc/connection.ll'
-source_filename = "/home/mihr@bachmann.at/dev/rusty/tests/integration/data/cfc/connection.st"
-
 define i32 @main() {
 entry:
   %main = alloca i32, align 4
@@ -51,4 +48,3 @@ entry:
   %myConnection_ret = load i32, i32* %myConnection, align 4
   ret i32 %myConnection_ret
 }
-

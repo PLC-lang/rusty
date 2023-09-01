@@ -101,6 +101,11 @@ mod codegen {
     use driver::compile;
     use insta::assert_snapshot;
 
+    #[cfg(windows)]
+    const LINE_ENDING: &'static str = "\r\n";
+    #[cfg(not(windows))]
+    const LINE_ENDING: &'static str = "\n";
+
     use super::*;
     #[test]
     fn variable_source_to_variable_and_block_sink() {
@@ -113,9 +118,10 @@ mod codegen {
         let mut f = File::open(path).expect("Temp-file should have been generated");
         let mut content = String::new();
         let _ = f.read_to_string(&mut content);
+        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
 
         //Verify file content
-        assert_snapshot!(content);
+        assert_snapshot!(output_file_content_without_headers.join(LINE_ENDING));
 
         //clean up
         let _ = fs::remove_file(path);
@@ -133,9 +139,10 @@ mod codegen {
         let mut f = File::open(path).expect("Temp-file should have been generated");
         let mut content = String::new();
         let _ = f.read_to_string(&mut content);
+        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
 
         //Verify file content
-        assert_snapshot!(content);
+        assert_snapshot!(output_file_content_without_headers.join(LINE_ENDING));
 
         //clean up
         let _ = fs::remove_file(path);
