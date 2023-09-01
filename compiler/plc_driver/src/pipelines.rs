@@ -21,7 +21,11 @@ use plc::{
     validation::Validator,
     ConfigFormat, Target,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::{
+    diagnostician::{Diagnostician, Severity},
+    diagnostics::Diagnostic,
+    errno::ErrNo,
+};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -193,16 +197,25 @@ impl AnnotatedProject {
         // perform global validation
         let mut validator = Validator::new();
         validator.perform_global_validation(&self.index);
-        diagnostician.handle(validator.diagnostics());
+        let diagnostics = validator.diagnostics();
+        let mut severity = diagnostician.handle(&diagnostics);
 
         //Perform per unit validation
         self.units.iter().for_each(|(unit, _, _)| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
-            diagnostician.handle(validator.diagnostics());
+            let diagnostics = validator.diagnostics();
+            severity = severity.combine(diagnostician.handle(&diagnostics));
         });
-        Ok(())
+        if severity == Severity::Critical {
+            Err(Diagnostic::GeneralError {
+                message: "Compilation aborted due to critical errors".into(),
+                err_no: ErrNo::general__err,
+            })
+        } else {
+            Ok(())
+        }
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {

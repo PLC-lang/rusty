@@ -1,4 +1,4 @@
-use std::{error::Error, ops::Range};
+use std::{error::Error, fmt::Display, ops::Range};
 
 use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
 use plc_source::source_location::SourceLocation;
@@ -14,6 +14,18 @@ pub enum Diagnostic {
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec<SourceLocation> },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec<Diagnostic>, err_no: ErrNo },
+}
+
+impl Display for Diagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.get_type(), self.get_message())?;
+        let location = self.get_location();
+        if !location.is_undefined() {
+            write!(f, " at: {location}")
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl<T: Error> From<T> for Diagnostic {

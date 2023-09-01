@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     diagnostics::Diagnostic,
+    errno::ErrNo,
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -31,7 +32,7 @@ impl Diagnostician {
     }
 
     /// Assess and reports the given diagnostics.
-    pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
+    pub fn handle(&mut self, diagnostics: &[Diagnostic]) -> Severity {
         let resolved_diagnostics = diagnostics
             .iter()
             .flat_map(|it| match it {
@@ -61,9 +62,12 @@ impl Diagnostician {
                         })
                         .collect()
                 }),
-            });
+            })
+            .collect::<Vec<_>>();
 
-        self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
+        self.report(resolved_diagnostics.as_slice());
+
+        resolved_diagnostics.iter().fold(Severity::Info, |prev, current| prev.combine(current.severity))
     }
 
     /// Creates a null-diagnostician that does not report diagnostics
@@ -147,6 +151,7 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
         match d {
             // improvements become warnings
             Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
+            _ if *d.get_type() == ErrNo::reference__unresolved => Severity::Critical,
             // everything else becomes an error
             _ => Severity::Error,
         }
@@ -154,20 +159,54 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 }
 
 /// a diagnostics severity
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Severity {
+    Critical,
     Error,
     Warning,
-    _Info,
+    Info,
 }
 
 impl std::fmt::Display for Severity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let severity = match self {
+            Severity::Critical => "critical",
             Severity::Error => "error",
             Severity::Warning => "warning",
-            Severity::_Info => "info",
+            Severity::Info => "info",
         };
         write!(f, "{severity}")
+    }
+}
+
+impl PartialOrd for Severity {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Severity {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Severity::Critical, Severity::Critical) => std::cmp::Ordering::Equal,
+            (Severity::Critical, _) => std::cmp::Ordering::Greater,
+            (_, Severity::Critical) => std::cmp::Ordering::Less,
+            (Severity::Error, Severity::Error) => std::cmp::Ordering::Equal,
+            (Severity::Error, _) => std::cmp::Ordering::Greater,
+            (_, Severity::Error) => std::cmp::Ordering::Less,
+            (Severity::Warning, Severity::Warning) => std::cmp::Ordering::Equal,
+            (Severity::Warning, _) => std::cmp::Ordering::Greater,
+            (_, Severity::Warning) => std::cmp::Ordering::Less,
+            (Severity::Info, Severity::Info) => std::cmp::Ordering::Equal,
+        }
+    }
+}
+
+impl Severity {
+    pub fn combine(self, other: Self) -> Self {
+        match self.cmp(&other) {
+            std::cmp::Ordering::Less => other,
+            _ => self,
+        }
     }
 }
