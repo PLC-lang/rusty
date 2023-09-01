@@ -101,10 +101,7 @@ mod codegen {
     use driver::compile;
     use insta::assert_snapshot;
 
-    #[cfg(windows)]
-    const LINE_ENDING: &'static str = "\r\n";
-    #[cfg(not(windows))]
-    const LINE_ENDING: &'static str = "\n";
+    const LINE_ENDING: &'static str = if cfg!(windows) { "\r\n" } else { "\n" };
 
     use super::*;
     #[test]
