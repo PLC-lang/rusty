@@ -2,4 +2,6 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
+SyntaxError { message: "The type DWORD 32 is too small to hold a Pointer", range: [SourceRange { range: 204..218 }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: cannot assign '__FOO_ptr' to 'DWORD'", range: [SourceRange { range: 204..218 }], err_no: var__invalid_assignment }
 
