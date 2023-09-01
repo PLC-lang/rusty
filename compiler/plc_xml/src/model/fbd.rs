@@ -145,7 +145,7 @@ fn get_inner_connection_ref<'a>(
     match source {
         ConnectionReference::Id(id) => Some(*id),
         // for direct sink-to-source connections, we need to recurse to find the actual value
-        ConnectionReference::Name(name) => get_inner_connection_ref(name.as_ref(), &source_connections),
+        ConnectionReference::Name(name) => get_inner_connection_ref(name, source_connections),
     }
 }
 
@@ -162,7 +162,7 @@ fn get_inner_connection_ref<'a>(
 ///        ┣━━> OUT2
 ///        ┗━━> OUT3
 /// ```
-fn resolve_connection_points<'xml>(nodes: &mut NodeIndex) {
+fn resolve_connection_points(nodes: &mut NodeIndex) {
     fn get_connection_references<'b>(
         node: &'b Node,
         nodes: &'b IndexMap<usize, Node<'_>>,
