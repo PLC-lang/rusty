@@ -174,9 +174,9 @@ mod ir {
         let mut output_file_handle = std::fs::File::open(output_file).unwrap();
         let mut output_file_content = String::new();
         output_file_handle.read_to_string(&mut output_file_content).unwrap();
-        // output_file_content = output_file_content.lines().into_iter().skip(2).collect::<String>();
+        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
 
-        assert_snapshot!(output_file_content);
+        assert_snapshot!(output_file_content_without_headers.join("\n"));
     }
 
     #[test]
