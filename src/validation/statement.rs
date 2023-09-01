@@ -3,7 +3,7 @@ use std::{collections::HashSet, mem::discriminant};
 use plc_ast::{
     ast::{
         flatten_expression_list, AstStatement, DirectAccess, DirectAccessType, Operator, ReferenceAccess,
-        ReferenceExpr, SourceRange,
+        ReferenceExpr, SourceRange, AstStatementKind,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -41,7 +41,7 @@ pub fn visit_statement<T: AnnotationMap>(
     statement: &AstStatement,
     context: &ValidationContext<T>,
 ) {
-    match statement {
+    match statement.get_stmt() {
         // AstStatement::EmptyStatement { location, id } => (),
         // AstStatement::DefaultValue { location, id } => (),
         // AstStatement::LiteralInteger { value, location, id } => (),
@@ -52,55 +52,55 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
-        AstStatement::Literal { kind: AstLiteral::Array(Array { elements: Some(elements), .. }), .. } => {
+        AstStatementKind::Literal(AstLiteral::Array(Array { elements: Some(elements)})) => {
             visit_statement(validator, elements.as_ref(), context);
         }
-        AstStatement::CastStatement { data, location, .. } => {
-            if let AstStatement::Literal { kind: literal, .. } = data.target.as_ref() {
-                validate_cast_literal(validator, literal, statement, &data.type_name, location, context);
+        AstStatementKind::CastStatement ( data) => {
+            if let AstStatementKind::Literal ( literal ) = data.target.get_stmt() {
+                validate_cast_literal(validator, literal, statement, &data.type_name, &statement.get_location(), context);
             }
         }
-        AstStatement::MultipliedStatement { data, .. } => {
+        AstStatementKind::MultipliedStatement ( data) => {
             visit_statement(validator, &data.element, context);
         }
-        AstStatement::ReferenceExpr { data, .. } => {
+        AstStatementKind::ReferenceExpr ( data) => {
             if let Some(base) = &data.base {
                 visit_statement(validator, base, context);
             }
 
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
         }
-        AstStatement::BinaryExpression { data, .. } => {
+        AstStatementKind::BinaryExpression ( data) => {
             visit_all_statements!(validator, context, &data.left, &data.right);
             visit_binary_expression(validator, statement, &data.operator, &data.left, &data.right, context);
         }
-        AstStatement::UnaryExpression { data, .. } => {
+        AstStatementKind::UnaryExpression ( data ) => {
             visit_statement(validator, &data.value, context);
         }
-        AstStatement::ExpressionList { expressions, .. } => {
+        AstStatementKind::ExpressionList ( expressions) => {
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
         }
-        AstStatement::RangeStatement { data, .. } => {
+        AstStatementKind::RangeStatement ( data) => {
             visit_all_statements!(validator, context, &data.start, &data.end);
         }
-        AstStatement::Assignment { data, .. } => {
+        AstStatementKind::Assignment ( data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
             validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
-        AstStatement::OutputAssignment { data, .. } => {
+        AstStatementKind::OutputAssignment ( data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
         }
-        AstStatement::CallStatement { data, .. } => {
+        AstStatementKind::CallStatement ( data ) => {
             validate_call(validator, &data.operator, &data.parameters, &context.set_is_call());
         }
-        AstStatement::ControlStatement { kind, .. } => validate_control_statement(validator, kind, context),
-        AstStatement::CaseCondition { condition, .. } => {
+        AstStatementKind::ControlStatement ( kind) => validate_control_statement(validator, kind, context),
+        AstStatementKind::CaseCondition ( condition) => {
             // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
             // see `control_parser` `parse_case_statement()`
@@ -156,9 +156,9 @@ fn validate_reference_expression<T: AnnotationMap>(
 
             // see if we try to cast a literal
             if let (
-                AstStatement::Literal { kind: literal, .. },
+                AstStatementKind::Literal ( literal ),
                 Some(StatementAnnotation::Type { type_name }),
-            ) = (c.as_ref(), base.as_ref().and_then(|it| context.annotations.get(it)))
+            ) = (c.get_stmt(), base.as_ref().and_then(|it| context.annotations.get(it)))
             {
                 validate_cast_literal(
                     validator,
@@ -201,10 +201,7 @@ fn validate_address_of_expression<T: AnnotationMap>(
     //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(
     if !matches!(a, Some(StatementAnnotation::Variable { .. }))
-        && !matches!(
-            target,
-            AstStatement::ReferenceExpr { data: ReferenceExpr { access: ReferenceAccess::Index(_), .. }, .. }
-        )
+        && target.is_array_access()
     {
         validator.push_diagnostic(Diagnostic::invalid_operation("Invalid address-of operation", location));
     }
@@ -216,8 +213,8 @@ fn validate_direct_access<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
 ) {
-    if let (AstStatement::DirectAccess { data: DirectAccess { access, index }, .. }, Some(base_annotation)) = (
-        m,
+    if let (AstStatementKind::DirectAccess(DirectAccess { access, index }), Some(base_annotation)) = (
+        m.get_stmt(),
         // FIXME: should we consider the hint if one is available?
         base.and_then(|base| context.annotations.get(base)),
     ) {
@@ -343,8 +340,8 @@ fn validate_access_index<T: AnnotationMap>(
     target_type: &DataTypeInformation,
     location: &SourceRange,
 ) {
-    match *access_index {
-        AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
+    match *access_index.get_stmt() {
+        AstStatementKind::Literal ( AstLiteral::Integer(value)) => {
             if !helper::is_in_range(
                 access_type,
                 value.try_into().unwrap_or_default(),
@@ -359,7 +356,7 @@ fn validate_access_index<T: AnnotationMap>(
                 ))
             }
         }
-        AstStatement::ReferenceExpr { .. } => {
+        AstStatementKind::ReferenceExpr (_) => {
             let ref_type = context.annotations.get_type_or_void(access_index, context.index);
             if !ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(Diagnostic::incompatible_directaccess_variable(
@@ -430,8 +427,8 @@ fn visit_array_access<T: AnnotationMap>(
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
     match target_type {
-        DataTypeInformation::Array { dimensions, .. } => match access {
-            AstStatement::ExpressionList { expressions, .. } => {
+        DataTypeInformation::Array { dimensions, .. } => match access.get_stmt() {
+            AstStatementKind::ExpressionList ( expressions)=> {
                 validate_array_access_dimensions(dimensions.len(), expressions.len(), validator, access);
 
                 for (i, exp) in expressions.iter().enumerate() {
@@ -449,8 +446,8 @@ fn visit_array_access<T: AnnotationMap>(
             source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
             ..
         } => {
-            let dims = match access {
-                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+            let dims = match access.get_stmt() {
+                AstStatementKind::ExpressionList ( expressions) => expressions.len(),
                 _ => 1,
             };
 
@@ -482,7 +479,7 @@ fn validate_array_access<T: AnnotationMap>(
     dimension_index: usize,
     context: &ValidationContext<T>,
 ) {
-    if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = access {
+    if let AstStatementKind::Literal (AstLiteral::Integer(value)) = access.get_stmt() {
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
@@ -621,13 +618,13 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
         return;
     }
 
-    match (arg.can_be_assigned_to(), arg) {
+    match (arg.can_be_assigned_to(), arg.get_stmt()) {
         (true, _) => (),
 
         // Output assignments are optional, e.g. `foo(bar => )` is considered valid
-        (false, AstStatement::EmptyStatement { .. }) if matches!(ty, VariableType::Output) => (),
+        (false, AstStatementKind::EmptyStatement(_)) if matches!(ty, VariableType::Output) => (),
 
-        (false, AstStatement::Assignment { data, .. } | AstStatement::OutputAssignment { data, .. }) => {
+        (false, AstStatementKind::Assignment ( data) | AstStatementKind::OutputAssignment (data)) => {
             validate_call_by_ref(validator, param, &data.right);
         }
 
@@ -710,7 +707,7 @@ fn validate_assignment<T: AnnotationMap>(
                 left_type.get_type_information().get_name(),
                 location.clone(),
             ));
-        } else if !matches!(right, AstStatement::Literal { .. }) {
+        } else if right.is_literal() {
             // TODO: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
@@ -793,7 +790,7 @@ fn is_valid_string_to_char_assignment(
 ) -> bool {
     // TODO: casted literals and reference
     if left_type.is_compatible_char_and_string(right_type) {
-        if let AstStatement::Literal { kind: AstLiteral::String(StringValue { value, .. }), .. } = right {
+        if let AstStatementKind::Literal (AstLiteral::String(StringValue { value, .. })) = right.get_stmt() {
             if value.len() == 1 {
                 return true;
             } else {
@@ -967,7 +964,7 @@ fn validate_case_statement<T: AnnotationMap>(
         let condition = b.condition.as_ref();
 
         // invalid case conditions
-        if matches!(condition, AstStatement::Assignment { .. } | AstStatement::CallStatement { .. }) {
+        if matches!(condition.get_stmt(), AstStatementKind::Assignment (_) | AstStatementKind::CallStatement(_)) {
             validator.push_diagnostic(Diagnostic::invalid_case_condition(condition.get_location()));
         }
 
@@ -983,7 +980,7 @@ fn validate_case_statement<T: AnnotationMap>(
             })
             .map(|v| {
                 // check for duplicates if we got a value
-                if let Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) = v {
+                if let Some(AstStatementKind::Literal ( AstLiteral::Integer(value))) = v.map(|it| it.get_stmt()) {
                     if !cases.insert(value) {
                         validator.push_diagnostic(Diagnostic::duplicate_case_condition(
                             &value,

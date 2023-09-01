@@ -1043,6 +1043,10 @@ impl AstStatement {
     pub fn is_identifier(&self) -> bool {
         matches!(self.stmt, AstStatementKind::Identifier(..))
     }
+
+    pub fn is_default_value(&self) -> bool {
+        matches!(self.stmt, AstStatementKind::DefaultValue { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1183,6 +1187,26 @@ impl AstFactory {
     pub fn create_empty_statement(location: SourceRange, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::EmptyStatement(EmptyStatement {}), location, id }
         // AstStatementKind::EmptyStatement (  EmptyStatement {}, location, id }
+    }
+
+    pub fn create_return_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::ReturnStatement(()), location, id }
+    }
+
+    pub fn create_exit_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::ExitStatement(()), location, id }
+    }
+
+    pub fn create_continue_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::ContinueStatement(()), location, id }
+    }
+
+    pub fn create_vla_range_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::VlaRangeStatement, id, location }
+    }
+
+    pub fn create_literal(kind: AstLiteral, location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::Literal(kind), id, location }
     }
 
     pub fn create_hardware_access(

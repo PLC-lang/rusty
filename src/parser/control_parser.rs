@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstFactory, AstStatement},
+    ast::{AstFactory, AstStatement, AstStatementKind},
     control_statements::ConditionalBlock,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -31,19 +31,19 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> AstStatement {
 fn parse_return_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ReturnStatement { location, id: lexer.next_id() }
+    AstFactory::create_return_statement(location, lexer.next_id())
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ExitStatement { location, id: lexer.next_id() }
+    AstFactory::create_exit_statement(location, lexer.next_id())
 }
 
 fn parse_continue_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ContinueStatement { location, id: lexer.next_id() }
+    AstFactory::create_continue_statement(location, lexer.next_id())
 }
 
 fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -172,7 +172,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
         let mut current_condition = None;
         let mut current_body = vec![];
         for statement in body {
-            if let AstStatement::CaseCondition { condition, .. } = statement {
+            if let AstStatement{ stmt: AstStatementKind::CaseCondition ( condition), ..} = statement {
                 if let Some(condition) = current_condition {
                     let block = ConditionalBlock { condition, body: current_body };
                     case_blocks.push(block);

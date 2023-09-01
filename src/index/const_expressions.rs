@@ -2,7 +2,7 @@
 
 use generational_arena::{Arena, Iter};
 use plc_ast::{
-    ast::{AstStatement, SourceRange},
+    ast::{AstStatement, SourceRange, AstStatementKind},
     literals::AstLiteral,
 };
 
@@ -68,7 +68,8 @@ impl ConstExpression {
     }
 
     pub(crate) fn is_default(&self) -> bool {
-        matches!(self.get_statement(), AstStatement::DefaultValue { .. })
+        self.get_statement().is_default_value()
+
     }
 }
 
@@ -229,8 +230,8 @@ impl ConstExpressions {
     /// complex one (not a LiteralInteger)
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
-            |it| match it {
-                AstStatement::Literal { kind: AstLiteral::Integer(i), .. } => Ok(*i),
+            |it| match it.get_stmt() {
+                AstStatementKind::Literal(AstLiteral::Integer(i)) => Ok(*i),
                 _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )

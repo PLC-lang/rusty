@@ -78,7 +78,11 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                 match (initial_value_literal, &candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
-                        Ok(Some(AstStatement::Literal { kind: AstLiteral::Integer(i), id, location })),
+                        Ok(Some(AstStatement {
+                            stmt: AstStatementKind::Literal(AstLiteral::Integer(i)),
+                            id,
+                            location,
+                        })),
                         Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
                         // since we store literal-ints as i128 we need to truncate all of them down to their
@@ -90,11 +94,11 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             .get_mut_const_expressions()
                             .mark_resolved(
                                 &candidate,
-                                AstStatement::Literal {
+                                AstStatement::new_literal(
+                                    AstLiteral::new_integer(masked_value),
                                     id,
                                     location,
-                                    kind: AstLiteral::new_integer(masked_value),
-                                },
+                                ),
                             )
                             .expect("unknown id for const-expression"); //panic if we dont know the id
                         failed_tries = 0;
@@ -152,10 +156,10 @@ fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: As
 /// literals must not be further evaluated and can be known at
 /// compile time
 fn needs_evaluation(expr: &AstStatement) -> bool {
-    match expr {
-        AstStatement::Literal { kind, .. } => match &kind {
-            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match elements.as_ref() {
-                AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+    match expr.get_stmt() {
+        AstStatementKind::Literal(kind) => match &kind {
+            &AstLiteral::Array(Array { elements: Some(elements), .. }) => match &elements.get_stmt() {
+                AstStatementKind::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
                 _ => needs_evaluation(elements.as_ref()),
             },
 
@@ -164,9 +168,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
 
             _ => false,
         },
-        AstStatement::Assignment { data, .. } => needs_evaluation(data.right.as_ref()),
-        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
-        AstStatement::RangeStatement { data, .. } => {
+        AstStatementKind::Assignment(data) => needs_evaluation(data.right.as_ref()),
+        AstStatementKind::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
+        AstStatementKind::RangeStatement(data) => {
             needs_evaluation(&data.start) || needs_evaluation(&data.end)
         }
         _ => true,
@@ -186,13 +190,12 @@ fn get_default_initializer(
         let dt = index.get_type_information_or_void(target_type);
         let init = match dt {
             DataTypeInformation::Pointer { .. } => {
-                Some(AstStatement::Literal { kind: AstLiteral::Null, location: location.clone(), id })
+                Some(AstFactory::create_literal(AstLiteral::Null, location.clone(), id))
+                // Some(AstStatementKind::Literal { kind: AstLiteral::Null, location: location.clone(), id })
             }
-            DataTypeInformation::Integer { .. } => Some(AstStatement::Literal {
-                kind: AstLiteral::new_integer(0),
-                location: location.clone(),
-                id,
-            }),
+            DataTypeInformation::Integer { .. } => {
+                Some(AstFactory::create_literal(AstLiteral::new_integer(0), location.clone(), id))
+            }
             DataTypeInformation::Enum { name, elements, .. } => elements
                 .get(0)
                 .and_then(|default_enum| index.find_enum_element(name, default_enum))
@@ -201,16 +204,16 @@ fn get_default_initializer(
                     index.get_const_expressions().get_resolved_constant_statement(&initial_val)
                 })
                 .cloned(),
-            DataTypeInformation::Float { .. } => Some(AstStatement::Literal {
-                kind: AstLiteral::new_real("0.0".to_string()),
-                location: location.clone(),
+            DataTypeInformation::Float { .. } => Some(AstFactory::create_literal(
+                AstLiteral::new_real("0.0".to_string()),
+                location.clone(),
                 id,
-            }),
-            DataTypeInformation::String { encoding, .. } => Some(AstStatement::Literal {
-                kind: AstLiteral::new_string("".to_string(), encoding == &StringEncoding::Utf16),
-                location: location.clone(),
+            )),
+            DataTypeInformation::String { encoding, .. } => Some(AstFactory::create_literal(
+                AstLiteral::new_string("".to_string(), encoding == &StringEncoding::Utf16),
+                location.clone(),
                 id,
-            }),
+            )),
             DataTypeInformation::SubRange { referenced_type, .. }
             | DataTypeInformation::Alias { referenced_type, .. } => {
                 return get_default_initializer(id, referenced_type, index, location)
@@ -232,18 +235,19 @@ fn cast_if_necessary(
          return statement;
     };
 
-    if let AstStatement::Literal { kind: literal, location, id } = &statement {
+    if let AstStatementKind::Literal(literal) = statement.get_stmt() {
+        let (id, location) = (statement.get_id(), statement.get_location());
         match literal {
             AstLiteral::Integer(value) if dti.is_float() => {
-                return AstStatement::new_real(value.to_string(), *id, location.to_owned())
+                return AstStatement::new_real(value.to_string(), id, location.to_owned())
             }
 
             AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
-                return AstStatement::new_string(value, false, *id, location.to_owned())
+                return AstStatement::new_string(value, false, id, location.to_owned())
             }
 
             AstLiteral::String(StringValue { value, is_wide: false }) if dti.is_string_utf16() => {
-                return AstStatement::new_string(value, true, *id, location.to_owned())
+                return AstStatement::new_string(value, true, id, location.to_owned())
             }
 
             _ => (),
@@ -256,7 +260,7 @@ fn cast_if_necessary(
 /// Checks if a literal integer or float overflows based on its value, and if so returns true.
 fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
     let Some(dti) = dti else { return false };
-    let AstStatement::Literal { kind, .. } = literal else { return false };
+    let AstStatementKind::Literal(kind) = literal.get_stmt() else { return false };
 
     if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
         return false;
@@ -330,8 +334,9 @@ fn evaluate_with_target_hint(
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
 
-    let literal = match initial {
-        AstStatement::Literal { kind, location, id } => match kind {
+    let (id, location) = (initial.get_id(), initial.get_location());
+    let literal = match initial.get_stmt() {
+        AstStatementKind::Literal(kind) => match kind {
             AstLiteral::Array(Array { elements: Some(elements) }) => {
                 let tt = target_type
                     .and_then(|it| index.find_effective_type_info(it))
@@ -345,14 +350,16 @@ fn evaluate_with_target_hint(
                     .into_iter()
                     .collect::<Option<Vec<AstStatement>>>();
 
-                //return a new array, or return none if one was not resolvable
-                inner_elements.map(|ie| AstStatement::Literal {
-                    id: *id,
-                    kind: AstLiteral::new_array(Some(Box::new(AstStatement::ExpressionList {
-                        expressions: ie,
-                        id: *id,
-                    }))),
-                    location: location.clone(),
+                inner_elements.map(|ie| {
+                    AstFactory::create_literal(
+                        AstLiteral::new_array(Some(Box::new(AstFactory::create_expression_list(
+                            ie,
+                            location.clone(),
+                            id,
+                        )))),
+                        location.clone(),
+                        id,
+                    )
                 })
             }
 
@@ -371,24 +378,24 @@ fn evaluate_with_target_hint(
             _ => return Ok(Some(initial.clone())),
         },
 
-        AstStatement::DefaultValue { location, .. } => {
+        AstStatementKind::DefaultValue(_) => {
             return get_default_initializer(
                 initial.get_id(),
                 target_type.unwrap_or(VOID_TYPE),
                 index,
-                location,
+                &location,
             )
         }
-        AstStatement::ReferenceExpr {
-            data: ReferenceExpr { access: ReferenceAccess::Cast(target), base: Some(type_name) },
-            ..
-        } => {
+        AstStatementKind::ReferenceExpr(ReferenceExpr {
+            access: ReferenceAccess::Cast(target),
+            base: Some(type_name),
+        }) => {
             let dti = type_name
                 .get_flat_reference_name()
                 .and_then(|type_name| index.find_effective_type_info(type_name));
             match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
-                    if let AstStatement::Identifier { name: ref_name, .. } = target.as_ref() {
+                    if let AstStatementKind::Identifier(ref_name) = target.get_stmt() {
                         return index
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {
@@ -408,10 +415,10 @@ fn evaluate_with_target_hint(
                 None => return Err(UnresolvableKind::Misc("Cannot resolve unknown Type-Cast.".to_string())),
             }
         }
-        AstStatement::ReferenceExpr {
-            data: ReferenceExpr { access: ReferenceAccess::Member(reference), base },
-            ..
-        } => {
+        AstStatementKind::ReferenceExpr(ReferenceExpr {
+            access: ReferenceAccess::Member(reference),
+            base,
+        }) => {
             if let Some(name) = reference.get_flat_reference_name() {
                 index
                     .find_variable(
@@ -425,33 +432,33 @@ fn evaluate_with_target_hint(
                 None
             }
         }
-        AstStatement::BinaryExpression { data: BinaryExpression { left, right, operator }, id, .. } => {
+        AstStatementKind::BinaryExpression(BinaryExpression { left, right, operator }) => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
                 let evalualted = match operator {
-                    Operator::Plus => arithmetic_expression!(left, +, right, "+", *id)?,
-                    Operator::Minus => arithmetic_expression!(left, -, right, "-", *id)?,
-                    Operator::Multiplication => arithmetic_expression!(left, *, right, "*", *id)?,
+                    Operator::Plus => arithmetic_expression!(left, +, right, "+", id)?,
+                    Operator::Minus => arithmetic_expression!(left, -, right, "-", id)?,
+                    Operator::Multiplication => arithmetic_expression!(left, *, right, "*", id)?,
                     Operator::Division if right.is_zero() => {
                         return Err(UnresolvableKind::Misc("Attempt to divide by zero".to_string()))
                     }
-                    Operator::Division => arithmetic_expression!(left, /, right, "/", *id)?,
+                    Operator::Division => arithmetic_expression!(left, /, right, "/", id)?,
                     Operator::Modulo if right.is_zero() => {
                         return Err(UnresolvableKind::Misc(
                             "Attempt to calculate the remainder with a divisor of zero".to_string(),
                         ))
                     }
-                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", *id)?,
-                    Operator::Equal => compare_expression!(left, ==, right, "=", *id)?,
-                    Operator::NotEqual => compare_expression!(left, !=, right, "<>", *id)?,
-                    Operator::Greater => compare_expression!(left, >, right, ">", *id)?,
-                    Operator::GreaterOrEqual => compare_expression!(left, >=, right, ">=", *id)?,
-                    Operator::Less => compare_expression!(left, <, right, "<", *id)?,
-                    Operator::LessOrEqual => compare_expression!(left, <=, right, "<=", *id)?,
-                    Operator::And => bitwise_expression!(left, & , right, "AND", *id)?,
-                    Operator::Or => bitwise_expression!(left, | , right, "OR", *id)?,
-                    Operator::Xor => bitwise_expression!(left, ^, right, "XOR", *id)?,
+                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", id)?,
+                    Operator::Equal => compare_expression!(left, ==, right, "=", id)?,
+                    Operator::NotEqual => compare_expression!(left, !=, right, "<>", id)?,
+                    Operator::Greater => compare_expression!(left, >, right, ">", id)?,
+                    Operator::GreaterOrEqual => compare_expression!(left, >=, right, ">=", id)?,
+                    Operator::Less => compare_expression!(left, <, right, "<", id)?,
+                    Operator::LessOrEqual => compare_expression!(left, <=, right, "<=", id)?,
+                    Operator::And => bitwise_expression!(left, & , right, "AND", id)?,
+                    Operator::Or => bitwise_expression!(left, | , right, "OR", id)?,
+                    Operator::Xor => bitwise_expression!(left, ^, right, "XOR", id)?,
                     _ => {
                         return Err(UnresolvableKind::Misc(format!(
                             "Cannot resolve operator {operator:?} in constant evaluation"
@@ -467,17 +474,19 @@ fn evaluate_with_target_hint(
         }
 
         // NOT x
-        AstStatement::UnaryExpression {
-            data: UnaryExpression { operator: Operator::Not, value }, ..
-        } => {
+        AstStatementKind::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
             let eval = evaluate(value, scope, index)?;
-            match eval.clone() {
-                Some(AstStatement::Literal { kind: AstLiteral::Bool(v), id, location }) => {
-                    Some(AstStatement::Literal { kind: AstLiteral::Bool(!v), id, location })
+            match eval.as_ref() {
+                Some(AstStatement { stmt: AstStatementKind::Literal(AstLiteral::Bool(v)), id, location }) => {
+                    Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
                 }
-                Some(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) => {
+                Some(AstStatement {
+                    stmt: AstStatementKind::Literal(AstLiteral::Integer(v)),
+                    id,
+                    location,
+                }) => {
                     evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)?;
-                    Some(AstStatement::Literal { kind: AstLiteral::Integer(!v), id, location })
+                    Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
                 }
                 None => {
                     None //not yet resolvable
@@ -486,23 +495,25 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
-        AstStatement::UnaryExpression {
-            data: UnaryExpression { operator: Operator::Minus, value }, ..
-        } => {
+        AstStatementKind::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
             match evaluate(value, scope, index)? {
-                Some(AstStatement::Literal { kind: AstLiteral::Integer(v), id, location }) => {
-                    Some(AstStatement::Literal { kind: AstLiteral::Integer(-v), id, location })
+                Some(AstStatement {
+                    stmt: AstStatementKind::Literal(AstLiteral::Integer(v)),
+                    id,
+                    location,
+                }) => {
+                    Some(AstStatement::new(AstStatementKind::Literal(AstLiteral::Integer(-v)), id, location))
                 }
-                Some(AstStatement::Literal { kind: AstLiteral::Real(v), id, location }) => {
-                    let lit = AstStatement::Literal {
-                        kind: AstLiteral::new_real(format!(
+                Some(AstStatement { stmt: AstStatementKind::Literal(AstLiteral::Real(v)), id, location }) => {
+                    let lit = AstStatement::new(
+                        AstStatementKind::Literal(AstLiteral::new_real(format!(
                             "{:}",
                             -(v.parse::<f64>())
                                 .map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?
-                        )),
+                        ))),
                         id,
                         location,
-                    };
+                    );
                     evaluate_with_target_hint(&lit, scope, index, target_type)?
                 }
                 None => {
@@ -511,7 +522,7 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
-        AstStatement::ExpressionList { expressions, id } => {
+        AstStatementKind::ExpressionList(expressions) => {
             let inner_elements = expressions
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -520,13 +531,9 @@ fn evaluate_with_target_hint(
                 .collect::<Option<Vec<AstStatement>>>();
 
             //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstStatement::ExpressionList { expressions: ie, id: *id })
+            inner_elements.map(|ie| AstStatement::new(AstStatementKind::ExpressionList(ie), id, location))
         }
-        AstStatement::MultipliedStatement {
-            data: MultipliedStatement { element, multiplier },
-            location,
-            id,
-        } => {
+        AstStatementKind::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
             let inner_elements = AstStatement::get_as_list(element.as_ref())
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -537,29 +544,29 @@ fn evaluate_with_target_hint(
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| {
                 if let [ie] = ie.as_slice() {
-                    AstFactory::create_multiplied_statement(*multiplier, ie.clone(), location.clone(), *id)
+                    AstFactory::create_multiplied_statement(*multiplier, ie.clone(), location.clone(), id)
                 } else {
                     AstFactory::create_multiplied_statement(
                         *multiplier,
-                        AstFactory::create_expression_list(ie, *id),
+                        AstFactory::create_expression_list(ie, location.clone(), id),
                         location.clone(),
-                        *id,
+                        id,
                     )
                 }
             })
         }
-        AstStatement::Assignment { data, id } => {
+        AstStatementKind::Assignment(data) => {
             //Right needs evaluation
             if let Some(right) = evaluate(&data.right, scope, index)? {
-                Some(AstFactory::create_assignment(*data.left.clone(), right, *id))
+                Some(AstFactory::create_assignment(*data.left.clone(), right, id))
             } else {
                 Some(initial.clone())
             }
         }
-        AstStatement::RangeStatement { data, id } => {
+        AstStatementKind::RangeStatement(data) => {
             let start = evaluate(&data.start, scope, index)?.unwrap_or_else(|| *data.start.to_owned());
             let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
-            Some(AstFactory::create_range_statement(start, end, *id))
+            Some(AstFactory::create_range_statement(start, end, id))
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
@@ -602,7 +609,7 @@ fn get_cast_statement_literal(
             let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
                 .as_ref()
                 .map(|v| {
-                    if let AstStatement::Literal { kind: AstLiteral::Integer(value), .. } = v {
+                    if let AstStatementKind::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
                         Ok(*value)
                     } else {
                         Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
@@ -611,11 +618,11 @@ fn get_cast_statement_literal(
                 .transpose()?;
 
             if let Some(value) = evaluated_initial {
-                return Ok(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(value),
-                    id: cast_statement.get_id(),
-                    location: cast_statement.get_location(),
-                });
+                return Ok(AstStatement::new(
+                    AstStatementKind::Literal(AstLiteral::new_integer(value)),
+                    cast_statement.get_id(),
+                    cast_statement.get_location(),
+                ));
             }
 
             Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")))
@@ -623,11 +630,9 @@ fn get_cast_statement_literal(
 
         Some(DataTypeInformation::Float { .. }) => {
             let evaluated = evaluate(cast_statement, scope, index)?;
-            let value = match evaluated {
-                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => Some(value as f64),
-                Some(AstStatement::Literal { kind: AstLiteral::Real(value), .. }) => {
-                    value.parse::<f64>().ok()
-                }
+            let value = match evaluated.map(|it| it.get_stmt()) {
+                Some(AstStatementKind::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
+                Some(AstStatementKind::Literal(AstLiteral::Real(value))) => value.parse::<f64>().ok(),
                 _ => {
                     return Err(UnresolvableKind::Misc(format!(
                         "Expected floating point type, got: {evaluated:?}"
@@ -639,11 +644,11 @@ fn get_cast_statement_literal(
                 return Err(UnresolvableKind::Misc(format!("cannot resolve constant: {type_name}#{cast_statement:?}")))
             };
 
-            Ok(AstStatement::Literal {
-                kind: AstLiteral::new_real(value.to_string()),
-                id: cast_statement.get_id(),
-                location: cast_statement.get_location(),
-            })
+            Ok(AstStatement::new(
+                AstStatementKind::Literal(AstLiteral::new_real(value.to_string())),
+                cast_statement.get_id(),
+                cast_statement.get_location(),
+            ))
         }
 
         _ => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}"))),
@@ -659,95 +664,94 @@ use cannot_eval_error;
 
 macro_rules! arithmetic_expression {
     ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
+        {
+        let loc_left = $left.get_location();
+        let loc_right = $right.get_location();
+        match ($left.get_stmt(), $right.get_stmt()) {
+            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
+                    Ok(AstStatementKind::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
             },
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+
+            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Real(rvalue))) => {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
+                    Ok(AstStatementKind::Literal(
+                        AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string())))
             },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
+
+            (   AstStatementKind::Literal(AstLiteral::Real(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op *rvalue as f64).to_string()), location: loc_left.span(loc_right)
-                })
+                    Ok(AstStatementKind::Literal(AstLiteral::new_real((lvalue $op *rvalue as f64).to_string())))
             },
-            (   AstStatement::Literal{kind: AstLiteral::Real(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Real(rvalue), location: loc_right, ..}) => {
+
+            (   AstStatementKind::Literal(AstLiteral::Real(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Real(rvalue))) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_real((lvalue $op rvalue).to_string()), location: loc_left.span(loc_right)
-                })
+                    Ok(AstStatementKind::Literal(
+                        AstLiteral::new_real((lvalue $op rvalue).to_string()),
+                    ))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
+        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
         }
     }
 }
 use arithmetic_expression;
 
 macro_rules! bitwise_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_integer(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {{
+        let loc_left = $left.get_location();
+        let loc_right = $right.get_location();
+        match ($left.get_stmt(), $right.get_stmt()) {
+            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
+                Ok(AstStatementKind::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
             },
 
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
-                })
+            (   AstStatementKind::Literal(AstLiteral::Bool(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Bool(rvalue))) => {
+                Ok(AstStatementKind::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    };
-}
+        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
+    }
+}}
 use bitwise_expression;
 
 macro_rules! compare_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
-        match ($left, $right) {
-            (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {{
+        let loc_left = $left.get_location();
+        let loc_right = $right.get_location();
+        match ($left.get_stmt(), $right.get_stmt()) {
+            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
+                Ok(AstStatementKind::Literal(
+                    AstLiteral::new_bool(lvalue $op rvalue)))
             },
-            (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
-                AstStatement::Literal{kind: AstLiteral::Real{..}, ..}) => {
-               Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
+            (   AstStatementKind::Literal(AstLiteral::Real(..)),
+                AstStatementKind::Literal(AstLiteral::Real(..))) => {
+                    Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
             },
-            (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
-                AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
-                Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
-                })
+            (   AstStatementKind::Literal(AstLiteral::Bool(lvalue)),
+                AstStatementKind::Literal(AstLiteral::Bool(rvalue))) => {
+                    Ok(AstStatementKind::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
-        }
-    }
+        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
+    }}
 }
 use compare_expression;
 use plc_ast::{
     ast::{
-        AstFactory, AstId, AstStatement, BinaryExpression, MultipliedStatement, Operator, ReferenceAccess,
-        ReferenceExpr, SourceRange, UnaryExpression,
+        AstFactory, AstId, AstStatement, AstStatementKind, BinaryExpression, MultipliedStatement, Operator,
+        ReferenceAccess, ReferenceExpr, SourceRange, UnaryExpression,
     },
     literals::{Array, AstLiteral, StringValue},
 };

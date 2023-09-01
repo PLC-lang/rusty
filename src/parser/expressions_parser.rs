@@ -7,7 +7,7 @@ use crate::{
 };
 use core::str::Split;
 use plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, AstStatementKind, DirectAccessType, Operator, SourceRange},
     literals::{AstLiteral, Time},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -49,6 +49,7 @@ pub fn parse_expression(lexer: &mut ParseSession) -> AstStatement {
 }
 
 pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
+    let start = lexer.location();
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = vec![];
@@ -62,7 +63,11 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
         // we may have parsed no additional expression because of trailing comma
         if !expressions.is_empty() {
             expressions.insert(0, left);
-            return AstStatement::ExpressionList { expressions, id: lexer.next_id() };
+            return AstFactory::create_expression_list(
+                expressions,
+                start.span(&lexer.last_location()),
+                lexer.next_id(),
+            );
         }
     }
     left
@@ -132,22 +137,13 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         let op_location = lexer.location();
         lexer.advance();
         let right = parse_unary_expression(lexer);
-
-        left = AstStatement::CallStatement {
-            data: plc_ast::ast::CallStatement {
-                operator: Box::new(AstFactory::create_member_reference(
-                    AstFactory::create_identifier("EXPT", &op_location, lexer.next_id()),
-                    None,
-                    lexer.next_id(),
-                )),
-                parameters: Box::new(Some(AstStatement::ExpressionList {
-                    expressions: vec![left, right],
-                    id: lexer.next_id(),
-                })),
-            },
-            location: (start_location.get_start()..lexer.last_location().get_end()).into(),
-            id: lexer.next_id(),
-        }
+        left = AstFactory::create_call_to(
+            "EXPT".to_string(),
+            vec![left, right],
+            lexer.next_id(),
+            lexer.next_id(),
+            &left.get_location().span(&right.get_location()),
+        );
     }
     left
 }
@@ -172,17 +168,17 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         let expression_location = expression.get_location();
         let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
 
-        match (&operator, &expression) {
-            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+        match (&operator, &expression.get_stmt()) {
+            (Operator::Minus, AstStatementKind::Literal (AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+            (Operator::Plus, AstStatementKind::Literal (AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            (Operator::Plus, AstStatement::Identifier { name, .. }) => {
+            (Operator::Plus, AstStatementKind::Identifier ( name)) => {
                 AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
@@ -307,7 +303,7 @@ fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstStatement {
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     lexer.advance();
-    Ok(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+    Ok(AstFactory::create_vla_range_statement(lexer.last_location(), lexer.next_id()))
 }
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -391,7 +387,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             (None, None) => {
                 let exp = parse_atomic_leaf_expression(lexer)?;
                 // pack if this is something to be resolved
-                current = if matches!(exp, AstStatement::Identifier { .. }) {
+                current = if exp.is_identifier() {
                     Some(AstFactory::create_member_reference(exp, None, lexer.next_id()))
                 } else {
                     Some(exp)

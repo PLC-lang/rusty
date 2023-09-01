@@ -19,8 +19,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess,
-        ReferenceExpr, SourceRange, AstStatementKind,
+        flatten_expression_list, AstFactory, AstStatement, AstStatementKind, NewLines, Operator,
+        ReferenceAccess, ReferenceExpr, SourceRange,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
 };
@@ -118,14 +118,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `statement` the statement to be generated
     pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
         match statement.get_stmt() {
-            AstStatementKind::EmptyStatement ( .. ) => {
+            AstStatementKind::EmptyStatement(..) => {
                 //nothing to generate
             }
-            AstStatementKind::Assignment ( data, .. ) => {
+            AstStatementKind::Assignment(data, ..) => {
                 self.generate_assignment_statement(&data.left, &data.right)?;
             }
 
-            AstStatementKind::ControlStatement ( ctl_statement, .. ) => {
+            AstStatementKind::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }
             AstStatementKind::ReturnStatement { .. } => {
@@ -133,7 +133,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
             }
-            AstStatementKind::ExitStatement ( location, .. ) => {
+            AstStatementKind::ExitStatement(location, ..) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block);
@@ -145,7 +145,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     ));
                 }
             }
-            AstStatementKind::ContinueStatement ( location, .. ) => {
+            AstStatementKind::ContinueStatement(location, ..) => {
                 if let Some(cont_block) = &self.current_loop_continue {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
@@ -267,7 +267,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left = left_expression_value.get_basic_value_enum().into_pointer_value();
         //Build index
         if let Some((element, direct_access)) = access_sequence.split_first() {
-            let mut rhs = if let AstStatementKind::DirectAccess ( data, .. ) = element.get_stmt() {
+            let mut rhs = if let AstStatementKind::DirectAccess(data, ..) = element.get_stmt() {
                 exp_gen.generate_direct_access_index(
                     &data.access,
                     &data.index,
@@ -281,7 +281,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 ))
             }?;
             for element in direct_access {
-                let rhs_next = if let AstStatementKind::DirectAccess ( data, .. ) = element.get_stmt() {
+                let rhs_next = if let AstStatementKind::DirectAccess(data, ..) = element.get_stmt() {
                     exp_gen.generate_direct_access_index(
                         &data.access,
                         &data.index,
@@ -484,7 +484,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&conditional_block.condition);
             for s in expressions {
-                if let AstStatementKind::RangeStatement ( data, .. ) = s.get_stmt() {
+                if let AstStatementKind::RangeStatement(data, ..) = s.get_stmt() {
                     //if this is a range statement, we generate an if (x >= start && x <= end) then the else-section
                     builder.position_at_end(current_else_block);
                     // since the if's generate additional blocks, we use the last one as the else-section
@@ -737,12 +737,12 @@ fn collect_base_and_direct_access_for_assignment(
 ) -> Option<(&AstStatement, Vec<&AstStatement>)> {
     let mut current = Some(left_statement);
     let mut access_sequence = Vec::new();
-    while let Some(AstStatementKind::ReferenceExpr {
-        data: ReferenceExpr { access: ReferenceAccess::Member(m), base },
-        ..
-    }) = current
+    while let Some(AstStatementKind::ReferenceExpr(ReferenceExpr {
+        access: ReferenceAccess::Member(m),
+        base,
+    })) = current.map(|it| it.get_stmt())
     {
-        if matches!(m.as_ref(), AstStatementKind::DirectAccess { .. }) {
+        if matches!(m.get_stmt(), AstStatementKind::DirectAccess { .. }) {
             access_sequence.insert(0, m.as_ref());
             current = base.as_deref();
         } else {

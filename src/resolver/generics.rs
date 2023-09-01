@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+use plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature, AstStatementKind};
 
 use crate::{
     builtins,
@@ -45,9 +45,9 @@ impl<'i> TypeAnnotator<'i> {
 
         //If generic add a generic annotation
         if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
-            let statement = match statement {
+            let statement = match statement.get_stmt() {
                 //The right side of the assignment is the source of truth
-                AstStatement::Assignment { data, .. } => &data.right,
+                AstStatementKind::Assignment ( data) => &data.right,
                 _ => statement,
             };
             //Find the statement's type
@@ -278,9 +278,9 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map.add_generic_nature(passed_parameter, generic.generic_nature);
 
                         // for assignments we need to annotate the left side aswell
-                        match parameter_stmt {
-                            AstStatement::Assignment { data, .. }
-                            | AstStatement::OutputAssignment { data, .. } => {
+                        match parameter_stmt.get_stmt() {
+                            AstStatementKind::Assignment ( data)
+                            | AstStatementKind::OutputAssignment ( data) => {
                                 self.annotate(&data.left, StatementAnnotation::value(datatype.get_name()));
                             }
                             _ => {}
