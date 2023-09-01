@@ -1854,8 +1854,8 @@
         </span><span class="kw">return </span><span class="bool-val">true</span>;
     } <span class="kw">else if </span>is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
     <span class="comment">// FIXME: See https://github.com/PLC-lang/rusty/issues/857
-    // else if is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator) |
-        </span>| is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+        </span>| is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator)
+        | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
         <span class="kw">return </span><span class="bool-val">false</span>;
@@ -1888,7 +1888,7 @@
     <span class="bool-val">false
 </span>}
 
-<span class="kw">fn </span>_is_invalid_pointer_assignment(
+<span class="kw">fn </span>is_invalid_pointer_assignment(
     left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     index: <span class="kw-2">&amp;</span>Index,
@@ -2121,25 +2121,25 @@
     }
 }
 
-<span class="comment">// fn validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
-//     validator: &amp;mut Validator,
-//     left: &amp;DataType,
-//     right: &amp;DataType,
-//     location: &amp;SourceRange,
-//     context: &amp;ValidationContext&lt;T&gt;,
-// ) {
-//     if left.get_type_information().get_size(context.index)
-//         &lt; right.get_type_information().get_size(context.index)
-//     {
-//         validator.push_diagnostic(Diagnostic::implicit_downcast(
-//             left.get_name(),
-//             right.get_name(),
-//             location.clone(),
-//         ))
-//     }
-// }
+<span class="kw">fn </span>_validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    left: <span class="kw-2">&amp;</span>DataType,
+    right: <span class="kw-2">&amp;</span>DataType,
+    location: <span class="kw-2">&amp;</span>SourceRange,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
+    <span class="kw">if </span>left.get_type_information().get_size(context.index)
+        &lt; right.get_type_information().get_size(context.index)
+    {
+        validator.push_diagnostic(Diagnostic::implicit_downcast(
+            left.get_name(),
+            right.get_name(),
+            location.clone(),
+        ))
+    }
+}
 
-</span><span class="kw">mod </span>helper {
+<span class="kw">mod </span>helper {
     <span class="kw">use </span>std::ops::Range;
 
     <span class="kw">use </span>plc_ast::ast::DirectAccessType;

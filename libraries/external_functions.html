@@ -169,6 +169,7 @@ To achieve this, the called function must be defined in a <code>C</code> compati
 <li>either be included with the <code>-i</code> flag</li>
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
+<p>When including multiple header files/function interfaces, the <code>-i</code> flag must precede each individual file, e.g. <code>-i file1.st -i file2.st -i file3.st</code>. Alternatively, when including an entire folder with <code>-i '/liblocation/*.st'</code>, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with <code>-i</code>).</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
