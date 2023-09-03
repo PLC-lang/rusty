@@ -2,5 +2,5 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 633..648 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 16, offset: 633 }..TextLocation { line: 16, column: 31, offset: 648 }) }], err_no: var__invalid_assignment }
 

@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/codegen_error_messages_tests.rs
+expression: msg
+---
+error: Expression is not assignable
+  ┌─ <internal>:9:18
+  │
+9 │             func(1 := 1);
+  │                  ^^^^^^ Expression is not assignable
+
+

@@ -27,11 +27,12 @@ use inkwell::{
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, AstStatementKind, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr, SourceRange,
+        ReferenceAccess, ReferenceExpr, 
     },
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 
@@ -183,8 +184,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn register_debug_location(&self, statement: &AstStatement) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");
-        let line = function_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = function_context.new_lines.get_column(line, statement.get_location().get_start());
+        let line = statement.get_location().get_line();
+        let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
@@ -555,7 +556,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                         Diagnostic::codegen_error(
                             &format!("Cannot build generate parameter: {parameter:#?}"),
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )
                     })?;
 
@@ -573,7 +574,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             expression.get_location(),
                             output,
                             output_value_type,
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )?;
                     } else {
                         let output_value = builder.build_load(output, "");
@@ -1800,7 +1801,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         literal_statement: &AstStatement,
         value: &str,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let expected_type = self.get_type_hint_info_for(literal_statement)?;
         self.generate_string_literal_for_type(expected_type, value, location)
@@ -1810,7 +1811,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         expected_type: &DataTypeInformation,
         value: &str,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match expected_type {
             DataTypeInformation::String { encoding, size, .. } => {
@@ -2004,7 +2005,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         elements: &AstStatement,
         data_type: &DataTypeInformation,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let (inner_type, expected_len) =
             if let DataTypeInformation::Array { inner_type_name, dimensions, .. } = data_type {
@@ -2126,7 +2127,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .as_basic_value_enum()),
             _ => Err(Diagnostic::codegen_error(
                 format!("illegal boolean expresspion for operator {operator:}").as_str(),
-                (left.get_location().get_start()..right.get_location().get_end()).into(),
+                left.get_location().span(&right.get_location()),
             )),
         }
     }
@@ -2181,7 +2182,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),
-            SourceRange::undefined(),
+            SourceLocation::undefined(),
         )?;
         Ok(value)
     }
@@ -2276,10 +2277,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         left: inkwell::values::PointerValue<'ink>,
         left_type: &DataTypeInformation,
-        left_location: SourceRange,
+        left_location: SourceLocation,
         right: inkwell::values::PointerValue<'ink>,
         right_type: &DataTypeInformation,
-        right_location: SourceRange,
+        right_location: SourceLocation,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let target_size = self.get_string_size(left_type, left_location.clone())?;
         let value_size = self.get_string_size(right_type, right_location)?;
@@ -2298,7 +2299,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn get_string_size(
         &self,
         datatype: &DataTypeInformation,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Result<i64, Diagnostic> {
         if let DataTypeInformation::String { size, .. } = datatype {
             size.as_int_value(self.index).map_err(|err| Diagnostic::codegen_error(err.as_str(), location))

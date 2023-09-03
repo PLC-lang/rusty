@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: msg
+---
+error: Some initial values were not generated
+  ┌─ <internal>:1:1
+  │
+1 │ 
+  │ ^ Some initial values were not generated
+
+

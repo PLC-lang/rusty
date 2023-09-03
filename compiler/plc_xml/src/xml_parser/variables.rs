@@ -29,12 +29,16 @@ impl BlockVariable {
 impl FunctionBlockVariable {
     pub(crate) fn transform(&self, session: &ParseSession) -> AstStatement {
         if self.negated {
-            let ident = session.parse_expression(&self.expression);
-            let location = ident.get_location();
+            let ident = session.parse_expression(&self.expression, self.local_id, self.execution_order_id);
 
-            AstFactory::create_unary_expression(Operator::Not, ident, location, session.next_id())
+            AstFactory::create_unary_expression(
+                Operator::Not,
+                ident,
+                session.create_block_location(self.local_id, self.execution_order_id),
+                session.next_id(),
+            )
         } else {
-            session.parse_expression(&self.expression)
+            session.parse_expression(&self.expression, self.local_id, self.execution_order_id)
         }
     }
 }

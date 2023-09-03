@@ -9,12 +9,13 @@ use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, SourceRange, SourceRangeFactory, TypeNature, AstStatementKind,
+        LinkageType, TypeNature, AstStatementKind,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
@@ -415,7 +416,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
     params: &[&AstStatement],
     is_lower: bool,
-    location: SourceRange,
+    location: SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
@@ -501,7 +502,7 @@ type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericT
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstStatement],
-    SourceRange,
+    SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
 type ValidationFunction =
     fn(&mut Validator, &AstStatement, &Option<AstStatement>, &dyn AnnotationMap, &Index);
@@ -519,7 +520,7 @@ impl BuiltIn {
         &self,
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
         params: &[&AstStatement],
-        location: SourceRange,
+        location: SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         (self.code)(generator, params, location)
     }
@@ -539,7 +540,7 @@ impl BuiltIn {
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
     let src = BUILTIN.iter().map(|(_, it)| it.decl).collect::<Vec<&str>>().join(" ");
     let mut unit = parser::parse(
-        lexer::lex_with_ids(&src, id_provider.clone(), SourceRangeFactory::internal()),
+        lexer::lex_with_ids(&src, id_provider.clone(), SourceLocationFactory::internal(&src)),
         LinkageType::BuiltIn,
         "<builtin>",
     )

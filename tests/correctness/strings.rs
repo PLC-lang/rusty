@@ -3,9 +3,9 @@ use inkwell::{
     context::Context,
     targets::{InitializationConfig, Target},
 };
+use plc_source::SourceCode;
 use pretty_assertions::assert_eq;
 use rusty::codegen::CodegenContext;
-use source::SourceCode;
 
 use std::ffi::CStr;
 

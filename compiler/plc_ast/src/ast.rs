@@ -15,6 +15,9 @@ use crate::{
     pre_processor,
     provider::IdProvider,
 };
+
+use plc_source::source_location::*;
+
 pub type AstId = usize;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -29,10 +32,10 @@ pub struct Pou {
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-    /// the SourceRange of the whole POU
-    pub location: SourceRange,
-    /// the SourceRange of the POU's name
-    pub name_location: SourceRange,
+    /// the SourceLocation of the whole POU
+    pub location: SourceLocation,
+    /// the SourceLocation of the POU's name
+    pub name_location: SourceLocation,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
@@ -198,8 +201,8 @@ pub struct Implementation {
     pub linkage: LinkageType,
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
-    pub location: SourceRange,
-    pub name_location: SourceRange,
+    pub location: SourceLocation,
+    pub name_location: SourceLocation,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -253,51 +256,6 @@ impl PouType {
         }
     }
 }
-/**
- * A datastructure that stores the location of newline characters of a string.
- * It also offers some useful methods to determine the line-number of an offset-location.
- */
-#[derive(Debug, PartialEq, Eq)]
-pub struct NewLines {
-    line_breaks: Vec<usize>,
-}
-
-impl NewLines {
-    pub fn build(str: &str) -> NewLines {
-        let mut line_breaks = Vec::new();
-        let mut total_offset: usize = 0;
-        if !str.is_empty() {
-            // Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
-            for l in str.split('\n') {
-                total_offset += l.len() + 1;
-                line_breaks.push(total_offset);
-            }
-        }
-        NewLines { line_breaks }
-    }
-
-    ///
-    /// returns the 0 based line-nr of the given offset-location
-    ///
-    pub fn get_line_nr(&self, offset: usize) -> u32 {
-        (match self.line_breaks.binary_search(&offset) {
-            //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
-            Ok(line) => line + 1,
-            Err(line) => line,
-        }) as u32
-    }
-
-    ///
-    /// returns the 0 based column of the given offset-location
-    ///
-    pub fn get_column(&self, line: u32, offset: usize) -> u32 {
-        (if line > 0 {
-            self.line_breaks.get((line - 1) as usize).map(|l| offset - *l).unwrap_or(0)
-        } else {
-            offset
-        }) as u32
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
@@ -306,18 +264,16 @@ pub struct CompilationUnit {
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
-    pub new_lines: NewLines,
 }
 
 impl CompilationUnit {
-    pub fn new(file_name: &str, new_lines: NewLines) -> Self {
+    pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
-            new_lines,
         }
     }
 
@@ -377,7 +333,7 @@ pub struct VariableBlock {
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
     pub linkage: LinkageType,
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl Debug for VariableBlock {
@@ -395,7 +351,7 @@ pub struct Variable {
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstStatement>,
     pub address: Option<AstStatement>,
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 impl Debug for Variable {
@@ -424,7 +380,7 @@ impl Variable {
 
 pub trait DiagnosticInfo {
     fn get_description(&self) -> String;
-    fn get_location(&self) -> SourceRange;
+    fn get_location(&self) -> SourceLocation;
 }
 
 impl DiagnosticInfo for AstStatement {
@@ -432,111 +388,15 @@ impl DiagnosticInfo for AstStatement {
         format!("{self:?}")
     }
 
-    fn get_location(&self) -> SourceRange {
+    fn get_location(&self) -> SourceLocation {
         self.get_location()
-    }
-}
-
-pub struct SourceRangeFactory {
-    file: Option<&'static str>,
-}
-
-impl SourceRangeFactory {
-    /// constructs a SourceRangeFactory used for internally generated code (e.g. builtins)
-    pub fn internal() -> Self {
-        SourceRangeFactory { file: None }
-    }
-
-    /// constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
-    pub fn for_file(file_name: &'static str) -> Self {
-        SourceRangeFactory { file: Some(file_name) }
-    }
-
-    /// creates a new SourceRange using the factory's file_name
-    pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range, file: self.file }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct SourceRange {
-    /// the start and end offset in the source-file
-    range: core::ops::Range<usize>,
-    /// the name of the file if available. if there is no file available
-    /// the source is probably internally generated by the compiler. (e.g.
-    /// a automatically generated data_type)
-    file: Option<&'static str>,
-}
-
-impl Debug for SourceRange {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut f = f.debug_struct("SourceRange");
-        f.field("range", &self.range);
-        if self.file.is_some() {
-            f.field("file", &self.file);
-        }
-        f.finish()
-    }
-}
-
-impl SourceRange {
-    /// Constructs a new SourceRange with the given range and filename
-    pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceRange {
-        SourceRange { range, file: Some(file_name) }
-    }
-
-    /// Constructs a new SourceRange without the file_name attribute
-    pub fn without_file(range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range, file: None }
-    }
-
-    /// Constructs an undefined SourceRange with a 0..0 range and no filename
-    pub fn undefined() -> SourceRange {
-        SourceRange { range: 0..0, file: None }
-    }
-
-    /// returns the start-offset of this source-range
-    pub fn get_start(&self) -> usize {
-        self.range.start
-    }
-
-    /// returns the end-offset of this source-range
-    pub fn get_end(&self) -> usize {
-        self.range.end
-    }
-
-    /// returns a new SourceRange that spans `this` and the `other` range.
-    /// In other words this results in `self.start .. other.end`
-    pub fn span(&self, other: &SourceRange) -> SourceRange {
-        SourceRange { range: self.get_start()..other.get_end(), file: self.get_file_name() }
-    }
-
-    /// converts this SourceRange into a Range
-    pub fn to_range(&self) -> Range<usize> {
-        self.range.clone()
-    }
-
-    pub fn get_file_name(&self) -> Option<&'static str> {
-        self.file
-    }
-
-    /// returns true if this SourceRange points to an undefined location.
-    /// see `SourceRange::undefined()`
-    pub fn is_undefined(&self) -> bool {
-        self.range == (0..0) && self.file.is_none()
-    }
-}
-
-impl From<std::ops::Range<usize>> for SourceRange {
-    fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::without_file(range)
     }
 }
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
-    DataTypeReference { referenced_type: String, location: SourceRange },
-    DataTypeDefinition { data_type: DataType, location: SourceRange, scope: Option<String> },
+    DataTypeReference { referenced_type: String, location: SourceLocation },
+    DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
 }
 
 impl Debug for DataTypeDeclaration {
@@ -560,7 +420,7 @@ impl DataTypeDeclaration {
         }
     }
 
-    pub fn get_location(&self) -> SourceRange {
+    pub fn get_location(&self) -> SourceLocation {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
@@ -577,7 +437,7 @@ impl DataTypeDeclaration {
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstStatement>,
-    pub location: SourceRange,
+    pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
 }
@@ -667,7 +527,7 @@ impl DataType {
     pub fn replace_data_type_with_reference_to(
         &mut self,
         type_name: String,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> Option<DataTypeDeclaration> {
         match self {
             DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } => {
@@ -681,7 +541,7 @@ impl DataType {
 fn replace_reference(
     referenced_type: &mut Box<DataTypeDeclaration>,
     type_name: String,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) -> Option<DataTypeDeclaration> {
     if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
         return None;
@@ -720,7 +580,7 @@ pub enum ReferenceAccess {
 pub struct AstStatement {
     pub stmt: AstStatementKind,
     pub id: AstId,
-    pub location: SourceRange,
+    pub location: SourceLocation,
 }
 
 #[derive(Clone, PartialEq)]
@@ -876,8 +736,13 @@ impl AstStatement {
             vec![self]
         }
     }
-    pub fn get_location(&self) -> SourceRange {
+   
+    pub fn get_location(&self) -> SourceLocation {
         self.location.clone()
+    }
+
+    pub fn set_location(&mut self, location: SourceLocation) {
+        self.location = location;
     }
 
     pub fn get_id(&self) -> AstId {
@@ -986,19 +851,19 @@ impl AstStatement {
             || self.is_hardware_access()
     }
 
-    pub fn new(stmt: AstStatementKind, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn new(stmt: AstStatementKind, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement { stmt, id, location }
     }
 
-    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement::new(AstStatementKind::Literal(kind), id, location)
     }
 
-    pub fn new_integer(value: i128, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn new_integer(value: i128, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement::new(AstStatementKind::Literal(AstLiteral::Integer(value)), id, location)
     }
 
-    pub fn new_real(value: String, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn new_real(value: String, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement::new(AstStatementKind::Literal(AstLiteral::Real(value)), id, location)
     }
 
@@ -1006,7 +871,7 @@ impl AstStatement {
         value: impl Into<String>,
         is_wide: bool,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement::new(
             AstStatementKind::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
@@ -1184,32 +1049,32 @@ mod tests {
 pub struct AstFactory {}
 
 impl AstFactory {
-    pub fn create_empty_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_empty_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::EmptyStatement(EmptyStatement {}), location, id }
         // AstStatementKind::EmptyStatement (  EmptyStatement {}, location, id }
     }
 
-    pub fn create_return_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_return_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::ReturnStatement(()), location, id }
     }
 
-    pub fn create_exit_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_exit_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::ExitStatement(()), location, id }
     }
 
-    pub fn create_continue_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_continue_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::ContinueStatement(()), location, id }
     }
 
-    pub fn create_case_condition(result: AstStatement, location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_case_condition(result: AstStatement, location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::CaseCondition (Box::new(result)), id, location }
      }
 
-    pub fn create_vla_range_statement(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_vla_range_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::VlaRangeStatement, id, location }
     }
 
-    pub fn create_literal(kind: AstLiteral, location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::Literal(kind), id, location }
     }
 
@@ -1217,7 +1082,7 @@ impl AstFactory {
         access: DirectAccessType,
         direction: HardwareAccessType,
         address: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: usize,
     ) -> AstStatement {
         AstStatement {
@@ -1227,13 +1092,13 @@ impl AstFactory {
         }
     }
 
-    pub fn create_default_value(location: SourceRange, id: AstId) -> AstStatement {
+    pub fn create_default_value(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::DefaultValue(DefaultValue {}), location, id }
     }
 
     pub fn create_expression_list(
         expressions: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement { stmt: AstStatementKind::ExpressionList(expressions), location, id }
@@ -1243,7 +1108,7 @@ impl AstFactory {
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1263,7 +1128,7 @@ impl AstFactory {
         end: AstStatement,
         by_step: Option<AstStatement>,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1283,7 +1148,7 @@ impl AstFactory {
     pub fn create_while_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1300,7 +1165,7 @@ impl AstFactory {
     pub fn create_repeat_statement(
         condition: AstStatement,
         body: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1318,7 +1183,7 @@ impl AstFactory {
         selector: AstStatement,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstStatement>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1348,7 +1213,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
+    pub fn create_not_expression(operator: AstStatement, location: SourceLocation) -> AstStatement {
         let id = operator.get_id();
         AstStatement {
             stmt: AstStatementKind::UnaryExpression(UnaryExpression {
@@ -1361,14 +1226,14 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstStatement {
         AstStatement::new(AstStatementKind::Identifier(name.to_string()), id, location.clone())
     }
 
     pub fn create_unary_expression(
         operator: Operator,
         value: AstStatement,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1419,7 +1284,7 @@ impl AstFactory {
         index: AstStatement,
         base: Option<AstStatement>,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
@@ -1431,7 +1296,7 @@ impl AstFactory {
         }
     }
 
-    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Address,
@@ -1442,7 +1307,7 @@ impl AstFactory {
         }
     }
 
-    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceLocation) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Deref,
@@ -1457,7 +1322,7 @@ impl AstFactory {
         access: DirectAccessType,
         index: AstStatement,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::DirectAccess(DirectAccess { access, index: Box::new(index) }),
@@ -1489,10 +1354,10 @@ impl AstFactory {
     pub fn create_cast_statement(
         type_name: AstStatement,
         stmt: AstStatement,
-        location: &SourceRange,
+        location: &SourceLocation,
         id: AstId,
     ) -> AstStatement {
-        let new_location = (location.get_start()..stmt.get_location().get_end()).into();
+        let new_location = location.span(&stmt.get_location());
         AstStatement {
             stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Cast(Box::new(stmt)),
@@ -1507,7 +1372,7 @@ impl AstFactory {
         operator: AstStatement,
         parameters: Option<AstStatement>,
         id: usize,
-        location: SourceRange,
+        location: SourceLocation,
     ) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::CallStatement(CallStatement {
@@ -1525,7 +1390,7 @@ impl AstFactory {
         parameters: Vec<AstStatement>,
         id: usize,
         parameter_list_id: usize,
-        location: &SourceRange,
+        location: &SourceLocation,
     ) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::CallStatement(CallStatement {
@@ -1537,7 +1402,7 @@ impl AstFactory {
                 parameters: Box::new(Some(AstStatement::new(
                     AstStatementKind::ExpressionList(parameters),
                     parameter_list_id,
-                    SourceRange::undefined(), //TODO: get real location
+                    SourceLocation::undefined(), //TODO: get real location
                 ))),
             }),
             location: location.clone(),
@@ -1548,7 +1413,7 @@ impl AstFactory {
     pub fn create_multiplied_statement(
         multiplier: u32,
         element: AstStatement,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -> AstStatement {
         AstStatement {
@@ -1574,7 +1439,7 @@ impl AstFactory {
     pub fn create_call_to_with_ids(
         function_name: &str,
         parameters: Vec<AstStatement>,
-        location: &SourceRange,
+        location: &SourceLocation,
         mut id_provider: IdProvider,
     ) -> AstStatement {
         AstStatement {
@@ -1586,7 +1451,7 @@ impl AstFactory {
                 )),
                 parameters: Box::new(Some(AstFactory::create_expression_list(
                     parameters,
-                    SourceRange::undefined(),
+                    SourceLocation::undefined(),
                     id_provider.next_id(),
                 ))),
             }),
@@ -1599,7 +1464,7 @@ impl AstFactory {
         check_function_name: &str,
         parameter: AstStatement,
         sub_range: Range<AstStatement>,
-        location: &SourceRange,
+        location: &SourceLocation,
         id_provider: IdProvider,
     ) -> AstStatement {
         AstFactory::create_call_to_with_ids(

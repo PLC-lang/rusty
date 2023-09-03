@@ -4,7 +4,8 @@ use crate::{
     typesystem::DINT_TYPE,
 };
 use insta::assert_snapshot;
-use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, SourceRange, Variable};
+use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, Variable};
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -37,7 +38,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 empty_stmt(),
                 empty_stmt(),
                 AstFactory::create_member_reference(
-                    AstFactory::create_identifier("x".into(), &SourceRange::undefined(), 0),
+                    AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
                     None,
                     0
                 ),
@@ -58,7 +59,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let expected_ast = format!(
         "{:#?}",
         AstFactory::create_member_reference(
-            AstFactory::create_identifier("x", &SourceRange::undefined(), 0),
+            AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
             None,
             0
         )
@@ -133,16 +134,16 @@ fn inline_enum_declaration_can_be_parsed() {
                 numeric_type: DINT_TYPE.to_string(),
                 elements: AstFactory::create_expression_list(
                     vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
-                    SourceRange::undefined(),
+                    SourceLocation::undefined(),
                     0,
                 ),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: None,
         },
         initializer: None,
         address: None,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     };
     let expected_ast = format!("{:#?}", &v);
     assert_eq!(ast_string, expected_ast);

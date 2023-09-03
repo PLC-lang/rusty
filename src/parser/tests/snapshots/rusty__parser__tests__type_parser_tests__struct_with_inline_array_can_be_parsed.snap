@@ -1,0 +1,35 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: "result.user_types[0]"
+---
+UserTypeDeclaration {
+    data_type: StructType {
+        name: Some(
+            "SampleStruct",
+        ),
+        variables: [
+            Variable {
+                name: "One",
+                data_type: DataTypeDefinition {
+                    data_type: ArrayType {
+                        name: None,
+                        bounds: RangeStatement {
+                            start: LiteralInteger {
+                                value: 0,
+                            },
+                            end: LiteralInteger {
+                                value: 1,
+                            },
+                        },
+                        referenced_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                        is_variable_length: false,
+                    },
+                },
+            },
+        ],
+    },
+    initializer: None,
+    scope: None,
+}

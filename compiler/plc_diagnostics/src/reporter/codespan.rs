@@ -104,15 +104,17 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 Severity::_Info => codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
-            let mut labels = vec![Label::primary(d.main_location.file_handle, d.main_location.range.clone())
-                .with_message(d.message.as_str())];
+            let mut labels = vec![Label::primary(
+                d.main_location.file_handle,
+                d.main_location.span.to_range().unwrap_or_else(|| 0..0),
+            )
+            .with_message(d.message.as_str())];
 
             if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(
-                    additional_locations.iter().map(|it| {
-                        Label::secondary(it.file_handle, it.range.clone()).with_message("see also")
-                    }),
-                );
+                labels.extend(additional_locations.iter().map(|it| {
+                    Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| 0..0))
+                        .with_message("see also")
+                }));
             }
 
             let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());

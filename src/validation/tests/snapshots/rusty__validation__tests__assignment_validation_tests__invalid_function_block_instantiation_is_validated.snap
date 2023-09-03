@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceRange { range: 323..330 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceRange { range: 332..348 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceRange { range: 386..387 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceRange { range: 389..395 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 15, offset: 323 }..TextLocation { line: 14, column: 22, offset: 330 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 332 }..TextLocation { line: 14, column: 40, offset: 348 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 15, offset: 386 }..TextLocation { line: 15, column: 16, offset: 387 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 18, offset: 389 }..TextLocation { line: 15, column: 24, offset: 395 }) }], err_no: var__invalid_assignment }
 

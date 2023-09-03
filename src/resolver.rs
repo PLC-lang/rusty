@@ -21,6 +21,7 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 pub mod const_evaluator;
@@ -28,7 +29,7 @@ pub mod generics;
 
 use crate::{
     builtins::{self, BuiltIn},
-    index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -1788,7 +1789,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 encoding: if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name
@@ -1808,7 +1809,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
                 inner_type_name,
                 name: new_type_name.clone(),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name

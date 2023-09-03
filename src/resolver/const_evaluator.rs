@@ -7,6 +7,7 @@ use crate::{
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
+use plc_source::source_location::SourceLocation;
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -182,7 +183,7 @@ fn get_default_initializer(
     id: AstId,
     target_type: &str,
     index: &Index,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) -> Result<Option<AstStatement>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
         evaluate(init, None, index) //TODO do we ave a scope here?
@@ -191,7 +192,6 @@ fn get_default_initializer(
         let init = match dt {
             DataTypeInformation::Pointer { .. } => {
                 Some(AstFactory::create_literal(AstLiteral::Null, location.clone(), id))
-                // Some(AstStatementKind::Literal { kind: AstLiteral::Null, location: location.clone(), id })
             }
             DataTypeInformation::Integer { .. } => {
                 Some(AstFactory::create_literal(AstLiteral::new_integer(0), location.clone(), id))
@@ -751,7 +751,7 @@ use compare_expression;
 use plc_ast::{
     ast::{
         AstFactory, AstId, AstStatement, AstStatementKind, BinaryExpression, MultipliedStatement, Operator,
-        ReferenceAccess, ReferenceExpr, SourceRange, UnaryExpression,
+        ReferenceAccess, ReferenceExpr, UnaryExpression,
     },
     literals::{Array, AstLiteral, StringValue},
 };

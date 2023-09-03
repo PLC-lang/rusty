@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 113..123 }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 12, offset: 113 }..TextLocation { line: 4, column: 22, offset: 123 }) }], err_no: codegen__missing_compare_function }
 

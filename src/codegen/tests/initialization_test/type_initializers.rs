@@ -1,4 +1,4 @@
-use plc_diagnostics::diagnostics::Diagnostic;
+use insta::assert_snapshot;
 
 use crate::{
     test_utils::tests::{codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate},
@@ -244,7 +244,7 @@ fn initial_values_in_struct_variable_missing_init() {
 
 #[test]
 fn unresolvable_types_validation() {
-    let Diagnostic::CombinedDiagnostic { message, inner_diagnostics, .. } = codegen_debug_without_unwrap(
+    let msg = codegen_debug_without_unwrap(
         "
         VAR_GLOBAL 
             a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2)); 
@@ -265,17 +265,8 @@ fn unresolvable_types_validation() {
      ",
         DebugLevel::None,
     )
-    .expect_err("should fail") else {
-        panic!("Expected combined diagnostics")
-    };
-
-    assert_eq!(inner_diagnostics.len(), 1);
-    assert_eq!(
-        inner_diagnostics[0].get_message(),
-        "Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived"
-    );
-
-    assert_eq!(message, "Some initial values were not generated".to_string());
+    .expect_err("should fail");
+    assert_snapshot!(msg);
 }
 
 #[test]
@@ -306,7 +297,7 @@ fn initial_nested_struct_delayed_init() {
 
 #[test]
 fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
-    let Diagnostic::CombinedDiagnostic { message, inner_diagnostics, .. } = codegen_debug_without_unwrap(
+    let msg = codegen_debug_without_unwrap(
         "
         VAR_GLOBAL
             a : MyType;
@@ -323,20 +314,9 @@ fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
      ",
         DebugLevel::None,
     )
-    .expect_err("Should fail") else {
-        panic!("Expected combined diagnostics")
-    };
+    .expect_err("Should fail");
 
-    assert_eq!(message, "Some initial values were not generated".to_string());
-    assert_eq!(inner_diagnostics.len(), 2);
-    assert_eq!(
-        inner_diagnostics[0].get_message(),
-        "Cannot generate literal initializer for 'MyType': Value cannot be derived"
-    );
-    assert_eq!(
-        inner_diagnostics[1].get_message(),
-        "Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived"
-    );
+    assert_snapshot!(msg);
 }
 
 #[test]
@@ -425,15 +405,8 @@ fn struct_initializer_needs_assignments() {
                 x : Point := (x := 1, 2);
             END_VAR
            ";
-    let result = codegen_without_unwrap(source);
-    assert_eq!(
-        result,
-        Err(Diagnostic::codegen_error(
-            "struct literal must consist of explicit assignments in the form of member := value",
-            (185..186).into()
-        ))
-    );
-    assert_eq!(source[185..186].to_string(), "2".to_string());
+    let msg = codegen_without_unwrap(source).unwrap_err();
+    assert_snapshot!(msg);
 }
 
 #[test]

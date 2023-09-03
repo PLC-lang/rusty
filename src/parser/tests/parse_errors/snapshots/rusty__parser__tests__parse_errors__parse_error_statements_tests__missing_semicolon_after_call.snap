@@ -1,17 +1,11 @@
 ---
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
-expression: pou.statements
+expression: diagnostics
 ---
-[
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "buz",
-                },
-            ),
-            base: None,
-        },
-        parameters: None,
-    },
-]
+error: Unexpected token: expected KeywordSemicolon but found 'foo()'
+  ┌─ <internal>:4:21
+  │
+4 │                     foo();
+  │                     ^^^^^ Unexpected token: expected KeywordSemicolon but found 'foo()'
+
+

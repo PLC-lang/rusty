@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceRange { range: 36..41 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceRange { range: 87..101 }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceRange { range: 147..170 }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 35, offset: 36 }..TextLocation { line: 1, column: 40, offset: 41 }) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 35, offset: 87 }..TextLocation { line: 2, column: 49, offset: 101 }) }], err_no: var__overflow }
+SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 35, offset: 147 }..TextLocation { line: 3, column: 58, offset: 170 }) }], err_no: var__overflow }
 

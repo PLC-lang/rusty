@@ -1,9 +1,11 @@
-use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
+use crate::test_utils::tests::{parse, parse_and_validate_buffered};
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
-    SourceRange, Variable, VariableBlock, VariableBlockType, AstFactory,
+    Variable, VariableBlock, VariableBlockType, AstFactory,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -14,13 +16,7 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(
-        prg.return_type.as_ref().unwrap(),
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "INT".to_string(),
-            location: (15..18).into(),
-        }
-    );
+    assert_debug_snapshot!(prg.return_type.as_ref().unwrap())
 }
 
 #[test]
@@ -198,26 +194,26 @@ fn varargs_parameters_can_be_parsed() {
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
             constant: false,
             access: AccessModifier::Protected,
             retain: false,
             variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: false },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 Variable {
                     name: "args2".into(),
@@ -225,21 +221,21 @@ fn varargs_parameters_can_be_parsed() {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
-                                location: SourceRange::undefined(),
+                                location: SourceLocation::undefined(),
                             })),
                             sized: false,
                         },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             ],
         }],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         poly_mode: None,
         generics: vec![],
         linkage: LinkageType::Internal,
@@ -268,26 +264,26 @@ fn sized_varargs_parameters_can_be_parsed() {
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
             constant: false,
             access: AccessModifier::Protected,
             retain: false,
             variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: true },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
                 Variable {
                     name: "args2".into(),
@@ -295,21 +291,21 @@ fn sized_varargs_parameters_can_be_parsed() {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
-                                location: SourceRange::undefined(),
+                                location: SourceLocation::undefined(),
                             })),
                             sized: true,
                         },
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         scope: Some("foo".into()),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 },
             ],
         }],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         poly_mode: None,
         generics: vec![],
         linkage: LinkageType::Internal,
@@ -440,20 +436,9 @@ fn function_inline_enum_return_unsupported() {
     // GIVEN FUNCTION returning an inline ENUM
     let function = "FUNCTION foo : (green, yellow, red) VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let (_parse_result, diagnostics) = parse(function);
+    let diagnostics = parse_and_validate_buffered(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::function_unsupported_return_type(&DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType {
-                name: None,
-                numeric_type: DINT_TYPE.to_string(),
-                elements: AstFactory::create_expression_list(vec![ref_to("green"), ref_to("yellow"), ref_to("red")], SourceRange::undefined(), 0)
-            },
-            location: (15..35).into(),
-            scope: Some("foo".into()),
-        })]
-    );
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -461,39 +446,9 @@ fn function_inline_struct_return_unsupported() {
     // GIVEN FUNCTION returning an inline STRUCT
     let function = "FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let (_parse_result, diagnostics) = parse(function);
+    let diagnostics = parse_and_validate_buffered(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert!(diagnostics.contains(&Diagnostic::function_unsupported_return_type(
-        &DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::StructType {
-                name: None,
-                variables: vec![
-                    Variable {
-                        name: "x".into(),
-                        location: SourceRange::undefined(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceRange::undefined(),
-                            referenced_type: "INT".into()
-                        },
-                        initializer: None,
-                        address: None,
-                    },
-                    Variable {
-                        name: "y".into(),
-                        location: SourceRange::undefined(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            location: SourceRange::undefined(),
-                            referenced_type: "INT".into()
-                        },
-                        initializer: None,
-                        address: None,
-                    }
-                ],
-            },
-            location: (15..50).into(),
-            scope: Some("foo".into()),
-        }
-    )));
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
