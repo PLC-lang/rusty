@@ -868,21 +868,7 @@ fn pre_processing_generates_inline_arrays() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(1),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
@@ -926,10 +912,7 @@ fn pre_processing_generates_inline_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement { start: Box::new(literal_int(0)), end: Box::new(literal_int(1)) },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
@@ -947,10 +930,7 @@ fn pre_processing_generates_inline_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement { start: Box::new(literal_int(0)), end: Box::new(literal_int(1)) },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
                 location: SourceRange::undefined(),
@@ -986,10 +966,7 @@ fn pre_processing_generates_array_of_array_type() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__arr_arr".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement { start: Box::new(literal_int(0)), end: Box::new(literal_int(1)) },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
@@ -1007,10 +984,7 @@ fn pre_processing_generates_array_of_array_type() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("arr_arr".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement { start: Box::new(literal_int(0)), end: Box::new(literal_int(1)) },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__arr_arr".to_string(),
                 location: SourceRange::undefined(),
@@ -1072,21 +1046,7 @@ fn pre_processing_nested_array_in_struct() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(4),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(4), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
@@ -1120,21 +1080,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(1),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
                 location: SourceRange::undefined(),
@@ -1152,21 +1098,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(1),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array__".to_string(),
                 location: SourceRange::undefined(),
@@ -1184,21 +1116,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: AstStatement::RangeStatement {
-                data: RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(1),
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                },
-                id: 0,
-            },
+            bounds: AstFactory::create_range_statement(literal_int(0), literal_int(1), 0),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
                 location: SourceRange::undefined(),

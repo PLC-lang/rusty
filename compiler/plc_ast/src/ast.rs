@@ -1201,6 +1201,10 @@ impl AstFactory {
         AstStatement { stmt: AstStatementKind::ContinueStatement(()), location, id }
     }
 
+    pub fn create_case_condition(result: AstStatement, location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement { stmt: AstStatementKind::CaseCondition (Box::new(result)), id, location }
+     }
+
     pub fn create_vla_range_statement(location: SourceRange, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::VlaRangeStatement, id, location }
     }

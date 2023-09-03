@@ -4,7 +4,7 @@ use crate::{
     typesystem::DINT_TYPE,
 };
 use insta::assert_snapshot;
-use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable};
+use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, SourceRange, Variable};
 use pretty_assertions::*;
 
 #[test]
@@ -131,10 +131,11 @@ fn inline_enum_declaration_can_be_parsed() {
             data_type: DataType::EnumType {
                 name: None,
                 numeric_type: DINT_TYPE.to_string(),
-                elements: AstStatement::ExpressionList {
-                    expressions: vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
-                    id: 0,
-                },
+                elements: AstFactory::create_expression_list(
+                    vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
+                    SourceRange::undefined(),
+                    0,
+                ),
             },
             location: SourceRange::undefined(),
             scope: None,

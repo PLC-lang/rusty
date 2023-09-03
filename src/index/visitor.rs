@@ -398,7 +398,7 @@ fn visit_data_type(
 
         DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
             let information = if let Some(AstStatementKind::RangeStatement(RangeStatement { start, end })) =
-                bounds.map(|it| it.get_stmt())
+                bounds.as_ref().map(|it| it.get_stmt())
             {
                 DataTypeInformation::SubRange {
                     name: name.into(),

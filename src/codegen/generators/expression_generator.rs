@@ -1910,7 +1910,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
-                if let AstStatementKind::Assignment(data) = assignment.stmt {
+                if let AstStatementKind::Assignment(data) = assignment.get_stmt() {
                     if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
                         self.annotations.get(data.left.as_ref())
                     {

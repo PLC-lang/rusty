@@ -62,7 +62,7 @@ fn missing_comma_in_call_parameters() {
             "{:#?}",
             vec![AstFactory::create_call_statement(
                 ref_to("buz"),
-                Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], 0)),
+                Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], SourceRange::undefined(), 0)),
                 0,
                 SourceRange::undefined()
             )]
@@ -101,7 +101,7 @@ fn illegal_semicolon_in_call_parameters() {
             vec![
                 AstFactory::create_call_statement(
                     ref_to("buz"),
-                    Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], 0)),
+                    Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], SourceRange::undefined(), 0)),
                     0,
                     SourceRange::undefined()
                 ),

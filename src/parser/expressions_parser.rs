@@ -133,16 +133,15 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
     //Parse left
     let mut left = parse_unary_expression(lexer);
     while matches!(lexer.token, OperatorExponent) {
-        let start_location = lexer.last_location();
-        let op_location = lexer.location();
         lexer.advance();
         let right = parse_unary_expression(lexer);
+        let span = left.get_location().span(&right.get_location());
         left = AstFactory::create_call_to(
             "EXPT".to_string(),
             vec![left, right],
             lexer.next_id(),
             lexer.next_id(),
-            &left.get_location().span(&right.get_location()),
+            &span,
         );
     }
     left

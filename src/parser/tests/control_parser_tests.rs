@@ -2,7 +2,7 @@
 use crate::test_utils::tests::parse;
 use insta::assert_debug_snapshot;
 use plc_ast::{
-    ast::AstStatement,
+    ast::AstStatementKind,
     control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
 };
 use pretty_assertions::*;
@@ -447,9 +447,8 @@ fn if_stmnt_location_test() {
     END_IF"
     );
 
-    if let AstStatement::ControlStatement {
-        kind: AstControlStatement::If(IfStatement { blocks, .. }), ..
-    } = &unit.statements[0]
+    if let AstStatementKind::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. }), ..) =
+        &unit.statements[0].get_stmt()
     {
         let if_location = blocks[0].condition.as_ref().get_location();
         assert_eq!(source[if_location.get_start()..if_location.get_end()].to_string(), "a > 4");
@@ -480,10 +479,10 @@ fn for_stmnt_location_test() {
     END_FOR"
     );
 
-    if let AstStatement::ControlStatement {
-        kind: AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, .. }),
-        ..
-    } = &unit.statements[0]
+    if let AstStatementKind::ControlStatement(
+        AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, .. }),
+        ..,
+    ) = &unit.statements[0].get_stmt()
     {
         let counter_location = counter.as_ref().get_location();
         assert_eq!(source[counter_location.get_start()..counter_location.get_end()].to_string(), "x");
@@ -565,7 +564,7 @@ fn call_stmnt_location_test() {
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.get_start()..location.get_end()].to_string(), "foo(a:=3, b:=4)");
 
-    if let AstStatement::CallStatement { data, .. } = &unit.statements[0] {
+    if let AstStatementKind::CallStatement ( data) = &unit.statements[0].get_stmt() {
         let operator_location = data.operator.as_ref().get_location();
         assert_eq!(source[operator_location.get_start()..operator_location.get_end()].to_string(), "foo");
 

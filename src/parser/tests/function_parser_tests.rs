@@ -1,7 +1,7 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
-    SourceRange, Variable, VariableBlock, VariableBlockType,
+    SourceRange, Variable, VariableBlock, VariableBlockType, AstFactory,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use pretty_assertions::*;
@@ -448,10 +448,7 @@ fn function_inline_enum_return_unsupported() {
             data_type: DataType::EnumType {
                 name: None,
                 numeric_type: DINT_TYPE.to_string(),
-                elements: AstStatement::ExpressionList {
-                    expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
-                    id: 0,
-                }
+                elements: AstFactory::create_expression_list(vec![ref_to("green"), ref_to("yellow"), ref_to("red")], SourceRange::undefined(), 0)
             },
             location: (15..35).into(),
             scope: Some("foo".into()),

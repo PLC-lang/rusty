@@ -786,7 +786,7 @@ fn literal_cast_parse_test() {
 
     let ast_string = format!("{statement:#?}");
     fn literal(value: AstLiteral) -> AstStatement {
-        AstStatement::Literal { kind: value, location: SourceRange::undefined(), id: 0 }
+        AstFactory::create_literal(value, SourceRange::undefined(), 0)
     }
 
     assert_eq!(
@@ -1610,11 +1610,11 @@ fn sized_string_as_function_return() {
             data_type: DataType::StringType {
                 name: None,
                 is_wide: false,
-                size: Some(AstStatement::Literal {
-                    kind: AstLiteral::new_integer(10),
-                    location: SourceRange::undefined(),
-                    id: 0,
-                }),
+                size: Some(AstFactory::create_literal(
+                    AstLiteral::new_integer(10),
+                    SourceRange::undefined(),
+                    0,
+                )),
             },
             location: SourceRange::undefined(),
             scope: Some("foo".into()),
@@ -1651,16 +1651,8 @@ fn array_type_as_function_return() {
                     location: SourceRange::undefined(),
                 }),
                 bounds: AstFactory::create_range_statement(
-                    AstStatement::Literal {
-                        id: 0,
-                        location: SourceRange::undefined(),
-                        kind: AstLiteral::new_integer(0),
-                    },
-                    AstStatement::Literal {
-                        id: 0,
-                        location: SourceRange::undefined(),
-                        kind: AstLiteral::new_integer(10),
-                    },
+                    AstFactory::create_literal(AstLiteral::Integer(0), SourceRange::undefined(), 0),
+                    AstFactory::create_literal(AstLiteral::Integer(10), SourceRange::undefined(), 0),
                     0,
                 ),
                 name: None,

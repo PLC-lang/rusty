@@ -980,7 +980,7 @@ fn validate_case_statement<T: AnnotationMap>(
             })
             .map(|v| {
                 // check for duplicates if we got a value
-                if let Some(AstStatementKind::Literal ( AstLiteral::Integer(value))) = v.map(|it| it.get_stmt()) {
+                if let Some(AstStatement { stmt: AstStatementKind::Literal ( AstLiteral::Integer(value)), ..}) = v {
                     if !cases.insert(value) {
                         validator.push_diagnostic(Diagnostic::duplicate_case_condition(
                             &value,

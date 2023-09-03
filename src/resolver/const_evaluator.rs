@@ -630,7 +630,7 @@ fn get_cast_statement_literal(
 
         Some(DataTypeInformation::Float { .. }) => {
             let evaluated = evaluate(cast_statement, scope, index)?;
-            let value = match evaluated.map(|it| it.get_stmt()) {
+            let value = match evaluated.as_ref().map(|it| it.get_stmt()) {
                 Some(AstStatementKind::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
                 Some(AstStatementKind::Literal(AstLiteral::Real(value))) => value.parse::<f64>().ok(),
                 _ => {

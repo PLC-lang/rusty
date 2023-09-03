@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstStatement, DataType, SourceRange, UserTypeDeclaration},
+    ast::{AstFactory, DataType, SourceRange, UserTypeDeclaration},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -139,20 +139,14 @@ fn string_with_round_parens_can_be_parsed() {
             }
         ]
     );
-
     let ast_string = format!("{:#?}", &result.user_types);
-
     let expected_ast = format!(
         "{:#?}",
         vec![
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString1".to_string()),
-                    size: Some(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(253),
-                        location: (10..11).into(),
-                        id: 0
-                    }),
+                    size: Some(AstFactory::create_literal(AstLiteral::new_integer(253), (10..11).into(), 0)),
                     is_wide: false,
                 },
                 initializer: None,
@@ -162,29 +156,21 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString2".to_string()),
-                    size: Some(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(254),
-                        location: (10..11).into(),
-                        id: 0
-                    }),
+                    size: Some(AstFactory::create_literal(AstLiteral::new_integer(254), (10..11).into(), 0)),
                     is_wide: false,
                 },
-                initializer: Some(AstStatement::Literal {
-                    kind: AstLiteral::new_string("abc".into(), false),
-                    location: (69..102).into(),
-                    id: 0,
-                }),
+                initializer: Some(AstFactory::create_literal(
+                    AstLiteral::new_string("abc".into(), false),
+                    (69..102).into(),
+                    0
+                )),
                 location: SourceRange::undefined(),
                 scope: None,
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString3".to_string()),
-                    size: Some(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(255),
-                        location: (10..11).into(),
-                        id: 0
-                    }),
+                    size: Some(AstFactory::create_literal(AstLiteral::new_integer(255), (10..11).into(), 0)),
                     is_wide: false,
                 },
                 initializer: None,

@@ -6,9 +6,10 @@ use std::{collections::HashSet, ops::Range};
 use crate::{parser::tests::empty_stmt, test_utils::tests::parse};
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, Assignment, AstFactory, AstStatement, BinaryExpression,
-        CallStatement, DataTypeDeclaration, Implementation, LinkageType, Operator, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, SourceRange, Variable, VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, Assignment, AstFactory, AstStatement, AstStatementKind,
+        BinaryExpression, CallStatement, DataTypeDeclaration, Implementation, LinkageType, Operator, Pou,
+        PouType, ReferenceAccess, ReferenceExpr, SourceRange, UnaryExpression, Variable,
+        VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
     literals::AstLiteral,
@@ -76,6 +77,7 @@ fn exponent_literals_parsed_as_variables() {
         linkage: LinkageType::Internal,
         super_class: None,
     };
+
     assert_eq!(format!("{expected:#?}"), format!("{pou:#?}").as_str());
     let implementation = &parse_result.implementations[0];
     let expected = Implementation {
@@ -83,17 +85,11 @@ fn exponent_literals_parsed_as_variables() {
         type_name: "E1".into(),
         linkage: LinkageType::Internal,
         pou_type: PouType::Function,
-        statements: vec![AstStatement::Assignment {
-            data: Assignment {
-                left: Box::new(ref_to("E5")),
-                right: Box::new(AstStatement::Literal {
-                    kind: AstLiteral::new_real("1.0E6".into()),
-                    id: 0,
-                    location: SourceRange::undefined(),
-                }),
-            },
-            id: 0,
-        }],
+        statements: vec![AstFactory::create_assignment(
+            ref_to("E5"),
+            AstFactory::create_literal(AstLiteral::new_real("1.0E6".into()), SourceRange::undefined(), 0),
+            0,
+        )],
         access: None,
         overriding: false,
         generic: false,
@@ -146,10 +142,11 @@ fn ids_are_assigned_to_parsed_assignments() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
 
-    if let AstStatement::Assignment { id, data: Assignment { left, right } } = &implementation.statements[0] {
+    if let AstStatementKind::Assignment(Assignment { left, right }) = &implementation.statements[0].get_stmt()
+    {
         assert!(ids.insert(left.get_id()));
         assert!(ids.insert(right.get_id()));
-        assert!(ids.insert(*id));
+        assert!(ids.insert(implementation.statements[0].get_id()));
     } else {
         panic!("unexpected statement");
     }
@@ -168,44 +165,52 @@ fn ids_are_assigned_to_callstatements() {
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
-    if let AstStatement::CallStatement { id, data: CallStatement { operator, .. }, .. } =
-        &implementation.statements[0]
+    if let AstStatementKind::CallStatement(CallStatement { operator, .. }, ..) =
+        &implementation.statements[0].get_stmt()
     {
         assert!(ids.insert(operator.get_id()));
-        assert!(ids.insert(*id));
     } else {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::CallStatement { id, data: CallStatement { operator, parameters }, .. } =
-        &implementation.statements[1]
+    if let AstStatementKind::CallStatement(CallStatement { operator, parameters, .. }, ..) =
+        &implementation.statements[1].get_stmt()
     {
         assert!(ids.insert(operator.get_id()));
-        if let Some(AstStatement::ExpressionList { expressions, id }) = &**parameters {
+        if let Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, .. }) =
+            &**parameters
+        {
             assert!(ids.insert(expressions[0].get_id()));
             assert!(ids.insert(expressions[1].get_id()));
             assert!(ids.insert(expressions[2].get_id()));
             assert!(ids.insert(*id));
         }
-        assert!(ids.insert(*id));
     } else {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::CallStatement { id, data: CallStatement { operator, parameters }, .. } =
-        &implementation.statements[2]
+    if let AstStatementKind::CallStatement(CallStatement { operator, parameters }, ..) =
+        &implementation.statements[2].get_stmt()
     {
         assert!(ids.insert(operator.get_id()));
-        if let Some(AstStatement::ExpressionList { expressions, id }) = &**parameters {
-            if let AstStatement::Assignment { data: Assignment { left, right }, id, .. } = &expressions[0] {
+        if let Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, .. }) =
+            &**parameters
+        {
+            if let AstStatement {
+                stmt: AstStatementKind::Assignment(Assignment { left, right }), id, ..
+            } = &expressions[0]
+            {
                 assert!(ids.insert(left.get_id()));
                 assert!(ids.insert(right.get_id()));
                 assert!(ids.insert(*id));
             } else {
                 panic!("unexpected statement");
             }
-            if let AstStatement::OutputAssignment { data: Assignment { left, right }, id, .. } =
-                &expressions[1]
+            if let AstStatement {
+                stmt: AstStatementKind::OutputAssignment(Assignment { left, right }),
+                id,
+                ..
+            } = &expressions[1]
             {
                 assert!(ids.insert(left.get_id()));
                 assert!(ids.insert(right.get_id()));
@@ -216,9 +221,12 @@ fn ids_are_assigned_to_callstatements() {
             assert!(ids.insert(expressions[2].get_id()));
             assert!(ids.insert(*id));
         }
-        assert!(ids.insert(*id));
     } else {
         panic!("unexpected statement");
+    }
+
+    for s in implementation.statements {
+        assert!(ids.insert(s.get_id()));
     }
 }
 
@@ -240,8 +248,11 @@ fn ids_are_assigned_to_expressions() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
 
-    if let AstStatement::BinaryExpression { id, data: BinaryExpression { left, right, .. }, .. } =
-        &implementation.statements[0]
+    if let AstStatement {
+        id,
+        stmt: AstStatementKind::BinaryExpression(BinaryExpression { left, right, .. }),
+        ..
+    } = &implementation.statements[0]
     {
         assert!(ids.insert(left.get_id()));
         assert!(ids.insert(right.get_id()));
@@ -250,16 +261,22 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr {
-        data: ReferenceExpr { access: ReferenceAccess::Member(m), base: Some(base) },
+    if let AstStatement {
+        stmt:
+            AstStatementKind::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(m),
+                base: Some(base),
+            }),
         id,
         ..
     } = &implementation.statements[1]
     {
         assert!(ids.insert(*id));
         assert!(ids.insert(m.get_id()));
-        if let AstStatement::ReferenceExpr {
-            data: ReferenceExpr { access: ReferenceAccess::Member(m), base: None },
+
+        if let AstStatement {
+            stmt:
+                AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base: None }),
             ..
         } = base.as_ref()
         {
@@ -271,8 +288,9 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr {
-        data: ReferenceExpr { access: ReferenceAccess::Member(m), base: None },
+    if let AstStatement {
+        stmt:
+            AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base: None }),
         id,
         ..
     } = &implementation.statements[2]
@@ -283,8 +301,12 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ReferenceExpr {
-        data: ReferenceExpr { access: ReferenceAccess::Index(access), base: Some(reference) },
+    if let AstStatement {
+        stmt:
+            AstStatementKind::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Index(access),
+                base: Some(reference),
+            }),
         id,
         ..
     } = &implementation.statements[3]
@@ -296,14 +318,19 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::UnaryExpression { id, data, .. } = &implementation.statements[4] {
-        assert!(ids.insert(data.value.get_id()));
+    if let AstStatement {
+        stmt: AstStatementKind::UnaryExpression(UnaryExpression { value, .. }), id, ..
+    } = &implementation.statements[4]
+    {
+        assert!(ids.insert(value.get_id()));
         assert!(ids.insert(*id));
     } else {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::ExpressionList { id, expressions, .. } = &implementation.statements[5] {
+    if let AstStatement { stmt: AstStatementKind::ExpressionList(expressions, ..), id, .. } =
+        &implementation.statements[5]
+    {
         assert!(ids.insert(expressions[0].get_id()));
         assert!(ids.insert(expressions[1].get_id()));
         assert!(ids.insert(*id));
@@ -311,7 +338,9 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::RangeStatement { id, data, .. } = &implementation.statements[6] {
+    if let AstStatement { stmt: AstStatementKind::RangeStatement(data, ..), id, .. } =
+        &implementation.statements[6]
+    {
         assert!(ids.insert(data.start.get_id()));
         assert!(ids.insert(data.end.get_id()));
         assert!(ids.insert(*id));
@@ -319,7 +348,9 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let AstStatement::MultipliedStatement { id, data, .. } = &implementation.statements[7] {
+    if let AstStatement { stmt: AstStatementKind::MultipliedStatement(data, ..), id, .. } =
+        &implementation.statements[7]
+    {
         assert!(ids.insert(data.element.get_id()));
         assert!(ids.insert(*id));
     } else {
@@ -342,8 +373,13 @@ fn ids_are_assigned_to_if_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
     match &implementation.statements[0] {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::If(IfStatement { blocks, else_block, .. }),
+        AstStatement {
+            stmt:
+                AstStatementKind::ControlStatement(AstControlStatement::If(IfStatement {
+                    blocks,
+                    else_block,
+                    ..
+                })),
             ..
         } => {
             assert!(ids.insert(blocks[0].condition.get_id()));
@@ -370,9 +406,17 @@ fn ids_are_assigned_to_for_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
     match &implementation.statements[0] {
-        AstStatement::ControlStatement {
+        AstStatement {
+            stmt:
+                AstStatementKind::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
+                    counter,
+                    start,
+                    end,
+                    by_step,
+                    body,
+                    ..
+                })),
             id,
-            kind: AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
             ..
         } => {
             assert!(ids.insert(counter.get_id()));
@@ -401,14 +445,20 @@ fn ids_are_assigned_to_while_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
     match &implementation.statements[0] {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+        AstStatement {
+            stmt:
+                AstStatementKind::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
+                    condition, body,
+                    ..
+                })),
+            id,
             ..
         } => {
             assert!(ids.insert(condition.get_id()));
             assert!(ids.insert(body[0].get_id()));
             assert!(ids.insert(body[1].get_id()));
             assert!(ids.insert(implementation.statements[0].get_id()));
+            assert!(ids.insert(*id));
         }
         _ => panic!("invalid statement"),
     }
@@ -427,9 +477,14 @@ fn ids_are_assigned_to_repeat_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
 
-    match &implementation.statements[0] {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+        match &implementation.statements[0] {
+        AstStatement {
+            stmt:
+                AstStatementKind::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
+                    condition, body,
+                    ..
+                })),
+            id,
             ..
         } => {
             assert!(ids.insert(body[0].get_id()));
@@ -459,8 +514,13 @@ fn ids_are_assigned_to_case_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
     match &implementation.statements[0] {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::Case(CaseStatement { case_blocks, else_block, selector, .. }),
+        AstStatement {
+            stmt:
+                AstStatementKind::ControlStatement(AstControlStatement::Case(CaseStatement {
+                    case_blocks, else_block, selector,
+                    ..
+                })),
+            id,
             ..
         } => {
             //1st case block
@@ -469,7 +529,7 @@ fn ids_are_assigned_to_case_statements() {
             assert!(ids.insert(case_blocks[0].body[0].get_id()));
 
             //2nd case block
-            if let AstStatement::ExpressionList { expressions, id, .. } = case_blocks[1].condition.as_ref() {
+            if let AstStatement{ stmt: AstStatementKind::ExpressionList ( expressions), id, .. } = case_blocks[1].condition.as_ref() {
                 assert!(ids.insert(expressions[0].get_id()));
                 assert!(ids.insert(expressions[1].get_id()));
                 assert!(ids.insert(*id));
@@ -592,7 +652,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::CaseCondition { condition: Box::new(at(2..4)), id: 7 }.get_location(),
+        AstFactory::create_case_condition(empty_stmt(), (2..4).into(), 7).get_location(),
         (2..4).into()
     );
     assert_eq!(
@@ -601,7 +661,7 @@ fn location_implementation_for_all_statements() {
     );
     assert_eq!(AstFactory::create_empty_statement((1..5).into(), 7).get_location(), (1..5).into());
     assert_eq!(
-        AstStatement::ExpressionList { expressions: vec![at(0..3), at(4..8)], id: 7 }.get_location(),
+        AstFactory::create_expression_list(vec![at(0..3), at(4..8)], (0..8).into(), 7 ).get_location(),
         (0..8).into()
     );
     assert_eq!(
@@ -614,7 +674,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        AstStatement::Literal { kind: AstLiteral::Null, location: (1..5).into(), id: 7 }.get_location(),
+        AstFactory::create_literal(AstLiteral::Null,( 1..5).into(), 7).get_location(),
         (1..5).into()
     );
     assert_eq!(
@@ -624,7 +684,7 @@ fn location_implementation_for_all_statements() {
     assert_eq!(AstFactory::create_output_assignment(at(0..3), at(4..9), 7).get_location(), (0..9).into());
     assert_eq!(AstFactory::create_range_statement(at(0..3), at(6..9), 7).get_location(), (0..9).into());
     assert_eq!(
-        AstStatement::Identifier { name: "ab".to_string(), location: (1..5).into(), id: 7 }.get_location(),
+        AstFactory::create_identifier("ab", &(1..5).into(), 7).get_location(),
         (1..5).into()
     );
     assert_eq!(

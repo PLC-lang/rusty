@@ -3,7 +3,7 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstStatement, CompilationUnit, DataType,
         DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
         LinkageType, NewLines, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, SourceRange,
-        SourceRangeFactory, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        SourceRangeFactory, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType, AstStatementKind,
     },
     provider::IdProvider,
 };
@@ -688,22 +688,20 @@ fn parse_type_reference_type_definition(
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
         let data_type = match bounds {
-            Some(AstStatement::ExpressionList { expressions, id }) => {
+            Some(AstStatement { stmt: AstStatementKind::ExpressionList (expressions), id , location}) => {
                 //this is an enum
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
-                        elements: AstStatement::ExpressionList { expressions, id },
+                        elements: AstFactory::create_expression_list(expressions, location, id), 
                     },
                     location: (start..end).into(),
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement::ReferenceExpr {
-                data: ReferenceExpr { access: ReferenceAccess::Member(_), .. },
-                ..
-            }) => {
+            Some(AstStatement{ stmt: AstStatementKind::ReferenceExpr ( ReferenceExpr{
+                access: ReferenceAccess::Member(_), .. }), ..}) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -840,15 +838,15 @@ fn parse_array_type_definition(
     inner_type_defintion.map(|(reference, initializer)| {
         let location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
 
-        let is_variable_length = match &range {
+        let is_variable_length = match &range.get_stmt() {
             // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
-            AstStatement::RangeStatement { .. } => Some(false),
-            AstStatement::VlaRangeStatement { .. } => Some(true),
+            AstStatementKind::RangeStatement { .. } => Some(false),
+            AstStatementKind::VlaRangeStatement { .. } => Some(true),
 
             // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
-            AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
-                AstStatement::RangeStatement { .. } => Some(false),
-                AstStatement::VlaRangeStatement { .. } => Some(true),
+            AstStatementKind::ExpressionList ( expressions ) => match expressions[0].get_stmt() {
+                AstStatementKind::RangeStatement ( .. ) => Some(false),
+                AstStatementKind::VlaRangeStatement  => Some(true),
                 _ => None,
             },
 
@@ -896,7 +894,8 @@ fn parse_body_standalone(lexer: &mut ParseSession) -> Vec<AstStatement> {
 fn parse_statement(lexer: &mut ParseSession) -> AstStatement {
     let result = parse_any_in_region(lexer, vec![KeywordSemicolon, KeywordColon], parse_expression);
     if lexer.last_token == KeywordColon {
-        AstStatement::CaseCondition { condition: Box::new(result), id: lexer.next_id() }
+        let location = result.location.span(&lexer.last_location());
+        AstFactory::create_case_condition(result, location, lexer.next_id())
     } else {
         result
     }
