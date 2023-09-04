@@ -5,5 +5,9 @@ expression: res
 SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 354..358 }], err_no: call__invalid_parameter_type }
 SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 360..364 }], err_no: call__invalid_parameter_type }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 420..434 }], err_no: var__invalid_assignment }
+SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceRange { range: 436..450 }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceRange { range: 436..450 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 602..606 }], err_no: var__invalid_assignment }
+SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceRange { range: 608..612 }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceRange { range: 608..612 }], err_no: var__invalid_assignment }
 
