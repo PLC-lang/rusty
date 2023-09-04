@@ -2,4 +2,6 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
+SyntaxError { message: "The type DWORD 32 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 204 }..TextLocation { line: 8, column: 26, offset: 218 }) }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: cannot assign '__FOO_ptr' to 'DWORD'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 204 }..TextLocation { line: 8, column: 26, offset: 218 }) }], err_no: var__invalid_assignment }
 
