@@ -959,7 +959,7 @@ impl<'i> TypeAnnotator<'i> {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
                         let Some(AstStatement::Assignment { right, .. }) = flattened.get(idx) else { continue };
-                        self.type_hint_for_array_of_structs(data_type, &right, ctx);
+                        self.type_hint_for_array_of_structs(data_type, right, ctx);
                     }
                 }
             }
