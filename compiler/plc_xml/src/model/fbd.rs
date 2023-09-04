@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use quick_xml::events::Event;
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
@@ -115,6 +115,7 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     }
 }
 
+#[derive(Debug)]
 enum ConnectionReference<'xml> {
     Id(NodeId),
     Name(&'xml str),
@@ -136,7 +137,7 @@ macro_rules! update_connection_ref_id_if_needed {
 
 fn get_inner_connection_ref<'a>(
     name: &str,
-    source_connections: &IndexMap<&'a str, ConnectionReference<'a>>,
+    source_connections: &HashMap<&'a str, ConnectionReference<'a>>,
 ) -> Option<NodeId> {
     let Some(source) = source_connections.get(name) else {
         todo!("unconnected source")
@@ -163,7 +164,7 @@ fn get_inner_connection_ref<'a>(
 ///        ┗━━> OUT3
 /// ```
 fn resolve_connection_points(nodes: &mut NodeIndex) {
-    fn get_connection_references<'b>(
+    fn get_source_connection_references<'b>(
         node: &'b Node,
         nodes: &'b IndexMap<usize, Node<'_>>,
     ) -> Option<(&'b str, ConnectionReference<'b>)> {
@@ -193,8 +194,10 @@ fn resolve_connection_points(nodes: &mut NodeIndex) {
 
     let source_connections = lookup
         .iter()
-        .filter_map(|(_, node)| get_connection_references(node, &lookup))
-        .collect::<IndexMap<_, _>>();
+        .filter_map(|(_, node)| get_source_connection_references(node, &lookup))
+        .collect::<HashMap<_, _>>();
+
+    dbg!(&source_connections);
 
     nodes.into_iter().for_each(|(_, node)| {
         match node {
@@ -209,10 +212,13 @@ fn resolve_connection_points(nodes: &mut NodeIndex) {
             Node::Control(control) => {
                 update_connection_ref_id_if_needed!(control, source_connections, lookup)
             }
+            // XXX: possible data-recursion (source1->sink1->source2->sink2->source1) currently ignored
+            // Possibly add validation against it here in future
             _ => (),
         };
     });
 
+    // XXX: removing all connector nodes after resolving might mess with validation later on - revisit
     nodes.retain(|_, node| !matches!(node, Node::Connector(_)));
 }
 

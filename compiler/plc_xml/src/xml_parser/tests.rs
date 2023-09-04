@@ -30,24 +30,29 @@ mod tests {
     }
 
     #[test]
-    fn connection_variable_source_to_multiple_sinks() {
+    fn connection_variable_source_to_multiple_sinks_parses() {
         assert_debug_snapshot!(parse(content::VAR_SOURCE_TO_MULTI_SINK).0.implementations[0].statements);
     }
 
     #[test]
     #[ignore = "block-to-block connections not yet implemented"]
-    fn connection_block_result_source_to_multiple_sinks() {
+    fn connection_block_result_source_to_multiple_sinks_parses() {
         assert_debug_snapshot!(parse(content::BLOCK_SOURCE_TO_MULTI_SINK).0.implementations[0].statements);
     }
 
     #[test]
-    fn direct_connection_of_sink_to_other_source_model() {
+    fn direct_connection_of_sink_to_other_source_generates_correct_model() {
         assert_debug_snapshot!(xml_parser::visit(content::SINK_TO_SOURCE).unwrap());
     }
 
     #[test]
-    fn direct_connection_of_sink_to_other_source_ast() {
+    fn direct_connection_of_sink_to_other_source_ast_parses() {
         assert_debug_snapshot!(parse(content::SINK_TO_SOURCE).0.implementations[0].statements);
+    }
+
+    #[test]
+    fn sink_source_data_recursion_does_not_overflow_the_stack() {
+        assert_debug_snapshot!(xml_parser::visit(content::SINK_SOURCE_LOOP).unwrap());
     }
 
     #[test]
@@ -492,5 +497,73 @@ mod content {
             </FBD>
         </body>
     </pou>
+    "#;
+
+    pub(super) const SINK_SOURCE_LOOP: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myConnection" pouType="function">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION myConnection : DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+                </content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <connector name="s1" localId="22" height="20" width="54">
+                    <position x="550" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="23"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s1" localId="24" height="20" width="64">
+                    <position x="630" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <connector name="s2" localId="25" height="20" width="54">
+                    <position x="740" y="120"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="24">
+                            <position x="740" y="130"/>
+                            <position x="710" y="130"/>
+                            <position x="710" y="170"/>
+                            <position x="694" y="170"/>
+                        </connection>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s2" localId="26" height="20" width="64">
+                    <position x="750" y="70"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <connector name="s3" localId="27" height="20" width="54">
+                    <position x="850" y="70"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="26"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s3" localId="23" height="20" width="64">
+                    <position x="450" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+            </FBD>
+        </body>
+    </pou>    
     "#;
 }
