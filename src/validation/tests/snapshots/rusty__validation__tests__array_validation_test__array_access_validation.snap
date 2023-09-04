@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Array access must be in the range 2..3", range: [SourceRange { range: 557..558 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 2..3", range: [SourceRange { range: 590..591 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 0..1", range: [SourceRange { range: 617..618 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range -2..2", range: [SourceRange { range: 655..657 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range -3..-1", range: [SourceRange { range: 688..690 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 1..2", range: [SourceRange { range: 718..719 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Invalid type STRING for array access. Only variables of Integer types are allowed to access an array", range: [SourceRange { range: 745..755 }], err_no: type__incompatible_arrayaccess_variable }
-SyntaxError { message: "Invalid type INT for array access. Only variables of Array types are allowed", range: [SourceRange { range: 802..803 }], err_no: type__incompatible_arrayaccess_variable }
+error: Array access must be in the range 2..3
+   ┌─ <internal>:29:12
+   │
+29 │       multi[1,4]; // out of range
+   │               ^ Array access must be in the range 2..3
+
+error: Array access must be in the range 2..3
+   ┌─ <internal>:30:14
+   │
+30 │       nested[1][4]; // out of range
+   │                 ^ Array access must be in the range 2..3
+
+error: Array access must be in the range 0..1
+   ┌─ <internal>:31:8
+   │
+31 │       arr[3]; // out of range
+   │           ^ Array access must be in the range 0..1
+
+error: Array access must be in the range -2..2
+   ┌─ <internal>:32:19
+   │
+32 │       negative_start[-4]; // out of range
+   │                      ^^ Array access must be in the range -2..2
+
+error: Array access must be in the range -3..-1
+   ┌─ <internal>:33:13
+   │
+33 │       negative[-4]; // out of range
+   │                ^^ Array access must be in the range -3..-1
+
+error: Array access must be in the range 1..2
+   ┌─ <internal>:34:10
+   │
+34 │       const[3]; // out of range
+   │             ^ Array access must be in the range 1..2
+
+error: Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
+   ┌─ <internal>:35:8
+   │
+35 │       arr[string_ref]; // invalid type for array access
+   │           ^^^^^^^^^^ Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
+
+error: Invalid type INT for array access. Only variables of Array types are allowed
+   ┌─ <internal>:36:12
+   │
+36 │       int_ref[1]; // not an array
+   │               ^ Invalid type INT for array access. Only variables of Array types are allowed
+
 

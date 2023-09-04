@@ -15,10 +15,12 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    values::{BasicValueEnum, FunctionValue},
+    values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 use plc_ast::{
-    ast::{flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, SourceRange},
+    ast::{
+        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess, SourceRange,
+    },
     control_statements::{AstControlStatement, ConditionalBlock},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
@@ -205,7 +207,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return Ok(());
         }
         let exp_gen = self.create_expr_generator();
-        let left = exp_gen.generate_element_pointer(left_statement)?;
+        let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
+            it.get_basic_value_enum().try_into().map_err(|err| {
+                Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement.get_location())
+            })
+        })?;
+
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
@@ -235,38 +242,45 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), Diagnostic> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
-        if let AstStatement::QualifiedReference { elements, .. } = left_statement {
-            //Target
-            let target: Vec<AstStatement> = elements
-                .iter()
-                .take_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. }))
-                .cloned()
-                .collect();
-            let id = target.last().unwrap().get_id();
-            let target = AstStatement::QualifiedReference { elements: target.to_vec(), id };
 
-            //Access
-            let direct_access: Vec<&AstStatement> =
-                elements.iter().skip_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. })).collect();
-            let left_type = exp_gen.get_type_hint_for(&target)?;
-            let right_type = exp_gen.get_type_hint_for(right_statement)?;
+        // given a complex direct-access assignemnt: a.b.c.%W3,%X1
+        // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement) else {unreachable!("Invalid direct-access expression: {left_statement:#?}")};
 
-            //special case if we deal with a single bit, then we need to switch to a faked u1 type
-            let right_type =
-                if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
-                    *right_type.get_type_information()
-                {
-                    self.index.get_type_or_panic(typesystem::U1_TYPE)
-                } else {
-                    right_type
-                };
+        let left_type = exp_gen.get_type_hint_for(target)?;
+        let right_type = exp_gen.get_type_hint_for(right_statement)?;
 
-            //Left pointer
-            let left = exp_gen.generate_element_pointer(&target)?;
-            let left_value = self.llvm.load_pointer(&left, "").into_int_value();
-            //Build index
-            if let Some((element, direct_access)) = direct_access.split_first() {
-                let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
+        //special case if we deal with a single bit, then we need to switch to a faked u1 type
+        let right_type =
+            if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
+                *right_type.get_type_information()
+            {
+                self.index.get_type_or_panic(typesystem::U1_TYPE)
+            } else {
+                right_type
+            };
+
+        //Left pointer
+        let left_expression_value = exp_gen.generate_expression_value(target)?;
+        let left_value = left_expression_value.as_r_value(self.llvm, None).into_int_value();
+        let left = left_expression_value.get_basic_value_enum().into_pointer_value();
+        //Build index
+        if let Some((element, direct_access)) = access_sequence.split_first() {
+            let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
+                exp_gen.generate_direct_access_index(
+                    access,
+                    index,
+                    right_type.get_type_information(),
+                    left_type,
+                )
+            } else {
+                Err(Diagnostic::syntax_error(
+                    &format!("{element:?} not a direct access"),
+                    element.get_location(),
+                ))
+            }?;
+            for element in direct_access {
+                let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element {
                     exp_gen.generate_direct_access_index(
                         access,
                         index,
@@ -279,52 +293,34 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         element.get_location(),
                     ))
                 }?;
-                for element in direct_access {
-                    let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element {
-                        exp_gen.generate_direct_access_index(
-                            access,
-                            index,
-                            right_type.get_type_information(),
-                            left_type,
-                        )
-                    } else {
-                        Err(Diagnostic::syntax_error(
-                            &format!("{element:?} not a direct access"),
-                            element.get_location(),
-                        ))
-                    }?;
-                    rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
-                }
-                //Build mask for the index
-                //Get the target bit type as all ones
-                let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
-                let ones = rhs_type.const_all_ones();
-                //Extend the mask to the target type
-                let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
-                //Position the ones in their correct locations
-                let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
-                //Invert the mask
-                let mask = self.llvm.builder.build_not(shifted_mask, "invert");
-                //And the result with the mask to erase the set bits at the target location
-                let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
-
-                //Generate an expression for the right size
-                let right = exp_gen.generate_expression(right_statement)?;
-                //Cast the right side to the left side type
-                let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
-                //Shift left by the direct access
-                let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
-
-                //OR the result and store it in the left side
-                let or_value = self.llvm.builder.build_or(and_value, value, "or");
-                self.llvm.builder.build_store(left, or_value);
-            } else {
-                unreachable!();
+                rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
-        } else {
-            unreachable!()
-        }
+            //Build mask for the index
+            //Get the target bit type as all ones
+            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
+            let ones = rhs_type.const_all_ones();
+            //Extend the mask to the target type
+            let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
+            //Position the ones in their correct locations
+            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
+            //Invert the mask
+            let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+            //And the result with the mask to erase the set bits at the target location
+            let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
+            //Generate an expression for the right size
+            let right = exp_gen.generate_expression(right_statement)?;
+            //Cast the right side to the left side type
+            let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
+            //Shift left by the direct access
+            let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
+
+            //OR the result and store it in the left side
+            let or_value = self.llvm.builder.build_or(and_value, value, "or");
+            self.llvm.builder.build_store(left, or_value);
+        } else {
+            unreachable!();
+        }
         Ok(())
     }
 
@@ -396,7 +392,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator.generate_element_pointer(counter)?;
+        let ptr = expression_generator.generate_lvalue(counter)?;
         builder.build_store(ptr, next);
 
         //Loop back
@@ -741,4 +737,23 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn get_llvm_deps(&self) -> (&Builder, FunctionValue, &Context) {
         (&self.llvm.builder, self.function_context.function, self.llvm.context)
     }
+}
+
+/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
+/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
+/// of direct-access commands (vec![%W3, %X2])
+fn collect_base_and_direct_access_for_assignment(
+    left_statement: &AstStatement,
+) -> Option<(&AstStatement, Vec<&AstStatement>)> {
+    let mut current = Some(left_statement);
+    let mut access_sequence = Vec::new();
+    while let Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base, .. }) = current {
+        if matches!(m.as_ref(), AstStatement::DirectAccess { .. }) {
+            access_sequence.insert(0, m.as_ref());
+            current = base.as_deref();
+        } else {
+            break;
+        }
+    }
+    current.zip(Some(access_sequence))
 }

@@ -261,7 +261,7 @@ fn visit_implementation(
         index.register_pou(PouIndexEntry::create_action_entry(
             implementation.name.as_str(),
             implementation.type_name.as_str(),
-            ast::LinkageType::Internal, //TODO: where do I get correct linkage from?
+            implementation.linkage,
             symbol_location_factory.create_symbol_location(&implementation.name_location),
         ));
         index.register_pou_type(datatype);

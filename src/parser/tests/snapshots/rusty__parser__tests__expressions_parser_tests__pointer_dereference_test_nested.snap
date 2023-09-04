@@ -1,0 +1,64 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+ReferenceExpr {
+    kind: Deref,
+    base: Some(
+        ReferenceExpr {
+            kind: Deref,
+            base: Some(
+                ReferenceExpr {
+                    kind: Index(
+                        LiteralInteger {
+                            value: 2,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Deref,
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Index(
+                                        LiteralInteger {
+                                            value: 1,
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Index(
+                                                LiteralInteger {
+                                                    value: 0,
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Deref,
+                                                    base: Some(
+                                                        ReferenceExpr {
+                                                            kind: Deref,
+                                                            base: Some(
+                                                                ReferenceExpr {
+                                                                    kind: Member(
+                                                                        Identifier {
+                                                                            name: "x",
+                                                                        },
+                                                                    ),
+                                                                    base: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        },
+    ),
+}

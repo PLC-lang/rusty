@@ -161,6 +161,11 @@ impl DataType {
         self.get_type_information().is_array()
     }
 
+    /// returns true if this type is an enum
+    pub fn is_enum(&self) -> bool {
+        self.get_type_information().is_enum()
+    }
+
     pub fn is_vla(&self) -> bool {
         self.get_type_information().is_vla()
     }
@@ -644,6 +649,17 @@ impl DataTypeInformation {
     pub fn get_inner_array_type_name(&self) -> Option<&str> {
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name, .. }),
+                ..
+            } => Some(inner_type_name),
+            _ => None,
+        }
+    }
+
+    pub fn get_inner_pointer_type_name(&self) -> Option<&str> {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => Some(inner_type_name),
             _ => None,
         }
     }

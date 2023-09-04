@@ -57,7 +57,13 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
+
+                let parse_func = match loaded_source.get_type() {
+                    source_code::SourceType::Text => parse_file,
+                    source_code::SourceType::Xml => cfc::xml_parser::parse_file,
+                    source_code::SourceType::Unknown => unreachable!(),
+                };
+                Ok(parse_func(
                     &loaded_source.source,
                     loaded_source.get_location_str(),
                     LinkageType::Internal,
@@ -201,7 +207,7 @@ pub struct AnnotatedProject {
 
 impl AnnotatedProject {
     /// Validates the project, reports any new diagnostics on the fly
-    pub fn validate(&self, diagnostician: &Diagnostician) -> Result<(), Diagnostic> {
+    pub fn validate(&self, diagnostician: &mut Diagnostician) -> Result<(), Diagnostic> {
         // perform global validation
         let mut validator = Validator::new();
         validator.perform_global_validation(&self.index);

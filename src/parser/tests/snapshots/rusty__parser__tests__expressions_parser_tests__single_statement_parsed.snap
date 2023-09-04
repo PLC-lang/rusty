@@ -1,0 +1,12 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: "&prg.statements[0]"
+---
+ReferenceExpr {
+    kind: Member(
+        Identifier {
+            name: "x",
+        },
+    ),
+    base: None,
+}

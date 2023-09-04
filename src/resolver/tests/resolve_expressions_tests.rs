@@ -2,7 +2,7 @@ use core::panic;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
+    ast::{flatten_expression_list, AstStatement, DataType, Pou, ReferenceAccess, UserTypeDeclaration},
     control_statements::{AstControlStatement, CaseStatement},
     literals::{Array, AstLiteral},
     provider::IdProvider,
@@ -11,7 +11,7 @@ use plc_ast::{
 use crate::{
     index::{ArgumentType, Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
-    test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
         LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
@@ -52,6 +52,156 @@ fn binary_expressions_resolves_types() {
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
 
     assert_eq!(expected_types, types);
+}
+
+#[test]
+fn cast_expressions_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRG
+            VAR a : SINT; END_VAR
+            BYTE#7;
+            INT#a;
+            UINT#7;
+            DWORD#7;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BYTE_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], INT_TYPE, None);
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), ..} = &statements[1]  else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, target.as_ref(), SINT_TYPE, None);
+
+    assert_type_and_hint!(&annotations, &index, &statements[2], UINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[3], DWORD_TYPE, None);
+}
+
+#[test]
+fn cast_expression_literals_get_casted_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRG
+            INT#16#FFFF; 
+            WORD#16#FFFF; 
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    {
+        assert_type_and_hint!(&annotations, &index, &statements[0], INT_TYPE, None);
+        let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), ..} = &statements[0]  else {unreachable!()};
+        let t = target.as_ref();
+        assert_eq!(
+            format!(
+                "{:#?}",
+                AstStatement::Literal { kind: AstLiteral::Integer(0xFFFF), location: (0..0).into(), id: 0 }
+            ),
+            format!("{t:#?}")
+        );
+        assert_type_and_hint!(&annotations, &index, target.as_ref(), INT_TYPE, None);
+    }
+    {
+        assert_type_and_hint!(&annotations, &index, &statements[1], WORD_TYPE, None);
+        let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), ..} = &statements[1]  else {unreachable!()};
+        let t = target.as_ref();
+        assert_eq!(
+            format!(
+                "{:#?}",
+                AstStatement::Literal { kind: AstLiteral::Integer(0xFFFF), location: (0..0).into(), id: 0 }
+            ),
+            format!("{t:#?}")
+        );
+        assert_type_and_hint!(&annotations, &index, target.as_ref(), WORD_TYPE, None);
+    }
+}
+
+#[test]
+fn cast_expressions_of_enum_with_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRs
+            MyEnum#a;
+            MyEnum#b;
+        END_PROGRAM
+        TYPE MyEnum : (a,b,c); END_TYPE
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], "MyEnum", None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], "MyEnum", None);
+
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(access), ..} = &statements[0] else { unreachable!()};
+    assert_eq!(
+        annotations.get(access),
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "MyEnum".to_string(),
+            qualified_name: "MyEnum.a".to_string(),
+            constant: true,
+            argument_type: ArgumentType::ByVal(VariableType::Global),
+            is_auto_deref: false
+        })
+    );
+
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(access), ..} = &statements[1] else { unreachable!()};
+    assert_eq!(
+        annotations.get(access),
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "MyEnum".to_string(),
+            qualified_name: "MyEnum.b".to_string(),
+            constant: true,
+            argument_type: ArgumentType::ByVal(VariableType::Global),
+            is_auto_deref: false
+        })
+    );
+}
+
+#[test]
+fn cast_expressions_of_enum_with_direct_access_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRs
+            MyEnum#a.1;
+            MyEnum#a.%W1;
+        END_PROGRAM
+        TYPE MyEnum : (a,b,c); END_TYPE
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], WORD_TYPE, None);
+}
+
+#[test]
+fn direct_access_using_enum_values_resolves_types() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRs
+            VAR
+                x : INT;
+            END_VAR
+
+            x.%XBIT01;
+            x.%XBIT02;
+            x.BIT01;
+            x.BIT02;
+        END_PROGRAM
+        TYPE MyEnum : (BIT01:=0,BIT02,BIT03); END_TYPE
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], BOOL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[2], VOID_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[3], VOID_TYPE, None);
 }
 
 #[test]
@@ -196,7 +346,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
 }
 
 #[test]
-fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
+fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
@@ -839,8 +989,8 @@ fn pou_expressions_resolve_types() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[3].statements;
 
-    //none of these pou's should really resolve to a type
-    let expected_types = vec![VOID_TYPE, VOID_TYPE, VOID_TYPE];
+    //Functions and Functionblocks should not resolve to a type
+    let expected_types = vec!["OtherPrg", VOID_TYPE, "OtherFuncBlock"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
     assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
@@ -1063,6 +1213,17 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
     assert_eq!(index.find_effective_type_by_name("INT"), associated_type);
+
+    // AND the reference itself should be ...
+    let AstStatement::CallStatement { operator,.. } = &statements[0] else {unreachable!()};
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "INT".into(),
+            qualified_name: "foo".into(),
+            call_name: None
+        }),
+        annotations.get(operator)
+    );
 }
 
 #[test]
@@ -1092,15 +1253,15 @@ fn comparison_resolves_to_function_call() {
 
     // THEN we expect it to be annotated with the new function call ast for comparison
     let annotation = annotations.get(&statements[0]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[1]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[2]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[3]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
     let annotation = annotations.get(&statements[4]);
-    assert_snapshot!(format!("{annotation:?}"));
+    assert_snapshot!(format!("{annotation:#?}"));
 }
 
 #[test]
@@ -1123,6 +1284,37 @@ fn shadowed_function_is_annotated_correctly() {
 
     // THEN we expect it to be annotated with the function itself
     assert_type_and_hint!(&annotations, &index, &statements[0], "DINT", None);
+}
+
+#[test]
+fn alias_and_subrange_expressions_resolve_types() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        TYPE MyAlias : INT; END_TYPE;
+        TYPE MySubrange : INT(0..100); END_TYPE;
+
+        PROGRAM PRG
+            VAR 
+                i : INT;
+                a : MyAlias;
+                s : MySubrange;
+            END_VAR
+            i;
+            a;
+            s;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["INT", "INT", "MySubrange"];
+    let type_names: Vec<&str> =
+        statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
+
+    assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
 }
 
 #[test]
@@ -1415,13 +1607,13 @@ fn actions_are_resolved() {
             prg.foo;
         END_PROGRAM
         ACTIONS prg
-        ACTION foo
-        END_ACTION
+            ACTION foo 
+            END_ACTION
         END_ACTIONS
 
         FUNCTION buz : INT
-        prg.foo();
-        prg.foo;
+            prg.foo();
+            prg.foo;
         END_FUNCTION
         ",
         id_provider.clone(),
@@ -1529,6 +1721,40 @@ fn variable_direct_access_type_resolved() {
     PROGRAM prg
         VAR
             a : INT;
+        END_VAR
+        a.%X1;
+        a.%W2;
+    END_PROGRAM
+    ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    {
+        let a_x1 = &statements[0];
+        assert_type_and_hint!(&annotations, &index, a_x1, BOOL_TYPE, None);
+        let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(x1), base: Some(a), .. } = a_x1 else { unreachable!()};
+        assert_type_and_hint!(&annotations, &index, a, INT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, x1, BOOL_TYPE, None);
+    }
+    {
+        let a_w2 = &statements[1];
+        assert_type_and_hint!(&annotations, &index, a_w2, WORD_TYPE, None);
+        let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(w2), base: Some(a), .. } = a_w2 else { unreachable!()};
+        assert_type_and_hint!(&annotations, &index, a, INT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, w2, WORD_TYPE, None);
+    }
+}
+
+#[test]
+fn variable_direct_access_type_resolved2() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+    PROGRAM prg
+        VAR
+            a : INT;
             b : REAL;
             c : LREAL;
         END_VAR
@@ -1546,12 +1772,9 @@ fn variable_direct_access_type_resolved() {
     let type_names: Vec<&str> = statements
         .iter()
         .map(|s| {
-            if let AstStatement::QualifiedReference { elements, .. } = s {
-                if let AstStatement::DirectAccess { index, .. } = elements.last().unwrap() {
-                    return index;
-                }
-            }
-            panic!("Wrong type {:?}", s);
+            let AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } = s else { unreachable!("expected ReferenceExpr") };
+            let AstStatement::DirectAccess { index, .. } = reference.as_ref() else { unreachable!("expected DirectAccess") };
+            index
         })
         .map(|s| annotations.get_type_or_void(s, &index).get_name())
         .collect();
@@ -1786,7 +2009,6 @@ fn global_enums_type_resolving() {
         id_provider.clone(),
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-
     //check the type-annotation of a,b,c's implicit initializers
 
     let initalizer_types = index
@@ -1998,6 +2220,58 @@ fn struct_members_initializers_type_hint_test() {
 }
 
 #[test]
+fn struct_member_explicit_initialization_test() {
+    // GIVEN a struct-initialization with explicit assignments
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION main : DINT
+		VAR
+			x	 		: myStruct;
+		END_VAR
+			x	:= (var1 := 1, var2 := 7);
+		END_FUNCTION
+		
+		TYPE myStruct : STRUCT
+				var1 : DINT;
+				var2 : BYTE;
+			END_STRUCT
+		END_TYPE",
+        id_provider.clone(),
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // THEN the initializers assignments have correct annotations
+    let AstStatement::Assignment { right, ..} = &unit.implementations[0].statements[0] else { unreachable!()};
+    let AstStatement::ExpressionList { expressions, ..} = right.as_ref() else {unreachable!()};
+
+    let AstStatement::Assignment{left, ..} = &expressions[0] else {unreachable!()};
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "DINT".to_string(),
+            qualified_name: "myStruct.var1".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(left)
+    );
+
+    let AstStatement::Assignment{left, ..} = &expressions[1] else {unreachable!()};
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "BYTE".to_string(),
+            qualified_name: "myStruct.var2".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(left)
+    );
+}
+
+#[test]
 fn program_members_initializers_type_hint_test() {
     //GIVEN a pou with some initialization
     let id_provider = IdProvider::default();
@@ -2065,10 +2339,10 @@ fn data_type_initializers_type_hint_test() {
                     );
                 }
             } else {
-                unreachable!()
+                unreachable!("{:#?}", unit)
             }
         } else {
-            unreachable!()
+            unreachable!("{:#?}", unit)
         }
     } else {
         unreachable!()
@@ -2519,26 +2793,20 @@ fn nested_bitwise_access_resolves_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let assignment = &unit.implementations[0].statements[0];
 
-    if let AstStatement::Assignment { right, .. } = assignment {
-        assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL")); //strange
-        if let AstStatement::QualifiedReference { elements, .. } = right.as_ref() {
-            assert_type_and_hint!(&annotations, &index, &elements[0], "LWORD", None);
-            assert_type_and_hint!(&annotations, &index, &elements[1], "DWORD", None);
-            assert_type_and_hint!(&annotations, &index, &elements[2], "WORD", None);
-            assert_type_and_hint!(&annotations, &index, &elements[3], "BYTE", None);
-            assert_type_and_hint!(&annotations, &index, &elements[4], "BOOL", None);
+    let AstStatement::Assignment { right, .. } = assignment else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL")); //strange
 
-            if let AstStatement::DirectAccess { index: idx_stmt, .. } = &elements[4] {
-                assert_type_and_hint!(&annotations, &index, idx_stmt, "DINT", None);
-            } else {
-                unreachable!()
-            }
-        } else {
-            unreachable!()
-        }
-    } else {
-        unreachable!();
-    }
+    let AstStatement::ReferenceExpr { base: Some(base), ..} = right.as_ref() else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
+
+    let AstStatement::ReferenceExpr { base: Some(base), ..} = base.as_ref() else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, base, "WORD", None);
+
+    let AstStatement::ReferenceExpr { base: Some(base), ..} = base.as_ref() else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, base, "DWORD", None);
+
+    let AstStatement::ReferenceExpr { base: Some(base), ..} = base.as_ref() else {unreachable!()};
+    assert_type_and_hint!(&annotations, &index, base, "LWORD", None);
 }
 
 #[test]
@@ -2600,15 +2868,16 @@ fn array_accessor_in_struct_array_is_annotated() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let qr = &unit.implementations[0].statements[0];
 
-    if let AstStatement::QualifiedReference { elements, .. } = qr {
-        if let AstStatement::ArrayAccess { access, .. } = &elements[1] {
-            assert_type_and_hint!(&annotations, &index, access.as_ref(), "INT", None);
-        } else {
-            unreachable!()
-        }
-    } else {
-        unreachable!();
-    }
+    assert_type_and_hint!(&annotations, &index, qr, "INT", None);
+    let AstStatement::ReferenceExpr { base: Some(base), .. } = qr else {
+        panic!("expected ReferenceExpr for {:?}", qr);
+    };
+    assert_type_and_hint!(&annotations, &index, base, "__MyStruct_arr1", None);
+
+    let AstStatement::ReferenceExpr { base: Some(base), .. } = base.as_ref() else {
+        panic!("expected ReferenceExpr for {:?}", base);
+    };
+    assert_type_and_hint!(&annotations, &index, base, "MyStruct", None);
 }
 
 #[test]
@@ -2838,8 +3107,12 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
         assert_type_and_hint!(&annotations, &index, right, INT_TYPE, Some(DWORD_TYPE));
 
-        if let AstStatement::PointerAccess { reference, .. } = right.as_ref() {
+        if let AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, base: Some(reference), .. } =
+            right.as_ref()
+        {
             assert_type_and_hint!(&annotations, &index, reference, ptr_type, None);
+        } else {
+            unreachable!()
         }
     } else {
         unreachable!()
@@ -2904,6 +3177,60 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
 }
 
 #[test]
+fn call_explicit_parameter_name_is_resolved() {
+    //GIVEN
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR_INPUT
+                a: INT;
+                b: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM PRG
+		VAR
+			f : fb;
+		END_VAR
+            f(b:= 1, a:= 3);
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    // should be the call statement
+    // should contain array access as operator
+    let AstStatement::CallStatement { parameters, .. } = &unit.implementations[1].statements[0] else { unreachable!("expected callstatement")};
+    let AstStatement::Assignment { left: b, .. } = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0] else { unreachable!()};
+    let AstStatement::Assignment { left: a, .. } = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[1] else { unreachable!()};
+
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: DINT_TYPE.to_string(),
+            qualified_name: "fb.b".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(b.as_ref())
+    );
+
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            resulting_type: INT_TYPE.to_string(),
+            qualified_name: "fb.a".to_string(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Input),
+            is_auto_deref: false
+        }),
+        annotations.get(a)
+    );
+}
+
+#[test]
 fn call_on_function_block_array() {
     //GIVEN
     let id_provider = IdProvider::default();
@@ -2927,13 +3254,13 @@ fn call_on_function_block_array() {
     // should be the call statement
     let statements = &unit.implementations[1].statements[0];
     // should contain array access as operator
-    let operator = match statements {
-        AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
-        _ => None,
-    };
-    assert!(matches!(operator, Some(&AstStatement::ArrayAccess { .. })),);
+    let AstStatement::CallStatement { operator, .. } = statements else { unreachable!("expected callstatement")};
+    assert!(matches!(
+        operator.as_ref(),
+        &AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. }
+    ),);
 
-    let annotation = annotations.get(operator.unwrap());
+    let annotation = annotations.get(operator.as_ref());
     assert_eq!(Some(&StatementAnnotation::Value { resulting_type: "fb".into() }), annotation);
 }
 
@@ -3017,9 +3344,21 @@ fn resolve_recursive_function_call() {
     //WHEN the AST is annotated
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
-    let annotated_types = format!("{type_map:#?}");
 
-    insta::assert_snapshot!(annotated_types);
+    let call = &unit.implementations[0].statements[0];
+
+    let AstStatement::CallStatement { operator, .. } = call else { unreachable!(); };
+
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "DINT".into(),
+            qualified_name: "foo".into(),
+            call_name: None
+        }),
+        type_map.get(&operator.get_id())
+    );
+
+    // insta::assert_snapshot!(annotated_types);
 }
 
 #[test]
@@ -3050,9 +3389,16 @@ fn resolve_recursive_program_call() {
     //WHEN the AST is annotated
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
-    let annotated_types = format!("{type_map:#?}");
 
-    insta::assert_snapshot!(annotated_types);
+    let call = &unit.implementations[0].statements[0];
+    let AstStatement::CallStatement { operator, .. } = call else { unreachable!(); };
+
+    assert_eq!(
+        Some(&StatementAnnotation::Program { qualified_name: "mainProg".into() }),
+        type_map.get(&operator.get_id())
+    );
+
+    // insta::assert_snapshot!(annotated_types);
 }
 
 #[test]
@@ -3229,7 +3575,7 @@ fn resolve_return_variable_in_nested_call() {
     }
 
     // AND we want a call passing the return-variable as apointer (actually the adress as a LWORD)
-    assert_snapshot!(codegen(src));
+    // assert_snapshot!(codegen(src));   // TODO moved to codegen tests
 }
 
 #[test]
@@ -3328,20 +3674,17 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[0].statements[0];
     index.import(std::mem::take(&mut annotations.new_index));
+
     // THEN the expressions are nested and annotated correctly
-    if let AstStatement::PointerAccess { reference, .. } = &statement {
-        assert_type_and_hint!(&annotations, &index, reference, "__POINTER_TO___POINTER_TO_BYTE", None);
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, base: Some(value), ..} = &statement else { unreachable!("expected ReferenceExpr, but got {statement:#?}")};
+    assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
 
-        if let AstStatement::UnaryExpression { value, .. } = &reference.as_ref() {
-            assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO_BYTE", None);
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Address, base: Some(base), ..} = value.as_ref() else { unreachable!("expected ReferenceExpr, but got {value:#?}")};
+    assert_type_and_hint!(&annotations, &index, base, "__POINTER_TO_BYTE", None);
 
-            if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
-                assert_type_and_hint!(&annotations, &index, value, "BYTE", None);
-            }
-        }
-    } else {
-        panic!("Not a pointer")
-    }
+    let AstStatement::ReferenceExpr { access: ReferenceAccess::Address, base: Some(base), ..} = base.as_ref() else { unreachable!("expected ReferenceExpr, but got {base:#?}")};
+    assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
+
     // AND the overall type of the statement is annotated correctly
     assert_type_and_hint!(&annotations, &index, statement, "__POINTER_TO_BYTE", None);
 }
@@ -3581,7 +3924,10 @@ fn array_passed_to_function_with_vla_param_is_annotated_correctly() {
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
-    if let AstStatement::ArrayAccess { reference, .. } = &stmt {
+
+    assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), base: Some(reference), .. } = stmt
+    {
         assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
     } else {
         unreachable!()
@@ -3750,12 +4096,12 @@ fn vla_access_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), base: Some(base), .. } = stmt {
         // entire statement resolves to INT
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(&annotations, &index, base.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
     } else {
         panic!("expected an array access, got none")
     }
@@ -3781,7 +4127,10 @@ fn vla_write_access_is_annotated_correctly() {
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { left, .. } = stmt {
-        if let AstStatement::ArrayAccess { reference, .. } = left.as_ref() {
+        if let AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Index(_), base: Some(reference), ..
+        } = left.as_ref()
+        {
             // entire statement resolves to INT
             assert_type_and_hint!(&annotations, &index, left.as_ref(), "INT", None);
 
@@ -3821,7 +4170,11 @@ fn writing_value_read_from_vla_to_vla() {
 
     // both VLA references should receive the same type hint
     if let AstStatement::Assignment { left, right, .. } = stmt {
-        if let AstStatement::ArrayAccess { reference, .. } = left.as_ref() {
+        if let AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Index(_), base: Some(reference), ..
+        } = left.as_ref()
+        {
+            // if let AstStatement::ArrayAccess { reference, .. } = left.as_ref() {
             // entire statement resolves to INT
             assert_type_and_hint!(&annotations, &index, left.as_ref(), "INT", None);
 
@@ -3837,7 +4190,10 @@ fn writing_value_read_from_vla_to_vla() {
             panic!("expected an array access, got none")
         }
 
-        if let AstStatement::ArrayAccess { reference, .. } = right.as_ref() {
+        if let AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Index(_), base: Some(reference), ..
+        } = right.as_ref()
+        {
             // entire statement resolves to INT
             assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("INT"));
 
@@ -3876,7 +4232,10 @@ fn address_of_works_on_vla() {
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { right, .. } = stmt {
-        if let AstStatement::UnaryExpression { value, .. } = right.as_ref() {
+        if let AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Address, base: Some(reference), ..
+        } = right.as_ref()
+        {
             // rhs of assignment resolves to LWORD
             assert_type_and_hint!(
                 &annotations,
@@ -3886,16 +4245,14 @@ fn address_of_works_on_vla() {
                 Some("LWORD")
             );
 
-            if let AstStatement::PointerAccess { reference, .. } = value.as_ref() {
-                // unary expression resolves to pointer access to array of INT
-                assert_type_and_hint!(
-                    &annotations,
-                    &index,
-                    reference.as_ref(),
-                    "__foo_arr",
-                    Some("__arr_vla_1_int")
-                );
-            }
+            // unary expression resolves to pointer access to array of INT
+            assert_type_and_hint!(
+                &annotations,
+                &index,
+                reference.as_ref(),
+                "__foo_arr",
+                Some("__arr_vla_1_int")
+            );
         } else {
             panic!("expected an array access, got none")
         }
@@ -3925,7 +4282,8 @@ fn by_ref_vla_access_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), base: Some(reference), .. } = stmt
+    {
         // entire statement resolves to INT
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
@@ -3937,7 +4295,8 @@ fn by_ref_vla_access_is_annotated_correctly() {
 
     let stmt = &unit.implementations[0].statements[1];
 
-    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), base: Some(reference), .. } = stmt
+    {
         // entire statement resolves to INT
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
@@ -4043,7 +4402,8 @@ fn multi_dimensional_vla_access_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), base: Some(reference), .. } = stmt
+    {
         // entire statement resolves to INT
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
@@ -4143,15 +4503,16 @@ fn override_is_resolved() {
     let (unit, index) = index_with_ids(
         "
         CLASS cls
-        METHOD foo : INT
-        END_METHOD
-        METHOD bar : INT
-        END_METHOD
+            METHOD foo : INT
+            END_METHOD
+
+            METHOD bar : INT
+            END_METHOD
         END_CLASS
 
         CLASS cls2 EXTENDS cls
-        METHOD OVERRIDE foo : INT
-        END_METHOD
+            METHOD OVERRIDE foo : INT
+            END_METHOD
         END_CLASS
 
         FUNCTION_BLOCK fb

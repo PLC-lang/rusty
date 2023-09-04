@@ -1,6 +1,6 @@
 use plc_ast::ast::{AstStatement, CompilationUnit};
+use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
-use rusty_derive::Validators;
 
 use crate::{
     index::{
@@ -49,14 +49,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
     }
 
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
-        match stmt {
-            AstStatement::Reference { name, .. } => Some(name.as_str()),
-            AstStatement::QualifiedReference { elements, .. } => {
-                elements.last().and_then(|it| self.annotations.get_call_name(it))
-            }
-            _ => None,
-        }
-        .and_then(|pou_name| {
+        self.annotations.get_call_name(stmt).and_then(|pou_name| {
             self.index
                 // check if this is an instance of a function block and get the type name
                 .find_callable_instance_variable(self.qualifier, &[pou_name])

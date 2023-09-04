@@ -1748,17 +1748,17 @@ fn test_time() {
     let module = compile_with_native(&context, sources);
 
     MockClock::set_time(23 * 3600 + 59 * 60 + 30);
-    let now = module.run::<_, i64>("main", &mut MainType::default());
+    let now = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 30) * 1e9 as i64 + 100;
     assert_eq!(expected, now);
 
     MockClock::advance(29);
-    let later = module.run::<_, i64>("main", &mut MainType::default());
+    let later = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 59) * 1e9 as i64 + 100;
     assert_eq!(expected, later);
 
     MockClock::advance(2);
-    let new_day = module.run::<_, i64>("main", &mut MainType::default());
+    let new_day = module.run::<_, i64>("main", &mut MainType);
     let expected = 1e9 as i64 + 100;
     assert_eq!(expected, new_day);
 }

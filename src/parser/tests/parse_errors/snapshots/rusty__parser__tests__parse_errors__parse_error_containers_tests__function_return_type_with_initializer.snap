@@ -1,0 +1,14 @@
+---
+source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
+expression: pou.statements
+---
+[
+    ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "a",
+            },
+        ),
+        base: None,
+    },
+]

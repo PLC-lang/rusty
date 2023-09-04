@@ -1,0 +1,93 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: prg
+---
+[
+    BinaryExpression {
+        operator: Less,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "a",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 3,
+        },
+    },
+    BinaryExpression {
+        operator: Greater,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "b",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 0,
+        },
+    },
+    BinaryExpression {
+        operator: LessOrEqual,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "c",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 7,
+        },
+    },
+    BinaryExpression {
+        operator: GreaterOrEqual,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "d",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 4,
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "e",
+                },
+            ),
+            base: None,
+        },
+        right: BinaryExpression {
+            operator: Greater,
+            left: BinaryExpression {
+                operator: Plus,
+                left: LiteralInteger {
+                    value: 2,
+                },
+                right: LiteralInteger {
+                    value: 1,
+                },
+            },
+            right: BinaryExpression {
+                operator: Plus,
+                left: LiteralInteger {
+                    value: 3,
+                },
+                right: LiteralInteger {
+                    value: 1,
+                },
+            },
+        },
+    },
+]

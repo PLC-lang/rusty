@@ -1,0 +1,15 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statement
+---
+Assignment {
+    left: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "x",
+            },
+        ),
+        base: None,
+    },
+    right: LiteralNull,
+}

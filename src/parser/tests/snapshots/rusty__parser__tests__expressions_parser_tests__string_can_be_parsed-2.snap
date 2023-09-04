@@ -1,0 +1,34 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: statements
+---
+[
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralString {
+            value: "Hello, World!",
+            is_wide: false,
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralString {
+            value: "",
+            is_wide: false,
+        },
+    },
+]

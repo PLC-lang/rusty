@@ -1,7 +1,6 @@
 ---
 source: src/parser/tests/statement_parser_tests.rs
 expression: ast_string
-
 ---
 Variable {
     name: "my_struct",
@@ -17,14 +16,29 @@ Variable {
                             numeric_type: "DINT",
                             elements: ExpressionList {
                                 expressions: [
-                                    Reference {
-                                        name: "red",
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "red",
+                                            },
+                                        ),
+                                        base: None,
                                     },
-                                    Reference {
-                                        name: "yellow",
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "yellow",
+                                            },
+                                        ),
+                                        base: None,
                                     },
-                                    Reference {
-                                        name: "green",
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "green",
+                                            },
+                                        ),
+                                        base: None,
                                     },
                                 ],
                             },

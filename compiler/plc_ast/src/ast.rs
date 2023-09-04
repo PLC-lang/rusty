@@ -15,7 +15,6 @@ use crate::{
     pre_processor,
     provider::IdProvider,
 };
-
 pub type AstId = usize;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -320,6 +319,11 @@ impl CompilationUnit {
             file_name: file_name.to_string(),
             new_lines,
         }
+    }
+
+    pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
+        self.implementations = implementations;
+        self
     }
 
     /// imports all elements of the other CompilationUnit into this CompilationUnit
@@ -688,6 +692,30 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
+#[derive(Clone, PartialEq, Debug)]
+pub enum ReferenceAccess {
+    /**
+     * a, a.b
+     */
+    Member(Box<AstStatement>),
+    /**
+     * a[3]
+     */
+    Index(Box<AstStatement>),
+    /**
+     * Color#Red
+     */
+    Cast(Box<AstStatement>),
+    /**
+     * a^
+     */
+    Deref,
+    /**
+     * &a
+     */
+    Address,
+}
+
 #[derive(Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement {
@@ -719,22 +747,15 @@ pub enum AstStatement {
         id: AstId,
     },
     // Expressions
-    QualifiedReference {
-        elements: Vec<AstStatement>,
+    ReferenceExpr {
+        access: ReferenceAccess,
+        base: Option<Box<AstStatement>>,
         id: AstId,
+        location: SourceRange,
     },
-    Reference {
+    Identifier {
         name: String,
         location: SourceRange,
-        id: AstId,
-    },
-    ArrayAccess {
-        reference: Box<AstStatement>,
-        access: Box<AstStatement>,
-        id: AstId,
-    },
-    PointerAccess {
-        reference: Box<AstStatement>,
         id: AstId,
     },
     DirectAccess {
@@ -824,9 +845,8 @@ impl Debug for AstStatement {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal { kind, .. } => kind.fmt(f),
-            AstStatement::Reference { name, .. } => f.debug_struct("Reference").field("name", name).finish(),
-            AstStatement::QualifiedReference { elements, .. } => {
-                f.debug_struct("QualifiedReference").field("elements", elements).finish()
+            AstStatement::Identifier { name, .. } => {
+                f.debug_struct("Identifier").field("name", name).finish()
             }
             AstStatement::BinaryExpression { operator, left, right, .. } => f
                 .debug_struct("BinaryExpression")
@@ -898,12 +918,6 @@ impl Debug for AstStatement {
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            AstStatement::ArrayAccess { reference, access, .. } => {
-                f.debug_struct("ArrayAccess").field("reference", reference).field("access", access).finish()
-            }
-            AstStatement::PointerAccess { reference, .. } => {
-                f.debug_struct("PointerAccess").field("reference", reference).finish()
-            }
             AstStatement::DirectAccess { access, index, .. } => {
                 f.debug_struct("DirectAccess").field("access", access).field("index", index).finish()
             }
@@ -928,6 +942,9 @@ impl Debug for AstStatement {
             AstStatement::CastStatement { target, type_name, .. } => {
                 f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
             }
+            AstStatement::ReferenceExpr { access, base, .. } => {
+                f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
+            }
         }
     }
 }
@@ -946,12 +963,7 @@ impl AstStatement {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
             AstStatement::DefaultValue { location, .. } => location.clone(),
             AstStatement::Literal { location, .. } => location.clone(),
-            AstStatement::Reference { location, .. } => location.clone(),
-            AstStatement::QualifiedReference { elements, .. } => {
-                let first = elements.first().map_or_else(SourceRange::undefined, |it| it.get_location());
-                let last = elements.last().map_or_else(SourceRange::undefined, |it| it.get_location());
-                first.span(&last)
-            }
+            AstStatement::Identifier { location, .. } => location.clone(),
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -981,12 +993,6 @@ impl AstStatement {
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::ControlStatement { location, .. } => location.clone(),
-            AstStatement::ArrayAccess { reference, access, .. } => {
-                let reference_loc = reference.get_location();
-                let access_loc = access.get_location();
-                reference_loc.span(&access_loc)
-            }
-            AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),
             AstStatement::HardwareAccess { location, .. } => location.clone(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
@@ -995,6 +1001,7 @@ impl AstStatement {
             AstStatement::ContinueStatement { location, .. } => location.clone(),
             AstStatement::ExitStatement { location, .. } => location.clone(),
             AstStatement::CastStatement { location, .. } => location.clone(),
+            AstStatement::ReferenceExpr { location, .. } => location.clone(),
         }
     }
 
@@ -1004,10 +1011,7 @@ impl AstStatement {
             AstStatement::DefaultValue { id, .. } => *id,
             AstStatement::Literal { id, .. } => *id,
             AstStatement::MultipliedStatement { id, .. } => *id,
-            AstStatement::QualifiedReference { id, .. } => *id,
-            AstStatement::Reference { id, .. } => *id,
-            AstStatement::ArrayAccess { id, .. } => *id,
-            AstStatement::PointerAccess { id, .. } => *id,
+            AstStatement::Identifier { id, .. } => *id,
             AstStatement::DirectAccess { id, .. } => *id,
             AstStatement::HardwareAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
@@ -1024,15 +1028,20 @@ impl AstStatement {
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
             AstStatement::CastStatement { id, .. } => *id,
+            AstStatement::ReferenceExpr { id, .. } => *id,
         }
     }
 
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
-        } else {
-            false
+        match self {
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. }
+            | AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(reference), base, .. } => {
+                reference.has_direct_access()
+                    || base.as_ref().map(|it| it.has_direct_access()).unwrap_or(false)
+            }
+            AstStatement::DirectAccess { .. } => true,
+            _ => false,
         }
     }
 
@@ -1042,18 +1051,44 @@ impl AstStatement {
         // TODO: figure out a better name for this...
         match self {
             AstStatement::Literal { kind, .. } => kind.is_cast_prefix_eligible(),
-            AstStatement::Reference { .. } => true,
+            AstStatement::Identifier { .. } => true,
             _ => false,
         }
     }
 
-    /// Returns true if the current statement is a reference
-    pub fn is_reference(&self) -> bool {
-        matches!(self, AstStatement::Reference { .. })
+    /// Returns true if the current statement is a flat reference (e.g. `a`)
+    pub fn is_flat_reference(&self) -> bool {
+        matches!(self, AstStatement::Identifier { .. }) || {
+            if let AstStatement::ReferenceExpr {
+                access: ReferenceAccess::Member(reference),
+                base: None,
+                ..
+            } = self
+            {
+                matches!(reference.as_ref(), AstStatement::Identifier { .. })
+            } else {
+                false
+            }
+        }
     }
 
-    pub fn is_qualified_reference(&self) -> bool {
-        matches!(self, AstStatement::QualifiedReference { .. })
+    /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
+    pub fn get_flat_reference_name(&self) -> Option<&str> {
+        match self {
+            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } => {
+                if let AstStatement::Identifier { name, .. } = reference.as_ref() {
+                    Some(name)
+                } else {
+                    None
+                }
+            }
+            AstStatement::Identifier { name, .. } => Some(name),
+            _ => None,
+        }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        matches!(self, AstStatement::ReferenceExpr { .. })
     }
 
     pub fn is_hardware_access(&self) -> bool {
@@ -1061,19 +1096,11 @@ impl AstStatement {
     }
 
     pub fn is_array_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::ArrayAccess { .. }))
-        } else {
-            matches!(self, AstStatement::ArrayAccess { .. })
-        }
+        matches!(self, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(_), .. })
     }
 
     pub fn is_pointer_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::PointerAccess { .. }))
-        } else {
-            matches!(self, AstStatement::PointerAccess { .. })
-        }
+        matches!(self, AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. })
     }
 
     pub fn is_expression_list(&self) -> bool {
@@ -1082,8 +1109,8 @@ impl AstStatement {
 
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
+            || self.is_flat_reference()
             || self.is_reference()
-            || self.is_qualified_reference()
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()
@@ -1130,6 +1157,10 @@ impl AstStatement {
         matches!(self, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
     }
 
+    pub fn is_literal(&self) -> bool {
+        matches!(self, AstStatement::Literal { .. })
+    }
+
     pub fn get_literal_array(&self) -> Option<&Array> {
         if let AstStatement::Literal { kind: AstLiteral::Array(array), .. } = self {
             return Some(array);
@@ -1157,7 +1188,6 @@ pub enum Operator {
     And,
     Or,
     Xor,
-    Address,
 }
 
 impl Display for Operator {
@@ -1181,7 +1211,7 @@ impl Display for Operator {
 pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| matches!(it, AstStatement::Reference { .. } | AstStatement::Assignment { .. }))
+        .filter(|it| matches!(it, AstStatement::Identifier { .. } | AstStatement::Assignment { .. }))
         .map(get_enum_element_name)
         .collect()
 }
@@ -1189,14 +1219,11 @@ pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
 /// expects a Reference or an Assignment
 pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
     match enum_element {
-        AstStatement::Reference { name, .. } => name.to_string(),
-        AstStatement::Assignment { left, .. } => {
-            if let AstStatement::Reference { name, .. } = left.as_ref() {
-                name.to_string()
-            } else {
-                unreachable!("left of assignment not a reference")
-            }
-        }
+        AstStatement::Identifier { name, .. } => name.to_string(),
+        AstStatement::Assignment { left, .. } => left
+            .get_flat_reference_name()
+            .map(|it| it.to_string())
+            .expect("left of assignment not a reference"),
         _ => {
             unreachable!("expected {:?} to be a Reference or Assignment", enum_element);
         }
@@ -1278,6 +1305,10 @@ mod tests {
 pub struct AstFactory {}
 
 impl AstFactory {
+    pub fn empty_statement(location: SourceRange, id: AstId) -> AstStatement {
+        AstStatement::EmptyStatement { location, id }
+    }
+
     /// creates a new if-statement
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
@@ -1382,9 +1413,67 @@ impl AstFactory {
         }
     }
 
-    /// creates a new reference
-    pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
-        AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
+    /// creates a new Identifier
+    pub fn create_identifier(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+        AstStatement::Identifier { id, location: location.clone(), name: name.to_string() }
+    }
+
+    pub fn create_member_reference(
+        member: AstStatement,
+        base: Option<AstStatement>,
+        id: AstId,
+    ) -> AstStatement {
+        let location = base
+            .as_ref()
+            .map(|it| it.get_location().span(&member.get_location()))
+            .unwrap_or_else(|| member.get_location());
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Member(Box::new(member)),
+            base: base.map(Box::new),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_index_reference(
+        index: AstStatement,
+        base: Option<AstStatement>,
+        id: AstId,
+        location: SourceRange,
+    ) -> AstStatement {
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Index(Box::new(index)),
+            base: base.map(Box::new),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Address,
+            base: Some(Box::new(base)),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceRange) -> AstStatement {
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Deref,
+            base: Some(Box::new(base)),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_direct_access(
+        access: DirectAccessType,
+        index: AstStatement,
+        id: AstId,
+        location: SourceRange,
+    ) -> AstStatement {
+        AstStatement::DirectAccess { access, index: Box::new(index), location, id }
     }
 
     /// creates a new binary statement
@@ -1399,16 +1488,17 @@ impl AstFactory {
 
     /// creates a new cast statement
     pub fn create_cast_statement(
-        type_name: &str,
+        type_name: AstStatement,
         stmt: AstStatement,
         location: &SourceRange,
         id: AstId,
     ) -> AstStatement {
-        AstStatement::CastStatement {
+        let new_location = (location.get_start()..stmt.get_location().get_end()).into();
+        AstStatement::ReferenceExpr {
+            access: ReferenceAccess::Cast(Box::new(stmt)),
+            base: Some(Box::new(type_name)),
             id,
-            location: location.clone(),
-            type_name: type_name.to_string(),
-            target: Box::new(stmt),
+            location: new_location,
         }
     }
 
@@ -1421,11 +1511,11 @@ impl AstFactory {
         location: &SourceRange,
     ) -> AstStatement {
         AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: function_name,
-                location: location.clone(),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_identifier(&function_name, location, id),
+                None,
                 id,
-            }),
+            )),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: parameters,
                 id: parameter_list_id,
@@ -1436,17 +1526,17 @@ impl AstFactory {
     }
 
     pub fn create_call_to_with_ids(
-        function_name: String,
+        function_name: &str,
         parameters: Vec<AstStatement>,
         location: &SourceRange,
         mut id_provider: IdProvider,
     ) -> AstStatement {
         AstStatement::CallStatement {
-            operator: Box::new(AstStatement::Reference {
-                name: function_name,
-                location: location.clone(),
-                id: id_provider.next_id(),
-            }),
+            operator: Box::new(AstFactory::create_member_reference(
+                AstFactory::create_identifier(function_name, location, id_provider.next_id()),
+                None,
+                id_provider.next_id(),
+            )),
             parameters: Box::new(Some(AstStatement::ExpressionList {
                 expressions: parameters,
                 id: id_provider.next_id(),
@@ -1457,7 +1547,7 @@ impl AstFactory {
     }
 
     pub fn create_call_to_check_function_ast(
-        check_function_name: String,
+        check_function_name: &str,
         parameter: AstStatement,
         sub_range: Range<AstStatement>,
         location: &SourceRange,

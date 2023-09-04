@@ -7,7 +7,7 @@ pub struct NullDiagnosticReporter {
 }
 
 impl DiagnosticReporter for NullDiagnosticReporter {
-    fn report(&self, _diagnostics: &[ResolvedDiagnostics]) {
+    fn report(&mut self, _diagnostics: &[ResolvedDiagnostics]) {
         //ignore
     }
 
