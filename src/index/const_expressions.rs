@@ -70,7 +70,6 @@ impl ConstExpression {
 
     pub(crate) fn is_default(&self) -> bool {
         self.get_statement().is_default_value()
-
     }
 }
 

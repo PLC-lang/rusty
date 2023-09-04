@@ -1,5 +1,8 @@
 use ast::{
-    ast::{flatten_expression_list, AstStatement, CompilationUnit, LinkageType, Assignment, AstStatementKind, CallStatement},
+    ast::{
+        flatten_expression_list, Assignment, AstStatement, AstStatementKind, CallStatement, CompilationUnit,
+        LinkageType,
+    },
     provider::IdProvider,
 };
 use insta::assert_debug_snapshot;

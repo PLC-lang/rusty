@@ -4,10 +4,10 @@ use std::ops::Range;
 
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType, AstStatementKind,
+        AccessModifier, ArgumentProperty, AstFactory, AstStatement, AstStatementKind, CompilationUnit,
+        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -698,20 +698,23 @@ fn parse_type_reference_type_definition(
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
         let data_type = match bounds {
-            Some(AstStatement { stmt: AstStatementKind::ExpressionList (expressions), id , location}) => {
+            Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, location }) => {
                 //this is an enum
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
-                        elements: AstFactory::create_expression_list(expressions, location, id), 
+                        elements: AstFactory::create_expression_list(expressions, location, id),
                     },
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement{ stmt: AstStatementKind::ReferenceExpr ( ReferenceExpr{
-                access: ReferenceAccess::Member(_), .. }), ..}) => {
+            Some(AstStatement {
+                stmt:
+                    AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }),
+                ..
+            }) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -857,9 +860,9 @@ fn parse_array_type_definition(
             AstStatementKind::VlaRangeStatement { .. } => Some(true),
 
             // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
-            AstStatementKind::ExpressionList ( expressions ) => match expressions[0].get_stmt() {
-                AstStatementKind::RangeStatement ( .. ) => Some(false),
-                AstStatementKind::VlaRangeStatement  => Some(true),
+            AstStatementKind::ExpressionList(expressions) => match expressions[0].get_stmt() {
+                AstStatementKind::RangeStatement(..) => Some(false),
+                AstStatementKind::VlaRangeStatement => Some(true),
                 _ => None,
             },
 
@@ -1103,7 +1106,8 @@ fn parse_hardware_access(
             hardware_access_type,
             address,
             start_location.span(&lexer.last_location()),
-            lexer.next_id()))
+            lexer.next_id(),
+        ))
     } else {
         Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
     }

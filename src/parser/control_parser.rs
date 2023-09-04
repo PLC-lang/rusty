@@ -172,7 +172,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
         let mut current_condition = None;
         let mut current_body = vec![];
         for statement in body {
-            if let AstStatement{ stmt: AstStatementKind::CaseCondition ( condition), ..} = statement {
+            if let AstStatement { stmt: AstStatementKind::CaseCondition(condition), .. } = statement {
                 if let Some(condition) = current_condition {
                     let block = ConditionalBlock { condition, body: current_body };
                     case_blocks.push(block);

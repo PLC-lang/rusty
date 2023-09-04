@@ -1,8 +1,8 @@
 use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AccessModifier, ArgumentProperty, AstStatement, DataType, DataTypeDeclaration, LinkageType, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType, AstFactory,
+    AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;

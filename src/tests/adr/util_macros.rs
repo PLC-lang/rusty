@@ -30,10 +30,7 @@ macro_rules! deconstruct_call_statement {
         {
             (
                 &data.operator,
-                data.parameters
-                    .as_deref()
-                    .map(plc_ast::ast::flatten_expression_list)
-                    .unwrap_or_default(),
+                data.parameters.as_deref().map(plc_ast::ast::flatten_expression_list).unwrap_or_default(),
             )
         } else {
             unreachable!();

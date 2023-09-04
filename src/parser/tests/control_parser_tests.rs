@@ -5,7 +5,7 @@ use plc_ast::{
     ast::AstStatementKind,
     control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
 };
-use plc_source::source_location::{SourceLocation, CodeSpan};
+
 use pretty_assertions::*;
 
 #[test]
@@ -565,7 +565,7 @@ fn call_stmnt_location_test() {
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.to_range().unwrap()].to_string(), "foo(a:=3, b:=4)");
 
-    if let AstStatementKind::CallStatement ( data) = &unit.statements[0].get_stmt() {
+    if let AstStatementKind::CallStatement(data) = &unit.statements[0].get_stmt() {
         assert_eq!(source[data.operator.get_location().to_range().unwrap()].to_string(), "foo");
 
         let parameters_statement = data.parameters.as_deref();

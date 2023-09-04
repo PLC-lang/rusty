@@ -53,7 +53,7 @@ impl FunctionBlockDiagram {
                 let (rhs, remove_id) = ast_association
                     .get(&ref_id)
                     .map(|stmt| {
-                        if matches!(stmt.get_stmt(), AstStatementKind::CallStatement ( .. )) {
+                        if matches!(stmt.get_stmt(), AstStatementKind::CallStatement(..)) {
                             (stmt.clone(), Some(ref_id))
                         } else {
                             self.transform_node(ref_id, session, ast_association)

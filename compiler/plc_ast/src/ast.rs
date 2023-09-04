@@ -736,7 +736,7 @@ impl AstStatement {
             vec![self]
         }
     }
-   
+
     pub fn get_location(&self) -> SourceLocation {
         self.location.clone()
     }
@@ -1067,8 +1067,8 @@ impl AstFactory {
     }
 
     pub fn create_case_condition(result: AstStatement, location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::CaseCondition (Box::new(result)), id, location }
-     }
+        AstStatement { stmt: AstStatementKind::CaseCondition(Box::new(result)), id, location }
+    }
 
     pub fn create_vla_range_statement(location: SourceLocation, id: AstId) -> AstStatement {
         AstStatement { stmt: AstStatementKind::VlaRangeStatement, id, location }
@@ -1296,7 +1296,11 @@ impl AstFactory {
         }
     }
 
-    pub fn create_address_of_reference(base: AstStatement, id: AstId, location: SourceLocation) -> AstStatement {
+    pub fn create_address_of_reference(
+        base: AstStatement,
+        id: AstId,
+        location: SourceLocation,
+    ) -> AstStatement {
         AstStatement {
             stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Address,
@@ -1377,7 +1381,7 @@ impl AstFactory {
         AstStatement {
             stmt: AstStatementKind::CallStatement(CallStatement {
                 operator: Box::new(operator),
-                parameters: parameters.map(|it| Box::new(it)),
+                parameters: parameters.map(Box::new),
             }),
             location,
             id,
@@ -1429,11 +1433,7 @@ impl AstFactory {
     pub fn create_range_statement(start: AstStatement, end: AstStatement, id: AstId) -> AstStatement {
         let location = start.location.span(&end.location);
         let data = RangeStatement { start: Box::new(start), end: Box::new(end) };
-        AstStatement {
-            stmt: AstStatementKind::RangeStatement(data),
-            id,
-            location,
-        }
+        AstStatement { stmt: AstStatementKind::RangeStatement(data), id, location }
     }
 
     pub fn create_call_to_with_ids(

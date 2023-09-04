@@ -19,8 +19,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, AstStatementKind, Operator,
-        ReferenceAccess, ReferenceExpr, 
+        flatten_expression_list, AstFactory, AstStatement, AstStatementKind, Operator, ReferenceAccess,
+        ReferenceExpr,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
 };

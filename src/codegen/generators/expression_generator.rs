@@ -27,7 +27,7 @@ use inkwell::{
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, AstStatementKind, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr, 
+        ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
 };
@@ -2322,9 +2322,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get_flat_reference_name()
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
                 .or_else(|| Some(self.temp_variable_prefix.clone())),
-            AstStatementKind::Identifier ( name, .. ) => {
-                Some(format!("{}{}", name, self.temp_variable_suffix))
-            }
+            AstStatementKind::Identifier(name, ..) => Some(format!("{}{}", name, self.temp_variable_suffix)),
             _ => None,
         }
     }

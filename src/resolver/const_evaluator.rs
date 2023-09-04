@@ -239,15 +239,15 @@ fn cast_if_necessary(
         let (id, location) = (statement.get_id(), statement.get_location());
         match literal {
             AstLiteral::Integer(value) if dti.is_float() => {
-                return AstStatement::new_real(value.to_string(), id, location.to_owned())
+                return AstStatement::new_real(value.to_string(), id, location)
             }
 
             AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
-                return AstStatement::new_string(value, false, id, location.to_owned())
+                return AstStatement::new_string(value, false, id, location)
             }
 
             AstLiteral::String(StringValue { value, is_wide: false }) if dti.is_string_utf16() => {
-                return AstStatement::new_string(value, true, id, location.to_owned())
+                return AstStatement::new_string(value, true, id, location)
             }
 
             _ => (),

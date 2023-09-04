@@ -909,7 +909,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
     debug_assert_eq!(EMPTY, unresolvable);
 
     // AND the globals should have gotten their values
-    debug_assert_eq!(find_constant_value(&index, "tau"), Some(create_real_literal("6.283".parse().unwrap()) ));
+    debug_assert_eq!(find_constant_value(&index, "tau"), Some(create_real_literal("6.283".parse().unwrap())));
 
     //AND the type is correctly associated
     let i = index.find_global_variable("tau").unwrap().initial_value.unwrap();

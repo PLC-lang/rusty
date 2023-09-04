@@ -1,20 +1,16 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::panic;
-use std::{collections::HashSet, ops::Range};
+use std::collections::HashSet;
 
-use crate::{parser::tests::empty_stmt, test_utils::tests::parse};
+use crate::test_utils::tests::parse;
 use insta::assert_debug_snapshot;
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, Assignment, AstFactory, AstStatement, AstStatementKind,
-        BinaryExpression, CallStatement, DataTypeDeclaration, Implementation, LinkageType, Operator, Pou,
-        PouType, ReferenceAccess, ReferenceExpr, UnaryExpression, Variable,
-        VariableBlock, VariableBlockType,
+        Assignment, AstStatement, AstStatementKind, BinaryExpression, CallStatement, LinkageType,
+        ReferenceAccess, ReferenceExpr, UnaryExpression,
     },
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
-    literals::AstLiteral,
 };
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use pretty_assertions::*;
 
 #[test]
@@ -399,7 +395,8 @@ fn ids_are_assigned_to_while_statements() {
         AstStatement {
             stmt:
                 AstStatementKind::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
-                    condition, body,
+                    condition,
+                    body,
                     ..
                 })),
             id,
@@ -427,14 +424,15 @@ fn ids_are_assigned_to_repeat_statements() {
     let implementation = &parse_result.implementations[0];
     let mut ids = HashSet::new();
 
-        match &implementation.statements[0] {
+    match &implementation.statements[0] {
         AstStatement {
             stmt:
                 AstStatementKind::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
-                    condition, body,
+                    condition,
+                    body,
                     ..
                 })),
-            id,
+            id: _,
             ..
         } => {
             assert!(ids.insert(body[0].get_id()));
@@ -467,10 +465,12 @@ fn ids_are_assigned_to_case_statements() {
         AstStatement {
             stmt:
                 AstStatementKind::ControlStatement(AstControlStatement::Case(CaseStatement {
-                    case_blocks, else_block, selector,
+                    case_blocks,
+                    else_block,
+                    selector,
                     ..
                 })),
-            id,
+            id: _,
             ..
         } => {
             //1st case block
@@ -479,7 +479,9 @@ fn ids_are_assigned_to_case_statements() {
             assert!(ids.insert(case_blocks[0].body[0].get_id()));
 
             //2nd case block
-            if let AstStatement{ stmt: AstStatementKind::ExpressionList ( expressions), id, .. } = case_blocks[1].condition.as_ref() {
+            if let AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, .. } =
+                case_blocks[1].condition.as_ref()
+            {
                 assert!(ids.insert(expressions[0].get_id()));
                 assert!(ids.insert(expressions[1].get_id()));
                 assert!(ids.insert(*id));
@@ -584,11 +586,6 @@ fn id_implementation_for_all_statements() {
     //     7
     // );
     // assert_eq!(AstFactory::create_while_statement(empty_stmt(), vec![], (1..5).into(), 7).get_id(), 7);
-}
-
-fn at(location: Range<usize>) -> AstStatement {
-    let slf = SourceLocationFactory::internal("");
-    AstFactory::create_empty_statement( slf.create_range(location), 7)
 }
 
 #[test]

@@ -310,12 +310,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt.stmt, AstStatementKind::Literal ( AstLiteral::Array { .. })),
+                |stmt| matches!(stmt.stmt, AstStatementKind::Literal(AstLiteral::Array { .. })),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt.stmt, AstStatementKind::Literal ( AstLiteral::String { .. })),
+                |stmt| matches!(stmt.stmt, AstStatementKind::Literal(AstLiteral::String { .. })),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {

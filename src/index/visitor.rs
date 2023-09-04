@@ -515,7 +515,7 @@ fn visit_variable_length_array(
 ) {
     let ndims = match bounds.get_stmt() {
         AstStatementKind::VlaRangeStatement => 1,
-        AstStatementKind::ExpressionList ( expressions) => expressions.len(),
+        AstStatementKind::ExpressionList(expressions) => expressions.len(),
         _ => unreachable!("not a bounds statement"),
     };
 
@@ -577,25 +577,29 @@ fn visit_variable_length_array(
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::ArrayType {
                         name: Some(member_dimensions_name),
-                        bounds: AstStatement::new( AstStatementKind::ExpressionList (
-                            (0..ndims)
-                                .map(|_| {
-                                    AstFactory::create_range_statement(
-                                        AstStatement::new_literal(
-                                            AstLiteral::new_integer(0),
+                        bounds: AstStatement::new(
+                            AstStatementKind::ExpressionList(
+                                (0..ndims)
+                                    .map(|_| {
+                                        AstFactory::create_range_statement(
+                                            AstStatement::new_literal(
+                                                AstLiteral::new_integer(0),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            AstStatement::new_literal(
+                                                AstLiteral::new_integer(1),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
                                             0,
-                                            SourceLocation::undefined(),
-                                        ),
-                                        AstStatement::new_literal(
-                                            AstLiteral::new_integer(1),
-                                            0,
-                                            SourceLocation::undefined(),
-                                        ),
-                                        0,
-                                    )
-                                })
-                                .collect::<_>()),
-                            0, SourceLocation::undefined()),
+                                        )
+                                    })
+                                    .collect::<_>(),
+                            ),
+                            0,
+                            SourceLocation::undefined(),
+                        ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
                             location: SourceLocation::undefined(),
@@ -659,7 +663,7 @@ fn visit_array(
         .get_as_list()
         .iter()
         .map(|it| match it.get_stmt() {
-            AstStatementKind::RangeStatement ( RangeStatement { start, end }) => {
+            AstStatementKind::RangeStatement(RangeStatement { start, end }) => {
                 let constants = index.get_mut_const_expressions();
                 Ok(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(

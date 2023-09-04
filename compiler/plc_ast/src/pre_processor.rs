@@ -130,8 +130,10 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     // if the enum is empty, we dont change anything
                     if !initialized_enum_elements.is_empty() {
                         // we can safely unwrap because we checked the vec
-                        let start_loc = initialized_enum_elements.iter().next().expect("non empty vec").get_location();
-                        let end_loc = initialized_enum_elements.iter().last().expect("non empty vec").get_location();
+                        let start_loc =
+                            initialized_enum_elements.first().expect("non empty vec").get_location();
+                        let end_loc =
+                            initialized_enum_elements.iter().last().expect("non empty vec").get_location();
                         //swap the expression list with our new Assignments
                         let expression = AstFactory::create_expression_list(
                             initialized_enum_elements,

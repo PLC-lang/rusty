@@ -137,12 +137,8 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let right = parse_unary_expression(lexer);
         let span = left.get_location().span(&right.get_location());
-        left = AstFactory::create_call_to_with_ids(
-            "EXPT",
-            vec![left, right],
-            &span,
-            lexer.id_provider.clone()
-        );
+        left =
+            AstFactory::create_call_to_with_ids("EXPT", vec![left, right], &span, lexer.id_provider.clone());
     }
     left
 }
@@ -168,16 +164,16 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         let location = start_location.span(&expression_location);
 
         match (&operator, &expression.get_stmt()) {
-            (Operator::Minus, AstStatementKind::Literal (AstLiteral::Integer(value))) => {
+            (Operator::Minus, AstStatementKind::Literal(AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatementKind::Literal (AstLiteral::Integer(value))) => {
+            (Operator::Plus, AstStatementKind::Literal(AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            (Operator::Plus, AstStatementKind::Identifier ( name)) => {
+            (Operator::Plus, AstStatementKind::Identifier(name)) => {
                 AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
@@ -346,12 +342,7 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Di
         let start = reference.get_location();
         // Call Statement
         let call_statement = if lexer.try_consume(&KeywordParensClose) {
-            AstFactory::create_call_statement(
-                reference,
-                None,
-                lexer.next_id(),
-                start.span(&lexer.location())
-            )
+            AstFactory::create_call_statement(reference, None, lexer.next_id(), start.span(&lexer.location()))
         } else {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
                 AstFactory::create_call_statement(

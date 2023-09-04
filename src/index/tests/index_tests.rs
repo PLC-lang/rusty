@@ -1,8 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    pre_process, AstFactory, AstStatement, DataType, DataTypeDeclaration, GenericBinding, LinkageType,
-    Operator, RangeStatement, TypeNature, UserTypeDeclaration, Variable,
+    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};

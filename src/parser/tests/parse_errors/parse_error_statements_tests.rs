@@ -2,8 +2,8 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -60,7 +60,11 @@ fn missing_comma_in_call_parameters() {
             "{:#?}",
             vec![AstFactory::create_call_statement(
                 ref_to("buz"),
-                Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], SourceLocation::undefined(), 0)),
+                Some(AstFactory::create_expression_list(
+                    vec![ref_to("a"), ref_to("b")],
+                    SourceLocation::undefined(),
+                    0
+                )),
                 0,
                 SourceLocation::undefined()
             )]
@@ -92,7 +96,11 @@ fn illegal_semicolon_in_call_parameters() {
             vec![
                 AstFactory::create_call_statement(
                     ref_to("buz"),
-                    Some(AstFactory::create_expression_list(vec![ref_to("a"), ref_to("b")], SourceLocation::undefined(), 0)),
+                    Some(AstFactory::create_expression_list(
+                        vec![ref_to("a"), ref_to("b")],
+                        SourceLocation::undefined(),
+                        0
+                    )),
                     0,
                     SourceLocation::undefined()
                 ),

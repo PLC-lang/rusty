@@ -8,8 +8,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, TypeNature, AstStatementKind,
+        self, flatten_expression_list, pre_process, AstStatement, AstStatementKind, CompilationUnit,
+        GenericBinding, LinkageType, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -437,7 +437,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 
     let accessor = match params[1].get_stmt() {
         // e.g. LOWER_BOUND(arr, 1)
-        AstStatementKind::Literal (kind) => {
+        AstStatementKind::Literal(kind) => {
             let AstLiteral::Integer(value) = kind else {
                 let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
                     unreachable!("type cannot be VOID")
@@ -452,7 +452,7 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatementKind::CastStatement (data) => {
+        AstStatementKind::CastStatement(data) => {
             let ExpressionValue::RValue(value) =  generator.generate_expression_value(&data.target)? else {
                 unreachable!()
             };

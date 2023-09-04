@@ -10,7 +10,7 @@
 //! introduced to make the validation code as generic as possible.
 
 use plc_ast::{
-    ast::{AstStatementKind, Variable, AstStatement},
+    ast::{AstStatement, AstStatementKind, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -59,10 +59,9 @@ pub(super) fn validate_array_assignment<T>(
 fn statement_to_array_length(statement: &AstStatement) -> usize {
     match statement.get_stmt() {
         AstStatementKind::ExpressionList { .. } => 1,
-        AstStatementKind::MultipliedStatement ( data) => data.multiplier as usize,
-        AstStatementKind::Literal (AstLiteral::Array(arr)) => match arr.elements() {
-            Some(
-                AstStatement {stmt: AstStatementKind::ExpressionList ( expressions), ..}) => {
+        AstStatementKind::MultipliedStatement(data) => data.multiplier as usize,
+        AstStatementKind::Literal(AstLiteral::Array(arr)) => match arr.elements() {
+            Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), .. }) => {
                 expressions.iter().map(statement_to_array_length).sum::<usize>()
             }
 
@@ -84,7 +83,9 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
 impl<'a> Wrapper<'a> {
     fn get_rhs(&self) -> Option<&'a AstStatement> {
         match self {
-            Wrapper::Statement(AstStatement { stmt: AstStatementKind::Assignment ( data ), ..}) => Some(&data.right),
+            Wrapper::Statement(AstStatement { stmt: AstStatementKind::Assignment(data), .. }) => {
+                Some(&data.right)
+            }
             Wrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
