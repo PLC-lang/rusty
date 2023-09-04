@@ -228,7 +228,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
             AstStatementKind::CallStatement(data) => {
-                self.generate_call_statement(&data.operator, &data.parameters)
+                self.generate_call_statement(&data.operator, data.parameters.as_deref())
             }
             AstStatementKind::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
@@ -402,7 +402,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_call_statement(
         &self,
         operator: &AstStatement,
-        parameters: &Option<AstStatement>,
+        parameters: Option<&AstStatement>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
@@ -423,7 +423,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_implementation(self.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
-        let parameters_list = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
+        let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
         let implementation_name = implementation.get_call_name();
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
@@ -1181,7 +1181,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
                 DataTypeInformation::Pointer { auto_deref: true, .. }
             );
-            if right.is_empty_statement() || is_auto_deref {
+            if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment_statement: right,
                     function_name,

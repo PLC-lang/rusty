@@ -73,7 +73,7 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
         // Any literal other than an array can be counted as 1
         AstStatementKind::Literal { .. } => 1,
 
-        any => {
+        _any => {
             // XXX: Not sure what else could be in here
             log::warn!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
             0

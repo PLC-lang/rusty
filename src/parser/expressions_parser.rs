@@ -137,12 +137,11 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let right = parse_unary_expression(lexer);
         let span = left.get_location().span(&right.get_location());
-        left = AstFactory::create_call_to(
-            "EXPT".to_string(),
+        left = AstFactory::create_call_to_with_ids(
+            "EXPT",
             vec![left, right],
-            lexer.next_id(),
-            lexer.next_id(),
             &span,
+            lexer.id_provider.clone()
         );
     }
     left
@@ -340,19 +339,18 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 }
 
 pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let start = lexer.range().start;
     let reference = parse_qualified_reference(lexer)?;
 
     // is this a callstatement?
     if lexer.try_consume(&KeywordParensOpen) {
-        let start_location = reference.get_location();
+        let start = reference.get_location();
         // Call Statement
         let call_statement = if lexer.try_consume(&KeywordParensClose) {
             AstFactory::create_call_statement(
                 reference,
                 None,
                 lexer.next_id(),
-                lexer.source_range_factory.create_range(start..lexer.range().end),
+                start.span(&lexer.location())
             )
         } else {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
@@ -360,7 +358,7 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Di
                     reference,
                     Some(parse_expression_list(lexer)),
                     lexer.next_id(),
-                    lexer.source_range_factory.create_range(start..lexer.range().end),
+                    start.span(&lexer.location()),
                 )
             })
         };

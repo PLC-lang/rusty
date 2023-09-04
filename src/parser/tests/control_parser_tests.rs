@@ -568,7 +568,7 @@ fn call_stmnt_location_test() {
     if let AstStatementKind::CallStatement ( data) = &unit.statements[0].get_stmt() {
         assert_eq!(source[data.operator.get_location().to_range().unwrap()].to_string(), "foo");
 
-        let parameters_statement = data.parameters.as_ref().as_ref();
+        let parameters_statement = data.parameters.as_deref();
         let parameters_location = parameters_statement.map(|it| it.get_location()).unwrap();
         assert_eq!(source[parameters_location.to_range().unwrap()].to_string(), "a:=3, b:=4");
     }

@@ -140,7 +140,7 @@ fn ast_generates_locations() {
         };
     assert_debug_snapshot!(location);
     assert_debug_snapshot!(operator.get_location());
-    let parameters = parameters.as_ref().as_ref().unwrap();
+    let parameters = parameters.as_deref().unwrap();
     let parameters = flatten_expression_list(parameters);
     for param in parameters {
         assert_debug_snapshot!(param.get_location());

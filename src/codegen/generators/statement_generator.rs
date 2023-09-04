@@ -132,7 +132,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
             }
-            AstStatementKind::ExitStatement(location, ..) => {
+            AstStatementKind::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block);
@@ -144,7 +144,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     ));
                 }
             }
-            AstStatementKind::ContinueStatement(location, ..) => {
+            AstStatementKind::ContinueStatement(_) => {
                 if let Some(cont_block) = &self.current_loop_continue {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();

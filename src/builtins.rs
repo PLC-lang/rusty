@@ -355,7 +355,7 @@ fn annotate_variable_length_array_bound_function(
 fn validate_variable_length_array_bound_function(
     validator: &mut Validator,
     operator: &AstStatement,
-    parameters: &Option<AstStatement>,
+    parameters: Option<&AstStatement>,
     annotations: &dyn AnnotationMap,
     index: &Index,
 ) {
@@ -505,7 +505,7 @@ type CodegenFunction = for<'ink, 'b> fn(
     SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
 type ValidationFunction =
-    fn(&mut Validator, &AstStatement, &Option<AstStatement>, &dyn AnnotationMap, &Index);
+    fn(&mut Validator, &AstStatement, Option<&AstStatement>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
     decl: &'static str,

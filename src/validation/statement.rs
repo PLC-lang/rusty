@@ -98,7 +98,7 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
         }
         AstStatementKind::CallStatement ( data ) => {
-            validate_call(validator, &data.operator, &data.parameters, &context.set_is_call());
+            validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
         }
         AstStatementKind::ControlStatement ( kind) => validate_control_statement(validator, kind, context),
         AstStatementKind::CaseCondition ( condition) => {
@@ -202,7 +202,7 @@ fn validate_address_of_expression<T: AnnotationMap>(
     //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(
     if !matches!(a, Some(StatementAnnotation::Variable { .. }))
-        && target.is_array_access()
+        && !target.is_array_access()
     {
         validator.push_diagnostic(Diagnostic::invalid_operation("Invalid address-of operation", location));
     }
@@ -875,7 +875,7 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
 fn validate_call<T: AnnotationMap>(
     validator: &mut Validator,
     operator: &AstStatement,
-    parameters: &Option<AstStatement>,
+    parameters: Option<&AstStatement>,
     context: &ValidationContext<T>,
 ) {
     // visit called pou
@@ -888,7 +888,7 @@ fn validate_call<T: AnnotationMap>(
         }
 
         let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        let passed_parameters = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
+        let passed_parameters = parameters.map(flatten_expression_list).unwrap_or_default();
 
         let mut are_implicit_parameters = true;
         let mut variable_location_in_parent = vec![];

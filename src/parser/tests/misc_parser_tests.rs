@@ -129,7 +129,7 @@ fn ids_are_assigned_to_callstatements() {
     {
         assert!(ids.insert(operator.get_id()));
         if let Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, .. }) =
-            &**parameters
+            parameters.as_deref()
         {
             assert!(ids.insert(expressions[0].get_id()));
             assert!(ids.insert(expressions[1].get_id()));
@@ -145,7 +145,7 @@ fn ids_are_assigned_to_callstatements() {
     {
         assert!(ids.insert(operator.get_id()));
         if let Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, .. }) =
-            &**parameters
+            parameters.as_deref()
         {
             if let AstStatement {
                 stmt: AstStatementKind::Assignment(Assignment { left, right }), id, ..
@@ -176,7 +176,7 @@ fn ids_are_assigned_to_callstatements() {
         panic!("unexpected statement");
     }
 
-    for s in implementation.statements {
+    for s in &implementation.statements {
         assert!(ids.insert(s.get_id()));
     }
 }
@@ -408,7 +408,6 @@ fn ids_are_assigned_to_while_statements() {
             assert!(ids.insert(condition.get_id()));
             assert!(ids.insert(body[0].get_id()));
             assert!(ids.insert(body[1].get_id()));
-            assert!(ids.insert(implementation.statements[0].get_id()));
             assert!(ids.insert(*id));
         }
         _ => panic!("invalid statement"),

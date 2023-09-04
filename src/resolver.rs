@@ -1514,7 +1514,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_call_statement(&mut self, statement: &AstStatement, ctx: &VisitorContext) {
         let (operator, parameters_stmt) = if let AstStatementKind::CallStatement ( data, .. ) = statement.get_stmt() {
-            (data.operator.as_ref(), data.parameters.as_ref().as_ref())
+            (data.operator.as_ref(), data.parameters.as_deref())
         } else {
             unreachable!("Always a call statement");
         };

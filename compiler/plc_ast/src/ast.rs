@@ -1377,7 +1377,7 @@ impl AstFactory {
         AstStatement {
             stmt: AstStatementKind::CallStatement(CallStatement {
                 operator: Box::new(operator),
-                parameters: Box::new(parameters),
+                parameters: parameters.map(|it| Box::new(it)),
             }),
             location,
             id,
@@ -1399,7 +1399,7 @@ impl AstFactory {
                     None,
                     id,
                 )),
-                parameters: Box::new(Some(AstStatement::new(
+                parameters: Some(Box::new(AstStatement::new(
                     AstStatementKind::ExpressionList(parameters),
                     parameter_list_id,
                     SourceLocation::undefined(), //TODO: get real location
@@ -1449,7 +1449,7 @@ impl AstFactory {
                     None,
                     id_provider.next_id(),
                 )),
-                parameters: Box::new(Some(AstFactory::create_expression_list(
+                parameters: Some(Box::new(AstFactory::create_expression_list(
                     parameters,
                     SourceLocation::undefined(),
                     id_provider.next_id(),
@@ -1539,5 +1539,5 @@ pub struct Assignment {
 #[derive(Clone, PartialEq)]
 pub struct CallStatement {
     pub operator: Box<AstStatement>,
-    pub parameters: Box<Option<AstStatement>>,
+    pub parameters: Option<Box<AstStatement>>,
 }
