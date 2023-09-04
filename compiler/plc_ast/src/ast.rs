@@ -616,6 +616,8 @@ pub enum AstStatement {
     ExitStatement(()),
     ContinueStatement(()),
     ReturnStatement(ReturnStatement),
+    JumpStatement(JumpStatement),
+    LabelStatement(LabelStatement),
 }
 
 impl Debug for AstNode {
@@ -725,6 +727,12 @@ impl Debug for AstNode {
             }
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
                 f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
+            }
+            AstStatement::JumpStatement(JumpStatement { condition, target, .. }) => {
+                f.debug_struct("JumpStatement").field("condition", condition).field("target", target).finish()
+            }
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => {
+                f.debug_struct("LabelStatement").field("name", name).finish()
             }
         }
     }
@@ -1218,7 +1226,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -> AstNode {
         AstNode {
             stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),
@@ -1531,4 +1539,23 @@ pub struct Assignment {
 pub struct CallStatement {
     pub operator: Box<AstNode>,
     pub parameters: Option<Box<AstNode>>,
+}
+
+/// Represents a conditional jump from current location to a specified label
+#[derive(Clone, Debug, PartialEq)]
+pub struct JumpStatement {
+    /// The condition based on which the current statement will perform a jump
+    condition: Box<AstNode>,
+    /// The target location (Label) the statement will jump to
+    target: Box<AstNode>,
+    location: SourceLocation,
+    id: AstId,
+}
+
+/// Represents a location in code that could be jumbed to
+#[derive(Clone, Debug, PartialEq)]
+pub struct LabelStatement {
+    name: String,
+    location: SourceLocation,
+    id: AstId,
 }
