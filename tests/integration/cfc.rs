@@ -151,7 +151,8 @@ fn conditional_return_block_evaluating_false() {
     assert_eq!(res, 10);
 }
 
-// TODO: These are temporare until we polished `test_utils` to also support CFC
+// TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
+// More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
 mod ir {
     use std::io::Read;

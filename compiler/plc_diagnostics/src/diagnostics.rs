@@ -718,7 +718,7 @@ impl Diagnostic {
         }
     }
 
-    // TODO: Remove SourceRange::undefined
+    // TODO(volsa): Remove SourceRange::undefined
     pub fn unexpected_nodes(ids: Vec<usize>) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Unexpected relationship between nodes".to_string(),

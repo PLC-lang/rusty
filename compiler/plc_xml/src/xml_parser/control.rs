@@ -28,12 +28,12 @@ fn transform_return(
     index: &NodeIndex,
 ) -> Result<AstStatement, Diagnostic> {
     let Some(ref_local_id) = control.ref_local_id else {
-        // TODO: Remove SourceRange::undefined
+        // TODO(volsa): Remove SourceRange::undefined
         return Err(Diagnostic::empty_control_statement(SourceRange::undefined()))
     };
 
     let Some(node) = index.get(&ref_local_id) else {
-        // TODO: Remove SourceRange::undefined
+        // TODO(volsa): Remove SourceRange::undefined
         return Err(Diagnostic::undefined_node(ref_local_id, SourceRange::undefined()))
     };
 
