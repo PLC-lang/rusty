@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     data_type_generator::get_default_for,
-    expression_generator::{to_i1, ExpressionCodeGenerator},
+    expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
     statement_generator::{FunctionContext, StatementCodeGenerator},
     ADDRESS_SPACE_GENERIC,
@@ -375,16 +375,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &self.llvm,
                 self.index,
                 self.annotations,
-                self,
                 &local_index,
                 &function_context,
                 debug,
             );
-            statement_gen.generate_body(&implementation.statements)?
+            statement_gen.generate_body(&implementation.statements)?;
+            statement_gen.generate_return_statement()?;
         }
-
-        // generate return statement
-        self.generate_return_statement(&function_context, &local_index)?;
 
         Ok(())
     }
@@ -715,83 +712,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             self.llvm.builder.build_store(variable_to_initialize, value);
         }
-        Ok(())
-    }
-
-    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
-    ///
-    /// a function returns the value of the local variable that has the function's name
-    pub fn generate_return_statement<'a>(
-        &'a self,
-        function_context: &'a FunctionContext<'ink, 'a>,
-        local_index: &'a LlvmTypedIndex<'ink>,
-    ) -> Result<(), Diagnostic> {
-        if let Some(ret_v) = self.index.find_return_variable(function_context.linking_context.get_type_name())
-        {
-            if self
-                .index
-                .find_effective_type_by_name(ret_v.get_type_name())
-                .map(|it| it.is_aggregate_type())
-                .unwrap_or(false)
-            {
-                //generate return void
-                self.llvm.builder.build_return(None);
-            } else {
-                // renerate return statement
-                let call_name = function_context.linking_context.get_call_name();
-                let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
-                let ret_name = ret_v.get_qualified_name();
-                let value_ptr =
-                    local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
-                            SourceRange::undefined(),
-                        )
-                    })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-                self.llvm.builder.build_return(Some(&loaded_value));
-            }
-        } else {
-            self.llvm.builder.build_return(None);
-        }
-        Ok(())
-    }
-
-    /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
-    /// does nothing otherwise.
-    pub fn generate_conditional_return<'a>(
-        &'a self,
-        function_context: &'a FunctionContext<'ink, 'a>,
-        local_index: &'a LlvmTypedIndex<'ink>,
-        condition: &AstStatement,
-    ) -> Result<(), Diagnostic> {
-        let expression_generator = ExpressionCodeGenerator::new(
-            &self.llvm,
-            self.index,
-            self.annotations,
-            local_index,
-            function_context,
-            // TODO: This is definetely wrong, we have no Debug information here however
-            // Do we just propagate the debug information from the caller here?
-            &DebugBuilderEnum::None,
-        );
-
-        let condition = expression_generator.generate_expression(condition)?;
-
-        let then_block = self.llvm.context.append_basic_block(function_context.function, "then_block");
-        let else_block = self.llvm.context.append_basic_block(function_context.function, "else_block");
-
-        self.llvm.builder.build_conditional_branch(
-            to_i1(condition.into_int_value(), &self.llvm.builder),
-            then_block,
-            else_block,
-        );
-
-        self.llvm.builder.position_at_end(then_block);
-        self.generate_return_statement(function_context, local_index)?;
-
-        self.llvm.builder.position_at_end(else_block);
-
         Ok(())
     }
 

@@ -2,7 +2,6 @@
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
-    pou_generator::PouGenerator,
 };
 use crate::{
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
@@ -40,7 +39,6 @@ pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
-    pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a, 'b>,
 
@@ -61,7 +59,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm: &'b Llvm<'a>,
         index: &'b Index,
         annotations: &'b AstAnnotations,
-        pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
         debug: &'b DebugBuilderEnum<'a>,
@@ -70,7 +67,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             llvm,
             index,
             annotations,
-            pou_generator,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -130,15 +126,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::ReturnStatement { condition, .. } => match condition {
                 Some(condition) => {
                     self.register_debug_location(statement);
-                    self.pou_generator.generate_conditional_return(
-                        self.function_context,
-                        self.llvm_index,
-                        condition,
-                    )?;
+                    self.generate_conditional_return(condition)?;
                 }
                 None => {
                     self.register_debug_location(statement);
-                    self.pou_generator.generate_return_statement(self.function_context, self.llvm_index)?;
+                    self.generate_return_statement()?;
                     self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 }
             },
@@ -741,6 +733,65 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
         //Continue
         builder.position_at_end(continue_block);
+        Ok(())
+    }
+
+    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
+    ///
+    /// a function returns the value of the local variable that has the function's name
+    pub fn generate_return_statement(&self) -> Result<(), Diagnostic> {
+        if let Some(ret_v) =
+            self.index.find_return_variable(self.function_context.linking_context.get_type_name())
+        {
+            if self
+                .index
+                .find_effective_type_by_name(ret_v.get_type_name())
+                .map(|it| it.is_aggregate_type())
+                .unwrap_or(false)
+            {
+                //generate return void
+                self.llvm.builder.build_return(None);
+            } else {
+                // renerate return statement
+                let call_name = self.function_context.linking_context.get_call_name();
+                let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
+                let ret_name = ret_v.get_qualified_name();
+                let value_ptr =
+                    self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            &format!("Cannot generate return variable for {call_name:}"),
+                            SourceRange::undefined(),
+                        )
+                    })?;
+                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
+                self.llvm.builder.build_return(Some(&loaded_value));
+            }
+        } else {
+            self.llvm.builder.build_return(None);
+        }
+        Ok(())
+    }
+
+    /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
+    /// does nothing otherwise.
+    pub fn generate_conditional_return(&'a self, condition: &AstStatement) -> Result<(), Diagnostic> {
+        let expression_generator = self.create_expr_generator();
+        let condition = expression_generator.generate_expression(condition)?;
+
+        let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
+        let else_block = self.llvm.context.append_basic_block(self.function_context.function, "else_block");
+
+        self.llvm.builder.build_conditional_branch(
+            to_i1(condition.into_int_value(), &self.llvm.builder),
+            then_block,
+            else_block,
+        );
+
+        self.llvm.builder.position_at_end(then_block);
+        self.generate_return_statement()?;
+
+        self.llvm.builder.position_at_end(else_block);
+
         Ok(())
     }
 
