@@ -161,26 +161,10 @@ mod ir {
 
     use crate::get_test_file;
 
-    // TODO: Currently not working because of temp-file
+    const NEWLINE: &str = if cfg!(windows) { "\r\n" } else { "\n" };
+
     #[test]
     fn conditional_return() {
-        let st_file = get_test_file("cfc/conditional_return_evaluating_false.st");
-        let cfc_file = get_test_file("cfc/conditional_return.cfc");
-
-        let output_file = tempfile::NamedTempFile::new().unwrap();
-        let output_file_path = output_file.path().to_string_lossy();
-        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-
-        assert_snapshot!(output_file_content_without_headers.join("\n"));
-    }
-
-    #[test]
-    fn conditional_return_simple() {
         let cfc_file = get_test_file("cfc/conditional_return.cfc");
 
         let output_file = tempfile::NamedTempFile::new().unwrap();
@@ -191,6 +175,47 @@ mod ir {
         let mut output_file_content = String::new();
         output_file_handle.read_to_string(&mut output_file_content).unwrap();
 
-        assert_snapshot!(output_file_content);
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
+        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+    }
+
+    #[test]
+    fn conditional_return_evaluating_true() {
+        let st_file = get_test_file("cfc/conditional_return_evaluating_true.st");
+        let cfc_file = get_test_file("cfc/conditional_return.cfc");
+
+        let output_file = tempfile::NamedTempFile::new().unwrap();
+        let output_file_path = output_file.path().to_string_lossy();
+        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
+
+        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
+        let mut output_file_content = String::new();
+        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
+        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+    }
+
+    #[test]
+    fn conditional_return_evaluating_true_negated() {
+        let st_file = get_test_file("cfc/conditional_return_evaluating_true_negated.st");
+        let cfc_file = get_test_file("cfc/conditional_return_negated.cfc");
+
+        let output_file = tempfile::NamedTempFile::new().unwrap();
+        let output_file_path = output_file.path().to_string_lossy();
+        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
+
+        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
+        let mut output_file_content = String::new();
+        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
+        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
     }
 }
