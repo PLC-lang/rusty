@@ -1,4 +1,4 @@
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use quick_xml::events::Event;
 use std::{cmp::Ordering, collections::HashMap};
 
@@ -109,117 +109,153 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
         }
 
         nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
-        resolve_connection_points(&mut nodes);
+        nodes.resolve_connections();
 
         Ok(FunctionBlockDiagram { nodes })
     }
 }
 
-#[derive(Debug)]
-enum ConnectionReference<'xml> {
-    Id(NodeId),
-    Name(&'xml str),
+enum SourceReference<'a> {
+    Value(NodeId),
+    Connector(&'a str),
 }
 
-/// Checks if given node is pointing to a `Sink` and updates the referenced ID to directly point to the element referenced
-/// by the matching `Source`
-macro_rules! update_connection_ref_id_if_needed {
-    ($node:ident, $source_connections:ident, $nodes:ident) => {
-        if let Some(ref_id) = $node.ref_local_id {
-            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
-                $nodes.get(&ref_id)
-            {
-                $node.ref_local_id = get_inner_connection_ref(name.as_ref(), &$source_connections);
-            }
-        }
-    };
+struct ConnectionUpdateData {
+    id: NodeId,
+    resolved_ref_id: Option<NodeId>,
+    block_parameter_index: Option<usize>,
 }
 
-fn get_inner_connection_ref<'a>(
-    name: &str,
-    source_connections: &HashMap<&'a str, ConnectionReference<'a>>,
-) -> Option<NodeId> {
-    let Some(source) = source_connections.get(name) else {
-        todo!("unconnected source")
-    };
-
-    match source {
-        ConnectionReference::Id(id) => Some(*id),
-        // for direct sink-to-source connections, we need to recurse to find the actual value
-        ConnectionReference::Name(name) => get_inner_connection_ref(name, source_connections),
-    }
+trait SinkSourceResolver<'xml> {
+    fn resolve_connections(&mut self);
+    // fn find_source_connections()
+    fn get_source_references<'b>(&'b self) -> HashMap<&str, SourceReference>;
 }
 
-/// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
-/// if they are connected directly instead.
-///
-/// ```st
-/// // assignments using sink and source
-/// INPUT ━━━━> SOURCE ┅┅┅> SINK ━┳━━> OUT1
-///                               ┣━━> OUT2
-///                               ┗━━> OUT3
-/// // resolve to
-/// INPUT ━┳━━> OUT1
-///        ┣━━> OUT2
-///        ┗━━> OUT3
-/// ```
-fn resolve_connection_points(nodes: &mut NodeIndex) {
-    fn get_source_connection_references<'b>(
-        node: &'b Node,
-        nodes: &'b IndexMap<usize, Node<'_>>,
-    ) -> Option<(&'b str, ConnectionReference<'b>)> {
-        if let Node::Connector(Connector { kind: ConnectorKind::Source, name, ref_local_id, .. }) = node {
-            ref_local_id
-                .map(|ref_id| {
-                    if let Some(Node::Connector(Connector {
-                        kind: ConnectorKind::Sink,
-                        name: name_sink,
-                        ..
-                    })) = nodes.get(&ref_id)
+impl<'xml> SinkSourceResolver<'xml> for IndexMap<NodeId, Node<'xml>> {
+    /// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
+    /// if they are connected directly instead.
+    ///
+    /// ```st
+    /// // assignments using sink and source
+    /// INPUT ━━━━> SOURCE ┅┅┅> SINK ━┳━━> OUT1
+    ///                               ┣━━> OUT2
+    ///                               ┗━━> OUT3
+    /// // resolve to
+    /// INPUT ━┳━━> OUT1
+    ///        ┣━━> OUT2
+    ///        ┗━━> OUT3
+    /// ```
+    fn resolve_connections(&mut self) {
+        let source_connections = &self.get_source_references();
+        let mut ids_to_update = vec![];
+        let mut mark_for_ref_update_if_needed =
+            |id: &NodeId, ref_id: Option<&NodeId>, param_idx: Option<usize>| {
+                ref_id.map(|it| {
+                    if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
+                        self.get(it)
                     {
-                        // source points directly to another sink -> will be resolved via name
-                        Some((name.as_ref(), ConnectionReference::Name(name_sink)))
-                    } else {
-                        // source points to an assignable element -> will be resolved directly via ref ID
-                        Some((name.as_ref(), ConnectionReference::Id(ref_id)))
-                    }
-                })
-                .unwrap_or_else(|| None /* TODO: diagnostic */)
-        } else {
-            None
+                        let mut path: IndexSet<&str> = IndexSet::new();
+                        ids_to_update.push(ConnectionUpdateData {
+                            id: *id,
+                            resolved_ref_id: find_assignable_sink_value(name, source_connections, &mut path),
+                            block_parameter_index: param_idx,
+                        });
+                    };
+                });
+            };
+
+        // collect all relevant information on nodes that reference
+        self.iter().for_each(|(id, node)| match node {
+            Node::Block(block) => block.variables.iter().enumerate().for_each(|(param_idx, var)| {
+                mark_for_ref_update_if_needed(id, var.ref_local_id.as_ref(), Some(param_idx))
+            }),
+            Node::FunctionBlockVariable(fbd_var) => {
+                mark_for_ref_update_if_needed(id, fbd_var.ref_local_id.as_ref(), None)
+            }
+            Node::Control(control) => mark_for_ref_update_if_needed(id, control.ref_local_id.as_ref(), None),
+            Node::Connector(conn) => mark_for_ref_update_if_needed(id, conn.ref_local_id.as_ref(), None),
+        });
+
+        // update sink-connections to point to assignable values of associated source
+        for ConnectionUpdateData { id, resolved_ref_id, block_parameter_index } in ids_to_update {
+            self.entry(id).and_modify(|node| match node {
+                Node::Block(block) => {
+                    block.variables.get_mut(block_parameter_index.unwrap()).unwrap().ref_local_id =
+                        resolved_ref_id;
+                }
+                Node::FunctionBlockVariable(fbd_var) => fbd_var.ref_local_id = resolved_ref_id,
+                Node::Control(ctrl) => ctrl.ref_local_id = resolved_ref_id,
+                _ => (),
+            });
         }
+
+        // XXX: removing all connector nodes after resolving might mess with validation later on - revisit
+        self.retain(|_, node| !matches!(node, Node::Connector(_)));
     }
 
-    let lookup = nodes.clone();
+    fn get_source_references<'b>(&'b self) -> HashMap<&str, SourceReference> {
+        self.iter()
+            .filter_map(|(_, node)| {
+                if let Node::Connector(Connector {
+                    kind: ConnectorKind::Source, name, ref_local_id, ..
+                }) = node
+                {
+                    ref_local_id
+                        .map(|ref_id| {
+                            if let Some(Node::Connector(Connector {
+                                kind: ConnectorKind::Sink,
+                                name: name_sink,
+                                ..
+                            })) = self.get(&ref_id)
+                            {
+                                // source points directly to another sink -> will be resolved via name
+                                Some((name.as_ref(), SourceReference::Connector(name_sink)))
+                            } else {
+                                // source points to an assignable element -> will be resolved directly via ref ID
+                                Some((name.as_ref(), SourceReference::Value(ref_id)))
+                            }
+                        })
+                        .unwrap_or_else(|| None /* TODO: diagnostic */)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
 
-    let source_connections = lookup
-        .iter()
-        .filter_map(|(_, node)| get_source_connection_references(node, &lookup))
-        .collect::<HashMap<_, _>>();
+/// Attempts to resolve the LValue or RValue of a sink connection-point by checking the associated node referenced in the
+/// provided `source_connection` HashMap. Should the associated source point to another sink (i.e. not an assignable value),
+/// this function will be called recursively until a valid value is found.
+/// Additionally, cyclic connections are detected and reported.
+fn find_assignable_sink_value<'a>(
+    connector_name: &str,
+    source_connections: &'a HashMap<&str, SourceReference>,
+    connector_path: &mut IndexSet<&'a str>,
+) -> Option<NodeId> {
+    {
+        let Some(source) = source_connections.get(connector_name) else {
+            todo!("diagnostic: unconnected source")
+        };
 
-    dbg!(&source_connections);
-
-    nodes.into_iter().for_each(|(_, node)| {
-        match node {
-            Node::Block(block) => {
-                for var in &mut block.variables {
-                    update_connection_ref_id_if_needed!(var, source_connections, lookup);
+        match source {
+            SourceReference::Value(id) => Some(*id),
+            // for direct sink-to-source connections, we need to recurse to find the actual value
+            SourceReference::Connector(name) => {
+                if connector_path.insert(name) {
+                    find_assignable_sink_value(name, source_connections, connector_path)
+                } else {
+                    // data-recursion detected -> TODO: diagnostic
+                    for val in connector_path.iter() {
+                        print!("{val} -> ")
+                    }
+                    println!("{name}");
+                    None
                 }
             }
-            Node::FunctionBlockVariable(fbd_var) => {
-                update_connection_ref_id_if_needed!(fbd_var, source_connections, lookup)
-            }
-            Node::Control(control) => {
-                update_connection_ref_id_if_needed!(control, source_connections, lookup)
-            }
-            // XXX: possible data-recursion (source1->sink1->source2->sink2->source1) currently ignored
-            // Possibly add validation against it here in future
-            _ => (),
-        };
-    });
-
-    // XXX: removing all connector nodes after resolving might mess with validation later on - revisit
-    nodes.retain(|_, node| !matches!(node, Node::Connector(_)));
+        }
+    }
 }
 
 #[cfg(test)]
