@@ -58,7 +58,7 @@ Compiling RuSTy on Windows requires three dependencies:
 The first two dependencies are typically installed during the Rust installation itself. More specifically during the
 installation you should have been prompted to install them. If not, you'll be able to install them via Visual Studio at any point.
 The third dependency is based on a custom build which is hosted on [GitHub](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6).
-Download it, extract it and add the `bin/` directory to your [environment variables](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0).
+Download it, extract it and add the `bin/` directory to your [environment variables](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html).
 In theory this should cover everything to be able to compile RuSTy (with some reboots here and there).
 
 ## Installing
