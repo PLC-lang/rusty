@@ -2075,6 +2075,11 @@
 <a href="#2075" id="2075">2075</a>
 <a href="#2076" id="2076">2076</a>
 <a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2971,71 +2976,76 @@
                     .annotate_type_hint(initializer, StatementAnnotation::value(expected_type.get_name()));
                 <span class="self">self</span>.update_expected_types(expected_type, initializer);
 
-                <span class="comment">// handle annotation for array of struct
-                </span><span class="self">self</span>.annotate_array_of_struct(expected_type, initializer, <span class="kw-2">&amp;</span>ctx);
+                <span class="self">self</span>.type_hint_for_array_of_structs(expected_type, initializer, <span class="kw-2">&amp;</span>ctx);
             }
         }
     }
 
-    <span class="comment">// FIXME: can this be done witin the real visiting?
-    </span><span class="kw">fn </span>annotate_array_of_struct(
+    <span class="kw">fn </span>type_hint_for_array_of_structs(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         expected_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-        initializer: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstStatement,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
     ) {
         <span class="kw">match </span>expected_type.get_type_information() {
             DataTypeInformation::Array { inner_type_name, .. } =&gt; {
-                <span class="kw">let </span>inner_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type_name);
+                <span class="kw">let </span>inner_data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type_name);
                 <span class="comment">// TODO this seems wrong
-                </span><span class="kw">let </span>ctx =
-                    ctx.with_qualifier(inner_type.get_name().to_string()).with_lhs(inner_type.get_name());
+                </span><span class="kw">let </span>ctx = ctx
+                    .with_qualifier(inner_data_type.get_name().to_string())
+                    .with_lhs(inner_data_type.get_name());
 
-                <span class="kw">if </span>inner_type.get_type_information().is_struct() {
-                    <span class="kw">let </span>expressions = <span class="kw">match </span>initializer {
-                        <span class="comment">// Arrays initialized with a parenthese, e.g. `... := ((structField := 1), (structField := 2))`
-                        // Note: While these are invalid per-se we still annotate them here to avoid having false-positive &quot;could not resolve reference&quot; errors
-                        </span>AstStatement::ExpressionList { expressions, .. } =&gt; <span class="prelude-val">Some</span>(expressions),
+                <span class="kw">if </span>!inner_data_type.get_type_information().is_struct() {
+                    <span class="kw">return</span>;
+                }
 
-                        <span class="comment">// Arrays initialized with a bracket, e.g. `... := [(structField := 1), (structField := 2)]`
-                        </span>AstStatement::Literal { kind: AstLiteral::Array(arr), .. } =&gt; <span class="kw">match </span>arr.elements() {
-                            <span class="prelude-val">Some</span>(AstStatement::ExpressionList { expressions, .. }) =&gt; <span class="prelude-val">Some</span>(expressions),
-                            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                        },
+                <span class="kw">match </span>statement {
+                    AstStatement::Literal { kind: AstLiteral::Array(array), .. } =&gt; <span class="kw">match </span>array.elements() {
+                        <span class="prelude-val">Some</span>(elements) <span class="kw">if </span>elements.is_expression_list() =&gt; {
+                            <span class="self">self</span>.type_hint_for_array_of_structs(expected_type, elements, <span class="kw-2">&amp;</span>ctx)
+                        }
 
-                        <span class="comment">// ...anything else is uninteresting
-                        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                    };
+                        <span class="kw">_ </span>=&gt; (),
+                    },
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(expressions) = expressions {
-                        <span class="kw">for </span>e <span class="kw">in </span>expressions {
+                    AstStatement::ExpressionList { expressions, .. } =&gt; {
+                        <span class="kw">for </span>expression <span class="kw">in </span>expressions {
                             <span class="comment">// annotate with the arrays inner_type
-                            </span><span class="self">self</span>.annotation_map.annotate_type_hint(
-                                e,
-                                StatementAnnotation::Value {
-                                    resulting_type: inner_type.get_name().to_string(),
-                                },
-                            );
+                            </span><span class="kw">let </span>name = inner_data_type.get_name().to_string();
+                            <span class="kw">let </span>hint = StatementAnnotation::Value { resulting_type: name };
+                            <span class="self">self</span>.annotation_map.annotate_type_hint(expression, hint);
 
-                            <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx, e);
+                            <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx, expression);
+                            <span class="self">self</span>.type_hint_for_array_of_structs(expected_type, expression, <span class="kw-2">&amp;</span>ctx);
                         }
                     }
+
+                    AstStatement::Assignment { left, right, .. } <span class="kw">if </span>left.is_reference() =&gt; {
+                        <span class="kw">let </span>AstStatement::Literal { kind: AstLiteral::Array(array), .. } = right.as_ref() <span class="kw">else </span>{ <span class="kw">return </span>};
+                        <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
+
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
+                            <span class="self">self</span>.type_hint_for_array_of_structs(<span class="kw-2">&amp;</span>datatype, elements, <span class="kw-2">&amp;</span>ctx);
+                        }
+                    }
+
+                    <span class="kw">_ </span>=&gt; (),
                 }
             }
 
-            <span class="comment">// the array of struct might be a member of another struct
+            <span class="comment">// We _should_ only land here when the variable itself isn&#39;t defined as an array (e.g. `foo : STRUCT1`).
+            // The initializer of that variable might have an array of struct defined however, hence check it&#39;s elements.
             </span>DataTypeInformation::Struct { members, .. } =&gt; {
-                <span class="kw">let </span>flattened = ast::flatten_expression_list(initializer);
+                <span class="kw">let </span>flattened = ast::flatten_expression_list(statement);
                 <span class="kw">for </span>(idx, member) <span class="kw">in </span>members.iter().enumerate() {
                     <span class="kw">let </span>data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(member.get_type_name());
                     <span class="kw">if </span>data_type.is_array() {
-                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment { right, .. }) = flattened.get(idx) <span class="kw">else </span>{
-                            <span class="kw">continue</span>;
-                        };
-                        <span class="self">self</span>.annotate_array_of_struct(data_type, right, ctx);
+                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment { right, .. }) = flattened.get(idx) <span class="kw">else </span>{ <span class="kw">continue </span>};
+                        <span class="self">self</span>.type_hint_for_array_of_structs(data_type, right, ctx);
                     }
                 }
             }
+
             <span class="kw">_ </span>=&gt; (),
         }
     }
