@@ -3,7 +3,7 @@ mod common;
 use std::string::FromUtf16Error;
 
 use crate::common::compile_and_run_no_params;
-use common::add_std;
+use common::{add_std, compile_and_run};
 
 // helper function to convert null-terminated utf8 byte array to string slice
 fn str_from_u8_utf8(src: &[u8]) -> Result<&str, std::str::Utf8Error> {
@@ -89,7 +89,8 @@ fn left_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 81] = compile_and_run_no_params(sources);
+    let mut res: [u8; 81] = [0u8; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "hel");
     } else {
@@ -110,7 +111,8 @@ fn left_string_long_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(sources);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -136,7 +138,8 @@ fn left_string_lint() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 81] = compile_and_run_no_params(sources);
+    let mut res: [u8; 81] = [0u8; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "lets see if long int is handled");
     } else {
@@ -161,7 +164,8 @@ fn left_ext_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "extend");
     } else {
@@ -182,7 +186,8 @@ fn right_string_usint() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 81] = compile_and_run_no_params(sources);
+    let mut res: [u8; 81] = [0u8; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "le text");
     } else {
@@ -223,7 +228,8 @@ fn right_ext_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ded");
     } else {
@@ -246,7 +252,8 @@ fn right_string_long_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(sources);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -274,7 +281,8 @@ fn right_ext_string_long_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(sources);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -302,7 +310,8 @@ fn mid_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ample t");
     } else {
@@ -329,7 +338,8 @@ fn mid_string_long_literal() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "this");
     } else {
@@ -356,7 +366,8 @@ fn mid_ext_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ample t");
     } else {
@@ -381,7 +392,8 @@ fn mid_string_long_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(sources);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -410,7 +422,8 @@ fn mid_ext_string_long_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(sources);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -438,7 +451,8 @@ fn insert_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "stuck in the middle with you");
     } else {
@@ -466,7 +480,8 @@ fn insert_ext_string_at_start_and_end() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "123");
     } else {
@@ -491,7 +506,8 @@ fn delete_string_with_escape_sequence() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 20] = compile_and_run_no_params(sources);
+    let mut res: [u8; 20] = [0u8; 20];
+    let _: () = compile_and_run(sources, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
@@ -515,7 +531,8 @@ fn delete_ext_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "𝄞typo");
     } else {
@@ -542,7 +559,8 @@ fn delete_ext_string_with_escape_sequence() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 20] = compile_and_run_no_params(sources);
+    let mut res: [u8; 20] = [0u8; 20];
+    let _: () = compile_and_run(sources, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
@@ -566,7 +584,8 @@ fn replace_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "regret𝄞");
     } else {
@@ -595,7 +614,8 @@ fn replace_ext_string() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u8; 128] = compile_and_run_no_params(sources);
+    let mut res: [u8; 128] = [0u8; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "rest𝄞red");
     } else {
@@ -656,7 +676,8 @@ fn test_concat_string() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(source);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(source, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(result, "Hello, World!");
@@ -680,7 +701,8 @@ fn test_concat_ext_string() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(source);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(source, &mut res);
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(result, "Hello, World!");
     } else {
@@ -702,7 +724,8 @@ fn test_concat_long_strings() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u8; 2048] = compile_and_run_no_params(source);
+    let mut res: [u8; 2048] = [0u8; 2048];
+    let _: () = compile_and_run(source, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(
@@ -724,7 +747,8 @@ fn test_concat_long_string_literals() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u8; 2049] = compile_and_run_no_params(source);
+    let mut res: [u8; 2049] = [0u8; 2049];
+    let _: () = compile_and_run(source, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(
@@ -795,7 +819,8 @@ fn left_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 10] = compile_and_run_no_params(sources);
+    let mut res: [u16; 10] = [0u16; 10];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞m");
     } else {
@@ -818,7 +843,8 @@ fn left_wstring_lint() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "lets see 𝄞f long 𝄞nt is handled");
     } else {
@@ -843,7 +869,8 @@ fn left_ext_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "e𝄞tend");
     } else {
@@ -864,7 +891,8 @@ fn right_wstring_usint() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞e text");
     } else {
@@ -905,7 +933,8 @@ fn right_ext_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 128] = compile_and_run_no_params(sources);
+    let mut res: [u16; 128] = [0u16; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞ed𝄞");
     } else {
@@ -928,7 +957,8 @@ fn right_string_long_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 128] = compile_and_run_no_params(sources);
+    let mut res: [u16; 128] = [0u16; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "ika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhp𝄞𝄞");
     } else {
@@ -952,7 +982,8 @@ fn right_ext_string_long_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 128] = compile_and_run_no_params(sources);
+    let mut res: [u16; 128] = [0u16; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "i𝄞𝄞9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW");
     } else {
@@ -977,7 +1008,8 @@ fn mid_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "ample 𝄞");
     } else {
@@ -1004,7 +1036,8 @@ fn mid_ext_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "muϗ😀 sa");
     } else {
@@ -1029,7 +1062,8 @@ fn mid_string_long_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 128] = compile_and_run_no_params(sources);
+    let mut res: [u16; 128] = [0u16; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "XqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQc");
     } else {
@@ -1054,7 +1088,8 @@ fn mid_ext_string_long_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 128] = compile_and_run_no_params(sources);
+    let mut res: [u16; 128] = [0u16; 128];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "XqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQc");
     } else {
@@ -1079,7 +1114,8 @@ fn insert_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "stuck in the middle with you");
     } else {
@@ -1110,7 +1146,8 @@ fn insert_ext_wstring_at_start_and_end() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "123");
     } else {
@@ -1135,7 +1172,8 @@ fn delete_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "deleted");
     } else {
@@ -1162,7 +1200,8 @@ fn delete_ext_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "typo");
     } else {
@@ -1190,7 +1229,8 @@ fn replace_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "regret");
     } else {
@@ -1219,7 +1259,8 @@ fn replace_ext_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "restored");
     } else {
@@ -1263,7 +1304,8 @@ fn delete_wstring_with_escape_sequence() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let res: [u16; 81] = compile_and_run_no_params(sources);
+    let mut res: [u16; 81] = [0u16; 81];
+    let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "the$e \"𝄞\"");
     } else {
@@ -1286,7 +1328,8 @@ fn test_concat_wstring() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u16; 2048] = compile_and_run_no_params(source);
+    let mut res: [u16; 2048] = [0u16; 2048];
+    let _: () = compile_and_run(source, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "Hello, World!");
     } else {
@@ -1309,7 +1352,8 @@ fn test_concat_ext_wstring() {
     "#;
 
     let source = add_std!(src, "string_functions.st");
-    let res: [u16; 2048] = compile_and_run_no_params(source);
+    let mut res: [u16; 2048] = [0u16; 2048];
+    let _: () = compile_and_run(source, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "Hello, World!");
     } else {
