@@ -93,7 +93,7 @@ impl CodeSpan {
     pub fn get_line(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line,
-            Self::Block { local_id, execution_order, .. } => execution_order.unwrap_or(*local_id),
+            Self::Block { local_id, .. } => *local_id,
             _ => 0,
         }
     }
