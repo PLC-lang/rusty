@@ -1,0 +1,23 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: x
+---
+Variable {
+    name: "x",
+    data_type: DataTypeDefinition {
+        data_type: SubRangeType {
+            name: None,
+            referenced_type: "UINT",
+            bounds: Some(
+                RangeStatement {
+                    start: LiteralInteger {
+                        value: 0,
+                    },
+                    end: LiteralInteger {
+                        value: 1000,
+                    },
+                },
+            ),
+        },
+    },
+}

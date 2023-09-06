@@ -1,13 +1,13 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 33..43 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 89..99 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 145..155 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 201..211 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 257..267 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 257..267 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 313..323 }], err_no: codegen__missing_compare_function }
-SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceRange { range: 313..323 }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 12, offset: 33 }..TextLocation { line: 2, column: 22, offset: 43 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 12, offset: 89 }..TextLocation { line: 3, column: 22, offset: 99 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 12, offset: 145 }..TextLocation { line: 4, column: 22, offset: 155 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 12, offset: 201 }..TextLocation { line: 5, column: 22, offset: 211 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 257 }..TextLocation { line: 6, column: 22, offset: 267 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 257 }..TextLocation { line: 6, column: 22, offset: 267 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 313 }..TextLocation { line: 7, column: 22, offset: 323 }) }], err_no: codegen__missing_compare_function }
+SyntaxError { message: "Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 313 }..TextLocation { line: 7, column: 22, offset: 323 }) }], err_no: codegen__missing_compare_function }
 

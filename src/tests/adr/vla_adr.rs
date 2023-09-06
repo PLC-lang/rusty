@@ -47,11 +47,8 @@ fn representation() {
                     location_in_parent: 0,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceRange {
-                            range: 0..0,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -67,11 +64,8 @@ fn representation() {
                     location_in_parent: 1,
                     linkage: Internal,
                     binding: None,
-                    source_location: SymbolLocation {
-                        line_number: 0,
-                        source_range: SourceRange {
-                            range: 0..0,
-                        },
+                    source_location: SourceLocation {
+                        span: None,
                     },
                     varargs: None,
                 },
@@ -84,11 +78,18 @@ fn representation() {
             ),
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 79..95,
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 22,
+                    offset: 79,
+                }..TextLocation {
+                    line: 3,
+                    column: 38,
+                    offset: 95,
+                },
+            ),
         },
     }
     "###);
@@ -96,22 +97,19 @@ fn representation() {
     // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(), 
     @r###"
-        DataType {
+    DataType {
+        name: "__ptr_to___arr_vla_1_dint",
+        initial_value: None,
+        information: Pointer {
             name: "__ptr_to___arr_vla_1_dint",
-            initial_value: None,
-            information: Pointer {
-                name: "__ptr_to___arr_vla_1_dint",
-                inner_type_name: "__arr_vla_1_dint",
-                auto_deref: false,
-            },
-            nature: Any,
-            location: SymbolLocation {
-                line_number: 0,
-                source_range: SourceRange {
-                    range: 0..0,
-                },
-            },
-        }
+            inner_type_name: "__arr_vla_1_dint",
+            auto_deref: false,
+        },
+        nature: Any,
+        location: SourceLocation {
+            span: None,
+        },
+    }
     "###);
 
     // ...an array of type DINT with its dimensions unknown at compile time
@@ -131,11 +129,8 @@ fn representation() {
             ],
         },
         nature: __VLA,
-        location: SymbolLocation {
-            line_number: 4294967295,
-            source_range: SourceRange {
-                range: 0..0,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -167,11 +162,8 @@ fn representation() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 0,
-            source_range: SourceRange {
-                range: 0..0,
-            },
+        location: SourceLocation {
+            span: None,
         },
     }
     "###);
@@ -245,11 +237,18 @@ fn pass() {
             ],
         },
         nature: Any,
-        location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 70..89,
-            },
+        location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 24,
+                    offset: 70,
+                }..TextLocation {
+                    line: 3,
+                    column: 43,
+                    offset: 89,
+                },
+            ),
         },
     }
     "###);
@@ -274,11 +273,8 @@ fn pass() {
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceRange {
-                        range: 0..0,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },
@@ -294,11 +290,8 @@ fn pass() {
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    line_number: 0,
-                    source_range: SourceRange {
-                        range: 0..0,
-                    },
+                source_location: SourceLocation {
+                    span: None,
                 },
                 varargs: None,
             },

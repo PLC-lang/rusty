@@ -2,10 +2,10 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceRange { range: 369..375 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 418..425 }], err_no: type__invalid_nature }
-SemanticError { message: "Index out of bounds.", range: [SourceRange { range: 451..462 }], err_no: vla__dimension_idx_out_of_bounds }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceRange { range: 525..531 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 574..581 }], err_no: type__invalid_nature }
-SemanticError { message: "Index out of bounds.", range: [SourceRange { range: 607..618 }], err_no: vla__dimension_idx_out_of_bounds }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 29, offset: 369 }..TextLocation { line: 17, column: 35, offset: 375 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 29, offset: 418 }..TextLocation { line: 18, column: 36, offset: 425 }) }], err_no: type__invalid_nature }
+SemanticError { message: "Index out of bounds.", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 12, offset: 451 }..TextLocation { line: 19, column: 23, offset: 462 }) }], err_no: vla__dimension_idx_out_of_bounds }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 29, offset: 525 }..TextLocation { line: 21, column: 35, offset: 531 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 29, offset: 574 }..TextLocation { line: 22, column: 36, offset: 581 }) }], err_no: type__invalid_nature }
+SemanticError { message: "Index out of bounds.", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 12, offset: 607 }..TextLocation { line: 23, column: 23, offset: 618 }) }], err_no: vla__dimension_idx_out_of_bounds }
 

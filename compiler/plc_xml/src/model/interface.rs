@@ -17,9 +17,7 @@ impl Interface {
     }
 
     pub fn get_data_content(&self) -> Option<&str> {
-        let Some(ref data) = self.add_data else {
-            return None
-        };
+        let Some(ref data) = self.add_data else { return None };
 
         Some(&data.content)
     }
@@ -28,7 +26,7 @@ impl Interface {
     pub fn append_end_keyword(self, pou_type: &PouType) -> Self {
         let Some(old_data) = self.add_data else {
             // if we have no content, we have nothing to append to. return as is
-            return self
+            return self;
         };
 
         Interface {

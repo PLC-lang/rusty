@@ -2,10 +2,11 @@ use plc_ast::{
     ast::{AstStatement, ReferenceAccess, TypeNature},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     assert_type_and_hint,
-    index::{symbol::SymbolLocation, ArgumentType},
+    index::ArgumentType,
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
@@ -59,7 +60,7 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
             },
-            location: SymbolLocation::internal()
+            location: SourceLocation::internal()
         }
     );
     assert_eq!(
@@ -72,7 +73,7 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)
             },
-            location: SymbolLocation::internal()
+            location: SourceLocation::internal()
         }
     );
 }
@@ -124,7 +125,7 @@ fn date_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
+    let expected_types = [
         "TIME",
         "TIME",
         "TIME_OF_DAY",
@@ -156,7 +157,7 @@ fn long_date_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
+    let expected_types = ["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(expected_types[i], annotations.get_type_or_void(s, &index).get_name(), "{:#?}", s);
     }
@@ -175,7 +176,7 @@ fn real_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["REAL", "REAL"];
+    let expected_types = ["REAL", "REAL"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             expected_types[i].to_string(),

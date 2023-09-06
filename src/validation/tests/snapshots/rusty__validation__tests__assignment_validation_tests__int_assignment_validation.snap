@@ -2,18 +2,18 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 880..899 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 916..942 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 959..978 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceRange { range: 995..1012 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceRange { range: 1029..1048 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 1170..1194 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 1251..1279 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1646..1664 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1681..1706 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1723..1741 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceRange { range: 1758..1774 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceRange { range: 1791..1809 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1928..1951 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 2007..2034 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 880 }..TextLocation { line: 40, column: 23, offset: 899 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 916 }..TextLocation { line: 41, column: 30, offset: 942 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 959 }..TextLocation { line: 42, column: 23, offset: 978 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 43, column: 4, offset: 995 }..TextLocation { line: 43, column: 21, offset: 1012 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 44, column: 4, offset: 1029 }..TextLocation { line: 44, column: 23, offset: 1048 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1170 }..TextLocation { line: 48, column: 28, offset: 1194 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceLocation { span: Range(TextLocation { line: 50, column: 4, offset: 1251 }..TextLocation { line: 50, column: 32, offset: 1279 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 63, column: 4, offset: 1646 }..TextLocation { line: 63, column: 22, offset: 1664 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 64, column: 4, offset: 1681 }..TextLocation { line: 64, column: 29, offset: 1706 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 65, column: 4, offset: 1723 }..TextLocation { line: 65, column: 22, offset: 1741 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 66, column: 4, offset: 1758 }..TextLocation { line: 66, column: 20, offset: 1774 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 67, column: 4, offset: 1791 }..TextLocation { line: 67, column: 22, offset: 1809 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 71, column: 4, offset: 1928 }..TextLocation { line: 71, column: 27, offset: 1951 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 73, column: 4, offset: 2007 }..TextLocation { line: 73, column: 31, offset: 2034 }) }], err_no: var__invalid_assignment }
 

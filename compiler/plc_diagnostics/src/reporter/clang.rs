@@ -29,8 +29,10 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
             let location = &diagnostic.main_location;
 
             let file = self.files.get(file_id).ok();
-            let start = self.files.location(file_id, location.range.start).ok();
-            let end = self.files.location(file_id, location.range.end).ok();
+            let start =
+                self.files.location(file_id, location.span.to_range().map(|it| it.start).unwrap_or(0)).ok();
+            let end =
+                self.files.location(file_id, location.span.to_range().map(|it| it.end).unwrap_or(0)).ok();
 
             let res = self.build_diagnostic_msg(
                 file,

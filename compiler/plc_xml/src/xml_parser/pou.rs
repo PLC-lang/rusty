@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, Implementation, SourceRange};
+use ast::ast::{AstStatement, Implementation};
 
 use crate::model::pou::Pou;
 
@@ -8,7 +8,7 @@ impl Pou {
     fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
-            return vec![]
+            return vec![];
         };
 
         if cfg!(feature = "debug") {
@@ -30,8 +30,8 @@ impl Pou {
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: session.create_file_only_location(),
+            name_location: session.create_file_only_location(),
             overriding: false,
             generic: false,
             access: None,

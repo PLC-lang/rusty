@@ -1,0 +1,16 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: "result.user_types[0]"
+---
+UserTypeDeclaration {
+    data_type: PointerType {
+        name: Some(
+            "SampleReference",
+        ),
+        referenced_type: DataTypeReference {
+            referenced_type: "INT",
+        },
+    },
+    initializer: None,
+    scope: None,
+}

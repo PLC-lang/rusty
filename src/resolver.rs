@@ -21,6 +21,7 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 pub mod const_evaluator;
@@ -28,7 +29,7 @@ pub mod generics;
 
 use crate::{
     builtins::{self, BuiltIn},
-    index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -984,9 +985,10 @@ impl<'i> TypeAnnotator<'i> {
         resolved: IndexSet<Dependency>,
     ) -> IndexSet<Dependency> {
         let mut resolved_names = resolved;
-        let Some(datatype) = self.index.find_type(datatype_name).or_else(|| {
-            self.annotation_map.new_index.find_type(datatype_name)
-        })
+        let Some(datatype) = self
+            .index
+            .find_type(datatype_name)
+            .or_else(|| self.annotation_map.new_index.find_type(datatype_name))
         else {
             return resolved_names;
         };
@@ -1479,7 +1481,8 @@ impl<'i> TypeAnnotator<'i> {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
             ..
-        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information() else {
+        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
+        else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
         if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
@@ -1490,12 +1493,10 @@ impl<'i> TypeAnnotator<'i> {
             .get_type_information()
         {
             let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
-                    unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
-                };
+                unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
+            };
 
-            let Some(pou) = ctx.pou else {
-                    unreachable!("VLA not allowed outside of POUs")
-                };
+            let Some(pou) = ctx.pou else { unreachable!("VLA not allowed outside of POUs") };
 
             let name = if let AstStatement::Identifier { name, .. } = statement {
                 name.as_str()
@@ -1503,13 +1504,16 @@ impl<'i> TypeAnnotator<'i> {
                 statement.get_flat_reference_name().expect("must be a reference to a VLA")
             };
 
-            let Some(argument_type) = self.index.get_pou_members(pou)
-                    .iter()
-                    .filter(|it| it.get_name() == name)
-                    .map(|it| it.get_declaration_type())
-                    .next() else {
-                        unreachable!()
-                    };
+            let Some(argument_type) = self
+                .index
+                .get_pou_members(pou)
+                .iter()
+                .filter(|it| it.get_name() == name)
+                .map(|it| it.get_declaration_type())
+                .next()
+            else {
+                unreachable!()
+            };
 
             let hint_annotation = StatementAnnotation::Variable {
                 resulting_type: inner_type_name.to_owned(),
@@ -1800,7 +1804,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 encoding: if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name
@@ -1820,7 +1824,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
                 inner_type_name,
                 name: new_type_name.clone(),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name

@@ -1,0 +1,17 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_struct_type
+---
+StructType {
+    name: Some(
+        "__global_inline_struct",
+    ),
+    variables: [
+        Variable {
+            name: "a",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+}

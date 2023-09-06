@@ -23,11 +23,18 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 1,
-                source_range: SourceRange {
-                    range: 17..25,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 16,
+                        offset: 17,
+                    }..TextLocation {
+                        line: 1,
+                        column: 24,
+                        offset: 25,
+                    },
+                ),
             },
             varargs: None,
         },

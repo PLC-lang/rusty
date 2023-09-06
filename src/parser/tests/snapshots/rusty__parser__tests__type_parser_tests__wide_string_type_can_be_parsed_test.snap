@@ -1,0 +1,19 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: "result.user_types[0]"
+---
+UserTypeDeclaration {
+    data_type: StringType {
+        name: Some(
+            "MyString",
+        ),
+        is_wide: true,
+        size: Some(
+            LiteralInteger {
+                value: 253,
+            },
+        ),
+    },
+    initializer: None,
+    scope: None,
+}

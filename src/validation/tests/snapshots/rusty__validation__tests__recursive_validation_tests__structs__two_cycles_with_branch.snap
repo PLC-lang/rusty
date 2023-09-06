@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceRange { range: 354..355 }, SourceRange { range: 461..462 }, SourceRange { range: 545..546 }, SourceRange { range: 629..630 }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceRange { range: 102..103 }, SourceRange { range: 186..187 }, SourceRange { range: 270..271 }, SourceRange { range: 354..355 }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 17, offset: 354 }..TextLocation { line: 17, column: 18, offset: 355 }) }, SourceLocation { span: Range(TextLocation { line: 22, column: 17, offset: 461 }..TextLocation { line: 22, column: 18, offset: 462 }) }, SourceLocation { span: Range(TextLocation { line: 26, column: 17, offset: 545 }..TextLocation { line: 26, column: 18, offset: 546 }) }, SourceLocation { span: Range(TextLocation { line: 30, column: 17, offset: 629 }..TextLocation { line: 30, column: 18, offset: 630 }) }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 17, offset: 102 }..TextLocation { line: 5, column: 18, offset: 103 }) }, SourceLocation { span: Range(TextLocation { line: 9, column: 17, offset: 186 }..TextLocation { line: 9, column: 18, offset: 187 }) }, SourceLocation { span: Range(TextLocation { line: 13, column: 17, offset: 270 }..TextLocation { line: 13, column: 18, offset: 271 }) }, SourceLocation { span: Range(TextLocation { line: 17, column: 17, offset: 354 }..TextLocation { line: 17, column: 18, offset: 355 }) }], err_no: pou__recursive_data_structure }
 

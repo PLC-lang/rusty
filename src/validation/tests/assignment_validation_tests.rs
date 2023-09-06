@@ -886,7 +886,7 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
 
             FUNCTION main : DINT
                 VAR
-                    a : DINT = 3;
+                    a : DINT := 3;
                     b : REAL := 3.14;
                     c : REAL := 3.14;
                     d : LREAL := 3.14;

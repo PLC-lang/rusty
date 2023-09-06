@@ -7,7 +7,7 @@ use std::{
 
 use crate::{CompileOptions, LinkOptions};
 use ast::{
-    ast::{pre_process, CompilationUnit, LinkageType, SourceRange},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 use encoding_rs::Encoding;
@@ -27,7 +27,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::SourceContainer;
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -63,13 +63,7 @@ impl ParsedProject {
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::Internal,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
@@ -84,13 +78,7 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::External,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
@@ -106,13 +94,7 @@ impl ParsedProject {
                         &err,
                     )
                 })?;
-                Ok(parse_file(
-                    &loaded_source.source,
-                    loaded_source.get_location_str(),
-                    LinkageType::External,
-                    id_provider.clone(),
-                    diagnostician,
-                ))
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
@@ -239,14 +221,19 @@ impl AnnotatedProject {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
-        let Some(module) = self.units.iter().map(|(unit, dependencies, literals)| {
-            self.generate_module(context, compile_options, unit, dependencies, literals)
-        }).reduce(|a,b| {
-            let a = a?;
-            let b = b?;
-            a.merge(b)
-        }) else {
-            return Ok(None)
+        let Some(module) = self
+            .units
+            .iter()
+            .map(|(unit, dependencies, literals)| {
+                self.generate_module(context, compile_options, unit, dependencies, literals)
+            })
+            .reduce(|a, b| {
+                let a = a?;
+                let b = b?;
+                a.merge(b)
+            })
+        else {
+            return Ok(None);
         };
         module.map(Some)
     }
@@ -430,7 +417,7 @@ impl GeneratedProject<'_> {
                         a.merge(b)
                     })
                     .ok_or_else(|| {
-                        Diagnostic::codegen_error("Could not create bitcode", SourceRange::undefined())
+                        Diagnostic::codegen_error("Could not create bitcode", SourceLocation::undefined())
                     })??;
                 codegen.persist_to_bitcode(output_location)
             }
@@ -446,7 +433,7 @@ impl GeneratedProject<'_> {
                         a.merge(b)
                     })
                     .ok_or_else(|| {
-                        Diagnostic::codegen_error("Could not create ir", SourceRange::undefined())
+                        Diagnostic::codegen_error("Could not create ir", SourceLocation::undefined())
                     })??;
                 codegen.persist_to_ir(output_location)
             }

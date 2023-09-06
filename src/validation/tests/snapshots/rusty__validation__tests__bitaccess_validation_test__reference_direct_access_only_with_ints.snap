@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid type LREAL for direct variable access. Only variables of Integer types are allowed", range: [SourceRange { range: 160..163 }], err_no: type__incompatible_directaccess_variable }
-SyntaxError { message: "Invalid type REAL for direct variable access. Only variables of Integer types are allowed", range: [SourceRange { range: 183..186 }], err_no: type__incompatible_directaccess_variable }
+SyntaxError { message: "Invalid type LREAL for direct variable access. Only variables of Integer types are allowed", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 160 }..TextLocation { line: 6, column: 21, offset: 163 }) }], err_no: type__incompatible_directaccess_variable }
+SyntaxError { message: "Invalid type REAL for direct variable access. Only variables of Integer types are allowed", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 18, offset: 183 }..TextLocation { line: 7, column: 21, offset: 186 }) }], err_no: type__incompatible_directaccess_variable }
 

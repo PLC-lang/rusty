@@ -72,11 +72,18 @@ fn programs_state_is_stored_in_a_struct() {
                         location_in_parent: 0,
                         linkage: Internal,
                         binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 2,
-                            source_range: SourceRange {
-                                range: 43..44,
-                            },
+                        source_location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 2,
+                                    column: 20,
+                                    offset: 43,
+                                }..TextLocation {
+                                    line: 2,
+                                    column: 21,
+                                    offset: 44,
+                                },
+                            ),
                         },
                         varargs: None,
                     },
@@ -92,11 +99,18 @@ fn programs_state_is_stored_in_a_struct() {
                         location_in_parent: 1,
                         linkage: Internal,
                         binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 3,
-                            source_range: SourceRange {
-                                range: 83..85,
-                            },
+                        source_location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 3,
+                                    column: 20,
+                                    offset: 83,
+                                }..TextLocation {
+                                    line: 3,
+                                    column: 22,
+                                    offset: 85,
+                                },
+                            ),
                         },
                         varargs: None,
                     },
@@ -112,11 +126,18 @@ fn programs_state_is_stored_in_a_struct() {
                         location_in_parent: 2,
                         linkage: Internal,
                         binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 4,
-                            source_range: SourceRange {
-                                range: 123..124,
-                            },
+                        source_location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 4,
+                                    column: 20,
+                                    offset: 123,
+                                }..TextLocation {
+                                    line: 4,
+                                    column: 21,
+                                    offset: 124,
+                                },
+                            ),
                         },
                         varargs: None,
                     },
@@ -132,11 +153,18 @@ fn programs_state_is_stored_in_a_struct() {
                         location_in_parent: 3,
                         linkage: Internal,
                         binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 5,
-                            source_range: SourceRange {
-                                range: 163..164,
-                            },
+                        source_location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 5,
+                                    column: 20,
+                                    offset: 163,
+                                }..TextLocation {
+                                    line: 5,
+                                    column: 21,
+                                    offset: 164,
+                                },
+                            ),
                         },
                         varargs: None,
                     },
@@ -152,11 +180,18 @@ fn programs_state_is_stored_in_a_struct() {
                         location_in_parent: 4,
                         linkage: Internal,
                         binding: None,
-                        source_location: SymbolLocation {
-                            line_number: 6,
-                            source_range: SourceRange {
-                                range: 203..205,
-                            },
+                        source_location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 6,
+                                    column: 20,
+                                    offset: 203,
+                                }..TextLocation {
+                                    line: 6,
+                                    column: 22,
+                                    offset: 205,
+                                },
+                            ),
                         },
                         varargs: None,
                     },
@@ -166,11 +201,18 @@ fn programs_state_is_stored_in_a_struct() {
                 ),
             },
             nature: Any,
-            location: SymbolLocation {
-                line_number: 1,
-                source_range: SourceRange {
-                    range: 13..21,
-                },
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 12,
+                        offset: 13,
+                    }..TextLocation {
+                        line: 1,
+                        column: 20,
+                        offset: 21,
+                    },
+                ),
             },
         },
     )
