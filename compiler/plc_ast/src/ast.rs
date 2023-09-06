@@ -834,6 +834,9 @@ pub enum AstStatement {
         id: AstId,
     },
     ReturnStatement {
+        /// Indicates that the given condition must evaluate to true in order for the return to take place.
+        /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
+        condition: Option<Box<AstStatement>>,
         location: SourceRange,
         id: AstId,
     },
@@ -936,7 +939,10 @@ impl Debug for AstStatement {
             AstStatement::CaseCondition { condition, .. } => {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
-            AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ReturnStatement { condition, .. } => {
+                f.debug_struct("ReturnStatement").field("condition", condition).finish()
+            }
+
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
             AstStatement::CastStatement { target, type_name, .. } => {

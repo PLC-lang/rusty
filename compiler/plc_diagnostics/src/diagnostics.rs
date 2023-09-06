@@ -700,6 +700,34 @@ impl Diagnostic {
     }
 }
 
+// CFC related diagnostics
+impl Diagnostic {
+    pub fn empty_control_statement(range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Control statement has no connection".to_string(),
+            range: vec![range],
+            err_no: ErrNo::cfc__empty_control_statement,
+        }
+    }
+
+    pub fn undefined_node(id: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Node with id {id} does not exists"),
+            range: vec![range],
+            err_no: ErrNo::cfc__undefined_node,
+        }
+    }
+
+    // TODO(volsa): Remove SourceRange::undefined
+    pub fn unexpected_nodes(ids: Vec<usize>) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Unexpected relationship between nodes".to_string(),
+            range: ids.iter().map(|_| SourceRange::undefined()).collect(),
+            err_no: ErrNo::cfc__unexpected_node,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use codespan_reporting::files::{Location, SimpleFile};

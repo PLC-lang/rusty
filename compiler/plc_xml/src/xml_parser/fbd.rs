@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstStatement, SourceRange};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -71,8 +71,20 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                     remove_id,
                 )
             }
-            Node::Control(_) => todo!(),
-            Node::Connector(_) => unreachable!(),
+            Node::Control(control) => {
+                match control.transform(session, &self.nodes) {
+                    Ok(value) => (value, None),
+                    Err(_) => {
+                        // TODO(volsa): Store diagnostic, return EmptyStatement
+                        let empty = AstStatement::EmptyStatement {
+                            location: SourceRange::undefined(),
+                            id: session.next_id(),
+                        };
+                        (empty, None)
+                    }
+                }
+            }
+            Node::Connector(_) => todo!(),
         }
     }
 }

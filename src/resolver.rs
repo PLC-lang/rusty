@@ -1320,6 +1320,11 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::ReferenceExpr { access, base, .. } => {
                 self.visit_reference_expr(access, base.as_deref(), statement, ctx);
             }
+            AstStatement::ReturnStatement { condition, .. } => {
+                if let Some(condition) = condition {
+                    self.visit_statement(ctx, condition)
+                }
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }

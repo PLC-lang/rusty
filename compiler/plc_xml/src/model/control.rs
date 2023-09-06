@@ -65,8 +65,21 @@ impl<'xml> Parseable for Control<'xml> {
         loop {
             match reader.peek()? {
                 Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                    b"negated" => attributes.extend(reader.attributes()?),
                     b"connection" => attributes.extend(reader.attributes()?),
+
+                    // As opposed to e.g. variables where the negation information is directly stored in its
+                    // attributes (e.g. `<inVariable negated="false" .../>`) return elements store their
+                    // negation information in a seperate nested element called `negated` with the form of
+                    // `<negated value="..."/>`.
+                    // Hence we search for a negate element and extract its information from their attributes.
+                    b"negated" => {
+                        let value = reader.attributes()?;
+                        attributes.insert(
+                            "negated".to_string(),
+                            (value.get_or_err("value")? == "true").to_string(),
+                        );
+                    }
+
                     _ => reader.consume()?,
                 },
 

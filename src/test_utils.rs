@@ -1,16 +1,14 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
+    use std::{path::PathBuf, str::FromStr};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
         provider::IdProvider,
     };
     use plc_diagnostics::{
-        diagnostician::Diagnostician,
-        diagnostics::Diagnostic,
-        reporter::{DiagnosticReporter, ResolvedDiagnostics},
+        diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use source::{Compilable, SourceCode, SourceContainer};
 
@@ -23,28 +21,6 @@ pub mod tests {
         typesystem::get_builtin_types,
         DebugLevel, Validator,
     };
-
-    ///a Diagnostic reporter that holds all diagnostics in a list
-    #[derive(Default)]
-    #[cfg(test)]
-    pub struct ListBasedDiagnosticReporter {
-        last_id: usize,
-        // RC to access from tests, RefCell to avoid changing the signature for the report() method
-        diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
-    }
-
-    #[cfg(test)]
-    impl DiagnosticReporter for ListBasedDiagnosticReporter {
-        fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
-            self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
-        }
-
-        fn register(&mut self, _path: String, _src: String) -> usize {
-            // at least provide some unique ids
-            self.last_id += 1;
-            self.last_id
-        }
-    }
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
@@ -84,11 +60,13 @@ pub mod tests {
         } else {
             SourceRangeFactory::for_file(source_path)
         };
+
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             LinkageType::Internal,
             source_path,
         );
+
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
         (unit, index)
