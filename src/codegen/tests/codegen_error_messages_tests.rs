@@ -187,7 +187,7 @@ fn invalid_initial_constant_values_in_pou_variables() {
         END_VAR
 
         VAR_GLOBAL
-            LEN := MAX_LEN - 2;
+            LEN : DINT := MAX_LEN - 2;
         END_VAR
  
         PROGRAM prg
@@ -380,9 +380,7 @@ fn assigning_to_rvalue() {
         "#,
     );
 
-    let Err(msg) = result else {
-        panic!("expected code-gen error but got none")
-    };
+    let Err(msg) = result else { panic!("expected code-gen error but got none") };
 
     assert_snapshot!(msg)
 }

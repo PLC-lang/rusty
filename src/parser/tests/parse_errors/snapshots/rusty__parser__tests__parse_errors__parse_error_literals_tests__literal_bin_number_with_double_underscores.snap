@@ -2,4 +2,10 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
+error: Unexpected token: expected KeywordSemicolon but found '__001_101_01'
+  ┌─ <internal>:1:17
+  │
+1 │ PROGRAM exp 2#01__001_101_01; END_PROGRAM
+  │                 ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found '__001_101_01'
+
 

@@ -74,6 +74,7 @@ impl Diagnostic {
         }
     }
 
+    //TODO: This prints a debug version of the datatype, it should have a user readable version instead
     pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Data Type {data_type:?} not supported as a function return type!"),

@@ -3,6 +3,7 @@ use codespan_reporting::{
     files::SimpleFiles,
     term::termcolor::{Buffer, ColorChoice, StandardStream, WriteColor},
 };
+use plc_source::source_location::CodeSpan;
 
 use crate::diagnostician::Severity;
 
@@ -104,17 +105,37 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 Severity::_Info => codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
-            let mut labels = vec![Label::primary(
-                d.main_location.file_handle,
-                d.main_location.span.to_range().unwrap_or_else(|| 0..0),
-            )
-            .with_message(d.message.as_str())];
+            let mut labels = vec![];
+
+            if !matches!(d.main_location.span, CodeSpan::None) {
+                labels.push(
+                    Label::primary(
+                        d.main_location.file_handle,
+                        d.main_location.span.to_range().unwrap_or_else(|| 0..0),
+                    )
+                    .with_message(d.message.as_str()),
+                );
+            }
 
             if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(additional_locations.iter().map(|it| {
-                    Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| 0..0))
-                        .with_message("see also")
-                }));
+                labels.extend(
+                    additional_locations
+                        .iter()
+                        .map(|it| {
+                            if !matches!(it.span, CodeSpan::None) {
+                                Some(
+                                    Label::secondary(
+                                        it.file_handle,
+                                        it.span.to_range().unwrap_or_else(|| 0..0),
+                                    )
+                                    .with_message("see also"),
+                                )
+                            } else {
+                                None
+                            }
+                        })
+                        .flatten(),
+                );
             }
 
             let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());

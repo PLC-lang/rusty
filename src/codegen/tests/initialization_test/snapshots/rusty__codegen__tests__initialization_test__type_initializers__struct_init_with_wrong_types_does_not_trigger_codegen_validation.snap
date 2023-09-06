@@ -3,9 +3,21 @@ source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
 error: Some initial values were not generated
-  ┌─ <internal>:1:1
+
+error: Cannot generate literal initializer for 'MyType': Value cannot be derived
+  ┌─ <internal>:7:30
   │
-1 │ 
-  │ ^ Some initial values were not generated
+7 │         TYPE MyType : INT := 'hello'; END_TYPE
+  │              ------          ^^^^^^^ Cannot generate literal initializer for 'MyType': Value cannot be derived
+  │              │                
+  │              see also
+
+error: Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived
+   ┌─ <internal>:10:22
+   │
+ 9 │         TYPE MyStruct: STRUCT
+   │              -------- see also
+10 │           a: DINT := 'hello';
+   │                      ^^^^^^^ Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived
 
 

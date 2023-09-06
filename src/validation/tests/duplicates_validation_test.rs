@@ -38,7 +38,7 @@ fn duplicate_pous_and_types_validation() {
     let diagnostics = parse_and_validate(
         r#"
         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
-        TYPE foo : INT END_TYPE
+        TYPE foo : INT; END_TYPE
     "#,
     );
     // THEN there should be 3 duplication diagnostics
@@ -124,7 +124,7 @@ fn duplicate_fb_inst_and_function() {
     let diagnostics = parse_and_validate(
         r#"
             FUNCTION_BLOCK FooFB
-                VAR x : INT END_VAR
+                VAR x : INT; END_VAR
             END_FUNCTION_BLOCK
 
             VAR_GLOBAL

@@ -2,5 +2,6 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
+SyntaxError { message: "POU Type Program does not support a return type. Did you mean Function?", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 15, offset: 16 }..TextLocation { line: 1, column: 21, offset: 22 }) }], err_no: pou__unexpected_return_type }
 SemanticError { message: "Variable Length Arrays are not allowed to be defined inside a Program", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 12, offset: 53 }..TextLocation { line: 3, column: 15, offset: 56 }) }], err_no: vla__invalid_container }
 

@@ -77,7 +77,10 @@ pub mod tests {
         (unit, reporter.buffer().unwrap_or_default())
     }
 
-    fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
+    fn do_index<T: Into<SourceCode>>(
+        src: T,
+        id_provider: IdProvider,
+    ) -> (CompilationUnit, Index, Vec<Diagnostic>) {
         let source = src.into();
         let source_str = &source.source;
         let source_path = source.get_location_str();
@@ -92,23 +95,25 @@ pub mod tests {
         }
 
         let range_factory = SourceLocationFactory::for_source(&source);
-        let (mut unit, ..) = parser::parse(
+        let (mut unit, diagnostics) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             LinkageType::Internal,
             source_path,
         );
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
-        (unit, index)
+        (unit, index, diagnostics)
     }
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
-        do_index(src, id_provider)
+        let (unit, index, _) = do_index(src, id_provider);
+        (unit, index)
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        do_index(src, id_provider)
+        let (unit, index, _) = do_index(src, id_provider);
+        (unit, index)
     }
 
     pub fn annotate_with_ids(
@@ -123,6 +128,7 @@ pub mod tests {
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
         let diagnostics = parse_and_validate(src);
+        dbg!(&diagnostics);
         let mut reporter = Diagnostician::buffered();
 
         reporter.register_file("<internal>".to_string(), src.to_string());
@@ -135,7 +141,7 @@ pub mod tests {
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
         let id_provider = IdProvider::default();
-        let (unit, index) = index_with_ids(src, id_provider.clone());
+        let (unit, index, mut diagnostics) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
@@ -144,7 +150,8 @@ pub mod tests {
         let mut validator = Validator::new();
         validator.perform_global_validation(&index);
         validator.visit_unit(&annotations, &index, &unit);
-        validator.diagnostics()
+        diagnostics.extend(validator.diagnostics());
+        diagnostics
     }
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, String> {
@@ -159,7 +166,8 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
-        let (unit, index) = do_index(src, id_provider.clone());
+        let (unit, index, diagnostics) = do_index(src, id_provider.clone());
+        reporter.handle(diagnostics);
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -212,7 +220,7 @@ pub mod tests {
         let mut units = vec![];
         let mut index = Index::default();
         sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
-            |(unit, idx)| {
+            |(unit, idx, ..)| {
                 units.push(unit);
                 index.import(idx);
             },

@@ -32,26 +32,36 @@ impl Diagnostician {
 
     /// Assess and reports the given diagnostics.
     pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
-        let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
-            message: d.get_message().to_string(),
-            severity: self.assess(d),
-            main_location: ResolvedLocation {
-                file_handle: self
-                    .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))
-                    .unwrap_or(usize::MAX),
-                span: d.get_location().get_span().clone(),
-            },
-            additional_locations: d.get_secondary_locations().map(|it| {
-                it.iter()
-                    .map(|l| ResolvedLocation {
-                        file_handle: self
-                            .get_file_handle(l.get_file_name().or(Some("<internal>")))
-                            .unwrap_or(usize::MAX),
-                        span: l.get_span().clone(),
-                    })
-                    .collect()
-            }),
-        });
+        let resolved_diagnostics = diagnostics
+            .iter()
+            .flat_map(|it| match it {
+                Diagnostic::CombinedDiagnostic { inner_diagnostics, .. } => {
+                    let mut res = vec![it];
+                    res.extend(inner_diagnostics.iter().collect::<Vec<&Diagnostic>>());
+                    res
+                }
+                _ => vec![it],
+            })
+            .map(|d| ResolvedDiagnostics {
+                message: d.get_message().to_string(),
+                severity: self.assess(&d),
+                main_location: ResolvedLocation {
+                    file_handle: self
+                        .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))
+                        .unwrap_or(usize::MAX),
+                    span: d.get_location().get_span().clone(),
+                },
+                additional_locations: d.get_secondary_locations().map(|it| {
+                    it.iter()
+                        .map(|l| ResolvedLocation {
+                            file_handle: self
+                                .get_file_handle(l.get_file_name().or(Some("<internal>")))
+                                .unwrap_or(usize::MAX),
+                            span: l.get_span().clone(),
+                        })
+                        .collect()
+                }),
+            });
 
         self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
     }
