@@ -470,15 +470,15 @@ fn array_of_struct_initialization() {
 	TYPE AliasMyStruct : myStruct; END_TYPE
 
 	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := (70, 80));
-		alias_str : AliasMyStruct := (a := 50, b := 60, c := (70, 80));
-		global_arr : ARRAY[0..1] OF DINT := (30, 40);
+		str : myStruct := (a := 50, b := 60, c := [70, 80]);
+		alias_str : AliasMyStruct := (a := 50, b := 60, c := [70, 80]);
+		global_arr : ARRAY[0..1] OF DINT := [30, 40];
 	END_VAR
 
 	PROGRAM main
 	VAR
-		arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), str);
-		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 10, b := 20, c := global_arr), alias_str);
+		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
+		alias_arr : ARRAY[0..1] OF AliasMyStruct := [(a := 10, b := 20, c := global_arr), alias_str];
 	END_VAR
 	END_PROGRAM
     ";

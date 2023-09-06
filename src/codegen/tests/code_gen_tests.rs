@@ -3260,7 +3260,7 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
         "
         PROGRAM mainProg
         VAR
-            var_str1 : STRUCT1 := ((myInt := 10), (myArr := ((x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)));
+            var_str1 : STRUCT1 := ((myInt := 10), (myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]);
         END_VAR
         END_PROGRAM
 
@@ -3268,6 +3268,38 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
             STRUCT
                 myInt : INT;
                 myArr : ARRAY[0..10] OF STRUCT2;
+            END_STRUCT
+        END_TYPE
+
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : DINT;
+            END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initialized() {
+    let res = codegen(
+        "
+        PROGRAM mainProg
+        VAR
+            var_str1 : ARRAY[1..5] OF STRUCT1 := [
+                (myInt := 1, myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]),
+                (myInt := 2, myArr := [(x1 := TRUE, x2 := 256), (x1 := FALSE, x2 := 2048)])
+            ];
+        END_VAR
+        END_PROGRAM
+
+        TYPE STRUCT1 :
+            STRUCT
+                myInt : INT;
+                myArr : ARRAY[0..4] OF STRUCT2;
             END_STRUCT
         END_TYPE
 
