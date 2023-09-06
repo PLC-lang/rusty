@@ -405,7 +405,6 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             size.bits().into(),
             alignment.bits(),
-            #[allow(clippy::single_range_in_vec_init)]
             &[(0..(length - 1))],
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
