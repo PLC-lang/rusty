@@ -8,7 +8,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use super::fbd::NodeId;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
@@ -19,13 +19,13 @@ pub(crate) struct BlockVariable {
     pub enable: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Edge {
     Falling,
     Rising,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Storage {
     Set,
     Reset,
@@ -49,7 +49,7 @@ impl BlockVariable {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum VariableKind {
     Input,
     Output,
@@ -57,7 +57,7 @@ pub(crate) enum VariableKind {
     Temp,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct FunctionBlockVariable<'xml> {
     pub kind: VariableKind,
     pub local_id: usize,

@@ -9,7 +9,7 @@ use crate::{
     xml_parser::Parseable,
 };
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Connector<'xml> {
     pub kind: ConnectorKind,
     pub name: Cow<'xml, str>,
@@ -30,7 +30,7 @@ impl<'xml> Connector<'xml> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum ConnectorKind {
     Source,
     Sink,

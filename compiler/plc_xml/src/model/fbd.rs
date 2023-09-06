@@ -20,7 +20,7 @@ pub(crate) struct FunctionBlockDiagram<'xml> {
     pub nodes: NodeIndex<'xml>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Node<'xml> {
     Block(Block<'xml>),
     FunctionBlockVariable(FunctionBlockVariable<'xml>),

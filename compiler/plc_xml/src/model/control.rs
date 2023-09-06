@@ -9,7 +9,7 @@ use crate::{
     xml_parser::Parseable,
 };
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Control<'xml> {
     pub kind: ControlKind,
     pub name: Option<Cow<'xml, str>>,
