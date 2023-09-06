@@ -44,7 +44,7 @@ impl Diagnostician {
             })
             .map(|d| ResolvedDiagnostics {
                 message: d.get_message().to_string(),
-                severity: self.assess(&d),
+                severity: self.assess(d),
                 main_location: ResolvedLocation {
                     file_handle: self
                         .get_file_handle(d.get_location().get_file_name().or(Some("<internal>")))

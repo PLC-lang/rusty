@@ -360,9 +360,7 @@ fn validate_variable_length_array_bound_function(
     index: &Index,
 ) {
     let Some(parameters) = parameters else {
-        validator.push_diagnostic(
-            Diagnostic::invalid_parameter_count(2, 0, operator.get_location())
-        );
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
         // no params, nothing to validate
         return;
     };
@@ -393,7 +391,9 @@ fn validate_variable_length_array_bound_function(
             if let AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
                 let dimension_idx = *dimension_idx as usize;
 
-                let Some(n_dimensions) = annotations.get_type_or_void(vla, index).get_type_information().get_dimensions() else {
+                let Some(n_dimensions) =
+                    annotations.get_type_or_void(vla, index).get_type_information().get_dimensions()
+                else {
                     // not a vla, validated via type nature
                     return;
                 };
@@ -453,7 +453,7 @@ fn generate_variable_length_array_bound_function<'ink>(
             llvm.i32_type().const_int(offset, false)
         }
         AstStatement::CastStatement { target, .. } => {
-            let ExpressionValue::RValue(value) =  generator.generate_expression_value(target)? else {
+            let ExpressionValue::RValue(value) = generator.generate_expression_value(target)? else {
                 unreachable!()
             };
 

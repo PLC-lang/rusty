@@ -56,8 +56,8 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(Diagnostic::invalid_vla_container(
                 "VLAs can not be defined as global variables".to_string(),
-                variable.location.clone())
-            )
+                variable.location.clone(),
+            ))
         }
 
         return;

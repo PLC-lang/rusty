@@ -228,7 +228,7 @@ fn cast_if_necessary(
     index: &Index,
 ) -> AstStatement {
     let Some(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) else {
-         return statement;
+        return statement;
     };
 
     if let AstStatement::Literal { kind: literal, location, id } = &statement {
@@ -628,7 +628,9 @@ fn get_cast_statement_literal(
             };
 
             let Some(value) = value else {
-                return Err(UnresolvableKind::Misc(format!("cannot resolve constant: {type_name}#{cast_statement:?}")))
+                return Err(UnresolvableKind::Misc(format!(
+                    "cannot resolve constant: {type_name}#{cast_statement:?}"
+                )));
             };
 
             Ok(AstStatement::Literal {

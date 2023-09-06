@@ -112,7 +112,7 @@ fn recursive_types_resolved() {
 
 #[test]
 fn multiple_units_aggregate_resolved() {
-    let units = vec![
+    let units = [
         "
         TYPE myStruct : STRUCT
             x : DINT;
@@ -153,7 +153,7 @@ fn multiple_units_aggregate_resolved() {
 
 #[test]
 fn multiple_units_aggregate_resolved_recursive() {
-    let units = vec![
+    let units = [
         "
         TYPE myStruct : STRUCT
             x : DINT;
@@ -240,7 +240,7 @@ fn enum_dependency_resolution() {
 
 #[test]
 fn alias_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         TYPE myAlias : LINT END_TYPE
         TYPE myAlias2 : REAL END_TYPE
@@ -272,7 +272,7 @@ fn alias_dependency_resolution() {
 
 #[test]
 fn subrange_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         TYPE myRange : LINT (0..10) END_TYPE
         TYPE myRange2 : INT (-10..10) END_TYPE
@@ -304,7 +304,7 @@ fn subrange_dependency_resolution() {
 
 #[test]
 fn function_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         FUNCTION foo : DINT
         END_FUNCTION
@@ -332,7 +332,7 @@ fn function_dependency_resolution() {
 
 #[test]
 fn function_params_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         FUNCTION foo : BYTE
         VAR_INPUT
@@ -383,7 +383,7 @@ fn function_params_dependency_resolution() {
 
 #[test]
 fn program_params_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         PROGRAM foo 
         VAR_INPUT
@@ -427,7 +427,7 @@ fn program_params_dependency_resolution() {
 
 #[test]
 fn function_block_params_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         FUNCTION_BLOCK fb 
         VAR_INPUT
@@ -478,7 +478,7 @@ fn function_block_params_dependency_resolution() {
 
 #[test]
 fn action_dependency_resolution() {
-    let units = vec![
+    let units = [
         "
         ACTION prog.foo
         END_ACTION
@@ -504,7 +504,7 @@ fn action_dependency_resolution() {
 
 #[test]
 fn action_dependency_resolution_with_variables() {
-    let units = vec![
+    let units = [
         "
         ACTION prog.foo
         END_ACTION
@@ -542,7 +542,7 @@ fn action_dependency_resolution_with_variables() {
 
 #[test]
 fn action_dependency_resolution_with_function_block() {
-    let units = vec![
+    let units = [
         "
         FUNCTION_BLOCK fb
         END_FUNCTION_BLOCK
@@ -572,7 +572,7 @@ fn action_dependency_resolution_with_function_block() {
 
 #[test]
 fn chained_function_dependency_resoltion() {
-    let units = vec![
+    let units = [
         "
         FUNCTION foo : DINT
             foo2();
@@ -607,7 +607,7 @@ fn chained_function_dependency_resoltion() {
 
 #[test]
 fn generic_function_concrete_type_resolved() {
-    let units = vec![
+    let units = [
         "
         FUNCTION foo<T: ANY_NUMBER> : DINT
         VAR_INPUT
@@ -644,7 +644,7 @@ fn generic_function_concrete_type_resolved() {
 
 #[test]
 fn global_variables_dependencies_resolved() {
-    let units = vec![
+    let units = [
         "
         VAR_GLOBAL
             x : INT;

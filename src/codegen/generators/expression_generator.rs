@@ -172,7 +172,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let Some(target_type) = self.annotations.get_type_hint(expression, self.index) else {
             // no type-hint -> we can return the value as is
-            return Ok(v)
+            return Ok(v);
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
         Ok(cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression)))
@@ -2331,7 +2331,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
-        let StatementAnnotation::Variable { resulting_type: reference_type,  .. } = reference_annotation else {
+        let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
+        else {
             unreachable!();
         };
 
@@ -2346,9 +2347,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // get lengths of dimensions
         let type_ = self.index.get_type_information_or_void(reference_type);
-        let Some(ndims) = type_.get_type_information().get_dimensions() else {
-            unreachable!()
-        };
+        let Some(ndims) = type_.get_type_information().get_dimensions() else { unreachable!() };
 
         // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
         let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep);

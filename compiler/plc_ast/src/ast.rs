@@ -428,7 +428,7 @@ impl DataTypeDeclaration {
     }
 
     pub fn get_referenced_type(&self) -> Option<String> {
-        let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
+        let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
     }
 }

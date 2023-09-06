@@ -505,7 +505,11 @@ impl DataTypeInformation {
     }
 
     pub fn get_vla_referenced_type(&self) -> Option<&str> {
-        let DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+        let DataTypeInformation::Struct {
+            source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name, .. }),
+            ..
+        } = self
+        else {
             return None;
         };
 

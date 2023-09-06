@@ -1084,6 +1084,8 @@ impl Index {
                 .or_else(|| self.find_qualified_global_variable(Some(context), segments[0])),
             None => self.find_global_variable(segments[0]),
         };
+
+        #[allow(clippy::manual_try_fold)]
         segments
             .iter()
             .skip(1)

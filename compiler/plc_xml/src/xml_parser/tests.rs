@@ -129,15 +129,15 @@ fn ast_generates_locations() {
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
-    let AstStatement::Assignment { left, right, .. }= &impl1.statements[0] else {
-            panic!("Not an assignment");
-        };
+    let AstStatement::Assignment { left, right, .. } = &impl1.statements[0] else {
+        panic!("Not an assignment");
+    };
     assert_debug_snapshot!(left.get_location());
     assert_debug_snapshot!(right.get_location());
     //Deconstruct call statement and get locations
     let AstStatement::CallStatement { operator, parameters, location, .. } = &impl1.statements[1] else {
-            panic!("Not a call statement");
-        };
+        panic!("Not a call statement");
+    };
     assert_debug_snapshot!(location);
     assert_debug_snapshot!(operator.get_location());
     let parameters = parameters.as_ref().as_ref().unwrap();

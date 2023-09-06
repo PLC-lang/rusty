@@ -173,11 +173,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
                 }
             }
             DataTypeInformation::Pointer { .. } => {
-                let Ok(associated_type) = cast_data
-                    .llvm_type_index
-                    .get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-                    };
+                let Ok(associated_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                else {
+                    unreachable!(
+                        "Target type of cast instruction does not exist: {}",
+                        cast_data.target_type.get_name()
+                    )
+                };
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
             }
@@ -219,9 +222,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")
                 .into(),
             DataTypeInformation::Pointer { .. } => {
-                let Ok(target_ptr_type) = cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-                    };
+                let Ok(target_ptr_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                else {
+                    unreachable!(
+                        "Target type of cast instruction does not exist: {}",
+                        cast_data.target_type.get_name()
+                    )
+                };
                 if BasicValueEnum::from(self).get_type() != target_ptr_type {
                     // bit-cast necessary
                     cast_data.llvm.builder.build_bitcast(self, target_ptr_type, "")
@@ -257,14 +265,17 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let builder = &cast_data.llvm.builder;
         let zero = cast_data.llvm.i32_type().const_zero();
 
-        let Ok(associated_type) = cast_data
-            .llvm_type_index
-            .get_associated_type(cast_data.target_type.get_name()) else {
-                unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+        let Ok(associated_type) =
+            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+        else {
+            unreachable!(
+                "Target type of cast instruction does not exist: {}",
+                cast_data.target_type.get_name()
+            )
         };
 
         // Get array annotation from parent POU and get pointer to array
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation else {
             unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
         };
         let array_pointer = cast_data

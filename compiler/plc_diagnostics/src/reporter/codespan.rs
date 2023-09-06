@@ -118,24 +118,16 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
             }
 
             if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(
-                    additional_locations
-                        .iter()
-                        .map(|it| {
-                            if !matches!(it.span, CodeSpan::None) {
-                                Some(
-                                    Label::secondary(
-                                        it.file_handle,
-                                        it.span.to_range().unwrap_or_else(|| 0..0),
-                                    )
-                                    .with_message("see also"),
-                                )
-                            } else {
-                                None
-                            }
-                        })
-                        .flatten(),
-                );
+                labels.extend(additional_locations.iter().filter_map(|it| {
+                    if !matches!(it.span, CodeSpan::None) {
+                        Some(
+                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| 0..0))
+                                .with_message("see also"),
+                        )
+                    } else {
+                        None
+                    }
+                }));
             }
 
             let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());

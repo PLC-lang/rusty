@@ -8,7 +8,7 @@ impl Pou {
     fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
-            return vec![]
+            return vec![];
         };
 
         if cfg!(feature = "debug") {

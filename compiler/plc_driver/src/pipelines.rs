@@ -221,14 +221,19 @@ impl AnnotatedProject {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
-        let Some(module) = self.units.iter().map(|(unit, dependencies, literals)| {
-            self.generate_module(context, compile_options, unit, dependencies, literals)
-        }).reduce(|a,b| {
-            let a = a?;
-            let b = b?;
-            a.merge(b)
-        }) else {
-            return Ok(None)
+        let Some(module) = self
+            .units
+            .iter()
+            .map(|(unit, dependencies, literals)| {
+                self.generate_module(context, compile_options, unit, dependencies, literals)
+            })
+            .reduce(|a, b| {
+                let a = a?;
+                let b = b?;
+                a.merge(b)
+            })
+        else {
+            return Ok(None);
         };
         module.map(Some)
     }

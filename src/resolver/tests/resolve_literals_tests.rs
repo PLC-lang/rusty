@@ -125,7 +125,7 @@ fn date_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
+    let expected_types = [
         "TIME",
         "TIME",
         "TIME_OF_DAY",
@@ -157,7 +157,7 @@ fn long_date_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
+    let expected_types = ["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(expected_types[i], annotations.get_type_or_void(s, &index).get_name(), "{:#?}", s);
     }
@@ -176,7 +176,7 @@ fn real_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["REAL", "REAL"];
+    let expected_types = ["REAL", "REAL"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             expected_types[i].to_string(),

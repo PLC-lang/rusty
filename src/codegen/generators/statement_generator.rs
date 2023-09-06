@@ -242,7 +242,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         // given a complex direct-access assignemnt: a.b.c.%W3,%X1
         // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
-        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement) else {unreachable!("Invalid direct-access expression: {left_statement:#?}")};
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
+        else {
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+        };
 
         let left_type = exp_gen.get_type_hint_for(target)?;
         let right_type = exp_gen.get_type_hint_for(right_statement)?;

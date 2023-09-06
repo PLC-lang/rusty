@@ -980,9 +980,10 @@ impl<'i> TypeAnnotator<'i> {
         resolved: IndexSet<Dependency>,
     ) -> IndexSet<Dependency> {
         let mut resolved_names = resolved;
-        let Some(datatype) = self.index.find_type(datatype_name).or_else(|| {
-            self.annotation_map.new_index.find_type(datatype_name)
-        })
+        let Some(datatype) = self
+            .index
+            .find_type(datatype_name)
+            .or_else(|| self.annotation_map.new_index.find_type(datatype_name))
         else {
             return resolved_names;
         };
@@ -1475,7 +1476,8 @@ impl<'i> TypeAnnotator<'i> {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
             ..
-        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information() else {
+        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
+        else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
         if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
@@ -1486,12 +1488,10 @@ impl<'i> TypeAnnotator<'i> {
             .get_type_information()
         {
             let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
-                    unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
-                };
+                unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
+            };
 
-            let Some(pou) = ctx.pou else {
-                    unreachable!("VLA not allowed outside of POUs")
-                };
+            let Some(pou) = ctx.pou else { unreachable!("VLA not allowed outside of POUs") };
 
             let name = if let AstStatement::Identifier { name, .. } = statement {
                 name.as_str()
@@ -1499,13 +1499,16 @@ impl<'i> TypeAnnotator<'i> {
                 statement.get_flat_reference_name().expect("must be a reference to a VLA")
             };
 
-            let Some(argument_type) = self.index.get_pou_members(pou)
-                    .iter()
-                    .filter(|it| it.get_name() == name)
-                    .map(|it| it.get_declaration_type())
-                    .next() else {
-                        unreachable!()
-                    };
+            let Some(argument_type) = self
+                .index
+                .get_pou_members(pou)
+                .iter()
+                .filter(|it| it.get_name() == name)
+                .map(|it| it.get_declaration_type())
+                .next()
+            else {
+                unreachable!()
+            };
 
             let hint_annotation = StatementAnnotation::Variable {
                 resulting_type: inner_type_name.to_owned(),

@@ -609,7 +609,7 @@ impl Diagnostic {
         additional_text: &str,
     ) -> Diagnostic {
         let mut locations = vec![location];
-        locations.extend(conflicts.into_iter());
+        locations.extend(conflicts);
         Diagnostic::SyntaxError {
             message: format!("{name}: {additional_text}"),
             range: locations,
