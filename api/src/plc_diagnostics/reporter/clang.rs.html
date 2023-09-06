@@ -97,6 +97,8 @@
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostician::Severity;
@@ -128,8 +130,10 @@
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>diagnostic.main_location;
 
             <span class="kw">let </span>file = <span class="self">self</span>.files.get(file_id).ok();
-            <span class="kw">let </span>start = <span class="self">self</span>.files.location(file_id, location.range.start).ok();
-            <span class="kw">let </span>end = <span class="self">self</span>.files.location(file_id, location.range.end).ok();
+            <span class="kw">let </span>start =
+                <span class="self">self</span>.files.location(file_id, location.span.to_range().map(|it| it.start).unwrap_or(<span class="number">0</span>)).ok();
+            <span class="kw">let </span>end =
+                <span class="self">self</span>.files.location(file_id, location.span.to_range().map(|it| it.end).unwrap_or(<span class="number">0</span>)).ok();
 
             <span class="kw">let </span>res = <span class="self">self</span>.build_diagnostic_msg(
                 file,

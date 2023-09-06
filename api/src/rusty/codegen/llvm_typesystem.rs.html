@@ -352,6 +352,17 @@
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>inkwell::{
     context::Context,
@@ -527,11 +538,14 @@
                 }
             }
             DataTypeInformation::Pointer { .. } =&gt; {
-                <span class="kw">let </span><span class="prelude-val">Ok</span>(associated_type) = cast_data
-                    .llvm_type_index
-                    .get_associated_type(cast_data.target_type.get_name()) <span class="kw">else </span>{
-                        <span class="macro">unreachable!</span>(<span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>, cast_data.target_type.get_name())
-                    };
+                <span class="kw">let </span><span class="prelude-val">Ok</span>(associated_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(
+                        <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                        cast_data.target_type.get_name()
+                    )
+                };
 
                 cast_data.llvm.builder.build_int_to_ptr(<span class="self">self</span>, associated_type.into_pointer_type(), <span class="string">&quot;&quot;</span>).into()
             }
@@ -573,9 +587,14 @@
                 .build_ptr_to_int(<span class="self">self</span>, get_llvm_int_type(cast_data.llvm.context, <span class="kw-2">*</span>lsize, <span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>)
                 .into(),
             DataTypeInformation::Pointer { .. } =&gt; {
-                <span class="kw">let </span><span class="prelude-val">Ok</span>(target_ptr_type) = cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name()) <span class="kw">else </span>{
-                        <span class="macro">unreachable!</span>(<span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>, cast_data.target_type.get_name())
-                    };
+                <span class="kw">let </span><span class="prelude-val">Ok</span>(target_ptr_type) =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+                <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(
+                        <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                        cast_data.target_type.get_name()
+                    )
+                };
                 <span class="kw">if </span>BasicValueEnum::from(<span class="self">self</span>).get_type() != target_ptr_type {
                     <span class="comment">// bit-cast necessary
                     </span>cast_data.llvm.builder.build_bitcast(<span class="self">self</span>, target_ptr_type, <span class="string">&quot;&quot;</span>)
@@ -611,14 +630,17 @@
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span>cast_data.llvm.builder;
         <span class="kw">let </span>zero = cast_data.llvm.i32_type().const_zero();
 
-        <span class="kw">let </span><span class="prelude-val">Ok</span>(associated_type) = cast_data
-            .llvm_type_index
-            .get_associated_type(cast_data.target_type.get_name()) <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>, cast_data.target_type.get_name())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(associated_type) =
+            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
+        <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(
+                <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                cast_data.target_type.get_name()
+            )
         };
 
         <span class="comment">// Get array annotation from parent POU and get pointer to array
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">&quot;Undefined reference: {}&quot;</span>, cast_data.value_type.get_name())
         };
         <span class="kw">let </span>array_pointer = cast_data

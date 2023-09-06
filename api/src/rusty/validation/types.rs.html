@@ -103,8 +103,10 @@
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+<a href="#106" id="106">106</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
     index::Index,
@@ -127,7 +129,7 @@
 <span class="kw">pub fn </span>visit_data_type&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     data_type: <span class="kw-2">&amp;</span>DataType,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     validate_data_type(validator, data_type, location);
@@ -146,7 +148,7 @@
     }
 }
 
-<span class="kw">fn </span>validate_data_type(validator: <span class="kw-2">&amp;mut </span>Validator, data_type: <span class="kw-2">&amp;</span>DataType, location: <span class="kw-2">&amp;</span>SourceRange) {
+<span class="kw">fn </span>validate_data_type(validator: <span class="kw-2">&amp;mut </span>Validator, data_type: <span class="kw-2">&amp;</span>DataType, location: <span class="kw-2">&amp;</span>SourceLocation) {
     <span class="kw">match </span>data_type {
         DataType::StructType { variables, .. } =&gt; {
             <span class="kw">if </span>variables.is_empty() {

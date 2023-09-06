@@ -73,8 +73,6 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::AstStatement;
 <span class="kw">use </span>indexmap::IndexMap;
 
@@ -113,9 +111,7 @@
         session: <span class="kw-2">&amp;</span>ParseSession,
         ast_association: <span class="kw-2">&amp;</span>IndexMap&lt;usize, AstStatement&gt;,
     ) -&gt; (AstStatement, <span class="prelude-ty">Option</span>&lt;NodeId&gt;) {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(current_node) = <span class="self">self</span>.nodes.get(<span class="kw-2">&amp;</span>id) <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(current_node) = <span class="self">self</span>.nodes.get(<span class="kw-2">&amp;</span>id) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
         <span class="kw">match </span>current_node {
             Node::Block(block) =&gt; (block.transform(session, <span class="kw-2">&amp;</span><span class="self">self</span>.nodes), <span class="prelude-val">None</span>),

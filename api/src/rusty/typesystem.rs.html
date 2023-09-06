@@ -1348,6 +1348,11 @@
 <a href="#1348" id="1348">1348</a>
 <a href="#1349" id="1349">1349</a>
 <a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1359,10 +1364,11 @@
     ast::{AstStatement, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
     datalayout::{Bytes, MemoryLocation},
-    index::{const_expressions::ConstId, symbol::SymbolLocation, Index, VariableIndexEntry},
+    index::{const_expressions::ConstId, Index, VariableIndexEntry},
 };
 
 <span class="kw">pub const </span>DEFAULT_STRING_LEN: u32 = <span class="number">80</span>;
@@ -1448,7 +1454,7 @@
     </span><span class="kw">pub </span>initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
     <span class="kw">pub </span>information: DataTypeInformation,
     <span class="kw">pub </span>nature: TypeNature,
-    <span class="kw">pub </span>location: SymbolLocation,
+    <span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="kw">impl </span>Hash <span class="kw">for </span>DataType {
@@ -1854,7 +1860,11 @@
     }
 
     <span class="kw">pub fn </span>get_vla_referenced_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="kw">let </span>DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = <span class="self">self </span><span class="kw">else </span>{
+        <span class="kw">let </span>DataTypeInformation::Struct {
+            source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name, .. }),
+            ..
+        } = <span class="self">self
+        </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         };
 
@@ -2109,7 +2119,7 @@
             initial_value: <span class="prelude-val">None</span>,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: <span class="string">&quot;__VLA&quot;</span>.into(),
@@ -2120,7 +2130,7 @@
                 source: StructSource::Internal(InternalType::__VLA),
             },
             nature: TypeNature::__VLA,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: U1_TYPE.into(),
@@ -2132,7 +2142,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Any,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: BOOL_TYPE.into(),
@@ -2144,7 +2154,7 @@
                 semantic_size: <span class="prelude-val">Some</span>(<span class="number">1</span>),
             },
             nature: TypeNature::Bit,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: BYTE_TYPE.into(),
@@ -2156,7 +2166,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Bit,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: SINT_TYPE.into(),
@@ -2168,7 +2178,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Signed,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: USINT_TYPE.into(),
@@ -2180,7 +2190,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Unsigned,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: WORD_TYPE.into(),
@@ -2192,7 +2202,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Bit,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: INT_TYPE.into(),
@@ -2204,7 +2214,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Signed,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: UINT_TYPE.into(),
@@ -2216,7 +2226,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Unsigned,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: DWORD_TYPE.into(),
@@ -2228,7 +2238,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Bit,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: DINT_TYPE.into(),
@@ -2240,7 +2250,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Signed,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: UDINT_TYPE.into(),
@@ -2252,7 +2262,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Unsigned,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LWORD_TYPE.into(),
@@ -2264,7 +2274,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Bit,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LINT_TYPE.into(),
@@ -2276,7 +2286,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Signed,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: DATE_TYPE.into(),
@@ -2288,7 +2298,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: TIME_TYPE.into(),
@@ -2300,7 +2310,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Duration,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: DATE_AND_TIME_TYPE.into(),
@@ -2312,7 +2322,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: TIME_OF_DAY_TYPE.into(),
@@ -2324,7 +2334,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: ULINT_TYPE.into(),
@@ -2336,21 +2346,21 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Unsigned,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: REAL_TYPE.into(),
             initial_value: <span class="prelude-val">None</span>,
             information: DataTypeInformation::Float { name: REAL_TYPE.into(), size: REAL_SIZE },
             nature: TypeNature::Real,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LREAL_TYPE.into(),
             initial_value: <span class="prelude-val">None</span>,
             information: DataTypeInformation::Float { name: LREAL_TYPE.into(), size: LREAL_SIZE },
             nature: TypeNature::Real,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: STRING_TYPE.into(),
@@ -2360,7 +2370,7 @@
                 encoding: StringEncoding::Utf8,
             },
             nature: TypeNature::String,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: WSTRING_TYPE.into(),
@@ -2370,7 +2380,7 @@
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
@@ -2380,7 +2390,7 @@
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
@@ -2390,7 +2400,7 @@
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE.into(),
@@ -2400,7 +2410,7 @@
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: SHORT_DATE_TYPE.into(),
@@ -2410,7 +2420,7 @@
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_DATE_TYPE.into(),
@@ -2420,7 +2430,7 @@
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_DATE_TYPE_SHORTENED.into(),
@@ -2430,7 +2440,7 @@
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
@@ -2440,7 +2450,7 @@
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE.into(),
@@ -2450,7 +2460,7 @@
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
@@ -2460,7 +2470,7 @@
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: SHORT_TIME_TYPE.into(),
@@ -2470,7 +2480,7 @@
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_TIME_TYPE.into(),
@@ -2480,7 +2490,7 @@
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: LONG_TIME_TYPE_SHORTENED.into(),
@@ -2490,7 +2500,7 @@
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: CHAR_TYPE.into(),
@@ -2502,7 +2512,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Char,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
         DataType {
             name: WCHAR_TYPE.into(),
@@ -2514,7 +2524,7 @@
                 semantic_size: <span class="prelude-val">None</span>,
             },
             nature: TypeNature::Char,
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         },
     ]
 }

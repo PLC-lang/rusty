@@ -904,6 +904,25 @@
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -913,12 +932,13 @@
 };
 <span class="kw">use </span>core::str::Split;
 <span class="kw">use </span>plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator, SourceRange},
+    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator},
     literals::{AstLiteral, Time},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>regex::{Captures, Regex};
-<span class="kw">use </span>std::str::FromStr;
+<span class="kw">use </span>std::{ops::Range, str::FromStr};
 
 <span class="kw">use </span><span class="kw">super</span>::parse_hardware_access;
 
@@ -1057,7 +1077,7 @@
                 expressions: <span class="macro">vec!</span>[left, right],
                 id: lexer.next_id(),
             })),
-            location: (start_location.get_start()..lexer.last_location().get_end()).into(),
+            location: start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
             id: lexer.next_id(),
         }
     }
@@ -1067,7 +1087,7 @@
 <span class="comment">// UNARY -x, NOT x
 </span><span class="kw">fn </span>parse_unary_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
     <span class="comment">// collect all consecutive operators
-    </span><span class="kw">let </span>start = lexer.range().start;
+    </span><span class="kw">let </span>start_location = lexer.location();
     <span class="kw">let </span><span class="kw-2">mut </span>operators = <span class="macro">vec!</span>[];
     <span class="kw">while let </span><span class="prelude-val">Some</span>(operator) = <span class="kw">match </span>lexer.token {
         OperatorNot =&gt; <span class="prelude-val">Some</span>(Operator::Not),
@@ -1082,7 +1102,7 @@
     </span><span class="kw">let </span>init = parse_leaf_expression(lexer);
     operators.iter().rev().fold(init, |expression, operator| {
         <span class="kw">let </span>expression_location = expression.get_location();
-        <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..expression_location.get_end());
+        <span class="kw">let </span>location = start_location.span(<span class="kw-2">&amp;</span>expression_location);
 
         <span class="kw">match </span>(<span class="kw-2">&amp;</span>operator, <span class="kw-2">&amp;</span>expression) {
             (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; {
@@ -1274,20 +1294,20 @@
 
     <span class="comment">// is this a callstatement?
     </span><span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
-        <span class="kw">let </span>start = reference.get_location().get_start();
+        <span class="kw">let </span>start_location = reference.get_location();
         <span class="comment">// Call Statement
         </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensClose) {
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(<span class="prelude-val">None</span>),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                location: start_location.span(<span class="kw-2">&amp;</span>lexer.location()),
                 id: lexer.next_id(),
             }
         } <span class="kw">else </span>{
             parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(<span class="prelude-val">Some</span>(parse_expression_list(lexer))),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                location: start_location.span(<span class="kw-2">&amp;</span>lexer.location()),
                 id: lexer.next_id(),
             })
         };
@@ -1336,13 +1356,15 @@
             <span class="comment">// CAST-Statement: INT#a.b.c
             // this means INT#(a.b.c) rather than (INT#a).b.c
             </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(TypeCastPrefix)) =&gt; {
-                <span class="kw">let </span>location_start = lexer.location();
+                <span class="kw">let </span>location_start = lexer.range().start;
+                <span class="kw">let </span>location = lexer.location();
                 <span class="kw">let </span><span class="kw-2">mut </span>type_name = lexer.slice_and_advance();
                 type_name.pop(); <span class="comment">// get rid of the &quot;#&quot; at the end
                 </span><span class="kw">let </span>stmt = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
                 <span class="kw">let </span>end = stmt.get_location();
-                <span class="kw">let </span>type_range =
-                    (location_start.get_start()..(location_start.get_start() + type_name.len())).into();
+                <span class="kw">let </span>type_range = lexer
+                    .source_range_factory
+                    .create_range(location_start..(location_start + type_name.len()));
                 current = <span class="prelude-val">Some</span>(AstFactory::create_cast_statement(
                     AstFactory::create_member_reference(
                         AstFactory::create_identifier(type_name.as_str(), <span class="kw-2">&amp;</span>type_range, lexer.next_id()),
@@ -1350,7 +1372,7 @@
                         lexer.next_id(),
                     ),
                     stmt,
-                    <span class="kw-2">&amp;</span>location_start.span(<span class="kw-2">&amp;</span>end),
+                    <span class="kw-2">&amp;</span>location.span(<span class="kw-2">&amp;</span>end),
                     lexer.next_id(),
                 ));
             }
@@ -1416,7 +1438,7 @@
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer or Reference&quot;</span>, lexer.slice(), lexer.location())),
     }<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>location = (location.get_start()..lexer.last_location().get_end()).into();
+    <span class="kw">let </span>location = location.span(<span class="kw-2">&amp;</span>lexer.last_location());
     <span class="prelude-val">Ok</span>(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
 }
 
@@ -1441,21 +1463,29 @@
 <span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
     <span class="kw">let </span>location = <span class="kw">if </span>is_negative {
         <span class="comment">//correct the location if we just parsed a minus before
-        </span>(lexer.last_range.start..lexer.location().get_end()).into()
+        </span>lexer.last_range.start..lexer.range().end
     } <span class="kw">else </span>{
-        lexer.location()
+        lexer.range()
     };
     <span class="kw">let </span>result = lexer.slice_and_advance();
     <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
         <span class="kw">let </span>value = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
         <span class="comment">//Treat exponents as reals
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_real(value), lexer.next_id(), location));
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::new_literal(
+            AstLiteral::new_real(value),
+            lexer.next_id(),
+            lexer.source_range_factory.create_range(location),
+        ));
     } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot) {
         <span class="kw">return </span>parse_literal_real(lexer, result, location, is_negative);
     } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
-        <span class="kw">let </span>multiplier = result
-            .parse::&lt;u32&gt;()
-            .map_err(|e| Diagnostic::syntax_error(<span class="macro">format!</span>(<span class="string">&quot;{e}&quot;</span>).as_str(), location.clone()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>start = location.start;
+        <span class="kw">let </span>multiplier = result.parse::&lt;u32&gt;().map_err(|e| {
+            Diagnostic::syntax_error(
+                <span class="macro">format!</span>(<span class="string">&quot;{e}&quot;</span>).as_str(),
+                lexer.source_range_factory.create_range(location),
+            )
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span>element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)<span class="question-mark">?</span>;
         <span class="kw">let </span>end = lexer.range().end;
@@ -1463,7 +1493,7 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: lexer.source_range_factory.create_range(location.get_start()..end),
+            location: lexer.source_range_factory.create_range(start..end),
             id: lexer.next_id(),
         });
     }
@@ -1474,7 +1504,11 @@
     <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+        AstLiteral::new_integer(value),
+        lexer.next_id(),
+        lexer.source_range_factory.create_range(location),
+    ))
 }
 
 <span class="doccomment">/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
@@ -1492,13 +1526,17 @@
     }
 }
 
-<span class="kw">fn </span>parse_number&lt;F: FromStr&gt;(text: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceRange) -&gt; <span class="prelude-ty">Result</span>&lt;F, Diagnostic&gt; {
+<span class="kw">fn </span>parse_number&lt;F: FromStr&gt;(text: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="prelude-ty">Result</span>&lt;F, Diagnostic&gt; {
     text.parse::&lt;F&gt;().map_err(|<span class="kw">_</span>| {
         Diagnostic::syntax_error(<span class="macro">format!</span>(<span class="string">&quot;Failed parsing number {text}&quot;</span>).as_str(), location.clone())
     })
 }
 
-<span class="kw">fn </span>parse_date_from_string(text: <span class="kw-2">&amp;</span>str, location: SourceRange, id: AstId) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_date_from_string(
+    text: <span class="kw-2">&amp;</span>str,
+    location: SourceLocation,
+    id: AstId,
+) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>segments = text.split(<span class="string">&#39;-&#39;</span>);
 
     <span class="comment">//we can safely expect 3 numbers
@@ -1574,7 +1612,7 @@
 
 <span class="kw">fn </span>parse_time_of_day(
     time: <span class="kw-2">&amp;mut </span>Split&lt;char&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, u32, u32, u32), Diagnostic&gt; {
     <span class="kw">let </span>hour = parse_number::&lt;u32&gt;(time.next().expect(<span class="string">&quot;expected hours&quot;</span>), location)<span class="question-mark">?</span>;
     <span class="kw">let </span>min = parse_number::&lt;u32&gt;(time.next().expect(<span class="string">&quot;expected minutes&quot;</span>), location)<span class="question-mark">?</span>;
@@ -1760,11 +1798,11 @@
 <span class="kw">fn </span>parse_literal_real(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     integer: String,
-    integer_range: SourceRange,
+    integer_range: Range&lt;usize&gt;,
     is_negative: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
     <span class="kw">if </span>lexer.token == LiteralInteger {
-        <span class="kw">let </span>start = integer_range.get_start();
+        <span class="kw">let </span>start = integer_range.start;
         <span class="kw">let </span>end = lexer.range().end;
         <span class="kw">let </span>fractional = lexer.slice_and_advance();
         <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">&quot;{}{}.{}&quot;</span>, <span class="kw">if </span>is_negative { <span class="string">&quot;-&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}, integer, fractional);

@@ -739,6 +739,9 @@
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
 <a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use crate</span>::{
@@ -748,6 +751,7 @@
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="doccomment">/// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -917,7 +921,7 @@
     id: AstId,
     target_type: <span class="kw-2">&amp;</span>str,
     index: <span class="kw-2">&amp;</span>Index,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstStatement&gt;, UnresolvableKind&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = index.get_initial_value_for_type(target_type) {
         evaluate(init, <span class="prelude-val">None</span>, index) <span class="comment">//TODO do we ave a scope here?
@@ -968,7 +972,7 @@
     index: <span class="kw-2">&amp;</span>Index,
 ) -&gt; AstStatement {
     <span class="kw">let </span><span class="prelude-val">Some</span>(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) <span class="kw">else </span>{
-         <span class="kw">return </span>statement;
+        <span class="kw">return </span>statement;
     };
 
     <span class="kw">if let </span>AstStatement::Literal { kind: literal, location, id } = <span class="kw-2">&amp;</span>statement {
@@ -1368,7 +1372,9 @@
             };
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(value) = value <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;cannot resolve constant: {type_name}#{cast_statement:?}&quot;</span>)))
+                <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(
+                    <span class="string">&quot;cannot resolve constant: {type_name}#{cast_statement:?}&quot;
+                </span>)));
             };
 
             <span class="prelude-val">Ok</span>(AstStatement::Literal {
@@ -1458,7 +1464,7 @@
             (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(AstStatement::Literal{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
@@ -1468,7 +1474,7 @@
             (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(AstStatement::Literal{
-                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                    id: <span class="macro-nonterminal">$resulting_id</span>, kind: AstLiteral::new_bool(lvalue <span class="macro-nonterminal">$op </span>rvalue), location: loc_left.span(loc_right)
                 })
             },
             <span class="kw">_ </span>=&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>),
@@ -1477,7 +1483,7 @@
 }
 <span class="kw">use </span>compare_expression;
 <span class="kw">use </span>plc_ast::{
-    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
+    ast::{AstId, AstStatement, Operator, ReferenceAccess},
     literals::{Array, AstLiteral, StringValue},
 };
 </code></pre></div></section></main></body></html>

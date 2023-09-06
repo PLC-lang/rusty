@@ -939,6 +939,11 @@
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
@@ -952,12 +957,13 @@
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
-<span class="kw">use </span>plc_ast::ast::{LinkageType, SourceRange};
+<span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    index::{symbol::SymbolLocation, ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
+    index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -1004,8 +1010,8 @@
         llvm: <span class="kw-2">&amp;</span>Llvm,
         scope: <span class="kw-2">&amp;</span>FunctionValue,
         <span class="comment">//Current line starts with 0
-        </span>line: u32,
-        column: u32,
+        </span>line: usize,
+        column: usize,
     );
 
     <span class="doccomment">/// Registers a new function for debugging, this method is responsible for registering a
@@ -1017,7 +1023,7 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     );
 
     <span class="doccomment">/// Registers a new datatype for debugging
@@ -1034,7 +1040,7 @@
         name: <span class="kw-2">&amp;</span>str,
         type_name: <span class="kw-2">&amp;</span>str,
         global_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     );
 
     <span class="doccomment">/// Creates a locally accessible variable.
@@ -1062,8 +1068,8 @@
         value: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         scope: FunctionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         block: BasicBlock&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     );
 
     <span class="doccomment">/// When code generation is done, this method needs to be called to ensure the inner LLVM state
@@ -1177,12 +1183,12 @@
         name: <span class="kw-2">&amp;</span>str,
         size: u64,
         encoding: DebugEncoding,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>res = <span class="self">self
             </span>.debug_info
             .create_basic_type(name, size, encoding <span class="kw">as </span>u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location.source_range.clone()))<span class="question-mark">?</span>;
+            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))<span class="question-mark">?</span>;
         <span class="self">self</span>.register_concrete_type(name, DebugType::Basic(res));
         <span class="prelude-val">Ok</span>(())
     }
@@ -1192,7 +1198,7 @@
         name: <span class="kw-2">&amp;</span>str,
         members: <span class="kw-2">&amp;</span>[VariableIndexEntry],
         index: <span class="kw-2">&amp;</span>Index,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//Create each type
         </span><span class="kw">let </span>index_types = members
@@ -1204,7 +1210,6 @@
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
@@ -1224,7 +1229,7 @@
                         file.as_debug_info_scope(),
                         member_name,
                         file,
-                        location.line_number.wrapping_add(<span class="number">1</span>),
+                        location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
                         size.bits().into(),
                         alignment.bits(),
                         running_offset.bits().into(),
@@ -1243,7 +1248,7 @@
             file.as_debug_info_scope(),
             name,
             file,
-            location.line_number.wrapping_add(<span class="number">1</span>),
+            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
             running_offset.bits().into(),
             struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
@@ -1275,7 +1280,7 @@
             .map(|it| it.get_range(index))
             <span class="comment">//Convert to normal range
             </span>.collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Range&lt;i64&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
-            .map_err(|err| Diagnostic::codegen_error(<span class="kw-2">&amp;</span>err, SourceRange::undefined()))<span class="question-mark">?</span>;
+            .map_err(|err| Diagnostic::codegen_error(<span class="kw-2">&amp;</span>err, SourceLocation::undefined()))<span class="question-mark">?</span>;
         <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index)<span class="question-mark">?</span>;
         <span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
             inner_type.into(),
@@ -1357,12 +1362,11 @@
         name: <span class="kw-2">&amp;</span>str,
         referenced_type: <span class="kw-2">&amp;</span>str,
         index: <span class="kw-2">&amp;</span>Index,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>inner_dt = index.get_effective_type_by_name(referenced_type)<span class="question-mark">?</span>;
         <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_dt, index)<span class="question-mark">?</span>;
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
@@ -1371,7 +1375,7 @@
             inner_type.into(),
             name,
             file,
-            location.line_number.wrapping_add(<span class="number">1</span>),
+            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
             file.as_debug_info_scope(),
             inner_dt.get_type_information().get_alignment(index).bits(),
         );
@@ -1412,11 +1416,10 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) -&gt; DISubprogram {
         <span class="kw">let </span>location = pou.get_location();
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
@@ -1427,12 +1430,12 @@
             pou.get_name(),
             <span class="prelude-val">Some</span>(pou.get_name()), <span class="comment">// for generics e.g. NAME__TYPE
             </span>file,
-            location.line_number.wrapping_add(<span class="number">1</span>),
+            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
             <span class="comment">// entry for the function
             </span>ditype,
             <span class="bool-val">false</span>, <span class="comment">// TODO: what is this
             </span>!is_external,
-            implementation_start + <span class="number">1</span>,
+            (implementation_start + <span class="number">1</span>) <span class="kw">as </span>u32,
             DIFlagsConstants::PUBLIC,
             <span class="self">self</span>.optimization.is_optimized(),
         )
@@ -1502,11 +1505,10 @@
         );
         <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.line_number.wrapping_add(<span class="number">1</span>);
+        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -1536,12 +1538,18 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; Debug&lt;<span class="lifetime">&#39;ink</span>&gt; <span class="kw">for </span>DebugBuilder&lt;<span class="lifetime">&#39;ink</span>&gt; {
-    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: u32, column: u32) {
+    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: usize, column: usize) {
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
-        <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(<span class="self">self</span>.context, line + <span class="number">1</span>, column, scope, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(
+            <span class="self">self</span>.context,
+            (line + <span class="number">1</span>) <span class="kw">as </span>u32,
+            column <span class="kw">as </span>u32,
+            scope,
+            <span class="prelude-val">None</span>,
+        );
         llvm.builder.set_current_debug_location(location);
     }
 
@@ -1552,7 +1560,7 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) {
         <span class="kw">let </span>subprogram = <span class="self">self</span>.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
@@ -1601,7 +1609,7 @@
                 DataTypeInformation::String { size: string_size, encoding, .. } =&gt; {
                     <span class="kw">let </span>length = string_size
                         .as_int_value(index)
-                        .map_err(|err| Diagnostic::codegen_error(<span class="kw-2">&amp;</span>err, SourceRange::undefined()))<span class="question-mark">?</span>;
+                        .map_err(|err| Diagnostic::codegen_error(<span class="kw-2">&amp;</span>err, SourceLocation::undefined()))<span class="question-mark">?</span>;
                     <span class="self">self</span>.create_string_type(name, length, <span class="kw-2">*</span>encoding, size, alignment, index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
@@ -1621,12 +1629,11 @@
         name: <span class="kw-2">&amp;</span>str,
         type_name: <span class="kw-2">&amp;</span>str,
         global_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_type) = <span class="self">self</span>.types.get(<span class="kw-2">&amp;</span>type_name.to_lowercase()) {
             <span class="kw">let </span>debug_type = <span class="kw-2">*</span>debug_type;
             <span class="kw">let </span>file = location
-                .source_range
                 .get_file_name()
                 .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
                 .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
@@ -1635,7 +1642,7 @@
                 name,
                 <span class="string">&quot;&quot;</span>,
                 file,
-                location.line_number.wrapping_add(<span class="number">1</span>),
+                location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
                 debug_type.into(),
                 <span class="bool-val">false</span>,
                 <span class="prelude-val">None</span>,
@@ -1658,11 +1665,10 @@
         <span class="kw">let </span>type_name = variable.get_type_name();
         <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.line_number.wrapping_add(<span class="number">1</span>);
+        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
 
         <span class="kw">let </span>scope = scope
             .get_subprogram()
@@ -1693,11 +1699,10 @@
         <span class="kw">let </span>type_name = variable.get_type_name();
         <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
         <span class="kw">let </span>file = location
-            .source_range
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.line_number.wrapping_add(<span class="number">1</span>);
+        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -1728,11 +1733,10 @@
             <span class="kw">let </span>debug_type = <span class="kw-2">*</span>debug_type;
             <span class="kw">let </span>file = pou
                 .get_location()
-                .source_range
                 .get_file_name()
                 .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
                 .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-            <span class="kw">let </span>line = pou.get_location().line_number.wrapping_add(<span class="number">1</span>);
+            <span class="kw">let </span>line = pou.get_location().get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
             <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_parameter_variable(
                 scope,
                 pou.get_name(),
@@ -1753,14 +1757,20 @@
         value: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         scope: FunctionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         block: BasicBlock&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     ) {
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
-        <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(<span class="self">self</span>.context, line + <span class="number">1</span>, column, scope, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(
+            <span class="self">self</span>.context,
+            (line + <span class="number">1</span>) <span class="kw">as </span>u32,
+            column <span class="kw">as </span>u32,
+            scope,
+            <span class="prelude-val">None</span>,
+        );
         <span class="self">self</span>.debug_info.insert_declare_at_end(
             value,
             <span class="self">self</span>.variables.get(name).copied(),
@@ -1776,7 +1786,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; Debug&lt;<span class="lifetime">&#39;ink</span>&gt; <span class="kw">for </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
-    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: u32, column: u32) {
+    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: usize, column: usize) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(..) =&gt; {}
             <span class="self">Self</span>::Full(obj) =&gt; obj.set_debug_location(llvm, scope, line, column),
@@ -1790,7 +1800,7 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType],
-        implementation_start: u32,
+        implementation_start: usize,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(..) =&gt; {}
@@ -1817,7 +1827,7 @@
         name: <span class="kw-2">&amp;</span>str,
         type_name: <span class="kw-2">&amp;</span>str,
         global_variable: GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        location: <span class="kw-2">&amp;</span>SymbolLocation,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None =&gt; {}
@@ -1864,8 +1874,8 @@
         value: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         scope: FunctionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         block: BasicBlock&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        line: u32,
-        column: u32,
+        line: usize,
+        column: usize,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(<span class="kw">_</span>) =&gt; {}

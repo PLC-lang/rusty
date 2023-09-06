@@ -259,16 +259,12 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>generational_arena::{Arena, Iter};
-<span class="kw">use </span>plc_ast::{
-    ast::{AstStatement, SourceRange},
-    literals::AstLiteral,
-};
+<span class="kw">use </span>plc_ast::{ast::AstStatement, literals::AstLiteral};
 
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">pub type </span>ConstId = generational_arena::Index;
 
 <span class="doccomment">/// wrapper around ConstExpression stored in the arena
@@ -341,7 +337,7 @@
     </span>Misc(String),
 
     <span class="doccomment">/// Indicates that the const expression was not resolvable because it would yield an overflow.
-    </span>Overflow(String, SourceRange),
+    </span>Overflow(String, SourceLocation),
 }
 
 <span class="kw">impl </span>UnresolvableKind {

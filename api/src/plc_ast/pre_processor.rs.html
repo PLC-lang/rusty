@@ -282,6 +282,7 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::collections::HashMap;
@@ -291,11 +292,12 @@
 <span class="kw">use crate</span>::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+        Operator, Pou, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">pub fn </span>pre_process(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, <span class="kw-2">mut </span>id_provider: IdProvider) {
     <span class="comment">//process all local variables from POUs
@@ -350,7 +352,7 @@
                     <span class="kw">let </span>type_name = internal_type_name(<span class="string">&quot;&quot;</span>, name);
                     <span class="kw">let </span>type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
-                        location: SourceRange::undefined(), <span class="comment">//return_type.get_location(),
+                        location: SourceLocation::undefined(), <span class="comment">//return_type.get_location(),
                     </span>};
                     <span class="kw">let </span>datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { <span class="kw-2">mut </span>data_type, location, scope } =
@@ -432,7 +434,7 @@
 
 <span class="kw">fn </span>build_enum_initializer(
     last_name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     id_provider: <span class="kw-2">&amp;mut </span>IdProvider,
     enum_name: <span class="kw-2">&amp;mut </span>str,
 ) -&gt; AstStatement {
@@ -537,7 +539,7 @@
     container_name: <span class="kw-2">&amp;</span>str,
     datatype: <span class="kw-2">&amp;mut </span>DataType,
     types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
 ) {
     <span class="kw">let </span>new_type_name = <span class="macro">format!</span>(<span class="string">&quot;{container_name}_&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeDefinition { <span class="kw-2">mut </span>data_type, location: inner_location, scope }) =

@@ -774,9 +774,17 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, ops::Range};
 
-<span class="kw">use </span>plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
+<span class="kw">use </span>plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use </span><span class="kw">crate</span>::errno::ErrNo;
 
@@ -784,10 +792,10 @@
 
 <span class="attr">#[derive(PartialEq, Eq, Debug, Clone)]
 </span><span class="kw">pub enum </span>Diagnostic {
-    SyntaxError { message: String, range: Vec&lt;SourceRange&gt;, err_no: ErrNo },
-    SemanticError { message: String, range: Vec&lt;SourceRange&gt;, err_no: ErrNo },
+    SyntaxError { message: String, range: Vec&lt;SourceLocation&gt;, err_no: ErrNo },
+    SemanticError { message: String, range: Vec&lt;SourceLocation&gt;, err_no: ErrNo },
     GeneralError { message: String, err_no: ErrNo },
-    ImprovementSuggestion { message: String, range: Vec&lt;SourceRange&gt; },
+    ImprovementSuggestion { message: String, range: Vec&lt;SourceLocation&gt; },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec&lt;Diagnostic&gt;, err_no: ErrNo },
 }
 
@@ -799,7 +807,7 @@
 
 <span class="kw">impl </span>Diagnostic {
     <span class="doccomment">/// Creates a new diagnostic with additional ranges
-    </span><span class="kw">pub fn </span>with_extra_ranges(<span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[SourceRange]) -&gt; Diagnostic {
+    </span><span class="kw">pub fn </span>with_extra_ranges(<span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[SourceLocation]) -&gt; Diagnostic {
         <span class="kw">match </span><span class="self">self </span>{
             Diagnostic::SyntaxError { message, <span class="kw-2">mut </span>range, err_no } =&gt; {
                 range.extend_from_slice(ranges);
@@ -817,7 +825,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>syntax_error(message: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>syntax_error(message: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
             range: <span class="macro">vec!</span>[range],
@@ -825,7 +833,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>unexpected_token_found(expected: <span class="kw-2">&amp;</span>str, found: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unexpected_token_found(expected: <span class="kw-2">&amp;</span>str, found: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Unexpected token: expected {expected} but found {found}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -833,7 +841,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>unexpected_initializer_on_function_return(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unexpected_initializer_on_function_return(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Return types cannot have a default value&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -841,7 +849,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>return_type_not_supported(pou_type: <span class="kw-2">&amp;</span>PouType, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>return_type_not_supported(pou_type: <span class="kw-2">&amp;</span>PouType, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;POU Type {pou_type:?} does not support a return type. Did you mean Function?&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -849,7 +857,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>function_unsupported_return_type(data_type: <span class="kw-2">&amp;</span>DataTypeDeclaration) -&gt; Diagnostic {
+    <span class="comment">//TODO: This prints a debug version of the datatype, it should have a user readable version instead
+    </span><span class="kw">pub fn </span>function_unsupported_return_type(data_type: <span class="kw-2">&amp;</span>DataTypeDeclaration) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Data Type {data_type:?} not supported as a function return type!&quot;</span>),
             range: <span class="macro">vec!</span>[data_type.get_location()],
@@ -857,7 +866,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>function_return_missing(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>function_return_missing(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Function Return type missing&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -865,7 +874,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>missing_function(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_function(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Cannot generate code outside of function context.&quot;</span>.into(),
             range: <span class="macro">vec!</span>[location],
@@ -876,7 +885,7 @@
     <span class="kw">pub fn </span>missing_compare_function(
         function_name: <span class="kw-2">&amp;</span>str,
         data_type: <span class="kw-2">&amp;</span>str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
@@ -887,7 +896,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>missing_token(expected_token: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_token(expected_token: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Missing expected Token {expected_token}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -895,14 +904,14 @@
         }
     }
 
-    <span class="kw">pub fn </span>missing_action_container(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_action_container(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: <span class="string">&quot;Missing Actions Container Name&quot;</span>.to_string(),
             range: <span class="macro">vec!</span>[range],
         }
     }
 
-    <span class="kw">pub fn </span>unresolved_reference(reference: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unresolved_reference(reference: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Could not resolve reference to {reference:}&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -910,7 +919,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>illegal_access(reference: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>illegal_access(reference: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Illegal access to private member {reference:}&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -918,7 +927,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>unresolved_generic_type(symbol: <span class="kw-2">&amp;</span>str, nature: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unresolved_generic_type(symbol: <span class="kw-2">&amp;</span>str, nature: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Could not resolve generic type {symbol} with nature {nature}&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -926,7 +935,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>unknown_type(type_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unknown_type(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Unknown type: {type_name:}&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -934,7 +943,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>casting_error(type_name: <span class="kw-2">&amp;</span>str, target_type: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>casting_error(type_name: <span class="kw-2">&amp;</span>str, target_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Cannot cast from {type_name:} to {target_type:}&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -945,7 +954,7 @@
     <span class="kw">pub fn </span>incompatible_directaccess(
         access_type: <span class="kw-2">&amp;</span>str,
         access_size: u64,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
@@ -960,7 +969,7 @@
         access_type: <span class="kw-2">&amp;</span>str,
         target_type: <span class="kw-2">&amp;</span>str,
         access_range: Range&lt;u64&gt;,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
@@ -972,7 +981,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>incompatible_directaccess_variable(access_type: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>incompatible_directaccess_variable(access_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
                 <span class="string">&quot;Invalid type {access_type} for direct variable access. Only variables of Integer types are allowed&quot;</span>,
@@ -982,7 +991,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>incompatible_array_access_range(range: Range&lt;i64&gt;, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>incompatible_array_access_range(range: Range&lt;i64&gt;, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Array access must be in the range {}..{}&quot;</span>, range.start, range.end),
             range: <span class="macro">vec!</span>[location],
@@ -990,7 +999,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>incompatible_array_access_variable(access_type: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>incompatible_array_access_variable(access_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
                 <span class="string">&quot;Invalid type {access_type} for array access. Only variables of Array types are allowed&quot;</span>,
@@ -1000,7 +1009,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>incompatible_array_access_type(access_type: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>incompatible_array_access_type(access_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
                 <span class="string">&quot;Invalid type {access_type} for array access. Only variables of Integer types are allowed to access an array&quot;</span>,
@@ -1013,7 +1022,7 @@
     <span class="kw">pub fn </span>incompatible_literal_cast(
         cast_type: <span class="kw-2">&amp;</span>str,
         literal_type: <span class="kw-2">&amp;</span>str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Literal {literal_type} is not compatible to {cast_type}&quot;</span>),
@@ -1022,7 +1031,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>literal_expected(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>literal_expected(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Expected literal&quot;</span>.into(),
             range: <span class="macro">vec!</span>[location],
@@ -1030,7 +1039,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>literal_out_of_range(literal: <span class="kw-2">&amp;</span>str, range_hint: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>literal_out_of_range(literal: <span class="kw-2">&amp;</span>str, range_hint: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Literal {literal} out of range ({range_hint})&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1038,7 +1047,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>reference_expected(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>reference_expected(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Expression is not assignable&quot;</span>.into(),
             range: <span class="macro">vec!</span>[location],
@@ -1046,7 +1055,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>empty_variable_block(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>empty_variable_block(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Variable block is empty&quot;</span>.into(),
             range: <span class="macro">vec!</span>[location],
@@ -1057,7 +1066,7 @@
     <span class="kw">pub fn </span>unresolved_constant(
         constant_name: <span class="kw-2">&amp;</span>str,
         reason: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
@@ -1069,7 +1078,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_constant_block(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_constant_block(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;This variable block does not support the CONSTANT modifier&quot;</span>.to_string(),
             range: <span class="macro">vec!</span>[location],
@@ -1077,7 +1086,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_constant(constant_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_constant(constant_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
                 <span class="string">&quot;Invalid constant {constant_name} - Functionblock- and Class-instances cannot be delcared constant&quot;</span>,
@@ -1087,7 +1096,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>cannot_assign_to_constant(qualified_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_assign_to_constant(qualified_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Cannot assign to CONSTANT &#39;{qualified_name}&#39;&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1095,14 +1104,14 @@
         }
     }
 
-    <span class="kw">pub fn </span>cannot_generate_initializer(variable_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_generate_initializer(variable_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         <span class="self">Self</span>::codegen_error(
             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate literal initializer for &#39;{variable_name}&#39;: Value cannot be derived&quot;</span>),
             location,
         )
     }
 
-    <span class="kw">pub fn </span>codegen_error(message: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>codegen_error(message: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: message.into(),
             range: <span class="macro">vec!</span>[location],
@@ -1146,21 +1155,21 @@
         }
     }
 
-    <span class="kw">pub fn </span>cannot_generate_from_empty_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_generate_from_empty_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::codegen_error(
             <span class="macro">format!</span>(<span class="string">&quot;Cannot generate {type_name} from empty literal&quot;</span>).as_str(),
             location,
         )
     }
 
-    <span class="kw">pub fn </span>cannot_generate_string_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_generate_string_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::codegen_error(
             <span class="macro">format!</span>(<span class="string">&quot;Cannot generate String-Literal for type {type_name}&quot;</span>).as_str(),
             location,
         )
     }
 
-    <span class="kw">pub fn </span>invalid_assignment(right_type: <span class="kw-2">&amp;</span>str, left_type: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_assignment(right_type: <span class="kw-2">&amp;</span>str, left_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Invalid assignment: cannot assign &#39;{right_type}&#39; to &#39;{left_type}&#39;&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1168,7 +1177,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_type_nature(actual: <span class="kw-2">&amp;</span>str, expected: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_type_nature(actual: <span class="kw-2">&amp;</span>str, expected: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Invalid type nature for generic argument. {actual} is no {expected}.&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1176,7 +1185,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>unknown_type_nature(nature: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unknown_type_nature(nature: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Unknown type nature {nature}.&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1184,7 +1193,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>missing_datatype(reason: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_datatype(reason: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Missing datatype {}&quot;</span>, reason.unwrap_or(<span class="string">&quot;&quot;</span>)),
             range: <span class="macro">vec!</span>[location],
@@ -1192,7 +1201,12 @@
         }
     }
 
-    <span class="kw">pub fn </span>incompatible_type_size(nature: <span class="kw-2">&amp;</span>str, size: u32, error: <span class="kw-2">&amp;</span>str, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>incompatible_type_size(
+        nature: <span class="kw-2">&amp;</span>str,
+        size: u32,
+        error: <span class="kw-2">&amp;</span>str,
+        location: SourceLocation,
+    ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;The type {nature} {size} is too small to {error} Pointer&quot;</span>),
             range: <span class="macro">vec!</span>[location],
@@ -1214,18 +1228,18 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="kw">match </span><span class="self">self </span>{
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
             | Diagnostic::ImprovementSuggestion { range, .. } =&gt; {
-                range.get(<span class="number">0</span>).cloned().unwrap_or_else(SourceRange::undefined)
+                range.get(<span class="number">0</span>).cloned().unwrap_or_else(SourceLocation::undefined)
             }
-            <span class="kw">_ </span>=&gt; SourceRange::undefined(),
+            <span class="kw">_ </span>=&gt; SourceLocation::undefined(),
         }
     }
 
-    <span class="kw">pub fn </span>get_secondary_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[SourceRange]&gt; {
+    <span class="kw">pub fn </span>get_secondary_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[SourceLocation]&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Diagnostic::SyntaxError { range, .. }
             | Diagnostic::SemanticError { range, .. }
@@ -1251,7 +1265,7 @@
     <span class="doccomment">/**
      * relocates the given diagnostic to the given location if possible and returns it back
      */
-    </span><span class="kw">pub fn </span>relocate(it: Diagnostic, new_location: SourceRange) -&gt; Diagnostic {
+    </span><span class="kw">pub fn </span>relocate(it: Diagnostic, new_location: SourceLocation) -&gt; Diagnostic {
         <span class="kw">match </span>it {
             Diagnostic::SyntaxError { message, err_no, .. } =&gt; {
                 Diagnostic::SyntaxError { message, range: <span class="macro">vec!</span>[new_location], err_no }
@@ -1263,14 +1277,14 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_pragma_location(message: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_pragma_location(message: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: <span class="macro">format!</span>(<span class="string">&quot;Invalid pragma location: {message}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
         }
     }
 
-    <span class="kw">pub fn </span>non_constant_case_condition(case: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>non_constant_case_condition(case: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;{case}. Non constant variables are not supported in case conditions&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1278,7 +1292,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>duplicate_case_condition(value: <span class="kw-2">&amp;</span>i128, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>duplicate_case_condition(value: <span class="kw-2">&amp;</span>i128, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Duplicate condition value: {value}. Occurred more than once!&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1286,7 +1300,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>case_condition_used_outside_case_statement(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>case_condition_used_outside_case_statement(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Case condition used outside of case statement! Did you mean to use &#39;;&#39;?&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -1294,7 +1308,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_case_condition(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_case_condition(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Invalid case condition!&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -1302,7 +1316,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>missing_inout_parameter(parameter: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_inout_parameter(parameter: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Missing inout parameter: {parameter}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1310,7 +1324,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_parameter_type(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_parameter_type(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Cannot mix implicit and explicit call parameters!&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -1318,7 +1332,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_parameter_count(expected: usize, received: usize, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_parameter_count(expected: usize, received: usize, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
                 <span class="string">&quot;Invalid parameter count. Received {received} parameters while {expected} parameters were expected.&quot;</span>,
@@ -1331,7 +1345,7 @@
     <span class="kw">pub fn </span>implicit_downcast(
         actual_type_name: <span class="kw-2">&amp;</span>str,
         assigned_type_name: <span class="kw-2">&amp;</span>str,
-        range: SourceRange,
+        range: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: <span class="macro">format!</span>(
@@ -1344,7 +1358,7 @@
     <span class="kw">pub fn </span>invalid_argument_type(
         parameter_name: <span class="kw-2">&amp;</span>str,
         parameter_type: <span class="kw-2">&amp;</span>str,
-        range: SourceRange,
+        range: SourceLocation,
     ) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(
@@ -1355,7 +1369,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_type_name(name: <span class="kw-2">&amp;</span>str, range: Vec&lt;SourceRange&gt;) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_type_name(name: <span class="kw-2">&amp;</span>str, range: Vec&lt;SourceLocation&gt;) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;{name} can not be used as a name because it is a built-in datatype&quot;</span>),
             range,
@@ -1365,20 +1379,20 @@
 
     <span class="kw">pub fn </span>global_name_conflict(
         name: <span class="kw-2">&amp;</span>str,
-        location: SourceRange,
-        conflicts: Vec&lt;SourceRange&gt;,
+        location: SourceLocation,
+        conflicts: Vec&lt;SourceLocation&gt;,
     ) -&gt; Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, <span class="string">&quot;Duplicate symbol.&quot;</span>)
     }
 
     <span class="kw">pub fn </span>global_name_conflict_with_text(
         name: <span class="kw-2">&amp;</span>str,
-        location: SourceRange,
-        conflicts: Vec&lt;SourceRange&gt;,
+        location: SourceLocation,
+        conflicts: Vec&lt;SourceLocation&gt;,
         additional_text: <span class="kw-2">&amp;</span>str,
     ) -&gt; Diagnostic {
         <span class="kw">let </span><span class="kw-2">mut </span>locations = <span class="macro">vec!</span>[location];
-        locations.extend(conflicts.into_iter());
+        locations.extend(conflicts);
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;{name}: {additional_text}&quot;</span>),
             range: locations,
@@ -1386,7 +1400,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_operation(message: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_operation(message: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
             range: <span class="macro">vec!</span>[range],
@@ -1394,7 +1408,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>array_assignment(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>array_assignment(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>.to_string(),
             range: <span class="macro">vec!</span>[range],
@@ -1402,7 +1416,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>array_size(name: <span class="kw-2">&amp;</span>str, len_lhs: usize, len_rhs: usize, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>array_size(name: <span class="kw-2">&amp;</span>str, len_lhs: usize, len_rhs: usize, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1410,7 +1424,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>recursive_datastructure(path: <span class="kw-2">&amp;</span>str, range: Vec&lt;SourceRange&gt;) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>recursive_datastructure(path: <span class="kw-2">&amp;</span>str, range: Vec&lt;SourceLocation&gt;) -&gt; Diagnostic {
         Diagnostic::SemanticError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Recursive data structure `{path}` has infinite size&quot;</span>),
             range,
@@ -1418,7 +1432,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>vla_by_val_warning(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>vla_by_val_warning(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: <span class="string">&quot;Variable Length Arrays are always by-ref, even when declared in a by-value block&quot;
                 </span>.to_string(),
@@ -1426,11 +1440,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_vla_container(message: String, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_vla_container(message: String, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError { message, range: <span class="macro">vec!</span>[range], err_no: ErrNo::vla__invalid_container }
     }
 
-    <span class="kw">pub fn </span>invalid_array_access(expected: usize, actual: usize, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_array_access(expected: usize, actual: usize, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Expected array access with {expected} dimensions, found {actual}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1438,7 +1452,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_range_statement(entity: <span class="kw-2">&amp;</span>AstStatement, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_range_statement(entity: <span class="kw-2">&amp;</span>AstStatement, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {entity:?} instead&quot;</span>),
             range: <span class="macro">vec!</span>[range],
@@ -1446,7 +1460,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>var_input_ref_assignment(location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>var_input_ref_assignment(location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message:
                 <span class="string">&quot;VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.&quot;
@@ -1455,11 +1469,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>overflow(message: String, location: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>overflow(message: String, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError { message, range: <span class="macro">vec!</span>[location], err_no: ErrNo::var__overflow }
     }
 
-    <span class="kw">pub fn </span>index_out_of_bounds(range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>index_out_of_bounds(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError {
             message: <span class="string">&quot;Index out of bounds.&quot;</span>.into(),
             range: <span class="macro">vec!</span>[range],
@@ -1467,7 +1481,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>enum_variant_mismatch(enum_type: <span class="kw-2">&amp;</span>str, range: SourceRange) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>enum_variant_mismatch(enum_type: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Assigned value is not a variant of {enum_type}&quot;</span>),
             range: <span class="macro">vec!</span>[range],

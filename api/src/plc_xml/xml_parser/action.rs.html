@@ -26,7 +26,7 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstStatement, Implementation, PouType <span class="kw">as </span>AstPouType, SourceRange};
+</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstStatement, Implementation, PouType <span class="kw">as </span>AstPouType};
 
 <span class="kw">use </span><span class="kw">crate</span>::model::action::Action;
 
@@ -46,8 +46,8 @@
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: session.create_file_only_location(),
+            name_location: session.create_file_only_location(),
             overriding: <span class="bool-val">false</span>,
             generic: <span class="bool-val">false</span>,
             access: <span class="prelude-val">None</span>,

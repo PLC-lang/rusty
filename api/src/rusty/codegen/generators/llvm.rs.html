@@ -313,8 +313,8 @@
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
-<span class="kw">use </span>plc_ast::ast::SourceRange;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use </span><span class="kw">super</span>::ADDRESS_SPACE_GENERIC;
 
@@ -433,7 +433,7 @@
         pointer_to_struct_instance: PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;,
         member_index: u32,
         name: <span class="kw-2">&amp;</span>str,
-        offset: <span class="kw-2">&amp;</span>SourceRange,
+        offset: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|<span class="kw">_</span>| {
             Diagnostic::codegen_error(
@@ -483,7 +483,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         target_type: <span class="kw-2">&amp;</span>BasicTypeEnum&lt;<span class="lifetime">&#39;a</span>&gt;,
         value: <span class="kw-2">&amp;</span>str,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>target_type {
             BasicTypeEnum::IntType { <span class="number">0</span>: int_type } =&gt; int_type
@@ -566,7 +566,7 @@
     </span><span class="kw">pub fn </span>create_llvm_const_i8_char(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>arr = value.as_bytes();
         <span class="kw">if let </span>[first, ..] = arr {
@@ -583,7 +583,7 @@
     </span><span class="kw">pub fn </span>create_llvm_const_i16_char(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>value.encode_utf16().next() {
             <span class="prelude-val">Some</span>(first) =&gt; {

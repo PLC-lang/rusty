@@ -161,6 +161,16 @@
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use crate</span>::{
@@ -195,26 +205,36 @@
 
     <span class="doccomment">/// Assess and reports the given diagnostics.
     </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: Vec&lt;Diagnostic&gt;) {
-        <span class="kw">let </span>resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
-            message: d.get_message().to_string(),
-            severity: <span class="self">self</span>.assess(d),
-            main_location: ResolvedLocation {
-                file_handle: <span class="self">self
-                    </span>.get_file_handle(d.get_location().get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
-                    .unwrap_or(usize::MAX),
-                range: d.get_location().to_range(),
-            },
-            additional_locations: d.get_secondary_locations().map(|it| {
-                it.iter()
-                    .map(|l| ResolvedLocation {
-                        file_handle: <span class="self">self
-                            </span>.get_file_handle(l.get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
-                            .unwrap_or(usize::MAX),
-                        range: l.to_range(),
-                    })
-                    .collect()
-            }),
-        });
+        <span class="kw">let </span>resolved_diagnostics = diagnostics
+            .iter()
+            .flat_map(|it| <span class="kw">match </span>it {
+                Diagnostic::CombinedDiagnostic { inner_diagnostics, .. } =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[it];
+                    res.extend(inner_diagnostics.iter().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>Diagnostic&gt;&gt;());
+                    res
+                }
+                <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[it],
+            })
+            .map(|d| ResolvedDiagnostics {
+                message: d.get_message().to_string(),
+                severity: <span class="self">self</span>.assess(d),
+                main_location: ResolvedLocation {
+                    file_handle: <span class="self">self
+                        </span>.get_file_handle(d.get_location().get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
+                        .unwrap_or(usize::MAX),
+                    span: d.get_location().get_span().clone(),
+                },
+                additional_locations: d.get_secondary_locations().map(|it| {
+                    it.iter()
+                        .map(|l| ResolvedLocation {
+                            file_handle: <span class="self">self
+                                </span>.get_file_handle(l.get_file_name().or(<span class="prelude-val">Some</span>(<span class="string">&quot;&lt;internal&gt;&quot;</span>)))
+                                .unwrap_or(usize::MAX),
+                            span: l.get_span().clone(),
+                        })
+                        .collect()
+                }),
+            });
 
         <span class="self">self</span>.report(resolved_diagnostics.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().as_slice());
     }

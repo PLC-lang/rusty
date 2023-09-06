@@ -163,6 +163,7 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
@@ -173,8 +174,9 @@
 };
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
-<span class="kw">use </span>plc_ast::ast::{LinkageType, SourceRange};
+<span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use super</span>::{
     data_type_generator::get_default_for,
@@ -219,7 +221,7 @@
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(PouIndexEntry::Program { instance_variable, .. }) =
                         <span class="self">self</span>.global_index.find_pou(name).as_ref()
                     {
-                        <span class="prelude-val">Some</span>((name.as_str(), instance_variable))
+                        <span class="prelude-val">Some</span>((name.as_str(), instance_variable.as_ref()))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
@@ -245,7 +247,7 @@
             <span class="kw">let </span>global_variable =
                 <span class="self">self</span>.generate_global_variable(variable, linkage).map_err(|err| <span class="kw">match </span>err.get_type() {
                     ErrNo::codegen__missing_function | ErrNo::reference__unresolved =&gt; {
-                        Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
+                        Diagnostic::cannot_generate_initializer(name, SourceLocation::undefined())
                     }
                     <span class="kw">_ </span>=&gt; err,
                 })<span class="question-mark">?</span>;
@@ -319,7 +321,7 @@
                 <span class="kw">if </span>initial_value.is_none() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
-                        global_variable.source_location.source_range.clone(),
+                        global_variable.source_location.clone(),
                     ));
                 }
             }

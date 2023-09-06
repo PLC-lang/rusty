@@ -2080,6 +2080,10 @@
 <a href="#2080" id="2080">2080</a>
 <a href="#2081" id="2081">2081</a>
 <a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2103,6 +2107,7 @@
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
 <span class="kw">pub mod </span>const_evaluator;
@@ -2110,7 +2115,7 @@
 
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
-    index::{symbol::SymbolLocation, ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         <span class="self">self</span>, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
@@ -3066,9 +3071,10 @@
         resolved: IndexSet&lt;Dependency&gt;,
     ) -&gt; IndexSet&lt;Dependency&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>resolved_names = resolved;
-        <span class="kw">let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.index.find_type(datatype_name).or_else(|| {
-            <span class="self">self</span>.annotation_map.new_index.find_type(datatype_name)
-        })
+        <span class="kw">let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self
+            </span>.index
+            .find_type(datatype_name)
+            .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_type(datatype_name))
         <span class="kw">else </span>{
             <span class="kw">return </span>resolved_names;
         };
@@ -3561,7 +3567,8 @@
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
             ..
-        } = <span class="self">self</span>.annotation_map.get_type_or_void(statement, <span class="self">self</span>.index).get_type_information() <span class="kw">else </span>{
+        } = <span class="self">self</span>.annotation_map.get_type_or_void(statement, <span class="self">self</span>.index).get_type_information()
+        <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">&quot;expected a vla reference, but got {statement:#?}&quot;</span>);
         };
         <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, .. } = <span class="kw-2">&amp;</span><span class="self">self
@@ -3572,12 +3579,10 @@
             .get_type_information()
         {
             <span class="kw">let </span><span class="prelude-val">Some</span>(qualified_name) = <span class="self">self</span>.annotation_map.get_qualified_name(statement) <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;VLAs are defined within POUs, such that the qualified name *must* exist&quot;</span>)
-                };
+                <span class="macro">unreachable!</span>(<span class="string">&quot;VLAs are defined within POUs, such that the qualified name *must* exist&quot;</span>)
+            };
 
-            <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = ctx.pou <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;VLA not allowed outside of POUs&quot;</span>)
-                };
+            <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = ctx.pou <span class="kw">else </span>{ <span class="macro">unreachable!</span>(<span class="string">&quot;VLA not allowed outside of POUs&quot;</span>) };
 
             <span class="kw">let </span>name = <span class="kw">if let </span>AstStatement::Identifier { name, .. } = statement {
                 name.as_str()
@@ -3585,13 +3590,16 @@
                 statement.get_flat_reference_name().expect(<span class="string">&quot;must be a reference to a VLA&quot;</span>)
             };
 
-            <span class="kw">let </span><span class="prelude-val">Some</span>(argument_type) = <span class="self">self</span>.index.get_pou_members(pou)
-                    .iter()
-                    .filter(|it| it.get_name() == name)
-                    .map(|it| it.get_declaration_type())
-                    .next() <span class="kw">else </span>{
-                        <span class="macro">unreachable!</span>()
-                    };
+            <span class="kw">let </span><span class="prelude-val">Some</span>(argument_type) = <span class="self">self
+                </span>.index
+                .get_pou_members(pou)
+                .iter()
+                .filter(|it| it.get_name() == name)
+                .map(|it| it.get_declaration_type())
+                .next()
+            <span class="kw">else </span>{
+                <span class="macro">unreachable!</span>()
+            };
 
             <span class="kw">let </span>hint_annotation = StatementAnnotation::Variable {
                 resulting_type: inner_type_name.to_owned(),
@@ -3882,7 +3890,7 @@
                 encoding: <span class="kw">if </span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len <span class="kw">as </span>i64 + <span class="number">1</span>),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name
@@ -3902,7 +3910,7 @@
                 inner_type_name,
                 name: new_type_name.clone(),
             },
-            location: SymbolLocation::internal(),
+            location: SourceLocation::internal(),
         });
     }
     new_type_name

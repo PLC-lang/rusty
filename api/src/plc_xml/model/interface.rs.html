@@ -55,8 +55,6 @@
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::pou::PouType;
 
 <span class="attr">#[derive(Debug)]
@@ -76,9 +74,7 @@
     }
 
     <span class="kw">pub fn </span>get_data_content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>data) = <span class="self">self</span>.add_data <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">None
-        </span>};
+        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>data) = <span class="self">self</span>.add_data <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
 
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.content)
     }
@@ -87,8 +83,8 @@
     </span><span class="kw">pub fn </span>append_end_keyword(<span class="self">self</span>, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="prelude-val">Some</span>(old_data) = <span class="self">self</span>.add_data <span class="kw">else </span>{
             <span class="comment">// if we have no content, we have nothing to append to. return as is
-            </span><span class="kw">return </span><span class="self">self
-        </span>};
+            </span><span class="kw">return </span><span class="self">self</span>;
+        };
 
         Interface {
             add_data: <span class="prelude-val">Some</span>(Data::new_implementation(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}\nEND_{}&quot;</span>, old_data.content, pou_type))),

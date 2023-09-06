@@ -1551,6 +1551,8 @@
 <a href="#1551" id="1551">1551</a>
 <a href="#1552" id="1552">1552</a>
 <a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -1560,16 +1562,16 @@
 <span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{
-    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, SourceRange,
-    TypeNature,
+    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, TypeNature,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
 
 <span class="kw">use </span><span class="self">self</span>::{
     const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
-    symbol::{SymbolLocation, SymbolMap},
+    symbol::SymbolMap,
 };
 
 <span class="kw">pub mod </span>const_expressions;
@@ -1600,7 +1602,7 @@
     <span class="doccomment">/// A binding to a hardware or external location
     </span>binding: <span class="prelude-ty">Option</span>&lt;HardwareBinding&gt;,
     <span class="doccomment">/// the location in the original source-file
-    </span><span class="kw">pub </span>source_location: SymbolLocation,
+    </span><span class="kw">pub </span>source_location: SourceLocation,
     <span class="doccomment">/// Variadic information placeholder for the variable, if any
     </span>varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
 }
@@ -1614,7 +1616,7 @@
     <span class="doccomment">/// A list of entries that form this binding
     </span><span class="kw">pub </span>entries: Vec&lt;ConstId&gt;,
     <span class="doccomment">/// The location in the original source-file
-    </span><span class="kw">pub </span>location: SourceRange,
+    </span><span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="kw">impl </span>HardwareBinding {
@@ -1659,7 +1661,7 @@
         data_type_name: <span class="kw-2">&amp;</span>str,
         argument_type: ArgumentType,
         location_in_parent: u32,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) -&gt; <span class="self">Self </span>{
         VariableIndexEntry {
             name: name.to_string(),
@@ -1680,7 +1682,7 @@
         name: <span class="kw-2">&amp;</span>str,
         qualified_name: <span class="kw-2">&amp;</span>str,
         data_type_name: <span class="kw-2">&amp;</span>str,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) -&gt; <span class="self">Self </span>{
         VariableIndexEntry {
             name: name.to_string(),
@@ -1894,7 +1896,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) associated_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) implementation_type: ImplementationType,
     <span class="kw">pub</span>(<span class="kw">crate</span>) generic: bool,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) location: SymbolLocation,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) location: SourceLocation,
 }
 
 <span class="kw">impl </span>ImplementationIndexEntry {
@@ -1915,7 +1917,7 @@
         <span class="self">self</span>.generic
     }
 
-    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SymbolLocation {
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SourceLocation {
         <span class="kw-2">&amp;</span><span class="self">self</span>.location
     }
 
@@ -1942,15 +1944,15 @@
     Program {
         name: String,
         instance_struct_name: String,
-        instance_variable: VariableIndexEntry,
+        instance_variable: Box&lt;VariableIndexEntry&gt;,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
     FunctionBlock {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Function {
@@ -1959,14 +1961,14 @@
         generics: Vec&lt;GenericBinding&gt;,
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
         is_generated: bool, <span class="comment">// true if this entry was added automatically (e.g. by generics)
     </span>},
     Class {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Method {
@@ -1975,14 +1977,14 @@
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
     Action {
         name: String,
         parent_pou_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     },
 }
 
@@ -1995,12 +1997,12 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
-            instance_variable,
+            instance_variable: Box::new(instance_variable),
             linkage,
             location,
         }
@@ -2013,7 +2015,7 @@
     </span><span class="kw">pub fn </span>create_function_block_entry(
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::FunctionBlock {
@@ -2032,7 +2034,7 @@
         generic_names: <span class="kw-2">&amp;</span>[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -2053,7 +2055,7 @@
         generic_names: <span class="kw-2">&amp;</span>[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -2074,7 +2076,7 @@
         qualified_name: <span class="kw-2">&amp;</span>str,
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
@@ -2091,7 +2093,7 @@
     </span><span class="kw">pub fn </span>create_class_entry(
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Class {
@@ -2113,7 +2115,7 @@
         return_type: <span class="kw-2">&amp;</span>str,
         owner_class: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
@@ -2247,7 +2249,7 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Method { .. })
     }
 
-    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SymbolLocation {
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SourceLocation {
         <span class="kw">match </span><span class="self">self </span>{
             PouIndexEntry::Program { location, .. }
             | PouIndexEntry::FunctionBlock { location, .. }
@@ -2285,7 +2287,7 @@
                 initial_value: <span class="prelude-val">None</span>,
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
-                location: SymbolLocation::internal(),
+                location: SourceLocation::internal(),
             },
         }
     }
@@ -2309,7 +2311,8 @@
     }
 
     <span class="kw">pub fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataType, Diagnostic&gt; {
-        <span class="self">self</span>.find_type(type_name).ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+        <span class="self">self</span>.find_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     <span class="doccomment">/// Retrieves the &quot;Effective&quot; type behind this datatype
@@ -2636,6 +2639,7 @@
                 .or_else(|| <span class="self">self</span>.find_qualified_global_variable(<span class="prelude-val">Some</span>(context), segments[<span class="number">0</span>])),
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.find_global_variable(segments[<span class="number">0</span>]),
         };
+
         segments
             .iter()
             .skip(<span class="number">1</span>)
@@ -2722,7 +2726,7 @@
     </span><span class="kw">pub fn </span>get_effective_type_by_name(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataType, Diagnostic&gt; {
         <span class="self">self</span>.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     <span class="doccomment">/// returns the effective DataTypeInformation of the type with the given name if it exists
@@ -2838,7 +2842,7 @@
         <span class="self">self</span>.pous
             .values()
             .filter_map(|p| <span class="kw">match </span>p {
-                PouIndexEntry::Program { instance_variable, .. } =&gt; <span class="prelude-val">Some</span>(instance_variable),
+                PouIndexEntry::Program { instance_variable, .. } =&gt; <span class="prelude-val">Some</span>(instance_variable.as_ref()),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             })
             .collect()
@@ -2868,7 +2872,7 @@
         associated_class_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;,
         impl_type: ImplementationType,
         generic: bool,
-        location: SymbolLocation,
+        location: SourceLocation,
     ) {
         <span class="self">self</span>.implementations.insert(
             call_name.to_lowercase(),
@@ -2887,7 +2891,7 @@
         <span class="self">self</span>.pous.get(<span class="kw-2">&amp;</span>pou_name.to_lowercase())
     }
 
-    <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SymbolLocation, linkage: LinkageType) {
+    <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SourceLocation, linkage: LinkageType) {
         <span class="kw">let </span>instance_variable =
             VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span>.set_linkage(linkage);
@@ -2922,7 +2926,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         member_info: MemberInfo,
         initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
         location: u32,
     ) -&gt; VariableIndexEntry {
         <span class="kw">let </span>container_name = member_info.container_name;
@@ -2951,7 +2955,7 @@
         element_name: <span class="kw-2">&amp;</span>str,
         enum_type_name: <span class="kw-2">&amp;</span>str,
         initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
-        source_location: SymbolLocation,
+        source_location: SourceLocation,
     ) {
         <span class="kw">let </span>qualified_name = qualified_name(enum_type_name, element_name);
         <span class="kw">let </span>entry =

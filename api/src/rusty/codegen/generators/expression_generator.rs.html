@@ -2690,9 +2690,6 @@
 <a href="#2690" id="2690">2690</a>
 <a href="#2691" id="2691">2691</a>
 <a href="#2692" id="2692">2692</a>
-<a href="#2693" id="2693">2693</a>
-<a href="#2694" id="2694">2694</a>
-<a href="#2695" id="2695">2695</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2719,14 +2716,12 @@
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-<span class="kw">use </span>plc_ast::{
-    ast::{
-        flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
-        SourceRange,
-    },
-    literals::AstLiteral,
+<span class="kw">use </span>plc_ast::ast::{
+    flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
 };
+<span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
 <span class="kw">use </span>std::{collections::HashSet, vec};
 
@@ -2869,7 +2864,7 @@
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(target_type) = <span class="self">self</span>.annotations.get_type_hint(expression, <span class="self">self</span>.index) <span class="kw">else </span>{
             <span class="comment">// no type-hint -&gt; we can return the value as is
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(v)
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(v);
         };
         <span class="kw">let </span>actual_type = <span class="self">self</span>.annotations.get_type_or_void(expression, <span class="self">self</span>.index);
         <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_type, actual_type, v, <span class="self">self</span>.annotations.get(expression)))
@@ -2878,8 +2873,8 @@
     <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) {
         <span class="kw">let </span>function_context =
             <span class="self">self</span>.function_context.expect(<span class="string">&quot;Cannot generate debug info without function context&quot;</span>);
-        <span class="kw">let </span>line = function_context.new_lines.get_line_nr(statement.get_location().get_start());
-        <span class="kw">let </span>column = function_context.new_lines.get_column(line, statement.get_location().get_start());
+        <span class="kw">let </span>line = statement.get_location().get_line();
+        <span class="kw">let </span>column = statement.get_location().get_column();
         <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context.function, line, column);
     }
 
@@ -3249,7 +3244,7 @@
                     <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">&quot;&quot;</span>).map_err(|<span class="kw">_</span>| {
                         Diagnostic::codegen_error(
                             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {parameter:#?}&quot;</span>),
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )
                     })<span class="question-mark">?</span>;
 
@@ -3267,7 +3262,7 @@
                             expression.get_location(),
                             output,
                             output_value_type,
-                            parameter.source_location.source_range.clone(),
+                            parameter.source_location.clone(),
                         )<span class="question-mark">?</span>;
                     } <span class="kw">else </span>{
                         <span class="kw">let </span>output_value = builder.build_load(output, <span class="string">&quot;&quot;</span>);
@@ -4491,7 +4486,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         literal_statement: <span class="kw-2">&amp;</span>AstStatement,
         value: <span class="kw-2">&amp;</span>str,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>expected_type = <span class="self">self</span>.get_type_hint_info_for(literal_statement)<span class="question-mark">?</span>;
         <span class="self">self</span>.generate_string_literal_for_type(expected_type, value, location)
@@ -4501,7 +4496,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         expected_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         value: <span class="kw-2">&amp;</span>str,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>expected_type {
             DataTypeInformation::String { encoding, size, .. } =&gt; {
@@ -4695,7 +4690,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         elements: <span class="kw-2">&amp;</span>AstStatement,
         data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>(inner_type, expected_len) =
             <span class="kw">if let </span>DataTypeInformation::Array { inner_type_name, dimensions, .. } = data_type {
@@ -4817,7 +4812,7 @@
                 .as_basic_value_enum()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="macro">format!</span>(<span class="string">&quot;illegal boolean expresspion for operator {operator:}&quot;</span>).as_str(),
-                (left.get_location().get_start()..right.get_location().get_end()).into(),
+                left.get_location().span(<span class="kw-2">&amp;</span>right.get_location()),
             )),
         }
     }
@@ -4872,7 +4867,7 @@
         <span class="kw">let </span>value = <span class="self">self</span>.llvm.create_const_numeric(
             <span class="kw-2">&amp;</span><span class="self">self</span>.llvm_index.get_associated_type(LINT_TYPE)<span class="question-mark">?</span>,
             value.to_string().as_str(),
-            SourceRange::undefined(),
+            SourceLocation::undefined(),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(value)
     }
@@ -4967,10 +4962,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         left: inkwell::values::PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        left_location: SourceRange,
+        left_location: SourceLocation,
         right: inkwell::values::PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        right_location: SourceRange,
+        right_location: SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>target_size = <span class="self">self</span>.get_string_size(left_type, left_location.clone())<span class="question-mark">?</span>;
         <span class="kw">let </span>value_size = <span class="self">self</span>.get_string_size(right_type, right_location)<span class="question-mark">?</span>;
@@ -4989,7 +4984,7 @@
     <span class="kw">fn </span>get_string_size(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         datatype: <span class="kw-2">&amp;</span>DataTypeInformation,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;i64, Diagnostic&gt; {
         <span class="kw">if let </span>DataTypeInformation::String { size, .. } = datatype {
             size.as_int_value(<span class="self">self</span>.index).map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
@@ -5028,7 +5023,8 @@
 
         <span class="comment">// array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
-        </span><span class="kw">let </span>StatementAnnotation::Variable { resulting_type: reference_type,  .. } = reference_annotation <span class="kw">else </span>{
+        </span><span class="kw">let </span>StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
+        <span class="kw">else </span>{
             <span class="macro">unreachable!</span>();
         };
 
@@ -5043,9 +5039,7 @@
 
         <span class="comment">// get lengths of dimensions
         </span><span class="kw">let </span>type_ = <span class="self">self</span>.index.get_type_information_or_void(reference_type);
-        <span class="kw">let </span><span class="prelude-val">Some</span>(ndims) = type_.get_type_information().get_dimensions() <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(ndims) = type_.get_type_information().get_dimensions() <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
         <span class="comment">// get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
         </span><span class="kw">let </span>index_offsets = get_indices(<span class="self">self</span>.llvm, ndims, dim_arr_gep);

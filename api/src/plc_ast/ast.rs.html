@@ -1477,90 +1477,6 @@
 <a href="#1477" id="1477">1477</a>
 <a href="#1478" id="1478">1478</a>
 <a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a>
-<a href="#1485" id="1485">1485</a>
-<a href="#1486" id="1486">1486</a>
-<a href="#1487" id="1487">1487</a>
-<a href="#1488" id="1488">1488</a>
-<a href="#1489" id="1489">1489</a>
-<a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a>
-<a href="#1494" id="1494">1494</a>
-<a href="#1495" id="1495">1495</a>
-<a href="#1496" id="1496">1496</a>
-<a href="#1497" id="1497">1497</a>
-<a href="#1498" id="1498">1498</a>
-<a href="#1499" id="1499">1499</a>
-<a href="#1500" id="1500">1500</a>
-<a href="#1501" id="1501">1501</a>
-<a href="#1502" id="1502">1502</a>
-<a href="#1503" id="1503">1503</a>
-<a href="#1504" id="1504">1504</a>
-<a href="#1505" id="1505">1505</a>
-<a href="#1506" id="1506">1506</a>
-<a href="#1507" id="1507">1507</a>
-<a href="#1508" id="1508">1508</a>
-<a href="#1509" id="1509">1509</a>
-<a href="#1510" id="1510">1510</a>
-<a href="#1511" id="1511">1511</a>
-<a href="#1512" id="1512">1512</a>
-<a href="#1513" id="1513">1513</a>
-<a href="#1514" id="1514">1514</a>
-<a href="#1515" id="1515">1515</a>
-<a href="#1516" id="1516">1516</a>
-<a href="#1517" id="1517">1517</a>
-<a href="#1518" id="1518">1518</a>
-<a href="#1519" id="1519">1519</a>
-<a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a>
-<a href="#1522" id="1522">1522</a>
-<a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
-<a href="#1526" id="1526">1526</a>
-<a href="#1527" id="1527">1527</a>
-<a href="#1528" id="1528">1528</a>
-<a href="#1529" id="1529">1529</a>
-<a href="#1530" id="1530">1530</a>
-<a href="#1531" id="1531">1531</a>
-<a href="#1532" id="1532">1532</a>
-<a href="#1533" id="1533">1533</a>
-<a href="#1534" id="1534">1534</a>
-<a href="#1535" id="1535">1535</a>
-<a href="#1536" id="1536">1536</a>
-<a href="#1537" id="1537">1537</a>
-<a href="#1538" id="1538">1538</a>
-<a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
-<a href="#1543" id="1543">1543</a>
-<a href="#1544" id="1544">1544</a>
-<a href="#1545" id="1545">1545</a>
-<a href="#1546" id="1546">1546</a>
-<a href="#1547" id="1547">1547</a>
-<a href="#1548" id="1548">1548</a>
-<a href="#1549" id="1549">1549</a>
-<a href="#1550" id="1550">1550</a>
-<a href="#1551" id="1551">1551</a>
-<a href="#1552" id="1552">1552</a>
-<a href="#1553" id="1553">1553</a>
-<a href="#1554" id="1554">1554</a>
-<a href="#1555" id="1555">1555</a>
-<a href="#1556" id="1556">1556</a>
-<a href="#1557" id="1557">1557</a>
-<a href="#1558" id="1558">1558</a>
-<a href="#1559" id="1559">1559</a>
-<a href="#1560" id="1560">1560</a>
-<a href="#1561" id="1561">1561</a>
-<a href="#1562" id="1562">1562</a>
-<a href="#1563" id="1563">1563</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1578,6 +1494,9 @@
     pre_processor,
     provider::IdProvider,
 };
+
+<span class="kw">use </span>plc_source::source_location::<span class="kw-2">*</span>;
+
 <span class="kw">pub type </span>AstId = usize;
 
 <span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
@@ -1592,10 +1511,10 @@
     <span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>pou_type: PouType,
     <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt;,
-    <span class="doccomment">/// the SourceRange of the whole POU
-    </span><span class="kw">pub </span>location: SourceRange,
-    <span class="doccomment">/// the SourceRange of the POU&#39;s name
-    </span><span class="kw">pub </span>name_location: SourceRange,
+    <span class="doccomment">/// the SourceLocation of the whole POU
+    </span><span class="kw">pub </span>location: SourceLocation,
+    <span class="doccomment">/// the SourceLocation of the POU&#39;s name
+    </span><span class="kw">pub </span>name_location: SourceLocation,
     <span class="kw">pub </span>poly_mode: <span class="prelude-ty">Option</span>&lt;PolymorphismMode&gt;,
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
     <span class="kw">pub </span>linkage: LinkageType,
@@ -1761,8 +1680,8 @@
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>pou_type: PouType,
     <span class="kw">pub </span>statements: Vec&lt;AstStatement&gt;,
-    <span class="kw">pub </span>location: SourceRange,
-    <span class="kw">pub </span>name_location: SourceRange,
+    <span class="kw">pub </span>location: SourceLocation,
+    <span class="kw">pub </span>name_location: SourceLocation,
     <span class="kw">pub </span>overriding: bool,
     <span class="kw">pub </span>generic: bool,
     <span class="kw">pub </span>access: <span class="prelude-ty">Option</span>&lt;AccessModifier&gt;,
@@ -1816,51 +1735,6 @@
         </span>}
     }
 }
-<span class="doccomment">/**
- * A datastructure that stores the location of newline characters of a string.
- * It also offers some useful methods to determine the line-number of an offset-location.
- */
-</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>NewLines {
-    line_breaks: Vec&lt;usize&gt;,
-}
-
-<span class="kw">impl </span>NewLines {
-    <span class="kw">pub fn </span>build(str: <span class="kw-2">&amp;</span>str) -&gt; NewLines {
-        <span class="kw">let </span><span class="kw-2">mut </span>line_breaks = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>total_offset: usize = <span class="number">0</span>;
-        <span class="kw">if </span>!str.is_empty() {
-            <span class="comment">// Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
-            </span><span class="kw">for </span>l <span class="kw">in </span>str.split(<span class="string">&#39;\n&#39;</span>) {
-                total_offset += l.len() + <span class="number">1</span>;
-                line_breaks.push(total_offset);
-            }
-        }
-        NewLines { line_breaks }
-    }
-
-    <span class="doccomment">///
-    /// returns the 0 based line-nr of the given offset-location
-    ///
-    </span><span class="kw">pub fn </span>get_line_nr(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize) -&gt; u32 {
-        (<span class="kw">match </span><span class="self">self</span>.line_breaks.binary_search(<span class="kw-2">&amp;</span>offset) {
-            <span class="comment">//In case we hit an exact match, we just found the first character of a new line, we must add one to the result
-            </span><span class="prelude-val">Ok</span>(line) =&gt; line + <span class="number">1</span>,
-            <span class="prelude-val">Err</span>(line) =&gt; line,
-        }) <span class="kw">as </span>u32
-    }
-
-    <span class="doccomment">///
-    /// returns the 0 based column of the given offset-location
-    ///
-    </span><span class="kw">pub fn </span>get_column(<span class="kw-2">&amp;</span><span class="self">self</span>, line: u32, offset: usize) -&gt; u32 {
-        (<span class="kw">if </span>line &gt; <span class="number">0 </span>{
-            <span class="self">self</span>.line_breaks.get((line - <span class="number">1</span>) <span class="kw">as </span>usize).map(|l| offset - <span class="kw-2">*</span>l).unwrap_or(<span class="number">0</span>)
-        } <span class="kw">else </span>{
-            offset
-        }) <span class="kw">as </span>u32
-    }
-}
 
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>CompilationUnit {
@@ -1869,18 +1743,16 @@
     <span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
     <span class="kw">pub </span>file_name: String,
-    <span class="kw">pub </span>new_lines: NewLines,
 }
 
 <span class="kw">impl </span>CompilationUnit {
-    <span class="kw">pub fn </span>new(file_name: <span class="kw-2">&amp;</span>str, new_lines: NewLines) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(file_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
-            new_lines,
         }
     }
 
@@ -1940,7 +1812,7 @@
     <span class="kw">pub </span>variables: Vec&lt;Variable&gt;,
     <span class="kw">pub </span>variable_block_type: VariableBlockType,
     <span class="kw">pub </span>linkage: LinkageType,
-    <span class="kw">pub </span>location: SourceRange,
+    <span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>VariableBlock {
@@ -1958,7 +1830,7 @@
     <span class="kw">pub </span>data_type_declaration: DataTypeDeclaration,
     <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
     <span class="kw">pub </span>address: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
-    <span class="kw">pub </span>location: SourceRange,
+    <span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Variable {
@@ -1987,7 +1859,7 @@
 
 <span class="kw">pub trait </span>DiagnosticInfo {
     <span class="kw">fn </span>get_description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
-    <span class="kw">fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange;
+    <span class="kw">fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation;
 }
 
 <span class="kw">impl </span>DiagnosticInfo <span class="kw">for </span>AstStatement {
@@ -1995,111 +1867,15 @@
         <span class="macro">format!</span>(<span class="string">&quot;{self:?}&quot;</span>)
     }
 
-    <span class="kw">fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="self">self</span>.get_location()
-    }
-}
-
-<span class="kw">pub struct </span>SourceRangeFactory {
-    file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
-}
-
-<span class="kw">impl </span>SourceRangeFactory {
-    <span class="doccomment">/// constructs a SourceRangeFactory used for internally generated code (e.g. builtins)
-    </span><span class="kw">pub fn </span>internal() -&gt; <span class="self">Self </span>{
-        SourceRangeFactory { file: <span class="prelude-val">None </span>}
-    }
-
-    <span class="doccomment">/// constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
-    </span><span class="kw">pub fn </span>for_file(file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-        SourceRangeFactory { file: <span class="prelude-val">Some</span>(file_name) }
-    }
-
-    <span class="doccomment">/// creates a new SourceRange using the factory&#39;s file_name
-    </span><span class="kw">pub fn </span>create_range(<span class="kw-2">&amp;</span><span class="self">self</span>, range: core::ops::Range&lt;usize&gt;) -&gt; SourceRange {
-        SourceRange { range, file: <span class="self">self</span>.file }
-    }
-}
-
-<span class="attr">#[derive(Clone, PartialEq, Eq, Hash)]
-</span><span class="kw">pub struct </span>SourceRange {
-    <span class="doccomment">/// the start and end offset in the source-file
-    </span>range: core::ops::Range&lt;usize&gt;,
-    <span class="doccomment">/// the name of the file if available. if there is no file available
-    /// the source is probably internally generated by the compiler. (e.g.
-    /// a automatically generated data_type)
-    </span>file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
-}
-
-<span class="kw">impl </span>Debug <span class="kw">for </span>SourceRange {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = f.debug_struct(<span class="string">&quot;SourceRange&quot;</span>);
-        f.field(<span class="string">&quot;range&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.range);
-        <span class="kw">if </span><span class="self">self</span>.file.is_some() {
-            f.field(<span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.file);
-        }
-        f.finish()
-    }
-}
-
-<span class="kw">impl </span>SourceRange {
-    <span class="doccomment">/// Constructs a new SourceRange with the given range and filename
-    </span><span class="kw">pub fn </span>in_file(range: core::ops::Range&lt;usize&gt;, file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; SourceRange {
-        SourceRange { range, file: <span class="prelude-val">Some</span>(file_name) }
-    }
-
-    <span class="doccomment">/// Constructs a new SourceRange without the file_name attribute
-    </span><span class="kw">pub fn </span>without_file(range: core::ops::Range&lt;usize&gt;) -&gt; SourceRange {
-        SourceRange { range, file: <span class="prelude-val">None </span>}
-    }
-
-    <span class="doccomment">/// Constructs an undefined SourceRange with a 0..0 range and no filename
-    </span><span class="kw">pub fn </span>undefined() -&gt; SourceRange {
-        SourceRange { range: <span class="number">0</span>..<span class="number">0</span>, file: <span class="prelude-val">None </span>}
-    }
-
-    <span class="doccomment">/// returns the start-offset of this source-range
-    </span><span class="kw">pub fn </span>get_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.range.start
-    }
-
-    <span class="doccomment">/// returns the end-offset of this source-range
-    </span><span class="kw">pub fn </span>get_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.range.end
-    }
-
-    <span class="doccomment">/// returns a new SourceRange that spans `this` and the `other` range.
-    /// In other words this results in `self.start .. other.end`
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SourceRange) -&gt; SourceRange {
-        SourceRange { range: <span class="self">self</span>.get_start()..other.get_end(), file: <span class="self">self</span>.get_file_name() }
-    }
-
-    <span class="doccomment">/// converts this SourceRange into a Range
-    </span><span class="kw">pub fn </span>to_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Range&lt;usize&gt; {
-        <span class="self">self</span>.range.clone()
-    }
-
-    <span class="kw">pub fn </span>get_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-        <span class="self">self</span>.file
-    }
-
-    <span class="doccomment">/// returns true if this SourceRange points to an undefined location.
-    /// see `SourceRange::undefined()`
-    </span><span class="kw">pub fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.range == (<span class="number">0</span>..<span class="number">0</span>) &amp;&amp; <span class="self">self</span>.file.is_none()
-    }
-}
-
-<span class="kw">impl </span>From&lt;std::ops::Range&lt;usize&gt;&gt; <span class="kw">for </span>SourceRange {
-    <span class="kw">fn </span>from(range: std::ops::Range&lt;usize&gt;) -&gt; SourceRange {
-        SourceRange::without_file(range)
     }
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub enum </span>DataTypeDeclaration {
-    DataTypeReference { referenced_type: String, location: SourceRange },
-    DataTypeDefinition { data_type: DataType, location: SourceRange, scope: <span class="prelude-ty">Option</span>&lt;String&gt; },
+    DataTypeReference { referenced_type: String, location: SourceLocation },
+    DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: <span class="prelude-ty">Option</span>&lt;String&gt; },
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>DataTypeDeclaration {
@@ -2123,7 +1899,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeDeclaration::DataTypeReference { location, .. } =&gt; location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } =&gt; location.clone(),
@@ -2131,7 +1907,7 @@
     }
 
     <span class="kw">pub fn </span>get_referenced_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">let </span>DataTypeDeclaration::DataTypeReference {referenced_type, ..} = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+        <span class="kw">let </span>DataTypeDeclaration::DataTypeReference { referenced_type, .. } = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
         <span class="prelude-val">Some</span>(referenced_type.to_owned())
     }
 }
@@ -2140,7 +1916,7 @@
 </span><span class="kw">pub struct </span>UserTypeDeclaration {
     <span class="kw">pub </span>data_type: DataType,
     <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
-    <span class="kw">pub </span>location: SourceRange,
+    <span class="kw">pub </span>location: SourceLocation,
     <span class="doccomment">/// stores the original scope for compiler-generated types
     </span><span class="kw">pub </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
@@ -2230,7 +2006,7 @@
     </span><span class="kw">pub fn </span>replace_data_type_with_reference_to(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         type_name: String,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             DataType::ArrayType { referenced_type, .. } | DataType::PointerType { referenced_type, .. } =&gt; {
@@ -2244,7 +2020,7 @@
 <span class="kw">fn </span>replace_reference(
     referenced_type: <span class="kw-2">&amp;mut </span>Box&lt;DataTypeDeclaration&gt;,
     type_name: String,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
     <span class="kw">if let </span>DataTypeDeclaration::DataTypeReference { .. } = <span class="kw-2">**</span>referenced_type {
         <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -2282,31 +2058,31 @@
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub enum </span>AstStatement {
     EmptyStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     <span class="comment">// a placeholder that indicates a default value of a datatype
     </span>DefaultValue {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     <span class="comment">// Literals
     </span>Literal {
         kind: AstLiteral,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 
     CastStatement {
         target: Box&lt;AstStatement&gt;,
         type_name: String,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     MultipliedStatement {
         multiplier: u32,
         element: Box&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     <span class="comment">// Expressions
@@ -2314,24 +2090,24 @@
         access: ReferenceAccess,
         base: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     },
     Identifier {
         name: String,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     DirectAccess {
         access: DirectAccessType,
         index: Box&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     HardwareAccess {
         direction: HardwareAccessType,
         access: DirectAccessType,
         address: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     BinaryExpression {
@@ -2343,7 +2119,7 @@
     UnaryExpression {
         operator: Operator,
         value: Box&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ExpressionList {
@@ -2374,13 +2150,13 @@
     </span>CallStatement {
         operator: Box&lt;AstStatement&gt;,
         parameters: Box&lt;<span class="prelude-ty">Option</span>&lt;AstStatement&gt;&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     <span class="comment">// Control Statements
     </span>ControlStatement {
         kind: AstControlStatement,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 
@@ -2389,15 +2165,15 @@
         id: AstId,
     },
     ExitStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ContinueStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
     ReturnStatement {
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 }
@@ -2521,7 +2297,7 @@
             <span class="macro">vec!</span>[<span class="self">self</span>]
         }
     }
-    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="kw">match </span><span class="self">self </span>{
             AstStatement::EmptyStatement { location, .. } =&gt; location.clone(),
             AstStatement::DefaultValue { location, .. } =&gt; location.clone(),
@@ -2534,8 +2310,9 @@
             }
             AstStatement::UnaryExpression { location, .. } =&gt; location.clone(),
             AstStatement::ExpressionList { expressions, .. } =&gt; {
-                <span class="kw">let </span>first = expressions.first().map_or_else(SourceRange::undefined, |it| it.get_location());
-                <span class="kw">let </span>last = expressions.last().map_or_else(SourceRange::undefined, |it| it.get_location());
+                <span class="kw">let </span>first =
+                    expressions.first().map_or_else(SourceLocation::undefined, |it| it.get_location());
+                <span class="kw">let </span>last = expressions.last().map_or_else(SourceLocation::undefined, |it| it.get_location());
                 first.span(<span class="kw-2">&amp;</span>last)
             }
             AstStatement::RangeStatement { start, end, .. } =&gt; {
@@ -2543,7 +2320,7 @@
                 <span class="kw">let </span>end_loc = end.get_location();
                 start_loc.span(<span class="kw-2">&amp;</span>end_loc)
             }
-            AstStatement::VlaRangeStatement { .. } =&gt; SourceRange::undefined(), <span class="comment">// internal type only
+            AstStatement::VlaRangeStatement { .. } =&gt; SourceLocation::undefined(), <span class="comment">// internal type only
             </span>AstStatement::Assignment { left, right, .. } =&gt; {
                 <span class="kw">let </span>left_loc = left.get_location();
                 <span class="kw">let </span>right_loc = right.get_location();
@@ -2679,19 +2456,19 @@
             || <span class="self">self</span>.is_hardware_access()
     }
 
-    <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
         AstStatement::Literal { kind, id, location }
     }
 
-    <span class="kw">pub fn </span>new_integer(value: i128, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new_integer(value: i128, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
         AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
     }
 
-    <span class="kw">pub fn </span>new_real(value: String, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new_real(value: String, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
         AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
     }
 
-    <span class="kw">pub fn </span>new_string(value: <span class="kw">impl </span>Into&lt;String&gt;, is_wide: bool, id: AstId, location: SourceRange) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new_string(value: <span class="kw">impl </span>Into&lt;String&gt;, is_wide: bool, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
         AstStatement::Literal {
             kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
             location,
@@ -2722,6 +2499,57 @@
 
     <span class="kw">pub fn </span>is_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::Literal { .. })
+    }
+
+    <span class="kw">pub fn </span>set_location(<span class="self">self</span>, new_location: SourceLocation) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            AstStatement::EmptyStatement { location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::EmptyStatement { location: new_location, id }
+            }
+            AstStatement::DefaultValue { location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::DefaultValue { location: new_location, id }
+            }
+            AstStatement::Literal { kind, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::Literal { kind, location: new_location, id }
+            }
+            AstStatement::CastStatement { target, type_name, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::CastStatement { target, type_name, location: new_location, id }
+            }
+            AstStatement::MultipliedStatement { multiplier, element, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::MultipliedStatement { multiplier, element, location: new_location, id }
+            }
+            AstStatement::DirectAccess { access, index, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::DirectAccess { access, index, location: new_location, id }
+            }
+            AstStatement::HardwareAccess { direction, access, address, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::HardwareAccess { direction, access, address, location: new_location, id }
+            }
+            AstStatement::UnaryExpression { operator, value, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::UnaryExpression { operator, value, location: new_location, id }
+            }
+            AstStatement::CallStatement { operator, parameters, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::CallStatement { operator, parameters, location: new_location, id }
+            }
+            AstStatement::ControlStatement { kind, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::ControlStatement { kind, location: new_location, id }
+            }
+            AstStatement::ExitStatement { location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::ExitStatement { location: new_location, id }
+            }
+            AstStatement::ContinueStatement { location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::ContinueStatement { location: new_location, id }
+            }
+            AstStatement::ReturnStatement { location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::ReturnStatement { location: new_location, id }
+            }
+            AstStatement::ReferenceExpr { access, base, id, location: <span class="kw">_ </span>} =&gt; {
+                <span class="self">Self</span>::ReferenceExpr { access, base, id, location: new_location }
+            }
+            AstStatement::Identifier { name, location: <span class="kw">_</span>, id } =&gt; {
+                AstStatement::Identifier { name, location: new_location, id }
+            }
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
+        }
     }
 
     <span class="kw">pub fn </span>get_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Array&gt; {
@@ -2868,7 +2696,7 @@
 <span class="kw">pub struct </span>AstFactory {}
 
 <span class="kw">impl </span>AstFactory {
-    <span class="kw">pub fn </span>empty_statement(location: SourceRange, id: AstId) -&gt; AstStatement {
+    <span class="kw">pub fn </span>empty_statement(location: SourceLocation, id: AstId) -&gt; AstStatement {
         AstStatement::EmptyStatement { location, id }
     }
 
@@ -2876,7 +2704,7 @@
     </span><span class="kw">pub fn </span>create_if_statement(
         blocks: Vec&lt;ConditionalBlock&gt;,
         else_block: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
         AstStatement::ControlStatement {
@@ -2893,7 +2721,7 @@
         end: AstStatement,
         by_step: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
         body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
         AstStatement::ControlStatement {
@@ -2913,7 +2741,7 @@
     </span><span class="kw">pub fn </span>create_while_statement(
         condition: AstStatement,
         body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
         AstStatement::ControlStatement {
@@ -2927,7 +2755,7 @@
     </span><span class="kw">pub fn </span>create_repeat_statement(
         condition: AstStatement,
         body: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
         AstStatement::ControlStatement {
@@ -2942,7 +2770,7 @@
         selector: AstStatement,
         case_blocks: Vec&lt;ConditionalBlock&gt;,
         else_block: Vec&lt;AstStatement&gt;,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
         AstStatement::ControlStatement {
@@ -2967,7 +2795,7 @@
     }
 
     <span class="doccomment">/// creates a not-expression
-    </span><span class="kw">pub fn </span>create_not_expression(operator: AstStatement, location: SourceRange) -&gt; AstStatement {
+    </span><span class="kw">pub fn </span>create_not_expression(operator: AstStatement, location: SourceLocation) -&gt; AstStatement {
         AstStatement::UnaryExpression {
             id: operator.get_id(),
             value: Box::new(operator),
@@ -2977,7 +2805,7 @@
     }
 
     <span class="doccomment">/// creates a new Identifier
-    </span><span class="kw">pub fn </span>create_identifier(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceRange, id: AstId) -&gt; AstStatement {
+    </span><span class="kw">pub fn </span>create_identifier(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation, id: AstId) -&gt; AstStatement {
         AstStatement::Identifier { id, location: location.clone(), name: name.to_string() }
     }
 
@@ -3002,7 +2830,7 @@
         index: AstStatement,
         base: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Index(Box::new(index)),
@@ -3012,7 +2840,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>create_address_of_reference(base: AstStatement, id: AstId, location: SourceRange) -&gt; AstStatement {
+    <span class="kw">pub fn </span>create_address_of_reference(
+        base: AstStatement,
+        id: AstId,
+        location: SourceLocation,
+    ) -&gt; AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Address,
             base: <span class="prelude-val">Some</span>(Box::new(base)),
@@ -3021,7 +2853,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>create_deref_reference(base: AstStatement, id: AstId, location: SourceRange) -&gt; AstStatement {
+    <span class="kw">pub fn </span>create_deref_reference(base: AstStatement, id: AstId, location: SourceLocation) -&gt; AstStatement {
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Deref,
             base: <span class="prelude-val">Some</span>(Box::new(base)),
@@ -3034,7 +2866,7 @@
         access: DirectAccessType,
         index: AstStatement,
         id: AstId,
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; AstStatement {
         AstStatement::DirectAccess { access, index: Box::new(index), location, id }
     }
@@ -3053,10 +2885,10 @@
     </span><span class="kw">pub fn </span>create_cast_statement(
         type_name: AstStatement,
         stmt: AstStatement,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
         id: AstId,
     ) -&gt; AstStatement {
-        <span class="kw">let </span>new_location = (location.get_start()..stmt.get_location().get_end()).into();
+        <span class="kw">let </span>new_location = location.span(<span class="kw-2">&amp;</span>stmt.get_location());
         AstStatement::ReferenceExpr {
             access: ReferenceAccess::Cast(Box::new(stmt)),
             base: <span class="prelude-val">Some</span>(Box::new(type_name)),
@@ -3071,7 +2903,7 @@
         parameters: Vec&lt;AstStatement&gt;,
         id: usize,
         parameter_list_id: usize,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; AstStatement {
         AstStatement::CallStatement {
             operator: Box::new(AstFactory::create_member_reference(
@@ -3091,7 +2923,7 @@
     <span class="kw">pub fn </span>create_call_to_with_ids(
         function_name: <span class="kw-2">&amp;</span>str,
         parameters: Vec&lt;AstStatement&gt;,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
         <span class="kw-2">mut </span>id_provider: IdProvider,
     ) -&gt; AstStatement {
         AstStatement::CallStatement {
@@ -3113,7 +2945,7 @@
         check_function_name: <span class="kw-2">&amp;</span>str,
         parameter: AstStatement,
         sub_range: Range&lt;AstStatement&gt;,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
         id_provider: IdProvider,
     ) -&gt; AstStatement {
         AstFactory::create_call_to_with_ids(

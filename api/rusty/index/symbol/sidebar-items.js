@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SymbolLocation","SymbolLocationFactory","SymbolMap"]};
+window.SIDEBAR_ITEMS = {"struct":["SymbolMap"]};

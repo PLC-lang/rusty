@@ -351,12 +351,14 @@
 <a href="#351" id="351">351</a>
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>core::ops::Range;
 <span class="kw">use </span>logos::{Filter, Lexer, Logos};
-<span class="kw">use </span>plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType, SourceRange, SourceRangeFactory};
+<span class="kw">use </span>plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::{SourceLocation, SourceLocationFactory};
 <span class="kw">pub use </span>tokens::Token;
 
 <span class="attr">#[cfg(test)]
@@ -374,7 +376,7 @@
     </span><span class="kw">pub </span>last_range: Range&lt;usize&gt;,
     <span class="kw">pub </span>parse_progress: usize,
     id_provider: IdProvider,
-    <span class="kw">pub </span>source_range_factory: SourceRangeFactory,
+    <span class="kw">pub </span>source_range_factory: SourceLocationFactory,
     <span class="kw">pub </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
@@ -396,7 +398,7 @@
     <span class="kw">pub fn </span>new(
         l: Lexer&lt;<span class="lifetime">&#39;a</span>, Token&gt;,
         id_provider: IdProvider,
-        source_range_factory: SourceRangeFactory,
+        source_range_factory: SourceLocationFactory,
     ) -&gt; ParseSession&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>lexer = ParseSession {
             lexer: l,
@@ -507,11 +509,11 @@
         <span class="self">self</span>.lexer.slice()
     }
 
-    <span class="kw">pub fn </span>location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">pub fn </span>location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="self">self</span>.source_range_factory.create_range(<span class="self">self</span>.range())
     }
 
-    <span class="kw">pub fn </span>last_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceRange {
+    <span class="kw">pub fn </span>last_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
         <span class="self">self</span>.source_range_factory.create_range(<span class="self">self</span>.last_range.clone())
     }
 
@@ -554,17 +556,17 @@
 
     <span class="kw">pub fn </span>recover_until_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>hit = <span class="self">self</span>.get_close_region_level(<span class="kw-2">&amp;</span><span class="self">self</span>.token);
-        <span class="kw">let </span>start = <span class="self">self</span>.location();
-        <span class="kw">let </span><span class="kw-2">mut </span>end = <span class="self">self</span>.location().get_end();
+        <span class="kw">let </span>start = <span class="self">self</span>.range();
+        <span class="kw">let </span><span class="kw-2">mut </span>end = <span class="self">self</span>.range().end;
         <span class="kw">while </span><span class="self">self</span>.token != Token::End &amp;&amp; hit.is_none() {
-            end = <span class="self">self</span>.location().get_end();
+            end = <span class="self">self</span>.range().end;
             <span class="self">self</span>.advance();
             hit = <span class="self">self</span>.closing_keywords.iter().rposition(|it| it.contains(<span class="kw-2">&amp;</span><span class="self">self</span>.token));
         }
 
         <span class="comment">//Did we recover in the while loop above?
-        </span><span class="kw">if </span>start.get_end() != <span class="self">self</span>.location().get_end() {
-            <span class="kw">let </span>range = start.get_start()..end;
+        </span><span class="kw">if </span>start.end != <span class="self">self</span>.range().end {
+            <span class="kw">let </span>range = start.start..end;
             <span class="self">self</span>.accept_diagnostic(Diagnostic::unexpected_token_found(
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{:?}&quot;</span>,
@@ -694,13 +696,13 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub fn </span>lex(source: <span class="kw-2">&amp;</span>str) -&gt; ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal(source))
 }
 
 <span class="kw">pub fn </span>lex_with_ids(
     source: <span class="kw-2">&amp;</span>str,
     id_provider: IdProvider,
-    location_factory: SourceRangeFactory,
+    location_factory: SourceLocationFactory,
 ) -&gt; ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }

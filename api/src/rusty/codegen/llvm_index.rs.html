@@ -217,8 +217,8 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>inkwell::types::BasicTypeEnum;
 <span class="kw">use </span>inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
-<span class="kw">use </span>plc_ast::ast::SourceRange;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
 <span class="kw">use </span>std::collections::HashMap;
 
@@ -343,12 +343,12 @@
 
     <span class="kw">pub fn </span>get_associated_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.find_associated_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     <span class="kw">pub fn </span>get_associated_pou_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.find_associated_pou_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     <span class="kw">pub fn </span>find_associated_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {

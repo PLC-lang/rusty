@@ -553,6 +553,7 @@
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
 <a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>inkwell::{
@@ -564,12 +565,13 @@
 <span class="kw">use </span>plc_ast::{
     ast::{
         <span class="self">self</span>, flatten_expression_list, pre_process, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, SourceRange, SourceRangeFactory, TypeNature,
+        LinkageType, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 <span class="kw">use crate</span>::{
     codegen::generators::expression_generator::{<span class="self">self</span>, ExpressionCodeGenerator, ExpressionValue},
@@ -914,9 +916,7 @@
     index: <span class="kw-2">&amp;</span>Index,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(parameters) = parameters <span class="kw">else </span>{
-        validator.push_diagnostic(
-            Diagnostic::invalid_parameter_count(<span class="number">2</span>, <span class="number">0</span>, operator.get_location())
-        );
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(<span class="number">2</span>, <span class="number">0</span>, operator.get_location()));
         <span class="comment">// no params, nothing to validate
         </span><span class="kw">return</span>;
     };
@@ -947,7 +947,9 @@
             </span><span class="kw">if let </span>AstStatement::Literal { kind: AstLiteral::Integer(dimension_idx), .. } = idx {
                 <span class="kw">let </span>dimension_idx = <span class="kw-2">*</span>dimension_idx <span class="kw">as </span>usize;
 
-                <span class="kw">let </span><span class="prelude-val">Some</span>(n_dimensions) = annotations.get_type_or_void(vla, index).get_type_information().get_dimensions() <span class="kw">else </span>{
+                <span class="kw">let </span><span class="prelude-val">Some</span>(n_dimensions) =
+                    annotations.get_type_or_void(vla, index).get_type_information().get_dimensions()
+                <span class="kw">else </span>{
                     <span class="comment">// not a vla, validated via type nature
                     </span><span class="kw">return</span>;
                 };
@@ -970,7 +972,7 @@
     generator: <span class="kw-2">&amp;</span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
     params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
     is_lower: bool,
-    location: SourceRange,
+    location: SourceLocation,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span>llvm = generator.llvm;
     <span class="kw">let </span>builder = <span class="kw-2">&amp;</span>generator.llvm.builder;
@@ -1007,7 +1009,7 @@
             llvm.i32_type().const_int(offset, <span class="bool-val">false</span>)
         }
         AstStatement::CastStatement { target, .. } =&gt; {
-            <span class="kw">let </span>ExpressionValue::RValue(value) =  generator.generate_expression_value(target)<span class="question-mark">? </span><span class="kw">else </span>{
+            <span class="kw">let </span>ExpressionValue::RValue(value) = generator.generate_expression_value(target)<span class="question-mark">? </span><span class="kw">else </span>{
                 <span class="macro">unreachable!</span>()
             };
 
@@ -1056,7 +1058,7 @@
 <span class="kw">type </span>CodegenFunction = <span class="kw">for</span>&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; <span class="kw">fn</span>(
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
     <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
-    SourceRange,
+    SourceLocation,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt;;
 <span class="kw">type </span>ValidationFunction =
     <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Validator, <span class="kw-2">&amp;</span>AstStatement, <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;AstStatement&gt;, <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap, <span class="kw-2">&amp;</span>Index);
@@ -1074,7 +1076,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         generator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
         params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
-        location: SourceRange,
+        location: SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         (<span class="self">self</span>.code)(generator, params, location)
     }
@@ -1094,7 +1096,7 @@
 <span class="kw">pub fn </span>parse_built_ins(id_provider: IdProvider) -&gt; CompilationUnit {
     <span class="kw">let </span>src = BUILTIN.iter().map(|(<span class="kw">_</span>, it)| it.decl).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;().join(<span class="string">&quot; &quot;</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>unit = parser::parse(
-        lexer::lex_with_ids(<span class="kw-2">&amp;</span>src, id_provider.clone(), SourceRangeFactory::internal()),
+        lexer::lex_with_ids(<span class="kw-2">&amp;</span>src, id_provider.clone(), SourceLocationFactory::internal(<span class="kw-2">&amp;</span>src)),
         LinkageType::BuiltIn,
         <span class="string">&quot;&lt;builtin&gt;&quot;</span>,
     )

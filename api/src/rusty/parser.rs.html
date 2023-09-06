@@ -1096,20 +1096,40 @@
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
 <a href="#1098" id="1098">1098</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
+</span><span class="kw">use </span>std::ops::Range;
+
+<span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, NewLines,
-        PolymorphismMode, Pou, PouType, ReferenceAccess, SourceRange, SourceRangeFactory, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, PolymorphismMode,
+        Pou, PouType, ReferenceAccess, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
+        VariableBlockType,
     },
     provider::IdProvider,
 };
 <span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+<span class="kw">use </span>plc_source::{
+    source_location::{SourceLocation, SourceLocationFactory},
+    SourceCode, SourceContainer,
+};
 <span class="kw">use </span>plc_util::convention::qualified_name;
 
-<span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use crate</span>::{
+<span class="kw">use crate</span>::{
     expect_token,
     lexer::{<span class="self">self</span>, ParseSession, Token, Token::<span class="kw-2">*</span>},
     typesystem::DINT_TYPE,
@@ -1128,23 +1148,26 @@
 <span class="kw">pub type </span>ParsedAst = (CompilationUnit, Vec&lt;Diagnostic&gt;);
 
 <span class="kw">pub fn </span>parse_file(
-    source: <span class="kw-2">&amp;</span>str,
-    location: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    source: SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
 ) -&gt; CompilationUnit {
-    <span class="kw">let </span>location_factory = SourceRangeFactory::for_file(location);
-    <span class="kw">let </span>(unit, errors) = parse(lexer::lex_with_ids(source, id_provider, location_factory), linkage, location);
+    <span class="kw">let </span>location_factory = SourceLocationFactory::for_source(<span class="kw-2">&amp;</span>source);
+    <span class="kw">let </span>(unit, errors) = parse(
+        lexer::lex_with_ids(<span class="kw-2">&amp;</span>source.source, id_provider, location_factory),
+        linkage,
+        source.get_location_str(),
+    );
     <span class="comment">//Register the source file with the diagnostician
     //TODO: We should reduce the clone here
-    </span>diagnostician.register_file(location.to_string(), source.to_string());
+    </span>diagnostician.register_file(source.get_location_str().to_string(), source.source);
     diagnostician.handle(errors);
     unit
 }
 
 <span class="kw">pub fn </span>parse(<span class="kw-2">mut </span>lexer: ParseSession, lnk: LinkageType, file_name: <span class="kw-2">&amp;</span>str) -&gt; ParsedAst {
-    <span class="kw">let </span><span class="kw-2">mut </span>unit = CompilationUnit::new(file_name, NewLines::build(lexer.get_src()));
+    <span class="kw">let </span><span class="kw-2">mut </span>unit = CompilationUnit::new(file_name);
 
     <span class="kw">let </span><span class="kw-2">mut </span>linkage = lnk;
     <span class="kw">loop </span>{
@@ -1264,7 +1287,7 @@
         </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type);
 
         <span class="kw">let </span>(name, name_location) =
-            parse_identifier(lexer).unwrap_or_else(|| (<span class="string">&quot;&quot;</span>.to_string(), SourceRange::undefined())); <span class="comment">// parse POU name
+            parse_identifier(lexer).unwrap_or_else(|| (<span class="string">&quot;&quot;</span>.to_string(), SourceLocation::undefined())); <span class="comment">// parse POU name
 
         </span><span class="kw">let </span>generics = parse_generics(lexer);
 
@@ -1471,7 +1494,7 @@
         //    ...
         // END_METHOD
 
-        </span><span class="kw">let </span>method_start = lexer.location().get_start();
+        </span><span class="kw">let </span>method_start = lexer.range().start;
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
@@ -1507,7 +1530,7 @@
         // doesn&#39;t know. thus, we have to complete the information.
         </span><span class="kw">let </span>implementation = Implementation { overriding, access, ..implementation };
 
-        <span class="kw">let </span>method_end = lexer.location().get_end();
+        <span class="kw">let </span>method_end = lexer.range().end;
         <span class="prelude-val">Some</span>((
             Pou {
                 name: call_name,
@@ -1542,7 +1565,7 @@
 
 <span class="doccomment">/// parse identifier and advance if successful
 /// returns the identifier as a String and the SourceRange of the parsed name
-</span><span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;(String, SourceRange)&gt; {
+</span><span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;(String, SourceLocation)&gt; {
     <span class="kw">let </span>pou_name = lexer.slice().to_string();
     <span class="kw">if </span>lexer.token == Identifier {
         lexer.advance();
@@ -1564,7 +1587,7 @@
     call_name: <span class="kw-2">&amp;</span>str,
     type_name: <span class="kw-2">&amp;</span>str,
     generic: bool,
-    name_location: SourceRange,
+    name_location: SourceLocation,
 ) -&gt; Implementation {
     <span class="kw">let </span>start = lexer.range().start;
     <span class="kw">let </span>statements = parse_body_standalone(lexer);
@@ -1669,7 +1692,7 @@
             <span class="prelude-val">Some</span>((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::VarArgs { referenced_type: <span class="prelude-val">None</span>, sized },
-                    location: lexer.last_range.clone().into(),
+                    location: lexer.last_location(),
                     scope: lexer.scope.clone(),
                 },
                 <span class="prelude-val">None</span>,
@@ -1680,7 +1703,7 @@
                     (
                         DataTypeDeclaration::DataTypeDefinition {
                             data_type: DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(Box::new(type_def)), sized },
-                            location: lexer.last_range.clone().into(),
+                            location: lexer.last_location(),
                             scope: lexer.scope.clone(),
                         },
                         <span class="prelude-val">None</span>,
@@ -1698,14 +1721,14 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeWithInitializer&gt; {
-    <span class="kw">let </span>start = lexer.location().get_start();
+    <span class="kw">let </span>start = lexer.location();
     <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordStruct) {
         <span class="comment">// Parse struct
         </span><span class="kw">let </span>variables = parse_variable_list(lexer);
         <span class="prelude-val">Some</span>((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
-                location: (start..lexer.range().end).into(),
+                location: start.span(<span class="kw-2">&amp;</span>lexer.location()),
                 scope: lexer.scope.clone(),
             },
             <span class="prelude-val">None</span>,
@@ -1754,7 +1777,7 @@
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
-                location: (start_pos..lexer.last_range.end).into(),
+                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
             initializer,
@@ -1766,7 +1789,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
-    <span class="kw">let </span>start = lexer.location().get_start();
+    <span class="kw">let </span>start = lexer.range().start;
     <span class="comment">//Subrange
     </span><span class="kw">let </span>referenced_type = lexer.slice_and_advance();
 
@@ -1794,7 +1817,7 @@
                         numeric_type: referenced_type,
                         elements: AstStatement::ExpressionList { expressions, id },
                     },
-                    location: (start..end).into(),
+                    location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
@@ -1806,21 +1829,24 @@
                         numeric_type: referenced_type,
                         elements: bounds.unwrap(),
                     },
-                    location: (start..end).into(),
+                    location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
             <span class="kw">_ </span>=&gt; DataTypeDeclaration::DataTypeDefinition {
                 <span class="comment">//something else inside the brackets -&gt; probably a subrange?
                 </span>data_type: DataType::SubRangeType { name, referenced_type, bounds },
-                location: (start..end).into(),
+                location: lexer.source_range_factory.create_range(start..end),
                 scope: lexer.scope.clone(),
             },
         };
         <span class="prelude-val">Some</span>((data_type, initial_value))
     } <span class="kw">else </span>{
         <span class="prelude-val">Some</span>((
-            DataTypeDeclaration::DataTypeReference { referenced_type, location: (start..end).into() },
+            DataTypeDeclaration::DataTypeReference {
+                referenced_type,
+                location: lexer.source_range_factory.create_range(start..end),
+            },
             initial_value,
         ))
     }
@@ -1829,12 +1855,11 @@
 <span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstStatement&gt; {
     <span class="kw">let </span>opening_token = lexer.token.clone();
     <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
-        <span class="kw">let </span>opening_location = lexer.location().get_start();
+        <span class="kw">let </span>opening_location = lexer.range().start;
         <span class="kw">let </span>closing_tokens = <span class="macro">vec!</span>[KeywordSquareParensClose, KeywordParensClose];
         parse_any_in_region(lexer, closing_tokens, |lexer| {
             <span class="kw">let </span>size_expr = parse_expression(lexer);
-            <span class="kw">let </span>error_range =
-                lexer.source_range_factory.create_range(opening_location..lexer.location().get_end());
+            <span class="kw">let </span>error_range = lexer.source_range_factory.create_range(opening_location..lexer.range().end);
 
             <span class="kw">if </span>(opening_token == KeywordParensOpen &amp;&amp; lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
@@ -1863,13 +1888,13 @@
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
     <span class="kw">let </span>text = lexer.slice().to_string();
-    <span class="kw">let </span>start = lexer.location().get_start();
+    <span class="kw">let </span>start = lexer.range().start;
     <span class="kw">let </span>is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
     <span class="kw">let </span>size = parse_string_size_expression(lexer);
     <span class="kw">let </span>end = lexer.last_range.end;
-    <span class="kw">let </span>location: SourceRange = (start..end).into();
+    <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..end);
 
     <span class="kw">match </span>(size, <span class="kw-2">&amp;</span>name) {
         (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeDefinition {
@@ -1895,7 +1920,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
-    <span class="kw">let </span>start = lexer.last_range.start;
+    <span class="kw">let </span>start = lexer.last_location();
     <span class="kw">let </span>elements = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
         <span class="comment">// Parse Enum - we expect at least one element
         </span><span class="kw">let </span>elements = parse_expression_list(lexer);
@@ -1905,7 +1930,7 @@
     <span class="prelude-val">Some</span>((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
-            location: (start..lexer.last_range.end).into(),
+            location: start.span(<span class="kw-2">&amp;</span>lexer.last_location()),
             scope: lexer.scope.clone(),
         },
         initializer,
@@ -1933,7 +1958,8 @@
 
     <span class="kw">let </span>inner_type_defintion = parse_data_type_definition(lexer, <span class="prelude-val">None</span>);
     inner_type_defintion.map(|(reference, initializer)| {
-        <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
+        <span class="kw">let </span>reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..reference_end);
 
         <span class="kw">let </span>is_variable_length = <span class="kw">match </span><span class="kw-2">&amp;</span>range {
             <span class="comment">// Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
@@ -2102,10 +2128,10 @@
 
 <span class="kw">fn </span>parse_variable_line(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {
     <span class="comment">// read in a comma separated list of variable names
-    </span><span class="kw">let </span><span class="kw-2">mut </span>var_names: Vec&lt;(String, SourceRange)&gt; = <span class="macro">vec!</span>[];
+    </span><span class="kw">let </span><span class="kw-2">mut </span>var_names: Vec&lt;(String, Range&lt;usize&gt;)&gt; = <span class="macro">vec!</span>[];
     <span class="kw">while </span>lexer.token == Identifier {
-        <span class="kw">let </span>location = lexer.location();
-        <span class="kw">let </span>identifier_end = location.get_end();
+        <span class="kw">let </span>location = lexer.range();
+        <span class="kw">let </span>identifier_end = location.end;
         var_names.push((lexer.slice_and_advance(), location));
 
         <span class="kw">if </span>lexer.token == KeywordColon || lexer.token == KeywordAt {
@@ -2113,7 +2139,7 @@
         }
 
         <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordComma) {
-            <span class="kw">let </span>next_token_start = lexer.location().get_start();
+            <span class="kw">let </span>next_token_start = lexer.range().start;
             lexer.accept_diagnostic(Diagnostic::missing_token(
                 <span class="macro">format!</span>(<span class="string">&quot;{KeywordColon:?} or {KeywordComma:?}&quot;</span>).as_str(),
                 lexer.source_range_factory.create_range(identifier_end..next_token_start),
@@ -2151,11 +2177,11 @@
     <span class="comment">// create variables with the same data type for each of the names
     </span><span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
     <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, initializer)) = parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>) {
-        <span class="kw">for </span>(name, location) <span class="kw">in </span>var_names {
+        <span class="kw">for </span>(name, range) <span class="kw">in </span>var_names {
             variables.push(Variable {
                 name,
                 data_type_declaration: data_type.clone(),
-                location,
+                location: lexer.source_range_factory.create_range(range),
                 initializer: initializer.clone(),
                 address: address.clone(),
             });
@@ -2169,7 +2195,7 @@
     hardware_access_type: HardwareAccessType,
     access_type: DirectAccessType,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
-    <span class="kw">let </span>start_location = lexer.last_range.start;
+    <span class="kw">let </span>start_location = lexer.last_location();
     lexer.advance();
     <span class="comment">//Folowed by an integer
     </span><span class="kw">if </span>access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
@@ -2187,7 +2213,7 @@
             access: access_type,
             direction: hardware_access_type,
             address,
-            location: (start_location..lexer.last_range.end).into(),
+            location: start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
             id: lexer.next_id(),
         })
     } <span class="kw">else </span>{

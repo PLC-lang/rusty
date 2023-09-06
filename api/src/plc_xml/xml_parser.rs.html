@@ -166,17 +166,17 @@
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::{
-    ast::{
-        AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType,
-        SourceRange, SourceRangeFactory,
-    },
+    ast::{AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType},
     provider::IdProvider,
 };
 <span class="kw">use </span>plc::{lexer, parser::expressions_parser::parse_expression};
 <span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
+<span class="kw">use </span>plc_source::{
+    source_location::{SourceLocation, SourceLocationFactory},
+    SourceCode, SourceContainer,
+};
 <span class="kw">use </span>quick_xml::events::Event;
 
 <span class="kw">use crate</span>::{
@@ -189,7 +189,8 @@
 <span class="kw">mod </span>block;
 <span class="kw">mod </span>fbd;
 <span class="kw">mod </span>pou;
-<span class="kw">mod </span>tests;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 <span class="kw">mod </span>variables;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Parseable {
@@ -210,33 +211,33 @@
 }
 
 <span class="kw">pub fn </span>parse_file(
-    source: <span class="kw-2">&amp;</span>str,
-    location: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    source: SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
 ) -&gt; CompilationUnit {
-    <span class="kw">let </span>(unit, errors) = parse(source, location, linkage, id_provider);
+    <span class="kw">let </span>(unit, errors) = parse(<span class="kw-2">&amp;</span>source, linkage, id_provider);
     <span class="comment">//Register the source file with the diagnostician
-    </span>diagnostician.register_file(location.to_string(), source.to_string());
+    </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
     diagnostician.handle(errors);
     unit
 }
 
 <span class="kw">fn </span>parse(
-    source: <span class="kw-2">&amp;</span>str,
-    location: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    source: <span class="kw-2">&amp;</span>SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
     <span class="comment">// transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    </span><span class="kw">let </span><span class="prelude-val">Ok</span>(project) = visit(source) <span class="kw">else </span>{
+    </span><span class="kw">let </span><span class="prelude-val">Ok</span>(project) = visit(<span class="kw-2">&amp;</span>source.source) <span class="kw">else </span>{
         <span class="macro">todo!</span>(<span class="string">&quot;cfc errors need to be transformed into diagnostics&quot;</span>)
     };
 
     <span class="comment">// create a new parse session
-    </span><span class="kw">let </span>parser = ParseSession::new(<span class="kw-2">&amp;</span>project, location, id_provider, linkage);
+    </span><span class="kw">let </span>source_location_factory = SourceLocationFactory::for_source(source);
+    <span class="kw">let </span>parser =
+        ParseSession::new(<span class="kw-2">&amp;</span>project, source.get_location_str(), id_provider, linkage, source_location_factory);
 
     <span class="comment">// try to parse a declaration data field
     </span><span class="kw">let </span><span class="prelude-val">Some</span>((unit, diagnostics)) = parser.try_parse_declaration() <span class="kw">else </span>{
@@ -252,7 +253,7 @@
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    range_factory: SourceRangeFactory,
+    range_factory: SourceLocationFactory,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;parse</span>&gt; ParseSession&lt;<span class="lifetime">&#39;parse</span>&gt; {
@@ -261,50 +262,39 @@
         file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         id_provider: IdProvider,
         linkage: LinkageType,
+        range_factory: SourceLocationFactory,
     ) -&gt; <span class="self">Self </span>{
-        ParseSession {
-            project,
-            id_provider,
-            linkage,
-            file_name,
-            range_factory: SourceRangeFactory::for_file(file_name),
-        }
+        ParseSession { project, id_provider, linkage, file_name, range_factory }
     }
 
     <span class="doccomment">/// parse the compilation unit from the addData field
     </span><span class="kw">fn </span>try_parse_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(CompilationUnit, Vec&lt;Diagnostic&gt;)&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(content) = <span class="self">self</span>.project.pous
+        <span class="kw">let </span><span class="prelude-val">Some</span>(content) = <span class="self">self
+            </span>.project
+            .pous
             .first()
-            .and_then(|it|
-                it.interface
-                    .as_ref()
-                    .and_then(|it|
-                        it.get_data_content()
-                    )
-        ) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">None
-        </span>};
+            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))
+        <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        };
 
         <span class="comment">//TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration
         </span><span class="prelude-val">Some</span>(plc::parser::parse(
-            lexer::lex_with_ids(
-                content,
-                <span class="self">self</span>.id_provider.clone(),
-                SourceRangeFactory::for_file(<span class="self">self</span>.file_name),
-            ),
+            lexer::lex_with_ids(content, <span class="self">self</span>.id_provider.clone(), <span class="self">self</span>.range_factory.clone()),
             <span class="self">self</span>.linkage,
             <span class="self">self</span>.file_name,
         ))
     }
 
-    <span class="kw">fn </span>parse_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>str) -&gt; AstStatement {
-        <span class="comment">// TODO: diagnostics not handled
-        </span>parse_expression(<span class="kw-2">&amp;mut </span>lexer::lex_with_ids(
+    <span class="kw">fn </span>parse_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>str, local_id: usize, execution_order: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; AstStatement {
+        <span class="kw">let </span>exp = parse_expression(<span class="kw-2">&amp;mut </span>lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, <span class="kw-2">&amp;mut </span>String::new()),
             <span class="self">self</span>.id_provider.clone(),
-            SourceRangeFactory::for_file(<span class="self">self</span>.file_name),
-        ))
+            <span class="self">self</span>.range_factory.clone(),
+        ));
+        <span class="kw">let </span>loc = exp.get_location();
+        exp.set_location(<span class="self">self</span>.range_factory.create_block_location(local_id, execution_order).span(<span class="kw-2">&amp;</span>loc))
     }
 
     <span class="kw">fn </span>parse_model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Implementation&gt; {
@@ -322,8 +312,16 @@
         <span class="self">self</span>.id_provider.clone().next_id()
     }
 
-    <span class="kw">fn </span>create_range(<span class="kw-2">&amp;</span><span class="self">self</span>, range: core::ops::Range&lt;usize&gt;) -&gt; SourceRange {
+    <span class="kw">fn </span>create_range(<span class="kw-2">&amp;</span><span class="self">self</span>, range: core::ops::Range&lt;usize&gt;) -&gt; SourceLocation {
         <span class="self">self</span>.range_factory.create_range(range)
+    }
+
+    <span class="kw">fn </span>create_block_location(<span class="kw-2">&amp;</span><span class="self">self</span>, local_id: usize, execution_order: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; SourceLocation {
+        <span class="self">self</span>.range_factory.create_block_location(local_id, execution_order)
+    }
+
+    <span class="kw">fn </span>create_file_only_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
+        <span class="self">self</span>.range_factory.create_file_only_location()
     }
 }
 

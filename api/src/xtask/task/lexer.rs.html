@@ -32,10 +32,13 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::time::Instant;
 
 <span class="kw">use </span>plc::lexer;
-<span class="kw">use </span>plc_ast::{ast::SourceRangeFactory, provider::IdProvider};
+<span class="kw">use </span>plc_ast::provider::IdProvider;
+<span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
 
 <span class="kw">use </span><span class="kw">crate</span>::reporter::DurationWrapper;
 
@@ -49,7 +52,8 @@
 
     <span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;std::time::Duration&gt; {
         <span class="kw">let </span>content = std::fs::read_to_string(<span class="macro">format!</span>(<span class="string">&quot;./xtask/res/{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>lexer = lexer::lex_with_ids(<span class="kw-2">&amp;</span>content, IdProvider::default(), SourceRangeFactory::internal());
+        <span class="kw">let </span><span class="kw-2">mut </span>lexer =
+            lexer::lex_with_ids(<span class="kw-2">&amp;</span>content, IdProvider::default(), SourceLocationFactory::internal(<span class="kw-2">&amp;</span>content));
 
         <span class="kw">let </span>now = Instant::now();
         <span class="kw">while </span>!lexer.is_end_of_stream() {

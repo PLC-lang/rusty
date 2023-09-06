@@ -209,6 +209,7 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     fs::File,
     io::Read,
@@ -218,6 +219,7 @@
 <span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>encoding_rs_io::DecodeReaderBytesBuilder;
 
+<span class="kw">pub mod </span>source_location;
 <span class="doccomment">/// Represents the type of source a SourceContainer holds
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>SourceType {

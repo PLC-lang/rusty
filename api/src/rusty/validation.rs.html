@@ -152,6 +152,11 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -277,7 +282,12 @@
         // Find and report const-expressions that would overflow
         </span><span class="kw">for </span>it <span class="kw">in </span>index.get_const_expressions().into_iter() {
             <span class="kw">let </span><span class="prelude-val">Some</span>(expr) = index.get_const_expressions().find_const_expression(<span class="kw-2">&amp;</span>it.<span class="number">0</span>) <span class="kw">else </span>{ <span class="kw">continue </span>};
-            <span class="kw">let </span>ConstExpression::Unresolvable { reason: UnresolvableKind::Overflow(reason, location), .. } = expr <span class="kw">else </span>{ <span class="kw">continue </span>};
+            <span class="kw">let </span>ConstExpression::Unresolvable {
+                reason: UnresolvableKind::Overflow(reason, location), ..
+            } = expr
+            <span class="kw">else </span>{
+                <span class="kw">continue</span>;
+            };
 
             <span class="self">self</span>.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
         }

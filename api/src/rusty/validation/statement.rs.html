@@ -1084,14 +1084,16 @@
 <a href="#1084" id="1084">1084</a>
 <a href="#1085" id="1085">1085</a>
 <a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess},
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use super</span>::{
     array::{validate_array_assignment, Wrapper},
@@ -1277,7 +1279,7 @@
 <span class="kw">fn </span>validate_address_of_expression&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     target: <span class="kw-2">&amp;</span>AstStatement,
-    location: SourceRange,
+    location: SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span>a = context.annotations.get(target);
@@ -1364,7 +1366,7 @@
     literal: <span class="kw-2">&amp;</span>AstLiteral,
     statement: <span class="kw-2">&amp;</span>AstStatement,
     type_name: <span class="kw-2">&amp;</span>str,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">let </span>cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
@@ -1421,7 +1423,7 @@
     access_index: <span class="kw-2">&amp;</span>AstStatement,
     access_type: <span class="kw-2">&amp;</span>DirectAccessType,
     target_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
 ) {
     <span class="kw">match </span><span class="kw-2">*</span>access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } =&gt; {
@@ -1457,7 +1459,7 @@
     statement: <span class="kw-2">&amp;</span>AstStatement,
     base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
     ref_name: <span class="kw-2">&amp;</span>str,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="comment">// unresolved reference
@@ -1723,7 +1725,7 @@
     validator: <span class="kw-2">&amp;mut </span>Validator,
     right: <span class="kw-2">&amp;</span>AstStatement,
     left: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
@@ -1802,7 +1804,7 @@
     left: <span class="kw-2">&amp;</span>DataTypeInformation,
     right: <span class="kw-2">&amp;</span>DataTypeInformation,
     qualified_name: <span class="kw-2">&amp;</span>str,
-    location: SourceRange,
+    location: SourceLocation,
 ) {
     <span class="kw">if </span>left.is_enum() &amp;&amp; left.get_name() != right.get_name() {
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, location))
@@ -1812,7 +1814,7 @@
 <span class="kw">fn </span>validate_variable_length_array_assignment&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     left_type: <span class="kw-2">&amp;</span>DataType,
     right_type: <span class="kw-2">&amp;</span>DataType,
 ) {
@@ -1839,7 +1841,7 @@
     right_type: <span class="kw-2">&amp;</span>DataType,
     right: <span class="kw-2">&amp;</span>AstStatement,
     index: <span class="kw-2">&amp;</span>Index,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     validator: <span class="kw-2">&amp;mut </span>Validator,
 ) -&gt; bool {
     <span class="kw">if </span>is_valid_string_to_char_assignment(
@@ -1868,7 +1870,7 @@
     left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     right: <span class="kw-2">&amp;</span>AstStatement,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     validator: <span class="kw-2">&amp;mut </span>Validator,
 ) -&gt; bool {
     <span class="comment">// TODO: casted literals and reference
@@ -1892,7 +1894,7 @@
     left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     index: <span class="kw-2">&amp;</span>Index,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     validator: <span class="kw-2">&amp;mut </span>Validator,
 ) -&gt; bool {
     <span class="kw">if </span>left_type.is_pointer() &amp; right_type.is_pointer() {
@@ -2125,7 +2127,7 @@
     validator: <span class="kw-2">&amp;mut </span>Validator,
     left: <span class="kw-2">&amp;</span>DataType,
     right: <span class="kw-2">&amp;</span>DataType,
-    location: <span class="kw-2">&amp;</span>SourceRange,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">if </span>left.get_type_information().get_size(context.index)

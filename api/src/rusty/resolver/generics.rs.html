@@ -464,14 +464,16 @@
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{symbol::SymbolLocation, Index, PouIndexEntry},
+    index::{Index, PouIndexEntry},
     resolver::AnnotationMap,
     typesystem::{
         <span class="self">self</span>, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -682,7 +684,7 @@
                     initial_value: <span class="prelude-val">None</span>,
                     name: name.clone(),
                     nature: TypeNature::Any,
-                    location: SymbolLocation::internal(),
+                    location: SourceLocation::internal(),
                 });
 
                 name

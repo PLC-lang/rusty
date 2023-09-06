@@ -462,6 +462,7 @@
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
 <a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
 <span class="kw">use </span><span class="kw">crate</span>::index::{Index, VariableIndexEntry, VariableType};
@@ -481,10 +482,11 @@
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-<span class="kw">use </span>plc_ast::ast::{AstStatement, SourceRange};
+<span class="kw">use </span>plc_ast::ast::AstStatement;
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_diagnostics::errno::ErrNo;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="doccomment">/// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
@@ -618,10 +620,8 @@
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_extra_ranges(<span class="kw-2">&amp;</span>[ty.location.source_range.clone()]))
-                    .unwrap_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(name, ty.location.source_range.clone())
-                    })
+                    .map(|diag| diag.with_extra_ranges(<span class="kw-2">&amp;</span>[ty.location.clone()]))
+                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="comment">//Report the operation failure
@@ -698,7 +698,7 @@
                     <span class="prelude-val">Err</span>(Diagnostic::invalid_type_nature(
                         effective_type.get_name(),
                         <span class="string">&quot;ANY_INT&quot;</span>,
-                        SourceRange::undefined(),
+                        SourceLocation::undefined(),
                     ))
                 }
             }
@@ -714,7 +714,7 @@
 
                 <span class="kw">let </span>string_size = size
                     .as_int_value(<span class="self">self</span>.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))<span class="question-mark">?
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))<span class="question-mark">?
                     </span><span class="kw">as </span>u32;
                 <span class="prelude-val">Ok</span>(base_type.array_type(string_size).into())
             }
@@ -895,12 +895,14 @@
             .map(|dimension| {
                 dimension
                     .get_length(<span class="self">self</span>.index)
-                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceLocation::undefined()))
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;u32&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?
             </span>.into_iter()
             .reduce(|a, b| a * b)
-            .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Invalid array dimensions&quot;</span>, SourceRange::undefined()))<span class="question-mark">?</span>;
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(<span class="string">&quot;Invalid array dimensions&quot;</span>, SourceLocation::undefined())
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>result = <span class="kw">match </span>inner_type {
             BasicTypeEnum::IntType(ty) =&gt; ty.array_type(len),

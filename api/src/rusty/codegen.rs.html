@@ -511,6 +511,7 @@
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
 <a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     cell::RefCell,
@@ -548,8 +549,9 @@
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
-<span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType, SourceRange};
+<span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">mod </span>debug;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>generators;
@@ -716,7 +718,7 @@
             <span class="comment">//Don&#39;t generate external or generic functions
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = global_index.find_pou(implementation.name.as_str()) {
                 <span class="kw">if </span>!entry.is_generic() &amp;&amp; entry.get_linkage() != <span class="kw-2">&amp;</span>LinkageType::External {
-                    pou_generator.generate_implementation(implementation, <span class="kw-2">&amp;</span><span class="self">self</span>.debug, <span class="kw-2">&amp;</span>unit.new_lines)<span class="question-mark">?</span>;
+                    pou_generator.generate_implementation(implementation, <span class="kw-2">&amp;</span><span class="self">self</span>.debug)<span class="question-mark">?</span>;
                 }
             }
         }
@@ -819,7 +821,7 @@
         <span class="kw">let </span>target = inkwell::targets::Target::from_triple(<span class="kw-2">&amp;</span>triple).map_err(|it| {
             Diagnostic::codegen_error(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Invalid target-tripple &#39;{triple}&#39; - {it:?}&quot;</span>),
-                SourceRange::undefined(),
+                SourceLocation::undefined(),
             )
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>machine = target
@@ -833,7 +835,7 @@
                 CodeModel::Default,
             )
             .ok_or_else(|| {
-                Diagnostic::codegen_error(<span class="string">&quot;Cannot create target machine.&quot;</span>, SourceRange::undefined())
+                Diagnostic::codegen_error(<span class="string">&quot;Cannot create target machine.&quot;</span>, SourceLocation::undefined())
             });
 
         <span class="comment">//Make sure all parents exist
@@ -918,7 +920,7 @@
         <span class="kw">if </span><span class="self">self</span>.module.write_bitcode_to_path(<span class="kw-2">&amp;</span>output) {
             <span class="prelude-val">Ok</span>(output)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Could not write bitcode to file&quot;</span>, SourceRange::undefined()))
+            <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Could not write bitcode to file&quot;</span>, SourceLocation::undefined()))
         }
     }
 

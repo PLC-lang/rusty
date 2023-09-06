@@ -778,24 +778,6 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     data_type_generator::get_default_for,
@@ -833,8 +815,9 @@
     types::{BasicType, StructType},
     values::PointerValue,
 };
-<span class="kw">use </span>plc_ast::ast::{AstStatement, Implementation, NewLines, PouType, SourceRange};
+<span class="kw">use </span>plc_ast::ast::{AstStatement, Implementation, PouType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">pub struct </span>PouGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; {
     llvm: Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
@@ -1029,7 +1012,7 @@
                 pou,
                 return_type,
                 parameter_types.as_slice(),
-                implementation.get_location().line_number,
+                implementation.get_location().get_line(),
             );
         }
         <span class="prelude-val">Ok</span>(curr_f)
@@ -1076,7 +1059,6 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         implementation: <span class="kw-2">&amp;</span>Implementation,
         debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        new_lines: <span class="kw-2">&amp;</span>NewLines,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>context = <span class="self">self</span>.llvm.context;
         <span class="kw">let </span><span class="kw-2">mut </span>local_index = LlvmTypedIndex::create_child(<span class="self">self</span>.llvm_index);
@@ -1093,14 +1075,10 @@
         <span class="kw">let </span>(line, column) = implementation
             .statements
             .first()
-            .map(|it| it.get_location().get_start())
-            .or_else(|| <span class="prelude-val">Some</span>(implementation.location.get_start()))
-            .map(|offset| {
-                <span class="kw">let </span>line = new_lines.get_line_nr(offset);
-                <span class="kw">let </span>column = new_lines.get_column(line, offset);
-                (line, column)
-            })
-            .unwrap();
+            .map(|it| (it.get_location().get_line(), it.get_location().get_column()))
+            .or_else(|| <span class="prelude-val">Some</span>((implementation.location.get_line(), implementation.location.get_column())))
+            <span class="comment">// .or_else(|| Some(implementation.location.get_start()))
+            </span>.unwrap();
         debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>current_function, line, column);
 
         <span class="comment">//generate the body
@@ -1118,7 +1096,6 @@
                 },
             )<span class="question-mark">?</span>,
             function: current_function,
-            new_lines,
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>param_index = <span class="number">0</span>;
@@ -1225,7 +1202,7 @@
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.context.void_type().fn_type(<span class="kw-2">&amp;</span>params, is_var_args)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {return_type:?}&quot;</span>),
-                SourceRange::undefined(),
+                SourceLocation::undefined(),
             )),
         }
     }
@@ -1252,9 +1229,9 @@
                 .is_some()
             {
                 <span class="comment">// function return is handled by an out-pointer
-                </span><span class="kw">let </span>parameter = params_iter.next().ok_or_else(|| {
-                    Diagnostic::missing_function(ret_v.source_location.source_range.clone())
-                })<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>parameter = params_iter
+                    .next()
+                    .ok_or_else(|| Diagnostic::missing_function(ret_v.source_location.clone()))<span class="question-mark">?</span>;
 
                 <span class="comment">// remove the out-param so the loop below will not see it again
                 // generate special accessor for aggrate function output (out-ptr)
@@ -1278,7 +1255,7 @@
             <span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_parameter() {
                 <span class="kw">let </span>ptr_value = params_iter
                     .next()
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.source_range.clone()))<span class="question-mark">?</span>;
+                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>ptr = <span class="self">self
                     </span>.llvm
@@ -1290,11 +1267,8 @@
                         ptr,
                         function_context.function,
                         block,
-                        m.source_location.line_number,
-                        function_context.new_lines.get_column(
-                            m.source_location.line_number,
-                            m.source_location.source_range.get_start(),
-                        ),
+                        m.source_location.get_line(),
+                        m.source_location.get_column(),
                     );
                 }
                 <span class="self">self</span>.llvm.builder.build_store(ptr, ptr_value);
@@ -1320,7 +1294,7 @@
         index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
         type_name: <span class="kw-2">&amp;</span>str,
         function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
-        location: <span class="kw-2">&amp;</span>SourceRange,
+        location: <span class="kw-2">&amp;</span>SourceLocation,
         debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
@@ -1331,15 +1305,13 @@
             .ok_or_else(|| Diagnostic::missing_function(location.clone()))<span class="question-mark">?</span>;
         <span class="comment">//Generate POU struct declaration for debug
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = <span class="self">self</span>.llvm.builder.get_insert_block() {
-            <span class="kw">let </span>line = function_context.new_lines.get_line_nr(location.get_start());
-            <span class="kw">let </span>column = function_context.new_lines.get_column(line, location.get_start());
             debug.add_variable_declaration(
                 type_name,
                 param_pointer,
                 function_context.function,
                 block,
-                line,
-                column,
+                location.get_line(),
+                location.get_column(),
             );
         }
         <span class="comment">//Generate reference to parameter
@@ -1400,11 +1372,8 @@
                         left,
                         function_context.function,
                         block,
-                        variable.source_location.line_number,
-                        function_context.new_lines.get_column(
-                            variable.source_location.line_number,
-                            variable.source_location.source_range.get_start(),
-                        ),
+                        variable.source_location.get_line(),
+                        variable.source_location.get_column(),
                     );
                 }
                 <span class="kw">let </span>right_stmt =
@@ -1413,7 +1382,7 @@
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.source_range.clone(),
+                    variable.source_location.clone(),
                 ));
             }
         }
@@ -1433,13 +1402,10 @@
         <span class="kw">let </span>variable_llvm_type = <span class="self">self
             </span>.llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.source_range.clone()))<span class="question-mark">?</span>;
+            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error(
-                <span class="string">&quot;Couldn&#39;t determine type size&quot;</span>,
-                variable.source_location.source_range.clone(),
-            )
+            Diagnostic::codegen_error(<span class="string">&quot;Couldn&#39;t determine type size&quot;</span>, variable.source_location.clone())
         });
 
         <span class="comment">// initialize the variable with the initial_value
@@ -1507,9 +1473,7 @@
             } <span class="kw">else </span>{
                 <span class="macro">unreachable!</span>(<span class="string">&quot;initializing an array should be memcpy-able or memset-able&quot;</span>);
             };
-            init_result.map_err(|msg| {
-                Diagnostic::codegen_error(msg, variable.source_location.source_range.clone())
-            })<span class="question-mark">?</span>;
+            init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="self">self</span>.llvm.builder.build_store(variable_to_initialize, value);
         }
@@ -1543,7 +1507,7 @@
                     local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
                             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {call_name:}&quot;</span>),
-                            SourceRange::undefined(),
+                            SourceLocation::undefined(),
                         )
                     })<span class="question-mark">?</span>;
                 <span class="kw">let </span>loaded_value = <span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>value_ptr, var_name.as_str());

@@ -254,13 +254,39 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
     <span class="kw">use </span>plc_ast::{
-        ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+        ast::{pre_process, CompilationUnit, LinkageType},
         provider::IdProvider,
     };
     <span class="kw">use </span>plc_diagnostics::{
@@ -268,7 +294,7 @@
         diagnostics::Diagnostic,
         reporter::{DiagnosticReporter, ResolvedDiagnostics},
     };
-    <span class="kw">use </span>source::{Compilable, SourceCode, SourceContainer};
+    <span class="kw">use </span>plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     <span class="kw">use crate</span>::{
         builtins,
@@ -304,24 +330,39 @@
 
     <span class="kw">pub fn </span>parse(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             <span class="string">&quot;test.st&quot;</span>,
         )
     }
 
-    <span class="kw">pub fn </span>parse_and_preprocess(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
+    <span class="kw">pub fn </span>parse_buffered(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, String) {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
+        reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
+        <span class="kw">let </span>(unit, diagnostics) = parse(src);
+        reporter.handle(diagnostics);
+        (unit, reporter.buffer().unwrap_or_default())
+    }
+
+    <span class="kw">pub fn </span>parse_and_preprocess(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, String) {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
+        reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
         <span class="kw">let </span>id_provider = IdProvider::default();
         <span class="kw">let </span>(<span class="kw-2">mut </span>unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             <span class="string">&quot;test.st&quot;</span>,
         );
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
-        (unit, diagnostic)
+        reporter.handle(diagnostic);
+
+        (unit, reporter.buffer().unwrap_or_default())
     }
 
-    <span class="kw">fn </span>do_index&lt;T: Into&lt;SourceCode&gt;&gt;(src: T, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
+    <span class="kw">fn </span>do_index&lt;T: Into&lt;SourceCode&gt;&gt;(
+        src: T,
+        id_provider: IdProvider,
+    ) -&gt; (CompilationUnit, Index, Vec&lt;Diagnostic&gt;) {
         <span class="kw">let </span>source = src.into();
         <span class="kw">let </span>source_str = <span class="kw-2">&amp;</span>source.source;
         <span class="kw">let </span>source_path = source.get_location_str();
@@ -335,28 +376,26 @@
             index.register_type(data_type);
         }
 
-        <span class="kw">let </span>range_factory = <span class="kw">if </span>source_path == <span class="string">&quot;&lt;internal&gt;&quot; </span>{
-            SourceRangeFactory::internal()
-        } <span class="kw">else </span>{
-            SourceRangeFactory::for_file(source_path)
-        };
-        <span class="kw">let </span>(<span class="kw-2">mut </span>unit, ..) = parser::parse(
+        <span class="kw">let </span>range_factory = SourceLocationFactory::for_source(<span class="kw-2">&amp;</span>source);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>unit, diagnostics) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             LinkageType::Internal,
             source_path,
         );
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
-        (unit, index)
+        (unit, index, diagnostics)
     }
 
     <span class="kw">pub fn </span>index(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Index) {
         <span class="kw">let </span>id_provider = IdProvider::default();
-        do_index(src, id_provider)
+        <span class="kw">let </span>(unit, index, <span class="kw">_</span>) = do_index(src, id_provider);
+        (unit, index)
     }
 
     <span class="kw">pub fn </span>index_with_ids&lt;T: Into&lt;SourceCode&gt;&gt;(src: T, id_provider: IdProvider) -&gt; (CompilationUnit, Index) {
-        do_index(src, id_provider)
+        <span class="kw">let </span>(unit, index, <span class="kw">_</span>) = do_index(src, id_provider);
+        (unit, index)
     }
 
     <span class="kw">pub fn </span>annotate_with_ids(
@@ -371,6 +410,7 @@
 
     <span class="kw">pub fn </span>parse_and_validate_buffered(src: <span class="kw-2">&amp;</span>str) -&gt; String {
         <span class="kw">let </span>diagnostics = parse_and_validate(src);
+        <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>diagnostics);
         <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
 
         reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
@@ -383,7 +423,7 @@
 
     <span class="kw">pub fn </span>parse_and_validate(src: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;Diagnostic&gt; {
         <span class="kw">let </span>id_provider = IdProvider::default();
-        <span class="kw">let </span>(unit, index) = index_with_ids(src, id_provider.clone());
+        <span class="kw">let </span>(unit, index, <span class="kw-2">mut </span>diagnostics) = do_index(src, id_provider.clone());
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
         <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, ..) = TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider);
@@ -392,10 +432,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
         validator.perform_global_validation(<span class="kw-2">&amp;</span>index);
         validator.visit_unit(<span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit);
-        validator.diagnostics()
+        diagnostics.extend(validator.diagnostics());
+        diagnostics
     }
 
-    <span class="kw">pub fn </span>codegen_without_unwrap(src: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+    <span class="kw">pub fn </span>codegen_without_unwrap(src: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, String&gt; {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
@@ -403,9 +444,12 @@
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    </span><span class="kw">pub fn </span>codegen_debug_without_unwrap(src: <span class="kw-2">&amp;</span>str, debug_level: DebugLevel) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>codegen_debug_without_unwrap(src: <span class="kw-2">&amp;</span>str, debug_level: DebugLevel) -&gt; <span class="prelude-ty">Result</span>&lt;String, String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
+        reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
         <span class="kw">let </span><span class="kw-2">mut </span>id_provider = IdProvider::default();
-        <span class="kw">let </span>(unit, index) = do_index(src, id_provider.clone());
+        <span class="kw">let </span>(unit, index, diagnostics) = do_index(src, id_provider.clone());
+        reporter.handle(diagnostics);
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
         <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
@@ -422,12 +466,20 @@
             debug_level,
         );
         <span class="kw">let </span>annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        <span class="kw">let </span>llvm_index =
-            code_generator.generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>llvm_index = code_generator
+            .generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index)
+            .map_err(|err| {
+                reporter.handle(<span class="macro">vec!</span>[err]);
+                reporter.buffer().unwrap()
+            })<span class="question-mark">?</span>;
 
         code_generator
             .generate(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>llvm_index)
             .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(<span class="macro">vec!</span>[err]);
+                reporter.buffer().unwrap()
+            })
     }
 
     <span class="kw">pub fn </span>codegen_with_debug(src: <span class="kw-2">&amp;</span>str) -&gt; String {
@@ -450,7 +502,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>units = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
         sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
-            |(unit, idx)| {
+            |(unit, idx, ..)| {
                 units.push(unit);
                 index.import(idx);
             },

@@ -135,11 +135,27 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>codespan_reporting::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFiles,
     term::termcolor::{Buffer, ColorChoice, StandardStream, WriteColor},
 };
+<span class="kw">use </span>plc_source::source_location::CodeSpan;
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostician::Severity;
 
@@ -241,15 +257,29 @@
                 Severity::_Info =&gt; codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
-            <span class="kw">let </span><span class="kw-2">mut </span>labels = <span class="macro">vec!</span>[Label::primary(d.main_location.file_handle, d.main_location.range.clone())
-                .with_message(d.message.as_str())];
+            <span class="kw">let </span><span class="kw-2">mut </span>labels = <span class="macro">vec!</span>[];
+
+            <span class="kw">if </span>!<span class="macro">matches!</span>(d.main_location.span, CodeSpan::None) {
+                labels.push(
+                    Label::primary(
+                        d.main_location.file_handle,
+                        d.main_location.span.to_range().unwrap_or_else(|| <span class="number">0</span>..<span class="number">0</span>),
+                    )
+                    .with_message(d.message.as_str()),
+                );
+            }
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(additional_locations) = <span class="kw-2">&amp;</span>d.additional_locations {
-                labels.extend(
-                    additional_locations.iter().map(|it| {
-                        Label::secondary(it.file_handle, it.range.clone()).with_message(<span class="string">&quot;see also&quot;</span>)
-                    }),
-                );
+                labels.extend(additional_locations.iter().filter_map(|it| {
+                    <span class="kw">if </span>!<span class="macro">matches!</span>(it.span, CodeSpan::None) {
+                        <span class="prelude-val">Some</span>(
+                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| <span class="number">0</span>..<span class="number">0</span>))
+                                .with_message(<span class="string">&quot;see also&quot;</span>),
+                        )
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                }));
             }
 
             <span class="kw">let </span>diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());
