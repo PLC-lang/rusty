@@ -197,6 +197,7 @@ fn right_string_usint() {
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "This test misbehaves on windows")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
 #[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_string_substring_too_long() {
     let src = r#"
@@ -902,6 +903,7 @@ fn right_wstring_usint() {
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "This test misbehaves on windows")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
 #[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_wstring_substring_too_long() {
     let src = r#"
