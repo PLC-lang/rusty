@@ -50,8 +50,17 @@ echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' >> ~/.zshrc
 ```
 
 ## Windows
+Compiling RuSTy on Windows requires three dependencies:
+1. Windows 10 SDK
+2. MSVC (at the point of writing this we tested it on v142 - VS 2019 C++ x64/x86 build tools)
+3. [LLVM 14.0.6](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6)
 
-For Windows you will need a [custom build](https://github.com/plc-lang/llvm-package-windows/releases/tag/v14.0.6).
+The first two dependencies are typically installed during the Rust installation itself. More specifically during the
+installation you should have been prompted to install them. If not, you'll be able to install them via Visual Studio at any point.
+The third dependency is based on a custom build which is hosted on [GitHub](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6).
+Download it, extract it and add the `bin/` directory to your [environment variables](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html).
+In theory this should cover everything to be able to compile RuSTy (with some reboots here and there).
+
 ## Installing
 
 _TODO_

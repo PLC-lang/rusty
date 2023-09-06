@@ -11,7 +11,7 @@ use crate::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
     },
-    literals::{AstLiteral, StringValue},
+    literals::{Array, AstLiteral, StringValue},
     pre_processor,
     provider::IdProvider,
 };
@@ -1109,6 +1109,10 @@ impl AstStatement {
         matches!(self, AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. })
     }
 
+    pub fn is_expression_list(&self) -> bool {
+        matches!(self, AstStatement::ExpressionList { .. })
+    }
+
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
             || self.is_flat_reference()
@@ -1161,6 +1165,14 @@ impl AstStatement {
 
     pub fn is_literal(&self) -> bool {
         matches!(self, AstStatement::Literal { .. })
+    }
+
+    pub fn get_literal_array(&self) -> Option<&Array> {
+        if let AstStatement::Literal { kind: AstLiteral::Array(array), .. } = self {
+            return Some(array);
+        }
+
+        None
     }
 }
 
