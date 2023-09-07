@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/codegen_error_messages_tests.rs
+expression: msg
+---
+error: Invalid array access
+   ┌─ <internal>:13:24
+   │
+13 │             x.a := x.b[3];
+   │                        ^ Invalid array access
+
+

@@ -1,0 +1,18 @@
+---
+source: src/parser/tests/parse_generics.rs
+expression: variables
+---
+[
+    Variable {
+        name: "x",
+        data_type: DataTypeReference {
+            referenced_type: "T",
+        },
+    },
+    Variable {
+        name: "y",
+        data_type: DataTypeReference {
+            referenced_type: "R",
+        },
+    },
+]

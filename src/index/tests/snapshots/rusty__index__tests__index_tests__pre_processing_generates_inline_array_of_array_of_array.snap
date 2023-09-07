@@ -1,0 +1,27 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_array_type
+---
+UserTypeDeclaration {
+    data_type: ArrayType {
+        name: Some(
+            "__foo_inline_array__",
+        ),
+        bounds: RangeStatement {
+            start: LiteralInteger {
+                value: 0,
+            },
+            end: LiteralInteger {
+                value: 1,
+            },
+        },
+        referenced_type: DataTypeReference {
+            referenced_type: "INT",
+        },
+        is_variable_length: false,
+    },
+    initializer: None,
+    scope: Some(
+        "foo",
+    ),
+}

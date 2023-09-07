@@ -2,5 +2,5 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to '__MyClass.testMethod_arr'", range: [SourceRange { range: 156..163 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to '__MyClass.testMethod_arr'", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 32, offset: 156 }..TextLocation { line: 7, column: 39, offset: 163 }) }], err_no: var__invalid_assignment }
 

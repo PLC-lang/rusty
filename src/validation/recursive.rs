@@ -103,7 +103,7 @@ impl RecursiveValidator {
         match path.get_index_of(node) {
             Some(idx) => {
                 let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-                let ranges = slice.iter().map(|node| node.location.source_range.to_owned()).collect();
+                let ranges = slice.iter().map(|node| node.location.to_owned()).collect();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
                 let error = slice.iter().map(|it| it.get_name()).join(" -> ");

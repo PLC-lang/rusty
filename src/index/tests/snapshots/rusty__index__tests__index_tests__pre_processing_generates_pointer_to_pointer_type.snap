@@ -1,0 +1,16 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_pointer_type
+---
+UserTypeDeclaration {
+    data_type: PointerType {
+        name: Some(
+            "__pointer_to_pointer",
+        ),
+        referenced_type: DataTypeReference {
+            referenced_type: "INT",
+        },
+    },
+    initializer: None,
+    scope: None,
+}

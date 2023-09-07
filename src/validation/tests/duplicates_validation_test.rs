@@ -1,7 +1,8 @@
 use plc_ast::{
-    ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocationFactory;
 
 use crate::{
     assert_validation_snapshot,
@@ -37,7 +38,7 @@ fn duplicate_pous_and_types_validation() {
     let diagnostics = parse_and_validate(
         r#"
         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
-        TYPE foo : INT END_TYPE
+        TYPE foo : INT; END_TYPE
     "#,
     );
     // THEN there should be 3 duplication diagnostics
@@ -123,7 +124,7 @@ fn duplicate_fb_inst_and_function() {
     let diagnostics = parse_and_validate(
         r#"
             FUNCTION_BLOCK FooFB
-                VAR x : INT END_VAR
+                VAR x : INT; END_VAR
             END_FUNCTION_BLOCK
 
             VAR_GLOBAL
@@ -343,7 +344,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
     fn do_index(src: &str, id_provider: IdProvider) -> Index {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             "test.st",
         );
@@ -398,7 +399,7 @@ fn duplicate_with_generic() {
     fn do_index(src: &str, id_provider: IdProvider, file_name: &str) -> (Index, CompilationUnit) {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             file_name,
         );

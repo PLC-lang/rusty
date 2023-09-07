@@ -15,11 +15,18 @@ expression: members
         location_in_parent: 0,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 3,
-            source_range: SourceRange {
-                range: 31..37,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 3,
+                    offset: 31,
+                }..TextLocation {
+                    line: 3,
+                    column: 9,
+                    offset: 37,
+                },
+            ),
         },
         varargs: None,
     },
@@ -35,11 +42,18 @@ expression: members
         location_in_parent: 1,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 6,
-            source_range: SourceRange {
-                range: 71..78,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 6,
+                    column: 3,
+                    offset: 71,
+                }..TextLocation {
+                    line: 6,
+                    column: 10,
+                    offset: 78,
+                },
+            ),
         },
         varargs: None,
     },
@@ -55,11 +69,18 @@ expression: members
         location_in_parent: 2,
         linkage: Internal,
         binding: None,
-        source_location: SymbolLocation {
-            line_number: 9,
-            source_range: SourceRange {
-                range: 112..118,
-            },
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 9,
+                    column: 3,
+                    offset: 112,
+                }..TextLocation {
+                    line: 9,
+                    column: 9,
+                    offset: 118,
+                },
+            ),
         },
         varargs: None,
     },

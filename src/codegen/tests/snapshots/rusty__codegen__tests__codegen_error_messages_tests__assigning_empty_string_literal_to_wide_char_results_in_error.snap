@@ -1,0 +1,11 @@
+---
+source: src/codegen/tests/codegen_error_messages_tests.rs
+expression: msg
+---
+error: Cannot generate WCHAR from empty literal
+  ┌─ <internal>:6:8
+  │
+6 │     x := "";
+  │          ^^ Cannot generate WCHAR from empty literal
+
+

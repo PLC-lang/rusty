@@ -1,0 +1,7 @@
+---
+source: compiler/plc_source/./src/source_location.rs
+expression: loc1.span(&loc2)
+---
+SourceLocation {
+    span: None,
+}

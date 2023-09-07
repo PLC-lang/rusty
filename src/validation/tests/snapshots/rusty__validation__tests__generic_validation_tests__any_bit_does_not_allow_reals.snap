@@ -2,6 +2,6 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Bit.", range: [SourceRange { range: 136..137 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Bit.", range: [SourceRange { range: 211..212 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 56, offset: 136 }..TextLocation { line: 2, column: 57, offset: 137 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 211 }..TextLocation { line: 3, column: 59, offset: 212 }) }], err_no: type__invalid_nature }
 

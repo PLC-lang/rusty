@@ -61,18 +61,4 @@ CompilationUnit {
         },
     ],
     file_name: "test.st",
-    new_lines: NewLines {
-        line_breaks: [
-            1,
-            14,
-            43,
-            70,
-            93,
-            122,
-            151,
-            174,
-            191,
-            200,
-        ],
-    },
 }

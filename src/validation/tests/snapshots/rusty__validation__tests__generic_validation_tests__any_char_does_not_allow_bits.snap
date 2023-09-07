@@ -1,15 +1,15 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'BOOL' to 'CHAR'", range: [SourceRange { range: 138..139 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Char.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'CHAR'", range: [SourceRange { range: 206..207 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Char.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceRange { range: 274..275 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WORD is no Char.", range: [SourceRange { range: 274..275 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DWORD' to 'CHAR'", range: [SourceRange { range: 343..344 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Char.", range: [SourceRange { range: 343..344 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LWORD' to 'CHAR'", range: [SourceRange { range: 412..413 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Char.", range: [SourceRange { range: 412..413 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'BOOL' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 138 }..TextLocation { line: 2, column: 58, offset: 139 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 138 }..TextLocation { line: 2, column: 58, offset: 139 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 51, offset: 206 }..TextLocation { line: 3, column: 52, offset: 207 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 51, offset: 206 }..TextLocation { line: 3, column: 52, offset: 207 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 274 }..TextLocation { line: 4, column: 52, offset: 275 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WORD is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 274 }..TextLocation { line: 4, column: 52, offset: 275 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DWORD' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 52, offset: 343 }..TextLocation { line: 5, column: 53, offset: 344 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 52, offset: 343 }..TextLocation { line: 5, column: 53, offset: 344 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'LWORD' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 412 }..TextLocation { line: 6, column: 53, offset: 413 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Char.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 412 }..TextLocation { line: 6, column: 53, offset: 413 }) }], err_no: type__invalid_nature }
 

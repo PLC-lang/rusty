@@ -1,0 +1,22 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: var
+---
+Variable {
+    name: "x",
+    data_type: DataTypeDefinition {
+        data_type: ArrayType {
+            name: None,
+            bounds: ExpressionList {
+                expressions: [
+                    VlaRangeStatement,
+                    VlaRangeStatement,
+                ],
+            },
+            referenced_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+            is_variable_length: true,
+        },
+    },
+}
