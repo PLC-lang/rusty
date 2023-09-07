@@ -3,7 +3,7 @@ use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 #[test]
 fn any_allows_all_natures() {
     let src = r"
-        TYPE str STRUCT x : INT; END_STRUCT END_TYPE
+        TYPE str : STRUCT x : INT; END_STRUCT END_TYPE
         FUNCTION test<T : ANY> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1   : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
         FUNCTION func2   : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
@@ -50,7 +50,7 @@ fn any_multiple_parameters() {
 #[test]
 fn non_resolved_generics_reported() {
     let src = r"
-        FUNCTION test<T : ANY_STRING> : T END_VAR END_FUNCTION
+        FUNCTION test<T : ANY_STRING> : T END_FUNCTION
         FUNCTION func  : INT  test(); END_FUNCTION
     ";
 

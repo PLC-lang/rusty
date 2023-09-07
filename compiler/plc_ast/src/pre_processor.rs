@@ -7,11 +7,12 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, SourceRange, UserTypeDeclaration, Variable,
+        Operator, Pou, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
@@ -66,7 +67,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let type_name = internal_type_name("", name);
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
-                        location: SourceRange::undefined(), //return_type.get_location(),
+                        location: SourceLocation::undefined(), //return_type.get_location(),
                     };
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
@@ -148,7 +149,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
 
 fn build_enum_initializer(
     last_name: &Option<String>,
-    location: &SourceRange,
+    location: &SourceLocation,
     id_provider: &mut IdProvider,
     enum_name: &mut str,
 ) -> AstStatement {
@@ -253,7 +254,7 @@ fn add_nested_datatypes(
     container_name: &str,
     datatype: &mut DataType,
     types: &mut Vec<UserTypeDeclaration>,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) {
     let new_type_name = format!("{container_name}_"); // TODO: Naming convention (see plc_util/src/convention.rs)
     if let Some(DataTypeDeclaration::DataTypeDefinition { mut data_type, location: inner_location, scope }) =

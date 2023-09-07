@@ -17,12 +17,11 @@ use inkwell::{
     values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 use plc_ast::{
-    ast::{
-        flatten_expression_list, AstFactory, AstStatement, NewLines, Operator, ReferenceAccess, SourceRange,
-    },
+    ast::{flatten_expression_list, AstFactory, AstStatement, Operator, ReferenceAccess},
     control_statements::{AstControlStatement, ConditionalBlock},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {
@@ -30,8 +29,6 @@ pub struct FunctionContext<'ink, 'b> {
     pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
     pub function: FunctionValue<'ink>,
-    /// The new lines marker for the compilation unit containing the POU
-    pub new_lines: &'b NewLines,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -232,8 +229,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
-        let line = self.function_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = self.function_context.new_lines.get_column(line, statement.get_location().get_start());
+        let line = statement.get_location().get_line();
+        let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
 
@@ -247,7 +244,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         // given a complex direct-access assignemnt: a.b.c.%W3,%X1
         // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
-        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement) else {unreachable!("Invalid direct-access expression: {left_statement:#?}")};
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
+        else {
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+        };
 
         let left_type = exp_gen.get_type_hint_for(target)?;
         let right_type = exp_gen.get_type_hint_for(right_statement)?;
@@ -381,7 +381,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let step_by_value = by_step.as_ref().map_or_else(
-            || self.llvm.create_const_numeric(&counter_statement.get_type(), "1", SourceRange::undefined()),
+            || {
+                self.llvm.create_const_numeric(
+                    &counter_statement.get_type(),
+                    "1",
+                    SourceLocation::undefined(),
+                )
+            },
             |step| {
                 self.register_debug_location(step);
                 expression_generator.generate_expression(step)

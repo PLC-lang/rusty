@@ -1,0 +1,11 @@
+---
+source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
+expression: diagnostics
+---
+error: Unexpected token: expected KeywordEndVar but found '4 : INT;'
+  ┌─ <internal>:5:17
+  │
+5 │                 4 : INT;
+  │                 ^^^^^^^^ Unexpected token: expected KeywordEndVar but found '4 : INT;'
+
+

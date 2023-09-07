@@ -1,0 +1,25 @@
+---
+source: src/index/tests/index_tests.rs
+expression: original
+---
+UserTypeDeclaration {
+    data_type: ArrayType {
+        name: Some(
+            "arr_arr",
+        ),
+        bounds: RangeStatement {
+            start: LiteralInteger {
+                value: 0,
+            },
+            end: LiteralInteger {
+                value: 1,
+            },
+        },
+        referenced_type: DataTypeReference {
+            referenced_type: "__arr_arr",
+        },
+        is_variable_length: false,
+    },
+    initializer: None,
+    scope: None,
+}

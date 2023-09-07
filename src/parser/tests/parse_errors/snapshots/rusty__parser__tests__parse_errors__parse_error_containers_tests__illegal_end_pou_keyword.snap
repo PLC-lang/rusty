@@ -1,14 +1,11 @@
 ---
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
-expression: pou.statements
+expression: diagnostics
 ---
-[
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "b",
-            },
-        ),
-        base: None,
-    },
-]
+error: Unexpected token: expected KeywordEndProgram but found END_FUNCTION
+  ┌─ <internal>:4:13
+  │
+4 │             END_FUNCTION
+  │             ^^^^^^^^^^^^ Unexpected token: expected KeywordEndProgram but found END_FUNCTION
+
+

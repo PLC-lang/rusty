@@ -3,9 +3,10 @@ use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType, SourceRange,
+    AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
 };
 use plc_ast::literals::AstLiteral;
+use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -734,12 +735,12 @@ fn literal_real_test() {
 fn cast(data_type: &str, value: AstStatement) -> AstStatement {
     AstFactory::create_cast_statement(
         AstFactory::create_member_reference(
-            AstFactory::create_identifier(data_type, &SourceRange::undefined(), 0),
+            AstFactory::create_identifier(data_type, &SourceLocation::undefined(), 0),
             None,
             0,
         ),
         value,
-        &SourceRange::undefined(),
+        &SourceLocation::undefined(),
         0,
     )
 }
@@ -786,7 +787,7 @@ fn literal_cast_parse_test() {
 
     let ast_string = format!("{statement:#?}");
     fn literal(value: AstLiteral) -> AstStatement {
-        AstStatement::Literal { kind: value, location: SourceRange::undefined(), id: 0 }
+        AstStatement::Literal { kind: value, location: SourceLocation::undefined(), id: 0 }
     }
 
     assert_eq!(
@@ -1507,23 +1508,23 @@ fn literals_location_test() {
 
     // 1
     let location = &unit.statements[0].get_location();
-    assert_eq!(location, &(12..13).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "7");
+    assert_eq!(location.to_range().unwrap(), (12..13));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "7");
 
     // 'hello'
     let location = &unit.statements[1].get_location();
-    assert_eq!(location, &(15..22).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "'hello'");
+    assert_eq!(location.to_range().unwrap(), (15..22));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "'hello'");
 
     // true
     let location = &unit.statements[2].get_location();
-    assert_eq!(location, &(24..28).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "TRUE");
+    assert_eq!(location.to_range().unwrap(), (24..28));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "TRUE");
 
     //3.1415
     let location = &unit.statements[3].get_location();
-    assert_eq!(location, &(30..36).into());
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "3.1415")
+    assert_eq!(location.to_range().unwrap(), (30..36));
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "3.1415")
 }
 
 #[test]
@@ -1534,13 +1535,13 @@ fn reference_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "bb");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "bb");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "ccc");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "ccc");
 }
 
 #[test]
@@ -1551,16 +1552,16 @@ fn qualified_reference_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a.b.c");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a.b.c");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aa.bb.cc[2]");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "aa.bb.cc[2]");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "aaa.bbb.ccc^");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "aaa.bbb.ccc^");
 
     let location = &unit.statements[3].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "&aaa.bbb.ccc");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "&aaa.bbb.ccc");
 }
 
 #[test]
@@ -1578,19 +1579,19 @@ fn expressions_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a + b");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a + b");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "x + z - y + u - v");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "x + z - y + u - v");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "-x");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "-x");
 
     let location = &unit.statements[3].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "1..3");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "1..3");
 
     let location = &unit.statements[4].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a := a + 4");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "a := a + 4");
 }
 
 #[test]
@@ -1612,16 +1613,16 @@ fn sized_string_as_function_return() {
                 is_wide: false,
                 size: Some(AstStatement::Literal {
                     kind: AstLiteral::new_integer(10),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                     id: 0,
                 }),
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
@@ -1648,17 +1649,17 @@ fn array_type_as_function_return() {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".into(),
-                    location: SourceRange::undefined(),
+                    location: SourceLocation::undefined(),
                 }),
                 bounds: AstStatement::RangeStatement {
                     start: Box::new(AstStatement::Literal {
                         id: 0,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         kind: AstLiteral::new_integer(0),
                     }),
                     end: Box::new(AstStatement::Literal {
                         id: 0,
-                        location: SourceRange::undefined(),
+                        location: SourceLocation::undefined(),
                         kind: AstLiteral::new_integer(10),
                     }),
                     id: 0,
@@ -1666,12 +1667,12 @@ fn array_type_as_function_return() {
                 name: None,
                 is_variable_length: false,
             },
-            location: SourceRange::undefined(),
+            location: SourceLocation::undefined(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceRange::undefined(),
-        name_location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
+        name_location: SourceLocation::undefined(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,

@@ -1,11 +1,12 @@
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
-    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess, SourceRange},
+    ast::{flatten_expression_list, AstStatement, DirectAccessType, Operator, ReferenceAccess},
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use super::{
     array::{validate_array_assignment, Wrapper},
@@ -191,7 +192,7 @@ fn validate_reference_expression<T: AnnotationMap>(
 fn validate_address_of_expression<T: AnnotationMap>(
     validator: &mut Validator,
     target: &AstStatement,
-    location: SourceRange,
+    location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
     let a = context.annotations.get(target);
@@ -278,7 +279,7 @@ fn validate_cast_literal<T: AnnotationMap>(
     literal: &AstLiteral,
     statement: &AstStatement,
     type_name: &str,
-    location: &SourceRange,
+    location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
     let cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
@@ -335,7 +336,7 @@ fn validate_access_index<T: AnnotationMap>(
     access_index: &AstStatement,
     access_type: &DirectAccessType,
     target_type: &DataTypeInformation,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) {
     match *access_index {
         AstStatement::Literal { kind: AstLiteral::Integer(value), .. } => {
@@ -371,7 +372,7 @@ fn validate_reference<T: AnnotationMap>(
     statement: &AstStatement,
     base: Option<&AstStatement>,
     ref_name: &str,
-    location: &SourceRange,
+    location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
     // unresolved reference
@@ -637,7 +638,7 @@ fn validate_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     right: &AstStatement,
     left: Option<&AstStatement>,
-    location: &SourceRange,
+    location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
     if let Some(left) = left {
@@ -716,7 +717,7 @@ pub(crate) fn validate_enum_variant_assignment(
     left: &DataTypeInformation,
     right: &DataTypeInformation,
     qualified_name: &str,
-    location: SourceRange,
+    location: SourceLocation,
 ) {
     if left.is_enum() && left.get_name() != right.get_name() {
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, location))
@@ -726,7 +727,7 @@ pub(crate) fn validate_enum_variant_assignment(
 fn validate_variable_length_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    location: &SourceRange,
+    location: &SourceLocation,
     left_type: &DataType,
     right_type: &DataType,
 ) {
@@ -753,7 +754,7 @@ fn is_valid_assignment(
     right_type: &DataType,
     right: &AstStatement,
     index: &Index,
-    location: &SourceRange,
+    location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
     if is_valid_string_to_char_assignment(
@@ -782,7 +783,7 @@ fn is_valid_string_to_char_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     right: &AstStatement,
-    location: &SourceRange,
+    location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
     // TODO: casted literals and reference
@@ -806,7 +807,7 @@ fn is_invalid_pointer_assignment(
     left_type: &DataTypeInformation,
     right_type: &DataTypeInformation,
     index: &Index,
-    location: &SourceRange,
+    location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
     if left_type.is_pointer() & right_type.is_pointer() {
@@ -1039,7 +1040,7 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
     validator: &mut Validator,
     left: &DataType,
     right: &DataType,
-    location: &SourceRange,
+    location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
     if left.get_type_information().get_size(context.index)

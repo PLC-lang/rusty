@@ -1,11 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use generational_arena::{Arena, Iter};
-use plc_ast::{
-    ast::{AstStatement, SourceRange},
-    literals::AstLiteral,
-};
+use plc_ast::{ast::AstStatement, literals::AstLiteral};
 
+use plc_source::source_location::SourceLocation;
 pub type ConstId = generational_arena::Index;
 
 /// wrapper around ConstExpression stored in the arena
@@ -78,7 +76,7 @@ pub enum UnresolvableKind {
     Misc(String),
 
     /// Indicates that the const expression was not resolvable because it would yield an overflow.
-    Overflow(String, SourceRange),
+    Overflow(String, SourceLocation),
 }
 
 impl UnresolvableKind {

@@ -1,14 +1,11 @@
 ---
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
-expression: pou.statements
+expression: diagnostics
 ---
-[
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "a",
-            },
-        ),
-        base: None,
-    },
-]
+error: Unexpected token: expected Identifier but found VAR
+  ┌─ <internal>:3:13
+  │
+3 │             VAR END_VAR
+  │             ^^^ Unexpected token: expected Identifier but found VAR
+
+

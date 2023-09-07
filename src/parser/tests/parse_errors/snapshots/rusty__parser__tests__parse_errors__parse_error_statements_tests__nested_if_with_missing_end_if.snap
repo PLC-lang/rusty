@@ -1,0 +1,17 @@
+---
+source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
+expression: diagnostics
+---
+error: Missing expected Token [KeywordEndIf, KeywordElseIf, KeywordElse]
+  ┌─ <internal>:7:9
+  │
+7 │         END_PROGRAM
+  │         ^^^^^^^^^^^ Missing expected Token [KeywordEndIf, KeywordElseIf, KeywordElse]
+
+error: Unexpected token: expected KeywordEndIf but found 'END_PROGRAM'
+  ┌─ <internal>:7:9
+  │
+7 │         END_PROGRAM
+  │         ^^^^^^^^^^^ Unexpected token: expected KeywordEndIf but found 'END_PROGRAM'
+
+

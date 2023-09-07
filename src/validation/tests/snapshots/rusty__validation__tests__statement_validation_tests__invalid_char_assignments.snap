@@ -1,17 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Value: 'AJK%&/231' exceeds length for type: CHAR", range: [SourceRange { range: 124..140 }], err_no: syntax__generic_error }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 124..140 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Value: '898JKAN' exceeds length for type: WCHAR", range: [SourceRange { range: 156..171 }], err_no: syntax__generic_error }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'WCHAR'", range: [SourceRange { range: 156..171 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceRange { range: 188..195 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'WCHAR'", range: [SourceRange { range: 211..218 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 247..253 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceRange { range: 269..276 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 308..314 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WCHAR'", range: [SourceRange { range: 330..337 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 354..360 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceRange { range: 376..382 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Value: 'AJK%&/231' exceeds length for type: CHAR", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 3, offset: 124 }..TextLocation { line: 10, column: 19, offset: 140 }) }], err_no: syntax__generic_error }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 3, offset: 124 }..TextLocation { line: 10, column: 19, offset: 140 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Value: '898JKAN' exceeds length for type: WCHAR", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 3, offset: 156 }..TextLocation { line: 11, column: 18, offset: 171 }) }], err_no: syntax__generic_error }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'WCHAR'", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 3, offset: 156 }..TextLocation { line: 11, column: 18, offset: 171 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 3, offset: 188 }..TextLocation { line: 13, column: 10, offset: 195 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'WCHAR'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 3, offset: 211 }..TextLocation { line: 14, column: 10, offset: 218 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 3, offset: 247 }..TextLocation { line: 17, column: 9, offset: 253 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 3, offset: 269 }..TextLocation { line: 18, column: 10, offset: 276 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 3, offset: 308 }..TextLocation { line: 21, column: 9, offset: 314 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WCHAR'", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 3, offset: 330 }..TextLocation { line: 22, column: 10, offset: 337 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 3, offset: 354 }..TextLocation { line: 24, column: 9, offset: 360 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 3, offset: 376 }..TextLocation { line: 25, column: 9, offset: 382 }) }], err_no: var__invalid_assignment }
 

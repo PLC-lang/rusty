@@ -1,14 +1,14 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Date.", range: [SourceRange { range: 430..438 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Date.", range: [SourceRange { range: 440..452 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Date.", range: [SourceRange { range: 454..464 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Date.", range: [SourceRange { range: 466..474 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Date.", range: [SourceRange { range: 476..484 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 486..493 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Date.", range: [SourceRange { range: 486..493 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceRange { range: 495..503 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Date.", range: [SourceRange { range: 495..503 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. REAL is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 430 }..TextLocation { line: 14, column: 21, offset: 438 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 440 }..TextLocation { line: 14, column: 35, offset: 452 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 37, offset: 454 }..TextLocation { line: 14, column: 47, offset: 464 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 49, offset: 466 }..TextLocation { line: 14, column: 57, offset: 474 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 476 }..TextLocation { line: 14, column: 67, offset: 484 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 486 }..TextLocation { line: 14, column: 76, offset: 493 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. STRING is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 486 }..TextLocation { line: 14, column: 76, offset: 493 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 495 }..TextLocation { line: 14, column: 86, offset: 503 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Date.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 495 }..TextLocation { line: 14, column: 86, offset: 503 }) }], err_no: type__invalid_nature }
 

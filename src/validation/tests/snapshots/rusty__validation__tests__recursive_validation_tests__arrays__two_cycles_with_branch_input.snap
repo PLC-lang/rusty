@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceRange { range: 500..501 }, SourceRange { range: 667..668 }, SourceRange { range: 773..774 }, SourceRange { range: 901..902 }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceRange { range: 156..157 }, SourceRange { range: 250..251 }, SourceRange { range: 378..379 }, SourceRange { range: 500..501 }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 27, offset: 500 }..TextLocation { line: 21, column: 28, offset: 501 }) }, SourceLocation { span: Range(TextLocation { line: 28, column: 17, offset: 667 }..TextLocation { line: 28, column: 18, offset: 668 }) }, SourceLocation { span: Range(TextLocation { line: 32, column: 27, offset: 773 }..TextLocation { line: 32, column: 28, offset: 774 }) }, SourceLocation { span: Range(TextLocation { line: 38, column: 17, offset: 901 }..TextLocation { line: 38, column: 18, offset: 902 }) }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 17, offset: 156 }..TextLocation { line: 7, column: 18, offset: 157 }) }, SourceLocation { span: Range(TextLocation { line: 11, column: 27, offset: 250 }..TextLocation { line: 11, column: 28, offset: 251 }) }, SourceLocation { span: Range(TextLocation { line: 17, column: 17, offset: 378 }..TextLocation { line: 17, column: 18, offset: 379 }) }, SourceLocation { span: Range(TextLocation { line: 21, column: 27, offset: 500 }..TextLocation { line: 21, column: 28, offset: 501 }) }], err_no: pou__recursive_data_structure }
 

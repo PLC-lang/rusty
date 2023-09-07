@@ -1,0 +1,21 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_array_type
+---
+UserTypeDeclaration {
+    data_type: StructType {
+        name: Some(
+            "MyStruct",
+        ),
+        variables: [
+            Variable {
+                name: "field1",
+                data_type: DataTypeReference {
+                    referenced_type: "__MyStruct_field1",
+                },
+            },
+        ],
+    },
+    initializer: None,
+    scope: None,
+}

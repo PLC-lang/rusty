@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use plc_ast::ast::{DirectAccessType, HardwareAccessType, NewLines};
+use plc_ast::ast::{DirectAccessType, HardwareAccessType};
 use pretty_assertions::{assert_eq, assert_ne};
 
 use crate::lexer::{lex, Token::*};
@@ -795,10 +795,10 @@ fn multi_named_keywords_without_underscore_test() {
     let d2 = lexer.diagnostics.last().unwrap();
 
     assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a '_'");
-    assert_eq!(d1.get_location(), (0..8).into());
+    assert_eq!(d1.get_location().to_range().unwrap(), (0..8));
 
     assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a '_'");
-    assert_eq!(d2.get_location(), (191..200).into());
+    assert_eq!(d2.get_location().to_range().unwrap(), (191..200));
 }
 
 #[test]
@@ -826,59 +826,4 @@ fn lowercase_keywords_accepted() {
         }
         result.advance();
     }
-}
-
-#[test]
-fn new_lines_test_empty_string() {
-    let text = "";
-    let nl = NewLines::build(text);
-
-    assert_eq!(nl.get_line_nr(0), 0);
-    assert_eq!(nl.get_line_nr(1), 0);
-    assert_eq!(nl.get_line_nr(2), 0);
-    assert_eq!(nl.get_line_nr(3), 0);
-}
-
-#[test]
-fn new_lines_test_three_lines_with_crlf() {
-    let text = "A\r\nB\r\nC";
-    let nl = NewLines::build(text);
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
-}
-
-#[test]
-fn new_lines_test_three_lines_with_lf() {
-    let text = "A\nB\nC";
-    let nl = NewLines::build(text);
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
-}
-
-#[test]
-fn new_lines_test_three_long_lines_with_lf() {
-    let text = "xxxx A xxxx
-
-    xxxx B xxxx
-
-    xxxx C xxxxx";
-    let nl = NewLines::build(text);
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2);
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4);
-}
-
-#[test]
-fn new_lines_and_columns_test() {
-    let text = "xxxx A xxxx
-
-    xxxx B xxxx
-
-    xxxx C xxxxx";
-    let nl = NewLines::build(text);
-    assert_eq!(nl.get_column(0, text.find('A').unwrap()), 5);
-    assert_eq!(nl.get_column(2, text.find('B').unwrap()), 9);
-    assert_eq!(nl.get_column(4, text.find('C').unwrap()), 9);
 }

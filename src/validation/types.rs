@@ -1,5 +1,6 @@
-use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, UserTypeDeclaration};
+use plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
@@ -22,7 +23,7 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
 pub fn visit_data_type<T: AnnotationMap>(
     validator: &mut Validator,
     data_type: &DataType,
-    location: &SourceRange,
+    location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
     validate_data_type(validator, data_type, location);
@@ -41,7 +42,7 @@ pub fn visit_data_type<T: AnnotationMap>(
     }
 }
 
-fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceRange) {
+fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceLocation) {
     match data_type {
         DataType::StructType { variables, .. } => {
             if variables.is_empty() {
