@@ -726,6 +726,26 @@ impl Diagnostic {
             err_no: ErrNo::cfc__unexpected_node,
         }
     }
+
+    pub fn unconnected_source(connector_name: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Source '{connector_name}' is not connected."),
+            range: vec![range],
+            err_no: ErrNo::cfc__unconnected_source,
+        }
+    }
+
+    pub fn sink_without_associated_source(connector_name: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Sink '{connector_name}' is does not have a source associated with it."),
+            range: vec![range],
+            err_no: ErrNo::cfc__no_associated_connector,
+        }
+    }
+
+    pub fn cyclic_connection(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::cfc__cyclic_connection }
+    }
 }
 
 #[cfg(test)]

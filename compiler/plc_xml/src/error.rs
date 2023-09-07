@@ -1,5 +1,7 @@
 use std::{num::ParseIntError, str::Utf8Error};
 
+use plc_diagnostics::diagnostics::Diagnostic;
+
 pub enum Error {
     UnexpectedEndOfFile(Vec<&'static [u8]>),
 
@@ -19,6 +21,8 @@ pub enum Error {
 
     /// Indicates that converting a string to a given type failed.
     Parse(ParseErrorKind),
+
+    Lowering(Vec<Diagnostic>),
 }
 
 #[derive(Debug)]
@@ -57,6 +61,13 @@ impl std::fmt::Debug for Error {
             Self::UnexpectedElement(element) => write!(f, "Found an unexpected element '{element}'"),
             Self::Encoding(why) => write!(f, "{why:#?}"),
             Self::Parse(why) => write!(f, "Failed to parse string to other type; {why:#?}"),
+            Self::Lowering(diags) => {
+                for diag in diags {
+                    write!(f, "{diag:#?}")?;
+                }
+
+                Ok(())
+            }
         }
     }
 }
