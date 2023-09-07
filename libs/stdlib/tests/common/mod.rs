@@ -604,6 +604,5 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
 pub fn compile_and_run_no_params<T, S: Compilable>(source: S) -> T {
     let context = CodegenContext::create();
     let module = compile_with_native(&context, source);
-    module.print_to_stderr();
     module.run_no_param::<T>("main")
 }
