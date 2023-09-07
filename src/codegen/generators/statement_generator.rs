@@ -766,7 +766,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
                             &format!("Cannot generate return variable for {call_name:}"),
-                            SourceRange::undefined(),
+                            SourceLocation::undefined(),
                         )
                     })?;
                 let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());

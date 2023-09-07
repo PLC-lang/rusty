@@ -709,7 +709,7 @@ impl Diagnostic {
 
 // CFC related diagnostics
 impl Diagnostic {
-    pub fn empty_control_statement(range: SourceRange) -> Diagnostic {
+    pub fn empty_control_statement(range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Control statement has no connection".to_string(),
             range: vec![range],
@@ -717,7 +717,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn undefined_node(id: usize, range: SourceRange) -> Diagnostic {
+    pub fn undefined_node(id: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Node with id {id} does not exists"),
             range: vec![range],
@@ -729,7 +729,7 @@ impl Diagnostic {
     pub fn unexpected_nodes(ids: Vec<usize>) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Unexpected relationship between nodes".to_string(),
-            range: ids.iter().map(|_| SourceRange::undefined()).collect(),
+            range: ids.iter().map(|_| SourceLocation::undefined()).collect(),
             err_no: ErrNo::cfc__unexpected_node,
         }
     }

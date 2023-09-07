@@ -1,5 +1,6 @@
-use ast::ast::{AstStatement, SourceRange};
+use ast::ast::AstStatement;
 use indexmap::IndexMap;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
@@ -74,7 +75,7 @@ impl FunctionBlockDiagram {
                     Err(_) => {
                         // TODO(volsa): Store diagnostic, return EmptyStatement
                         let empty = AstStatement::EmptyStatement {
-                            location: SourceRange::undefined(),
+                            location: SourceLocation::undefined(),
                             id: session.next_id(),
                         };
                         (empty, None)

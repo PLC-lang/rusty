@@ -11,7 +11,7 @@ use crate::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser::{self, tests::content},
+    xml_parser::{self},
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -143,7 +143,7 @@ fn function_returns() {
 
 #[test]
 fn ast_generates_locations() {
-    let source_code = SourceCode::new(CALL_BLOCK, "<internal>.cfc");
+    let source_code = SourceCode::new(content::CALL_BLOCK, "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
@@ -171,7 +171,7 @@ fn ast_generates_locations() {
 #[test]
 #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
 fn ast_diagnostic_locations() {
-    let source_code = SourceCode::new(ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
+    let source_code = SourceCode::new(content::ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     assert_debug_snapshot!(impl1);
@@ -221,7 +221,7 @@ mod content {
         </pou>
         "#;
 
-    const CALL_BLOCK: &str = r#"
+    pub(super) const CALL_BLOCK: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>
@@ -307,7 +307,7 @@ mod content {
         
     "#;
 
-    const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
+    pub(super) const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>

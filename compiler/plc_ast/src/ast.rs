@@ -697,7 +697,7 @@ pub enum AstStatement {
         /// Indicates that the given condition must evaluate to true in order for the return to take place.
         /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
         condition: Option<Box<AstStatement>>,
-        location: SourceRange,
+        location: SourceLocation,
         id: AstId,
     },
 }
@@ -1066,8 +1066,8 @@ impl AstStatement {
             AstStatement::ContinueStatement { location: _, id } => {
                 AstStatement::ContinueStatement { location: new_location, id }
             }
-            AstStatement::ReturnStatement { location: _, id } => {
-                AstStatement::ReturnStatement { location: new_location, id }
+            AstStatement::ReturnStatement { location: _, id, condition } => {
+                AstStatement::ReturnStatement { location: new_location, id, condition }
             }
             AstStatement::ReferenceExpr { access, base, id, location: _ } => {
                 Self::ReferenceExpr { access, base, id, location: new_location }

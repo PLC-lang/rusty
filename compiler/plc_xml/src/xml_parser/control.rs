@@ -1,5 +1,6 @@
-use ast::ast::{AstStatement, Operator, SourceRange};
+use ast::ast::{AstStatement, Operator};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::{
     control::{Control, ControlKind},
@@ -29,12 +30,12 @@ fn transform_return(
 ) -> Result<AstStatement, Diagnostic> {
     let Some(ref_local_id) = control.ref_local_id else {
         // TODO(volsa): Remove SourceRange::undefined
-        return Err(Diagnostic::empty_control_statement(SourceRange::undefined()))
+        return Err(Diagnostic::empty_control_statement(SourceLocation::undefined()));
     };
 
     let Some(node) = index.get(&ref_local_id) else {
         // TODO(volsa): Remove SourceRange::undefined
-        return Err(Diagnostic::undefined_node(ref_local_id, SourceRange::undefined()))
+        return Err(Diagnostic::undefined_node(ref_local_id, SourceLocation::undefined()));
     };
 
     let condition = match node {
@@ -58,7 +59,7 @@ fn transform_return(
 
     Ok(AstStatement::ReturnStatement {
         condition: Some(Box::new(possibly_negated_condition)),
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
         id: session.next_id(),
     })
 }
