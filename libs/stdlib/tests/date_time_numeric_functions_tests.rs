@@ -108,7 +108,7 @@ fn add_dt_time() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn add_overflow() {
     let src = "
 	PROGRAM main
@@ -281,7 +281,7 @@ fn sub_dt() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn sub_overflow() {
     let src = "
 	PROGRAM main
@@ -324,7 +324,7 @@ fn mul_signed() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn mul_signed_overflow() {
     let src = "
 	PROGRAM main
@@ -368,7 +368,7 @@ fn mul_unsigned() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn mul_unsigned_overflow() {
     let src = "
 	PROGRAM main
@@ -543,7 +543,7 @@ fn div_unsigned() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn div_by_zero() {
     let src = "
 	PROGRAM main
@@ -689,7 +689,7 @@ fn mul_real() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn mul_real_overflow() {
     let src = "
 	PROGRAM main
@@ -741,7 +741,7 @@ fn mul_lreal() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn mul_lreal_overflow() {
     let src = "
 	PROGRAM main
@@ -832,7 +832,7 @@ fn div_real() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn div_real_by_zero() {
     let src = "
 	PROGRAM main
@@ -872,7 +872,7 @@ fn div_lreal() {
 
 #[test]
 #[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/rust-lang/rust/issues/115285")]
+#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
 fn div_lreal_by_zero() {
     let src = "
 	PROGRAM main
