@@ -5,12 +5,12 @@
 //! violates both the syntax and semantic of array assignments.
 //!
 //! Design note: Because we distinguish between variables inside VAR blocks [`plc_ast::ast::Variable`]
-//! and POU bodies [`plc_ast::ast::AstStatement`] and how we interact with them (e.g. infering types of
+//! and POU bodies [`plc_ast::ast::AstStatementKind`] and how we interact with them (e.g. infering types of
 //! [`plc_ast::ast::Variable`] from the AstAnnotation being impossible right now) a wrapper enum was
 //! introduced to make the validation code as generic as possible.
 
 use plc_ast::{
-    ast::{AstStatement, Variable},
+    ast::{AstStatement, AstStatementKind, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -54,14 +54,14 @@ pub(super) fn validate_array_assignment<T>(
     }
 }
 
-/// Takes an [`AstStatement`] and returns its length as if it was an array. For example calling this function
+/// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
 fn statement_to_array_length(statement: &AstStatement) -> usize {
-    match statement {
-        AstStatement::ExpressionList { .. } => 1,
-        AstStatement::MultipliedStatement { multiplier, .. } => *multiplier as usize,
-        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } => match arr.elements() {
-            Some(AstStatement::ExpressionList { expressions, .. }) => {
+    match statement.get_stmt() {
+        AstStatementKind::ExpressionList { .. } => 1,
+        AstStatementKind::MultipliedStatement(data) => data.multiplier as usize,
+        AstStatementKind::Literal(AstLiteral::Array(arr)) => match arr.elements() {
+            Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), .. }) => {
                 expressions.iter().map(statement_to_array_length).sum::<usize>()
             }
 
@@ -70,11 +70,11 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
         },
 
         // Any literal other than an array can be counted as 1
-        AstStatement::Literal { .. } => 1,
+        AstStatementKind::Literal { .. } => 1,
 
-        any => {
+        _any => {
             // XXX: Not sure what else could be in here
-            log::warn!("Array size-counting for {any:?} not covered; validation _might_ be wrong");
+            log::warn!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
             0
         }
     }
@@ -83,7 +83,9 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
 impl<'a> Wrapper<'a> {
     fn get_rhs(&self) -> Option<&'a AstStatement> {
         match self {
-            Wrapper::Statement(AstStatement::Assignment { right, .. }) => Some(right),
+            Wrapper::Statement(AstStatement { stmt: AstStatementKind::Assignment(data), .. }) => {
+                Some(&data.right)
+            }
             Wrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
@@ -95,8 +97,8 @@ impl<'a> Wrapper<'a> {
     {
         match self {
             Wrapper::Statement(statement) => {
-                let AstStatement::Assignment { left, .. } = statement else { return None };
-                context.annotations.get_type(left, context.index).map(|it| it.get_type_information())
+                let AstStatement{ stmt: AstStatementKind::Assignment ( data), ..} = statement else { return None };
+                context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
             Wrapper::Variable(variable) => variable

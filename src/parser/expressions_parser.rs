@@ -7,7 +7,7 @@ use crate::{
 };
 use core::str::Split;
 use plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator},
+    ast::{AstFactory, AstId, AstStatement, AstStatementKind, DirectAccessType, Operator},
     literals::{AstLiteral, Time},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -30,12 +30,7 @@ macro_rules! parse_left_associative_expression {
                 };
                 $lexer.advance();
                 let right = $action($lexer);
-                left = AstStatement::BinaryExpression {
-                    operator,
-                    left: Box::new(left),
-                    right: Box::new(right),
-                    id: $lexer.next_id(),
-                };
+                left = AstFactory::create_binary_expression(left, operator, right, $lexer.next_id());
             }
             left
         }
@@ -48,13 +43,14 @@ macro_rules! parse_left_associative_expression {
 /// only an EmptyStatement returned, which does not denote an error condition.
 pub fn parse_expression(lexer: &mut ParseSession) -> AstStatement {
     if lexer.token == KeywordSemicolon {
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     } else {
         parse_expression_list(lexer)
     }
 }
 
 pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
+    let start = lexer.location();
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = vec![];
@@ -68,7 +64,11 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
         // we may have parsed no additional expression because of trailing comma
         if !expressions.is_empty() {
             expressions.insert(0, left);
-            return AstStatement::ExpressionList { expressions, id: lexer.next_id() };
+            return AstFactory::create_expression_list(
+                expressions,
+                start.span(&lexer.last_location()),
+                lexer.next_id(),
+            );
         }
     }
     left
@@ -80,11 +80,7 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstStatement {
     if lexer.token == KeywordDotDot {
         lexer.advance();
         let end = parse_or_expression(lexer);
-        return AstStatement::RangeStatement {
-            start: Box::new(start),
-            end: Box::new(end),
-            id: lexer.next_id(),
-        };
+        return AstFactory::create_range_statement(start, end, lexer.next_id());
     }
     start
 }
@@ -138,23 +134,11 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
     //Parse left
     let mut left = parse_unary_expression(lexer);
     while matches!(lexer.token, OperatorExponent) {
-        let start_location = lexer.last_location();
-        let op_location = lexer.location();
         lexer.advance();
         let right = parse_unary_expression(lexer);
-        left = AstStatement::CallStatement {
-            operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_identifier("EXPT", &op_location, lexer.next_id()),
-                None,
-                lexer.next_id(),
-            )),
-            parameters: Box::new(Some(AstStatement::ExpressionList {
-                expressions: vec![left, right],
-                id: lexer.next_id(),
-            })),
-            location: start_location.span(&lexer.last_location()),
-            id: lexer.next_id(),
-        }
+        let span = left.get_location().span(&right.get_location());
+        left =
+            AstFactory::create_call_to_with_ids("EXPT", vec![left, right], &span, lexer.id_provider.clone());
     }
     left
 }
@@ -179,26 +163,21 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         let expression_location = expression.get_location();
         let location = start_location.span(&expression_location);
 
-        match (&operator, &expression) {
-            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+        match (&operator, &expression.get_stmt()) {
+            (Operator::Minus, AstStatementKind::Literal(AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+            (Operator::Plus, AstStatementKind::Literal(AstLiteral::Integer(value))) => {
                 AstStatement::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            (Operator::Plus, AstStatement::Identifier { name, .. }) => {
+            (Operator::Plus, AstStatementKind::Identifier(name)) => {
                 AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
-            _ => AstStatement::UnaryExpression {
-                operator: *operator,
-                value: Box::new(expression),
-                location,
-                id: lexer.next_id(),
-            },
+            _ => AstFactory::create_unary_expression(*operator, expression, location, lexer.next_id()),
         }
     })
 }
@@ -236,25 +215,16 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         Ok(statement) => {
             if lexer.token == KeywordAssignment {
                 lexer.advance();
-                AstStatement::Assignment {
-                    left: Box::new(statement),
-                    right: Box::new(parse_range_statement(lexer)),
-                    id: lexer.next_id(),
-                }
+                AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             } else if lexer.token == KeywordOutputAssignment {
                 lexer.advance();
-                AstStatement::OutputAssignment {
-                    left: Box::new(statement),
-                    right: Box::new(parse_range_statement(lexer)),
-                    id: lexer.next_id(),
-                }
+                AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             } else {
                 statement
             }
         }
         Err(diagnostic) => {
-            let statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+            let statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
             lexer.accept_diagnostic(diagnostic);
             statement
         }
@@ -314,7 +284,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstState
                 // due to closing keyword ')' and last_token '=>' / ':='
                 // we are probably in a call statement missing a parameter assignment 'foo(param := );
                 // optional parameter assignments are allowed, validation should handle any unwanted cases
-                Ok(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
+                Ok(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } else {
                 Err(Diagnostic::unexpected_token_found("Literal", lexer.slice(), lexer.location()))
             }
@@ -328,7 +298,7 @@ fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstStatement {
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     lexer.advance();
-    Ok(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+    Ok(AstFactory::create_vla_range_statement(lexer.last_location(), lexer.next_id()))
 }
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -369,21 +339,18 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Result<AstStatement, Di
 
     // is this a callstatement?
     if lexer.try_consume(&KeywordParensOpen) {
-        let start_location = reference.get_location();
+        let start = reference.get_location();
         // Call Statement
         let call_statement = if lexer.try_consume(&KeywordParensClose) {
-            AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(None),
-                location: start_location.span(&lexer.location()),
-                id: lexer.next_id(),
-            }
+            AstFactory::create_call_statement(reference, None, lexer.next_id(), start.span(&lexer.location()))
         } else {
-            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(Some(parse_expression_list(lexer))),
-                location: start_location.span(&lexer.location()),
-                id: lexer.next_id(),
+            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
+                AstFactory::create_call_statement(
+                    reference,
+                    Some(parse_expression_list(lexer)),
+                    lexer.next_id(),
+                    start.span(&lexer.location()),
+                )
             })
         };
         Ok(call_statement)
@@ -410,7 +377,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             (None, None) => {
                 let exp = parse_atomic_leaf_expression(lexer)?;
                 // pack if this is something to be resolved
-                current = if matches!(exp, AstStatement::Identifier { .. }) {
+                current = if exp.is_identifier() {
                     Some(AstFactory::create_member_reference(exp, None, lexer.next_id()))
                 } else {
                     Some(exp)
@@ -512,9 +479,8 @@ fn parse_direct_access(
         }
         _ => Err(Diagnostic::unexpected_token_found("Integer or Reference", lexer.slice(), lexer.location())),
     }?;
-
     let location = location.span(&lexer.last_location());
-    Ok(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
+    Ok(AstFactory::create_direct_access(access, index, lexer.next_id(), location))
 }
 
 fn parse_literal_number_with_modifier(
@@ -565,12 +531,12 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();
-        return Ok(AstStatement::MultipliedStatement {
+        return Ok(AstFactory::create_multiplied_statement(
             multiplier,
-            element: Box::new(element),
-            location: lexer.source_range_factory.create_range(start..end),
-            id: lexer.next_id(),
-        });
+            element,
+            lexer.source_range_factory.create_range(start..end),
+            lexer.next_id(),
+        ));
     }
 
     // parsed number value can be safely unwrapped

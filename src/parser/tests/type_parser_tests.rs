@@ -1,9 +1,6 @@
 use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::{
-    ast::{AstStatement, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
-    literals::AstLiteral,
-};
+use plc_ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration, Variable};
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
@@ -181,38 +178,7 @@ fn array_type_can_be_parsed_test() {
     );
 
     let ast_string = format!("{:#?}", &result.user_types[0]);
-
-    let expected_ast = format!(
-        "{:#?}",
-        &UserTypeDeclaration {
-            data_type: DataType::ArrayType {
-                name: Some("MyArray".to_string()),
-                bounds: AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(0),
-                        location: SourceLocation::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(AstStatement::Literal {
-                        kind: AstLiteral::new_integer(8),
-                        location: SourceLocation::undefined(),
-                        id: 0,
-                    }),
-                    id: 0,
-                },
-                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
-                    location: SourceLocation::undefined(),
-                }),
-                is_variable_length: false,
-            },
-            initializer: None,
-            location: SourceLocation::undefined(),
-            scope: None,
-        }
-    );
-
-    assert_eq!(ast_string, expected_ast);
+    assert_snapshot!(ast_string);
 }
 
 #[test]

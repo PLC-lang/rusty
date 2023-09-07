@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstFactory, AstStatement, AstStatementKind};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -51,7 +51,7 @@ impl FunctionBlockDiagram {
                 let (rhs, remove_id) = ast_association
                     .get(&ref_id)
                     .map(|stmt| {
-                        if matches!(stmt, AstStatement::CallStatement { .. }) {
+                        if matches!(stmt.get_stmt(), AstStatementKind::CallStatement(..)) {
                             (stmt.clone(), Some(ref_id))
                         } else {
                             self.transform_node(ref_id, session, ast_association)
@@ -59,14 +59,7 @@ impl FunctionBlockDiagram {
                     })
                     .expect("Expected AST statement, found None");
 
-                (
-                    AstStatement::Assignment {
-                        left: Box::new(lhs),
-                        right: Box::new(rhs),
-                        id: session.next_id(),
-                    },
-                    remove_id,
-                )
+                (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
             Node::Control(_) => todo!(),
             Node::Connector(_) => todo!(),

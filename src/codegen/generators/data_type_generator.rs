@@ -17,7 +17,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::AstStatement;
+use plc_ast::ast::{AstStatement, AstStatementKind};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_diagnostics::errno::ErrNo;
@@ -310,12 +310,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::Array { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatementKind::Literal(AstLiteral::Array { .. })),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::String { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatementKind::Literal(AstLiteral::String { .. })),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {

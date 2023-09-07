@@ -7,7 +7,8 @@ use crate::{
 use indexmap::IndexMap;
 use itertools::Itertools;
 use plc_ast::ast::{
-    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, TypeNature,
+    AstStatement, AstStatementKind, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType,
+    PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -66,11 +67,12 @@ pub struct HardwareBinding {
 
 impl HardwareBinding {
     fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
-        if let AstStatement::HardwareAccess { access, address, direction, location, .. } = it {
+        if let AstStatementKind::HardwareAccess(data) = it.get_stmt() {
             Some(HardwareBinding {
-                access: *access,
-                direction: *direction,
-                entries: address
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
                     .iter()
                     .map(|expr| {
                         index.constant_expressions.add_constant_expression(
@@ -80,7 +82,7 @@ impl HardwareBinding {
                         )
                     })
                     .collect(),
-                location: location.clone(),
+                location: it.get_location(),
             })
         } else {
             None

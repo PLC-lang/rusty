@@ -4,10 +4,10 @@ use std::ops::Range;
 
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, PolymorphismMode,
-        Pou, PouType, ReferenceAccess, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstStatement, AstStatementKind, CompilationUnit,
+        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -698,19 +698,23 @@ fn parse_type_reference_type_definition(
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
         let data_type = match bounds {
-            Some(AstStatement::ExpressionList { expressions, id }) => {
+            Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), id, location }) => {
                 //this is an enum
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
-                        elements: AstStatement::ExpressionList { expressions, id },
+                        elements: AstFactory::create_expression_list(expressions, location, id),
                     },
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
-            Some(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+            Some(AstStatement {
+                stmt:
+                    AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }),
+                ..
+            }) => {
                 // a enum with just one element
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -850,15 +854,15 @@ fn parse_array_type_definition(
         let reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(0);
         let location = lexer.source_range_factory.create_range(start..reference_end);
 
-        let is_variable_length = match &range {
+        let is_variable_length = match &range.get_stmt() {
             // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
-            AstStatement::RangeStatement { .. } => Some(false),
-            AstStatement::VlaRangeStatement { .. } => Some(true),
+            AstStatementKind::RangeStatement { .. } => Some(false),
+            AstStatementKind::VlaRangeStatement { .. } => Some(true),
 
             // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
-            AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
-                AstStatement::RangeStatement { .. } => Some(false),
-                AstStatement::VlaRangeStatement { .. } => Some(true),
+            AstStatementKind::ExpressionList(expressions) => match expressions[0].get_stmt() {
+                AstStatementKind::RangeStatement(..) => Some(false),
+                AstStatementKind::VlaRangeStatement => Some(true),
                 _ => None,
             },
 
@@ -906,7 +910,8 @@ fn parse_body_standalone(lexer: &mut ParseSession) -> Vec<AstStatement> {
 fn parse_statement(lexer: &mut ParseSession) -> AstStatement {
     let result = parse_any_in_region(lexer, vec![KeywordSemicolon, KeywordColon], parse_expression);
     if lexer.last_token == KeywordColon {
-        AstStatement::CaseCondition { condition: Box::new(result), id: lexer.next_id() }
+        let location = result.location.span(&lexer.last_location());
+        AstFactory::create_case_condition(result, location, lexer.next_id())
     } else {
         result
     }
@@ -943,8 +948,7 @@ fn parse_reference(lexer: &mut ParseSession) -> AstStatement {
     match expressions_parser::parse_call_statement(lexer) {
         Ok(statement) => statement,
         Err(diagnostic) => {
-            let statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+            let statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
             lexer.accept_diagnostic(diagnostic);
             statement
         }
@@ -998,8 +1002,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     if constant {
         // sneak in the DefaultValue-Statements if no initializers were defined
         variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
-            it.initializer =
-                Some(AstStatement::DefaultValue { location: it.location.clone(), id: lexer.next_id() });
+            it.initializer = Some(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));
         });
     }
 
@@ -1098,13 +1101,13 @@ fn parse_hardware_access(
                 }
             }
         }
-        Ok(AstStatement::HardwareAccess {
-            access: access_type,
-            direction: hardware_access_type,
+        Ok(AstFactory::create_hardware_access(
+            access_type,
+            hardware_access_type,
             address,
-            location: start_location.span(&lexer.last_location()),
-            id: lexer.next_id(),
-        })
+            start_location.span(&lexer.last_location()),
+            lexer.next_id(),
+        ))
     } else {
         Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
     }

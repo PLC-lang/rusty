@@ -120,13 +120,14 @@ impl<'parse> ParseSession<'parse> {
     }
 
     fn parse_expression(&self, expr: &str, local_id: usize, execution_order: Option<usize>) -> AstStatement {
-        let exp = parse_expression(&mut lexer::lex_with_ids(
+        let mut exp = parse_expression(&mut lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, &mut String::new()),
             self.id_provider.clone(),
             self.range_factory.clone(),
         ));
         let loc = exp.get_location();
-        exp.set_location(self.range_factory.create_block_location(local_id, execution_order).span(&loc))
+        exp.set_location(self.range_factory.create_block_location(local_id, execution_order).span(&loc));
+        exp
     }
 
     fn parse_model(&self) -> Vec<Implementation> {

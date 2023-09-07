@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstFactory, AstStatement},
+    ast::{AstFactory, AstStatement, AstStatementKind},
     control_statements::ConditionalBlock,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -31,19 +31,19 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> AstStatement {
 fn parse_return_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ReturnStatement { location, id: lexer.next_id() }
+    AstFactory::create_return_statement(location, lexer.next_id())
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ExitStatement { location, id: lexer.next_id() }
+    AstFactory::create_exit_statement(location, lexer.next_id())
 }
 
 fn parse_continue_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ContinueStatement { location, id: lexer.next_id() }
+    AstFactory::create_continue_statement(location, lexer.next_id())
 }
 
 fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -56,7 +56,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
         expect_token!(
             lexer,
             KeywordThen,
-            AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+            AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
         );
         lexer.advance();
 
@@ -92,16 +92,12 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
     expect_token!(
         lexer,
         KeywordAssignment,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     );
     lexer.advance();
 
     let start_expression = parse_expression(lexer);
-    expect_token!(
-        lexer,
-        KeywordTo,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
-    );
+    expect_token!(lexer, KeywordTo, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
     lexer.advance();
     let end_expression = parse_expression(lexer);
 
@@ -148,7 +144,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
     let condition = if lexer.last_token == KeywordUntil {
         parse_any_in_region(lexer, vec![KeywordEndRepeat], parse_expression)
     } else {
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     };
 
     AstFactory::create_repeat_statement(
@@ -165,11 +161,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let selector = parse_expression(lexer);
 
-    expect_token!(
-        lexer,
-        KeywordOf,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
-    );
+    expect_token!(lexer, KeywordOf, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
 
     lexer.advance();
 
@@ -180,7 +172,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
         let mut current_condition = None;
         let mut current_body = vec![];
         for statement in body {
-            if let AstStatement::CaseCondition { condition, .. } = statement {
+            if let AstStatement { stmt: AstStatementKind::CaseCondition(condition), .. } = statement {
                 if let Some(condition) = current_condition {
                     let block = ConditionalBlock { condition, body: current_body };
                     case_blocks.push(block);
@@ -194,10 +186,8 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
                         "Missing Case-Condition",
                         lexer.location(),
                     ));
-                    current_condition = Some(Box::new(AstStatement::EmptyStatement {
-                        location: lexer.location(),
-                        id: lexer.next_id(),
-                    }));
+                    current_condition =
+                        Some(Box::new(AstFactory::create_empty_statement(lexer.location(), lexer.next_id())));
                 }
                 current_body.push(statement);
             }
