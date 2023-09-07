@@ -1,12 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{lexer::Token, test_utils::tests::parse};
-use insta::assert_debug_snapshot;
-use plc_ast::ast::{
-    AccessModifier, DataTypeDeclaration, LinkageType, PouType, SourceRange, Variable, VariableBlock,
-    VariableBlockType,
-};
-use plc_diagnostics::diagnostics::Diagnostic;
-use pretty_assertions::*;
+
+use crate::test_utils::tests::{parse_and_validate_buffered, parse_buffered};
+use insta::{assert_debug_snapshot, assert_snapshot};
 
 /*
  * These tests deal with parsing-behavior of containers like POUs, VAR-containers and Actions
@@ -26,11 +21,10 @@ fn missing_pou_name() {
             END_PROGRAM
             ";
 
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found("Identifier", "VAR", (35..38).into());
-    assert_eq!(diagnostics[0], expected);
+    assert_snapshot!(diagnostics);
 
     let pou = &compilation_unit.implementations[0];
     assert_debug_snapshot!(pou.statements);
@@ -46,14 +40,8 @@ fn missing_pou_name_2() {
             END_PROGRAM
             ";
 
-    let (compilation_unit, diagnostics) = parse(src);
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unexpected_token_found("Literal", ":=", (36..38).into()),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "':= 2'", (36..40).into())
-        ]
-    );
+    let (compilation_unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     let pou = &compilation_unit.implementations[0];
     assert_debug_snapshot!(pou.statements);
@@ -70,13 +58,8 @@ fn illegal_end_pou_keyword() {
             END_PROGRAM
             ";
 
-    let (compilation_unit, diagnostics) = parse(src);
-    let expected = Diagnostic::unexpected_token_found(
-        format!("{:?}", Token::KeywordEndProgram).as_str(),
-        "END_FUNCTION",
-        (52..64).into(),
-    );
-    assert_eq!(diagnostics, vec![expected]);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     //check if baz was parsed successfully
     let pou = &compilation_unit.implementations[1];
@@ -94,11 +77,10 @@ fn function_without_return_variable_declaration() {
         ";
 
     // WHEN the function is parsed
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
 
     // THEN I expect a diagnostic complaining about a missing return type
-    let expected = Diagnostic::unexpected_token_found("COLON", "'a', (Identifier)", (76..79).into());
-    assert_eq!(diagnostics, vec![expected]);
+    assert_snapshot!(diagnostics);
 
     // AND I expect the body to be parsed successfully
     let pou = &compilation_unit.implementations[0];
@@ -114,11 +96,10 @@ fn function_with_illegal_return_variable_declaration() {
             END_FUNCTION
             ";
 
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordVar", (40..43).into());
-    assert_eq!(diagnostics[0], expected);
+    assert_snapshot!(diagnostics);
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
@@ -134,11 +115,10 @@ fn function_return_type_with_initializer() {
             END_FUNCTION
             ";
 
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_initializer_on_function_return((35..36).into());
-    assert_eq!(diagnostics[0], expected);
+    assert_snapshot!(diagnostics);
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
@@ -154,11 +134,10 @@ fn program_with_illegal_return_variable_declaration() {
                 END_PROGRAM
                 ";
 
-    let (compilation_unit, diagnostics) = parse(src);
+    let (compilation_unit, diagnostics) = parse_buffered(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::return_type_not_supported(&PouType::Program, (29..34).into());
-    assert_eq!(diagnostics.get(0), Some(&expected));
+    assert_snapshot!(diagnostics);
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
@@ -174,38 +153,12 @@ fn unclosed_var_container() {
                 END_PROGRAM
                 ";
 
-    let (compilation_unit, diagnostics) = parse(src);
-    assert_eq!(
-        vec![Diagnostic::unexpected_token_found("KeywordEndVar", "'VAR b : INT;'", (82..94).into(),)],
-        diagnostics
-    );
+    let (compilation_unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics);
 
     //check if b was parsed successfully
     let var_block = &compilation_unit.units[0].variable_blocks[0];
-    assert_eq!(
-        format!("{var_block:#?}"),
-        format!(
-            "{:#?}",
-            VariableBlock {
-                constant: false,
-                access: AccessModifier::Protected,
-                retain: false,
-                variable_block_type: VariableBlockType::Local,
-                location: SourceRange::undefined(),
-                variables: vec![Variable {
-                    name: "a".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "INT".into(),
-                        location: SourceRange::undefined(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                }],
-                linkage: LinkageType::Internal,
-            }
-        )
-    );
+    assert_debug_snapshot!(var_block)
 }
 
 #[test]
@@ -215,42 +168,20 @@ fn test_unexpected_type_declaration_error_message() {
                 END_PROGRAM
             END_TYPE
     ";
-    let (_, diagnostics) = parse(src);
-    assert_eq!(
-        vec![
-            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordProgram", (29..36).into(),),
-            Diagnostic::unexpected_token_found(
-                "KeywordSemicolon",
-                "'PROGRAM\n                END_PROGRAM'",
-                (29..64).into(),
-            ),
-            Diagnostic::missing_token("[KeywordSemicolon]", (77..85).into(),),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_TYPE'", (77..85).into(),),
-        ],
-        diagnostics
-    );
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn a_program_needs_to_end_with_end_program() {
     let src = "PROGRAM buz ";
-    let (_, diagnostics) = parse(src);
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::unexpected_token_found("KeywordEndProgram", "''", (12..12).into()),]
-    );
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn a_variable_declaration_block_needs_to_end_with_endvar() {
     let src = "PROGRAM buz VAR END_PROGRAM ";
-    let (_, diagnostics) = parse(src);
-
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_token("[KeywordEndVar]", (16..27).into()),
-            Diagnostic::unexpected_token_found("KeywordEndVar", "'END_PROGRAM'", (16..27).into()),
-        ]
-    );
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics)
 }

@@ -44,8 +44,18 @@ CompilationUnit {
                                     value: 1,
                                 },
                             ],
-                            location: SourceRange {
-                                range: 32..40,
+                            location: SourceLocation {
+                                span: Range(
+                                    TextLocation {
+                                        line: 2,
+                                        column: 15,
+                                        offset: 32,
+                                    }..TextLocation {
+                                        line: 2,
+                                        column: 23,
+                                        offset: 40,
+                                    },
+                                ),
                             },
                         },
                     },
@@ -67,8 +77,18 @@ CompilationUnit {
                                 value: 200,
                             },
                         ],
-                        location: SourceRange {
-                            range: 52..61,
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 3,
+                                    column: 10,
+                                    offset: 52,
+                                }..TextLocation {
+                                    line: 3,
+                                    column: 19,
+                                    offset: 61,
+                                },
+                            ),
                         },
                     },
                 },
@@ -91,8 +111,18 @@ CompilationUnit {
                                     value: 5,
                                 },
                             ],
-                            location: SourceRange {
-                                range: 73..80,
+                            location: SourceLocation {
+                                span: Range(
+                                    TextLocation {
+                                        line: 4,
+                                        column: 10,
+                                        offset: 73,
+                                    }..TextLocation {
+                                        line: 4,
+                                        column: 17,
+                                        offset: 80,
+                                    },
+                                ),
                             },
                         },
                         right: LiteralInteger {
@@ -101,11 +131,31 @@ CompilationUnit {
                     },
                 },
             ],
-            location: SourceRange {
-                range: 25..101,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 8,
+                        offset: 25,
+                    }..TextLocation {
+                        line: 5,
+                        column: 15,
+                        offset: 101,
+                    },
+                ),
             },
-            name_location: SourceRange {
-                range: 13..16,
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 12,
+                        offset: 13,
+                    }..TextLocation {
+                        line: 1,
+                        column: 15,
+                        offset: 16,
+                    },
+                ),
             },
             overriding: false,
             generic: false,
@@ -114,15 +164,4 @@ CompilationUnit {
     ],
     user_types: [],
     file_name: "test.st",
-    new_lines: NewLines {
-        line_breaks: [
-            1,
-            17,
-            42,
-            63,
-            86,
-            102,
-            107,
-        ],
-    },
 }

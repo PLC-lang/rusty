@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceRange { range: 142..143 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Duration.", range: [SourceRange { range: 142..143 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'TIME'", range: [SourceRange { range: 211..212 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Duration.", range: [SourceRange { range: 211..212 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 142 }..TextLocation { line: 2, column: 58, offset: 143 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 142 }..TextLocation { line: 2, column: 58, offset: 143 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 211 }..TextLocation { line: 3, column: 53, offset: 212 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 211 }..TextLocation { line: 3, column: 53, offset: 212 }) }], err_no: type__invalid_nature }
 

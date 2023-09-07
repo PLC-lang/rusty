@@ -2,16 +2,16 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Literal DATE_AND_TIME is not compatible to LINT", range: [SourceRange { range: 33..63 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not compatible to LINT", range: [SourceRange { range: 77..106 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not compatible to LINT", range: [SourceRange { range: 120..136 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not compatible to LINT", range: [SourceRange { range: 150..170 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE_AND_TIME is not compatible to ULINT", range: [SourceRange { range: 185..216 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not compatible to ULINT", range: [SourceRange { range: 230..260 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not compatible to ULINT", range: [SourceRange { range: 274..291 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not compatible to ULINT", range: [SourceRange { range: 305..326 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE_AND_TIME is not compatible to INT", range: [SourceRange { range: 341..370 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME_OF_DAY is not compatible to INT", range: [SourceRange { range: 384..412 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal TIME is not compatible to INT", range: [SourceRange { range: 426..441 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal DATE is not compatible to INT", range: [SourceRange { range: 455..474 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to LINT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 12, offset: 33 }..TextLocation { line: 2, column: 42, offset: 63 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to LINT", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 12, offset: 77 }..TextLocation { line: 3, column: 41, offset: 106 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to LINT", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 12, offset: 120 }..TextLocation { line: 4, column: 28, offset: 136 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to LINT", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 12, offset: 150 }..TextLocation { line: 5, column: 32, offset: 170 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to ULINT", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 185 }..TextLocation { line: 7, column: 43, offset: 216 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to ULINT", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 230 }..TextLocation { line: 8, column: 42, offset: 260 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to ULINT", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 12, offset: 274 }..TextLocation { line: 9, column: 29, offset: 291 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to ULINT", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 12, offset: 305 }..TextLocation { line: 10, column: 33, offset: 326 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE_AND_TIME is not compatible to INT", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 341 }..TextLocation { line: 12, column: 41, offset: 370 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME_OF_DAY is not compatible to INT", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 12, offset: 384 }..TextLocation { line: 13, column: 40, offset: 412 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal TIME is not compatible to INT", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 12, offset: 426 }..TextLocation { line: 14, column: 27, offset: 441 }) }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal DATE is not compatible to INT", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 12, offset: 455 }..TextLocation { line: 15, column: 31, offset: 474 }) }], err_no: type__incompatible_literal_cast }
 

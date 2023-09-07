@@ -2,6 +2,36 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
+error: Unexpected token: expected KeywordSquareParensClose but found )
+   ┌─ <internal>:15:25
+   │
+15 │       arr := [1, 2, 3, 4, 5);
+   │                            ^ Unexpected token: expected KeywordSquareParensClose but found )
+
+error: Unexpected token: expected KeywordSemicolon but found ')'
+   ┌─ <internal>:15:25
+   │
+15 │       arr := [1, 2, 3, 4, 5);
+   │                            ^ Unexpected token: expected KeywordSemicolon but found ')'
+
+error: Unexpected token: expected KeywordParensClose but found ']'
+   ┌─ <internal>:16:25
+   │
+16 │       arr := (1, 2, 3, 4, 5];
+   │                            ^ Unexpected token: expected KeywordParensClose but found ']'
+
+error: Missing expected Token [KeywordParensClose]
+   ┌─ <internal>:16:26
+   │
+16 │       arr := (1, 2, 3, 4, 5];
+   │                             ^ Missing expected Token [KeywordParensClose]
+
+error: Unexpected token: expected KeywordParensClose but found ';'
+   ┌─ <internal>:16:26
+   │
+16 │       arr := (1, 2, 3, 4, 5];
+   │                             ^ Unexpected token: expected KeywordParensClose but found ';'
+
 error: Array __main_arr has a size of 5, but 6 elements were provided
   ┌─ <internal>:4:36
   │

@@ -28,11 +28,18 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 12,
-                source_range: SourceRange {
-                    range: 194..197,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 12,
+                        column: 8,
+                        offset: 194,
+                    }..TextLocation {
+                        line: 12,
+                        column: 11,
+                        offset: 197,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -57,11 +64,18 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 6,
-                source_range: SourceRange {
-                    range: 99..107,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 12,
+                        offset: 99,
+                    }..TextLocation {
+                        line: 6,
+                        column: 20,
+                        offset: 107,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -89,11 +103,18 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 8,
-                source_range: SourceRange {
-                    range: 124..127,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 8,
+                        offset: 124,
+                    }..TextLocation {
+                        line: 8,
+                        column: 11,
+                        offset: 127,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -124,11 +145,18 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 40..41,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 8,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 3,
+                        column: 9,
+                        offset: 41,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -159,11 +187,18 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SymbolLocation {
-                line_number: 3,
-                source_range: SourceRange {
-                    range: 42..43,
-                },
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 10,
+                        offset: 42,
+                    }..TextLocation {
+                        line: 3,
+                        column: 11,
+                        offset: 43,
+                    },
+                ),
             },
             varargs: None,
         },

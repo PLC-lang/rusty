@@ -1,0 +1,38 @@
+---
+source: compiler/plc_source/./src/source_location.rs
+expression: loc1.span(&loc2).span(&loc3.span(&loc4))
+---
+SourceLocation {
+    span: Combined(
+        [
+            Block {
+                local_id: 1,
+                execution_order: Some(
+                    1,
+                ),
+                inner_range: None,
+            },
+            Block {
+                local_id: 2,
+                execution_order: Some(
+                    2,
+                ),
+                inner_range: None,
+            },
+            Block {
+                local_id: 3,
+                execution_order: Some(
+                    3,
+                ),
+                inner_range: None,
+            },
+            Block {
+                local_id: 4,
+                execution_order: Some(
+                    4,
+                ),
+                inner_range: None,
+            },
+        ],
+    ),
+}

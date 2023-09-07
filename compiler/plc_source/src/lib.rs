@@ -7,6 +7,7 @@ use std::{
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 
+pub mod source_location;
 /// Represents the type of source a SourceContainer holds
 #[derive(Clone, Copy, Debug)]
 pub enum SourceType {

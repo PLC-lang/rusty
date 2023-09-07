@@ -36,9 +36,7 @@ impl FunctionBlockDiagram {
         session: &ParseSession,
         ast_association: &IndexMap<usize, AstStatement>,
     ) -> (AstStatement, Option<NodeId>) {
-        let Some(current_node) = self.nodes.get(&id) else {
-            unreachable!()
-        };
+        let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
 
         match current_node {
             Node::Block(block) => (block.transform(session, &self.nodes), None),

@@ -1,0 +1,7 @@
+---
+source: src/index/tests/index_tests.rs
+expression: var_data_type
+---
+DataTypeReference {
+    referenced_type: "__global_inline_struct",
+}

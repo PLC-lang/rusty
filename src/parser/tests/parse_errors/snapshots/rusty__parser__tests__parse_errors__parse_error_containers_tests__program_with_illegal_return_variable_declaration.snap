@@ -1,14 +1,11 @@
 ---
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
-expression: pou.statements
+expression: diagnostics
 ---
-[
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "a",
-            },
-        ),
-        base: None,
-    },
-]
+error: POU Type Program does not support a return type. Did you mean Function?
+  ┌─ <internal>:2:29
+  │
+2 │                 PROGRAM foo : INT
+  │                             ^^^^^ POU Type Program does not support a return type. Did you mean Function?
+
+

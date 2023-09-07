@@ -1,7 +1,8 @@
 use plc_ast::{
-    ast::{AstFactory, AstStatement, ReferenceAccess, SourceRange},
+    ast::{AstFactory, AstStatement, ReferenceAccess},
     literals::AstLiteral,
 };
+use plc_source::source_location::SourceLocation;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;
@@ -23,21 +24,21 @@ pub fn ref_to(name: &str) -> AstStatement {
     AstStatement::ReferenceExpr {
         access: ReferenceAccess::Member(Box::new(AstFactory::create_identifier(
             name,
-            &SourceRange::undefined(),
+            &SourceLocation::undefined(),
             0,
         ))),
         base: None,
         id: 0,
-        location: SourceRange::undefined(),
+        location: SourceLocation::undefined(),
     }
 }
 
 /// helper function to create literal ints
 pub fn literal_int(value: i128) -> AstStatement {
-    AstStatement::new_literal(AstLiteral::new_integer(value), 0, SourceRange::undefined())
+    AstStatement::new_literal(AstLiteral::new_integer(value), 0, SourceLocation::undefined())
 }
 
 /// helper function to create empty statements
 pub fn empty_stmt() -> AstStatement {
-    AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 }
+    AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 }
 }

@@ -439,7 +439,7 @@ fn if_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "IF a > 4 THEN
         a + b;
     ELSIF x < 2 THEN
@@ -452,10 +452,10 @@ fn if_stmnt_location_test() {
     } = &unit.statements[0]
     {
         let if_location = blocks[0].condition.as_ref().get_location();
-        assert_eq!(source[if_location.get_start()..if_location.get_end()].to_string(), "a > 4");
+        assert_eq!(source[if_location.to_range().unwrap()].to_string(), "a > 4");
 
         let elsif_location = blocks[1].condition.as_ref().get_location();
-        assert_eq!(source[elsif_location.get_start()..elsif_location.get_end()].to_string(), "x < 2");
+        assert_eq!(source[elsif_location.to_range().unwrap()].to_string(), "x < 2");
     }
 }
 
@@ -474,7 +474,7 @@ fn for_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "FOR x := 3 TO 9 BY 2 DO
         a + b;
     END_FOR"
@@ -486,16 +486,16 @@ fn for_stmnt_location_test() {
     } = &unit.statements[0]
     {
         let counter_location = counter.as_ref().get_location();
-        assert_eq!(source[counter_location.get_start()..counter_location.get_end()].to_string(), "x");
+        assert_eq!(source[counter_location.to_range().unwrap()].to_string(), "x");
 
         let start_location = start.as_ref().get_location();
-        assert_eq!(source[start_location.get_start()..start_location.get_end()].to_string(), "3");
+        assert_eq!(source[start_location.to_range().unwrap()].to_string(), "3");
 
         let end_location = end.as_ref().get_location();
-        assert_eq!(source[end_location.get_start()..end_location.get_end()].to_string(), "9");
+        assert_eq!(source[end_location.to_range().unwrap()].to_string(), "9");
 
         let by_location = by_step.as_ref().map(|it| it.as_ref().get_location()).unwrap();
-        assert_eq!(source[by_location.get_start()..by_location.get_end()].to_string(), "2");
+        assert_eq!(source[by_location.to_range().unwrap()].to_string(), "2");
     } else {
         panic!("expected ForLoopStatement")
     }
@@ -516,7 +516,7 @@ fn while_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "WHILE a < 2 DO
         a := a - 1;
     END_WHILE"
@@ -541,7 +541,7 @@ fn case_stmnt_location_test() {
 
     let location = &unit.statements[0].get_location();
     assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
+        source[location.to_range().unwrap()].to_string(),
         "CASE a OF
     1:
         a := a - 1;
@@ -563,17 +563,14 @@ fn call_stmnt_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "foo(a:=3, b:=4)");
+    assert_eq!(source[location.to_range().unwrap()].to_string(), "foo(a:=3, b:=4)");
 
     if let AstStatement::CallStatement { operator, parameters, .. } = &unit.statements[0] {
         let operator_location = operator.as_ref().get_location();
-        assert_eq!(source[operator_location.get_start()..operator_location.get_end()].to_string(), "foo");
+        assert_eq!(source[operator_location.to_range().unwrap()].to_string(), "foo");
 
         let parameters_statement = parameters.as_ref().as_ref();
         let parameters_location = parameters_statement.map(|it| it.get_location()).unwrap();
-        assert_eq!(
-            source[parameters_location.get_start()..parameters_location.get_end()].to_string(),
-            "a:=3, b:=4"
-        );
+        assert_eq!(source[parameters_location.to_range().unwrap()].to_string(), "a:=3, b:=4");
     }
 }

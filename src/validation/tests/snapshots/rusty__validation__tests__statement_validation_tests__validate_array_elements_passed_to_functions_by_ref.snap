@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 323..324 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 326..327 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 17, offset: 323 }..TextLocation { line: 16, column: 18, offset: 324 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 20, offset: 326 }..TextLocation { line: 16, column: 21, offset: 327 }) }], err_no: var__invalid_assignment }
 
