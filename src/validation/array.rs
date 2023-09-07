@@ -10,7 +10,7 @@
 //! introduced to make the validation code as generic as possible.
 
 use plc_ast::{
-    ast::{AstStatement, AstStatementKind, Variable},
+    ast::{AstNode, AstStatement, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -21,7 +21,7 @@ use super::{ValidationContext, Validator, Validators};
 
 /// Indicates whether an array was defined in a VAR block or a POU body
 pub(super) enum Wrapper<'a> {
-    Statement(&'a AstStatement),
+    Statement(&'a AstNode),
     Variable(&'a Variable),
 }
 
@@ -56,12 +56,12 @@ pub(super) fn validate_array_assignment<T>(
 
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
-fn statement_to_array_length(statement: &AstStatement) -> usize {
+fn statement_to_array_length(statement: &AstNode) -> usize {
     match statement.get_stmt() {
-        AstStatementKind::ExpressionList { .. } => 1,
-        AstStatementKind::MultipliedStatement(data) => data.multiplier as usize,
-        AstStatementKind::Literal(AstLiteral::Array(arr)) => match arr.elements() {
-            Some(AstStatement { stmt: AstStatementKind::ExpressionList(expressions), .. }) => {
+        AstStatement::ExpressionList { .. } => 1,
+        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
+        AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
+            Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
                 expressions.iter().map(statement_to_array_length).sum::<usize>()
             }
 
@@ -70,7 +70,7 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
         },
 
         // Any literal other than an array can be counted as 1
-        AstStatementKind::Literal { .. } => 1,
+        AstStatement::Literal { .. } => 1,
 
         _any => {
             // XXX: Not sure what else could be in here
@@ -81,11 +81,9 @@ fn statement_to_array_length(statement: &AstStatement) -> usize {
 }
 
 impl<'a> Wrapper<'a> {
-    fn get_rhs(&self) -> Option<&'a AstStatement> {
+    fn get_rhs(&self) -> Option<&'a AstNode> {
         match self {
-            Wrapper::Statement(AstStatement { stmt: AstStatementKind::Assignment(data), .. }) => {
-                Some(&data.right)
-            }
+            Wrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) => Some(&data.right),
             Wrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
@@ -97,7 +95,7 @@ impl<'a> Wrapper<'a> {
     {
         match self {
             Wrapper::Statement(statement) => {
-                let AstStatement{ stmt: AstStatementKind::Assignment ( data), ..} = statement else { return None };
+                let AstNode{ stmt: AstStatement::Assignment ( data), ..} = statement else { return None };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 

@@ -26,7 +26,7 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, AstStatementKind, DirectAccessType, Operator,
+        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
         ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
@@ -61,7 +61,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 #[derive(Debug)]
 struct CallParameterAssignment<'a, 'b> {
     /// the assignmentstatement in the call-argument list (a:=3)
-    assignment_statement: &'b AstStatement,
+    assignment_statement: &'b AstNode,
     /// the name of the function we're calling
     function_name: &'b str,
     /// the position of the argument in the POU's argument's list
@@ -155,14 +155,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// returns the function context or returns a Compile-Error
     pub fn get_function_context(
         &self,
-        statement: &AstStatement,
+        statement: &AstNode,
     ) -> Result<&'b FunctionContext<'ink, 'b>, Diagnostic> {
         self.function_context.ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
 
     /// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
-    pub fn generate_expression(&self, expression: &AstStatement) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+    pub fn generate_expression(&self, expression: &AstNode) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         // If the expression was replaced by the resolver, generate the replacement
         if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
@@ -181,7 +181,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression)))
     }
 
-    fn register_debug_location(&self, statement: &AstStatement) {
+    fn register_debug_location(&self, statement: &AstNode) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");
         let line = statement.get_location().get_line();
@@ -191,7 +191,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     pub fn generate_expression_value(
         &self,
-        expression: &AstStatement,
+        expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
@@ -205,7 +205,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
         // generate the expression
         match expression.get_stmt() {
-            AstStatementKind::ReferenceExpr(data) => {
+            AstStatement::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
@@ -224,17 +224,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
-            AstStatementKind::BinaryExpression(data) => self
+            AstStatement::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
-            AstStatementKind::CallStatement(data) => {
+            AstStatement::CallStatement(data) => {
                 self.generate_call_statement(&data.operator, data.parameters.as_deref())
             }
-            AstStatementKind::UnaryExpression(data) => {
+            AstStatement::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
             // TODO: Hardware access needs to be evaluated, see #648
-            AstStatementKind::HardwareAccess { .. } => {
+            AstStatement::HardwareAccess { .. } => {
                 Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
             //fallback
@@ -248,7 +248,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_constant_expression(
         &self,
         qualified_name: &str,
-        expression: &AstStatement,
+        expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let const_expression = self
             .index
@@ -281,10 +281,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `expression` the whole expression for diagnostic reasons
     fn generate_binary_expression(
         &self,
-        left: &AstStatement,
-        right: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
         operator: &Operator,
-        expression: &AstStatement,
+        expression: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let l_type_hint = self.get_type_hint_for(left)?;
         let ltype = self.index.get_intrinsic_type_by_name(l_type_hint.get_name()).get_type_information();
@@ -318,7 +318,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_direct_access_index(
         &self,
         access: &DirectAccessType,
-        index: &AstStatement,
+        index: &AstNode,
         access_type: &DataTypeInformation,
         target_type: &DataType,
     ) -> Result<IntValue<'ink>, Diagnostic> {
@@ -351,7 +351,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_unary_expression(
         &self,
         unary_operator: &Operator,
-        expression: &AstStatement,
+        expression: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let value = match unary_operator {
             Operator::Not => {
@@ -401,8 +401,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `parameters` - an optional StatementList of parameters
     pub fn generate_call_statement(
         &self,
-        operator: &AstStatement,
-        parameters: Option<&AstStatement>,
+        operator: &AstNode,
+        parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
@@ -511,7 +511,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         parameter_struct: PointerValue<'ink>,
         function_name: &str,
-        parameters: Vec<&AstStatement>,
+        parameters: Vec<&AstNode>,
     ) -> Result<(), Diagnostic> {
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
             self.assign_output_value(&CallParameterAssignment {
@@ -526,7 +526,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
         match param_context.assignment_statement.get_stmt() {
-            AstStatementKind::OutputAssignment(data) | AstStatementKind::Assignment(data) => self
+            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
                     param_context.function_name,
@@ -545,7 +545,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
             if matches!(parameter.get_variable_type(), VariableType::Output)
-                && !matches!(expression.get_stmt(), AstStatementKind::EmptyStatement { .. })
+                && !matches!(expression.get_stmt(), AstStatement::EmptyStatement { .. })
             {
                 {
                     let assigned_output = self.generate_lvalue(expression)?;
@@ -590,8 +590,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         parameter_struct: PointerValue<'ink>,
         function_name: &str,
-        left: &AstStatement,
-        right: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
     ) -> Result<(), Diagnostic> {
         if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
@@ -615,9 +615,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_pou_call_arguments_list(
         &self,
         pou: &PouIndexEntry,
-        passed_parameters: &[&AstStatement],
+        passed_parameters: &[&AstNode],
         implementation: &ImplementationIndexEntry,
-        operator: &AstStatement,
+        operator: &AstNode,
         function_context: &'b FunctionContext<'ink, 'b>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
@@ -637,7 +637,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 PouIndexEntry::Action { .. }
                     if matches!(
                         operator.get_stmt(),
-                        AstStatementKind::ReferenceExpr(ReferenceExpr { base: None, .. })
+                        AstStatement::ReferenceExpr(ReferenceExpr { base: None, .. })
                     ) =>
                 {
                     // special handling for local actions, get the parameter from the function context
@@ -667,7 +667,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_function_arguments(
         &self,
         pou: &PouIndexEntry,
-        passed_parameters: &[&AstStatement],
+        passed_parameters: &[&AstNode],
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
@@ -752,7 +752,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_argument_by_val(
         &self,
         type_name: &str,
-        param_statement: &AstStatement,
+        param_statement: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         Ok(match self.index.find_effective_type_by_name(type_name) {
             Some(type_info) if type_info.information.is_string() => {
@@ -767,7 +767,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_string_argument(
         &self,
         type_info: &DataType,
-        argument: &AstStatement,
+        argument: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         // allocate a temporary string of correct size and pass it
         let llvm_type = self
@@ -795,7 +795,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// pointing to the given `argument`
     fn generate_argument_by_ref(
         &self,
-        argument: &AstStatement,
+        argument: &AstNode,
         type_name: &str,
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
@@ -887,7 +887,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_variadic_arguments_list(
         &self,
         pou: &PouIndexEntry,
-        variadic_params: &[&AstStatement],
+        variadic_params: &[&AstNode],
     ) -> Result<Vec<BasicValueEnum<'ink>>, Diagnostic> {
         // get the real varargs from the index
         if let Some((var_args, argument_type)) = self
@@ -970,7 +970,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
-        context: &AstStatement,
+        context: &AstNode,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let instance_name = format!("{function_name}_instance"); // TODO: Naming convention (see plc_util/src/convention.rs)
         let function_type = self
@@ -997,7 +997,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou_name: &str,
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
-        passed_parameters: &[&AstStatement],
+        passed_parameters: &[&AstNode],
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
@@ -1068,7 +1068,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// first try to find an initial value for the given id
     ///
     /// if there is none try to find an initial value for the given type
-    fn get_initial_value(&self, id: &Option<ConstId>, type_name: &str) -> Option<&AstStatement> {
+    fn get_initial_value(&self, id: &Option<ConstId>, type_name: &str) -> Option<&AstNode> {
         self.index.get_initial_value(id).or_else(|| self.index.get_initial_value_for_type(type_name))
     }
 
@@ -1085,7 +1085,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let parameter_value = match param_context.assignment_statement.get_stmt() {
             // explicit call parameter: foo(param := value)
-            AstStatementKind::OutputAssignment(data) | AstStatementKind::Assignment(data) => {
+            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => {
                 self.generate_formal_parameter(param_context, &data.left, &data.right)?;
                 None
             }
@@ -1159,8 +1159,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_formal_parameter(
         &self,
         param_context: &CallParameterAssignment,
-        left: &AstStatement,
-        right: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
     ) -> Result<(), Diagnostic> {
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
@@ -1196,10 +1196,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// generates an gep-statement and returns the resulting pointer
     ///
     /// - `reference_statement` - the statement to get an lvalue from
-    pub fn generate_lvalue(
-        &self,
-        reference_statement: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
+    pub fn generate_lvalue(&self, reference_statement: &AstNode) -> Result<PointerValue<'ink>, Diagnostic> {
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
@@ -1217,7 +1214,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         qualifier: Option<&PointerValue<'ink>>,
         name: &str,
-        context: &AstStatement,
+        context: &AstNode,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let offset = &context.get_location();
         if let Some(qualifier) = qualifier {
@@ -1297,7 +1294,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn auto_deref_if_necessary(
         &self,
         accessor_ptr: PointerValue<'ink>,
-        statement: &AstStatement,
+        statement: &AstNode,
     ) -> PointerValue<'ink> {
         if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
             self.annotations.get(statement)
@@ -1316,7 +1313,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_access_for_dimension(
         &self,
         dimension: &Dimension,
-        access_expression: &AstStatement,
+        access_expression: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let start_offset = dimension
             .start_offset
@@ -1353,8 +1350,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
     fn generate_element_pointer_for_array(
         &self,
-        reference: &AstStatement,
-        access: &AstStatement,
+        reference: &AstNode,
+        access: &AstNode,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         //Load the reference
         self.generate_expression_value(reference)
@@ -1474,11 +1471,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn create_llvm_binary_expression_for_pointer(
         &self,
         operator: &Operator,
-        left: &AstStatement,
+        left: &AstNode,
         left_type: &DataTypeInformation,
-        right: &AstStatement,
+        right: &AstNode,
         right_type: &DataTypeInformation,
-        expression: &AstStatement,
+        expression: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let left_expr = self.generate_expression(left)?;
         let right_expr = self.generate_expression(right)?;
@@ -1711,7 +1708,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn generate_numeric_literal(
         &self,
-        stmt: &AstStatement,
+        stmt: &AstNode,
         number: &str,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let type_hint = self.get_type_hint_for(stmt)?;
@@ -1732,10 +1729,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// generates the literal statement and returns the resulting value
     ///
     /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
-    pub fn generate_literal(
-        &self,
-        literal_statement: &AstStatement,
-    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    pub fn generate_literal(&self, literal_statement: &AstNode) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let cannot_generate_literal = || {
             Diagnostic::codegen_error(
                 &format!("Cannot generate Literal for {literal_statement:?}"),
@@ -1745,7 +1739,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let location = &literal_statement.get_location();
         match literal_statement.get_stmt() {
-            AstStatementKind::Literal(kind) => match kind {
+            AstStatement::Literal(kind) => match kind {
                 AstLiteral::Bool(b) => self.llvm.create_const_bool(*b).map(ExpressionValue::RValue),
                 AstLiteral::Integer(i, ..) => self
                     .generate_numeric_literal(literal_statement, i.to_string().as_str())
@@ -1776,11 +1770,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
-            AstStatementKind::MultipliedStatement { .. } => {
+            AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
             // if there is an expression-list this might be a struct-initialization or array-initialization
-            AstStatementKind::ExpressionList { .. } => {
+            AstStatement::ExpressionList { .. } => {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
@@ -1790,8 +1784,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
-            AstStatementKind::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            AstStatementKind::CastStatement(data) => self.generate_expression_value(&data.target),
+            AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
+            AstStatement::CastStatement(data) => self.generate_expression_value(&data.target),
             _ => Err(cannot_generate_literal()),
         }
     }
@@ -1799,7 +1793,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// generates the string-literal `value` represented by `literal_statement`
     fn generate_string_literal(
         &self,
-        literal_statement: &AstStatement,
+        literal_statement: &AstNode,
         value: &str,
         location: &SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
@@ -1877,10 +1871,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
-    pub fn get_type_hint_info_for(
-        &self,
-        statement: &AstStatement,
-    ) -> Result<&DataTypeInformation, Diagnostic> {
+    pub fn get_type_hint_info_for(&self, statement: &AstNode) -> Result<&DataTypeInformation, Diagnostic> {
         self.get_type_hint_for(statement).map(DataType::get_type_information)
     }
 
@@ -1888,7 +1879,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
-    pub fn get_type_hint_for(&self, statement: &AstStatement) -> Result<&DataType, Diagnostic> {
+    pub fn get_type_hint_for(&self, statement: &AstNode) -> Result<&DataType, Diagnostic> {
         self.annotations
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
@@ -1901,17 +1892,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
-    fn generate_literal_struct(
-        &self,
-        assignments: &AstStatement,
-    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    fn generate_literal_struct(&self, assignments: &AstNode) -> Result<ExpressionValue<'ink>, Diagnostic> {
         if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
             let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
-                if let AstStatementKind::Assignment(data) = assignment.get_stmt() {
+                if let AstStatement::Assignment(data) = assignment.get_stmt() {
                     if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
                         self.annotations.get(data.left.as_ref())
                     {
@@ -1984,10 +1972,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
-    pub fn generate_literal_array(
-        &self,
-        initializer: &AstStatement,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+    pub fn generate_literal_array(&self, initializer: &AstNode) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let array_value = self.generate_literal_array_value(
             initializer,
             self.get_type_hint_info_for(initializer)?,
@@ -2003,7 +1988,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// i16-array-value
     fn generate_literal_array_value(
         &self,
-        elements: &AstStatement,
+        elements: &AstNode,
         data_type: &DataTypeInformation,
         location: &SourceLocation,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
@@ -2031,7 +2016,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements.get_stmt() {
-                    AstStatementKind::ExpressionList(expressions) => expressions.iter().collect(),
+                    AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
                     _ => unreachable!("This should always be an expression list"),
                 }
             } else {
@@ -2089,8 +2074,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_bool_binary_expression(
         &self,
         operator: &Operator,
-        left: &AstStatement,
-        right: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         match operator {
             Operator::And | Operator::Or => {
@@ -2140,8 +2125,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_bool_short_circuit_expression(
         &self,
         operator: &Operator,
-        left: &AstStatement,
-        right: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
         let lhs = to_i1(self.generate_expression(left)?.into_int_value(), builder);
@@ -2194,9 +2179,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// expressions
     fn create_llvm_generic_binary_expression(
         &self,
-        left: &AstStatement,
-        right: &AstStatement,
-        binary_statement: &AstStatement,
+        left: &AstNode,
+        right: &AstNode,
+        binary_statement: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         if let Some(StatementAnnotation::ReplacementAst { statement }) =
             self.annotations.get(binary_statement)
@@ -2220,7 +2205,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         left: inkwell::values::PointerValue,
         left_type: &DataTypeInformation,
-        right_statement: &AstStatement,
+        right_statement: &AstNode,
     ) -> Result<(), Diagnostic> {
         let right_type =
             self.annotations.get_type_or_void(right_statement, self.index).get_type_information();
@@ -2312,17 +2297,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
-    fn get_load_name(&self, expression: &AstStatement) -> Option<String> {
+    fn get_load_name(&self, expression: &AstNode) -> Option<String> {
         match expression.get_stmt() {
-            AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. })
-            | AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }) => {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. })
+            | AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }) => {
                 Some("load_tmpVar".to_string())
             }
-            AstStatementKind::ReferenceExpr { .. } => expression
+            AstStatement::ReferenceExpr { .. } => expression
                 .get_flat_reference_name()
                 .map(|name| format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix))
                 .or_else(|| Some(self.temp_variable_prefix.clone())),
-            AstStatementKind::Identifier(name, ..) => Some(format!("{}{}", name, self.temp_variable_suffix)),
+            AstStatement::Identifier(name, ..) => Some(format!("{}{}", name, self.temp_variable_suffix)),
             _ => None,
         }
     }
@@ -2332,7 +2317,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         reference: ExpressionValue<'ink>,
         reference_annotation: &StatementAnnotation,
-        access: &AstStatement,
+        access: &AstNode,
     ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
 
@@ -2417,8 +2402,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_reference_expression(
         &self,
         access: &ReferenceAccess,
-        base: Option<&AstStatement>,
-        original_expression: &AstStatement,
+        base: Option<&AstNode>,
+        original_expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
 
@@ -2426,7 +2411,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-                if let AstStatementKind::DirectAccess (data) = member.as_ref().get_stmt() {
+                if let AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
                         return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
                     };
@@ -2504,11 +2489,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the type of access (see `B` above)
     fn generate_direct_access_expression(
         &self,
-        qualifier: &AstStatement,
+        qualifier: &AstNode,
         qualifier_value: &ExpressionValue<'ink>,
-        member: &AstStatement,
+        member: &AstNode,
         access: &DirectAccessType,
-        index: &AstStatement,
+        index: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
         let datatype = self.get_type_hint_info_for(member)?;
@@ -2539,12 +2524,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 /// as well as the parameter value (right side) ´param := value´ => ´value´
 /// and `true` for implicit / `false` for explicit parameters
 pub fn get_implicit_call_parameter<'a>(
-    param_statement: &'a AstStatement,
+    param_statement: &'a AstNode,
     declared_parameters: &[&VariableIndexEntry],
     idx: usize,
-) -> Result<(usize, &'a AstStatement, bool), Diagnostic> {
+) -> Result<(usize, &'a AstNode, bool), Diagnostic> {
     let (location, param_statement, is_implicit) = match param_statement.get_stmt() {
-        AstStatementKind::Assignment(data) | AstStatementKind::OutputAssignment(data) => {
+        AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
             //explicit
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(Diagnostic::reference_expected(param_statement.get_location()));

@@ -11,7 +11,7 @@ use crate::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
     },
-    literals::{Array, AstLiteral, StringValue},
+    literals::{AstLiteral, StringValue},
     pre_processor,
     provider::IdProvider,
 };
@@ -200,7 +200,7 @@ pub struct Implementation {
     pub type_name: String,
     pub linkage: LinkageType,
     pub pou_type: PouType,
-    pub statements: Vec<AstStatement>,
+    pub statements: Vec<AstNode>,
     pub location: SourceLocation,
     pub name_location: SourceLocation,
     pub overriding: bool,
@@ -349,8 +349,8 @@ impl Debug for VariableBlock {
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
-    pub initializer: Option<AstStatement>,
-    pub address: Option<AstStatement>,
+    pub initializer: Option<AstNode>,
+    pub address: Option<AstNode>,
     pub location: SourceLocation,
 }
 
@@ -383,7 +383,7 @@ pub trait DiagnosticInfo {
     fn get_location(&self) -> SourceLocation;
 }
 
-impl DiagnosticInfo for AstStatement {
+impl DiagnosticInfo for AstNode {
     fn get_description(&self) -> String {
         format!("{self:?}")
     }
@@ -436,7 +436,7 @@ impl DataTypeDeclaration {
 #[derive(PartialEq)]
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
-    pub initializer: Option<AstStatement>,
+    pub initializer: Option<AstNode>,
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
@@ -461,16 +461,16 @@ pub enum DataType {
     EnumType {
         name: Option<String>, //maybe empty for inline enums
         numeric_type: String,
-        elements: AstStatement, //a single Ref, or an ExpressionList with Refs
+        elements: AstNode, //a single Ref, or an ExpressionList with Refs
     },
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
-        bounds: Option<AstStatement>,
+        bounds: Option<AstNode>,
     },
     ArrayType {
         name: Option<String>,
-        bounds: AstStatement,
+        bounds: AstNode,
         referenced_type: Box<DataTypeDeclaration>,
         is_variable_length: bool,
     },
@@ -481,7 +481,7 @@ pub enum DataType {
     StringType {
         name: Option<String>,
         is_wide: bool, //WSTRING
-        size: Option<AstStatement>,
+        size: Option<AstNode>,
     },
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
@@ -557,15 +557,15 @@ pub enum ReferenceAccess {
     /**
      * a, a.b
      */
-    Member(Box<AstStatement>),
+    Member(Box<AstNode>),
     /**
      * a[3]
      */
-    Index(Box<AstStatement>),
+    Index(Box<AstNode>),
     /**
      * Color#Red
      */
-    Cast(Box<AstStatement>),
+    Cast(Box<AstNode>),
     /**
      * a^
      */
@@ -577,14 +577,14 @@ pub enum ReferenceAccess {
 }
 
 #[derive(Clone, PartialEq)]
-pub struct AstStatement {
-    pub stmt: AstStatementKind,
+pub struct AstNode {
+    pub stmt: AstStatement,
     pub id: AstId,
     pub location: SourceLocation,
 }
 
 #[derive(Clone, PartialEq)]
-pub enum AstStatementKind {
+pub enum AstStatement {
     EmptyStatement(EmptyStatement),
     // a placeholder that indicates a default value of a datatype
     DefaultValue(DefaultValue),
@@ -599,7 +599,7 @@ pub enum AstStatementKind {
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
     UnaryExpression(UnaryExpression),
-    ExpressionList(Vec<AstStatement>),
+    ExpressionList(Vec<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
     // Assignment
@@ -611,53 +611,53 @@ pub enum AstStatementKind {
     // Control Statements
     ControlStatement(AstControlStatement),
 
-    CaseCondition(Box<AstStatement>),
+    CaseCondition(Box<AstNode>),
     ExitStatement(()),
     ContinueStatement(()),
     ReturnStatement(()),
 }
 
-impl Debug for AstStatement {
+impl Debug for AstNode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self.stmt {
-            AstStatementKind::EmptyStatement(..) => f.debug_struct("EmptyStatement").finish(),
-            AstStatementKind::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
-            AstStatementKind::Literal(literal) => literal.fmt(f),
-            AstStatementKind::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
-            AstStatementKind::BinaryExpression(BinaryExpression { operator, left, right }) => f
+            AstStatement::EmptyStatement(..) => f.debug_struct("EmptyStatement").finish(),
+            AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
+            AstStatement::Literal(literal) => literal.fmt(f),
+            AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
+            AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            AstStatementKind::UnaryExpression(UnaryExpression { operator, value }) => {
+            AstStatement::UnaryExpression(UnaryExpression { operator, value }) => {
                 f.debug_struct("UnaryExpression").field("operator", operator).field("value", value).finish()
             }
-            AstStatementKind::ExpressionList(expressions) => {
+            AstStatement::ExpressionList(expressions) => {
                 f.debug_struct("ExpressionList").field("expressions", expressions).finish()
             }
-            AstStatementKind::RangeStatement(RangeStatement { start, end }) => {
+            AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
             }
-            AstStatementKind::VlaRangeStatement => f.debug_struct("VlaRangeStatement").finish(),
-            AstStatementKind::Assignment(Assignment { left, right }) => {
+            AstStatement::VlaRangeStatement => f.debug_struct("VlaRangeStatement").finish(),
+            AstStatement::Assignment(Assignment { left, right }) => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
-            AstStatementKind::OutputAssignment(Assignment { left, right }) => {
+            AstStatement::OutputAssignment(Assignment { left, right }) => {
                 f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
             }
-            AstStatementKind::CallStatement(CallStatement { operator, parameters }) => f
+            AstStatement::CallStatement(CallStatement { operator, parameters }) => f
                 .debug_struct("CallStatement")
                 .field("operator", operator)
                 .field("parameters", parameters)
                 .finish(),
-            AstStatementKind::ControlStatement(
+            AstStatement::ControlStatement(
                 AstControlStatement::If(IfStatement { blocks, else_block, .. }),
                 ..,
             ) => {
                 f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
             }
-            AstStatementKind::ControlStatement(
+            AstStatement::ControlStatement(
                 AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
                 ..,
             ) => f
@@ -668,7 +668,7 @@ impl Debug for AstStatement {
                 .field("by_step", by_step)
                 .field("body", body)
                 .finish(),
-            AstStatementKind::ControlStatement(
+            AstStatement::ControlStatement(
                 AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
                 ..,
             ) => f
@@ -676,7 +676,7 @@ impl Debug for AstStatement {
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatementKind::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
+            AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
                 condition,
                 body,
                 ..
@@ -685,7 +685,7 @@ impl Debug for AstStatement {
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatementKind::ControlStatement(AstControlStatement::Case(CaseStatement {
+            AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
                 selector,
                 case_blocks,
                 else_block,
@@ -696,42 +696,42 @@ impl Debug for AstStatement {
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            AstStatementKind::DirectAccess(DirectAccess { access, index }) => {
+            AstStatement::DirectAccess(DirectAccess { access, index }) => {
                 f.debug_struct("DirectAccess").field("access", access).field("index", index).finish()
             }
-            AstStatementKind::HardwareAccess(HardwareAccess { direction, access, address }) => f
+            AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) => f
                 .debug_struct("HardwareAccess")
                 .field("direction", direction)
                 .field("access", access)
                 .field("address", address)
                 .field("location", &self.location)
                 .finish(),
-            AstStatementKind::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => f
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => f
                 .debug_struct("MultipliedStatement")
                 .field("multiplier", multiplier)
                 .field("element", element)
                 .finish(),
-            AstStatementKind::CaseCondition(condition) => {
+            AstStatement::CaseCondition(condition) => {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
-            AstStatementKind::ReturnStatement(..) => f.debug_struct("ReturnStatement").finish(),
-            AstStatementKind::ContinueStatement(..) => f.debug_struct("ContinueStatement").finish(),
-            AstStatementKind::ExitStatement(..) => f.debug_struct("ExitStatement").finish(),
-            AstStatementKind::CastStatement(CastStatement { target, type_name }) => {
+            AstStatement::ReturnStatement(..) => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ContinueStatement(..) => f.debug_struct("ContinueStatement").finish(),
+            AstStatement::ExitStatement(..) => f.debug_struct("ExitStatement").finish(),
+            AstStatement::CastStatement(CastStatement { target, type_name }) => {
                 f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
             }
-            AstStatementKind::ReferenceExpr(ReferenceExpr { access, base }) => {
+            AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
                 f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
             }
         }
     }
 }
 
-impl AstStatement {
+impl AstNode {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
-    pub fn get_as_list(&self) -> Vec<&AstStatement> {
-        if let AstStatementKind::ExpressionList(expressions) = &self.stmt {
-            expressions.iter().collect::<Vec<&AstStatement>>()
+    pub fn get_as_list(&self) -> Vec<&AstNode> {
+        if let AstStatement::ExpressionList(expressions) = &self.stmt {
+            expressions.iter().collect::<Vec<&AstNode>>()
         } else {
             vec![self]
         }
@@ -749,25 +749,25 @@ impl AstStatement {
         self.id
     }
 
-    pub fn get_stmt(&self) -> &AstStatementKind {
+    pub fn get_stmt(&self) -> &AstStatement {
         &self.stmt
     }
 
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         match &self.stmt {
-            AstStatementKind::ReferenceExpr(
+            AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), base },
                 ..,
             )
-            | AstStatementKind::ReferenceExpr(
+            | AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Cast(reference), base },
                 ..,
             ) => {
                 reference.has_direct_access()
                     || base.as_ref().map(|it| it.has_direct_access()).unwrap_or(false)
             }
-            AstStatementKind::DirectAccess(..) => true,
+            AstStatement::DirectAccess(..) => true,
             _ => false,
         }
     }
@@ -777,21 +777,21 @@ impl AstStatement {
     pub fn is_cast_prefix_eligible(&self) -> bool {
         // TODO: figure out a better name for this...
         match &self.stmt {
-            AstStatementKind::Literal(kind, ..) => kind.is_cast_prefix_eligible(),
-            AstStatementKind::Identifier(..) => true,
+            AstStatement::Literal(kind, ..) => kind.is_cast_prefix_eligible(),
+            AstStatement::Identifier(..) => true,
             _ => false,
         }
     }
 
     /// Returns true if the current statement is a flat reference (e.g. `a`)
     pub fn is_flat_reference(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::Identifier(..)) || {
-            if let AstStatementKind::ReferenceExpr(
+        matches!(self.stmt, AstStatement::Identifier(..)) || {
+            if let AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
                 ..,
             ) = &self.stmt
             {
-                matches!(reference.as_ref().stmt, AstStatementKind::Identifier(..))
+                matches!(reference.as_ref().stmt, AstStatement::Identifier(..))
             } else {
                 false
             }
@@ -801,49 +801,49 @@ impl AstStatement {
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match &self.stmt {
-            AstStatementKind::ReferenceExpr(
+            AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
             ) => {
-                if let AstStatementKind::Identifier(name, ..) = &reference.as_ref().stmt {
+                if let AstStatement::Identifier(name, ..) = &reference.as_ref().stmt {
                     Some(name)
                 } else {
                     None
                 }
             }
-            AstStatementKind::Identifier(name, ..) => Some(name),
+            AstStatement::Identifier(name, ..) => Some(name),
             _ => None,
         }
     }
 
     pub fn is_empty_statement(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::EmptyStatement(..))
+        matches!(self.stmt, AstStatement::EmptyStatement(..))
     }
 
     pub fn is_reference(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::ReferenceExpr(..))
+        matches!(self.stmt, AstStatement::ReferenceExpr(..))
     }
 
     pub fn is_hardware_access(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::HardwareAccess(..))
+        matches!(self.stmt, AstStatement::HardwareAccess(..))
     }
 
     pub fn is_array_access(&self) -> bool {
         matches!(
             self.stmt,
-            AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }, ..)
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }, ..)
         )
     }
 
     pub fn is_pointer_access(&self) -> bool {
         matches!(
             self.stmt,
-            AstStatementKind::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
         )
     }
 
     pub fn is_expression_list(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::ExpressionList { .. })
+        matches!(self.stmt, AstStatement::ExpressionList { .. })
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
@@ -855,20 +855,20 @@ impl AstStatement {
             || self.is_hardware_access()
     }
 
-    pub fn new(stmt: AstStatementKind, id: AstId, location: SourceLocation) -> AstStatement {
-        AstStatement { stmt, id, location }
+    pub fn new(stmt: AstStatement, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode { stmt, id, location }
     }
 
-    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -> AstStatement {
-        AstStatement::new(AstStatementKind::Literal(kind), id, location)
+    pub fn new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode::new(AstStatement::Literal(kind), id, location)
     }
 
-    pub fn new_integer(value: i128, id: AstId, location: SourceLocation) -> AstStatement {
-        AstStatement::new(AstStatementKind::Literal(AstLiteral::Integer(value)), id, location)
+    pub fn new_integer(value: i128, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location)
     }
 
-    pub fn new_real(value: String, id: AstId, location: SourceLocation) -> AstStatement {
-        AstStatement::new(AstStatementKind::Literal(AstLiteral::Real(value)), id, location)
+    pub fn new_real(value: String, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode::new(AstStatement::Literal(AstLiteral::Real(value)), id, location)
     }
 
     pub fn new_string(
@@ -876,9 +876,9 @@ impl AstStatement {
         is_wide: bool,
         id: AstId,
         location: SourceLocation,
-    ) -> AstStatement {
-        AstStatement::new(
-            AstStatementKind::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
+    ) -> AstNode {
+        AstNode::new(
+            AstStatement::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
             id,
             location,
         )
@@ -887,7 +887,7 @@ impl AstStatement {
     /// Returns true if the given token is an integer or float and zero.
     pub fn is_zero(&self) -> bool {
         match &self.stmt {
-            AstStatementKind::Literal(kind, ..) => match kind {
+            AstStatement::Literal(kind, ..) => match kind {
                 AstLiteral::Integer(0) => true,
                 AstLiteral::Real(val) => val == "0" || val == "0.0",
                 _ => false,
@@ -898,26 +898,24 @@ impl AstStatement {
     }
 
     pub fn is_binary_expression(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::BinaryExpression(..))
+        matches!(self.stmt, AstStatement::BinaryExpression(..))
     }
 
     pub fn is_literal_array(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::Literal(AstLiteral::Array(..), ..))
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Array(..), ..))
     }
 
     pub fn is_literal(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::Literal(..))
+        matches!(self.stmt, AstStatement::Literal(..))
     }
 
-
     pub fn is_identifier(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::Identifier(..))
+        matches!(self.stmt, AstStatement::Identifier(..))
     }
 
     pub fn is_default_value(&self) -> bool {
-        matches!(self.stmt, AstStatementKind::DefaultValue { .. })
+        matches!(self.stmt, AstStatement::DefaultValue { .. })
     }
-
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -958,19 +956,19 @@ impl Display for Operator {
 
 /// enum_elements should be the statement between then enum's brackets ( )
 /// e.g. x : ( this, that, etc)
-pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
+pub fn get_enum_element_names(enum_elements: &AstNode) -> Vec<String> {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| matches!(it.stmt, AstStatementKind::Identifier(..) | AstStatementKind::Assignment(..)))
+        .filter(|it| matches!(it.stmt, AstStatement::Identifier(..) | AstStatement::Assignment(..)))
         .map(get_enum_element_name)
         .collect()
 }
 
 /// expects a Reference or an Assignment
-pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
+pub fn get_enum_element_name(enum_element: &AstNode) -> String {
     match &enum_element.stmt {
-        AstStatementKind::Identifier(name, ..) => name.to_string(),
-        AstStatementKind::Assignment(Assignment { left, .. }, ..) => left
+        AstStatement::Identifier(name, ..) => name.to_string(),
+        AstStatement::Assignment(Assignment { left, .. }, ..) => left
             .get_flat_reference_name()
             .map(|it| it.to_string())
             .expect("left of assignment not a reference"),
@@ -982,12 +980,12 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
 
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
-pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
+pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
     match &list.stmt {
-        AstStatementKind::ExpressionList(expressions, ..) => {
+        AstStatement::ExpressionList(expressions, ..) => {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
-        AstStatementKind::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
+        AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
             std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
         _ => vec![list],
@@ -1055,73 +1053,66 @@ mod tests {
 pub struct AstFactory {}
 
 impl AstFactory {
-    pub fn create_empty_statement(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::EmptyStatement(EmptyStatement {}), location, id }
-        // AstStatementKind::EmptyStatement (  EmptyStatement {}, location, id }
+    pub fn create_empty_statement(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::EmptyStatement(EmptyStatement {}), location, id }
+        // AstStatement::EmptyStatement (  EmptyStatement {}, location, id }
     }
 
-    pub fn create_return_statement(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::ReturnStatement(()), location, id }
+    pub fn create_return_statement(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ReturnStatement(()), location, id }
     }
 
-    pub fn create_exit_statement(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::ExitStatement(()), location, id }
+    pub fn create_exit_statement(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ExitStatement(()), location, id }
     }
 
-    pub fn create_continue_statement(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::ContinueStatement(()), location, id }
+    pub fn create_continue_statement(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ContinueStatement(()), location, id }
     }
 
-    pub fn create_case_condition(result: AstStatement, location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::CaseCondition(Box::new(result)), id, location }
+    pub fn create_case_condition(result: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::CaseCondition(Box::new(result)), id, location }
     }
 
-    pub fn create_vla_range_statement(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::VlaRangeStatement, id, location }
+    pub fn create_vla_range_statement(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::VlaRangeStatement, id, location }
     }
 
-    pub fn create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::Literal(kind), id, location }
+    pub fn create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::Literal(kind), id, location }
     }
 
     pub fn create_hardware_access(
         access: DirectAccessType,
         direction: HardwareAccessType,
-        address: Vec<AstStatement>,
+        address: Vec<AstNode>,
         location: SourceLocation,
         id: usize,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::HardwareAccess(HardwareAccess { access, direction, address }),
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
             location,
             id,
         }
     }
 
-    pub fn create_default_value(location: SourceLocation, id: AstId) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::DefaultValue(DefaultValue {}), location, id }
+    pub fn create_default_value(location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::DefaultValue(DefaultValue {}), location, id }
     }
 
-    pub fn create_expression_list(
-        expressions: Vec<AstStatement>,
-        location: SourceLocation,
-        id: AstId,
-    ) -> AstStatement {
-        AstStatement { stmt: AstStatementKind::ExpressionList(expressions), location, id }
+    pub fn create_expression_list(expressions: Vec<AstNode>, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
     }
 
     /// creates a new if-statement
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
+        else_block: Vec<AstNode>,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ControlStatement(AstControlStatement::If(IfStatement {
-                blocks,
-                else_block,
-            })),
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, else_block })),
             location,
             id,
         }
@@ -1129,16 +1120,16 @@ impl AstFactory {
 
     ///  creates a new for loop statement
     pub fn create_for_loop(
-        counter: AstStatement,
-        start: AstStatement,
-        end: AstStatement,
-        by_step: Option<AstStatement>,
-        body: Vec<AstStatement>,
+        counter: AstNode,
+        start: AstNode,
+        end: AstNode,
+        by_step: Option<AstNode>,
+        body: Vec<AstNode>,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
                 counter: Box::new(counter),
                 start: Box::new(start),
                 end: Box::new(end),
@@ -1152,13 +1143,13 @@ impl AstFactory {
 
     /// creates a new while statement
     pub fn create_while_statement(
-        condition: AstStatement,
-        body: Vec<AstStatement>,
+        condition: AstNode,
+        body: Vec<AstNode>,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
                 condition: Box::new(condition),
                 body,
             })),
@@ -1169,13 +1160,13 @@ impl AstFactory {
 
     /// creates a new repeat-statement
     pub fn create_repeat_statement(
-        condition: AstStatement,
-        body: Vec<AstStatement>,
+        condition: AstNode,
+        body: Vec<AstNode>,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
                 condition: Box::new(condition),
                 body,
             })),
@@ -1186,14 +1177,14 @@ impl AstFactory {
 
     /// creates a new case-statement
     pub fn create_case_statement(
-        selector: AstStatement,
+        selector: AstNode,
         case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstStatement>,
+        else_block: Vec<AstNode>,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ControlStatement(AstControlStatement::Case(CaseStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
                 selector: Box::new(selector),
                 case_blocks,
                 else_block,
@@ -1204,11 +1195,11 @@ impl AstFactory {
     }
 
     /// creates an or-expression
-    pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
+    pub fn create_or_expression(left: AstNode, right: AstNode) -> AstNode {
         let id = left.get_id();
         let location = left.get_location().span(&right.get_location());
-        AstStatement {
-            stmt: AstStatementKind::BinaryExpression(BinaryExpression {
+        AstNode {
+            stmt: AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
                 right: Box::new(right),
                 operator: Operator::Or,
@@ -1219,10 +1210,10 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstStatement, location: SourceLocation) -> AstStatement {
+    pub fn create_not_expression(operator: AstNode, location: SourceLocation) -> AstNode {
         let id = operator.get_id();
-        AstStatement {
-            stmt: AstStatementKind::UnaryExpression(UnaryExpression {
+        AstNode {
+            stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),
                 operator: Operator::Not,
             }),
@@ -1232,52 +1223,48 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstStatement {
-        AstStatement::new(AstStatementKind::Identifier(name.to_string()), id, location.clone())
+    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstNode {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
     }
 
     pub fn create_unary_expression(
         operator: Operator,
-        value: AstStatement,
+        value: AstNode,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
             location,
             id,
         }
     }
 
-    pub fn create_assignment(left: AstStatement, right: AstStatement, id: AstId) -> AstStatement {
+    pub fn create_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
-        AstStatement {
-            stmt: AstStatementKind::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+        AstNode {
+            stmt: AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
         }
     }
 
-    pub fn create_output_assignment(left: AstStatement, right: AstStatement, id: AstId) -> AstStatement {
+    pub fn create_output_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
-        AstStatement::new(
-            AstStatementKind::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+        AstNode::new(
+            AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
         )
     }
 
-    pub fn create_member_reference(
-        member: AstStatement,
-        base: Option<AstStatement>,
-        id: AstId,
-    ) -> AstStatement {
+    pub fn create_member_reference(member: AstNode, base: Option<AstNode>, id: AstId) -> AstNode {
         let location = base
             .as_ref()
             .map(|it| it.get_location().span(&member.get_location()))
             .unwrap_or_else(|| member.get_location());
-        AstStatement {
-            stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Member(Box::new(member)),
                 base: base.map(Box::new),
             }),
@@ -1287,13 +1274,13 @@ impl AstFactory {
     }
 
     pub fn create_index_reference(
-        index: AstStatement,
-        base: Option<AstStatement>,
+        index: AstNode,
+        base: Option<AstNode>,
         id: AstId,
         location: SourceLocation,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Index(Box::new(index)),
                 base: base.map(Box::new),
             }),
@@ -1302,13 +1289,9 @@ impl AstFactory {
         }
     }
 
-    pub fn create_address_of_reference(
-        base: AstStatement,
-        id: AstId,
-        location: SourceLocation,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
+    pub fn create_address_of_reference(base: AstNode, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Address,
                 base: Some(Box::new(base)),
             }),
@@ -1317,9 +1300,9 @@ impl AstFactory {
         }
     }
 
-    pub fn create_deref_reference(base: AstStatement, id: AstId, location: SourceLocation) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
+    pub fn create_deref_reference(base: AstNode, id: AstId, location: SourceLocation) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Deref,
                 base: Some(Box::new(base)),
             }),
@@ -1330,27 +1313,22 @@ impl AstFactory {
 
     pub fn create_direct_access(
         access: DirectAccessType,
-        index: AstStatement,
+        index: AstNode,
         id: AstId,
         location: SourceLocation,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::DirectAccess(DirectAccess { access, index: Box::new(index) }),
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::DirectAccess(DirectAccess { access, index: Box::new(index) }),
             location,
             id,
         }
     }
 
     /// creates a new binary statement
-    pub fn create_binary_expression(
-        left: AstStatement,
-        operator: Operator,
-        right: AstStatement,
-        id: AstId,
-    ) -> AstStatement {
+    pub fn create_binary_expression(left: AstNode, operator: Operator, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
-        AstStatement {
-            stmt: AstStatementKind::BinaryExpression(BinaryExpression {
+        AstNode {
+            stmt: AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
                 operator,
                 right: Box::new(right),
@@ -1362,14 +1340,14 @@ impl AstFactory {
 
     /// creates a new cast statement
     pub fn create_cast_statement(
-        type_name: AstStatement,
-        stmt: AstStatement,
+        type_name: AstNode,
+        stmt: AstNode,
         location: &SourceLocation,
         id: AstId,
-    ) -> AstStatement {
+    ) -> AstNode {
         let new_location = location.span(&stmt.get_location());
-        AstStatement {
-            stmt: AstStatementKind::ReferenceExpr(ReferenceExpr {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Cast(Box::new(stmt)),
                 base: Some(Box::new(type_name)),
             }),
@@ -1379,13 +1357,13 @@ impl AstFactory {
     }
 
     pub fn create_call_statement(
-        operator: AstStatement,
-        parameters: Option<AstStatement>,
+        operator: AstNode,
+        parameters: Option<AstNode>,
         id: usize,
         location: SourceLocation,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::CallStatement(CallStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
@@ -1397,20 +1375,20 @@ impl AstFactory {
     /// creates a new call statement to the given function and parameters
     pub fn create_call_to(
         function_name: String,
-        parameters: Vec<AstStatement>,
+        parameters: Vec<AstNode>,
         id: usize,
         parameter_list_id: usize,
         location: &SourceLocation,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::CallStatement(CallStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(&function_name, location, id),
                     None,
                     id,
                 )),
-                parameters: Some(Box::new(AstStatement::new(
-                    AstStatementKind::ExpressionList(parameters),
+                parameters: Some(Box::new(AstNode::new(
+                    AstStatement::ExpressionList(parameters),
                     parameter_list_id,
                     SourceLocation::undefined(), //TODO: get real location
                 ))),
@@ -1422,12 +1400,12 @@ impl AstFactory {
 
     pub fn create_multiplied_statement(
         multiplier: u32,
-        element: AstStatement,
+        element: AstNode,
         location: SourceLocation,
         id: AstId,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::MultipliedStatement(MultipliedStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::MultipliedStatement(MultipliedStatement {
                 multiplier,
                 element: Box::new(element),
             }),
@@ -1436,20 +1414,20 @@ impl AstFactory {
         }
     }
 
-    pub fn create_range_statement(start: AstStatement, end: AstStatement, id: AstId) -> AstStatement {
+    pub fn create_range_statement(start: AstNode, end: AstNode, id: AstId) -> AstNode {
         let location = start.location.span(&end.location);
         let data = RangeStatement { start: Box::new(start), end: Box::new(end) };
-        AstStatement { stmt: AstStatementKind::RangeStatement(data), id, location }
+        AstNode { stmt: AstStatement::RangeStatement(data), id, location }
     }
 
     pub fn create_call_to_with_ids(
         function_name: &str,
-        parameters: Vec<AstStatement>,
+        parameters: Vec<AstNode>,
         location: &SourceLocation,
         mut id_provider: IdProvider,
-    ) -> AstStatement {
-        AstStatement {
-            stmt: AstStatementKind::CallStatement(CallStatement {
+    ) -> AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(function_name, location, id_provider.next_id()),
                     None,
@@ -1468,11 +1446,11 @@ impl AstFactory {
 
     pub fn create_call_to_check_function_ast(
         check_function_name: &str,
-        parameter: AstStatement,
-        sub_range: Range<AstStatement>,
+        parameter: AstNode,
+        sub_range: Range<AstNode>,
         location: &SourceLocation,
         id_provider: IdProvider,
-    ) -> AstStatement {
+    ) -> AstNode {
         AstFactory::create_call_to_with_ids(
             check_function_name,
             vec![parameter, sub_range.start, sub_range.end],
@@ -1489,61 +1467,61 @@ pub struct DefaultValue {}
 
 #[derive(Clone, PartialEq)]
 pub struct CastStatement {
-    pub target: Box<AstStatement>,
+    pub target: Box<AstNode>,
     pub type_name: String,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct MultipliedStatement {
     pub multiplier: u32,
-    pub element: Box<AstStatement>,
+    pub element: Box<AstNode>,
 }
 #[derive(Clone, PartialEq)]
 pub struct ReferenceExpr {
     pub access: ReferenceAccess,
-    pub base: Option<Box<AstStatement>>,
+    pub base: Option<Box<AstNode>>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct DirectAccess {
     pub access: DirectAccessType,
-    pub index: Box<AstStatement>,
+    pub index: Box<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct HardwareAccess {
     pub direction: HardwareAccessType,
     pub access: DirectAccessType,
-    pub address: Vec<AstStatement>,
+    pub address: Vec<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct BinaryExpression {
     pub operator: Operator,
-    pub left: Box<AstStatement>,
-    pub right: Box<AstStatement>,
+    pub left: Box<AstNode>,
+    pub right: Box<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct UnaryExpression {
     pub operator: Operator,
-    pub value: Box<AstStatement>,
+    pub value: Box<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct RangeStatement {
-    pub start: Box<AstStatement>,
-    pub end: Box<AstStatement>,
+    pub start: Box<AstNode>,
+    pub end: Box<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct Assignment {
-    pub left: Box<AstStatement>,
-    pub right: Box<AstStatement>,
+    pub left: Box<AstNode>,
+    pub right: Box<AstNode>,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct CallStatement {
-    pub operator: Box<AstStatement>,
-    pub parameters: Option<Box<AstStatement>>,
+    pub operator: Box<AstNode>,
+    pub parameters: Option<Box<AstNode>>,
 }

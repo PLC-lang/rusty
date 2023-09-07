@@ -1,6 +1,4 @@
-use plc_ast::ast::{
-    AstStatement, AstStatementKind, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration,
-};
+use plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -52,7 +50,7 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
             }
         }
         DataType::EnumType {
-            elements: AstStatement { stmt: AstStatementKind::ExpressionList(expressions), .. },
+            elements: AstNode { stmt: AstStatement::ExpressionList(expressions), .. },
             ..
         } if expressions.is_empty() => {
             validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));

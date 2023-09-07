@@ -11,9 +11,7 @@ pub(crate) use annotate;
 
 macro_rules! deconstruct_assignment {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement { stmt: plc_ast::ast::AstStatementKind::Assignment(data), .. } =
-            $src
-        {
+        if let plc_ast::ast::AstNode { stmt: plc_ast::ast::AstStatement::Assignment(data), .. } = $src {
             (&data.left, &data.right)
         } else {
             unreachable!();
@@ -24,10 +22,7 @@ pub(crate) use deconstruct_assignment;
 
 macro_rules! deconstruct_call_statement {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement {
-            stmt: plc_ast::ast::AstStatementKind::CallStatement(data), ..
-        } = $src
-        {
+        if let plc_ast::ast::AstNode { stmt: plc_ast::ast::AstStatement::CallStatement(data), .. } = $src {
             (
                 &data.operator,
                 data.parameters.as_deref().map(plc_ast::ast::flatten_expression_list).unwrap_or_default(),
@@ -41,10 +36,7 @@ pub(crate) use deconstruct_call_statement;
 
 macro_rules! deconstruct_binary_expression {
     ($src:expr) => {{
-        if let plc_ast::ast::AstStatement {
-            stmt: plc_ast::ast::AstStatementKind::BinaryExpression(data),
-            ..
-        } = &$src
+        if let plc_ast::ast::AstNode { stmt: plc_ast::ast::AstStatement::BinaryExpression(data), .. } = &$src
         {
             (&data.left, &data.right)
         } else {

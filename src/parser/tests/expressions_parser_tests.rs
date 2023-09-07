@@ -2,9 +2,7 @@
 use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{
-    AstFactory, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
-};
+use plc_ast::ast::{AstFactory, AstNode, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType};
 use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -732,7 +730,7 @@ fn literal_real_test() {
     assert_eq!(ast_string, expected_ast);
 }
 
-fn cast(data_type: &str, value: AstStatement) -> AstStatement {
+fn cast(data_type: &str, value: AstNode) -> AstNode {
     AstFactory::create_cast_statement(
         AstFactory::create_member_reference(
             AstFactory::create_identifier(data_type, &SourceLocation::undefined(), 0),
@@ -786,7 +784,7 @@ fn literal_cast_parse_test() {
     let statement = &prg.statements;
 
     let ast_string = format!("{statement:#?}");
-    fn literal(value: AstLiteral) -> AstStatement {
+    fn literal(value: AstLiteral) -> AstNode {
         AstFactory::create_literal(value, SourceLocation::undefined(), 0)
     }
 

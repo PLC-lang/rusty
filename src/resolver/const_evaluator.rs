@@ -79,8 +79,8 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                 match (initial_value_literal, &candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
-                        Ok(Some(AstStatement {
-                            stmt: AstStatementKind::Literal(AstLiteral::Integer(i)),
+                        Ok(Some(AstNode {
+                            stmt: AstStatement::Literal(AstLiteral::Integer(i)),
                             id,
                             location,
                         })),
@@ -95,11 +95,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             .get_mut_const_expressions()
                             .mark_resolved(
                                 &candidate,
-                                AstStatement::new_literal(
-                                    AstLiteral::new_integer(masked_value),
-                                    id,
-                                    location,
-                                ),
+                                AstNode::new_literal(AstLiteral::new_integer(masked_value), id, location),
                             )
                             .expect("unknown id for const-expression"); //panic if we dont know the id
                         failed_tries = 0;
@@ -146,7 +142,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     (index, unresolvable)
 }
 
-fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: AstStatement) {
+fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: AstNode) {
     index
         .get_mut_const_expressions()
         .mark_resolved(&candidate, new_statement)
@@ -156,11 +152,11 @@ fn do_resolve_candidate(index: &mut Index, candidate: ConstId, new_statement: As
 /// returns true, if the given expression needs to be evaluated.
 /// literals must not be further evaluated and can be known at
 /// compile time
-fn needs_evaluation(expr: &AstStatement) -> bool {
+fn needs_evaluation(expr: &AstNode) -> bool {
     match expr.get_stmt() {
-        AstStatementKind::Literal(kind) => match &kind {
+        AstStatement::Literal(kind) => match &kind {
             &AstLiteral::Array(Array { elements: Some(elements), .. }) => match &elements.get_stmt() {
-                AstStatementKind::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
+                AstStatement::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
                 _ => needs_evaluation(elements.as_ref()),
             },
 
@@ -169,11 +165,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
 
             _ => false,
         },
-        AstStatementKind::Assignment(data) => needs_evaluation(data.right.as_ref()),
-        AstStatementKind::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
-        AstStatementKind::RangeStatement(data) => {
-            needs_evaluation(&data.start) || needs_evaluation(&data.end)
-        }
+        AstStatement::Assignment(data) => needs_evaluation(data.right.as_ref()),
+        AstStatement::ExpressionList(expressions) => expressions.iter().any(needs_evaluation),
+        AstStatement::RangeStatement(data) => needs_evaluation(&data.start) || needs_evaluation(&data.end),
         _ => true,
     }
 }
@@ -184,7 +178,7 @@ fn get_default_initializer(
     target_type: &str,
     index: &Index,
     location: &SourceLocation,
-) -> Result<Option<AstStatement>, UnresolvableKind> {
+) -> Result<Option<AstNode>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
         evaluate(init, None, index) //TODO do we ave a scope here?
     } else {
@@ -226,28 +220,24 @@ fn get_default_initializer(
 
 /// transforms the given literal to better fit the datatype of the candidate
 /// effectively this casts an IntLiteral to a RealLiteral if necessary
-fn cast_if_necessary(
-    statement: AstStatement,
-    target_type_name: &Option<&str>,
-    index: &Index,
-) -> AstStatement {
+fn cast_if_necessary(statement: AstNode, target_type_name: &Option<&str>, index: &Index) -> AstNode {
     let Some(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) else {
         return statement;
     };
 
-    if let AstStatementKind::Literal(literal) = statement.get_stmt() {
+    if let AstStatement::Literal(literal) = statement.get_stmt() {
         let (id, location) = (statement.get_id(), statement.get_location());
         match literal {
             AstLiteral::Integer(value) if dti.is_float() => {
-                return AstStatement::new_real(value.to_string(), id, location)
+                return AstNode::new_real(value.to_string(), id, location)
             }
 
             AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
-                return AstStatement::new_string(value, false, id, location)
+                return AstNode::new_string(value, false, id, location)
             }
 
             AstLiteral::String(StringValue { value, is_wide: false }) if dti.is_string_utf16() => {
-                return AstStatement::new_string(value, true, id, location)
+                return AstNode::new_string(value, true, id, location)
             }
 
             _ => (),
@@ -258,9 +248,9 @@ fn cast_if_necessary(
 }
 
 /// Checks if a literal integer or float overflows based on its value, and if so returns true.
-fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> bool {
+fn does_overflow(literal: &AstNode, dti: Option<&DataTypeInformation>) -> bool {
     let Some(dti) = dti else { return false };
-    let AstStatementKind::Literal(kind) = literal.get_stmt() else { return false };
+    let AstStatement::Literal(kind) = literal.get_stmt() else { return false };
 
     if !matches!(kind, AstLiteral::Integer(_) | AstLiteral::Real(_)) {
         return false;
@@ -309,10 +299,10 @@ fn does_overflow(literal: &AstStatement, dti: Option<&DataTypeInformation>) -> b
 }
 
 pub fn evaluate(
-    initial: &AstStatement,
+    initial: &AstNode,
     scope: Option<&str>,
     index: &Index,
-) -> Result<Option<AstStatement>, UnresolvableKind> {
+) -> Result<Option<AstNode>, UnresolvableKind> {
     evaluate_with_target_hint(initial, scope, index, None)
 }
 
@@ -325,30 +315,30 @@ pub fn evaluate(
 /// - returns an Err if resolving caused an internal error (e.g. number parsing)
 /// - returns None if the initializer cannot be resolved  (e.g. missing value)
 fn evaluate_with_target_hint(
-    initial: &AstStatement,
+    initial: &AstNode,
     scope: Option<&str>,
     index: &Index,
     target_type: Option<&str>,
-) -> Result<Option<AstStatement>, UnresolvableKind> {
+) -> Result<Option<AstNode>, UnresolvableKind> {
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
 
     let (id, location) = (initial.get_id(), initial.get_location());
     let literal = match initial.get_stmt() {
-        AstStatementKind::Literal(kind) => match kind {
+        AstStatement::Literal(kind) => match kind {
             AstLiteral::Array(Array { elements: Some(elements) }) => {
                 let tt = target_type
                     .and_then(|it| index.find_effective_type_info(it))
                     .and_then(|it| it.get_inner_array_type_name())
                     .or(target_type);
 
-                let inner_elements = AstStatement::get_as_list(elements)
+                let inner_elements = AstNode::get_as_list(elements)
                     .iter()
                     .map(|e| evaluate_with_target_hint(e, scope, index, tt))
-                    .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
+                    .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                     .into_iter()
-                    .collect::<Option<Vec<AstStatement>>>();
+                    .collect::<Option<Vec<AstNode>>>();
 
                 inner_elements.map(|ie| {
                     AstFactory::create_literal(
@@ -378,7 +368,7 @@ fn evaluate_with_target_hint(
             _ => return Ok(Some(initial.clone())),
         },
 
-        AstStatementKind::DefaultValue(_) => {
+        AstStatement::DefaultValue(_) => {
             return get_default_initializer(
                 initial.get_id(),
                 target_type.unwrap_or(VOID_TYPE),
@@ -386,7 +376,7 @@ fn evaluate_with_target_hint(
                 &location,
             )
         }
-        AstStatementKind::ReferenceExpr(ReferenceExpr {
+        AstStatement::ReferenceExpr(ReferenceExpr {
             access: ReferenceAccess::Cast(target),
             base: Some(type_name),
         }) => {
@@ -395,7 +385,7 @@ fn evaluate_with_target_hint(
                 .and_then(|type_name| index.find_effective_type_info(type_name));
             match dti {
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
-                    if let AstStatementKind::Identifier(ref_name) = target.get_stmt() {
+                    if let AstStatement::Identifier(ref_name) = target.get_stmt() {
                         return index
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {
@@ -415,10 +405,7 @@ fn evaluate_with_target_hint(
                 None => return Err(UnresolvableKind::Misc("Cannot resolve unknown Type-Cast.".to_string())),
             }
         }
-        AstStatementKind::ReferenceExpr(ReferenceExpr {
-            access: ReferenceAccess::Member(reference),
-            base,
-        }) => {
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             if let Some(name) = reference.get_flat_reference_name() {
                 index
                     .find_variable(
@@ -432,7 +419,7 @@ fn evaluate_with_target_hint(
                 None
             }
         }
-        AstStatementKind::BinaryExpression(BinaryExpression { left, right, operator }) => {
+        AstStatement::BinaryExpression(BinaryExpression { left, right, operator }) => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
@@ -474,17 +461,13 @@ fn evaluate_with_target_hint(
         }
 
         // NOT x
-        AstStatementKind::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
             let eval = evaluate(value, scope, index)?;
             match eval.as_ref() {
-                Some(AstStatement { stmt: AstStatementKind::Literal(AstLiteral::Bool(v)), id, location }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location }) => {
                     Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
                 }
-                Some(AstStatement {
-                    stmt: AstStatementKind::Literal(AstLiteral::Integer(v)),
-                    id,
-                    location,
-                }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) => {
                     evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)?;
                     Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
                 }
@@ -495,18 +478,14 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
-        AstStatementKind::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
             match evaluate(value, scope, index)? {
-                Some(AstStatement {
-                    stmt: AstStatementKind::Literal(AstLiteral::Integer(v)),
-                    id,
-                    location,
-                }) => {
-                    Some(AstStatement::new(AstStatementKind::Literal(AstLiteral::Integer(-v)), id, location))
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) => {
+                    Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location))
                 }
-                Some(AstStatement { stmt: AstStatementKind::Literal(AstLiteral::Real(v)), id, location }) => {
-                    let lit = AstStatement::new(
-                        AstStatementKind::Literal(AstLiteral::new_real(format!(
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location }) => {
+                    let lit = AstNode::new(
+                        AstStatement::Literal(AstLiteral::new_real(format!(
                             "{:}",
                             -(v.parse::<f64>())
                                 .map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?
@@ -522,24 +501,24 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
-        AstStatementKind::ExpressionList(expressions) => {
+        AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions
                 .iter()
                 .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
+                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
-                .collect::<Option<Vec<AstStatement>>>();
+                .collect::<Option<Vec<AstNode>>>();
 
             //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstStatement::new(AstStatementKind::ExpressionList(ie), id, location))
+            inner_elements.map(|ie| AstNode::new(AstStatement::ExpressionList(ie), id, location))
         }
-        AstStatementKind::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
-            let inner_elements = AstStatement::get_as_list(element.as_ref())
+        AstStatement::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
+            let inner_elements = AstNode::get_as_list(element.as_ref())
                 .iter()
                 .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstStatement>>, UnresolvableKind>>()?
+                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
-                .collect::<Option<Vec<AstStatement>>>();
+                .collect::<Option<Vec<AstNode>>>();
 
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| {
@@ -555,7 +534,7 @@ fn evaluate_with_target_hint(
                 }
             })
         }
-        AstStatementKind::Assignment(data) => {
+        AstStatement::Assignment(data) => {
             //Right needs evaluation
             if let Some(right) = evaluate(&data.right, scope, index)? {
                 Some(AstFactory::create_assignment(*data.left.clone(), right, id))
@@ -563,7 +542,7 @@ fn evaluate_with_target_hint(
                 Some(initial.clone())
             }
         }
-        AstStatementKind::RangeStatement(data) => {
+        AstStatement::RangeStatement(data) => {
             let start = evaluate(&data.start, scope, index)?.unwrap_or_else(|| *data.start.to_owned());
             let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
             Some(AstFactory::create_range_statement(start, end, id))
@@ -580,7 +559,7 @@ fn resolve_const_reference(
     variable: &crate::index::VariableIndexEntry,
     name: &str,
     index: &Index,
-) -> Result<Option<AstStatement>, UnresolvableKind> {
+) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
         return Err(UnresolvableKind::Misc(format!("'{name}' is no const reference")));
     }
@@ -598,18 +577,18 @@ fn resolve_const_reference(
 /// [`AstLiteral::Integer`] with value `65_535` whereas `INT#FFFF` will not evaluate because it overflows
 /// (see also [`does_overflow`] and [`evaluate_with_target_hint`]).
 fn get_cast_statement_literal(
-    cast_statement: &AstStatement,
+    cast_statement: &AstNode,
     type_name: &str,
     scope: Option<&str>,
     index: &Index,
-) -> Result<AstStatement, UnresolvableKind> {
+) -> Result<AstNode, UnresolvableKind> {
     let dti = index.find_effective_type_info(type_name);
     match dti {
         Some(&DataTypeInformation::Integer { .. }) => {
             let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
                 .as_ref()
                 .map(|v| {
-                    if let AstStatementKind::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
+                    if let AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
                         Ok(*value)
                     } else {
                         Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
@@ -618,8 +597,8 @@ fn get_cast_statement_literal(
                 .transpose()?;
 
             if let Some(value) = evaluated_initial {
-                return Ok(AstStatement::new(
-                    AstStatementKind::Literal(AstLiteral::new_integer(value)),
+                return Ok(AstNode::new(
+                    AstStatement::Literal(AstLiteral::new_integer(value)),
                     cast_statement.get_id(),
                     cast_statement.get_location(),
                 ));
@@ -631,8 +610,8 @@ fn get_cast_statement_literal(
         Some(DataTypeInformation::Float { .. }) => {
             let evaluated = evaluate(cast_statement, scope, index)?;
             let value = match evaluated.as_ref().map(|it| it.get_stmt()) {
-                Some(AstStatementKind::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
-                Some(AstStatementKind::Literal(AstLiteral::Real(value))) => value.parse::<f64>().ok(),
+                Some(AstStatement::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
+                Some(AstStatement::Literal(AstLiteral::Real(value))) => value.parse::<f64>().ok(),
                 _ => {
                     return Err(UnresolvableKind::Misc(format!(
                         "Expected floating point type, got: {evaluated:?}"
@@ -646,8 +625,8 @@ fn get_cast_statement_literal(
                 )));
             };
 
-            Ok(AstStatement::new(
-                AstStatementKind::Literal(AstLiteral::new_real(value.to_string())),
+            Ok(AstNode::new(
+                AstStatement::Literal(AstLiteral::new_real(value.to_string())),
                 cast_statement.get_id(),
                 cast_statement.get_location(),
             ))
@@ -670,38 +649,38 @@ macro_rules! arithmetic_expression {
         let loc_left = $left.get_location();
         let loc_right = $right.get_location();
         match ($left.get_stmt(), $right.get_stmt()) {
-            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
-                    Ok(AstStatementKind::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
+            (   AstStatement::Literal(AstLiteral::Integer(lvalue)),
+                AstStatement::Literal(AstLiteral::Integer(rvalue))) => {
+                    Ok(AstStatement::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
             },
 
-            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Real(rvalue))) => {
+            (   AstStatement::Literal(AstLiteral::Integer(lvalue)),
+                AstStatement::Literal(AstLiteral::Real(rvalue))) => {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                    Ok(AstStatementKind::Literal(
+                    Ok(AstStatement::Literal(
                         AstLiteral::new_real((*lvalue as f64 $op rvalue).to_string())))
             },
 
-            (   AstStatementKind::Literal(AstLiteral::Real(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
+            (   AstStatement::Literal(AstLiteral::Real(lvalue)),
+                AstStatement::Literal(AstLiteral::Integer(rvalue))) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                    Ok(AstStatementKind::Literal(AstLiteral::new_real((lvalue $op *rvalue as f64).to_string())))
+                    Ok(AstStatement::Literal(AstLiteral::new_real((lvalue $op *rvalue as f64).to_string())))
             },
 
-            (   AstStatementKind::Literal(AstLiteral::Real(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Real(rvalue))) => {
+            (   AstStatement::Literal(AstLiteral::Real(lvalue)),
+                AstStatement::Literal(AstLiteral::Real(rvalue))) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| UnresolvableKind::Misc(err.to_string()))?;
-                    Ok(AstStatementKind::Literal(
+                    Ok(AstStatement::Literal(
                         AstLiteral::new_real((lvalue $op rvalue).to_string()),
                     ))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
-        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
+        }.map(|it| AstNode::new(it, $resulting_id, loc_left.span(&loc_right)))
         }
     }
 }
@@ -712,17 +691,17 @@ macro_rules! bitwise_expression {
         let loc_left = $left.get_location();
         let loc_right = $right.get_location();
         match ($left.get_stmt(), $right.get_stmt()) {
-            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
-                Ok(AstStatementKind::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
+            (   AstStatement::Literal(AstLiteral::Integer(lvalue)),
+                AstStatement::Literal(AstLiteral::Integer(rvalue))) => {
+                Ok(AstStatement::Literal(AstLiteral::new_integer(lvalue $op rvalue)))
             },
 
-            (   AstStatementKind::Literal(AstLiteral::Bool(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Bool(rvalue))) => {
-                Ok(AstStatementKind::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
+            (   AstStatement::Literal(AstLiteral::Bool(lvalue)),
+                AstStatement::Literal(AstLiteral::Bool(rvalue))) => {
+                Ok(AstStatement::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
-        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
+        }.map(|it| AstNode::new(it, $resulting_id, loc_left.span(&loc_right)))
     }
 }}
 use bitwise_expression;
@@ -732,27 +711,27 @@ macro_rules! compare_expression {
         let loc_left = $left.get_location();
         let loc_right = $right.get_location();
         match ($left.get_stmt(), $right.get_stmt()) {
-            (   AstStatementKind::Literal(AstLiteral::Integer(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Integer(rvalue))) => {
-                Ok(AstStatementKind::Literal(
+            (   AstStatement::Literal(AstLiteral::Integer(lvalue)),
+                AstStatement::Literal(AstLiteral::Integer(rvalue))) => {
+                Ok(AstStatement::Literal(
                     AstLiteral::new_bool(lvalue $op rvalue)))
             },
-            (   AstStatementKind::Literal(AstLiteral::Real(..)),
-                AstStatementKind::Literal(AstLiteral::Real(..))) => {
+            (   AstStatement::Literal(AstLiteral::Real(..)),
+                AstStatement::Literal(AstLiteral::Real(..))) => {
                     Err(UnresolvableKind::Misc("Cannot compare Reals without epsilon".into()))
             },
-            (   AstStatementKind::Literal(AstLiteral::Bool(lvalue)),
-                AstStatementKind::Literal(AstLiteral::Bool(rvalue))) => {
-                    Ok(AstStatementKind::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
+            (   AstStatement::Literal(AstLiteral::Bool(lvalue)),
+                AstStatement::Literal(AstLiteral::Bool(rvalue))) => {
+                    Ok(AstStatement::Literal(AstLiteral::new_bool(lvalue $op rvalue)))
             },
             _ => cannot_eval_error!($left, $op_text, $right),
-        }.map(|it| AstStatement::new(it, $resulting_id, loc_left.span(&loc_right)))
+        }.map(|it| AstNode::new(it, $resulting_id, loc_left.span(&loc_right)))
     }}
 }
 use compare_expression;
 use plc_ast::{
     ast::{
-        AstFactory, AstId, AstStatement, AstStatementKind, BinaryExpression, MultipliedStatement, Operator,
+        AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
         ReferenceAccess, ReferenceExpr, UnaryExpression,
     },
     literals::{Array, AstLiteral, StringValue},

@@ -8,8 +8,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstStatement, AstStatementKind, CompilationUnit,
-        GenericBinding, LinkageType, TypeNature,
+        self, flatten_expression_list, pre_process, AstNode, AstStatement, CompilationUnit, GenericBinding,
+        LinkageType, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -328,7 +328,7 @@ lazy_static! {
 
 fn annotate_variable_length_array_bound_function(
     annotator: &mut TypeAnnotator,
-    parameters: Option<&AstStatement>,
+    parameters: Option<&AstNode>,
 ) {
     let Some(parameters) = parameters else {
         // caught during validation
@@ -354,8 +354,8 @@ fn annotate_variable_length_array_bound_function(
 
 fn validate_variable_length_array_bound_function(
     validator: &mut Validator,
-    operator: &AstStatement,
-    parameters: Option<&AstStatement>,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
     annotations: &dyn AnnotationMap,
     index: &Index,
 ) {
@@ -388,7 +388,7 @@ fn validate_variable_length_array_bound_function(
             }
 
             // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
-            if let AstStatementKind::Literal(AstLiteral::Integer(dimension_idx)) = idx.get_stmt() {
+            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = idx.get_stmt() {
                 let dimension_idx = *dimension_idx as usize;
 
                 let Some(n_dimensions) =
@@ -414,7 +414,7 @@ fn validate_variable_length_array_bound_function(
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
     generator: &ExpressionCodeGenerator<'ink, '_>,
-    params: &[&AstStatement],
+    params: &[&AstNode],
     is_lower: bool,
     location: SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
@@ -437,7 +437,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 
     let accessor = match params[1].get_stmt() {
         // e.g. LOWER_BOUND(arr, 1)
-        AstStatementKind::Literal(kind) => {
+        AstStatement::Literal(kind) => {
             let AstLiteral::Integer(value) = kind else {
                 let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
                     unreachable!("type cannot be VOID")
@@ -452,7 +452,7 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatementKind::CastStatement(data) => {
+        AstStatement::CastStatement(data) => {
             let ExpressionValue::RValue(value) =  generator.generate_expression_value(&data.target)? else {
                 unreachable!()
             };
@@ -497,15 +497,14 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext);
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
-    &[&AstStatement],
+    &[&AstNode],
     SourceLocation,
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
-type ValidationFunction =
-    fn(&mut Validator, &AstStatement, Option<&AstStatement>, &dyn AnnotationMap, &Index);
+type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
     decl: &'static str,
@@ -519,7 +518,7 @@ impl BuiltIn {
     pub fn codegen<'ink, 'b>(
         &self,
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-        params: &[&AstStatement],
+        params: &[&AstNode],
         location: SourceLocation,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         (self.code)(generator, params, location)

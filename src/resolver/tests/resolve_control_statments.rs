@@ -1,7 +1,7 @@
 use core::panic;
 
 use plc_ast::{
-    ast::AstStatementKind,
+    ast::AstStatement,
     control_statements::{AstControlStatement, ForLoopStatement},
     provider::IdProvider,
 };
@@ -23,7 +23,7 @@ fn binary_expressions_resolves_types() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    if let AstStatementKind::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
+    if let AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
         counter,
         start,
         end,

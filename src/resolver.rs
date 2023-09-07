@@ -13,7 +13,7 @@ use std::{
 use indexmap::{IndexMap, IndexSet};
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstStatement, AstStatementKind,
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
@@ -175,7 +175,7 @@ pub struct TypeAnnotator<'i> {
 }
 
 impl TypeAnnotator<'_> {
-    pub fn annotate(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
+    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         match &annotation {
             StatementAnnotation::Function { return_type, qualified_name, call_name } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
@@ -207,8 +207,8 @@ impl TypeAnnotator<'_> {
         self.annotation_map.annotate(s, annotation);
     }
 
-    fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
-        let AstStatementKind::BinaryExpression ( BinaryExpression{ operator, left, right}) = statement.get_stmt() else {
+    fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
+        let AstStatement::BinaryExpression ( BinaryExpression{ operator, left, right}) = statement.get_stmt() else {
             return;
         };
         let mut ctx = ctx.clone();
@@ -248,10 +248,10 @@ impl TypeAnnotator<'_> {
         &self,
         ctx: &mut VisitorContext,
         operator: &Operator,
-        left: &AstStatement,
-        right: &AstStatement,
-        statement: &AstStatement,
-    ) -> AstStatement {
+        left: &AstNode,
+        right: &AstNode,
+        statement: &AstNode,
+    ) -> AstNode {
         let left_type = self
             .annotation_map
             .get_type_hint(left, self.index)
@@ -315,7 +315,7 @@ pub enum StatementAnnotation {
         qualified_name: String,
     },
     ReplacementAst {
-        statement: AstStatement,
+        statement: AstNode,
     },
 }
 
@@ -389,25 +389,25 @@ impl Dependency {
 }
 
 pub trait AnnotationMap {
-    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
+    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
-    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
+    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
-    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement>;
+    fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode>;
 
-    fn get_type_or_void<'i>(&'i self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+    fn get_type_or_void<'i>(&'i self, s: &AstNode, index: &'i Index) -> &'i typesystem::DataType {
         self.get_type(s, index).unwrap_or_else(|| index.get_void_type())
     }
 
-    fn get_hint_or_void<'i>(&'i self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+    fn get_hint_or_void<'i>(&'i self, s: &AstNode, index: &'i Index) -> &'i typesystem::DataType {
         self.get_type_hint(s, index).unwrap_or_else(|| index.get_void_type())
     }
 
-    fn get_type_hint<'i>(&self, s: &AstStatement, index: &'i Index) -> Option<&'i typesystem::DataType> {
+    fn get_type_hint<'i>(&self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
         self.get_hint(s).and_then(|it| self.get_type_for_annotation(index, it))
     }
 
-    fn get_type<'i>(&'i self, s: &AstStatement, index: &'i Index) -> Option<&'i typesystem::DataType> {
+    fn get_type<'i>(&'i self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
         self.get(s).and_then(|it| self.get_type_for_annotation(index, it))
     }
 
@@ -435,7 +435,7 @@ pub trait AnnotationMap {
 
     /// returns the name of the callable that is refered by the given statemt
     /// or none if this thing may not be callable
-    fn get_call_name(&self, s: &AstStatement) -> Option<&str> {
+    fn get_call_name(&self, s: &AstNode) -> Option<&str> {
         match self.get(s) {
             Some(StatementAnnotation::Function { qualified_name, call_name, .. }) => {
                 call_name.as_ref().map(String::as_str).or(Some(qualified_name.as_str()))
@@ -448,16 +448,16 @@ pub trait AnnotationMap {
         }
     }
 
-    fn get_qualified_name(&self, s: &AstStatement) -> Option<&str> {
+    fn get_qualified_name(&self, s: &AstNode) -> Option<&str> {
         match self.get(s) {
             Some(StatementAnnotation::Function { qualified_name, .. }) => Some(qualified_name.as_str()),
             _ => self.get_call_name(s),
         }
     }
 
-    fn has_type_annotation(&self, s: &AstStatement) -> bool;
+    fn has_type_annotation(&self, s: &AstNode) -> bool;
 
-    fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature>;
+    fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature>;
 }
 
 #[derive(Debug)]
@@ -469,7 +469,7 @@ pub struct AstAnnotations {
 }
 
 impl AnnotationMap for AstAnnotations {
-    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         if s.get_id() == self.bool_id {
             Some(&self.bool_annotation)
         } else {
@@ -477,7 +477,7 @@ impl AnnotationMap for AstAnnotations {
         }
     }
 
-    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         if s.get_id() == self.bool_id {
             Some(&self.bool_annotation)
         } else {
@@ -485,15 +485,15 @@ impl AnnotationMap for AstAnnotations {
         }
     }
 
-    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+    fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode> {
         self.annotation_map.get_hidden_function_call(s)
     }
 
-    fn has_type_annotation(&self, s: &AstStatement) -> bool {
+    fn has_type_annotation(&self, s: &AstNode) -> bool {
         self.annotation_map.has_type_annotation(s)
     }
 
-    fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature> {
+    fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.annotation_map.get_generic_nature(s)
     }
 }
@@ -534,7 +534,7 @@ pub struct AnnotationMapImpl {
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    hidden_function_calls: IndexMap<AstId, AstStatement>,
+    hidden_function_calls: IndexMap<AstId, AstNode>,
 
     //An index of newly created types
     pub new_index: Index,
@@ -554,52 +554,52 @@ impl AnnotationMapImpl {
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
-    pub fn annotate(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
+    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_map.insert(s.get_id(), annotation);
     }
 
-    pub fn annotate_type_hint(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
+    pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate
     /// a hidden call f instead of generating s
-    pub fn annotate_hidden_function_call(&mut self, s: &AstStatement, f: AstStatement) {
+    pub fn annotate_hidden_function_call(&mut self, s: &AstNode, f: AstNode) {
         self.hidden_function_calls.insert(s.get_id(), f);
     }
 
     /// Annotates the ast statement with its original generic nature
-    pub fn add_generic_nature(&mut self, s: &AstStatement, nature: TypeNature) {
+    pub fn add_generic_nature(&mut self, s: &AstNode, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
 }
 
 impl AnnotationMap for AnnotationMapImpl {
-    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_map.get(&s.get_id())
     }
 
-    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_hint_map.get(&s.get_id())
     }
 
     /// returns the function call previously annoted on s via annotate_hidden_function_call(...)
-    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+    fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode> {
         self.hidden_function_calls.get(&s.get_id())
     }
 
-    fn get_type<'i>(&'i self, s: &AstStatement, index: &'i Index) -> Option<&'i typesystem::DataType> {
+    fn get_type<'i>(&'i self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
         self.get(s).and_then(|it| {
             self.get_type_for_annotation(index, it)
                 .or_else(|| self.get_type_for_annotation(&self.new_index, it))
         })
     }
 
-    fn has_type_annotation(&self, s: &AstStatement) -> bool {
+    fn has_type_annotation(&self, s: &AstNode) -> bool {
         self.type_map.contains_key(&s.get_id())
     }
 
-    fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature> {
+    fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.generic_nature_map.get(&s.get_id())
     }
 }
@@ -726,8 +726,8 @@ impl<'i> TypeAnnotator<'i> {
     fn update_right_hand_side_expected_type(
         &mut self,
         ctx: &VisitorContext,
-        annotated_left_side: &AstStatement,
-        right_side: &AstStatement,
+        annotated_left_side: &AstNode,
+        right_side: &AstNode,
     ) {
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
@@ -757,7 +757,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn update_right_hand_side(&mut self, expected_type: &typesystem::DataType, right_side: &AstStatement) {
+    fn update_right_hand_side(&mut self, expected_type: &typesystem::DataType, right_side: &AstNode) {
         //annotate the right-hand side as a whole
         self.annotation_map
             .annotate_type_hint(right_side, StatementAnnotation::value(expected_type.get_name()));
@@ -768,17 +768,17 @@ impl<'i> TypeAnnotator<'i> {
 
     /// updates the expected types of statements on the right side of an assignment
     /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
-    fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstStatement) {
+    fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
         //see if we need to dive into it
         match statement.get_stmt() {
-            AstStatementKind::Literal(AstLiteral::Array(Array { elements: Some(elements) }), ..) => {
+            AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) }), ..) => {
                 //annotate the literal-array itself
                 self.annotation_map
                     .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
                 //TODO exprssionList and MultipliedExpressions are a mess!
                 if matches!(
                     elements.get_stmt(),
-                    AstStatementKind::ExpressionList(..) | AstStatementKind::MultipliedStatement(..)
+                    AstStatement::ExpressionList(..) | AstStatement::MultipliedStatement(..)
                 ) {
                     self.annotation_map
                         .annotate_type_hint(elements, StatementAnnotation::value(expected_type.get_name()));
@@ -792,7 +792,7 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatementKind::Assignment(Assignment { left, right }, ..) => {
+            AstStatement::Assignment(Assignment { left, right }, ..) => {
                 // struct initialization (left := right)
                 // find out left's type and update a type hint for right
                 if let (
@@ -812,24 +812,24 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatementKind::MultipliedStatement(data, ..) => {
+            AstStatement::MultipliedStatement(data, ..) => {
                 // n(elements)
                 //annotate the type to all multiplied elements
-                for ele in AstStatement::get_as_list(&data.element) {
+                for ele in AstNode::get_as_list(&data.element) {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatementKind::ExpressionList(expressions, ..) => {
+            AstStatement::ExpressionList(expressions, ..) => {
                 //annotate the type to all elements
                 for ele in expressions {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatementKind::RangeStatement(data, ..) => {
+            AstStatement::RangeStatement(data, ..) => {
                 self.update_expected_types(expected_type, &data.start);
                 self.update_expected_types(expected_type, &data.end);
             }
-            AstStatementKind::Literal(AstLiteral::Integer { .. }, ..) => {
+            AstStatement::Literal(AstLiteral::Integer { .. }, ..) => {
                 //special case -> promote a literal-Integer directly, not via type-hint
                 // (avoid later cast)
                 if expected_type.get_type_information().is_float() {
@@ -845,8 +845,7 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()))
                 }
             }
-            AstStatementKind::Literal(AstLiteral::String { .. }, ..)
-            | AstStatementKind::BinaryExpression { .. } => {
+            AstStatement::Literal(AstLiteral::String { .. }, ..) | AstStatement::BinaryExpression { .. } => {
                 // needed if we try to initialize an array with an expression-list
                 // without we would annotate a false type this would leed to an error in expression_generator
                 if let DataTypeInformation::Array { inner_type_name, .. } =
@@ -903,7 +902,7 @@ impl<'i> TypeAnnotator<'i> {
     fn type_hint_for_array_of_structs(
         &mut self,
         expected_type: &typesystem::DataType,
-        statement: &AstStatement,
+        statement: &AstNode,
         ctx: &VisitorContext,
     ) {
         match expected_type.get_type_information() {
@@ -919,7 +918,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
 
                 match statement.get_stmt() {
-                    AstStatementKind::Literal(AstLiteral::Array(array)) => match array.elements() {
+                    AstStatement::Literal(AstLiteral::Array(array)) => match array.elements() {
                         Some(elements) if elements.is_expression_list() => {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
@@ -927,7 +926,7 @@ impl<'i> TypeAnnotator<'i> {
                         _ => (),
                     },
 
-                    AstStatementKind::ExpressionList(expressions) => {
+                    AstStatement::ExpressionList(expressions) => {
                         for expression in expressions {
                             // annotate with the arrays inner_type
                             let name = inner_data_type.get_name().to_string();
@@ -939,8 +938,8 @@ impl<'i> TypeAnnotator<'i> {
                         }
                     }
 
-                    AstStatementKind::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
-                        let AstStatementKind::Literal (AstLiteral::Array(array)) = right.as_ref().get_stmt() else { return };
+                    AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
+                        let AstStatement::Literal (AstLiteral::Array(array)) = right.as_ref().get_stmt() else { return };
                         let Some(elements) = array.elements() else { return };
 
                         if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
@@ -959,7 +958,7 @@ impl<'i> TypeAnnotator<'i> {
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let Some(AstStatementKind::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt()) else { continue };
+                        let Some(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt()) else { continue };
                         self.type_hint_for_array_of_structs(data_type, &data.right, ctx);
                     }
                 }
@@ -1047,21 +1046,21 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    pub fn visit_statement(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+    pub fn visit_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         self.visit_statement_control(ctx, statement);
     }
 
     /// annotate a control statement
-    fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+    fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatementKind::ControlStatement(AstControlStatement::If(stmt), ..) => {
+            AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
                 stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
             }
-            AstStatementKind::ControlStatement(AstControlStatement::ForLoop(stmt), ..) => {
+            AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt), ..) => {
                 visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
                 if let Some(by_step) = &stmt.by_step {
                     self.visit_statement(ctx, by_step);
@@ -1081,12 +1080,12 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatementKind::ControlStatement(AstControlStatement::WhileLoop(stmt), ..)
-            | AstStatementKind::ControlStatement(AstControlStatement::RepeatLoop(stmt), ..) => {
+            AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt), ..)
+            | AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt), ..) => {
                 self.visit_statement(ctx, &stmt.condition);
                 stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatementKind::ControlStatement(AstControlStatement::Case(stmt), ..) => {
+            AstStatement::ControlStatement(AstControlStatement::Case(stmt), ..) => {
                 self.visit_statement(ctx, &stmt.selector);
                 let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
                 stmt.case_blocks.iter().for_each(|b| {
@@ -1098,7 +1097,7 @@ impl<'i> TypeAnnotator<'i> {
                 });
                 stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatementKind::CaseCondition(condition, ..) => self.visit_statement(ctx, condition),
+            AstStatement::CaseCondition(condition, ..) => self.visit_statement(ctx, condition),
             _ => {
                 self.visit_statement_expression(ctx, statement);
             }
@@ -1106,19 +1105,19 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     /// annotate an expression statement
-    fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+    fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatementKind::DirectAccess(data, ..) => {
+            AstStatement::DirectAccess(data, ..) => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 visit_all_statements!(self, &ctx, &data.index);
                 let access_type = get_direct_access_type(&data.access);
                 self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatementKind::HardwareAccess(data, ..) => {
+            AstStatement::HardwareAccess(data, ..) => {
                 let access_type = get_direct_access_type(&data.access);
                 self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatementKind::BinaryExpression(data, ..) => {
+            AstStatement::BinaryExpression(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);
                 let statement_type = {
                     let left_type = self
@@ -1212,7 +1211,7 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
-            AstStatementKind::UnaryExpression(data, ..) => {
+            AstStatement::UnaryExpression(data, ..) => {
                 self.visit_statement(ctx, &data.value);
 
                 let statement_type = if data.operator == Operator::Minus {
@@ -1237,14 +1236,14 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
 
-            AstStatementKind::ExpressionList(expressions, ..) => {
+            AstStatement::ExpressionList(expressions, ..) => {
                 expressions.iter().for_each(|e| self.visit_statement(ctx, e))
             }
 
-            AstStatementKind::RangeStatement(data, ..) => {
+            AstStatement::RangeStatement(data, ..) => {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatementKind::Assignment(data, ..) => {
+            AstStatement::Assignment(data, ..) => {
                 self.visit_statement(ctx, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
@@ -1255,7 +1254,7 @@ impl<'i> TypeAnnotator<'i> {
                 // give a type hint that we want the right side to be stored in the left's type
                 self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }
-            AstStatementKind::OutputAssignment(data, ..) => {
+            AstStatement::OutputAssignment(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
@@ -1265,10 +1264,10 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }
-            AstStatementKind::CallStatement(..) => {
+            AstStatement::CallStatement(..) => {
                 self.visit_call_statement(statement, ctx);
             }
-            AstStatementKind::CastStatement(CastStatement { target, type_name }, ..) => {
+            AstStatement::CastStatement(CastStatement { target, type_name }, ..) => {
                 //see if this type really exists
                 let data_type = self.index.find_effective_type_info(type_name);
                 let statement_to_annotation = if let Some(DataTypeInformation::Enum { name, .. }) = data_type
@@ -1284,14 +1283,14 @@ impl<'i> TypeAnnotator<'i> {
                     match (t, target.as_ref().get_stmt()) {
                         (
                             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-                            AstStatementKind::Literal(AstLiteral::String(StringValue {
+                            AstStatement::Literal(AstLiteral::String(StringValue {
                                 value,
                                 is_wide: is_wide @ true,
                             })),
                         )
                         | (
                             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-                            AstStatementKind::Literal(AstLiteral::String(StringValue {
+                            AstStatement::Literal(AstLiteral::String(StringValue {
                                 value,
                                 is_wide: is_wide @ false,
                             })),
@@ -1300,7 +1299,7 @@ impl<'i> TypeAnnotator<'i> {
                             // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
                             self.visit_statement(
                                 ctx,
-                                &AstStatement::new_literal(
+                                &AstNode::new_literal(
                                     AstLiteral::new_string(value.clone(), !is_wide),
                                     target.get_id(),
                                     target.get_location(),
@@ -1319,7 +1318,7 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
-            AstStatementKind::ReferenceExpr(data, ..) => {
+            AstStatement::ReferenceExpr(data, ..) => {
                 self.visit_reference_expr(&data.access, data.base.as_deref(), statement, ctx);
             }
             _ => {
@@ -1331,8 +1330,8 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_reference_expr(
         &mut self,
         access: &ast::ReferenceAccess,
-        base: Option<&AstStatement>,
-        stmt: &AstStatement,
+        base: Option<&AstNode>,
+        stmt: &AstNode,
         ctx: &VisitorContext,
     ) {
         // first resolve base
@@ -1381,7 +1380,7 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotate(target.as_ref(), annotation);
                         self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
 
-                        if let AstStatementKind::Literal(..) = target.get_stmt() {
+                        if let AstStatement::Literal(..) = target.get_stmt() {
                             // treate casted literals as the casted type
                             self.annotate(target.as_ref(), StatementAnnotation::value(qualifier.as_str()));
                         }
@@ -1425,7 +1424,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn is_const_reference(&self, stmt: &AstStatement, ctx: &VisitorContext<'_>) -> bool {
+    fn is_const_reference(&self, stmt: &AstNode, ctx: &VisitorContext<'_>) -> bool {
         self.annotation_map
             .get(stmt)
             .map(|it| it.is_const())
@@ -1437,17 +1436,17 @@ impl<'i> TypeAnnotator<'i> {
     /// Statement annotation if one can be derived. This method the annotation!
     fn resolve_reference_expression(
         &mut self,
-        reference: &AstStatement,
+        reference: &AstNode,
         qualifier: Option<&str>,
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
-            AstStatementKind::Identifier(name, ..) => ctx
+            AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx)),
 
-            AstStatementKind::Literal(..) => {
+            AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
                 if let Some((base_type, literal_type)) =
@@ -1465,7 +1464,7 @@ impl<'i> TypeAnnotator<'i> {
                 literal_annotation
             }
 
-            AstStatementKind::DirectAccess(data, ..) if qualifier.is_some() => {
+            AstStatement::DirectAccess(data, ..) if qualifier.is_some() => {
                 // x.%X1 - bit access
                 self.visit_statement(ctx, data.index.as_ref());
                 Some(StatementAnnotation::value(get_direct_access_type(&data.access)))
@@ -1476,7 +1475,7 @@ impl<'i> TypeAnnotator<'i> {
 
     /// annotates the vla-statement it with a type hint
     /// referencing the contained array. This is needed to simplify codegen and validation.
-    fn annotate_vla_hint(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+    fn annotate_vla_hint(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         let DataTypeInformation::Struct {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
@@ -1498,7 +1497,7 @@ impl<'i> TypeAnnotator<'i> {
 
             let Some(pou) = ctx.pou else { unreachable!("VLA not allowed outside of POUs") };
 
-            let name = if let AstStatementKind::Identifier(name, ..) = statement.get_stmt() {
+            let name = if let AstStatement::Identifier(name, ..) = statement.get_stmt() {
                 name.as_str()
             } else {
                 statement.get_flat_reference_name().expect("must be a reference to a VLA")
@@ -1526,13 +1525,13 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_call_statement(&mut self, statement: &AstStatement, ctx: &VisitorContext) {
-        let (operator, parameters_stmt) =
-            if let AstStatementKind::CallStatement(data, ..) = statement.get_stmt() {
-                (data.operator.as_ref(), data.parameters.as_deref())
-            } else {
-                unreachable!("Always a call statement");
-            };
+    fn visit_call_statement(&mut self, statement: &AstNode, ctx: &VisitorContext) {
+        let (operator, parameters_stmt) = if let AstStatement::CallStatement(data, ..) = statement.get_stmt()
+        {
+            (data.operator.as_ref(), data.parameters.as_deref())
+        } else {
+            unreachable!("Always a call statement");
+        };
         // #604 needed for recursive function calls
         self.visit_statement(&ctx.with_resolving_strategy(ResolvingScope::call_operator_scopes()), operator);
         let operator_qualifier = self.get_call_name(operator);
@@ -1663,7 +1662,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn get_call_name(&mut self, operator: &AstStatement) -> String {
+    fn get_call_name(&mut self, operator: &AstNode) -> String {
         let operator_qualifier = self
             .annotation_map
             .get(operator)
@@ -1683,8 +1682,8 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Value { resulting_type } => {
                     // make sure we come from an array or function_block access
                     match operator.get_stmt() {
-                        AstStatementKind::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Index(_), ..},.. ) => Some(resulting_type.clone()),
-                        AstStatementKind::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. ) =>
+                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Index(_), ..},.. ) => Some(resulting_type.clone()),
+                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. ) =>
                         // AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
                         // AstStatement::PointerAccess { .. } => {
                             self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
@@ -1698,9 +1697,8 @@ impl<'i> TypeAnnotator<'i> {
         operator_qualifier
     }
 
-    pub(crate) fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
-        if !matches!(p.get_stmt(), AstStatementKind::Assignment(..) | AstStatementKind::OutputAssignment(..))
-        {
+    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str) {
+        if !matches!(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map
@@ -1710,9 +1708,9 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     /// annotate a literal statement
-    fn visit_statement_literals(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
+    fn visit_statement_literals(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatementKind::Literal(kind, ..) => {
+            AstStatement::Literal(kind, ..) => {
                 match kind {
                     AstLiteral::Bool { .. } => {
                         self.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
@@ -1757,7 +1755,7 @@ impl<'i> TypeAnnotator<'i> {
                     _ => {} // ignore literalNull, arrays (they are covered earlier)
                 }
             }
-            AstStatementKind::MultipliedStatement(data, ..) => {
+            AstStatement::MultipliedStatement(data, ..) => {
                 self.visit_statement(ctx, &data.element)
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
             }
@@ -1768,7 +1766,7 @@ impl<'i> TypeAnnotator<'i> {
     fn annotate_to_pointer_size_if_necessary(
         &mut self,
         value_type: &typesystem::DataType,
-        statement: &AstStatement,
+        statement: &AstNode,
     ) {
         // pointer size is 64Bits matching LINT
         // therefore get the bigger type of current and LINT to check if cast is necessary
@@ -2017,17 +2015,17 @@ impl ResolvingScope {
 fn accept_cast_string_literal(
     literals: &mut StringLiterals,
     cast_type: &typesystem::DataType,
-    literal: &AstStatement,
+    literal: &AstNode,
 ) {
     // check if we need to register an additional string-literal
     match (cast_type.get_type_information(), literal.get_stmt()) {
         (
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-            AstStatementKind::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ true })),
+            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ true })),
         )
         | (
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-            AstStatementKind::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ false })),
+            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ false })),
         ) => {
             // re-register the string-literal in the opposite encoding
             if *is_wide {

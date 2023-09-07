@@ -2,7 +2,7 @@
 
 use generational_arena::{Arena, Iter};
 use plc_ast::{
-    ast::{AstStatement, AstStatementKind},
+    ast::{AstNode, AstStatement},
     literals::AstLiteral,
 };
 
@@ -21,7 +21,7 @@ struct ConstWrapper {
 }
 
 impl ConstWrapper {
-    pub fn get_statement(&self) -> &AstStatement {
+    pub fn get_statement(&self) -> &AstNode {
         self.expr.get_statement()
     }
 }
@@ -32,22 +32,22 @@ impl ConstWrapper {
 #[derive(Debug)]
 pub enum ConstExpression {
     Unresolved {
-        statement: AstStatement,
+        statement: AstNode,
         /// optional qualifier used when evaluating this expression
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         scope: Option<String>,
     },
-    Resolved(AstStatement),
+    Resolved(AstNode),
     Unresolvable {
-        statement: AstStatement,
+        statement: AstNode,
         reason: UnresolvableKind,
     },
 }
 
 impl ConstExpression {
     /// returns the const-expression represented as an AST-element
-    pub fn get_statement(&self) -> &AstStatement {
+    pub fn get_statement(&self) -> &AstNode {
         match &self {
             ConstExpression::Unresolved { statement, .. }
             | ConstExpression::Resolved(statement)
@@ -114,7 +114,7 @@ impl ConstExpressions {
     /// - `scope`: the scope this expression needs to be resolved in (e.g. a POU's name)
     pub fn add_expression(
         &mut self,
-        statement: AstStatement,
+        statement: AstNode,
         target_type_name: String,
         scope: Option<String>,
     ) -> ConstId {
@@ -124,7 +124,7 @@ impl ConstExpressions {
 
     /// returns the expression associated with the given `id` together with an optional
     /// `qualifier` that represents the expressions scope  (e.g. the host's POU-name)
-    pub fn find_expression(&self, id: &ConstId) -> (Option<&AstStatement>, Option<&str>) {
+    pub fn find_expression(&self, id: &ConstId) -> (Option<&AstNode>, Option<&str>) {
         self.expressions
             .get(*id)
             .filter(|it| !it.expr.is_default())
@@ -144,7 +144,7 @@ impl ConstExpressions {
     }
 
     /// clones the expression in the ConstExpressions and returns all of its elements
-    pub fn clone(&self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
+    pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>)> {
         self.expressions.get(*id).map(|it| match &it.expr {
             ConstExpression::Unresolved { statement, scope } => {
                 (statement.clone(), it.target_type_name.clone(), scope.clone())
@@ -157,7 +157,7 @@ impl ConstExpressions {
 
     /// marks the const-expression represented by the given `id` as resolvend and stores the the
     /// given `new_statement` as it's resolved value.
-    pub fn mark_resolved(&mut self, id: &ConstId, new_statement: AstStatement) -> Result<(), String> {
+    pub fn mark_resolved(&mut self, id: &ConstId, new_statement: AstNode) -> Result<(), String> {
         let wrapper = self
             .expressions
             .get_mut(*id)
@@ -186,7 +186,7 @@ impl ConstExpressions {
     /// - `scope`: the scope this expression needs to be resolved in (e.g. a POU's name)
     pub fn add_constant_expression(
         &mut self,
-        expr: AstStatement,
+        expr: AstNode,
         target_type: String,
         scope: Option<String>,
     ) -> ConstId {
@@ -198,7 +198,7 @@ impl ConstExpressions {
     /// otherwhise use `add_constant_expression`
     pub fn maybe_add_constant_expression(
         &mut self,
-        expr: Option<AstStatement>,
+        expr: Option<AstNode>,
         target_type_name: &str,
         scope: Option<String>,
     ) -> Option<ConstId> {
@@ -209,19 +209,19 @@ impl ConstExpressions {
     /// if the given `id` is `None`, this method returns `None`
     /// use this only as a shortcut if you have an Option<ConstId> - e.g. an optional initializer.
     /// otherwhise use `get_constant_expression`
-    pub fn maybe_get_constant_statement(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+    pub fn maybe_get_constant_statement(&self, id: &Option<ConstId>) -> Option<&AstNode> {
         id.as_ref().and_then(|it| self.get_constant_statement(it))
     }
 
     /// query the constants arena for an expression associated with the given `id`
-    pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
+    pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstNode> {
         self.find_expression(id).0
     }
 
     /// query the constants arena for a resolved expression associated with the given `id`.
     /// this operation returns None, if an unresolved/unresolvable expression was registered
     /// for the given id (for different behavior see `get_constant_statement`)
-    pub fn get_resolved_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
+    pub fn get_resolved_constant_statement(&self, id: &ConstId) -> Option<&AstNode> {
         self.find_const_expression(id).filter(|it| it.is_resolved()).map(ConstExpression::get_statement)
     }
 
@@ -231,7 +231,7 @@ impl ConstExpressions {
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
             |it| match it.get_stmt() {
-                AstStatementKind::Literal(AstLiteral::Integer(i)) => Ok(*i),
+                AstStatement::Literal(AstLiteral::Integer(i)) => Ok(*i),
                 _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )
@@ -243,7 +243,7 @@ impl ConstExpressions {
 }
 
 impl<'a> IntoIterator for &'a ConstExpressions {
-    type Item = (ConstId, &'a AstStatement);
+    type Item = (ConstId, &'a AstNode);
     type IntoIter = IntoStatementIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -256,7 +256,7 @@ pub struct IntoStatementIter<'a> {
 }
 
 impl<'a> Iterator for IntoStatementIter<'a> {
-    type Item = (ConstId, &'a AstStatement);
+    type Item = (ConstId, &'a AstNode);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|(idx, expr)| (idx, expr.get_statement()))

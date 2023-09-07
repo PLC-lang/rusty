@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstFactory, AstStatement},
+    ast::{AstFactory, AstNode},
     literals::AstLiteral,
 };
 use plc_source::source_location::SourceLocation;
@@ -20,7 +20,7 @@ mod type_parser_tests;
 mod variable_parser_tests;
 
 /// helper function to create references
-pub fn ref_to(name: &str) -> AstStatement {
+pub fn ref_to(name: &str) -> AstNode {
     AstFactory::create_member_reference(
         AstFactory::create_identifier(name, &SourceLocation::undefined(), 0),
         None,
@@ -29,11 +29,11 @@ pub fn ref_to(name: &str) -> AstStatement {
 }
 
 /// helper function to create literal ints
-pub fn literal_int(value: i128) -> AstStatement {
-    AstStatement::new_literal(AstLiteral::new_integer(value), 0, SourceLocation::undefined())
+pub fn literal_int(value: i128) -> AstNode {
+    AstNode::new_literal(AstLiteral::new_integer(value), 0, SourceLocation::undefined())
 }
 
 /// helper function to create empty statements
-pub fn empty_stmt() -> AstStatement {
+pub fn empty_stmt() -> AstNode {
     AstFactory::create_empty_statement(SourceLocation::undefined(), 0)
 }

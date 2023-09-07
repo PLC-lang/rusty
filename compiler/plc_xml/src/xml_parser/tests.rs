@@ -1,6 +1,6 @@
 use ast::{
     ast::{
-        flatten_expression_list, Assignment, AstStatement, AstStatementKind, CallStatement, CompilationUnit,
+        flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement, CompilationUnit,
         LinkageType,
     },
     provider::IdProvider,
@@ -132,13 +132,13 @@ fn ast_generates_locations() {
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
-    let AstStatementKind::Assignment (Assignment{ left, right, .. })= &impl1.statements[0].get_stmt() else {
+    let AstStatement::Assignment (Assignment{ left, right, .. })= &impl1.statements[0].get_stmt() else {
             panic!("Not an assignment");
         };
     assert_debug_snapshot!(left.get_location());
     assert_debug_snapshot!(right.get_location());
     //Deconstruct call statement and get locations
-    let AstStatement { stmt: AstStatementKind::CallStatement (CallStatement{ operator, parameters, .. }), location, ..} = &impl1.statements[1] else {
+    let AstNode { stmt: AstStatement::CallStatement (CallStatement{ operator, parameters, .. }), location, ..} = &impl1.statements[1] else {
             panic!("Not a call statement");
         };
     assert_debug_snapshot!(location);

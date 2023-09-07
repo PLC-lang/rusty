@@ -1,4 +1,4 @@
-use plc_ast::ast::{AstFactory, AstStatement, AstStatementKind};
+use plc_ast::ast::{AstFactory, AstNode, AstStatement};
 use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
@@ -26,31 +26,31 @@ macro_rules! global {
     };
 }
 
-fn find_member_value<'a>(index: &'a Index, pou: &str, reference: &str) -> Option<&'a AstStatement> {
+fn find_member_value<'a>(index: &'a Index, pou: &str, reference: &str) -> Option<&'a AstNode> {
     index
         .find_member(pou, reference)
         .and_then(|it| index.get_const_expressions().maybe_get_constant_statement(&it.initial_value))
 }
 
-fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstStatement> {
+fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstNode> {
     index
         .find_global_variable(reference)
         .and_then(|it| index.get_const_expressions().maybe_get_constant_statement(&it.initial_value))
 }
 
-fn create_int_literal(v: i128) -> AstStatement {
+fn create_int_literal(v: i128) -> AstNode {
     AstFactory::create_literal(AstLiteral::new_integer(v), SourceLocation::undefined(), 0)
 }
 
-fn create_string_literal(v: &str, wide: bool) -> AstStatement {
+fn create_string_literal(v: &str, wide: bool) -> AstNode {
     AstFactory::create_literal(AstLiteral::new_string(v.to_string(), wide), SourceLocation::undefined(), 0)
 }
 
-fn create_real_literal(v: f64) -> AstStatement {
+fn create_real_literal(v: f64) -> AstNode {
     AstFactory::create_literal(AstLiteral::new_real(format!("{v:}")), SourceLocation::undefined(), 0)
 }
 
-fn create_bool_literal(v: bool) -> AstStatement {
+fn create_bool_literal(v: bool) -> AstNode {
     AstFactory::create_literal(AstLiteral::new_bool(v), SourceLocation::undefined(), 0)
 }
 
@@ -978,10 +978,10 @@ fn array_literals_type_resolving() {
     );
 
     // AND the array-literals types are associated correctly
-    if let AstStatementKind::Literal(AstLiteral::Array(Array { elements: Some(elements) })) =
+    if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) =
         parse_result.global_vars[0].variables[0].initializer.as_ref().unwrap().get_stmt()
     {
-        if let AstStatementKind::ExpressionList(expressions) = elements.as_ref().get_stmt() {
+        if let AstStatement::ExpressionList(expressions) = elements.as_ref().get_stmt() {
             for ele in expressions.iter() {
                 assert_eq!(annotations.get_type_hint(ele, &index), index.find_effective_type_by_name("BYTE"));
             }
@@ -1034,8 +1034,7 @@ fn nested_array_literals_type_resolving() {
     );
 
     //check the initializer's array-element's types
-    if let AstStatementKind::Literal(AstLiteral::Array(Array { elements: Some(e) })) = initializer.get_stmt()
-    {
+    if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(e) })) = initializer.get_stmt() {
         if let Some(DataTypeInformation::Array { inner_type_name, .. }) =
             index.find_effective_type_by_name(a.get_type_name()).map(|t| t.get_type_information())
         {
@@ -1046,7 +1045,7 @@ fn nested_array_literals_type_resolving() {
             );*/
 
             // check if the array's elements have the array's inner type
-            for ele in AstStatement::get_as_list(e) {
+            for ele in AstNode::get_as_list(e) {
                 let element_hint = annotations.get_type_hint(ele, &index).unwrap();
                 assert_eq!(Some(element_hint), index.find_effective_type_by_name(inner_type_name))
             }
@@ -1096,7 +1095,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
     //check the initializer's array-element's types
     // [[2(2)],[2(3)]]
-    if let AstStatementKind::Literal(AstLiteral::Array(Array { elements: Some(outer_expression_list) })) =
+    if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(outer_expression_list) })) =
         initializer.get_stmt()
     {
         // outer_expression_list = [2(2)],[2(3)]
@@ -1110,21 +1109,20 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
             );
 
             // check if the array's elements have the array's inner type
-            for inner_array in AstStatement::get_as_list(outer_expression_list) {
+            for inner_array in AstNode::get_as_list(outer_expression_list) {
                 // [2(2)]
                 let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
                 assert_eq!(Some(element_hint), index.find_effective_type_by_name(array_of_byte));
 
                 //check if the inner array statement's also got the type-annotations
 
-                if let AstStatementKind::Literal(AstLiteral::Array(Array {
+                if let AstStatement::Literal(AstLiteral::Array(Array {
                     elements: Some(inner_multiplied_stmt),
                 })) = inner_array.get_stmt()
                 {
                     // inner_multiplied_stmt = 2(2)
-                    for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
-                        if let AstStatementKind::MultipliedStatement(data) = inner_multiplied_stmt.get_stmt()
-                        {
+                    for inner_multiplied_stmt in AstNode::get_as_list(inner_multiplied_stmt) {
+                        if let AstStatement::MultipliedStatement(data) = inner_multiplied_stmt.get_stmt() {
                             //check if the inner thing really got the BYTE hint
                             // multiplied-element = 2
                             assert_eq!(
