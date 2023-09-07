@@ -211,7 +211,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
 
     fn get_resolved_connection_ids(
         &self,
-        source_connections: &HashMap<&str, SourceReference<'_>>,
+        source_connections: &HashMap<&str, SourceReference>,
     ) -> Result<Vec<ResolvedConnection>, Vec<Diagnostic>> {
         let mut resolved_connections = vec![];
         let mut diagnostics = vec![];
@@ -295,7 +295,7 @@ fn find_assignable_sink_value<'a>(
                         message = format!("{message}{connector_name} -> ")
                     }
 
-                    message = format!("{message} -> {name}");
+                    message = format!("{message}{name}");
 
                     Err(Diagnostic::cyclic_connection(message, SourceRange::undefined()))
                 }

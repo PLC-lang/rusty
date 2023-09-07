@@ -744,7 +744,11 @@ impl Diagnostic {
     }
 
     pub fn cyclic_connection(message: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::cfc__cyclic_connection }
+        Diagnostic::SemanticError {
+            message: format!("Sink must not be connected to associated source: {message}"),
+            range: vec![range],
+            err_no: ErrNo::cfc__cyclic_connection,
+        }
     }
 }
 

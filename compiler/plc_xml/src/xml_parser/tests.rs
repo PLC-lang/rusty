@@ -71,7 +71,10 @@ mod tests {
 
     #[test]
     fn sink_source_data_recursion_does_not_overflow_the_stack() {
-        assert_debug_snapshot!(xml_parser::visit(content::SINK_SOURCE_LOOP).unwrap());
+        let Err(diagnostics) = xml_parser::visit(content::SINK_SOURCE_LOOP) else {
+            panic!("Expected test to report data recursion!")
+        };
+        assert_debug_snapshot!(diagnostics);
     }
 
     #[test]
