@@ -42,10 +42,12 @@ fn transform_return(
         Node::FunctionBlockVariable(variable) => Ok(variable.transform(session)),
         Node::Block(block) => Ok(block.transform(session, index)),
 
-        _ => Err(Diagnostic::unexpected_nodes(vec![
-            session.range_factory.create_block_location(control.local_id, None),
-            session.range_factory.create_block_location(ref_local_id, None),
-        ])),
+        _ => {
+            let location_control = session.range_factory.create_block_location(control.local_id, None);
+            let location_other = session.range_factory.create_block_location(ref_local_id, None);
+
+            Err(Diagnostic::unexpected_nodes(location_control.span(&location_other)))
+        }
     }?;
 
     // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often

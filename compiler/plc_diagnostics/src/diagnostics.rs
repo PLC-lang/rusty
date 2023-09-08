@@ -725,10 +725,10 @@ impl Diagnostic {
         }
     }
 
-    pub fn unexpected_nodes(range: Vec<SourceLocation>) -> Diagnostic {
+    pub fn unexpected_nodes(range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Unexpected relationship between nodes".to_string(),
-            range,
+            range: vec![range],
             err_no: ErrNo::cfc__unexpected_node,
         }
     }

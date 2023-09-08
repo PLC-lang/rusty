@@ -23,21 +23,20 @@ expression: diagnostics
         message: "Unexpected relationship between nodes",
         range: [
             SourceLocation {
-                span: Block {
-                    local_id: 2,
-                    execution_order: None,
-                    inner_range: None,
-                },
-                file: Some(
-                    "test.cfc",
+                span: Combined(
+                    [
+                        Block {
+                            local_id: 2,
+                            execution_order: None,
+                            inner_range: None,
+                        },
+                        Block {
+                            local_id: 1,
+                            execution_order: None,
+                            inner_range: None,
+                        },
+                    ],
                 ),
-            },
-            SourceLocation {
-                span: Block {
-                    local_id: 1,
-                    execution_order: None,
-                    inner_range: None,
-                },
                 file: Some(
                     "test.cfc",
                 ),
