@@ -17,7 +17,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::AstStatement;
+use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_diagnostics::errno::ErrNo;
@@ -310,12 +310,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::Array { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatement::Literal(AstLiteral::Array { .. })),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::Literal { kind: AstLiteral::String { .. }, .. }),
+                |stmt| matches!(stmt.stmt, AstStatement::Literal(AstLiteral::String { .. })),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {
@@ -364,7 +364,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_initializer(
         &mut self,
         qualified_name: &str,
-        initializer: Option<&AstStatement>,
+        initializer: Option<&AstNode>,
         data_type_name: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) = initializer {
@@ -389,7 +389,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_array_initializer(
         &self,
         data_type: &DataType,
-        predicate: fn(&AstStatement) -> bool,
+        predicate: fn(&AstNode) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) =

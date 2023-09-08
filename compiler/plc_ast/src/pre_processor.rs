@@ -6,8 +6,8 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, UserTypeDeclaration, Variable,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -80,27 +80,24 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     }
                 }
                 DataType::EnumType { elements, .. }
-                    if matches!(elements, AstStatement::EmptyStatement { .. }) =>
+                    if matches!(elements.stmt, AstStatement::EmptyStatement { .. }) =>
                 {
                     //avoid empty statements, just use an empty expression list to make it easier to work with
-                    let _ = std::mem::replace(
-                        elements,
-                        AstStatement::ExpressionList { expressions: vec![], id: id_provider.next_id() },
-                    );
+                    let _ = std::mem::replace(&mut elements.stmt, AstStatement::ExpressionList(vec![]));
                 }
                 DataType::EnumType { elements: original_elements, name: Some(enum_name), .. }
-                    if !matches!(original_elements, AstStatement::EmptyStatement { .. }) =>
+                    if !matches!(original_elements.stmt, AstStatement::EmptyStatement { .. }) =>
                 {
                     let mut last_name: Option<String> = None;
 
-                    fn extract_flat_ref_name(statement: &AstStatement) -> &str {
+                    fn extract_flat_ref_name(statement: &AstNode) -> &str {
                         statement.get_flat_reference_name().expect("expected assignment")
                     }
 
                     let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
-                        .map(|it| match it {
-                            AstStatement::Assignment { left, right, .. } => {
+                        .map(|it| match &it.stmt {
+                            AstStatement::Assignment(Assignment { left, right }) => {
                                 //<element-name, initializer, location>
                                 (
                                     extract_flat_ref_name(left.as_ref()),
@@ -115,9 +112,8 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                                 build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
                             last_name = Some(element_name.to_string());
-                            AstStatement::Assignment {
-                                id: id_provider.next_id(),
-                                left: Box::new(AstFactory::create_member_reference(
+                            AstFactory::create_assignment(
+                                AstFactory::create_member_reference(
                                     AstFactory::create_identifier(
                                         element_name,
                                         &location,
@@ -125,18 +121,25 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                                     ),
                                     None,
                                     id_provider.next_id(),
-                                )),
-                                right: Box::new(enum_literal),
-                            }
+                                ),
+                                enum_literal,
+                                id_provider.next_id(),
+                            )
                         })
-                        .collect::<Vec<AstStatement>>();
+                        .collect::<Vec<AstNode>>();
                     // if the enum is empty, we dont change anything
                     if !initialized_enum_elements.is_empty() {
+                        // we can safely unwrap because we checked the vec
+                        let start_loc =
+                            initialized_enum_elements.first().expect("non empty vec").get_location();
+                        let end_loc =
+                            initialized_enum_elements.iter().last().expect("non empty vec").get_location();
                         //swap the expression list with our new Assignments
-                        let expression = AstStatement::ExpressionList {
-                            expressions: initialized_enum_elements,
-                            id: id_provider.next_id(),
-                        };
+                        let expression = AstFactory::create_expression_list(
+                            initialized_enum_elements,
+                            start_loc.span(&end_loc),
+                            id_provider.next_id(),
+                        );
                         let _ = std::mem::replace(original_elements, expression);
                     }
                 }
@@ -152,7 +155,7 @@ fn build_enum_initializer(
     location: &SourceLocation,
     id_provider: &mut IdProvider,
     enum_name: &mut str,
-) -> AstStatement {
+) -> AstNode {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement
         let enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
@@ -164,11 +167,11 @@ fn build_enum_initializer(
         AstFactory::create_binary_expression(
             AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
-            AstStatement::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
+            AstNode::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )
     } else {
-        AstStatement::new_literal(AstLiteral::new_integer(0), id_provider.next_id(), location.clone())
+        AstNode::new_literal(AstLiteral::new_integer(0), id_provider.next_id(), location.clone())
     }
 }
 

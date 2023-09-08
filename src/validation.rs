@@ -1,4 +1,4 @@
-use plc_ast::ast::{AstStatement, CompilationUnit};
+use plc_ast::ast::{AstNode, CompilationUnit};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -48,7 +48,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
         }
     }
 
-    fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
+    fn find_pou(&self, stmt: &AstNode) -> Option<&PouIndexEntry> {
         self.annotations.get_call_name(stmt).and_then(|pou_name| {
             self.index
                 // check if this is an instance of a function block and get the type name

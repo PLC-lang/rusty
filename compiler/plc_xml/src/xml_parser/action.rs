@@ -1,11 +1,11 @@
-use ast::ast::{AstStatement, Implementation, PouType as AstPouType};
+use ast::ast::{AstNode, Implementation, PouType as AstPouType};
 
 use crate::model::action::Action;
 
 use super::ParseSession;
 
 impl Action {
-    pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstNode> {
         todo!()
     }
 

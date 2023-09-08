@@ -1,4 +1,5 @@
 use insta::{assert_debug_snapshot, assert_snapshot};
+
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffered};

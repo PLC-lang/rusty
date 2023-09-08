@@ -7,7 +7,8 @@ use crate::{
 use indexmap::IndexMap;
 use itertools::Itertools;
 use plc_ast::ast::{
-    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, TypeNature,
+    AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+    TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -65,12 +66,13 @@ pub struct HardwareBinding {
 }
 
 impl HardwareBinding {
-    fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
-        if let AstStatement::HardwareAccess { access, address, direction, location, .. } = it {
+    fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess(data) = it.get_stmt() {
             Some(HardwareBinding {
-                access: *access,
-                direction: *direction,
-                entries: address
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
                     .iter()
                     .map(|expr| {
                         index.constant_expressions.add_constant_expression(
@@ -80,7 +82,7 @@ impl HardwareBinding {
                         )
                     })
                     .collect(),
-                location: location.clone(),
+                location: it.get_location(),
             })
         } else {
             None
@@ -1217,7 +1219,7 @@ impl Index {
         self.get_types().get(&type_name.to_lowercase()).unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
-    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstNode> {
         self.get_const_expressions().maybe_get_constant_statement(id)
     }
 
@@ -1235,7 +1237,7 @@ impl Index {
     /// Returns the initioal value registered for the given data_type.
     /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
     /// this method tries to obtain the default value from the referenced type.
-    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstNode> {
         let mut dt = self.type_index.find_type(type_name);
         let mut initial_value = dt.and_then(|it| it.initial_value);
 

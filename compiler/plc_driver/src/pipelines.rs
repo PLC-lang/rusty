@@ -186,7 +186,7 @@ impl IndexedProject {
 
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject {
-    units: Vec<(CompilationUnit, IndexSet<Dependency>, StringLiterals)>,
+    pub units: Vec<(CompilationUnit, IndexSet<Dependency>, StringLiterals)>,
     index: Index,
     annotations: AstAnnotations,
 }

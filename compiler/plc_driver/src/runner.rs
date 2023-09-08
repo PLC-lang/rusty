@@ -38,6 +38,7 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
         ..Default::default()
     };
 
+    dbg!(&annotated_project.units[0].0);
     annotated_project.generate_single_module(context, &compile_options).unwrap().unwrap()
 }
 

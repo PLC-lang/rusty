@@ -35,7 +35,7 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
-use plc_ast::ast::{AstStatement, Implementation, PouType};
+use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 
@@ -616,7 +616,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         variable: &&VariableIndexEntry,
         variable_to_initialize: PointerValue,
-        initializer_statement: Option<&AstStatement>,
+        initializer_statement: Option<&AstNode>,
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
         let variable_llvm_type = self
