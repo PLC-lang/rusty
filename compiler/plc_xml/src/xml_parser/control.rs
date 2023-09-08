@@ -56,7 +56,7 @@ fn transform_return(
 
     Ok(AstFactory::create_return_statement(
         Some(possibly_negated_condition),
-        SourceLocation::undefined(),
+        session.create_block_location(control.local_id, control.execution_order_id),
         session.next_id(),
     ))
 }
