@@ -20,7 +20,7 @@ use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, Operator, ReferenceAccess, ReferenceExpr,
     },
-    control_statements::{AstControlStatement, ConditionalBlock},
+    control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -122,7 +122,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }
-            AstStatement::ReturnStatement { condition, .. } => match condition {
+            AstStatement::ReturnStatement(ReturnStatement { condition }) => match condition {
                 Some(condition) => {
                     self.register_debug_location(statement);
                     self.generate_conditional_return(condition)?;
@@ -133,7 +133,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 }
             },
-            AstStatement::ExitStatement { location, .. } => {
+            AstStatement::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block);
@@ -763,7 +763,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
     /// does nothing otherwise.
-    pub fn generate_conditional_return(&'a self, condition: &AstStatement) -> Result<(), Diagnostic> {
+    pub fn generate_conditional_return(&'a self, condition: &AstNode) -> Result<(), Diagnostic> {
         let expression_generator = self.create_expr_generator();
         let condition = expression_generator.generate_expression(condition)?;
 

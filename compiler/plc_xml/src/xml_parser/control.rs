@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, Operator};
+use ast::ast::{AstFactory, AstNode, Operator};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -10,11 +10,7 @@ use crate::model::{
 use super::ParseSession;
 
 impl Control {
-    pub(crate) fn transform(
-        &self,
-        session: &ParseSession,
-        index: &NodeIndex,
-    ) -> Result<AstStatement, Diagnostic> {
+    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> Result<AstNode, Diagnostic> {
         match self.kind {
             ControlKind::Jump => unimplemented!(),
             ControlKind::Label => unimplemented!(),
@@ -27,7 +23,7 @@ fn transform_return(
     control: &Control,
     session: &ParseSession,
     index: &NodeIndex,
-) -> Result<AstStatement, Diagnostic> {
+) -> Result<AstNode, Diagnostic> {
     let Some(ref_local_id) = control.ref_local_id else {
         let location = session.range_factory.create_block_location(control.local_id, None);
         return Err(Diagnostic::empty_control_statement(location));
@@ -52,21 +48,17 @@ fn transform_return(
 
     // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often
     let possibly_negated_condition = if control.negated {
-        AstStatement::UnaryExpression {
-            operator: Operator::Not,
-            location: condition.get_location(),
-            value: Box::new(condition),
-            id: session.next_id(),
-        }
+        let location = condition.get_location();
+        AstFactory::create_unary_expression(Operator::Not, condition, location, session.next_id())
     } else {
         condition
     };
 
-    Ok(AstStatement::ReturnStatement {
-        condition: Some(Box::new(possibly_negated_condition)),
-        location: SourceLocation::undefined(),
-        id: session.next_id(),
-    })
+    Ok(AstFactory::create_return_statement(
+        Some(possibly_negated_condition),
+        SourceLocation::undefined(),
+        session.next_id(),
+    ))
 }
 
 #[cfg(test)]

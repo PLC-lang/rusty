@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
+        ReturnStatement,
     },
     literals::{AstLiteral, StringValue},
     pre_processor,
@@ -614,7 +615,7 @@ pub enum AstStatement {
     CaseCondition(Box<AstNode>),
     ExitStatement(()),
     ContinueStatement(()),
-    ReturnStatement(()),
+    ReturnStatement(ReturnStatement),
 }
 
 impl Debug for AstNode {
@@ -714,7 +715,9 @@ impl Debug for AstNode {
             AstStatement::CaseCondition(condition) => {
                 f.debug_struct("CaseCondition").field("condition", condition).finish()
             }
-            AstStatement::ReturnStatement(..) => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ReturnStatement(ReturnStatement { condition }) => {
+                f.debug_struct("ReturnStatement").field("condition", condition).finish()
+            }
             AstStatement::ContinueStatement(..) => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement(..) => f.debug_struct("ExitStatement").finish(),
             AstStatement::CastStatement(CastStatement { target, type_name }) => {
@@ -1058,8 +1061,13 @@ impl AstFactory {
         // AstStatement::EmptyStatement (  EmptyStatement {}, location, id }
     }
 
-    pub fn create_return_statement(location: SourceLocation, id: AstId) -> AstNode {
-        AstNode { stmt: AstStatement::ReturnStatement(()), location, id }
+    pub fn create_return_statement(
+        condition: Option<AstNode>,
+        location: SourceLocation,
+        id: AstId,
+    ) -> AstNode {
+        let condition = condition.map(Box::new);
+        AstNode { stmt: AstStatement::ReturnStatement(ReturnStatement { condition }), location, id }
     }
 
     pub fn create_exit_statement(location: SourceLocation, id: AstId) -> AstNode {

@@ -17,7 +17,7 @@ use plc_ast::{
         BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
-    control_statements::AstControlStatement,
+    control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
@@ -1321,7 +1321,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::ReferenceExpr(data, ..) => {
                 self.visit_reference_expr(&data.access, data.base.as_deref(), statement, ctx);
             }
-            AstStatement::ReturnStatement { condition, .. } => {
+            AstStatement::ReturnStatement(ReturnStatement { condition }) => {
                 if let Some(condition) = condition {
                     self.visit_statement(ctx, condition)
                 }
