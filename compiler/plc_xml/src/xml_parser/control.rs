@@ -1,6 +1,5 @@
 use ast::ast::{AstFactory, AstNode, Operator};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 
 use crate::model::{
     control::{Control, ControlKind},
