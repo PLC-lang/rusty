@@ -1,11 +1,11 @@
-use ast::ast::{AstStatement, Implementation};
+use ast::ast::{AstNode, Implementation};
 
 use crate::model::pou::Pou;
 
 use super::ParseSession;
 
 impl Pou {
-    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
             return vec![];

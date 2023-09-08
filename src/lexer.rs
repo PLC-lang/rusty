@@ -21,7 +21,7 @@ pub struct ParseSession<'a> {
     /// the range of the `last_token`
     pub last_range: Range<usize>,
     pub parse_progress: usize,
-    id_provider: IdProvider,
+    pub id_provider: IdProvider,
     pub source_range_factory: SourceLocationFactory,
     pub scope: Option<String>,
 }

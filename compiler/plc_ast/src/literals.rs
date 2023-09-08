@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 
 use chrono::NaiveDate;
 
-use crate::ast::AstStatement;
+use crate::ast::AstNode;
 
 macro_rules! impl_getters {
     ($type:ty, [$($name:ident),+], [$($out:ty),+]) => {
@@ -84,7 +84,7 @@ pub struct StringValue {
 
 #[derive(Clone, PartialEq)]
 pub struct Array {
-    pub elements: Option<Box<AstStatement>>, // expression-list
+    pub elements: Option<Box<AstNode>>, // expression-list
 }
 
 /// calculates the nanoseconds since 1970-01-01-00:00:00 for the given
@@ -170,14 +170,14 @@ impl Time {
 }
 
 impl Array {
-    pub fn elements(&self) -> Option<&AstStatement> {
+    pub fn elements(&self) -> Option<&AstNode> {
         self.elements.as_ref().map(|it| it.as_ref())
     }
 }
 
 impl AstLiteral {
     /// Creates a new literal array
-    pub fn new_array(elements: Option<Box<AstStatement>>) -> Self {
+    pub fn new_array(elements: Option<Box<AstNode>>) -> Self {
         AstLiteral::Array(Array { elements })
     }
     /// Creates a new literal integer

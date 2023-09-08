@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstStatement, Operator, PouType, TypeNature},
+    ast::{AstNode, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -310,7 +310,7 @@ impl TypeSize {
 
     /// returns the const expression represented by this TypeSize or None if this TypeSize
     /// is a compile-time literal
-    pub fn as_const_expression<'i>(&self, index: &'i Index) -> Option<&'i AstStatement> {
+    pub fn as_const_expression<'i>(&self, index: &'i Index) -> Option<&'i AstNode> {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
@@ -385,7 +385,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: TypeId,
         referenced_type: TypeId,
-        sub_range: Range<AstStatement>,
+        sub_range: Range<AstNode>,
     },
     Alias {
         name: TypeId,
