@@ -1,0 +1,25 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: ast_string
+---
+UserTypeDeclaration {
+    data_type: ArrayType {
+        name: Some(
+            "MyArray",
+        ),
+        bounds: RangeStatement {
+            start: LiteralInteger {
+                value: 0,
+            },
+            end: LiteralInteger {
+                value: 8,
+            },
+        },
+        referenced_type: DataTypeReference {
+            referenced_type: "INT",
+        },
+        is_variable_length: false,
+    },
+    initializer: None,
+    scope: None,
+}

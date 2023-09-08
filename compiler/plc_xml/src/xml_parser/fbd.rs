@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstFactory, AstNode, AstStatement};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -8,7 +8,7 @@ use super::ParseSession;
 impl FunctionBlockDiagram {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
-    pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstNode> {
         let mut ast_association = IndexMap::new();
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
@@ -34,8 +34,8 @@ impl FunctionBlockDiagram {
         &self,
         id: NodeId,
         session: &ParseSession,
-        ast_association: &IndexMap<usize, AstStatement>,
-    ) -> (AstStatement, Option<NodeId>) {
+        ast_association: &IndexMap<usize, AstNode>,
+    ) -> (AstNode, Option<NodeId>) {
         let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
 
         match current_node {
@@ -51,7 +51,7 @@ impl FunctionBlockDiagram {
                 let (rhs, remove_id) = ast_association
                     .get(&ref_id)
                     .map(|stmt| {
-                        if matches!(stmt, AstStatement::CallStatement { .. }) {
+                        if matches!(stmt.get_stmt(), AstStatement::CallStatement(..)) {
                             (stmt.clone(), Some(ref_id))
                         } else {
                             self.transform_node(ref_id, session, ast_association)
@@ -59,14 +59,7 @@ impl FunctionBlockDiagram {
                     })
                     .expect("Expected AST statement, found None");
 
-                (
-                    AstStatement::Assignment {
-                        left: Box::new(lhs),
-                        right: Box::new(rhs),
-                        id: session.next_id(),
-                    },
-                    remove_id,
-                )
+                (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
             Node::Control(_) => todo!(),
             Node::Connector(_) => todo!(),

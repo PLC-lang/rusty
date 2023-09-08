@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, Operator};
+use ast::ast::{AstFactory, AstNode, Operator};
 
 use crate::model::{
     fbd::{Node, NodeIndex},
@@ -8,7 +8,7 @@ use crate::model::{
 use super::ParseSession;
 
 impl BlockVariable {
-    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> Option<AstStatement> {
+    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> Option<AstNode> {
         let Some(ref_id) = &self.ref_local_id else {
             // param not provided/passed
             return None;
@@ -27,16 +27,16 @@ impl BlockVariable {
 
 // variables, parameters -> more readable names?
 impl FunctionBlockVariable {
-    pub(crate) fn transform(&self, session: &ParseSession) -> AstStatement {
+    pub(crate) fn transform(&self, session: &ParseSession) -> AstNode {
         if self.negated {
             let ident = session.parse_expression(&self.expression, self.local_id, self.execution_order_id);
 
-            AstStatement::UnaryExpression {
-                operator: Operator::Not,
-                value: Box::new(ident),
-                location: session.create_block_location(self.local_id, self.execution_order_id),
-                id: session.next_id(),
-            }
+            AstFactory::create_unary_expression(
+                Operator::Not,
+                ident,
+                session.create_block_location(self.local_id, self.execution_order_id),
+                session.next_id(),
+            )
         } else {
             session.parse_expression(&self.expression, self.local_id, self.execution_order_id)
         }

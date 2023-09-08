@@ -3,8 +3,9 @@ use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -337,7 +338,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
 
             for ele in ast::flatten_expression_list(elements) {
                 let element_name = ast::get_enum_element_name(ele);
-                if let AstStatement::Assignment { right, .. } = ele {
+                if let AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                     let init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
@@ -364,7 +365,9 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         }
 
         DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
-            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds {
+            let information = if let Some(AstStatement::RangeStatement(RangeStatement { start, end })) =
+                bounds.as_ref().map(|it| it.get_stmt())
+            {
                 DataTypeInformation::SubRange {
                     name: name.into(),
                     referenced_type: referenced_type.into(),
@@ -421,21 +424,21 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
-                    let len_plus_1 = AstStatement::BinaryExpression {
-                        id: statement.get_id(),
-                        left: Box::new(statement.clone()),
-                        operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::new_literal(
+                    let len_plus_1 = AstFactory::create_binary_expression(
+                        statement.clone(),
+                        ast::Operator::Plus,
+                        AstNode::new_literal(
                             AstLiteral::new_integer(1),
                             statement.get_id(),
                             statement.get_location(),
-                        )),
-                    };
+                        ),
+                        statement.get_id(),
+                    );
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
                         len_plus_1,
@@ -504,15 +507,15 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
 /// END_STRUCT
 /// ```
 fn visit_variable_length_array(
-    bounds: &AstStatement,
+    bounds: &AstNode,
     referenced_type: &DataTypeDeclaration,
     name: &str,
     index: &mut Index,
     type_declaration: &UserTypeDeclaration,
 ) {
-    let ndims = match bounds {
-        AstStatement::VlaRangeStatement { .. } => 1,
-        AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+    let ndims = match bounds.get_stmt() {
+        AstStatement::VlaRangeStatement => 1,
+        AstStatement::ExpressionList(expressions) => expressions.len(),
         _ => unreachable!("not a bounds statement"),
     };
 
@@ -574,24 +577,29 @@ fn visit_variable_length_array(
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::ArrayType {
                         name: Some(member_dimensions_name),
-                        bounds: AstStatement::ExpressionList {
-                            expressions: (0..ndims)
-                                .map(|_| AstStatement::RangeStatement {
-                                    start: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(0),
-                                        0,
-                                        SourceLocation::undefined(),
-                                    )),
-                                    end: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(1),
-                                        0,
-                                        SourceLocation::undefined(),
-                                    )),
-                                    id: 0,
-                                })
-                                .collect::<_>(),
-                            id: 0,
-                        },
+                        bounds: AstNode::new(
+                            AstStatement::ExpressionList(
+                                (0..ndims)
+                                    .map(|_| {
+                                        AstFactory::create_range_statement(
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(0),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(1),
+                                                0,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            0,
+                                        )
+                                    })
+                                    .collect::<_>(),
+                            ),
+                            0,
+                            SourceLocation::undefined(),
+                        ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
                             location: SourceLocation::undefined(),
@@ -644,7 +652,7 @@ fn visit_variable_length_array(
 }
 
 fn visit_array(
-    bounds: &AstStatement,
+    bounds: &AstNode,
     index: &mut Index,
     scope: &Option<String>,
     referenced_type: &DataTypeDeclaration,
@@ -654,8 +662,8 @@ fn visit_array(
     let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
         .get_as_list()
         .iter()
-        .map(|it| match it {
-            AstStatement::RangeStatement { start, end, .. } => {
+        .map(|it| match it.get_stmt() {
+            AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 let constants = index.get_mut_const_expressions();
                 Ok(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(

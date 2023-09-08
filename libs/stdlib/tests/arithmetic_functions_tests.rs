@@ -486,6 +486,7 @@ fn expt_called_with_operator() {
             a := 2**7;
         END_PROGRAM
     "#;
+
     let sources = add_std!(src, "arithmetic_functions.st");
     let mut maintype = MainType::<f32>::default();
     let _: i32 = compile_and_run(sources, &mut maintype);
