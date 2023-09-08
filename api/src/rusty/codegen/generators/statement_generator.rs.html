@@ -748,21 +748,6 @@
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -783,7 +768,9 @@
     values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 <span class="kw">use </span>plc_ast::{
-    ast::{flatten_expression_list, AstFactory, AstStatement, Operator, ReferenceAccess},
+    ast::{
+        flatten_expression_list, AstFactory, AstNode, AstStatement, Operator, ReferenceAccess, ReferenceExpr,
+    },
     control_statements::{AstControlStatement, ConditionalBlock},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
@@ -856,7 +843,7 @@
     }
 
     <span class="doccomment">/// generates a list of statements
-    </span><span class="kw">pub fn </span>generate_body(<span class="kw-2">&amp;</span><span class="self">self</span>, statements: <span class="kw-2">&amp;</span>[AstStatement]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_body(<span class="kw-2">&amp;</span><span class="self">self</span>, statements: <span class="kw-2">&amp;</span>[AstNode]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">for </span>s <span class="kw">in </span>statements {
             <span class="self">self</span>.generate_statement(s)<span class="question-mark">?</span>;
         }
@@ -877,16 +864,16 @@
     <span class="doccomment">/// genertes a single statement
     ///
     /// - `statement` the statement to be generated
-    </span><span class="kw">pub fn </span>generate_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">match </span>statement {
-            AstStatement::EmptyStatement { .. } =&gt; {
+    </span><span class="kw">pub fn </span>generate_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">match </span>statement.get_stmt() {
+            AstStatement::EmptyStatement(..) =&gt; {
                 <span class="comment">//nothing to generate
             </span>}
-            AstStatement::Assignment { left, right, .. } =&gt; {
-                <span class="self">self</span>.generate_assignment_statement(left, right)<span class="question-mark">?</span>;
+            AstStatement::Assignment(data, ..) =&gt; {
+                <span class="self">self</span>.generate_assignment_statement(<span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right)<span class="question-mark">?</span>;
             }
 
-            AstStatement::ControlStatement { kind: ctl_statement, .. } =&gt; {
+            AstStatement::ControlStatement(ctl_statement, ..) =&gt; {
                 <span class="self">self</span>.generate_control_statement(ctl_statement)<span class="question-mark">?
             </span>}
             AstStatement::ReturnStatement { .. } =&gt; {
@@ -894,7 +881,7 @@
                 <span class="self">self</span>.pou_generator.generate_return_statement(<span class="self">self</span>.function_context, <span class="self">self</span>.llvm_index)<span class="question-mark">?</span>;
                 <span class="self">self</span>.generate_buffer_block();
             }
-            AstStatement::ExitStatement { location, .. } =&gt; {
+            AstStatement::ExitStatement(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(exit_block) = <span class="kw-2">&amp;</span><span class="self">self</span>.current_loop_exit {
                     <span class="self">self</span>.register_debug_location(statement);
                     <span class="self">self</span>.llvm.builder.build_unconditional_branch(<span class="kw-2">*</span>exit_block);
@@ -902,18 +889,18 @@
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">&quot;Cannot break out of loop when not inside a loop&quot;</span>,
-                        location.clone(),
+                        statement.get_location(),
                     ));
                 }
             }
-            AstStatement::ContinueStatement { location, .. } =&gt; {
+            AstStatement::ContinueStatement(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cont_block) = <span class="kw-2">&amp;</span><span class="self">self</span>.current_loop_continue {
                     <span class="self">self</span>.llvm.builder.build_unconditional_branch(<span class="kw-2">*</span>cont_block);
                     <span class="self">self</span>.generate_buffer_block();
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">&quot;Cannot continue loop when not inside a loop&quot;</span>,
-                        location.clone(),
+                        statement.get_location(),
                     ));
                 }
             }
@@ -955,8 +942,8 @@
     /// `right_statement` the right side of the assignment
     </span><span class="kw">pub fn </span>generate_assignment_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left_statement: <span class="kw-2">&amp;</span>AstStatement,
-        right_statement: <span class="kw-2">&amp;</span>AstStatement,
+        left_statement: <span class="kw-2">&amp;</span>AstNode,
+        right_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//Register any debug info for the store
         </span><span class="self">self</span>.register_debug_location(left_statement);
@@ -965,7 +952,7 @@
             <span class="kw">return </span><span class="self">self</span>.generate_direct_access_assignment(left_statement, right_statement);
         }
         <span class="comment">//TODO: Also hacky but for now we cannot generate assignments for hardware access
-        </span><span class="kw">if </span><span class="macro">matches!</span>(left_statement, AstStatement::HardwareAccess { .. }) {
+        </span><span class="kw">if </span><span class="macro">matches!</span>(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
@@ -991,7 +978,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) {
+    <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">let </span>line = statement.get_location().get_line();
         <span class="kw">let </span>column = statement.get_location().get_column();
         <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span><span class="self">self</span>.function_context.function, line, column);
@@ -999,8 +986,8 @@
 
     <span class="kw">fn </span>generate_direct_access_assignment(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left_statement: <span class="kw-2">&amp;</span>AstStatement,
-        right_statement: <span class="kw-2">&amp;</span>AstStatement,
+        left_statement: <span class="kw-2">&amp;</span>AstNode,
+        right_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//TODO : Validation
         </span><span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
@@ -1031,10 +1018,10 @@
         <span class="kw">let </span>left = left_expression_value.get_basic_value_enum().into_pointer_value();
         <span class="comment">//Build index
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((element, direct_access)) = access_sequence.split_first() {
-            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <span class="kw">if let </span>AstStatement::DirectAccess { access, index, .. } = element {
+            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
                 exp_gen.generate_direct_access_index(
-                    access,
-                    index,
+                    <span class="kw-2">&amp;</span>data.access,
+                    <span class="kw-2">&amp;</span>data.index,
                     right_type.get_type_information(),
                     left_type,
                 )
@@ -1045,10 +1032,10 @@
                 ))
             }<span class="question-mark">?</span>;
             <span class="kw">for </span>element <span class="kw">in </span>direct_access {
-                <span class="kw">let </span>rhs_next = <span class="kw">if let </span>AstStatement::DirectAccess { access, index, .. } = element {
+                <span class="kw">let </span>rhs_next = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
                     exp_gen.generate_direct_access_index(
-                        access,
-                        index,
+                        <span class="kw-2">&amp;</span>data.access,
+                        <span class="kw-2">&amp;</span>data.index,
                         right_type.get_type_information(),
                         left_type,
                     )
@@ -1100,11 +1087,11 @@
     /// - `body` the statements inside the for-loop
     </span><span class="kw">fn </span>generate_for_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        counter: <span class="kw-2">&amp;</span>AstStatement,
-        start: <span class="kw-2">&amp;</span>AstStatement,
-        end: <span class="kw-2">&amp;</span>AstStatement,
-        by_step: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
-        body: <span class="kw-2">&amp;</span>[AstStatement],
+        counter: <span class="kw-2">&amp;</span>AstNode,
+        start: <span class="kw-2">&amp;</span>AstNode,
+        end: <span class="kw-2">&amp;</span>AstNode,
+        by_step: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
+        body: <span class="kw-2">&amp;</span>[AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="self">self</span>.generate_assignment_statement(counter, start)<span class="question-mark">?</span>;
@@ -1177,53 +1164,42 @@
 
     <span class="kw">fn </span>generate_compare_expression(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        counter: <span class="kw-2">&amp;</span>AstStatement,
-        end: <span class="kw-2">&amp;</span>AstStatement,
-        start: <span class="kw-2">&amp;</span>AstStatement,
+        counter: <span class="kw-2">&amp;</span>AstNode,
+        end: <span class="kw-2">&amp;</span>AstNode,
+        start: <span class="kw-2">&amp;</span>AstNode,
         exp_gen: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ExpressionCodeGenerator,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>counter_end_ge = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        <span class="kw">let </span>counter_start_ge = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::GreaterOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        <span class="kw">let </span>counter_end_le = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(end.to_owned()),
-        };
-        <span class="kw">let </span>counter_start_le = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::LessOrEqual,
-            left: Box::new(counter.to_owned()),
-            right: Box::new(start.to_owned()),
-        };
-        <span class="kw">let </span>and_1 = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_le),
-            right: Box::new(counter_start_ge),
-        };
-        <span class="kw">let </span>and_2 = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::And,
-            left: Box::new(counter_end_ge),
-            right: Box::new(counter_start_le),
-        };
-        <span class="kw">let </span>or = AstStatement::BinaryExpression {
-            id: <span class="self">self</span>.annotations.get_bool_id(),
-            operator: Operator::Or,
-            left: Box::new(and_1),
-            right: Box::new(and_2),
-        };
+        <span class="kw">let </span>bool_id = <span class="self">self</span>.annotations.get_bool_id();
+        <span class="kw">let </span>counter_end_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        <span class="kw">let </span>counter_start_ge = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::GreaterOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        <span class="kw">let </span>counter_end_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            end.clone(),
+            bool_id,
+        );
+        <span class="kw">let </span>counter_start_le = AstFactory::create_binary_expression(
+            counter.clone(),
+            Operator::LessOrEqual,
+            start.clone(),
+            bool_id,
+        );
+        <span class="kw">let </span>and_1 =
+            AstFactory::create_binary_expression(counter_end_le, Operator::And, counter_start_ge, bool_id);
+        <span class="kw">let </span>and_2 =
+            AstFactory::create_binary_expression(counter_end_ge, Operator::And, counter_start_le, bool_id);
+        <span class="kw">let </span>or = AstFactory::create_binary_expression(and_1, Operator::Or, and_2, bool_id);
+
         <span class="self">self</span>.register_debug_location(<span class="kw-2">&amp;</span>or);
         <span class="kw">let </span>or_eval = exp_gen.generate_expression(<span class="kw-2">&amp;</span>or)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(or_eval)
@@ -1241,9 +1217,9 @@
     /// - `else_body` the statements in the else-block
     </span><span class="kw">fn </span>generate_case_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        selector: <span class="kw-2">&amp;</span>AstStatement,
+        selector: <span class="kw-2">&amp;</span>AstNode,
         conditional_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
-        else_body: <span class="kw-2">&amp;</span>[AstStatement],
+        else_body: <span class="kw-2">&amp;</span>[AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="comment">//Continue
@@ -1265,14 +1241,14 @@
             <span class="comment">//flatten the expression list into a vector of expressions
             </span><span class="kw">let </span>expressions = flatten_expression_list(<span class="kw-2">&amp;</span>conditional_block.condition);
             <span class="kw">for </span>s <span class="kw">in </span>expressions {
-                <span class="kw">if let </span>AstStatement::RangeStatement { start, end, .. } = s {
+                <span class="kw">if let </span>AstStatement::RangeStatement(data, ..) = s.get_stmt() {
                     <span class="comment">//if this is a range statement, we generate an if (x &gt;= start &amp;&amp; x &lt;= end) then the else-section
                     </span>builder.position_at_end(current_else_block);
                     <span class="comment">// since the if&#39;s generate additional blocks, we use the last one as the else-section
                     </span>current_else_block = <span class="self">self</span>.generate_case_range_condition(
                         selector,
-                        start.as_ref(),
-                        end.as_ref(),
+                        data.start.as_ref(),
+                        data.end.as_ref(),
                         case_block,
                     )<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
@@ -1308,9 +1284,9 @@
     ///
     </span><span class="kw">fn </span>generate_case_range_condition(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        selector: <span class="kw-2">&amp;</span>AstStatement,
-        start: <span class="kw-2">&amp;</span>AstStatement,
-        end: <span class="kw-2">&amp;</span>AstStatement,
+        selector: <span class="kw-2">&amp;</span>AstNode,
+        start: <span class="kw-2">&amp;</span>AstNode,
+        end: <span class="kw-2">&amp;</span>AstNode,
         match_block: BasicBlock,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicBlock, Diagnostic&gt; {
         <span class="kw">let </span>(builder, <span class="kw">_</span>, context) = <span class="self">self</span>.get_llvm_deps();
@@ -1357,11 +1333,7 @@
     ///
     /// - `condition` the while&#39;s condition
     /// - `body` the while&#39;s body statements
-    </span><span class="kw">fn </span>generate_while_statement(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        condition: <span class="kw-2">&amp;</span>AstStatement,
-        body: <span class="kw-2">&amp;</span>[AstStatement],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    </span><span class="kw">fn </span>generate_while_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, condition: <span class="kw-2">&amp;</span>AstNode, body: <span class="kw-2">&amp;</span>[AstNode]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         <span class="kw">let </span>(condition_block, <span class="kw">_</span>) = <span class="self">self</span>.generate_base_while_statement(condition, body)<span class="question-mark">?</span>;
@@ -1384,11 +1356,7 @@
     ///
     /// - `condition` the repeat&#39;s condition
     /// - `body` the repeat&#39;s body statements
-    </span><span class="kw">fn </span>generate_repeat_statement(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        condition: <span class="kw-2">&amp;</span>AstStatement,
-        body: <span class="kw-2">&amp;</span>[AstStatement],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    </span><span class="kw">fn </span>generate_repeat_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, condition: <span class="kw-2">&amp;</span>AstNode, body: <span class="kw-2">&amp;</span>[AstNode]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
@@ -1408,8 +1376,8 @@
     <span class="doccomment">/// utility method for while and repeat loops
     </span><span class="kw">fn </span>generate_base_while_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        condition: <span class="kw-2">&amp;</span>AstStatement,
-        body: <span class="kw-2">&amp;</span>[AstStatement],
+        condition: <span class="kw-2">&amp;</span>AstNode,
+        body: <span class="kw-2">&amp;</span>[AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(BasicBlock, BasicBlock), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="kw">let </span>condition_check = context.append_basic_block(current_function, <span class="string">&quot;condition_check&quot;</span>);
@@ -1451,7 +1419,7 @@
     </span><span class="kw">fn </span>generate_if_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         conditional_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
-        else_body: <span class="kw-2">&amp;</span>[AstStatement],
+        else_body: <span class="kw-2">&amp;</span>[AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="kw">let </span><span class="kw-2">mut </span>blocks = <span class="macro">vec!</span>[builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
@@ -1514,12 +1482,14 @@
 /// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
 /// of direct-access commands (vec![%W3, %X2])
 </span><span class="kw">fn </span>collect_base_and_direct_access_for_assignment(
-    left_statement: <span class="kw-2">&amp;</span>AstStatement,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>AstStatement, Vec&lt;<span class="kw-2">&amp;</span>AstStatement&gt;)&gt; {
+    left_statement: <span class="kw-2">&amp;</span>AstNode,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>AstNode, Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;)&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">Some</span>(left_statement);
     <span class="kw">let </span><span class="kw-2">mut </span>access_sequence = Vec::new();
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(m), base, .. }) = current {
-        <span class="kw">if </span><span class="macro">matches!</span>(m.as_ref(), AstStatement::DirectAccess { .. }) {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
+        current.map(|it| it.get_stmt())
+    {
+        <span class="kw">if </span><span class="macro">matches!</span>(m.get_stmt(), AstStatement::DirectAccess { .. }) {
             access_sequence.insert(<span class="number">0</span>, m.as_ref());
             current = base.as_deref();
         } <span class="kw">else </span>{

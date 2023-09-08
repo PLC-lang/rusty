@@ -1477,6 +1477,54 @@
 <a href="#1477" id="1477">1477</a>
 <a href="#1478" id="1478">1478</a>
 <a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1490,7 +1538,7 @@
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
     },
-    literals::{Array, AstLiteral, StringValue},
+    literals::{AstLiteral, StringValue},
     pre_processor,
     provider::IdProvider,
 };
@@ -1679,7 +1727,7 @@
     <span class="kw">pub </span>type_name: String,
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>pou_type: PouType,
-    <span class="kw">pub </span>statements: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>statements: Vec&lt;AstNode&gt;,
     <span class="kw">pub </span>location: SourceLocation,
     <span class="kw">pub </span>name_location: SourceLocation,
     <span class="kw">pub </span>overriding: bool,
@@ -1828,8 +1876,8 @@
 </span><span class="kw">pub struct </span>Variable {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>data_type_declaration: DataTypeDeclaration,
-    <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
-    <span class="kw">pub </span>address: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+    <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+    <span class="kw">pub </span>address: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
     <span class="kw">pub </span>location: SourceLocation,
 }
 
@@ -1862,7 +1910,7 @@
     <span class="kw">fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation;
 }
 
-<span class="kw">impl </span>DiagnosticInfo <span class="kw">for </span>AstStatement {
+<span class="kw">impl </span>DiagnosticInfo <span class="kw">for </span>AstNode {
     <span class="kw">fn </span>get_description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="macro">format!</span>(<span class="string">&quot;{self:?}&quot;</span>)
     }
@@ -1915,7 +1963,7 @@
 <span class="attr">#[derive(PartialEq)]
 </span><span class="kw">pub struct </span>UserTypeDeclaration {
     <span class="kw">pub </span>data_type: DataType,
-    <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+    <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
     <span class="kw">pub </span>location: SourceLocation,
     <span class="doccomment">/// stores the original scope for compiler-generated types
     </span><span class="kw">pub </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -1940,16 +1988,16 @@
     EnumType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="comment">//maybe empty for inline enums
         </span>numeric_type: String,
-        elements: AstStatement, <span class="comment">//a single Ref, or an ExpressionList with Refs
+        elements: AstNode, <span class="comment">//a single Ref, or an ExpressionList with Refs
     </span>},
     SubRangeType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         referenced_type: String,
-        bounds: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+        bounds: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
     },
     ArrayType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-        bounds: AstStatement,
+        bounds: AstNode,
         referenced_type: Box&lt;DataTypeDeclaration&gt;,
         is_variable_length: bool,
     },
@@ -1960,7 +2008,7 @@
     StringType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         is_wide: bool, <span class="comment">//WSTRING
-        </span>size: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+        </span>size: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
     },
     VarArgs {
         referenced_type: <span class="prelude-ty">Option</span>&lt;Box&lt;DataTypeDeclaration&gt;&gt;,
@@ -2036,15 +2084,15 @@
     <span class="doccomment">/**
      * a, a.b
      */
-    </span>Member(Box&lt;AstStatement&gt;),
+    </span>Member(Box&lt;AstNode&gt;),
     <span class="doccomment">/**
      * a[3]
      */
-    </span>Index(Box&lt;AstStatement&gt;),
+    </span>Index(Box&lt;AstNode&gt;),
     <span class="doccomment">/**
      * Color#Red
      */
-    </span>Cast(Box&lt;AstStatement&gt;),
+    </span>Cast(Box&lt;AstNode&gt;),
     <span class="doccomment">/**
      * a^
      */
@@ -2056,175 +2104,90 @@
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
-</span><span class="kw">pub enum </span>AstStatement {
-    EmptyStatement {
-        location: SourceLocation,
-        id: AstId,
-    },
-    <span class="comment">// a placeholder that indicates a default value of a datatype
-    </span>DefaultValue {
-        location: SourceLocation,
-        id: AstId,
-    },
-    <span class="comment">// Literals
-    </span>Literal {
-        kind: AstLiteral,
-        location: SourceLocation,
-        id: AstId,
-    },
-
-    CastStatement {
-        target: Box&lt;AstStatement&gt;,
-        type_name: String,
-        location: SourceLocation,
-        id: AstId,
-    },
-    MultipliedStatement {
-        multiplier: u32,
-        element: Box&lt;AstStatement&gt;,
-        location: SourceLocation,
-        id: AstId,
-    },
-    <span class="comment">// Expressions
-    </span>ReferenceExpr {
-        access: ReferenceAccess,
-        base: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
-        id: AstId,
-        location: SourceLocation,
-    },
-    Identifier {
-        name: String,
-        location: SourceLocation,
-        id: AstId,
-    },
-    DirectAccess {
-        access: DirectAccessType,
-        index: Box&lt;AstStatement&gt;,
-        location: SourceLocation,
-        id: AstId,
-    },
-    HardwareAccess {
-        direction: HardwareAccessType,
-        access: DirectAccessType,
-        address: Vec&lt;AstStatement&gt;,
-        location: SourceLocation,
-        id: AstId,
-    },
-    BinaryExpression {
-        operator: Operator,
-        left: Box&lt;AstStatement&gt;,
-        right: Box&lt;AstStatement&gt;,
-        id: AstId,
-    },
-    UnaryExpression {
-        operator: Operator,
-        value: Box&lt;AstStatement&gt;,
-        location: SourceLocation,
-        id: AstId,
-    },
-    ExpressionList {
-        expressions: Vec&lt;AstStatement&gt;,
-        id: AstId,
-    },
-    RangeStatement {
-        id: AstId,
-        start: Box&lt;AstStatement&gt;,
-        end: Box&lt;AstStatement&gt;,
-    },
-    VlaRangeStatement {
-        id: AstId,
-    },
-    <span class="comment">// Assignment
-    </span>Assignment {
-        left: Box&lt;AstStatement&gt;,
-        right: Box&lt;AstStatement&gt;,
-        id: AstId,
-    },
-    <span class="comment">// OutputAssignment
-    </span>OutputAssignment {
-        left: Box&lt;AstStatement&gt;,
-        right: Box&lt;AstStatement&gt;,
-        id: AstId,
-    },
-    <span class="comment">//Call Statement
-    </span>CallStatement {
-        operator: Box&lt;AstStatement&gt;,
-        parameters: Box&lt;<span class="prelude-ty">Option</span>&lt;AstStatement&gt;&gt;,
-        location: SourceLocation,
-        id: AstId,
-    },
-    <span class="comment">// Control Statements
-    </span>ControlStatement {
-        kind: AstControlStatement,
-        location: SourceLocation,
-        id: AstId,
-    },
-
-    CaseCondition {
-        condition: Box&lt;AstStatement&gt;,
-        id: AstId,
-    },
-    ExitStatement {
-        location: SourceLocation,
-        id: AstId,
-    },
-    ContinueStatement {
-        location: SourceLocation,
-        id: AstId,
-    },
-    ReturnStatement {
-        location: SourceLocation,
-        id: AstId,
-    },
+</span><span class="kw">pub struct </span>AstNode {
+    <span class="kw">pub </span>stmt: AstStatement,
+    <span class="kw">pub </span>id: AstId,
+    <span class="kw">pub </span>location: SourceLocation,
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>AstStatement {
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub enum </span>AstStatement {
+    EmptyStatement(EmptyStatement),
+    <span class="comment">// a placeholder that indicates a default value of a datatype
+    </span>DefaultValue(DefaultValue),
+    <span class="comment">// Literals
+    </span>Literal(AstLiteral),
+    CastStatement(CastStatement),
+    MultipliedStatement(MultipliedStatement),
+    <span class="comment">// Expressions
+    </span>ReferenceExpr(ReferenceExpr),
+    Identifier(String),
+    DirectAccess(DirectAccess),
+    HardwareAccess(HardwareAccess),
+    BinaryExpression(BinaryExpression),
+    UnaryExpression(UnaryExpression),
+    ExpressionList(Vec&lt;AstNode&gt;),
+    RangeStatement(RangeStatement),
+    VlaRangeStatement,
+    <span class="comment">// Assignment
+    </span>Assignment(Assignment),
+    <span class="comment">// OutputAssignment
+    </span>OutputAssignment(Assignment),
+    <span class="comment">//Call Statement
+    </span>CallStatement(CallStatement),
+    <span class="comment">// Control Statements
+    </span>ControlStatement(AstControlStatement),
+
+    CaseCondition(Box&lt;AstNode&gt;),
+    ExitStatement(()),
+    ContinueStatement(()),
+    ReturnStatement(()),
+}
+
+<span class="kw">impl </span>Debug <span class="kw">for </span>AstNode {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::EmptyStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;EmptyStatement&quot;</span>).finish(),
-            AstStatement::DefaultValue { .. } =&gt; f.debug_struct(<span class="string">&quot;DefaultValue&quot;</span>).finish(),
-            AstStatement::Literal { kind, .. } =&gt; kind.fmt(f),
-            AstStatement::Identifier { name, .. } =&gt; {
-                f.debug_struct(<span class="string">&quot;Identifier&quot;</span>).field(<span class="string">&quot;name&quot;</span>, name).finish()
-            }
-            AstStatement::BinaryExpression { operator, left, right, .. } =&gt; f
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::EmptyStatement(..) =&gt; f.debug_struct(<span class="string">&quot;EmptyStatement&quot;</span>).finish(),
+            AstStatement::DefaultValue(..) =&gt; f.debug_struct(<span class="string">&quot;DefaultValue&quot;</span>).finish(),
+            AstStatement::Literal(literal) =&gt; literal.fmt(f),
+            AstStatement::Identifier(name) =&gt; f.debug_struct(<span class="string">&quot;Identifier&quot;</span>).field(<span class="string">&quot;name&quot;</span>, name).finish(),
+            AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) =&gt; f
                 .debug_struct(<span class="string">&quot;BinaryExpression&quot;</span>)
                 .field(<span class="string">&quot;operator&quot;</span>, operator)
                 .field(<span class="string">&quot;left&quot;</span>, left)
                 .field(<span class="string">&quot;right&quot;</span>, right)
                 .finish(),
-            AstStatement::UnaryExpression { operator, value, .. } =&gt; {
+            AstStatement::UnaryExpression(UnaryExpression { operator, value }) =&gt; {
                 f.debug_struct(<span class="string">&quot;UnaryExpression&quot;</span>).field(<span class="string">&quot;operator&quot;</span>, operator).field(<span class="string">&quot;value&quot;</span>, value).finish()
             }
-            AstStatement::ExpressionList { expressions, .. } =&gt; {
+            AstStatement::ExpressionList(expressions) =&gt; {
                 f.debug_struct(<span class="string">&quot;ExpressionList&quot;</span>).field(<span class="string">&quot;expressions&quot;</span>, expressions).finish()
             }
-            AstStatement::RangeStatement { start, end, .. } =&gt; {
+            AstStatement::RangeStatement(RangeStatement { start, end }) =&gt; {
                 f.debug_struct(<span class="string">&quot;RangeStatement&quot;</span>).field(<span class="string">&quot;start&quot;</span>, start).field(<span class="string">&quot;end&quot;</span>, end).finish()
             }
-            AstStatement::VlaRangeStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;VlaRangeStatement&quot;</span>).finish(),
-            AstStatement::Assignment { left, right, .. } =&gt; {
+            AstStatement::VlaRangeStatement =&gt; f.debug_struct(<span class="string">&quot;VlaRangeStatement&quot;</span>).finish(),
+            AstStatement::Assignment(Assignment { left, right }) =&gt; {
                 f.debug_struct(<span class="string">&quot;Assignment&quot;</span>).field(<span class="string">&quot;left&quot;</span>, left).field(<span class="string">&quot;right&quot;</span>, right).finish()
             }
-            AstStatement::OutputAssignment { left, right, .. } =&gt; {
+            AstStatement::OutputAssignment(Assignment { left, right }) =&gt; {
                 f.debug_struct(<span class="string">&quot;OutputAssignment&quot;</span>).field(<span class="string">&quot;left&quot;</span>, left).field(<span class="string">&quot;right&quot;</span>, right).finish()
             }
-            AstStatement::CallStatement { operator, parameters, .. } =&gt; f
+            AstStatement::CallStatement(CallStatement { operator, parameters }) =&gt; f
                 .debug_struct(<span class="string">&quot;CallStatement&quot;</span>)
                 .field(<span class="string">&quot;operator&quot;</span>, operator)
                 .field(<span class="string">&quot;parameters&quot;</span>, parameters)
                 .finish(),
-            AstStatement::ControlStatement {
-                kind: AstControlStatement::If(IfStatement { blocks, else_block, .. }),
-                ..
-            } =&gt; {
+            AstStatement::ControlStatement(
+                AstControlStatement::If(IfStatement { blocks, else_block, .. }),
+                ..,
+            ) =&gt; {
                 f.debug_struct(<span class="string">&quot;IfStatement&quot;</span>).field(<span class="string">&quot;blocks&quot;</span>, blocks).field(<span class="string">&quot;else_block&quot;</span>, else_block).finish()
             }
-            AstStatement::ControlStatement {
-                kind:
-                    AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
-                ..
-            } =&gt; f
+            AstStatement::ControlStatement(
+                AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
+                ..,
+            ) =&gt; f
                 .debug_struct(<span class="string">&quot;ForLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;counter&quot;</span>, counter)
                 .field(<span class="string">&quot;start&quot;</span>, start)
@@ -2232,155 +2195,106 @@
                 .field(<span class="string">&quot;by_step&quot;</span>, by_step)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::ControlStatement {
-                kind: AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
-                ..
-            } =&gt; f
+            AstStatement::ControlStatement(
+                AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
+                ..,
+            ) =&gt; f
                 .debug_struct(<span class="string">&quot;WhileLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;condition&quot;</span>, condition)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::ControlStatement {
-                kind: AstControlStatement::RepeatLoop(LoopStatement { condition, body, .. }),
+            AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
+                condition,
+                body,
                 ..
-            } =&gt; f
+            })) =&gt; f
                 .debug_struct(<span class="string">&quot;RepeatLoopStatement&quot;</span>)
                 .field(<span class="string">&quot;condition&quot;</span>, condition)
                 .field(<span class="string">&quot;body&quot;</span>, body)
                 .finish(),
-            AstStatement::ControlStatement {
-                kind: AstControlStatement::Case(CaseStatement { selector, case_blocks, else_block, .. }),
+            AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
+                selector,
+                case_blocks,
+                else_block,
                 ..
-            } =&gt; f
+            })) =&gt; f
                 .debug_struct(<span class="string">&quot;CaseStatement&quot;</span>)
                 .field(<span class="string">&quot;selector&quot;</span>, selector)
                 .field(<span class="string">&quot;case_blocks&quot;</span>, case_blocks)
                 .field(<span class="string">&quot;else_block&quot;</span>, else_block)
                 .finish(),
-            AstStatement::DirectAccess { access, index, .. } =&gt; {
+            AstStatement::DirectAccess(DirectAccess { access, index }) =&gt; {
                 f.debug_struct(<span class="string">&quot;DirectAccess&quot;</span>).field(<span class="string">&quot;access&quot;</span>, access).field(<span class="string">&quot;index&quot;</span>, index).finish()
             }
-            AstStatement::HardwareAccess { direction, access, address, location, .. } =&gt; f
+            AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) =&gt; f
                 .debug_struct(<span class="string">&quot;HardwareAccess&quot;</span>)
                 .field(<span class="string">&quot;direction&quot;</span>, direction)
                 .field(<span class="string">&quot;access&quot;</span>, access)
                 .field(<span class="string">&quot;address&quot;</span>, address)
-                .field(<span class="string">&quot;location&quot;</span>, location)
+                .field(<span class="string">&quot;location&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.location)
                 .finish(),
-            AstStatement::MultipliedStatement { multiplier, element, .. } =&gt; f
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) =&gt; f
                 .debug_struct(<span class="string">&quot;MultipliedStatement&quot;</span>)
                 .field(<span class="string">&quot;multiplier&quot;</span>, multiplier)
                 .field(<span class="string">&quot;element&quot;</span>, element)
                 .finish(),
-            AstStatement::CaseCondition { condition, .. } =&gt; {
+            AstStatement::CaseCondition(condition) =&gt; {
                 f.debug_struct(<span class="string">&quot;CaseCondition&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).finish()
             }
-            AstStatement::ReturnStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;ReturnStatement&quot;</span>).finish(),
-            AstStatement::ContinueStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;ContinueStatement&quot;</span>).finish(),
-            AstStatement::ExitStatement { .. } =&gt; f.debug_struct(<span class="string">&quot;ExitStatement&quot;</span>).finish(),
-            AstStatement::CastStatement { target, type_name, .. } =&gt; {
+            AstStatement::ReturnStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ReturnStatement&quot;</span>).finish(),
+            AstStatement::ContinueStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ContinueStatement&quot;</span>).finish(),
+            AstStatement::ExitStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ExitStatement&quot;</span>).finish(),
+            AstStatement::CastStatement(CastStatement { target, type_name }) =&gt; {
                 f.debug_struct(<span class="string">&quot;CastStatement&quot;</span>).field(<span class="string">&quot;type_name&quot;</span>, type_name).field(<span class="string">&quot;target&quot;</span>, target).finish()
             }
-            AstStatement::ReferenceExpr { access, base, .. } =&gt; {
+            AstStatement::ReferenceExpr(ReferenceExpr { access, base }) =&gt; {
                 f.debug_struct(<span class="string">&quot;ReferenceExpr&quot;</span>).field(<span class="string">&quot;kind&quot;</span>, access).field(<span class="string">&quot;base&quot;</span>, base).finish()
             }
         }
     }
 }
 
-<span class="kw">impl </span>AstStatement {
+<span class="kw">impl </span>AstNode {
     <span class="doccomment">///Returns the statement in a singleton list, or the contained statements if the statement is already a list
-    </span><span class="kw">pub fn </span>get_as_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
-        <span class="kw">if let </span>AstStatement::ExpressionList { expressions, .. } = <span class="self">self </span>{
-            expressions.iter().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>AstStatement&gt;&gt;()
+    </span><span class="kw">pub fn </span>get_as_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
+        <span class="kw">if let </span>AstStatement::ExpressionList(expressions) = <span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            expressions.iter().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;&gt;()
         } <span class="kw">else </span>{
             <span class="macro">vec!</span>[<span class="self">self</span>]
         }
     }
+
     <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::EmptyStatement { location, .. } =&gt; location.clone(),
-            AstStatement::DefaultValue { location, .. } =&gt; location.clone(),
-            AstStatement::Literal { location, .. } =&gt; location.clone(),
-            AstStatement::Identifier { location, .. } =&gt; location.clone(),
-            AstStatement::BinaryExpression { left, right, .. } =&gt; {
-                <span class="kw">let </span>left_loc = left.get_location();
-                <span class="kw">let </span>right_loc = right.get_location();
-                left_loc.span(<span class="kw-2">&amp;</span>right_loc)
-            }
-            AstStatement::UnaryExpression { location, .. } =&gt; location.clone(),
-            AstStatement::ExpressionList { expressions, .. } =&gt; {
-                <span class="kw">let </span>first =
-                    expressions.first().map_or_else(SourceLocation::undefined, |it| it.get_location());
-                <span class="kw">let </span>last = expressions.last().map_or_else(SourceLocation::undefined, |it| it.get_location());
-                first.span(<span class="kw-2">&amp;</span>last)
-            }
-            AstStatement::RangeStatement { start, end, .. } =&gt; {
-                <span class="kw">let </span>start_loc = start.get_location();
-                <span class="kw">let </span>end_loc = end.get_location();
-                start_loc.span(<span class="kw-2">&amp;</span>end_loc)
-            }
-            AstStatement::VlaRangeStatement { .. } =&gt; SourceLocation::undefined(), <span class="comment">// internal type only
-            </span>AstStatement::Assignment { left, right, .. } =&gt; {
-                <span class="kw">let </span>left_loc = left.get_location();
-                <span class="kw">let </span>right_loc = right.get_location();
-                left_loc.span(<span class="kw-2">&amp;</span>right_loc)
-            }
-            AstStatement::OutputAssignment { left, right, .. } =&gt; {
-                <span class="kw">let </span>left_loc = left.get_location();
-                <span class="kw">let </span>right_loc = right.get_location();
-                left_loc.span(<span class="kw-2">&amp;</span>right_loc)
-            }
-            AstStatement::CallStatement { location, .. } =&gt; location.clone(),
-            AstStatement::ControlStatement { location, .. } =&gt; location.clone(),
-            AstStatement::DirectAccess { location, .. } =&gt; location.clone(),
-            AstStatement::HardwareAccess { location, .. } =&gt; location.clone(),
-            AstStatement::MultipliedStatement { location, .. } =&gt; location.clone(),
-            AstStatement::CaseCondition { condition, .. } =&gt; condition.get_location(),
-            AstStatement::ReturnStatement { location, .. } =&gt; location.clone(),
-            AstStatement::ContinueStatement { location, .. } =&gt; location.clone(),
-            AstStatement::ExitStatement { location, .. } =&gt; location.clone(),
-            AstStatement::CastStatement { location, .. } =&gt; location.clone(),
-            AstStatement::ReferenceExpr { location, .. } =&gt; location.clone(),
-        }
+        <span class="self">self</span>.location.clone()
+    }
+
+    <span class="kw">pub fn </span>set_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: SourceLocation) {
+        <span class="self">self</span>.location = location;
     }
 
     <span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstId {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::EmptyStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::DefaultValue { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::Literal { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::MultipliedStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::Identifier { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::DirectAccess { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::HardwareAccess { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::BinaryExpression { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::UnaryExpression { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ExpressionList { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::RangeStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::VlaRangeStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::Assignment { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::OutputAssignment { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::CallStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ControlStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::CaseCondition { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ReturnStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ContinueStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ExitStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::CastStatement { id, .. } =&gt; <span class="kw-2">*</span>id,
-            AstStatement::ReferenceExpr { id, .. } =&gt; <span class="kw-2">*</span>id,
-        }
+        <span class="self">self</span>.id
+    }
+
+    <span class="kw">pub fn </span>get_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AstStatement {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.stmt
     }
 
     <span class="doccomment">/// Returns true if the current statement has a direct access.
     </span><span class="kw">pub fn </span>has_direct_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), base, .. }
-            | AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(reference), base, .. } =&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), base },
+                ..,
+            )
+            | AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Cast(reference), base },
+                ..,
+            ) =&gt; {
                 reference.has_direct_access()
                     || base.as_ref().map(|it| it.has_direct_access()).unwrap_or(<span class="bool-val">false</span>)
             }
-            AstStatement::DirectAccess { .. } =&gt; <span class="bool-val">true</span>,
+            AstStatement::DirectAccess(..) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2389,23 +2303,22 @@
     /// prefixed with a type-cast (e.g. INT#23)
     </span><span class="kw">pub fn </span>is_cast_prefix_eligible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// TODO: figure out a better name for this...
-        </span><span class="kw">match </span><span class="self">self </span>{
-            AstStatement::Literal { kind, .. } =&gt; kind.is_cast_prefix_eligible(),
-            AstStatement::Identifier { .. } =&gt; <span class="bool-val">true</span>,
+        </span><span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::Literal(kind, ..) =&gt; kind.is_cast_prefix_eligible(),
+            AstStatement::Identifier(..) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if the current statement is a flat reference (e.g. `a`)
     </span><span class="kw">pub fn </span>is_flat_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::Identifier { .. }) || {
-            <span class="kw">if let </span>AstStatement::ReferenceExpr {
-                access: ReferenceAccess::Member(reference),
-                base: <span class="prelude-val">None</span>,
-                ..
-            } = <span class="self">self
-            </span>{
-                <span class="macro">matches!</span>(reference.as_ref(), AstStatement::Identifier { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::Identifier(..)) || {
+            <span class="kw">if let </span>AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), base: <span class="prelude-val">None </span>},
+                ..,
+            ) = <span class="kw-2">&amp;</span><span class="self">self</span>.stmt
+            {
+                <span class="macro">matches!</span>(reference.as_ref().stmt, AstStatement::Identifier(..))
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -2414,37 +2327,50 @@
 
     <span class="doccomment">/// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     </span><span class="kw">pub fn </span>get_flat_reference_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::ReferenceExpr { access: ReferenceAccess::Member(reference), .. } =&gt; {
-                <span class="kw">if let </span>AstStatement::Identifier { name, .. } = reference.as_ref() {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) =&gt; {
+                <span class="kw">if let </span>AstStatement::Identifier(name, ..) = <span class="kw-2">&amp;</span>reference.as_ref().stmt {
                     <span class="prelude-val">Some</span>(name)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
-            AstStatement::Identifier { name, .. } =&gt; <span class="prelude-val">Some</span>(name),
+            AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(name),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
+    <span class="kw">pub fn </span>is_empty_statement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::EmptyStatement(..))
+    }
+
     <span class="kw">pub fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::ReferenceExpr { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ReferenceExpr(..))
     }
 
     <span class="kw">pub fn </span>is_hardware_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::HardwareAccess { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::HardwareAccess(..))
     }
 
     <span class="kw">pub fn </span>is_array_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. })
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.stmt,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. }, ..)
+        )
     }
 
     <span class="kw">pub fn </span>is_pointer_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. })
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.stmt,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
+        )
     }
 
     <span class="kw">pub fn </span>is_expression_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::ExpressionList { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ExpressionList { .. })
     }
 
     <span class="kw">pub fn </span>can_be_assigned_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2456,30 +2382,39 @@
             || <span class="self">self</span>.is_hardware_access()
     }
 
-    <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        AstStatement::Literal { kind, id, location }
+    <span class="kw">pub fn </span>new(stmt: AstStatement, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode { stmt, id, location }
     }
 
-    <span class="kw">pub fn </span>new_integer(value: i128, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        AstStatement::Literal { kind: AstLiteral::Integer(value), location, id }
+    <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode::new(AstStatement::Literal(kind), id, location)
     }
 
-    <span class="kw">pub fn </span>new_real(value: String, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        AstStatement::Literal { kind: AstLiteral::Real(value), location, id }
+    <span class="kw">pub fn </span>new_integer(value: i128, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location)
     }
 
-    <span class="kw">pub fn </span>new_string(value: <span class="kw">impl </span>Into&lt;String&gt;, is_wide: bool, id: AstId, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        AstStatement::Literal {
-            kind: AstLiteral::String(StringValue { value: value.into(), is_wide }),
-            location,
+    <span class="kw">pub fn </span>new_real(value: String, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode::new(AstStatement::Literal(AstLiteral::Real(value)), id, location)
+    }
+
+    <span class="kw">pub fn </span>new_string(
+        value: <span class="kw">impl </span>Into&lt;String&gt;,
+        is_wide: bool,
+        id: AstId,
+        location: SourceLocation,
+    ) -&gt; AstNode {
+        AstNode::new(
+            AstStatement::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
             id,
-        }
+            location,
+        )
     }
 
     <span class="doccomment">/// Returns true if the given token is an integer or float and zero.
     </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::Literal { kind, .. } =&gt; <span class="kw">match </span>kind {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::Literal(kind, ..) =&gt; <span class="kw">match </span>kind {
                 AstLiteral::Integer(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
                 AstLiteral::Real(val) =&gt; val == <span class="string">&quot;0&quot; </span>|| val == <span class="string">&quot;0.0&quot;</span>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
@@ -2490,75 +2425,24 @@
     }
 
     <span class="kw">pub fn </span>is_binary_expression(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::BinaryExpression { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::BinaryExpression(..))
     }
 
     <span class="kw">pub fn </span>is_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::Literal { kind: AstLiteral::Array(..), .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::Literal(AstLiteral::Array(..), ..))
     }
 
     <span class="kw">pub fn </span>is_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::Literal { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::Literal(..))
     }
 
-    <span class="kw">pub fn </span>set_location(<span class="self">self</span>, new_location: SourceLocation) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self">self </span>{
-            AstStatement::EmptyStatement { location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::EmptyStatement { location: new_location, id }
-            }
-            AstStatement::DefaultValue { location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::DefaultValue { location: new_location, id }
-            }
-            AstStatement::Literal { kind, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::Literal { kind, location: new_location, id }
-            }
-            AstStatement::CastStatement { target, type_name, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::CastStatement { target, type_name, location: new_location, id }
-            }
-            AstStatement::MultipliedStatement { multiplier, element, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::MultipliedStatement { multiplier, element, location: new_location, id }
-            }
-            AstStatement::DirectAccess { access, index, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::DirectAccess { access, index, location: new_location, id }
-            }
-            AstStatement::HardwareAccess { direction, access, address, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::HardwareAccess { direction, access, address, location: new_location, id }
-            }
-            AstStatement::UnaryExpression { operator, value, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::UnaryExpression { operator, value, location: new_location, id }
-            }
-            AstStatement::CallStatement { operator, parameters, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::CallStatement { operator, parameters, location: new_location, id }
-            }
-            AstStatement::ControlStatement { kind, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::ControlStatement { kind, location: new_location, id }
-            }
-            AstStatement::ExitStatement { location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::ExitStatement { location: new_location, id }
-            }
-            AstStatement::ContinueStatement { location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::ContinueStatement { location: new_location, id }
-            }
-            AstStatement::ReturnStatement { location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::ReturnStatement { location: new_location, id }
-            }
-            AstStatement::ReferenceExpr { access, base, id, location: <span class="kw">_ </span>} =&gt; {
-                <span class="self">Self</span>::ReferenceExpr { access, base, id, location: new_location }
-            }
-            AstStatement::Identifier { name, location: <span class="kw">_</span>, id } =&gt; {
-                AstStatement::Identifier { name, location: new_location, id }
-            }
-            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
-        }
+    <span class="kw">pub fn </span>is_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::Identifier(..))
     }
 
-    <span class="kw">pub fn </span>get_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Array&gt; {
-        <span class="kw">if let </span>AstStatement::Literal { kind: AstLiteral::Array(array), .. } = <span class="self">self </span>{
-            <span class="kw">return </span><span class="prelude-val">Some</span>(array);
-        }
-
-        <span class="prelude-val">None
-    </span>}
+    <span class="kw">pub fn </span>is_default_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::DefaultValue { .. })
+    }
 }
 
 <span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -2599,19 +2483,19 @@
 
 <span class="doccomment">/// enum_elements should be the statement between then enum&#39;s brackets ( )
 /// e.g. x : ( this, that, etc)
-</span><span class="kw">pub fn </span>get_enum_element_names(enum_elements: <span class="kw-2">&amp;</span>AstStatement) -&gt; Vec&lt;String&gt; {
+</span><span class="kw">pub fn </span>get_enum_element_names(enum_elements: <span class="kw-2">&amp;</span>AstNode) -&gt; Vec&lt;String&gt; {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| <span class="macro">matches!</span>(it, AstStatement::Identifier { .. } | AstStatement::Assignment { .. }))
+        .filter(|it| <span class="macro">matches!</span>(it.stmt, AstStatement::Identifier(..) | AstStatement::Assignment(..)))
         .map(get_enum_element_name)
         .collect()
 }
 
 <span class="doccomment">/// expects a Reference or an Assignment
-</span><span class="kw">pub fn </span>get_enum_element_name(enum_element: <span class="kw-2">&amp;</span>AstStatement) -&gt; String {
-    <span class="kw">match </span>enum_element {
-        AstStatement::Identifier { name, .. } =&gt; name.to_string(),
-        AstStatement::Assignment { left, .. } =&gt; left
+</span><span class="kw">pub fn </span>get_enum_element_name(enum_element: <span class="kw-2">&amp;</span>AstNode) -&gt; String {
+    <span class="kw">match </span><span class="kw-2">&amp;</span>enum_element.stmt {
+        AstStatement::Identifier(name, ..) =&gt; name.to_string(),
+        AstStatement::Assignment(Assignment { left, .. }, ..) =&gt; left
             .get_flat_reference_name()
             .map(|it| it.to_string())
             .expect(<span class="string">&quot;left of assignment not a reference&quot;</span>),
@@ -2623,12 +2507,12 @@
 
 <span class="doccomment">/// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
-</span><span class="kw">pub fn </span>flatten_expression_list(list: <span class="kw-2">&amp;</span>AstStatement) -&gt; Vec&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
-    <span class="kw">match </span>list {
-        AstStatement::ExpressionList { expressions, .. } =&gt; {
+</span><span class="kw">pub fn </span>flatten_expression_list(list: <span class="kw-2">&amp;</span>AstNode) -&gt; Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
+    <span class="kw">match </span><span class="kw-2">&amp;</span>list.stmt {
+        AstStatement::ExpressionList(expressions, ..) =&gt; {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
-        AstStatement::MultipliedStatement { multiplier, element, .. } =&gt; {
+        AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) =&gt; {
             std::iter::repeat(flatten_expression_list(element)).take(<span class="kw-2">*</span>multiplier <span class="kw">as </span>usize).flatten().collect()
         }
         <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[list],
@@ -2696,19 +2580,66 @@
 <span class="kw">pub struct </span>AstFactory {}
 
 <span class="kw">impl </span>AstFactory {
-    <span class="kw">pub fn </span>empty_statement(location: SourceLocation, id: AstId) -&gt; AstStatement {
-        AstStatement::EmptyStatement { location, id }
+    <span class="kw">pub fn </span>create_empty_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::EmptyStatement(EmptyStatement {}), location, id }
+        <span class="comment">// AstStatement::EmptyStatement (  EmptyStatement {}, location, id }
+    </span>}
+
+    <span class="kw">pub fn </span>create_return_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::ReturnStatement(()), location, id }
+    }
+
+    <span class="kw">pub fn </span>create_exit_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::ExitStatement(()), location, id }
+    }
+
+    <span class="kw">pub fn </span>create_continue_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::ContinueStatement(()), location, id }
+    }
+
+    <span class="kw">pub fn </span>create_case_condition(result: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::CaseCondition(Box::new(result)), id, location }
+    }
+
+    <span class="kw">pub fn </span>create_vla_range_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::VlaRangeStatement, id, location }
+    }
+
+    <span class="kw">pub fn </span>create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::Literal(kind), id, location }
+    }
+
+    <span class="kw">pub fn </span>create_hardware_access(
+        access: DirectAccessType,
+        direction: HardwareAccessType,
+        address: Vec&lt;AstNode&gt;,
+        location: SourceLocation,
+        id: usize,
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
+            location,
+            id,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_default_value(location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::DefaultValue(DefaultValue {}), location, id }
+    }
+
+    <span class="kw">pub fn </span>create_expression_list(expressions: Vec&lt;AstNode&gt;, location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
     }
 
     <span class="doccomment">/// creates a new if-statement
     </span><span class="kw">pub fn </span>create_if_statement(
         blocks: Vec&lt;ConditionalBlock&gt;,
-        else_block: Vec&lt;AstStatement&gt;,
+        else_block: Vec&lt;AstNode&gt;,
         location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::If(IfStatement { blocks, else_block }),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, else_block })),
             location,
             id,
         }
@@ -2716,22 +2647,22 @@
 
     <span class="doccomment">///  creates a new for loop statement
     </span><span class="kw">pub fn </span>create_for_loop(
-        counter: AstStatement,
-        start: AstStatement,
-        end: AstStatement,
-        by_step: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
-        body: Vec&lt;AstStatement&gt;,
+        counter: AstNode,
+        start: AstNode,
+        end: AstNode,
+        by_step: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+        body: Vec&lt;AstNode&gt;,
         location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::ForLoop(ForLoopStatement {
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
                 counter: Box::new(counter),
                 start: Box::new(start),
                 end: Box::new(end),
                 by_step: by_step.map(Box::new),
                 body,
-            }),
+            })),
             location,
             id,
         }
@@ -2739,13 +2670,16 @@
 
     <span class="doccomment">/// creates a new while statement
     </span><span class="kw">pub fn </span>create_while_statement(
-        condition: AstStatement,
-        body: Vec&lt;AstStatement&gt;,
+        condition: AstNode,
+        body: Vec&lt;AstNode&gt;,
         location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::WhileLoop(LoopStatement { condition: Box::new(condition), body }),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
+                condition: Box::new(condition),
+                body,
+            })),
             id,
             location,
         }
@@ -2753,13 +2687,16 @@
 
     <span class="doccomment">/// creates a new repeat-statement
     </span><span class="kw">pub fn </span>create_repeat_statement(
-        condition: AstStatement,
-        body: Vec&lt;AstStatement&gt;,
+        condition: AstNode,
+        body: Vec&lt;AstNode&gt;,
         location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::RepeatLoop(LoopStatement { condition: Box::new(condition), body }),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
+                condition: Box::new(condition),
+                body,
+            })),
             id,
             location,
         }
@@ -2767,96 +2704,135 @@
 
     <span class="doccomment">/// creates a new case-statement
     </span><span class="kw">pub fn </span>create_case_statement(
-        selector: AstStatement,
+        selector: AstNode,
         case_blocks: Vec&lt;ConditionalBlock&gt;,
-        else_block: Vec&lt;AstStatement&gt;,
+        else_block: Vec&lt;AstNode&gt;,
         location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::ControlStatement {
-            kind: AstControlStatement::Case(CaseStatement {
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
                 selector: Box::new(selector),
                 case_blocks,
                 else_block,
-            }),
+            })),
             id,
             location,
         }
     }
 
     <span class="doccomment">/// creates an or-expression
-    </span><span class="kw">pub fn </span>create_or_expression(left: AstStatement, right: AstStatement) -&gt; AstStatement {
-        AstStatement::BinaryExpression {
-            id: left.get_id(),
-            left: Box::new(left),
-            right: Box::new(right),
-            operator: Operator::Or,
+    </span><span class="kw">pub fn </span>create_or_expression(left: AstNode, right: AstNode) -&gt; AstNode {
+        <span class="kw">let </span>id = left.get_id();
+        <span class="kw">let </span>location = left.get_location().span(<span class="kw-2">&amp;</span>right.get_location());
+        AstNode {
+            stmt: AstStatement::BinaryExpression(BinaryExpression {
+                left: Box::new(left),
+                right: Box::new(right),
+                operator: Operator::Or,
+            }),
+            id,
+            location,
         }
     }
 
     <span class="doccomment">/// creates a not-expression
-    </span><span class="kw">pub fn </span>create_not_expression(operator: AstStatement, location: SourceLocation) -&gt; AstStatement {
-        AstStatement::UnaryExpression {
-            id: operator.get_id(),
-            value: Box::new(operator),
+    </span><span class="kw">pub fn </span>create_not_expression(operator: AstNode, location: SourceLocation) -&gt; AstNode {
+        <span class="kw">let </span>id = operator.get_id();
+        AstNode {
+            stmt: AstStatement::UnaryExpression(UnaryExpression {
+                value: Box::new(operator),
+                operator: Operator::Not,
+            }),
+            id,
             location,
-            operator: Operator::Not,
         }
     }
 
     <span class="doccomment">/// creates a new Identifier
-    </span><span class="kw">pub fn </span>create_identifier(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation, id: AstId) -&gt; AstStatement {
-        AstStatement::Identifier { id, location: location.clone(), name: name.to_string() }
+    </span><span class="kw">pub fn </span>create_identifier(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
     }
 
-    <span class="kw">pub fn </span>create_member_reference(
-        member: AstStatement,
-        base: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+    <span class="kw">pub fn </span>create_unary_expression(
+        operator: Operator,
+        value: AstNode,
+        location: SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
+            location,
+            id,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_assignment(left: AstNode, right: AstNode, id: AstId) -&gt; AstNode {
+        <span class="kw">let </span>location = left.location.span(<span class="kw-2">&amp;</span>right.location);
+        AstNode {
+            stmt: AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+            id,
+            location,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_output_assignment(left: AstNode, right: AstNode, id: AstId) -&gt; AstNode {
+        <span class="kw">let </span>location = left.location.span(<span class="kw-2">&amp;</span>right.location);
+        AstNode::new(
+            AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+            id,
+            location,
+        )
+    }
+
+    <span class="kw">pub fn </span>create_member_reference(member: AstNode, base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;, id: AstId) -&gt; AstNode {
         <span class="kw">let </span>location = base
             .as_ref()
             .map(|it| it.get_location().span(<span class="kw-2">&amp;</span>member.get_location()))
             .unwrap_or_else(|| member.get_location());
-        AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Member(Box::new(member)),
-            base: base.map(Box::new),
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(Box::new(member)),
+                base: base.map(Box::new),
+            }),
             id,
             location,
         }
     }
 
     <span class="kw">pub fn </span>create_index_reference(
-        index: AstStatement,
-        base: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+        index: AstNode,
+        base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
         id: AstId,
         location: SourceLocation,
-    ) -&gt; AstStatement {
-        AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Index(Box::new(index)),
-            base: base.map(Box::new),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Index(Box::new(index)),
+                base: base.map(Box::new),
+            }),
             id,
             location,
         }
     }
 
-    <span class="kw">pub fn </span>create_address_of_reference(
-        base: AstStatement,
-        id: AstId,
-        location: SourceLocation,
-    ) -&gt; AstStatement {
-        AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Address,
-            base: <span class="prelude-val">Some</span>(Box::new(base)),
+    <span class="kw">pub fn </span>create_address_of_reference(base: AstNode, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Address,
+                base: <span class="prelude-val">Some</span>(Box::new(base)),
+            }),
             id,
             location,
         }
     }
 
-    <span class="kw">pub fn </span>create_deref_reference(base: AstStatement, id: AstId, location: SourceLocation) -&gt; AstStatement {
-        AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Deref,
-            base: <span class="prelude-val">Some</span>(Box::new(base)),
+    <span class="kw">pub fn </span>create_deref_reference(base: AstNode, id: AstId, location: SourceLocation) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Deref,
+                base: <span class="prelude-val">Some</span>(Box::new(base)),
+            }),
             id,
             location,
         }
@@ -2864,78 +2840,132 @@
 
     <span class="kw">pub fn </span>create_direct_access(
         access: DirectAccessType,
-        index: AstStatement,
+        index: AstNode,
         id: AstId,
         location: SourceLocation,
-    ) -&gt; AstStatement {
-        AstStatement::DirectAccess { access, index: Box::new(index), location, id }
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::DirectAccess(DirectAccess { access, index: Box::new(index) }),
+            location,
+            id,
+        }
     }
 
     <span class="doccomment">/// creates a new binary statement
-    </span><span class="kw">pub fn </span>create_binary_expression(
-        left: AstStatement,
-        operator: Operator,
-        right: AstStatement,
-        id: AstId,
-    ) -&gt; AstStatement {
-        AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
+    </span><span class="kw">pub fn </span>create_binary_expression(left: AstNode, operator: Operator, right: AstNode, id: AstId) -&gt; AstNode {
+        <span class="kw">let </span>location = left.location.span(<span class="kw-2">&amp;</span>right.location);
+        AstNode {
+            stmt: AstStatement::BinaryExpression(BinaryExpression {
+                left: Box::new(left),
+                operator,
+                right: Box::new(right),
+            }),
+            id,
+            location,
+        }
     }
 
     <span class="doccomment">/// creates a new cast statement
     </span><span class="kw">pub fn </span>create_cast_statement(
-        type_name: AstStatement,
-        stmt: AstStatement,
+        type_name: AstNode,
+        stmt: AstNode,
         location: <span class="kw-2">&amp;</span>SourceLocation,
         id: AstId,
-    ) -&gt; AstStatement {
+    ) -&gt; AstNode {
         <span class="kw">let </span>new_location = location.span(<span class="kw-2">&amp;</span>stmt.get_location());
-        AstStatement::ReferenceExpr {
-            access: ReferenceAccess::Cast(Box::new(stmt)),
-            base: <span class="prelude-val">Some</span>(Box::new(type_name)),
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Cast(Box::new(stmt)),
+                base: <span class="prelude-val">Some</span>(Box::new(type_name)),
+            }),
             id,
             location: new_location,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_call_statement(
+        operator: AstNode,
+        parameters: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+        id: usize,
+        location: SourceLocation,
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
+                operator: Box::new(operator),
+                parameters: parameters.map(Box::new),
+            }),
+            location,
+            id,
         }
     }
 
     <span class="doccomment">/// creates a new call statement to the given function and parameters
     </span><span class="kw">pub fn </span>create_call_to(
         function_name: String,
-        parameters: Vec&lt;AstStatement&gt;,
+        parameters: Vec&lt;AstNode&gt;,
         id: usize,
         parameter_list_id: usize,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; AstStatement {
-        AstStatement::CallStatement {
-            operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_identifier(<span class="kw-2">&amp;</span>function_name, location, id),
-                <span class="prelude-val">None</span>,
-                id,
-            )),
-            parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
-                expressions: parameters,
-                id: parameter_list_id,
-            })),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
+                operator: Box::new(AstFactory::create_member_reference(
+                    AstFactory::create_identifier(<span class="kw-2">&amp;</span>function_name, location, id),
+                    <span class="prelude-val">None</span>,
+                    id,
+                )),
+                parameters: <span class="prelude-val">Some</span>(Box::new(AstNode::new(
+                    AstStatement::ExpressionList(parameters),
+                    parameter_list_id,
+                    SourceLocation::undefined(), <span class="comment">//TODO: get real location
+                </span>))),
+            }),
             location: location.clone(),
             id,
         }
     }
 
+    <span class="kw">pub fn </span>create_multiplied_statement(
+        multiplier: u32,
+        element: AstNode,
+        location: SourceLocation,
+        id: AstId,
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::MultipliedStatement(MultipliedStatement {
+                multiplier,
+                element: Box::new(element),
+            }),
+            location,
+            id,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_range_statement(start: AstNode, end: AstNode, id: AstId) -&gt; AstNode {
+        <span class="kw">let </span>location = start.location.span(<span class="kw-2">&amp;</span>end.location);
+        <span class="kw">let </span>data = RangeStatement { start: Box::new(start), end: Box::new(end) };
+        AstNode { stmt: AstStatement::RangeStatement(data), id, location }
+    }
+
     <span class="kw">pub fn </span>create_call_to_with_ids(
         function_name: <span class="kw-2">&amp;</span>str,
-        parameters: Vec&lt;AstStatement&gt;,
+        parameters: Vec&lt;AstNode&gt;,
         location: <span class="kw-2">&amp;</span>SourceLocation,
         <span class="kw-2">mut </span>id_provider: IdProvider,
-    ) -&gt; AstStatement {
-        AstStatement::CallStatement {
-            operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_identifier(function_name, location, id_provider.next_id()),
-                <span class="prelude-val">None</span>,
-                id_provider.next_id(),
-            )),
-            parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
-                expressions: parameters,
-                id: id_provider.next_id(),
-            })),
+    ) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::CallStatement(CallStatement {
+                operator: Box::new(AstFactory::create_member_reference(
+                    AstFactory::create_identifier(function_name, location, id_provider.next_id()),
+                    <span class="prelude-val">None</span>,
+                    id_provider.next_id(),
+                )),
+                parameters: <span class="prelude-val">Some</span>(Box::new(AstFactory::create_expression_list(
+                    parameters,
+                    SourceLocation::undefined(),
+                    id_provider.next_id(),
+                ))),
+            }),
             location: location.clone(),
             id: id_provider.next_id(),
         }
@@ -2943,11 +2973,11 @@
 
     <span class="kw">pub fn </span>create_call_to_check_function_ast(
         check_function_name: <span class="kw-2">&amp;</span>str,
-        parameter: AstStatement,
-        sub_range: Range&lt;AstStatement&gt;,
+        parameter: AstNode,
+        sub_range: Range&lt;AstNode&gt;,
         location: <span class="kw-2">&amp;</span>SourceLocation,
         id_provider: IdProvider,
-    ) -&gt; AstStatement {
+    ) -&gt; AstNode {
         AstFactory::create_call_to_with_ids(
             check_function_name,
             <span class="macro">vec!</span>[parameter, sub_range.start, sub_range.end],
@@ -2955,5 +2985,71 @@
             id_provider,
         )
     }
+}
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>EmptyStatement {}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>DefaultValue {}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>CastStatement {
+    <span class="kw">pub </span>target: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>type_name: String,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>MultipliedStatement {
+    <span class="kw">pub </span>multiplier: u32,
+    <span class="kw">pub </span>element: Box&lt;AstNode&gt;,
+}
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>ReferenceExpr {
+    <span class="kw">pub </span>access: ReferenceAccess,
+    <span class="kw">pub </span>base: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>DirectAccess {
+    <span class="kw">pub </span>access: DirectAccessType,
+    <span class="kw">pub </span>index: Box&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>HardwareAccess {
+    <span class="kw">pub </span>direction: HardwareAccessType,
+    <span class="kw">pub </span>access: DirectAccessType,
+    <span class="kw">pub </span>address: Vec&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>BinaryExpression {
+    <span class="kw">pub </span>operator: Operator,
+    <span class="kw">pub </span>left: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>right: Box&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>UnaryExpression {
+    <span class="kw">pub </span>operator: Operator,
+    <span class="kw">pub </span>value: Box&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>RangeStatement {
+    <span class="kw">pub </span>start: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>end: Box&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>Assignment {
+    <span class="kw">pub </span>left: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>right: Box&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>CallStatement {
+    <span class="kw">pub </span>operator: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>parameters: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
 }
 </code></pre></div></section></main></body></html>

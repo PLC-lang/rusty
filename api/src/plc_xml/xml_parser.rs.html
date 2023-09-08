@@ -166,8 +166,9 @@
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::{
-    ast::{AstId, AstStatement, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType},
+    ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType},
     provider::IdProvider,
 };
 <span class="kw">use </span>plc::{lexer, parser::expressions_parser::parse_expression};
@@ -287,14 +288,15 @@
         ))
     }
 
-    <span class="kw">fn </span>parse_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>str, local_id: usize, execution_order: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; AstStatement {
-        <span class="kw">let </span>exp = parse_expression(<span class="kw-2">&amp;mut </span>lexer::lex_with_ids(
+    <span class="kw">fn </span>parse_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>str, local_id: usize, execution_order: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; AstNode {
+        <span class="kw">let </span><span class="kw-2">mut </span>exp = parse_expression(<span class="kw-2">&amp;mut </span>lexer::lex_with_ids(
             html_escape::decode_html_entities_to_string(expr, <span class="kw-2">&amp;mut </span>String::new()),
             <span class="self">self</span>.id_provider.clone(),
             <span class="self">self</span>.range_factory.clone(),
         ));
         <span class="kw">let </span>loc = exp.get_location();
-        exp.set_location(<span class="self">self</span>.range_factory.create_block_location(local_id, execution_order).span(<span class="kw-2">&amp;</span>loc))
+        exp.set_location(<span class="self">self</span>.range_factory.create_block_location(local_id, execution_order).span(<span class="kw-2">&amp;</span>loc));
+        exp
     }
 
     <span class="kw">fn </span>parse_model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Implementation&gt; {

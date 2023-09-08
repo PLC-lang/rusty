@@ -1553,6 +1553,8 @@
 <a href="#1553" id="1553">1553</a>
 <a href="#1554" id="1554">1554</a>
 <a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -1562,7 +1564,8 @@
 <span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{
-    AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType, TypeNature,
+    AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+    TypeNature,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -1620,12 +1623,13 @@
 }
 
 <span class="kw">impl </span>HardwareBinding {
-    <span class="kw">fn </span>from_statement(index: <span class="kw-2">&amp;mut </span>Index, it: <span class="kw-2">&amp;</span>AstStatement, scope: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if let </span>AstStatement::HardwareAccess { access, address, direction, location, .. } = it {
+    <span class="kw">fn </span>from_statement(index: <span class="kw-2">&amp;mut </span>Index, it: <span class="kw-2">&amp;</span>AstNode, scope: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span>AstStatement::HardwareAccess(data) = it.get_stmt() {
             <span class="prelude-val">Some</span>(HardwareBinding {
-                access: <span class="kw-2">*</span>access,
-                direction: <span class="kw-2">*</span>direction,
-                entries: address
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
                     .iter()
                     .map(|expr| {
                         index.constant_expressions.add_constant_expression(
@@ -1635,7 +1639,7 @@
                         )
                     })
                     .collect(),
-                location: location.clone(),
+                location: it.get_location(),
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -2772,7 +2776,7 @@
         <span class="self">self</span>.get_types().get(<span class="kw-2">&amp;</span>type_name.to_lowercase()).unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;{type_name} not found&quot;</span>))
     }
 
-    <span class="kw">pub fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    <span class="kw">pub fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="self">self</span>.get_const_expressions().maybe_get_constant_statement(id)
     }
 
@@ -2790,7 +2794,7 @@
     <span class="doccomment">/// Returns the initioal value registered for the given data_type.
     /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
     /// this method tries to obtain the default value from the referenced type.
-    </span><span class="kw">pub fn </span>get_initial_value_for_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    </span><span class="kw">pub fn </span>get_initial_value_for_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>dt = <span class="self">self</span>.type_index.find_type(type_name);
         <span class="kw">let </span><span class="kw-2">mut </span>initial_value = dt.and_then(|it| it.initial_value);
 

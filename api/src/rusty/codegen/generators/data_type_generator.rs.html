@@ -482,7 +482,7 @@
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-<span class="kw">use </span>plc_ast::ast::AstStatement;
+<span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement};
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_diagnostics::errno::ErrNo;
@@ -775,12 +775,12 @@
             }
             DataTypeInformation::Array { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
-                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::Literal { kind: AstLiteral::Array { .. }, .. }),
+                |stmt| <span class="macro">matches!</span>(stmt.stmt, AstStatement::Literal(AstLiteral::Array { .. })),
                 <span class="string">&quot;LiteralArray&quot;</span>,
             ),
             DataTypeInformation::String { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
-                |stmt| <span class="macro">matches!</span>(stmt, AstStatement::Literal { kind: AstLiteral::String { .. }, .. }),
+                |stmt| <span class="macro">matches!</span>(stmt.stmt, AstStatement::Literal(AstLiteral::String { .. })),
                 <span class="string">&quot;LiteralString&quot;</span>,
             ),
             DataTypeInformation::SubRange { referenced_type, .. } =&gt; {
@@ -829,7 +829,7 @@
     </span><span class="kw">fn </span>generate_initializer(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         qualified_name: <span class="kw-2">&amp;</span>str,
-        initializer: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+        initializer: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
         data_type_name: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = initializer {
@@ -854,7 +854,7 @@
     </span><span class="kw">fn </span>generate_array_initializer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data_type: <span class="kw-2">&amp;</span>DataType,
-        predicate: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AstStatement) -&gt; bool,
+        predicate: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AstNode) -&gt; bool,
         expected_ast: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) =

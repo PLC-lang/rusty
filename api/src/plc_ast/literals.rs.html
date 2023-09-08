@@ -310,7 +310,7 @@
 
 <span class="kw">use </span>chrono::NaiveDate;
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::AstStatement;
+<span class="kw">use </span><span class="kw">crate</span>::ast::AstNode;
 
 <span class="macro">macro_rules! </span>impl_getters {
     (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>, [$(<span class="macro-nonterminal">$name</span>:ident),+], [$(<span class="macro-nonterminal">$out</span>:ty),+]) =&gt; {
@@ -392,7 +392,7 @@
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Array {
-    <span class="kw">pub </span>elements: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;, <span class="comment">// expression-list
+    <span class="kw">pub </span>elements: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;, <span class="comment">// expression-list
 </span>}
 
 <span class="doccomment">/// calculates the nanoseconds since 1970-01-01-00:00:00 for the given
@@ -478,14 +478,14 @@
 }
 
 <span class="kw">impl </span>Array {
-    <span class="kw">pub fn </span>elements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    <span class="kw">pub fn </span>elements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="self">self</span>.elements.as_ref().map(|it| it.as_ref())
     }
 }
 
 <span class="kw">impl </span>AstLiteral {
     <span class="doccomment">/// Creates a new literal array
-    </span><span class="kw">pub fn </span>new_array(elements: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new_array(elements: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;) -&gt; <span class="self">Self </span>{
         AstLiteral::Array(Array { elements })
     }
     <span class="doccomment">/// Creates a new literal integer

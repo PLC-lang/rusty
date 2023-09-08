@@ -113,12 +113,12 @@
 //! violates both the syntax and semantic of array assignments.
 //!
 //! Design note: Because we distinguish between variables inside VAR blocks [`plc_ast::ast::Variable`]
-//! and POU bodies [`plc_ast::ast::AstStatement`] and how we interact with them (e.g. infering types of
+//! and POU bodies [`plc_ast::ast::AstStatementKind`] and how we interact with them (e.g. infering types of
 //! [`plc_ast::ast::Variable`] from the AstAnnotation being impossible right now) a wrapper enum was
 //! introduced to make the validation code as generic as possible.
 
 </span><span class="kw">use </span>plc_ast::{
-    ast::{AstStatement, Variable},
+    ast::{AstNode, AstStatement, Variable},
     literals::AstLiteral,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -129,7 +129,7 @@
 
 <span class="doccomment">/// Indicates whether an array was defined in a VAR block or a POU body
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Wrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Statement(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstStatement),
+    Statement(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode),
     Variable(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Variable),
 }
 
@@ -162,14 +162,14 @@
     }
 }
 
-<span class="doccomment">/// Takes an [`AstStatement`] and returns its length as if it was an array. For example calling this function
+<span class="doccomment">/// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
-</span><span class="kw">fn </span>statement_to_array_length(statement: <span class="kw-2">&amp;</span>AstStatement) -&gt; usize {
-    <span class="kw">match </span>statement {
+</span><span class="kw">fn </span>statement_to_array_length(statement: <span class="kw-2">&amp;</span>AstNode) -&gt; usize {
+    <span class="kw">match </span>statement.get_stmt() {
         AstStatement::ExpressionList { .. } =&gt; <span class="number">1</span>,
-        AstStatement::MultipliedStatement { multiplier, .. } =&gt; <span class="kw-2">*</span>multiplier <span class="kw">as </span>usize,
-        AstStatement::Literal { kind: AstLiteral::Array(arr), .. } =&gt; <span class="kw">match </span>arr.elements() {
-            <span class="prelude-val">Some</span>(AstStatement::ExpressionList { expressions, .. }) =&gt; {
+        AstStatement::MultipliedStatement(data) =&gt; data.multiplier <span class="kw">as </span>usize,
+        AstStatement::Literal(AstLiteral::Array(arr)) =&gt; <span class="kw">match </span>arr.elements() {
+            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) =&gt; {
                 expressions.iter().map(statement_to_array_length).sum::&lt;usize&gt;()
             }
 
@@ -180,18 +180,18 @@
         <span class="comment">// Any literal other than an array can be counted as 1
         </span>AstStatement::Literal { .. } =&gt; <span class="number">1</span>,
 
-        any =&gt; {
+        _any =&gt; {
             <span class="comment">// XXX: Not sure what else could be in here
-            </span><span class="macro">log::warn!</span>(<span class="string">&quot;Array size-counting for {any:?} not covered; validation _might_ be wrong&quot;</span>);
+            </span><span class="macro">log::warn!</span>(<span class="string">&quot;Array size-counting for {statement:?} not covered; validation _might_ be wrong&quot;</span>);
             <span class="number">0
         </span>}
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Wrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>get_rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstStatement&gt; {
+    <span class="kw">fn </span>get_rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            Wrapper::Statement(AstStatement::Assignment { right, .. }) =&gt; <span class="prelude-val">Some</span>(right),
+            Wrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.right),
             Wrapper::Variable(variable) =&gt; variable.initializer.as_ref(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -203,8 +203,8 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             Wrapper::Statement(statement) =&gt; {
-                <span class="kw">let </span>AstStatement::Assignment { left, .. } = statement <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
-                context.annotations.get_type(left, context.index).map(|it| it.get_type_information())
+                <span class="kw">let </span>AstNode{ stmt: AstStatement::Assignment ( data), ..} = statement <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+                context.annotations.get_type(<span class="kw-2">&amp;</span>data.left, context.index).map(|it| it.get_type_information())
             }
 
             Wrapper::Variable(variable) =&gt; variable

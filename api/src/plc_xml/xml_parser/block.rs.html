@@ -24,14 +24,14 @@
 <a href="#24" id="24">24</a>
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstStatement};
+</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode};
 
 <span class="kw">use </span><span class="kw">crate</span>::model::{block::Block, fbd::NodeIndex};
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
 <span class="kw">impl </span>Block {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession, index: <span class="kw-2">&amp;</span>NodeIndex) -&gt; AstStatement {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession, index: <span class="kw-2">&amp;</span>NodeIndex) -&gt; AstNode {
         <span class="kw">let </span>parameters = <span class="self">self
             </span>.variables
             .iter()

@@ -104,7 +104,8 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
+<a href="#107" id="107">107</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
@@ -155,9 +156,10 @@
                 validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
             }
         }
-        DataType::EnumType { elements: AstStatement::ExpressionList { expressions, .. }, .. }
-            <span class="kw">if </span>expressions.is_empty() =&gt;
-        {
+        DataType::EnumType {
+            elements: AstNode { stmt: AstStatement::ExpressionList(expressions), .. },
+            ..
+        } <span class="kw">if </span>expressions.is_empty() =&gt; {
             validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
         }
         DataType::VarArgs { referenced_type: <span class="prelude-val">None</span>, sized: <span class="bool-val">true </span>} =&gt; {

@@ -878,51 +878,6 @@
 <a href="#878" id="878">878</a>
 <a href="#879" id="879">879</a>
 <a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -932,7 +887,7 @@
 };
 <span class="kw">use </span>core::str::Split;
 <span class="kw">use </span>plc_ast::{
-    ast::{AstFactory, AstId, AstStatement, DirectAccessType, Operator},
+    ast::{AstFactory, AstId, AstNode, AstStatement, DirectAccessType, Operator},
     literals::{AstLiteral, Time},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -955,12 +910,7 @@
                 };
                 <span class="macro-nonterminal">$lexer</span>.advance();
                 <span class="kw">let </span>right = <span class="macro-nonterminal">$action</span>(<span class="macro-nonterminal">$lexer</span>);
-                left = AstStatement::BinaryExpression {
-                    operator,
-                    left: Box::new(left),
-                    right: Box::new(right),
-                    id: <span class="macro-nonterminal">$lexer</span>.next_id(),
-                };
+                left = AstFactory::create_binary_expression(left, operator, right, <span class="macro-nonterminal">$lexer</span>.next_id());
             }
             left
         }
@@ -971,15 +921,16 @@
 /// is encountered, the erroneous part of the AST will consist of an
 /// EmptyStatement and a diagnostic will be logged. That case is different from
 /// only an EmptyStatement returned, which does not denote an error condition.
-</span><span class="kw">pub fn </span>parse_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">pub fn </span>parse_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">if </span>lexer.token == KeywordSemicolon {
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     } <span class="kw">else </span>{
         parse_expression_list(lexer)
     }
 }
 
-<span class="kw">pub fn </span>parse_expression_list(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">pub fn </span>parse_expression_list(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
+    <span class="kw">let </span>start = lexer.location();
     <span class="kw">let </span>left = parse_range_statement(lexer);
     <span class="kw">if </span>lexer.token == KeywordComma {
         <span class="kw">let </span><span class="kw-2">mut </span>expressions = <span class="macro">vec!</span>[];
@@ -993,49 +944,49 @@
         <span class="comment">// we may have parsed no additional expression because of trailing comma
         </span><span class="kw">if </span>!expressions.is_empty() {
             expressions.insert(<span class="number">0</span>, left);
-            <span class="kw">return </span>AstStatement::ExpressionList { expressions, id: lexer.next_id() };
+            <span class="kw">return </span>AstFactory::create_expression_list(
+                expressions,
+                start.span(<span class="kw-2">&amp;</span>lexer.last_location()),
+                lexer.next_id(),
+            );
         }
     }
     left
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_range_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_range_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = parse_or_expression(lexer);
 
     <span class="kw">if </span>lexer.token == KeywordDotDot {
         lexer.advance();
         <span class="kw">let </span>end = parse_or_expression(lexer);
-        <span class="kw">return </span>AstStatement::RangeStatement {
-            start: Box::new(start),
-            end: Box::new(end),
-            id: lexer.next_id(),
-        };
+        <span class="kw">return </span>AstFactory::create_range_statement(start, end, lexer.next_id());
     }
     start
 }
 
 <span class="comment">// OR
-</span><span class="kw">fn </span>parse_or_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_or_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(lexer, parse_xor_expression, OperatorOr,)
 }
 
 <span class="comment">// XOR
-</span><span class="kw">fn </span>parse_xor_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_xor_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(lexer, parse_and_expression, OperatorXor,)
 }
 
 <span class="comment">// AND
-</span><span class="kw">fn </span>parse_and_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_and_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(lexer, parse_equality_expression, OperatorAmp | OperatorAnd,)
 }
 
 <span class="comment">//EQUALITY  =, &lt;&gt;
-</span><span class="kw">fn </span>parse_equality_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_equality_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(lexer, parse_compare_expression, OperatorEqual | OperatorNotEqual,)
 }
 
 <span class="comment">//COMPARE &lt;, &gt;, &lt;=, &gt;=
-</span><span class="kw">fn </span>parse_compare_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_compare_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(
         lexer,
         parse_additive_expression,
@@ -1044,12 +995,12 @@
 }
 
 <span class="comment">// Addition +, -
-</span><span class="kw">fn </span>parse_additive_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_additive_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(lexer, parse_multiplication_expression, OperatorPlus | OperatorMinus,)
 }
 
 <span class="comment">// Multiplication *, /, MOD
-</span><span class="kw">fn </span>parse_multiplication_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_multiplication_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="macro">parse_left_associative_expression!</span>(
         lexer,
         parse_exponent_expression,
@@ -1058,34 +1009,22 @@
 }
 
 <span class="comment">// Expoent **
-</span><span class="kw">fn </span>parse_exponent_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_exponent_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="comment">//This is always parsed as a function call to the EXPT function
     //Parse left
     </span><span class="kw">let </span><span class="kw-2">mut </span>left = parse_unary_expression(lexer);
     <span class="kw">while </span><span class="macro">matches!</span>(lexer.token, OperatorExponent) {
-        <span class="kw">let </span>start_location = lexer.last_location();
-        <span class="kw">let </span>op_location = lexer.location();
         lexer.advance();
         <span class="kw">let </span>right = parse_unary_expression(lexer);
-        left = AstStatement::CallStatement {
-            operator: Box::new(AstFactory::create_member_reference(
-                AstFactory::create_identifier(<span class="string">&quot;EXPT&quot;</span>, <span class="kw-2">&amp;</span>op_location, lexer.next_id()),
-                <span class="prelude-val">None</span>,
-                lexer.next_id(),
-            )),
-            parameters: Box::new(<span class="prelude-val">Some</span>(AstStatement::ExpressionList {
-                expressions: <span class="macro">vec!</span>[left, right],
-                id: lexer.next_id(),
-            })),
-            location: start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
-            id: lexer.next_id(),
-        }
+        <span class="kw">let </span>span = left.get_location().span(<span class="kw-2">&amp;</span>right.get_location());
+        left =
+            AstFactory::create_call_to_with_ids(<span class="string">&quot;EXPT&quot;</span>, <span class="macro">vec!</span>[left, right], <span class="kw-2">&amp;</span>span, lexer.id_provider.clone());
     }
     left
 }
 
 <span class="comment">// UNARY -x, NOT x
-</span><span class="kw">fn </span>parse_unary_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_unary_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="comment">// collect all consecutive operators
     </span><span class="kw">let </span>start_location = lexer.location();
     <span class="kw">let </span><span class="kw-2">mut </span>operators = <span class="macro">vec!</span>[];
@@ -1104,26 +1043,21 @@
         <span class="kw">let </span>expression_location = expression.get_location();
         <span class="kw">let </span>location = start_location.span(<span class="kw-2">&amp;</span>expression_location);
 
-        <span class="kw">match </span>(<span class="kw-2">&amp;</span>operator, <span class="kw-2">&amp;</span>expression) {
-            (Operator::Minus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; {
-                AstStatement::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span>operator, <span class="kw-2">&amp;</span>expression.get_stmt()) {
+            (Operator::Minus, AstStatement::Literal(AstLiteral::Integer(value))) =&gt; {
+                AstNode::new_literal(AstLiteral::new_integer(-value), lexer.next_id(), location)
             }
 
-            (Operator::Plus, AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; {
-                AstStatement::new_literal(AstLiteral::new_integer(<span class="kw-2">*</span>value), lexer.next_id(), location)
+            (Operator::Plus, AstStatement::Literal(AstLiteral::Integer(value))) =&gt; {
+                AstNode::new_literal(AstLiteral::new_integer(<span class="kw-2">*</span>value), lexer.next_id(), location)
             }
 
             <span class="comment">// Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
-            </span>(Operator::Plus, AstStatement::Identifier { name, .. }) =&gt; {
+            </span>(Operator::Plus, AstStatement::Identifier(name)) =&gt; {
                 AstFactory::create_identifier(name, <span class="kw-2">&amp;</span>location, lexer.next_id())
             }
 
-            <span class="kw">_ </span>=&gt; AstStatement::UnaryExpression {
-                operator: <span class="kw-2">*</span>operator,
-                value: Box::new(expression),
-                location,
-                id: lexer.next_id(),
-            },
+            <span class="kw">_ </span>=&gt; AstFactory::create_unary_expression(<span class="kw-2">*</span>operator, expression, location, lexer.next_id()),
         }
     })
 }
@@ -1151,7 +1085,7 @@
 }
 
 <span class="comment">// Literals, Identifiers, etc.
-</span><span class="kw">fn </span>parse_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>literal_parse_result = <span class="kw">match </span>lexer.token {
         OperatorMultiplication =&gt; parse_vla_range(lexer),
         <span class="kw">_ </span>=&gt; parse_call_statement(lexer),
@@ -1161,25 +1095,16 @@
         <span class="prelude-val">Ok</span>(statement) =&gt; {
             <span class="kw">if </span>lexer.token == KeywordAssignment {
                 lexer.advance();
-                AstStatement::Assignment {
-                    left: Box::new(statement),
-                    right: Box::new(parse_range_statement(lexer)),
-                    id: lexer.next_id(),
-                }
+                AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             } <span class="kw">else if </span>lexer.token == KeywordOutputAssignment {
                 lexer.advance();
-                AstStatement::OutputAssignment {
-                    left: Box::new(statement),
-                    right: Box::new(parse_range_statement(lexer)),
-                    id: lexer.next_id(),
-                }
+                AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             } <span class="kw">else </span>{
                 statement
             }
         }
         <span class="prelude-val">Err</span>(diagnostic) =&gt; {
-            <span class="kw">let </span>statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+            <span class="kw">let </span>statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
             lexer.accept_diagnostic(diagnostic);
             statement
         }
@@ -1189,7 +1114,7 @@
 <span class="doccomment">/// parse an expression at the bottom of the parse-tree.
 /// leaf-expressions are literals, identifier, direct-access and parenthesized expressions
 /// (since the parentheses change the parse-priority)
-</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
 
     </span><span class="kw">match </span>lexer.token {
@@ -1239,7 +1164,7 @@
                 <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;
                 // we are probably in a call statement missing a parameter assignment &#39;foo(param := );
                 // optional parameter assignments are allowed, validation should handle any unwanted cases
-                </span><span class="prelude-val">Ok</span>(AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() })
+                </span><span class="prelude-val">Ok</span>(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Literal&quot;</span>, lexer.slice(), lexer.location()))
             }
@@ -1247,16 +1172,16 @@
     }
 }
 
-<span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; AstStatement {
+<span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; AstNode {
     AstFactory::create_identifier(<span class="kw-2">&amp;</span>lexer.slice_and_advance(), <span class="kw-2">&amp;</span>lexer.last_location(), lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     lexer.advance();
-    <span class="prelude-val">Ok</span>(AstStatement::VlaRangeStatement { id: lexer.next_id() })
+    <span class="prelude-val">Ok</span>(AstFactory::create_vla_range_statement(lexer.last_location(), lexer.next_id()))
 }
 
-<span class="kw">fn </span>parse_array_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_array_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)<span class="question-mark">?</span>;
     lexer.advance();
@@ -1265,7 +1190,7 @@
     lexer.expect(KeywordSquareParensClose)<span class="question-mark">?</span>;
     lexer.advance();
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(
         AstLiteral::new_array(elements),
         lexer.next_id(),
         lexer.source_range_factory.create_range(start..end),
@@ -1274,41 +1199,38 @@
 
 <span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-</span><span class="kw">fn </span>parse_bool_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_bool_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_bool(value), lexer.next_id(), location))
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_bool(value), lexer.next_id(), location))
 }
 
 <span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-</span><span class="kw">fn </span>parse_null_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_null_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
-<span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>reference = parse_qualified_reference(lexer)<span class="question-mark">?</span>;
 
     <span class="comment">// is this a callstatement?
     </span><span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
-        <span class="kw">let </span>start_location = reference.get_location();
+        <span class="kw">let </span>start = reference.get_location();
         <span class="comment">// Call Statement
         </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensClose) {
-            AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(<span class="prelude-val">None</span>),
-                location: start_location.span(<span class="kw-2">&amp;</span>lexer.location()),
-                id: lexer.next_id(),
-            }
+            AstFactory::create_call_statement(reference, <span class="prelude-val">None</span>, lexer.next_id(), start.span(<span class="kw-2">&amp;</span>lexer.location()))
         } <span class="kw">else </span>{
-            parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| AstStatement::CallStatement {
-                operator: Box::new(reference),
-                parameters: Box::new(<span class="prelude-val">Some</span>(parse_expression_list(lexer))),
-                location: start_location.span(<span class="kw-2">&amp;</span>lexer.location()),
-                id: lexer.next_id(),
+            parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
+                AstFactory::create_call_statement(
+                    reference,
+                    <span class="prelude-val">Some</span>(parse_expression_list(lexer)),
+                    lexer.next_id(),
+                    start.span(<span class="kw-2">&amp;</span>lexer.location()),
+                )
             })
         };
         <span class="prelude-val">Ok</span>(call_statement)
@@ -1317,7 +1239,7 @@
     }
 }
 
-<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>pos = lexer.parse_progress - <span class="number">1</span>; <span class="comment">// force an initial loop
 
@@ -1335,7 +1257,7 @@
             </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                 <span class="kw">let </span>exp = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
                 <span class="comment">// pack if this is something to be resolved
-                </span>current = <span class="kw">if </span><span class="macro">matches!</span>(exp, AstStatement::Identifier { .. }) {
+                </span>current = <span class="kw">if </span>exp.is_identifier() {
                     <span class="prelude-val">Some</span>(AstFactory::create_member_reference(exp, <span class="prelude-val">None</span>, lexer.next_id()))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(exp)
@@ -1417,10 +1339,7 @@
     }
 }
 
-<span class="kw">fn </span>parse_direct_access(
-    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-    access: DirectAccessType,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_direct_access(lexer: <span class="kw-2">&amp;mut </span>ParseSession, access: DirectAccessType) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="comment">//Consume the direct access
     </span><span class="kw">let </span>location = lexer.location();
     lexer.advance();
@@ -1437,16 +1356,15 @@
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer or Reference&quot;</span>, lexer.slice(), lexer.location())),
     }<span class="question-mark">?</span>;
-
     <span class="kw">let </span>location = location.span(<span class="kw-2">&amp;</span>lexer.last_location());
-    <span class="prelude-val">Ok</span>(AstStatement::DirectAccess { access, index: Box::new(index), location, id: lexer.next_id() })
+    <span class="prelude-val">Ok</span>(AstFactory::create_direct_access(access, index, lexer.next_id(), location))
 }
 
 <span class="kw">fn </span>parse_literal_number_with_modifier(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     radix: u32,
     is_negative: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="comment">// we can safely unwrap the number string, since the token has
     // been matched using regular expressions
     </span><span class="kw">let </span>location = lexer.location();
@@ -1457,10 +1375,10 @@
     <span class="comment">// again, the parsed number can be safely unwrapped.
     </span><span class="kw">let </span>value = i128::from_str_radix(number_str.as_str(), radix).expect(<span class="string">&quot;valid i128&quot;</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
 }
 
-<span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = <span class="kw">if </span>is_negative {
         <span class="comment">//correct the location if we just parsed a minus before
         </span>lexer.last_range.start..lexer.range().end
@@ -1471,7 +1389,7 @@
     <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
         <span class="kw">let </span>value = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
         <span class="comment">//Treat exponents as reals
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::new_literal(
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstNode::new_literal(
             AstLiteral::new_real(value),
             lexer.next_id(),
             lexer.source_range_factory.create_range(location),
@@ -1490,12 +1408,12 @@
         lexer.expect(KeywordParensClose)<span class="question-mark">?</span>;
         <span class="kw">let </span>end = lexer.range().end;
         lexer.advance();
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(AstStatement::MultipliedStatement {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(AstFactory::create_multiplied_statement(
             multiplier,
-            element: Box::new(element),
-            location: lexer.source_range_factory.create_range(start..end),
-            id: lexer.next_id(),
-        });
+            element,
+            lexer.source_range_factory.create_range(start..end),
+            lexer.next_id(),
+        ));
     }
 
     <span class="comment">// parsed number value can be safely unwrapped
@@ -1504,7 +1422,7 @@
     <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(
         AstLiteral::new_integer(value),
         lexer.next_id(),
         lexer.source_range_factory.create_range(location),
@@ -1512,7 +1430,7 @@
 }
 
 <span class="doccomment">/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
-</span><span class="kw">pub fn </span>parse_strict_literal_integer(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+</span><span class="kw">pub fn </span>parse_strict_literal_integer(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="comment">//correct the location if we just parsed a minus before
     </span><span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>result = lexer.slice_and_advance();
@@ -1522,7 +1440,7 @@
         <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Exponent value: {result}&quot;</span>), location))
     } <span class="kw">else </span>{
         <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
-        <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+        <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
     }
 }
 
@@ -1532,11 +1450,7 @@
     })
 }
 
-<span class="kw">fn </span>parse_date_from_string(
-    text: <span class="kw-2">&amp;</span>str,
-    location: SourceLocation,
-    id: AstId,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_date_from_string(text: <span class="kw-2">&amp;</span>str, location: SourceLocation, id: AstId) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>segments = text.split(<span class="string">&#39;-&#39;</span>);
 
     <span class="comment">//we can safely expect 3 numbers
@@ -1553,10 +1467,10 @@
         .map(|s| parse_number::&lt;u32&gt;(s, <span class="kw-2">&amp;</span>location))
         .expect(<span class="string">&quot;day-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_date(year, month, day), id, location))
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_date(year, month, day), id, location))
 }
 
-<span class="kw">fn </span>parse_literal_date_and_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_date_and_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
@@ -1576,14 +1490,14 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>segments = time.split(<span class="string">&#39;:&#39;</span>);
     <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(<span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(
         AstLiteral::new_date_and_time(year, month, day, hour, min, sec, nano),
         lexer.next_id(),
         location,
     ))
 }
 
-<span class="kw">fn </span>parse_literal_date(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_date(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
@@ -1593,7 +1507,7 @@
     </span>parse_date_from_string(slice, location, lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_literal_time_of_day(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_time_of_day(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of TOD# or TIME_OF_DAY#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
@@ -1603,11 +1517,7 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>segments = slice.split(<span class="string">&#39;:&#39;</span>);
     <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(<span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
-        AstLiteral::new_time_of_day(hour, min, sec, nano),
-        lexer.next_id(),
-        location,
-    ))
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_time_of_day(hour, min, sec, nano), lexer.next_id(), location))
 }
 
 <span class="kw">fn </span>parse_time_of_day(
@@ -1628,7 +1538,7 @@
     <span class="prelude-val">Ok</span>((hour, min, sec.floor() <span class="kw">as </span>u32, nano))
 }
 
-<span class="kw">fn </span>parse_literal_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">const </span>POS_D: usize = <span class="number">0</span>;
     <span class="kw">const </span>POS_H: usize = <span class="number">1</span>;
     <span class="kw">const </span>POS_M: usize = <span class="number">2</span>;
@@ -1715,7 +1625,7 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+    <span class="prelude-val">Ok</span>(AstNode::new_literal(
         AstLiteral::Time(Time {
             day: values[POS_D].unwrap_or_default(),
             hour: values[POS_H].unwrap_or_default(),
@@ -1782,11 +1692,11 @@
         .into()
 }
 
-<span class="kw">fn </span>parse_literal_string(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_wide: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_string(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_wide: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>result = lexer.slice();
     <span class="kw">let </span>location = lexer.location();
 
-    <span class="kw">let </span>string_literal = <span class="prelude-val">Ok</span>(AstStatement::new_literal(
+    <span class="kw">let </span>string_literal = <span class="prelude-val">Ok</span>(AstNode::new_literal(
         AstLiteral::new_string(handle_special_chars(<span class="kw-2">&amp;</span>trim_quotes(result), is_wide), is_wide),
         lexer.next_id(),
         location,
@@ -1800,7 +1710,7 @@
     integer: String,
     integer_range: Range&lt;usize&gt;,
     is_negative: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">if </span>lexer.token == LiteralInteger {
         <span class="kw">let </span>start = integer_range.start;
         <span class="kw">let </span>end = lexer.range().end;
@@ -1808,7 +1718,7 @@
         <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">&quot;{}{}.{}&quot;</span>, <span class="kw">if </span>is_negative { <span class="string">&quot;-&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}, integer, fractional);
         <span class="kw">let </span>new_location = lexer.source_range_factory.create_range(start..end);
 
-        <span class="prelude-val">Ok</span>(AstStatement::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
+        <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(
             <span class="string">&quot;LiteralInteger or LiteralExponent&quot;</span>,

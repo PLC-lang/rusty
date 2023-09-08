@@ -38,14 +38,14 @@
 <a href="#38" id="38">38</a>
 <a href="#39" id="39">39</a>
 <a href="#40" id="40">40</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstStatement, Implementation};
+</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstNode, Implementation};
 
 <span class="kw">use </span><span class="kw">crate</span>::model::pou::Pou;
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
 <span class="kw">impl </span>Pou {
-    <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstStatement&gt; {
+    <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(fbd) = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram <span class="kw">else </span>{
             <span class="comment">// empty body
             </span><span class="kw">return </span><span class="macro">vec!</span>[];

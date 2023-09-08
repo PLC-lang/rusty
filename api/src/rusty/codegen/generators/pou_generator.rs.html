@@ -815,7 +815,7 @@
     types::{BasicType, StructType},
     values::PointerValue,
 };
-<span class="kw">use </span>plc_ast::ast::{AstStatement, Implementation, PouType};
+<span class="kw">use </span>plc_ast::ast::{AstNode, Implementation, PouType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
@@ -1396,7 +1396,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         variable: &amp;&amp;VariableIndexEntry,
         variable_to_initialize: PointerValue,
-        initializer_statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+        initializer_statement: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
         exp_gen: <span class="kw-2">&amp;</span>ExpressionCodeGenerator,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>variable_llvm_type = <span class="self">self

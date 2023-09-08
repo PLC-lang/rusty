@@ -66,14 +66,7 @@
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::AstStatement;
+</pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode, AstStatement};
 <span class="kw">use </span>indexmap::IndexMap;
 
 <span class="kw">use </span><span class="kw">crate</span>::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -83,7 +76,7 @@
 <span class="kw">impl </span>FunctionBlockDiagram {
     <span class="doccomment">/// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstStatement&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ast_association = IndexMap::new();
         <span class="comment">// transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
@@ -109,8 +102,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: NodeId,
         session: <span class="kw-2">&amp;</span>ParseSession,
-        ast_association: <span class="kw-2">&amp;</span>IndexMap&lt;usize, AstStatement&gt;,
-    ) -&gt; (AstStatement, <span class="prelude-ty">Option</span>&lt;NodeId&gt;) {
+        ast_association: <span class="kw-2">&amp;</span>IndexMap&lt;usize, AstNode&gt;,
+    ) -&gt; (AstNode, <span class="prelude-ty">Option</span>&lt;NodeId&gt;) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(current_node) = <span class="self">self</span>.nodes.get(<span class="kw-2">&amp;</span>id) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
         <span class="kw">match </span>current_node {
@@ -126,7 +119,7 @@
                 <span class="kw">let </span>(rhs, remove_id) = ast_association
                     .get(<span class="kw-2">&amp;</span>ref_id)
                     .map(|stmt| {
-                        <span class="kw">if </span><span class="macro">matches!</span>(stmt, AstStatement::CallStatement { .. }) {
+                        <span class="kw">if </span><span class="macro">matches!</span>(stmt.get_stmt(), AstStatement::CallStatement(..)) {
                             (stmt.clone(), <span class="prelude-val">Some</span>(ref_id))
                         } <span class="kw">else </span>{
                             <span class="self">self</span>.transform_node(ref_id, session, ast_association)
@@ -134,14 +127,7 @@
                     })
                     .expect(<span class="string">&quot;Expected AST statement, found None&quot;</span>);
 
-                (
-                    AstStatement::Assignment {
-                        left: Box::new(lhs),
-                        right: Box::new(rhs),
-                        id: session.next_id(),
-                    },
-                    remove_id,
-                )
+                (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
             Node::Control(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(),
             Node::Connector(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(),

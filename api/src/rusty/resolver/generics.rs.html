@@ -464,10 +464,9 @@
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
-<span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+<span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
@@ -499,7 +498,7 @@
         index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index,
         annotation_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>AnnotationMapImpl,
         type_name: <span class="kw-2">&amp;</span>str,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str)&gt; {
         <span class="comment">//find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
         </span><span class="kw">let </span>effective_type = index.find_effective_type_info(type_name);
@@ -513,9 +512,9 @@
 
         <span class="comment">//If generic add a generic annotation
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
-            <span class="kw">let </span>statement = <span class="kw">match </span>statement {
+            <span class="kw">let </span>statement = <span class="kw">match </span>statement.get_stmt() {
                 <span class="comment">//The right side of the assignment is the source of truth
-                </span>AstStatement::Assignment { right, .. } =&gt; right,
+                </span>AstStatement::Assignment(data) =&gt; <span class="kw-2">&amp;</span>data.right,
                 <span class="kw">_ </span>=&gt; statement,
             };
             <span class="comment">//Find the statement&#39;s type
@@ -531,8 +530,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt;,
         implementation_name: <span class="kw-2">&amp;</span>str,
-        operator: <span class="kw-2">&amp;</span>AstStatement,
-        parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+        operator: <span class="kw-2">&amp;</span>AstNode,
+        parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
         ctx: VisitorContext,
     ) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(PouIndexEntry::Function { generics, .. }) = <span class="self">self</span>.index.find_pou(implementation_name) {
@@ -698,7 +697,7 @@
 
     <span class="kw">fn </span>update_generic_function_parameters(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        s: <span class="kw-2">&amp;</span>AstStatement,
+        s: <span class="kw-2">&amp;</span>AstNode,
         function_name: <span class="kw-2">&amp;</span>str,
         generic_map: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
     ) {
@@ -746,10 +745,9 @@
                         </span><span class="self">self</span>.annotation_map.add_generic_nature(passed_parameter, generic.generic_nature);
 
                         <span class="comment">// for assignments we need to annotate the left side aswell
-                        </span><span class="kw">match </span>parameter_stmt {
-                            AstStatement::Assignment { left, .. }
-                            | AstStatement::OutputAssignment { left, .. } =&gt; {
-                                <span class="self">self</span>.annotate(left, StatementAnnotation::value(datatype.get_name()));
+                        </span><span class="kw">match </span>parameter_stmt.get_stmt() {
+                            AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
+                                <span class="self">self</span>.annotate(<span class="kw-2">&amp;</span>data.left, StatementAnnotation::value(datatype.get_name()));
                             }
                             <span class="kw">_ </span>=&gt; {}
                         }

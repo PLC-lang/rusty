@@ -213,18 +213,8 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
-    ast::{AstFactory, AstStatement},
+    ast::{AstFactory, AstNode, AstStatement},
     control_statements::ConditionalBlock,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -239,7 +229,7 @@
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 <span class="kw">use super</span>::{parse_expression, parse_reference, parse_statement};
 
-<span class="kw">pub fn </span>parse_control_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">pub fn </span>parse_control_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">match </span>lexer.token {
         KeywordIf =&gt; parse_if_statement(lexer),
         KeywordFor =&gt; parse_for_statement(lexer),
@@ -253,25 +243,25 @@
     }
 }
 
-<span class="kw">fn </span>parse_return_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_return_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    AstStatement::ReturnStatement { location, id: lexer.next_id() }
+    AstFactory::create_return_statement(location, lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_exit_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_exit_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    AstStatement::ExitStatement { location, id: lexer.next_id() }
+    AstFactory::create_exit_statement(location, lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_continue_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_continue_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    AstStatement::ContinueStatement { location, id: lexer.next_id() }
+    AstFactory::create_continue_statement(location, lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_if_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_if_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">//If
     </span><span class="kw">let </span><span class="kw-2">mut </span>conditional_blocks = <span class="macro">vec!</span>[];
@@ -281,7 +271,7 @@
         <span class="macro">expect_token!</span>(
             lexer,
             KeywordThen,
-            AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+            AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
         );
         lexer.advance();
 
@@ -309,7 +299,7 @@
     )
 }
 
-<span class="kw">fn </span>parse_for_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_for_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">// FOR
 
@@ -317,16 +307,12 @@
     <span class="macro">expect_token!</span>(
         lexer,
         KeywordAssignment,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     );
     lexer.advance();
 
     <span class="kw">let </span>start_expression = parse_expression(lexer);
-    <span class="macro">expect_token!</span>(
-        lexer,
-        KeywordTo,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
-    );
+    <span class="macro">expect_token!</span>(lexer, KeywordTo, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
     lexer.advance();
     <span class="kw">let </span>end_expression = parse_expression(lexer);
 
@@ -350,7 +336,7 @@
     )
 }
 
-<span class="kw">fn </span>parse_while_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_while_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">//WHILE
 
@@ -365,7 +351,7 @@
     )
 }
 
-<span class="kw">fn </span>parse_repeat_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_repeat_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">//REPEAT
 
@@ -373,7 +359,7 @@
     </span><span class="kw">let </span>condition = <span class="kw">if </span>lexer.last_token == KeywordUntil {
         parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndRepeat], parse_expression)
     } <span class="kw">else </span>{
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
+        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     };
 
     AstFactory::create_repeat_statement(
@@ -384,17 +370,13 @@
     )
 }
 
-<span class="kw">fn </span>parse_case_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_case_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">// CASE
 
     </span><span class="kw">let </span>selector = parse_expression(lexer);
 
-    <span class="macro">expect_token!</span>(
-        lexer,
-        KeywordOf,
-        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
-    );
+    <span class="macro">expect_token!</span>(lexer, KeywordOf, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
 
     lexer.advance();
 
@@ -405,7 +387,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>current_condition = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>current_body = <span class="macro">vec!</span>[];
         <span class="kw">for </span>statement <span class="kw">in </span>body {
-            <span class="kw">if let </span>AstStatement::CaseCondition { condition, .. } = statement {
+            <span class="kw">if let </span>AstNode { stmt: AstStatement::CaseCondition(condition), .. } = statement {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = current_condition {
                     <span class="kw">let </span>block = ConditionalBlock { condition, body: current_body };
                     case_blocks.push(block);
@@ -419,10 +401,8 @@
                         <span class="string">&quot;Missing Case-Condition&quot;</span>,
                         lexer.location(),
                     ));
-                    current_condition = <span class="prelude-val">Some</span>(Box::new(AstStatement::EmptyStatement {
-                        location: lexer.location(),
-                        id: lexer.next_id(),
-                    }));
+                    current_condition =
+                        <span class="prelude-val">Some</span>(Box::new(AstFactory::create_empty_statement(lexer.location(), lexer.next_id())));
                 }
                 current_body.push(statement);
             }

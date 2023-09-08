@@ -2077,13 +2077,6 @@
 <a href="#2077" id="2077">2077</a>
 <a href="#2078" id="2078">2078</a>
 <a href="#2079" id="2079">2079</a>
-<a href="#2080" id="2080">2080</a>
-<a href="#2081" id="2081">2081</a>
-<a href="#2082" id="2082">2082</a>
-<a href="#2083" id="2083">2083</a>
-<a href="#2084" id="2084">2084</a>
-<a href="#2085" id="2085">2085</a>
-<a href="#2086" id="2086">2086</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2099,9 +2092,9 @@
 <span class="kw">use </span>indexmap::{IndexMap, IndexSet};
 <span class="kw">use </span>plc_ast::{
     ast::{
-        <span class="self">self</span>, flatten_expression_list, AstFactory, AstId, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, Operator, Pou, ReferenceAccess, TypeNature,
-        UserTypeDeclaration, Variable,
+        <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
+        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral, StringValue},
@@ -2261,7 +2254,7 @@
 }
 
 <span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, annotation: StatementAnnotation) {
+    <span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
         <span class="kw">match </span><span class="kw-2">&amp;</span>annotation {
             StatementAnnotation::Function { return_type, qualified_name, call_name } =&gt; {
                 <span class="kw">let </span>name = call_name.as_ref().unwrap_or(qualified_name);
@@ -2293,8 +2286,8 @@
         <span class="self">self</span>.annotation_map.annotate(s, annotation);
     }
 
-    <span class="kw">fn </span>visit_compare_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
-        <span class="kw">let </span>AstStatement::BinaryExpression { operator, left, right, .. } = statement <span class="kw">else </span>{
+    <span class="kw">fn </span>visit_compare_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
+        <span class="kw">let </span>AstStatement::BinaryExpression ( BinaryExpression{ operator, left, right}) = statement.get_stmt() <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx.clone();
@@ -2334,10 +2327,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;mut </span>VisitorContext,
         operator: <span class="kw-2">&amp;</span>Operator,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; AstStatement {
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
+        statement: <span class="kw-2">&amp;</span>AstNode,
+    ) -&gt; AstNode {
         <span class="kw">let </span>left_type = <span class="self">self
             </span>.annotation_map
             .get_type_hint(left, <span class="self">self</span>.index)
@@ -2357,10 +2350,10 @@
                     <span class="kw-2">&amp;</span>statement.get_location(),
                 )
             })
-            .unwrap_or(AstStatement::EmptyStatement {
-                location: statement.get_location(),
-                id: ctx.id_provider.next_id(),
-            })
+            .unwrap_or(AstFactory::create_empty_statement(
+                statement.get_location(),
+                ctx.id_provider.next_id(),
+            ))
     }
 }
 
@@ -2401,7 +2394,7 @@
         qualified_name: String,
     },
     ReplacementAst {
-        statement: AstStatement,
+        statement: AstNode,
     },
 }
 
@@ -2475,25 +2468,25 @@
 }
 
 <span class="kw">pub trait </span>AnnotationMap {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
+    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
 
-    <span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;;
+    <span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;;
 
-    <span class="kw">fn </span>get_type_or_void&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType {
+    <span class="kw">fn </span>get_type_or_void&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType {
         <span class="self">self</span>.get_type(s, index).unwrap_or_else(|| index.get_void_type())
     }
 
-    <span class="kw">fn </span>get_hint_or_void&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType {
+    <span class="kw">fn </span>get_hint_or_void&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType {
         <span class="self">self</span>.get_type_hint(s, index).unwrap_or_else(|| index.get_void_type())
     }
 
-    <span class="kw">fn </span>get_type_hint&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
+    <span class="kw">fn </span>get_type_hint&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
         <span class="self">self</span>.get_hint(s).and_then(|it| <span class="self">self</span>.get_type_for_annotation(index, it))
     }
 
-    <span class="kw">fn </span>get_type&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
+    <span class="kw">fn </span>get_type&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
         <span class="self">self</span>.get(s).and_then(|it| <span class="self">self</span>.get_type_for_annotation(index, it))
     }
 
@@ -2521,7 +2514,7 @@
 
     <span class="doccomment">/// returns the name of the callable that is refered by the given statemt
     /// or none if this thing may not be callable
-    </span><span class="kw">fn </span>get_call_name(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+    </span><span class="kw">fn </span>get_call_name(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self</span>.get(s) {
             <span class="prelude-val">Some</span>(StatementAnnotation::Function { qualified_name, call_name, .. }) =&gt; {
                 call_name.as_ref().map(String::as_str).or(<span class="prelude-val">Some</span>(qualified_name.as_str()))
@@ -2534,16 +2527,16 @@
         }
     }
 
-    <span class="kw">fn </span>get_qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+    <span class="kw">fn </span>get_qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self</span>.get(s) {
             <span class="prelude-val">Some</span>(StatementAnnotation::Function { qualified_name, .. }) =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.get_call_name(s),
         }
     }
 
-    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; bool;
+    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; bool;
 
-    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt;;
+    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt;;
 }
 
 <span class="attr">#[derive(Debug)]
@@ -2555,7 +2548,7 @@
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AstAnnotations {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
         <span class="kw">if </span>s.get_id() == <span class="self">self</span>.bool_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.bool_annotation)
         } <span class="kw">else </span>{
@@ -2563,7 +2556,7 @@
         }
     }
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
         <span class="kw">if </span>s.get_id() == <span class="self">self</span>.bool_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.bool_annotation)
         } <span class="kw">else </span>{
@@ -2571,15 +2564,15 @@
         }
     }
 
-    <span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    <span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="self">self</span>.annotation_map.get_hidden_function_call(s)
     }
 
-    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; bool {
+    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; bool {
         <span class="self">self</span>.annotation_map.has_type_annotation(s)
     }
 
-    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
+    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
         <span class="self">self</span>.annotation_map.get_generic_nature(s)
     }
 }
@@ -2620,7 +2613,7 @@
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    </span>hidden_function_calls: IndexMap&lt;AstId, AstStatement&gt;,
+    </span>hidden_function_calls: IndexMap&lt;AstId, AstNode&gt;,
 
     <span class="comment">//An index of newly created types
     </span><span class="kw">pub </span>new_index: Index,
@@ -2640,52 +2633,52 @@
     }
 
     <span class="doccomment">/// annotates the given statement (using it&#39;s `get_id()`) with the given type-name
-    </span><span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, annotation: StatementAnnotation) {
+    </span><span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
         <span class="self">self</span>.type_map.insert(s.get_id(), annotation);
     }
 
-    <span class="kw">pub fn </span>annotate_type_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, annotation: StatementAnnotation) {
+    <span class="kw">pub fn </span>annotate_type_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
         <span class="self">self</span>.type_hint_map.insert(s.get_id(), annotation);
     }
 
     <span class="doccomment">/// annotates the given statement s with the call-statement f so codegen can generate
     /// a hidden call f instead of generating s
-    </span><span class="kw">pub fn </span>annotate_hidden_function_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, f: AstStatement) {
+    </span><span class="kw">pub fn </span>annotate_hidden_function_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, f: AstNode) {
         <span class="self">self</span>.hidden_function_calls.insert(s.get_id(), f);
     }
 
     <span class="doccomment">/// Annotates the ast statement with its original generic nature
-    </span><span class="kw">pub fn </span>add_generic_nature(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, nature: TypeNature) {
+    </span><span class="kw">pub fn </span>add_generic_nature(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, nature: TypeNature) {
         <span class="self">self</span>.generic_nature_map.insert(s.get_id(), nature);
     }
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AnnotationMapImpl {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
         <span class="self">self</span>.type_map.get(<span class="kw-2">&amp;</span>s.get_id())
     }
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
         <span class="self">self</span>.type_hint_map.get(<span class="kw-2">&amp;</span>s.get_id())
     }
 
     <span class="doccomment">/// returns the function call previously annoted on s via annotate_hidden_function_call(...)
-    </span><span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    </span><span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="self">self</span>.hidden_function_calls.get(<span class="kw-2">&amp;</span>s.get_id())
     }
 
-    <span class="kw">fn </span>get_type&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
+    <span class="kw">fn </span>get_type&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>typesystem::DataType&gt; {
         <span class="self">self</span>.get(s).and_then(|it| {
             <span class="self">self</span>.get_type_for_annotation(index, it)
                 .or_else(|| <span class="self">self</span>.get_type_for_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>.new_index, it))
         })
     }
 
-    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; bool {
+    <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; bool {
         <span class="self">self</span>.type_map.contains_key(<span class="kw-2">&amp;</span>s.get_id())
     }
 
-    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
+    <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
         <span class="self">self</span>.generic_nature_map.get(<span class="kw-2">&amp;</span>s.get_id())
     }
 }
@@ -2812,8 +2805,8 @@
     </span><span class="kw">fn </span>update_right_hand_side_expected_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
-        annotated_left_side: <span class="kw-2">&amp;</span>AstStatement,
-        right_side: <span class="kw-2">&amp;</span>AstStatement,
+        annotated_left_side: <span class="kw-2">&amp;</span>AstNode,
+        right_side: <span class="kw-2">&amp;</span>AstNode,
     ) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_type) = <span class="self">self</span>.annotation_map.get_type(annotated_left_side, <span class="self">self</span>.index).cloned() {
             <span class="comment">// for assignments on SubRanges check if there are range type check functions
@@ -2843,7 +2836,7 @@
         }
     }
 
-    <span class="kw">fn </span>update_right_hand_side(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, right_side: <span class="kw-2">&amp;</span>AstStatement) {
+    <span class="kw">fn </span>update_right_hand_side(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, right_side: <span class="kw-2">&amp;</span>AstNode) {
         <span class="comment">//annotate the right-hand side as a whole
         </span><span class="self">self</span>.annotation_map
             .annotate_type_hint(right_side, StatementAnnotation::value(expected_type.get_name()));
@@ -2854,17 +2847,17 @@
 
     <span class="doccomment">/// updates the expected types of statements on the right side of an assignment
     /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
-    </span><span class="kw">fn </span>update_expected_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, statement: <span class="kw-2">&amp;</span>AstStatement) {
+    </span><span class="kw">fn </span>update_expected_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="comment">//see if we need to dive into it
-        </span><span class="kw">match </span>statement {
-            AstStatement::Literal { kind: AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements) }), .. } =&gt; {
+        </span><span class="kw">match </span>statement.get_stmt() {
+            AstStatement::Literal(AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements) }), ..) =&gt; {
                 <span class="comment">//annotate the literal-array itself
                 </span><span class="self">self</span>.annotation_map
                     .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
                 <span class="comment">//TODO exprssionList and MultipliedExpressions are a mess!
                 </span><span class="kw">if </span><span class="macro">matches!</span>(
-                    elements.as_ref(),
-                    AstStatement::ExpressionList { .. } | AstStatement::MultipliedStatement { .. }
+                    elements.get_stmt(),
+                    AstStatement::ExpressionList(..) | AstStatement::MultipliedStatement(..)
                 ) {
                     <span class="self">self</span>.annotation_map
                         .annotate_type_hint(elements, StatementAnnotation::value(expected_type.get_name()));
@@ -2878,7 +2871,7 @@
                     }
                 }
             }
-            AstStatement::Assignment { left, right, .. } =&gt; {
+            AstStatement::Assignment(Assignment { left, right }, ..) =&gt; {
                 <span class="comment">// struct initialization (left := right)
                 // find out left&#39;s type and update a type hint for right
                 </span><span class="kw">if let </span>(
@@ -2898,24 +2891,24 @@
                     }
                 }
             }
-            AstStatement::MultipliedStatement { element: elements, .. } =&gt; {
+            AstStatement::MultipliedStatement(data, ..) =&gt; {
                 <span class="comment">// n(elements)
                 //annotate the type to all multiplied elements
-                </span><span class="kw">for </span>ele <span class="kw">in </span>AstStatement::get_as_list(elements) {
+                </span><span class="kw">for </span>ele <span class="kw">in </span>AstNode::get_as_list(<span class="kw-2">&amp;</span>data.element) {
                     <span class="self">self</span>.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatement::ExpressionList { expressions, .. } =&gt; {
+            AstStatement::ExpressionList(expressions, ..) =&gt; {
                 <span class="comment">//annotate the type to all elements
                 </span><span class="kw">for </span>ele <span class="kw">in </span>expressions {
                     <span class="self">self</span>.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatement::RangeStatement { start, end, .. } =&gt; {
-                <span class="self">self</span>.update_expected_types(expected_type, start);
-                <span class="self">self</span>.update_expected_types(expected_type, end);
+            AstStatement::RangeStatement(data, ..) =&gt; {
+                <span class="self">self</span>.update_expected_types(expected_type, <span class="kw-2">&amp;</span>data.start);
+                <span class="self">self</span>.update_expected_types(expected_type, <span class="kw-2">&amp;</span>data.end);
             }
-            AstStatement::Literal { kind: AstLiteral::Integer { .. }, .. } =&gt; {
+            AstStatement::Literal(AstLiteral::Integer { .. }, ..) =&gt; {
                 <span class="comment">//special case -&gt; promote a literal-Integer directly, not via type-hint
                 // (avoid later cast)
                 </span><span class="kw">if </span>expected_type.get_type_information().is_float() {
@@ -2931,8 +2924,7 @@
                         .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()))
                 }
             }
-            AstStatement::Literal { kind: AstLiteral::String { .. }, .. }
-            | AstStatement::BinaryExpression { .. } =&gt; {
+            AstStatement::Literal(AstLiteral::String { .. }, ..) | AstStatement::BinaryExpression { .. } =&gt; {
                 <span class="comment">// needed if we try to initialize an array with an expression-list
                 // without we would annotate a false type this would leed to an error in expression_generator
                 </span><span class="kw">if let </span>DataTypeInformation::Array { inner_type_name, .. } =
@@ -2969,7 +2961,7 @@
                 //right side being the local context
                 </span><span class="kw">let </span>ctx = ctx.with_lhs(expected_type.get_name());
 
-                <span class="kw">if </span><span class="macro">matches!</span>(initializer, AstStatement::DefaultValue { .. }) {
+                <span class="kw">if </span>initializer.is_default_value() {
                     <span class="comment">// the default-placeholder must be annotated with the correct type,
                     // it will be replaced by the appropriate literal later
                     </span><span class="self">self</span>.annotate(initializer, StatementAnnotation::value(expected_type.get_name()));
@@ -2989,7 +2981,7 @@
     <span class="kw">fn </span>type_hint_for_array_of_structs(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         expected_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstNode,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
     ) {
         <span class="kw">match </span>expected_type.get_type_information() {
@@ -3004,8 +2996,8 @@
                     <span class="kw">return</span>;
                 }
 
-                <span class="kw">match </span>statement {
-                    AstStatement::Literal { kind: AstLiteral::Array(array), .. } =&gt; <span class="kw">match </span>array.elements() {
+                <span class="kw">match </span>statement.get_stmt() {
+                    AstStatement::Literal(AstLiteral::Array(array)) =&gt; <span class="kw">match </span>array.elements() {
                         <span class="prelude-val">Some</span>(elements) <span class="kw">if </span>elements.is_expression_list() =&gt; {
                             <span class="self">self</span>.type_hint_for_array_of_structs(expected_type, elements, <span class="kw-2">&amp;</span>ctx)
                         }
@@ -3013,7 +3005,7 @@
                         <span class="kw">_ </span>=&gt; (),
                     },
 
-                    AstStatement::ExpressionList { expressions, .. } =&gt; {
+                    AstStatement::ExpressionList(expressions) =&gt; {
                         <span class="kw">for </span>expression <span class="kw">in </span>expressions {
                             <span class="comment">// annotate with the arrays inner_type
                             </span><span class="kw">let </span>name = inner_data_type.get_name().to_string();
@@ -3025,8 +3017,8 @@
                         }
                     }
 
-                    AstStatement::Assignment { left, right, .. } <span class="kw">if </span>left.is_reference() =&gt; {
-                        <span class="kw">let </span>AstStatement::Literal { kind: AstLiteral::Array(array), .. } = right.as_ref() <span class="kw">else </span>{ <span class="kw">return </span>};
+                    AstStatement::Assignment(Assignment { left, right, .. }) <span class="kw">if </span>left.is_reference() =&gt; {
+                        <span class="kw">let </span>AstStatement::Literal (AstLiteral::Array(array)) = right.as_ref().get_stmt() <span class="kw">else </span>{ <span class="kw">return </span>};
                         <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
@@ -3045,8 +3037,8 @@
                 <span class="kw">for </span>(idx, member) <span class="kw">in </span>members.iter().enumerate() {
                     <span class="kw">let </span>data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(member.get_type_name());
                     <span class="kw">if </span>data_type.is_array() {
-                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment { right, .. }) = flattened.get(idx) <span class="kw">else </span>{ <span class="kw">continue </span>};
-                        <span class="self">self</span>.type_hint_for_array_of_structs(data_type, right, ctx);
+                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt()) <span class="kw">else </span>{ <span class="kw">continue </span>};
+                        <span class="self">self</span>.type_hint_for_array_of_structs(data_type, <span class="kw-2">&amp;</span>data.right, ctx);
                     }
                 }
             }
@@ -3133,21 +3125,21 @@
         }
     }
 
-    <span class="kw">pub fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
+    <span class="kw">pub fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="self">self</span>.visit_statement_control(ctx, statement);
     }
 
     <span class="doccomment">/// annotate a control statement
-    </span><span class="kw">fn </span>visit_statement_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
-        <span class="kw">match </span>statement {
-            AstStatement::ControlStatement { kind: AstControlStatement::If(stmt), .. } =&gt; {
+    </span><span class="kw">fn </span>visit_statement_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
+        <span class="kw">match </span>statement.get_stmt() {
+            AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) =&gt; {
                 stmt.blocks.iter().for_each(|b| {
                     <span class="self">self</span>.visit_statement(ctx, b.condition.as_ref());
                     b.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
                 });
                 stmt.else_block.iter().for_each(|e| <span class="self">self</span>.visit_statement(ctx, e));
             }
-            AstStatement::ControlStatement { kind: AstControlStatement::ForLoop(stmt), .. } =&gt; {
+            AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt), ..) =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start, <span class="kw-2">&amp;</span>stmt.end);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
                     <span class="self">self</span>.visit_statement(ctx, by_step);
@@ -3167,12 +3159,12 @@
                 }
                 stmt.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
-            AstStatement::ControlStatement { kind: AstControlStatement::WhileLoop(stmt), .. }
-            | AstStatement::ControlStatement { kind: AstControlStatement::RepeatLoop(stmt), .. } =&gt; {
+            AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt), ..)
+            | AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt), ..) =&gt; {
                 <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>stmt.condition);
                 stmt.body.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
-            AstStatement::ControlStatement { kind: AstControlStatement::Case(stmt), .. } =&gt; {
+            AstStatement::ControlStatement(AstControlStatement::Case(stmt), ..) =&gt; {
                 <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>stmt.selector);
                 <span class="kw">let </span>selector_type = <span class="self">self</span>.annotation_map.get_type(<span class="kw-2">&amp;</span>stmt.selector, <span class="self">self</span>.index).cloned();
                 stmt.case_blocks.iter().for_each(|b| {
@@ -3184,7 +3176,7 @@
                 });
                 stmt.else_block.iter().for_each(|s| <span class="self">self</span>.visit_statement(ctx, s));
             }
-            AstStatement::CaseCondition { condition, .. } =&gt; <span class="self">self</span>.visit_statement(ctx, condition),
+            AstStatement::CaseCondition(condition, ..) =&gt; <span class="self">self</span>.visit_statement(ctx, condition),
             <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.visit_statement_expression(ctx, statement);
             }
@@ -3192,25 +3184,25 @@
     }
 
     <span class="doccomment">/// annotate an expression statement
-    </span><span class="kw">fn </span>visit_statement_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
-        <span class="kw">match </span>statement {
-            AstStatement::DirectAccess { access, index, .. } =&gt; {
+    </span><span class="kw">fn </span>visit_statement_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
+        <span class="kw">match </span>statement.get_stmt() {
+            AstStatement::DirectAccess(data, ..) =&gt; {
                 <span class="kw">let </span>ctx = VisitorContext { qualifier: <span class="prelude-val">None</span>, ..ctx.clone() };
-                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>ctx, index);
-                <span class="kw">let </span>access_type = get_direct_access_type(access);
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>data.index);
+                <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
                 <span class="self">self</span>.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatement::HardwareAccess { access, .. } =&gt; {
-                <span class="kw">let </span>access_type = get_direct_access_type(access);
+            AstStatement::HardwareAccess(data, ..) =&gt; {
+                <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
                 <span class="self">self</span>.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
             }
-            AstStatement::BinaryExpression { left, right, operator, .. } =&gt; {
-                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, left, right);
+            AstStatement::BinaryExpression(data, ..) =&gt; {
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
                 <span class="kw">let </span>statement_type = {
                     <span class="kw">let </span>left_type = <span class="self">self
                         </span>.annotation_map
-                        .get_type_hint(left, <span class="self">self</span>.index)
-                        .or_else(|| <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index))
+                        .get_type_hint(<span class="kw-2">&amp;</span>data.left, <span class="self">self</span>.index)
+                        .or_else(|| <span class="self">self</span>.annotation_map.get_type(<span class="kw-2">&amp;</span>data.left, <span class="self">self</span>.index))
                         .and_then(|it| <span class="self">self</span>.index.find_effective_type(it))
                         .unwrap_or_else(|| <span class="self">self</span>.index.get_void_type());
                     <span class="comment">// do not use for is_pointer() check
@@ -3218,8 +3210,8 @@
                         <span class="self">self</span>.index.get_intrinsic_type_by_name(left_type.get_name()).get_type_information();
                     <span class="kw">let </span>right_type = <span class="self">self
                         </span>.annotation_map
-                        .get_type_hint(right, <span class="self">self</span>.index)
-                        .or_else(|| <span class="self">self</span>.annotation_map.get_type(right, <span class="self">self</span>.index))
+                        .get_type_hint(<span class="kw-2">&amp;</span>data.right, <span class="self">self</span>.index)
+                        .or_else(|| <span class="self">self</span>.annotation_map.get_type(<span class="kw-2">&amp;</span>data.right, <span class="self">self</span>.index))
                         .and_then(|it| <span class="self">self</span>.index.find_effective_type(it))
                         .unwrap_or_else(|| <span class="self">self</span>.index.get_void_type());
                     <span class="comment">// do not use for is_pointer() check
@@ -3242,7 +3234,7 @@
                             )
                         };
 
-                        <span class="kw">let </span>target_name = <span class="kw">if </span>operator.is_bool_type() {
+                        <span class="kw">let </span>target_name = <span class="kw">if </span>data.operator.is_bool_type() {
                             BOOL_TYPE.to_string()
                         } <span class="kw">else </span>{
                             bigger_type.get_name().to_string()
@@ -3255,10 +3247,10 @@
                             <span class="comment">// if these types are different we need to update the &#39;other&#39; type&#39;s annotation
                             </span><span class="kw">let </span>bigger_type = bigger_type.clone(); <span class="comment">// clone here, so we release the borrow on self
                             </span><span class="kw">if </span>bigger_is_right {
-                                <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, left);
+                                <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, <span class="kw-2">&amp;</span>data.left);
                             }
                             <span class="kw">if </span>bigger_is_left {
-                                <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, right);
+                                <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, <span class="kw-2">&amp;</span>data.right);
                             }
                         }
 
@@ -3267,16 +3259,16 @@
                         || right_type.get_type_information().is_pointer()
                     {
                         <span class="comment">// get the target type of the binary expression
-                        </span><span class="kw">let </span>target_type = <span class="kw">if </span>operator.is_comparison_operator() {
+                        </span><span class="kw">let </span>target_type = <span class="kw">if </span>data.operator.is_comparison_operator() {
                             <span class="comment">// compare instructions result in BOOL
                             // to generate valid IR code if a pointer is beeing compared to an integer
                             // we need to cast the int to the pointers size
                             </span><span class="kw">if </span>!left_type.get_type_information().is_pointer() {
                                 <span class="kw">let </span>left_type = left_type.clone(); <span class="comment">// clone here, so we release the borrow on self
-                                </span><span class="self">self</span>.annotate_to_pointer_size_if_necessary(<span class="kw-2">&amp;</span>left_type, left);
+                                </span><span class="self">self</span>.annotate_to_pointer_size_if_necessary(<span class="kw-2">&amp;</span>left_type, <span class="kw-2">&amp;</span>data.left);
                             } <span class="kw">else if </span>!right_type.get_type_information().is_pointer() {
                                 <span class="kw">let </span>right_type = right_type.clone(); <span class="comment">// clone here, so we release the borrow on self
-                                </span><span class="self">self</span>.annotate_to_pointer_size_if_necessary(<span class="kw-2">&amp;</span>right_type, right);
+                                </span><span class="self">self</span>.annotate_to_pointer_size_if_necessary(<span class="kw-2">&amp;</span>right_type, <span class="kw-2">&amp;</span>data.right);
                             }
                             BOOL_TYPE
                         } <span class="kw">else if </span>left_type.get_type_information().is_pointer() {
@@ -3285,7 +3277,7 @@
                             right_type.get_name()
                         };
                         <span class="prelude-val">Some</span>(target_type.to_string())
-                    } <span class="kw">else if </span>operator.is_comparison_operator() {
+                    } <span class="kw">else if </span>data.operator.is_comparison_operator() {
                         <span class="comment">//Annotate as the function call to XXX_EQUALS/LESS/GREATER..
                         </span><span class="self">self</span>.visit_compare_statement(ctx, statement);
                         <span class="prelude-val">None
@@ -3298,19 +3290,19 @@
                     <span class="self">self</span>.annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
-            AstStatement::UnaryExpression { value, operator, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, value);
+            AstStatement::UnaryExpression(data, ..) =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.value);
 
-                <span class="kw">let </span>statement_type = <span class="kw">if </span>operator == <span class="kw-2">&amp;</span>Operator::Minus {
+                <span class="kw">let </span>statement_type = <span class="kw">if </span>data.operator == Operator::Minus {
                     <span class="kw">let </span>inner_type =
-                        <span class="self">self</span>.annotation_map.get_type_or_void(value, <span class="self">self</span>.index).get_type_information();
+                        <span class="self">self</span>.annotation_map.get_type_or_void(<span class="kw-2">&amp;</span>data.value, <span class="self">self</span>.index).get_type_information();
 
                     <span class="comment">//keep the same type but switch to signed
                     </span>typesystem::get_signed_type(inner_type, <span class="self">self</span>.index).map(|it| it.get_name().to_string())
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>inner_type = <span class="self">self
                         </span>.annotation_map
-                        .get_type_or_void(value, <span class="self">self</span>.index)
+                        .get_type_or_void(<span class="kw-2">&amp;</span>data.value, <span class="self">self</span>.index)
                         .get_type_information()
                         .get_name()
                         .to_string();
@@ -3323,38 +3315,38 @@
                 }
             }
 
-            AstStatement::ExpressionList { expressions, .. } =&gt; {
+            AstStatement::ExpressionList(expressions, ..) =&gt; {
                 expressions.iter().for_each(|e| <span class="self">self</span>.visit_statement(ctx, e))
             }
 
-            AstStatement::RangeStatement { start, end, .. } =&gt; {
-                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, start, end);
+            AstStatement::RangeStatement(data, ..) =&gt; {
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.start, <span class="kw-2">&amp;</span>data.end);
             }
-            AstStatement::Assignment { left, right, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, right);
+            AstStatement::Assignment(data, ..) =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.right);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = ctx.lhs {
                     <span class="comment">//special context for left hand side
-                    </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(lhs).with_lhs(lhs), left);
+                    </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(lhs).with_lhs(lhs), <span class="kw-2">&amp;</span>data.left);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.visit_statement(ctx, left);
+                    <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.left);
                 }
                 <span class="comment">// give a type hint that we want the right side to be stored in the left&#39;s type
-                </span><span class="self">self</span>.update_right_hand_side_expected_type(ctx, left, right);
+                </span><span class="self">self</span>.update_right_hand_side_expected_type(ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
             }
-            AstStatement::OutputAssignment { left, right, .. } =&gt; {
-                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, left, right);
+            AstStatement::OutputAssignment(data, ..) =&gt; {
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = ctx.lhs {
                     <span class="comment">//special context for left hand side
-                    </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(lhs), left);
+                    </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(lhs), <span class="kw-2">&amp;</span>data.left);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.visit_statement(ctx, left);
+                    <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.left);
                 }
-                <span class="self">self</span>.update_right_hand_side_expected_type(ctx, left, right);
+                <span class="self">self</span>.update_right_hand_side_expected_type(ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
             }
-            AstStatement::CallStatement { .. } =&gt; {
+            AstStatement::CallStatement(..) =&gt; {
                 <span class="self">self</span>.visit_call_statement(statement, ctx);
             }
-            AstStatement::CastStatement { target, type_name, .. } =&gt; {
+            AstStatement::CastStatement(CastStatement { target, type_name }, ..) =&gt; {
                 <span class="comment">//see if this type really exists
                 </span><span class="kw">let </span>data_type = <span class="self">self</span>.index.find_effective_type_info(type_name);
                 <span class="kw">let </span>statement_to_annotation = <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Enum { name, .. }) = data_type
@@ -3367,26 +3359,26 @@
                 } <span class="kw">else if let </span><span class="prelude-val">Some</span>(t) = data_type {
                     <span class="comment">// special handling for unlucky casted-strings where caste-type does not match the literal encoding
                     // ´STRING#&quot;abc&quot;´ or ´WSTRING#&#39;abc&#39;´
-                    </span><span class="kw">match </span>(t, target.as_ref()) {
+                    </span><span class="kw">match </span>(t, target.as_ref().get_stmt()) {
                         (
                             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-                            AstStatement::Literal {
-                                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">true </span>}),
-                                ..
-                            },
+                            AstStatement::Literal(AstLiteral::String(StringValue {
+                                value,
+                                is_wide: is_wide @ <span class="bool-val">true</span>,
+                            })),
                         )
                         | (
                             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-                            AstStatement::Literal {
-                                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">false </span>}),
-                                ..
-                            },
+                            AstStatement::Literal(AstLiteral::String(StringValue {
+                                value,
+                                is_wide: is_wide @ <span class="bool-val">false</span>,
+                            })),
                         ) =&gt; {
                             <span class="comment">// visit the target-statement as if the programmer used the correct quotes to prevent
                             // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
                             </span><span class="self">self</span>.visit_statement(
                                 ctx,
-                                <span class="kw-2">&amp;</span>AstStatement::new_literal(
+                                <span class="kw-2">&amp;</span>AstNode::new_literal(
                                     AstLiteral::new_string(value.clone(), !is_wide),
                                     target.get_id(),
                                     target.get_location(),
@@ -3405,8 +3397,8 @@
                     <span class="self">self</span>.annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
-            AstStatement::ReferenceExpr { access, base, .. } =&gt; {
-                <span class="self">self</span>.visit_reference_expr(access, base.as_deref(), statement, ctx);
+            AstStatement::ReferenceExpr(data, ..) =&gt; {
+                <span class="self">self</span>.visit_reference_expr(<span class="kw-2">&amp;</span>data.access, data.base.as_deref(), statement, ctx);
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, statement);
@@ -3417,8 +3409,8 @@
     <span class="kw">fn </span>visit_reference_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         access: <span class="kw-2">&amp;</span>ast::ReferenceAccess,
-        base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
-        stmt: <span class="kw-2">&amp;</span>AstStatement,
+        base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+        stmt: <span class="kw-2">&amp;</span>AstNode,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
     ) {
         <span class="comment">// first resolve base
@@ -3467,7 +3459,7 @@
                         <span class="self">self</span>.annotate(target.as_ref(), annotation);
                         <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
 
-                        <span class="kw">if let </span>AstStatement::Literal { .. } = target.as_ref() {
+                        <span class="kw">if let </span>AstStatement::Literal(..) = target.get_stmt() {
                             <span class="comment">// treate casted literals as the casted type
                             </span><span class="self">self</span>.annotate(target.as_ref(), StatementAnnotation::value(qualifier.as_str()));
                         }
@@ -3511,7 +3503,7 @@
         }
     }
 
-    <span class="kw">fn </span>is_const_reference(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement, ctx: <span class="kw-2">&amp;</span>VisitorContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+    <span class="kw">fn </span>is_const_reference(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstNode, ctx: <span class="kw-2">&amp;</span>VisitorContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
         <span class="self">self</span>.annotation_map
             .get(stmt)
             .map(|it| it.is_const())
@@ -3523,17 +3515,17 @@
     /// Statement annotation if one can be derived. This method the annotation!
     </span><span class="kw">fn </span>resolve_reference_expression(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        reference: <span class="kw-2">&amp;</span>AstStatement,
+        reference: <span class="kw-2">&amp;</span>AstNode,
         qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
         ctx: <span class="kw-2">&amp;</span>VisitorContext&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
-        <span class="kw">match </span>reference {
-            AstStatement::Identifier { name, .. } =&gt; ctx
+        <span class="kw">match </span>reference.get_stmt() {
+            AstStatement::Identifier(name, ..) =&gt; ctx
                 .resolve_strategy
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, <span class="self">self</span>.index, ctx)),
 
-            AstStatement::Literal { .. } =&gt; {
+            AstStatement::Literal(..) =&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, reference);
                 <span class="kw">let </span>literal_annotation = <span class="self">self</span>.annotation_map.get(reference).cloned(); <span class="comment">// return what we just annotated //TODO not elegant, we need to clone
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>((base_type, literal_type)) =
@@ -3551,10 +3543,10 @@
                 literal_annotation
             }
 
-            AstStatement::DirectAccess { access, index, .. } <span class="kw">if </span>qualifier.is_some() =&gt; {
+            AstStatement::DirectAccess(data, ..) <span class="kw">if </span>qualifier.is_some() =&gt; {
                 <span class="comment">// x.%X1 - bit access
-                </span><span class="self">self</span>.visit_statement(ctx, index.as_ref());
-                <span class="prelude-val">Some</span>(StatementAnnotation::value(get_direct_access_type(access)))
+                </span><span class="self">self</span>.visit_statement(ctx, data.index.as_ref());
+                <span class="prelude-val">Some</span>(StatementAnnotation::value(get_direct_access_type(<span class="kw-2">&amp;</span>data.access)))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -3562,7 +3554,7 @@
 
     <span class="doccomment">/// annotates the vla-statement it with a type hint
     /// referencing the contained array. This is needed to simplify codegen and validation.
-    </span><span class="kw">fn </span>annotate_vla_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
+    </span><span class="kw">fn </span>annotate_vla_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">let </span>DataTypeInformation::Struct {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
             members,
@@ -3584,7 +3576,7 @@
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = ctx.pou <span class="kw">else </span>{ <span class="macro">unreachable!</span>(<span class="string">&quot;VLA not allowed outside of POUs&quot;</span>) };
 
-            <span class="kw">let </span>name = <span class="kw">if let </span>AstStatement::Identifier { name, .. } = statement {
+            <span class="kw">let </span>name = <span class="kw">if let </span>AstStatement::Identifier(name, ..) = statement.get_stmt() {
                 name.as_str()
             } <span class="kw">else </span>{
                 statement.get_flat_reference_name().expect(<span class="string">&quot;must be a reference to a VLA&quot;</span>)
@@ -3612,13 +3604,13 @@
         }
     }
 
-    <span class="kw">fn </span>visit_call_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement, ctx: <span class="kw-2">&amp;</span>VisitorContext) {
-        <span class="kw">let </span>(operator, parameters_stmt) =
-            <span class="kw">if let </span>AstStatement::CallStatement { operator, parameters, .. } = statement {
-                (operator.as_ref(), parameters.as_ref().as_ref())
-            } <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Always a call statement&quot;</span>);
-            };
+    <span class="kw">fn </span>visit_call_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode, ctx: <span class="kw-2">&amp;</span>VisitorContext) {
+        <span class="kw">let </span>(operator, parameters_stmt) = <span class="kw">if let </span>AstStatement::CallStatement(data, ..) = statement.get_stmt()
+        {
+            (data.operator.as_ref(), data.parameters.as_deref())
+        } <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">&quot;Always a call statement&quot;</span>);
+        };
         <span class="comment">// #604 needed for recursive function calls
         </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_resolving_strategy(ResolvingScope::call_operator_scopes()), operator);
         <span class="kw">let </span>operator_qualifier = <span class="self">self</span>.get_call_name(operator);
@@ -3749,7 +3741,7 @@
         }
     }
 
-    <span class="kw">fn </span>get_call_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operator: <span class="kw-2">&amp;</span>AstStatement) -&gt; String {
+    <span class="kw">fn </span>get_call_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, operator: <span class="kw-2">&amp;</span>AstNode) -&gt; String {
         <span class="kw">let </span>operator_qualifier = <span class="self">self
             </span>.annotation_map
             .get(operator)
@@ -3768,9 +3760,9 @@
                 <span class="comment">// call statements on array access &quot;arr[1]()&quot; will return a StatementAnnotation::Value
                 </span>StatementAnnotation::Value { resulting_type } =&gt; {
                     <span class="comment">// make sure we come from an array or function_block access
-                    </span><span class="kw">match </span>operator {
-                        AstStatement::ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>),.. } =&gt; <span class="prelude-val">Some</span>(resulting_type.clone()),
-                        AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. } =&gt;
+                    </span><span class="kw">match </span>operator.get_stmt() {
+                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Index(<span class="kw">_</span>), ..},.. ) =&gt; <span class="prelude-val">Some</span>(resulting_type.clone()),
+                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. ) =&gt;
                         <span class="comment">// AstStatement::ArrayAccess { .. } =&gt; Some(resulting_type.clone()),
                         // AstStatement::PointerAccess { .. } =&gt; {
                             </span><span class="self">self</span>.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
@@ -3784,8 +3776,8 @@
         operator_qualifier
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate_parameters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;</span>AstStatement, type_name: <span class="kw-2">&amp;</span>str) {
-        <span class="kw">if </span>!<span class="macro">matches!</span>(p, AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate_parameters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;</span>AstNode, type_name: <span class="kw-2">&amp;</span>str) {
+        <span class="kw">if </span>!<span class="macro">matches!</span>(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(effective_member_type) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) {
                 <span class="comment">//update the type hint
                 </span><span class="self">self</span>.annotation_map
@@ -3795,9 +3787,9 @@
     }
 
     <span class="doccomment">/// annotate a literal statement
-    </span><span class="kw">fn </span>visit_statement_literals(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstStatement) {
-        <span class="kw">match </span>statement {
-            AstStatement::Literal { kind, .. } =&gt; {
+    </span><span class="kw">fn </span>visit_statement_literals(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
+        <span class="kw">match </span>statement.get_stmt() {
+            AstStatement::Literal(kind, ..) =&gt; {
                 <span class="kw">match </span>kind {
                     AstLiteral::Bool { .. } =&gt; {
                         <span class="self">self</span>.annotate(statement, StatementAnnotation::value(BOOL_TYPE));
@@ -3842,8 +3834,8 @@
                     <span class="kw">_ </span>=&gt; {} <span class="comment">// ignore literalNull, arrays (they are covered earlier)
                 </span>}
             }
-            AstStatement::MultipliedStatement { element, .. } =&gt; {
-                <span class="self">self</span>.visit_statement(ctx, element)
+            AstStatement::MultipliedStatement(data, ..) =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.element)
                 <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array
             </span>}
             <span class="kw">_ </span>=&gt; {}
@@ -3853,7 +3845,7 @@
     <span class="kw">fn </span>annotate_to_pointer_size_if_necessary(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         value_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstNode,
     ) {
         <span class="comment">// pointer size is 64Bits matching LINT
         // therefore get the bigger type of current and LINT to check if cast is necessary
@@ -4102,23 +4094,17 @@
 </span><span class="kw">fn </span>accept_cast_string_literal(
     literals: <span class="kw-2">&amp;mut </span>StringLiterals,
     cast_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-    literal: <span class="kw-2">&amp;</span>AstStatement,
+    literal: <span class="kw-2">&amp;</span>AstNode,
 ) {
     <span class="comment">// check if we need to register an additional string-literal
-    </span><span class="kw">match </span>(cast_type.get_type_information(), literal) {
+    </span><span class="kw">match </span>(cast_type.get_type_information(), literal.get_stmt()) {
         (
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-            AstStatement::Literal {
-                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">true </span>}),
-                ..
-            },
+            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">true </span>})),
         )
         | (
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-            AstStatement::Literal {
-                kind: AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">false </span>}),
-                ..
-            },
+            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">false </span>})),
         ) =&gt; {
             <span class="comment">// re-register the string-literal in the opposite encoding
             </span><span class="kw">if </span><span class="kw-2">*</span>is_wide {

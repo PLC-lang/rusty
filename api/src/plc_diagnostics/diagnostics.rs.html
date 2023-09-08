@@ -783,7 +783,7 @@
 <a href="#783" id="783">783</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, ops::Range};
 
-<span class="kw">use </span>plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
+<span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use </span><span class="kw">crate</span>::errno::ErrNo;
@@ -1452,7 +1452,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>invalid_range_statement(entity: <span class="kw-2">&amp;</span>AstStatement, range: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>invalid_range_statement(entity: <span class="kw-2">&amp;</span>AstNode, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {entity:?} instead&quot;</span>),
             range: <span class="macro">vec!</span>[range],

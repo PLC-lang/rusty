@@ -1361,7 +1361,7 @@
 };
 
 <span class="kw">use </span>plc_ast::{
-    ast::{AstStatement, Operator, PouType, TypeNature},
+    ast::{AstNode, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -1665,7 +1665,7 @@
 
     <span class="doccomment">/// returns the const expression represented by this TypeSize or None if this TypeSize
     /// is a compile-time literal
-    </span><span class="kw">pub fn </span>as_const_expression&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>AstStatement&gt; {
+    </span><span class="kw">pub fn </span>as_const_expression&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>AstNode&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             TypeSize::LiteralInteger(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             TypeSize::ConstExpression(id) =&gt; index.get_const_expressions().get_constant_statement(id),
@@ -1740,7 +1740,7 @@
     SubRange {
         name: TypeId,
         referenced_type: TypeId,
-        sub_range: Range&lt;AstStatement&gt;,
+        sub_range: Range&lt;AstNode&gt;,
     },
     Alias {
         name: TypeId,

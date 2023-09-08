@@ -1109,16 +1109,18 @@
 <a href="#1109" id="1109">1109</a>
 <a href="#1110" id="1110">1110</a>
 <a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        DirectAccessType, GenericBinding, HardwareAccessType, Implementation, LinkageType, PolymorphismMode,
-        Pou, PouType, ReferenceAccess, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1679,7 +1681,7 @@
     })
 }
 
-<span class="kw">type </span>DataTypeWithInitializer = (DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;);
+<span class="kw">type </span>DataTypeWithInitializer = (DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;);
 
 <span class="kw">fn </span>parse_full_data_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
@@ -1772,7 +1774,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     start_pos: usize,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
@@ -1788,7 +1790,7 @@
 <span class="kw">fn </span>parse_type_reference_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     <span class="kw">let </span>start = lexer.range().start;
     <span class="comment">//Subrange
     </span><span class="kw">let </span>referenced_type = lexer.slice_and_advance();
@@ -1809,19 +1811,22 @@
     <span class="kw">let </span>end = lexer.last_range.end;
     <span class="kw">if </span>name.is_some() || bounds.is_some() {
         <span class="kw">let </span>data_type = <span class="kw">match </span>bounds {
-            <span class="prelude-val">Some</span>(AstStatement::ExpressionList { expressions, id }) =&gt; {
+            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location }) =&gt; {
                 <span class="comment">//this is an enum
                 </span>DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
-                        elements: AstStatement::ExpressionList { expressions, id },
+                        elements: AstFactory::create_expression_list(expressions, location, id),
                     },
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
-            <span class="prelude-val">Some</span>(AstStatement::ReferenceExpr { access: ReferenceAccess::Member(<span class="kw">_</span>), .. }) =&gt; {
+            <span class="prelude-val">Some</span>(AstNode {
+                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(<span class="kw">_</span>), .. }),
+                ..
+            }) =&gt; {
                 <span class="comment">// a enum with just one element
                 </span>DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
@@ -1852,7 +1857,7 @@
     }
 }
 
-<span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstStatement&gt; {
+<span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>opening_token = lexer.token.clone();
     <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
         <span class="kw">let </span>opening_location = lexer.range().start;
@@ -1886,7 +1891,7 @@
 <span class="kw">fn </span>parse_string_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     <span class="kw">let </span>text = lexer.slice().to_string();
     <span class="kw">let </span>start = lexer.range().start;
     <span class="kw">let </span>is_wide = lexer.token == KeywordWideString;
@@ -1919,7 +1924,7 @@
 <span class="kw">fn </span>parse_enum_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     <span class="kw">let </span>start = lexer.last_location();
     <span class="kw">let </span>elements = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
         <span class="comment">// Parse Enum - we expect at least one element
@@ -1940,7 +1945,7 @@
 <span class="kw">fn </span>parse_array_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstStatement&gt;)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     <span class="kw">let </span>start = lexer.last_range.start;
     <span class="kw">let </span>range = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordOf], |lexer| {
         <span class="comment">// Parse Array range
@@ -1961,15 +1966,15 @@
         <span class="kw">let </span>reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(<span class="number">0</span>);
         <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..reference_end);
 
-        <span class="kw">let </span>is_variable_length = <span class="kw">match </span><span class="kw-2">&amp;</span>range {
+        <span class="kw">let </span>is_variable_length = <span class="kw">match </span><span class="kw-2">&amp;</span>range.get_stmt() {
             <span class="comment">// Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
             </span>AstStatement::RangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             AstStatement::VlaRangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
 
             <span class="comment">// Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
-            </span>AstStatement::ExpressionList { expressions, .. } =&gt; <span class="kw">match </span>expressions[<span class="number">0</span>] {
-                AstStatement::RangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-                AstStatement::VlaRangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            </span>AstStatement::ExpressionList(expressions) =&gt; <span class="kw">match </span>expressions[<span class="number">0</span>].get_stmt() {
+                AstStatement::RangeStatement(..) =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+                AstStatement::VlaRangeStatement =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
 
@@ -2001,11 +2006,11 @@
 }
 
 <span class="doccomment">/// parse a body and recovers until the given `end_keywords`
-</span><span class="kw">fn </span>parse_body_in_region(lexer: <span class="kw-2">&amp;mut </span>ParseSession, end_keywords: Vec&lt;Token&gt;) -&gt; Vec&lt;AstStatement&gt; {
+</span><span class="kw">fn </span>parse_body_in_region(lexer: <span class="kw-2">&amp;mut </span>ParseSession, end_keywords: Vec&lt;Token&gt;) -&gt; Vec&lt;AstNode&gt; {
     parse_any_in_region(lexer, end_keywords, parse_body_standalone)
 }
 
-<span class="kw">fn </span>parse_body_standalone(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstStatement&gt; {
+<span class="kw">fn </span>parse_body_standalone(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
     <span class="kw">while </span>!lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
         statements.push(parse_control(lexer));
@@ -2014,10 +2019,11 @@
 }
 
 <span class="doccomment">/// parses a statement ending with a &#39;;&#39;
-</span><span class="kw">fn </span>parse_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+</span><span class="kw">fn </span>parse_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>result = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon, KeywordColon], parse_expression);
     <span class="kw">if </span>lexer.last_token == KeywordColon {
-        AstStatement::CaseCondition { condition: Box::new(result), id: lexer.next_id() }
+        <span class="kw">let </span>location = result.location.span(<span class="kw-2">&amp;</span>lexer.last_location());
+        AstFactory::create_case_condition(result, location, lexer.next_id())
     } <span class="kw">else </span>{
         result
     }
@@ -2050,19 +2056,18 @@
     result
 }
 
-<span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">match </span>expressions_parser::parse_call_statement(lexer) {
         <span class="prelude-val">Ok</span>(statement) =&gt; statement,
         <span class="prelude-val">Err</span>(diagnostic) =&gt; {
-            <span class="kw">let </span>statement =
-                AstStatement::EmptyStatement { location: diagnostic.get_location(), id: lexer.next_id() };
+            <span class="kw">let </span>statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
             lexer.accept_diagnostic(diagnostic);
             statement
         }
     }
 }
 
-<span class="kw">fn </span>parse_control(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstStatement {
+<span class="kw">fn </span>parse_control(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     parse_control_statement(lexer)
 }
 
@@ -2109,8 +2114,7 @@
     <span class="kw">if </span>constant {
         <span class="comment">// sneak in the DefaultValue-Statements if no initializers were defined
         </span>variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
-            it.initializer =
-                <span class="prelude-val">Some</span>(AstStatement::DefaultValue { location: it.location.clone(), id: lexer.next_id() });
+            it.initializer = <span class="prelude-val">Some</span>(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));
         });
     }
 
@@ -2194,7 +2198,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     hardware_access_type: HardwareAccessType,
     access_type: DirectAccessType,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstStatement, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
     <span class="kw">let </span>start_location = lexer.last_location();
     lexer.advance();
     <span class="comment">//Folowed by an integer
@@ -2209,13 +2213,13 @@
                 }
             }
         }
-        <span class="prelude-val">Ok</span>(AstStatement::HardwareAccess {
-            access: access_type,
-            direction: hardware_access_type,
+        <span class="prelude-val">Ok</span>(AstFactory::create_hardware_access(
+            access_type,
+            hardware_access_type,
             address,
-            location: start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
-            id: lexer.next_id(),
-        })
+            start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
+            lexer.next_id(),
+        ))
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Diagnostic::missing_token(<span class="string">&quot;LiteralInteger&quot;</span>, lexer.location()))
     }

@@ -157,7 +157,7 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstStatement, CompilationUnit};
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -207,7 +207,7 @@
         }
     }
 
-    <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
+    <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
         <span class="self">self</span>.annotations.get_call_name(stmt).and_then(|pou_name| {
             <span class="self">self</span>.index
                 <span class="comment">// check if this is an instance of a function block and get the type name

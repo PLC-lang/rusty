@@ -56,35 +56,35 @@
 <a href="#56" id="56">56</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{Debug, Formatter};
 
-<span class="kw">use </span><span class="kw">crate</span>::ast::AstStatement;
+<span class="kw">use </span><span class="kw">crate</span>::ast::AstNode;
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>IfStatement {
     <span class="kw">pub </span>blocks: Vec&lt;ConditionalBlock&gt;,
-    <span class="kw">pub </span>else_block: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>else_block: Vec&lt;AstNode&gt;,
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>ForLoopStatement {
-    <span class="kw">pub </span>counter: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>start: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>end: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>by_step: <span class="prelude-ty">Option</span>&lt;Box&lt;AstStatement&gt;&gt;,
-    <span class="kw">pub </span>body: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>counter: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>start: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>end: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>by_step: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
+    <span class="kw">pub </span>body: Vec&lt;AstNode&gt;,
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="doccomment">/// used for While and Repeat loops
 </span><span class="kw">pub struct </span>LoopStatement {
-    <span class="kw">pub </span>condition: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>body: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>condition: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>body: Vec&lt;AstNode&gt;,
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>CaseStatement {
-    <span class="kw">pub </span>selector: Box&lt;AstStatement&gt;,
+    <span class="kw">pub </span>selector: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>case_blocks: Vec&lt;ConditionalBlock&gt;,
-    <span class="kw">pub </span>else_block: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>else_block: Vec&lt;AstNode&gt;,
 }
 
 <span class="attr">#[derive(Clone, PartialEq)]
@@ -98,8 +98,8 @@
 
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>ConditionalBlock {
-    <span class="kw">pub </span>condition: Box&lt;AstStatement&gt;,
-    <span class="kw">pub </span>body: Vec&lt;AstStatement&gt;,
+    <span class="kw">pub </span>condition: Box&lt;AstNode&gt;,
+    <span class="kw">pub </span>body: Vec&lt;AstNode&gt;,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>ConditionalBlock {

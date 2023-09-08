@@ -804,13 +804,22 @@
 <a href="#804" id="804">804</a>
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>};
 <span class="kw">use </span>plc_ast::ast::{
-    <span class="self">self</span>, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    <span class="self">self</span>, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -1143,7 +1152,7 @@
 
             <span class="kw">for </span>ele <span class="kw">in </span>ast::flatten_expression_list(elements) {
                 <span class="kw">let </span>element_name = ast::get_enum_element_name(ele);
-                <span class="kw">if let </span>AstStatement::Assignment { right, .. } = ele {
+                <span class="kw">if let </span>AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                     <span class="kw">let </span>init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
@@ -1170,7 +1179,9 @@
         }
 
         DataType::SubRangeType { name: <span class="prelude-val">Some</span>(name), referenced_type, bounds } =&gt; {
-            <span class="kw">let </span>information = <span class="kw">if let </span><span class="prelude-val">Some</span>(AstStatement::RangeStatement { start, end, .. }) = bounds {
+            <span class="kw">let </span>information = <span class="kw">if let </span><span class="prelude-val">Some</span>(AstStatement::RangeStatement(RangeStatement { start, end })) =
+                bounds.as_ref().map(|it| it.get_stmt())
+            {
                 DataTypeInformation::SubRange {
                     name: name.into(),
                     referenced_type: referenced_type.into(),
@@ -1227,21 +1238,21 @@
             <span class="kw">let </span>encoding = <span class="kw">if </span><span class="kw-2">*</span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 };
 
             <span class="kw">let </span>size = <span class="kw">match </span>size {
-                <span class="prelude-val">Some</span>(AstStatement::Literal { kind: AstLiteral::Integer(value), .. }) =&gt; {
+                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) =&gt; {
                     TypeSize::from_literal((value + <span class="number">1</span>) <span class="kw">as </span>i64)
                 }
                 <span class="prelude-val">Some</span>(statement) =&gt; {
                     <span class="comment">// construct a &quot;x + 1&quot; expression because we need one additional character for \0 terminator
-                    </span><span class="kw">let </span>len_plus_1 = AstStatement::BinaryExpression {
-                        id: statement.get_id(),
-                        left: Box::new(statement.clone()),
-                        operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::new_literal(
+                    </span><span class="kw">let </span>len_plus_1 = AstFactory::create_binary_expression(
+                        statement.clone(),
+                        ast::Operator::Plus,
+                        AstNode::new_literal(
                             AstLiteral::new_integer(<span class="number">1</span>),
                             statement.get_id(),
                             statement.get_location(),
-                        )),
-                    };
+                        ),
+                        statement.get_id(),
+                    );
 
                     TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
                         len_plus_1,
@@ -1310,15 +1321,15 @@
 /// END_STRUCT
 /// ```
 </span><span class="kw">fn </span>visit_variable_length_array(
-    bounds: <span class="kw-2">&amp;</span>AstStatement,
+    bounds: <span class="kw-2">&amp;</span>AstNode,
     referenced_type: <span class="kw-2">&amp;</span>DataTypeDeclaration,
     name: <span class="kw-2">&amp;</span>str,
     index: <span class="kw-2">&amp;mut </span>Index,
     type_declaration: <span class="kw-2">&amp;</span>UserTypeDeclaration,
 ) {
-    <span class="kw">let </span>ndims = <span class="kw">match </span>bounds {
-        AstStatement::VlaRangeStatement { .. } =&gt; <span class="number">1</span>,
-        AstStatement::ExpressionList { expressions, .. } =&gt; expressions.len(),
+    <span class="kw">let </span>ndims = <span class="kw">match </span>bounds.get_stmt() {
+        AstStatement::VlaRangeStatement =&gt; <span class="number">1</span>,
+        AstStatement::ExpressionList(expressions) =&gt; expressions.len(),
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;not a bounds statement&quot;</span>),
     };
 
@@ -1380,24 +1391,29 @@
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::ArrayType {
                         name: <span class="prelude-val">Some</span>(member_dimensions_name),
-                        bounds: AstStatement::ExpressionList {
-                            expressions: (<span class="number">0</span>..ndims)
-                                .map(|<span class="kw">_</span>| AstStatement::RangeStatement {
-                                    start: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(<span class="number">0</span>),
-                                        <span class="number">0</span>,
-                                        SourceLocation::undefined(),
-                                    )),
-                                    end: Box::new(AstStatement::new_literal(
-                                        AstLiteral::new_integer(<span class="number">1</span>),
-                                        <span class="number">0</span>,
-                                        SourceLocation::undefined(),
-                                    )),
-                                    id: <span class="number">0</span>,
-                                })
-                                .collect::&lt;<span class="kw">_</span>&gt;(),
-                            id: <span class="number">0</span>,
-                        },
+                        bounds: AstNode::new(
+                            AstStatement::ExpressionList(
+                                (<span class="number">0</span>..ndims)
+                                    .map(|<span class="kw">_</span>| {
+                                        AstFactory::create_range_statement(
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(<span class="number">0</span>),
+                                                <span class="number">0</span>,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            AstNode::new_literal(
+                                                AstLiteral::new_integer(<span class="number">1</span>),
+                                                <span class="number">0</span>,
+                                                SourceLocation::undefined(),
+                                            ),
+                                            <span class="number">0</span>,
+                                        )
+                                    })
+                                    .collect::&lt;<span class="kw">_</span>&gt;(),
+                            ),
+                            <span class="number">0</span>,
+                            SourceLocation::undefined(),
+                        ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
                             location: SourceLocation::undefined(),
@@ -1450,7 +1466,7 @@
 }
 
 <span class="kw">fn </span>visit_array(
-    bounds: <span class="kw-2">&amp;</span>AstStatement,
+    bounds: <span class="kw-2">&amp;</span>AstNode,
     index: <span class="kw-2">&amp;mut </span>Index,
     scope: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
     referenced_type: <span class="kw-2">&amp;</span>DataTypeDeclaration,
@@ -1460,8 +1476,8 @@
     <span class="kw">let </span>dimensions: <span class="prelude-ty">Result</span>&lt;Vec&lt;Dimension&gt;, Diagnostic&gt; = bounds
         .get_as_list()
         .iter()
-        .map(|it| <span class="kw">match </span>it {
-            AstStatement::RangeStatement { start, end, .. } =&gt; {
+        .map(|it| <span class="kw">match </span>it.get_stmt() {
+            AstStatement::RangeStatement(RangeStatement { start, end }) =&gt; {
                 <span class="kw">let </span>constants = index.get_mut_const_expressions();
                 <span class="prelude-val">Ok</span>(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(

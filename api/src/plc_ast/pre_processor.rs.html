@@ -283,6 +283,9 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::collections::HashMap;
@@ -291,8 +294,8 @@
 
 <span class="kw">use crate</span>::{
     ast::{
-        flatten_expression_list, AstFactory, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-        Operator, Pou, UserTypeDeclaration, Variable,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -365,27 +368,24 @@
                     }
                 }
                 DataType::EnumType { elements, .. }
-                    <span class="kw">if </span><span class="macro">matches!</span>(elements, AstStatement::EmptyStatement { .. }) =&gt;
+                    <span class="kw">if </span><span class="macro">matches!</span>(elements.stmt, AstStatement::EmptyStatement { .. }) =&gt;
                 {
                     <span class="comment">//avoid empty statements, just use an empty expression list to make it easier to work with
-                    </span><span class="kw">let _ </span>= std::mem::replace(
-                        elements,
-                        AstStatement::ExpressionList { expressions: <span class="macro">vec!</span>[], id: id_provider.next_id() },
-                    );
+                    </span><span class="kw">let _ </span>= std::mem::replace(<span class="kw-2">&amp;mut </span>elements.stmt, AstStatement::ExpressionList(<span class="macro">vec!</span>[]));
                 }
                 DataType::EnumType { elements: original_elements, name: <span class="prelude-val">Some</span>(enum_name), .. }
-                    <span class="kw">if </span>!<span class="macro">matches!</span>(original_elements, AstStatement::EmptyStatement { .. }) =&gt;
+                    <span class="kw">if </span>!<span class="macro">matches!</span>(original_elements.stmt, AstStatement::EmptyStatement { .. }) =&gt;
                 {
                     <span class="kw">let </span><span class="kw-2">mut </span>last_name: <span class="prelude-ty">Option</span>&lt;String&gt; = <span class="prelude-val">None</span>;
 
-                    <span class="kw">fn </span>extract_flat_ref_name(statement: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="kw-2">&amp;</span>str {
+                    <span class="kw">fn </span>extract_flat_ref_name(statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="kw-2">&amp;</span>str {
                         statement.get_flat_reference_name().expect(<span class="string">&quot;expected assignment&quot;</span>)
                     }
 
                     <span class="kw">let </span>initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
-                        .map(|it| <span class="kw">match </span>it {
-                            AstStatement::Assignment { left, right, .. } =&gt; {
+                        .map(|it| <span class="kw">match </span><span class="kw-2">&amp;</span>it.stmt {
+                            AstStatement::Assignment(Assignment { left, right }) =&gt; {
                                 <span class="comment">//&lt;element-name, initializer, location&gt;
                                 </span>(
                                     extract_flat_ref_name(left.as_ref()),
@@ -400,9 +400,8 @@
                                 build_enum_initializer(<span class="kw-2">&amp;</span>last_name, <span class="kw-2">&amp;</span>location, <span class="kw-2">&amp;mut </span>id_provider, enum_name)
                             });
                             last_name = <span class="prelude-val">Some</span>(element_name.to_string());
-                            AstStatement::Assignment {
-                                id: id_provider.next_id(),
-                                left: Box::new(AstFactory::create_member_reference(
+                            AstFactory::create_assignment(
+                                AstFactory::create_member_reference(
                                     AstFactory::create_identifier(
                                         element_name,
                                         <span class="kw-2">&amp;</span>location,
@@ -410,18 +409,25 @@
                                     ),
                                     <span class="prelude-val">None</span>,
                                     id_provider.next_id(),
-                                )),
-                                right: Box::new(enum_literal),
-                            }
+                                ),
+                                enum_literal,
+                                id_provider.next_id(),
+                            )
                         })
-                        .collect::&lt;Vec&lt;AstStatement&gt;&gt;();
+                        .collect::&lt;Vec&lt;AstNode&gt;&gt;();
                     <span class="comment">// if the enum is empty, we dont change anything
                     </span><span class="kw">if </span>!initialized_enum_elements.is_empty() {
+                        <span class="comment">// we can safely unwrap because we checked the vec
+                        </span><span class="kw">let </span>start_loc =
+                            initialized_enum_elements.first().expect(<span class="string">&quot;non empty vec&quot;</span>).get_location();
+                        <span class="kw">let </span>end_loc =
+                            initialized_enum_elements.iter().last().expect(<span class="string">&quot;non empty vec&quot;</span>).get_location();
                         <span class="comment">//swap the expression list with our new Assignments
-                        </span><span class="kw">let </span>expression = AstStatement::ExpressionList {
-                            expressions: initialized_enum_elements,
-                            id: id_provider.next_id(),
-                        };
+                        </span><span class="kw">let </span>expression = AstFactory::create_expression_list(
+                            initialized_enum_elements,
+                            start_loc.span(<span class="kw-2">&amp;</span>end_loc),
+                            id_provider.next_id(),
+                        );
                         <span class="kw">let _ </span>= std::mem::replace(original_elements, expression);
                     }
                 }
@@ -437,7 +443,7 @@
     location: <span class="kw-2">&amp;</span>SourceLocation,
     id_provider: <span class="kw-2">&amp;mut </span>IdProvider,
     enum_name: <span class="kw-2">&amp;mut </span>str,
-) -&gt; AstStatement {
+) -&gt; AstNode {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(last_element) = last_name.as_ref() {
         <span class="comment">// generate a `enum#last + 1` statement
         </span><span class="kw">let </span>enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
@@ -449,11 +455,11 @@
         AstFactory::create_binary_expression(
             AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
             Operator::Plus,
-            AstStatement::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
+            AstNode::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )
     } <span class="kw">else </span>{
-        AstStatement::new_literal(AstLiteral::new_integer(<span class="number">0</span>), id_provider.next_id(), location.clone())
+        AstNode::new_literal(AstLiteral::new_integer(<span class="number">0</span>), id_provider.next_id(), location.clone())
     }
 }
 

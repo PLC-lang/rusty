@@ -2682,14 +2682,6 @@
 <a href="#2682" id="2682">2682</a>
 <a href="#2683" id="2683">2683</a>
 <a href="#2684" id="2684">2684</a>
-<a href="#2685" id="2685">2685</a>
-<a href="#2686" id="2686">2686</a>
-<a href="#2687" id="2687">2687</a>
-<a href="#2688" id="2688">2688</a>
-<a href="#2689" id="2689">2689</a>
-<a href="#2690" id="2690">2690</a>
-<a href="#2691" id="2691">2691</a>
-<a href="#2692" id="2692">2692</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2716,10 +2708,13 @@
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-<span class="kw">use </span>plc_ast::ast::{
-    flatten_expression_list, AstFactory, AstStatement, DirectAccessType, Operator, ReferenceAccess,
+<span class="kw">use </span>plc_ast::{
+    ast::{
+        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
+        ReferenceAccess, ReferenceExpr,
+    },
+    literals::AstLiteral,
 };
-<span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
@@ -2750,7 +2745,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>CallParameterAssignment&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// the assignmentstatement in the call-argument list (a:=3)
-    </span>assignment_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstStatement,
+    </span>assignment_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstNode,
     <span class="doccomment">/// the name of the function we&#39;re calling
     </span>function_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
     <span class="doccomment">/// the position of the argument in the POU&#39;s argument&#39;s list
@@ -2844,14 +2839,14 @@
     <span class="doccomment">/// returns the function context or returns a Compile-Error
     </span><span class="kw">pub fn </span>get_function_context(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.function_context.ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
 
     <span class="doccomment">/// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
-    </span><span class="kw">pub fn </span>generate_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// If the expression was replaced by the resolver, generate the replacement
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) = <span class="self">self</span>.annotations.get(expression) {
             <span class="comment">// we trust that the validator only passed us valid parameters (so left &amp; right should be same type)
@@ -2870,7 +2865,7 @@
         <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_type, actual_type, v, <span class="self">self</span>.annotations.get(expression)))
     }
 
-    <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) {
+    <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">let </span>function_context =
             <span class="self">self</span>.function_context.expect(<span class="string">&quot;Cannot generate debug info without function context&quot;</span>);
         <span class="kw">let </span>line = statement.get_location().get_line();
@@ -2880,7 +2875,7 @@
 
     <span class="kw">pub fn </span>generate_expression_value(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        expression: <span class="kw-2">&amp;</span>AstStatement,
+        expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//see if this is a constant - maybe we can short curcuit this codegen
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable {
@@ -2893,9 +2888,10 @@
             }
         }
         <span class="comment">// generate the expression
-        </span><span class="kw">match </span>expression {
-            AstStatement::ReferenceExpr { access, base, .. } =&gt; {
-                <span class="kw">let </span>res = <span class="self">self</span>.generate_reference_expression(access, base.as_deref(), expression)<span class="question-mark">?</span>;
+        </span><span class="kw">match </span>expression.get_stmt() {
+            AstStatement::ReferenceExpr(data) =&gt; {
+                <span class="kw">let </span>res =
+                    <span class="self">self</span>.generate_reference_expression(<span class="kw-2">&amp;</span>data.access, data.base.as_deref(), expression)<span class="question-mark">?</span>;
                 <span class="kw">let </span>val = <span class="kw">match </span>res {
                     ExpressionValue::LValue(val) =&gt; {
                         ExpressionValue::LValue(<span class="self">self</span>.auto_deref_if_necessary(val, expression))
@@ -2912,14 +2908,14 @@
                 };
                 <span class="prelude-val">Ok</span>(val)
             }
-            AstStatement::BinaryExpression { left, right, operator, .. } =&gt; <span class="self">self
-                </span>.generate_binary_expression(left, right, operator, expression)
+            AstStatement::BinaryExpression(data) =&gt; <span class="self">self
+                </span>.generate_binary_expression(<span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right, <span class="kw-2">&amp;</span>data.operator, expression)
                 .map(ExpressionValue::RValue),
-            AstStatement::CallStatement { operator, parameters, .. } =&gt; {
-                <span class="self">self</span>.generate_call_statement(operator, parameters)
+            AstStatement::CallStatement(data) =&gt; {
+                <span class="self">self</span>.generate_call_statement(<span class="kw-2">&amp;</span>data.operator, data.parameters.as_deref())
             }
-            AstStatement::UnaryExpression { operator, value, .. } =&gt; {
-                <span class="self">self</span>.generate_unary_expression(operator, value).map(ExpressionValue::RValue)
+            AstStatement::UnaryExpression(data) =&gt; {
+                <span class="self">self</span>.generate_unary_expression(<span class="kw-2">&amp;</span>data.operator, <span class="kw-2">&amp;</span>data.value).map(ExpressionValue::RValue)
             }
             <span class="comment">// TODO: Hardware access needs to be evaluated, see #648
             </span>AstStatement::HardwareAccess { .. } =&gt; {
@@ -2936,7 +2932,7 @@
     </span><span class="kw">fn </span>generate_constant_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         qualified_name: <span class="kw-2">&amp;</span>str,
-        expression: <span class="kw-2">&amp;</span>AstStatement,
+        expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>const_expression = <span class="self">self
             </span>.index
@@ -2969,10 +2965,10 @@
     /// - `expression` the whole expression for diagnostic reasons
     </span><span class="kw">fn </span>generate_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
         operator: <span class="kw-2">&amp;</span>Operator,
-        expression: <span class="kw-2">&amp;</span>AstStatement,
+        expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>l_type_hint = <span class="self">self</span>.get_type_hint_for(left)<span class="question-mark">?</span>;
         <span class="kw">let </span>ltype = <span class="self">self</span>.index.get_intrinsic_type_by_name(l_type_hint.get_name()).get_type_information();
@@ -3006,7 +3002,7 @@
     <span class="kw">pub fn </span>generate_direct_access_index(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         access: <span class="kw-2">&amp;</span>DirectAccessType,
-        index: <span class="kw-2">&amp;</span>AstStatement,
+        index: <span class="kw-2">&amp;</span>AstNode,
         access_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         target_type: <span class="kw-2">&amp;</span>DataType,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
@@ -3039,7 +3035,7 @@
     </span><span class="kw">fn </span>generate_unary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         unary_operator: <span class="kw-2">&amp;</span>Operator,
-        expression: <span class="kw-2">&amp;</span>AstStatement,
+        expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>value = <span class="kw">match </span>unary_operator {
             Operator::Not =&gt; {
@@ -3089,8 +3085,8 @@
     /// - `parameters` - an optional StatementList of parameters
     </span><span class="kw">pub fn </span>generate_call_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        operator: <span class="kw-2">&amp;</span>AstStatement,
-        parameters: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
+        operator: <span class="kw-2">&amp;</span>AstNode,
+        parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// find the pou we&#39;re calling
         </span><span class="kw">let </span>pou = <span class="self">self</span>.annotations.get_call_name(operator).zip(<span class="self">self</span>.annotations.get_qualified_name(operator))
@@ -3111,7 +3107,7 @@
             .find_implementation(<span class="self">self</span>.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>parameters_list = parameters.as_ref().map(flatten_expression_list).unwrap_or_default();
+        <span class="kw">let </span>parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
         <span class="kw">let </span>implementation_name = implementation.get_call_name();
         <span class="comment">// if the function is builtin, generate a basic value enum for it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(builtin) = <span class="self">self</span>.index.get_builtin_function(implementation_name) {
@@ -3199,7 +3195,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         function_name: <span class="kw-2">&amp;</span>str,
-        parameters: Vec&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
+        parameters: Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">for </span>(index, assignment_statement) <span class="kw">in </span>parameters.into_iter().enumerate() {
             <span class="self">self</span>.assign_output_value(<span class="kw-2">&amp;</span>CallParameterAssignment {
@@ -3213,14 +3209,14 @@
     }
 
     <span class="kw">fn </span>assign_output_value(<span class="kw-2">&amp;</span><span class="self">self</span>, param_context: <span class="kw-2">&amp;</span>CallParameterAssignment) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">match </span>param_context.assignment_statement {
-            AstStatement::OutputAssignment { left, right, .. }
-            | AstStatement::Assignment { left, right, .. } =&gt; <span class="self">self</span>.generate_explicit_output_assignment(
-                param_context.parameter_struct,
-                param_context.function_name,
-                left,
-                right,
-            ),
+        <span class="kw">match </span>param_context.assignment_statement.get_stmt() {
+            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) =&gt; <span class="self">self
+                </span>.generate_explicit_output_assignment(
+                    param_context.parameter_struct,
+                    param_context.function_name,
+                    <span class="kw-2">&amp;</span>data.left,
+                    <span class="kw-2">&amp;</span>data.right,
+                ),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.generate_output_assignment(param_context),
         }
     }
@@ -3233,7 +3229,7 @@
         <span class="kw">let </span>index = param_context.index;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(parameter) = <span class="self">self</span>.index.get_declared_parameter(function_name, index) {
             <span class="kw">if </span><span class="macro">matches!</span>(parameter.get_variable_type(), VariableType::Output)
-                &amp;&amp; !<span class="macro">matches!</span>(expression, AstStatement::EmptyStatement { .. })
+                &amp;&amp; !<span class="macro">matches!</span>(expression.get_stmt(), AstStatement::EmptyStatement { .. })
             {
                 {
                     <span class="kw">let </span>assigned_output = <span class="self">self</span>.generate_lvalue(expression)<span class="question-mark">?</span>;
@@ -3278,8 +3274,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         function_name: <span class="kw-2">&amp;</span>str,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = <span class="self">self</span>.annotations.get(left) {
             <span class="kw">let </span>parameter = <span class="self">self
@@ -3303,9 +3299,9 @@
     </span><span class="kw">fn </span>generate_pou_call_arguments_list(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
-        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
+        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
         implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry,
-        operator: <span class="kw-2">&amp;</span>AstStatement,
+        operator: <span class="kw-2">&amp;</span>AstNode,
         function_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>arguments_list = <span class="kw">if </span><span class="macro">matches!</span>(pou, PouIndexEntry::Function { .. }) {
@@ -3323,7 +3319,10 @@
                 }
                 <span class="comment">// TODO: find a more reliable way to make sure if this is a call into a local action!!
                 </span>PouIndexEntry::Action { .. }
-                    <span class="kw">if </span><span class="macro">matches!</span>(operator, AstStatement::ReferenceExpr { base: <span class="prelude-val">None</span>, .. }) =&gt;
+                    <span class="kw">if </span><span class="macro">matches!</span>(
+                        operator.get_stmt(),
+                        AstStatement::ReferenceExpr(ReferenceExpr { base: <span class="prelude-val">None</span>, .. })
+                    ) =&gt;
                 {
                     <span class="comment">// special handling for local actions, get the parameter from the function context
                     </span>function_context
@@ -3352,7 +3351,7 @@
     <span class="kw">fn </span>generate_function_arguments(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
-        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
+        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
         declared_parameters: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
@@ -3396,7 +3395,7 @@
                     <span class="self">self</span>.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())<span class="question-mark">?
                 </span>} <span class="kw">else </span>{
                     <span class="comment">// by val
-                    </span><span class="kw">if </span>!<span class="macro">matches!</span>(parameter, AstStatement::EmptyStatement { .. }) {
+                    </span><span class="kw">if </span>!parameter.is_empty_statement() {
                         <span class="self">self</span>.generate_argument_by_val(type_name, parameter)<span class="question-mark">?
                     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(param) = declared_parameters.get(i) {
                         <span class="self">self</span>.generate_empty_expression(param)<span class="question-mark">?
@@ -3437,7 +3436,7 @@
     <span class="kw">fn </span>generate_argument_by_val(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         type_name: <span class="kw-2">&amp;</span>str,
-        param_statement: <span class="kw-2">&amp;</span>AstStatement,
+        param_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.index.find_effective_type_by_name(type_name) {
             <span class="prelude-val">Some</span>(type_info) <span class="kw">if </span>type_info.information.is_string() =&gt; {
@@ -3452,7 +3451,7 @@
     </span><span class="kw">fn </span>generate_string_argument(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         type_info: <span class="kw-2">&amp;</span>DataType,
-        argument: <span class="kw-2">&amp;</span>AstStatement,
+        argument: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// allocate a temporary string of correct size and pass it
         </span><span class="kw">let </span>llvm_type = <span class="self">self
@@ -3480,11 +3479,11 @@
     /// pointing to the given `argument`
     </span><span class="kw">fn </span>generate_argument_by_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        argument: <span class="kw-2">&amp;</span>AstStatement,
+        argument: <span class="kw-2">&amp;</span>AstNode,
         type_name: <span class="kw-2">&amp;</span>str,
         declared_parameter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">if </span><span class="macro">matches!</span>(argument, AstStatement::EmptyStatement { .. }) {
+        <span class="kw">if </span>argument.is_empty_statement() {
             <span class="comment">// Uninitialized var_output / var_in_out
             </span><span class="kw">let </span>v_type = <span class="self">self
                 </span>.llvm_index
@@ -3572,7 +3571,7 @@
     <span class="kw">pub fn </span>generate_variadic_arguments_list(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
-        variadic_params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
+        variadic_params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="comment">// get the real varargs from the index
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((var_args, argument_type)) = <span class="self">self
@@ -3655,7 +3654,7 @@
     </span><span class="kw">fn </span>allocate_function_struct_instance(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         function_name: <span class="kw-2">&amp;</span>str,
-        context: <span class="kw-2">&amp;</span>AstStatement,
+        context: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">&quot;{function_name}_instance&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
         </span><span class="kw">let </span>function_type = <span class="self">self
@@ -3682,7 +3681,7 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         class_struct: <span class="prelude-ty">Option</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
         parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
+        passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = class_struct
             .map(|class_struct| {
@@ -3753,7 +3752,7 @@
     /// first try to find an initial value for the given id
     ///
     /// if there is none try to find an initial value for the given type
-    </span><span class="kw">fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
+    </span><span class="kw">fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
         <span class="self">self</span>.index.get_initial_value(id).or_else(|| <span class="self">self</span>.index.get_initial_value_for_type(type_name))
     }
 
@@ -3768,11 +3767,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>parameter_value = <span class="kw">match </span>param_context.assignment_statement {
+        <span class="kw">let </span>parameter_value = <span class="kw">match </span>param_context.assignment_statement.get_stmt() {
             <span class="comment">// explicit call parameter: foo(param := value)
-            </span>AstStatement::OutputAssignment { left, right, .. }
-            | AstStatement::Assignment { left, right, .. } =&gt; {
-                <span class="self">self</span>.generate_formal_parameter(param_context, left, right)<span class="question-mark">?</span>;
+            </span>AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) =&gt; {
+                <span class="self">self</span>.generate_formal_parameter(param_context, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right)<span class="question-mark">?</span>;
                 <span class="prelude-val">None
             </span>}
             <span class="comment">// foo(x)
@@ -3819,7 +3817,7 @@
                 <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer
 
                 //expression may be empty -&gt; generate a local variable for it
-                </span><span class="kw">let </span>generated_exp = <span class="kw">if </span><span class="macro">matches!</span>(expression, AstStatement::EmptyStatement { .. }) {
+                </span><span class="kw">let </span>generated_exp = <span class="kw">if </span>expression.is_empty_statement() {
                     <span class="kw">let </span>temp_type =
                         <span class="self">self</span>.llvm_index.find_associated_type(inner_type_name).ok_or_else(|| {
                             Diagnostic::unknown_type(parameter.get_name(), expression.get_location())
@@ -3845,8 +3843,8 @@
     </span><span class="kw">fn </span>generate_formal_parameter(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>function_name = param_context.function_name;
         <span class="kw">let </span>parameter_struct = param_context.parameter_struct;
@@ -3867,7 +3865,7 @@
                     .unwrap_or_else(|| <span class="self">self</span>.index.get_void_type().get_type_information()),
                 DataTypeInformation::Pointer { auto_deref: <span class="bool-val">true</span>, .. }
             );
-            <span class="kw">if </span>!<span class="macro">matches!</span>(right, AstStatement::EmptyStatement { .. }) || is_auto_deref {
+            <span class="kw">if </span>!right.is_empty_statement() || is_auto_deref {
                 <span class="self">self</span>.generate_call_struct_argument_assignment(<span class="kw-2">&amp;</span>CallParameterAssignment {
                     assignment_statement: right,
                     function_name,
@@ -3882,10 +3880,7 @@
     <span class="doccomment">/// generates an gep-statement and returns the resulting pointer
     ///
     /// - `reference_statement` - the statement to get an lvalue from
-    </span><span class="kw">pub fn </span>generate_lvalue(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        reference_statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_lvalue(<span class="kw-2">&amp;</span><span class="self">self</span>, reference_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.generate_expression_value(reference_statement).and_then(|it| {
             <span class="kw">let </span>v: <span class="prelude-ty">Result</span>&lt;PointerValue, <span class="kw">_</span>&gt; = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
@@ -3903,7 +3898,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        context: <span class="kw-2">&amp;</span>AstStatement,
+        context: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>offset = <span class="kw-2">&amp;</span>context.get_location();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
@@ -3983,7 +3978,7 @@
     </span><span class="kw">fn </span>auto_deref_if_necessary(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         accessor_ptr: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
+        statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { is_auto_deref: <span class="bool-val">true</span>, .. }) =
             <span class="self">self</span>.annotations.get(statement)
@@ -4002,7 +3997,7 @@
     </span><span class="kw">fn </span>generate_access_for_dimension(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         dimension: <span class="kw-2">&amp;</span>Dimension,
-        access_expression: <span class="kw-2">&amp;</span>AstStatement,
+        access_expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>start_offset = dimension
             .start_offset
@@ -4039,8 +4034,8 @@
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
     </span><span class="kw">fn </span>generate_element_pointer_for_array(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        reference: <span class="kw-2">&amp;</span>AstStatement,
-        access: <span class="kw-2">&amp;</span>AstStatement,
+        reference: <span class="kw-2">&amp;</span>AstNode,
+        access: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//Load the reference
         </span><span class="self">self</span>.generate_expression_value(reference)
@@ -4160,11 +4155,11 @@
     </span><span class="kw">pub fn </span>create_llvm_binary_expression_for_pointer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>Operator,
-        left: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
         left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        right: <span class="kw-2">&amp;</span>AstNode,
         right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        expression: <span class="kw-2">&amp;</span>AstStatement,
+        expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>left_expr = <span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>;
         <span class="kw">let </span>right_expr = <span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>;
@@ -4397,7 +4392,7 @@
 
     <span class="kw">fn </span>generate_numeric_literal(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stmt: <span class="kw-2">&amp;</span>AstStatement,
+        stmt: <span class="kw-2">&amp;</span>AstNode,
         number: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>type_hint = <span class="self">self</span>.get_type_hint_for(stmt)<span class="question-mark">?</span>;
@@ -4418,10 +4413,7 @@
     <span class="doccomment">/// generates the literal statement and returns the resulting value
     ///
     /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
-    </span><span class="kw">pub fn </span>generate_literal(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        literal_statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, literal_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>cannot_generate_literal = || {
             Diagnostic::codegen_error(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
@@ -4429,8 +4421,9 @@
             )
         };
 
-        <span class="kw">match </span>literal_statement {
-            AstStatement::Literal { kind, location, .. } =&gt; <span class="kw">match </span>kind {
+        <span class="kw">let </span>location = <span class="kw-2">&amp;</span>literal_statement.get_location();
+        <span class="kw">match </span>literal_statement.get_stmt() {
+            AstStatement::Literal(kind) =&gt; <span class="kw">match </span>kind {
                 AstLiteral::Bool(b) =&gt; <span class="self">self</span>.llvm.create_const_bool(<span class="kw-2">*</span>b).map(ExpressionValue::RValue),
                 AstLiteral::Integer(i, ..) =&gt; <span class="self">self
                     </span>.generate_numeric_literal(literal_statement, i.to_string().as_str())
@@ -4476,7 +4469,7 @@
             }
             <span class="comment">// if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             </span>AstStatement::Assignment { .. } =&gt; <span class="self">self</span>.generate_literal_struct(literal_statement),
-            AstStatement::CastStatement { target, .. } =&gt; <span class="self">self</span>.generate_expression_value(target),
+            AstStatement::CastStatement(data) =&gt; <span class="self">self</span>.generate_expression_value(<span class="kw-2">&amp;</span>data.target),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(cannot_generate_literal()),
         }
     }
@@ -4484,7 +4477,7 @@
     <span class="doccomment">/// generates the string-literal `value` represented by `literal_statement`
     </span><span class="kw">fn </span>generate_string_literal(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        literal_statement: <span class="kw-2">&amp;</span>AstStatement,
+        literal_statement: <span class="kw-2">&amp;</span>AstNode,
         value: <span class="kw-2">&amp;</span>str,
         location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
@@ -4562,10 +4555,7 @@
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
-    </span><span class="kw">pub fn </span>get_type_hint_info_for(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        statement: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataTypeInformation, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>get_type_hint_info_for(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataTypeInformation, Diagnostic&gt; {
         <span class="self">self</span>.get_type_hint_for(statement).map(DataType::get_type_information)
     }
 
@@ -4573,7 +4563,7 @@
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
-    </span><span class="kw">pub fn </span>get_type_hint_for(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataType, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>get_type_hint_for(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>DataType, Diagnostic&gt; {
         <span class="self">self</span>.annotations
             .get_type_hint(statement, <span class="self">self</span>.index)
             .or_else(|| <span class="self">self</span>.annotations.get_type(statement, <span class="self">self</span>.index))
@@ -4586,34 +4576,31 @@
     }
 
     <span class="doccomment">/// generates a struct literal value with the given value assignments (ExpressionList)
-    </span><span class="kw">fn </span>generate_literal_struct(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        assignments: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">fn </span>generate_literal_struct(<span class="kw-2">&amp;</span><span class="self">self</span>, assignments: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if let </span>DataTypeInformation::Struct { name: struct_name, members, .. } =
             <span class="self">self</span>.get_type_hint_info_for(assignments)<span class="question-mark">?
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>uninitialized_members: HashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = HashSet::from_iter(members);
             <span class="kw">let </span><span class="kw-2">mut </span>member_values: Vec&lt;(u32, BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;)&gt; = Vec::new();
             <span class="kw">for </span>assignment <span class="kw">in </span>flatten_expression_list(assignments) {
-                <span class="kw">if let </span>AstStatement::Assignment { left, right, .. } = assignment {
+                <span class="kw">if let </span>AstStatement::Assignment(data) = assignment.get_stmt() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) =
-                        <span class="self">self</span>.annotations.get(left.as_ref())
+                        <span class="self">self</span>.annotations.get(data.left.as_ref())
                     {
                         <span class="kw">let </span>member: <span class="kw-2">&amp;</span>VariableIndexEntry =
                             <span class="self">self</span>.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(qualified_name, left.get_location())
+                                Diagnostic::unresolved_reference(qualified_name, data.left.get_location())
                             })<span class="question-mark">?</span>;
 
                         <span class="kw">let </span>index_in_parent = member.get_location_in_parent();
-                        <span class="kw">let </span>value = <span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>value = <span class="self">self</span>.generate_expression(data.right.as_ref())<span class="question-mark">?</span>;
 
                         uninitialized_members.remove(member);
                         member_values.push((index_in_parent, value));
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                             <span class="string">&quot;struct member lvalue required as left operand of assignment&quot;</span>,
-                            left.get_location(),
+                            data.left.get_location(),
                         ));
                     }
                 } <span class="kw">else </span>{
@@ -4669,10 +4656,7 @@
     }
 
     <span class="doccomment">/// generates an array literal with the given optional elements (represented as an ExpressionList)
-    </span><span class="kw">pub fn </span>generate_literal_array(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        initializer: <span class="kw-2">&amp;</span>AstStatement,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>, initializer: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>array_value = <span class="self">self</span>.generate_literal_array_value(
             initializer,
             <span class="self">self</span>.get_type_hint_info_for(initializer)<span class="question-mark">?</span>,
@@ -4688,7 +4672,7 @@
     /// i16-array-value
     </span><span class="kw">fn </span>generate_literal_array_value(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        elements: <span class="kw-2">&amp;</span>AstStatement,
+        elements: <span class="kw-2">&amp;</span>AstNode,
         data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
@@ -4715,8 +4699,8 @@
         // flatten_expression_list will will return a vec of only assignments
         </span><span class="kw">let </span>elements =
             <span class="kw">if </span><span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
-                <span class="kw">match </span>elements {
-                    AstStatement::ExpressionList { expressions, .. } =&gt; expressions.iter().collect(),
+                <span class="kw">match </span>elements.get_stmt() {
+                    AstStatement::ExpressionList(expressions) =&gt; expressions.iter().collect(),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;This should always be an expression list&quot;</span>),
                 }
             } <span class="kw">else </span>{
@@ -4774,8 +4758,8 @@
     </span><span class="kw">pub fn </span>generate_bool_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>Operator,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>operator {
             Operator::And | Operator::Or =&gt; {
@@ -4825,8 +4809,8 @@
     </span><span class="kw">pub fn </span>generate_bool_short_circuit_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>Operator,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>lhs = to_i1(<span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>.into_int_value(), builder);
@@ -4879,9 +4863,9 @@
     /// expressions
     </span><span class="kw">fn </span>create_llvm_generic_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: <span class="kw-2">&amp;</span>AstStatement,
-        right: <span class="kw-2">&amp;</span>AstStatement,
-        binary_statement: <span class="kw-2">&amp;</span>AstStatement,
+        left: <span class="kw-2">&amp;</span>AstNode,
+        right: <span class="kw-2">&amp;</span>AstNode,
+        binary_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) =
             <span class="self">self</span>.annotations.get(binary_statement)
@@ -4905,7 +4889,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         left: inkwell::values::PointerValue,
         left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-        right_statement: <span class="kw-2">&amp;</span>AstStatement,
+        right_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>right_type =
             <span class="self">self</span>.annotations.get_type_or_void(right_statement, <span class="self">self</span>.index).get_type_information();
@@ -4997,17 +4981,17 @@
     }
 
     <span class="doccomment">/// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
-    </span><span class="kw">fn </span>get_load_name(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">match </span>expression {
-            AstStatement::ReferenceExpr { access: ReferenceAccess::Deref, .. }
-            | AstStatement::ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. } =&gt; {
+    </span><span class="kw">fn </span>get_load_name(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="kw">match </span>expression.get_stmt() {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. })
+            | AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. }) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="string">&quot;load_tmpVar&quot;</span>.to_string())
             }
             AstStatement::ReferenceExpr { .. } =&gt; expression
                 .get_flat_reference_name()
                 .map(|name| <span class="macro">format!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.temp_variable_prefix, name, <span class="self">self</span>.temp_variable_suffix))
                 .or_else(|| <span class="prelude-val">Some</span>(<span class="self">self</span>.temp_variable_prefix.clone())),
-            AstStatement::Identifier { name, .. } =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, name, <span class="self">self</span>.temp_variable_suffix)),
+            AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, name, <span class="self">self</span>.temp_variable_suffix)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -5017,7 +5001,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         reference: ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
         reference_annotation: <span class="kw-2">&amp;</span>StatementAnnotation,
-        access: <span class="kw-2">&amp;</span>AstStatement,
+        access: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, ()&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
 
@@ -5102,8 +5086,8 @@
     </span><span class="kw">fn </span>generate_reference_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         access: <span class="kw-2">&amp;</span>ReferenceAccess,
-        base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt;,
-        original_expression: <span class="kw-2">&amp;</span>AstStatement,
+        base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+        original_expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>(access, base) {
 
@@ -5111,11 +5095,11 @@
             </span>(ReferenceAccess::Member(member), base) =&gt; {
                 <span class="kw">let </span>base_value = base.map(|it| <span class="self">self</span>.generate_expression_value(it)).transpose()<span class="question-mark">?</span>;
 
-                <span class="kw">if let </span>AstStatement::DirectAccess { access, index, .. } = member.as_ref() {
+                <span class="kw">if let </span>AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
                     <span class="kw">let </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(base_value)) = (base, base_value) <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Cannot generate DirectAccess without base value.&quot;</span>, original_expression.get_location()));
                     };
-                    <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, access, index)
+                    <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, <span class="kw-2">&amp;</span>data.access, <span class="kw-2">&amp;</span>data.index)
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>member_name = member.get_flat_reference_name().unwrap_or(<span class="string">&quot;unknown&quot;</span>);
                     <span class="self">self</span>.create_llvm_pointer_value_for_reference(
@@ -5146,7 +5130,7 @@
 
             <span class="comment">// INT#target (INT = base)
             </span>(ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(_base)) =&gt; {
-                <span class="kw">if </span><span class="macro">matches!</span>(target.as_ref(), AstStatement::Identifier { .. }) {
+                <span class="kw">if </span>target.as_ref().is_identifier() {
                     <span class="kw">let </span>mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), <span class="prelude-val">None</span>, target.get_id());
                     <span class="self">self</span>.generate_expression_value(<span class="kw-2">&amp;</span>mr)
@@ -5189,11 +5173,11 @@
     /// - `access` the type of access (see `B` above)
     </span><span class="kw">fn </span>generate_direct_access_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        qualifier: <span class="kw-2">&amp;</span>AstStatement,
+        qualifier: <span class="kw-2">&amp;</span>AstNode,
         qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        member: <span class="kw-2">&amp;</span>AstStatement,
+        member: <span class="kw-2">&amp;</span>AstNode,
         access: <span class="kw-2">&amp;</span>DirectAccessType,
-        index: <span class="kw-2">&amp;</span>AstStatement,
+        index: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier));
         <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
@@ -5224,21 +5208,21 @@
 /// as well as the parameter value (right side) ´param := value´ =&gt; ´value´
 /// and `true` for implicit / `false` for explicit parameters
 </span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">&#39;a</span>&gt;(
-    param_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstStatement,
+    param_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode,
     declared_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
     idx: usize,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstStatement, bool), Diagnostic&gt; {
-    <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement {
-        AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } =&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode, bool), Diagnostic&gt; {
+    <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement.get_stmt() {
+        AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
             <span class="comment">//explicit
-            </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
+            </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::reference_expected(param_statement.get_location()));
             };
             <span class="kw">let </span>loc = declared_parameters
                 .iter()
                 .position(|p| p.get_name() == left_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))<span class="question-mark">?</span>;
-            (loc, right.as_ref(), <span class="bool-val">false</span>)
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))<span class="question-mark">?</span>;
+            (loc, data.right.as_ref(), <span class="bool-val">false</span>)
         }
         <span class="kw">_ </span>=&gt; {
             <span class="comment">//implicit
