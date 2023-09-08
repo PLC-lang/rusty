@@ -5,7 +5,7 @@ use crate::model::pou::Pou;
 use super::ParseSession;
 
 impl Pou {
-    fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
             return vec![];
@@ -21,7 +21,7 @@ impl Pou {
         fbd.transform(session)
     }
 
-    pub fn build_implementation(&self, session: &ParseSession) -> Implementation {
+    pub fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
         let statements = self.transform(session);
 
         Implementation {

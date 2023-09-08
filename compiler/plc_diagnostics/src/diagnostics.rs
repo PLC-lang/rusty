@@ -719,17 +719,16 @@ impl Diagnostic {
 
     pub fn undefined_node(id: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Node with id {id} does not exists"),
+            message: format!("Node {id} does not exist"),
             range: vec![range],
             err_no: ErrNo::cfc__undefined_node,
         }
     }
 
-    // TODO(volsa): Remove SourceRange::undefined
-    pub fn unexpected_nodes(ids: Vec<usize>) -> Diagnostic {
+    pub fn unexpected_nodes(range: Vec<SourceLocation>) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Unexpected relationship between nodes".to_string(),
-            range: ids.iter().map(|_| SourceLocation::undefined()).collect(),
+            range,
             err_no: ErrNo::cfc__unexpected_node,
         }
     }

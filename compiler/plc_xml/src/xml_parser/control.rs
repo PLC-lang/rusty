@@ -29,20 +29,23 @@ fn transform_return(
     index: &NodeIndex,
 ) -> Result<AstStatement, Diagnostic> {
     let Some(ref_local_id) = control.ref_local_id else {
-        // TODO(volsa): Remove SourceRange::undefined
-        return Err(Diagnostic::empty_control_statement(SourceLocation::undefined()));
+        let location = session.range_factory.create_block_location(control.local_id, None);
+        return Err(Diagnostic::empty_control_statement(location));
     };
 
     let Some(node) = index.get(&ref_local_id) else {
-        // TODO(volsa): Remove SourceRange::undefined
-        return Err(Diagnostic::undefined_node(ref_local_id, SourceLocation::undefined()));
+        let location = session.range_factory.create_block_location(ref_local_id, None);
+        return Err(Diagnostic::undefined_node(ref_local_id, location));
     };
 
     let condition = match node {
         Node::FunctionBlockVariable(variable) => Ok(variable.transform(session)),
         Node::Block(block) => Ok(block.transform(session, index)),
 
-        _ => Err(Diagnostic::unexpected_nodes(vec![control.local_id, ref_local_id])),
+        _ => Err(Diagnostic::unexpected_nodes(vec![
+            session.range_factory.create_block_location(control.local_id, None),
+            session.range_factory.create_block_location(ref_local_id, None),
+        ])),
     }?;
 
     // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often
