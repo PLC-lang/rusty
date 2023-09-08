@@ -232,6 +232,7 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
         model::variables::{BlockVariable, FunctionBlockVariable},
@@ -247,7 +248,7 @@ mod tests {
     fn block_input_variable() {
         let content = XInputVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(BlockVariable::visit(&mut reader));
     }
 
@@ -255,7 +256,7 @@ mod tests {
     fn block_output_variable() {
         let content = XOutputVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(BlockVariable::visit(&mut reader));
     }
 
@@ -263,7 +264,7 @@ mod tests {
     fn block_inout_variable() {
         let content = XInOutVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(BlockVariable::visit(&mut reader));
     }
 
@@ -272,7 +273,7 @@ mod tests {
         let content =
             XInVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
     }
 
@@ -281,7 +282,7 @@ mod tests {
         let content =
             XOutVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
     }
 }

@@ -31,8 +31,11 @@ pub(crate) trait Parseable {
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
 }
 
-pub(crate) fn visit(content: &str) -> Result<Project, Error> {
-    let mut reader = PeekableReader::new(content);
+pub(crate) fn visit<'b, 'xml>(
+    content: &'xml str,
+    source_location_factory: &'b SourceLocationFactory,
+) -> Result<Project<'xml>, Error> {
+    let mut reader = PeekableReader::new(content, source_location_factory);
     loop {
         match reader.peek()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
@@ -61,18 +64,16 @@ fn parse(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
+    let source_location_factory = SourceLocationFactory::for_source(source);
     // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let project = match visit(&source.source) {
+    let project = match visit(&source.source, &source_location_factory) {
         Ok(project) => project,
         Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
-
     // Create a new parse session
-    let source_location_factory = SourceLocationFactory::for_source(source);
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
-
     // Parse the declaration data field
     let Some((unit, mut diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")

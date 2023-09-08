@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use plc_source::source_location::SourceLocationFactory;
 use quick_xml::{events::Event, name::QName, Reader};
 
 use crate::{error::Error, extensions::TryToString};
@@ -7,10 +8,11 @@ use crate::{error::Error, extensions::TryToString};
 pub(crate) struct PeekableReader<'xml> {
     reader: Reader<&'xml [u8]>,
     peeked: Option<Event<'xml>>,
+    source_location_factory: &'xml SourceLocationFactory,
 }
 
 impl<'xml> PeekableReader<'xml> {
-    pub fn new(content: &'xml str) -> Self {
+    pub fn new(content: &'xml str, source_location_factory: &'xml SourceLocationFactory) -> Self {
         PeekableReader {
             reader: {
                 let mut reader = Reader::from_str(content);
@@ -18,6 +20,7 @@ impl<'xml> PeekableReader<'xml> {
                 reader
             },
             peeked: None,
+            source_location_factory,
         }
     }
 
@@ -90,6 +93,10 @@ impl<'xml> PeekableReader<'xml> {
     pub fn read_text(&mut self, name: QName) -> Result<String, Error> {
         Ok(self.reader.read_text(name).map_err(Error::ReadEvent)?.to_string())
     }
+
+    pub(crate) fn get_source_location_factory(&self) -> &SourceLocationFactory {
+        self.source_location_factory
+    }
 }
 
 #[test]
@@ -124,7 +131,7 @@ fn peek() {
         </body>
     "#;
 
-    let mut temp = PeekableReader::new(CONTENT);
+    let mut temp = PeekableReader::new(CONTENT, &SourceLocationFactory::internal(CONTENT));
     assert_eq!(temp.peek().unwrap(), &Event::Start(quick_xml::events::BytesStart::new("body")));
     assert_eq!(temp.next().unwrap(), Event::Start(quick_xml::events::BytesStart::new("body")));
 }

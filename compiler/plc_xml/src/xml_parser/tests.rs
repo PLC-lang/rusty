@@ -7,11 +7,12 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::SourceCode;
 
 use crate::{
+    model::project::Project,
     serializer::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser::{self},
+    xml_parser,
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -19,9 +20,15 @@ fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
     xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
 }
 
+fn visit(content: &str) -> Result<Project, crate::error::Error> {
+    let source_location_factory =
+        plc_source::source_location::SourceLocationFactory::for_source(&SourceCode::new(content, "test.cfc"));
+    xml_parser::visit(content, &source_location_factory)
+}
+
 #[test]
 fn variable_assignment() {
-    let pou = xml_parser::visit(content::ASSIGNMENT_A_B).unwrap();
+    let pou = visit(content::ASSIGNMENT_A_B).unwrap();
     assert_debug_snapshot!(pou);
 }
 
@@ -59,7 +66,7 @@ fn conditional_return_chained_to_another_conditional_return() {
 
 #[test]
 fn model_is_sorted_by_execution_order() {
-    assert_debug_snapshot!(xml_parser::visit(content::EXEC_SORTING).unwrap());
+    assert_debug_snapshot!(visit(content::EXEC_SORTING).unwrap());
 }
 
 #[test]
@@ -75,7 +82,7 @@ fn connection_block_source_to_multiple_sinks_parses() {
 
 #[test]
 fn direct_connection_of_sink_to_other_source_generates_correct_model() {
-    assert_debug_snapshot!(xml_parser::visit(content::SINK_TO_SOURCE).unwrap());
+    assert_debug_snapshot!(visit(content::SINK_TO_SOURCE).unwrap());
 }
 
 #[test]
@@ -85,7 +92,7 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
 
 #[test]
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
-    let Err(diagnostics) = xml_parser::visit(content::SINK_SOURCE_LOOP) else {
+    let Err(diagnostics) = visit(content::SINK_SOURCE_LOOP) else {
             panic!("Expected test to report data recursion!")
         };
     assert_debug_snapshot!(diagnostics);
@@ -125,7 +132,7 @@ fn function_returns() {
         .serialize(),
     );
 
-    assert_debug_snapshot!(xml_parser::visit(&content).unwrap());
+    assert_debug_snapshot!(visit(&content).unwrap());
 }
 
 #[test]
@@ -208,92 +215,6 @@ mod content {
         </pou>
     "#;
 
-    pub(super) const CALL_BLOCK: &str = r#"
-        <?xml version="1.0" encoding="UTF-8"?>
-        <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-            <interface>
-                <localVars/>
-                <addData>
-                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                        <textDeclaration>
-                            <content>
-        PROGRAM program_0
-        VAR
-        	x : DINT;
-        	a : DINT;
-        END_VAR
-        					</content>
-                        </textDeclaration>
-                    </data>
-                </addData>
-            </interface>
-            <body>
-                <FBD>
-                    <inVariable localId="1" height="20" width="80" negated="false">
-                        <position x="280" y="80"/>
-                        <connectionPointOut>
-                            <relPosition x="80" y="10"/>
-                        </connectionPointOut>
-                        <expression>x</expression>
-                    </inVariable>
-                    <outVariable localId="2" height="20" width="80" executionOrderId="0" negated="false" storage="none">
-                        <position x="520" y="170"/>
-                        <connectionPointIn>
-                            <relPosition x="0" y="10"/>
-                            <connection refLocalId="1">
-                                <position x="520" y="180"/>
-                                <position x="430" y="180"/>
-                                <position x="430" y="90"/>
-                                <position x="360" y="90"/>
-                            </connection>
-                        </connectionPointIn>
-                        <expression>a</expression>
-                    </outVariable>
-                    <block localId="3" width="60" height="60" typeName="ADD" executionOrderId="1">
-                        <position x="190" y="160"/>
-                        <inputVariables>
-                            <variable formalParameter="" negated="false">
-                                <connectionPointIn>
-                                    <relPosition x="0" y="30"/>
-                                    <connection refLocalId="4"/>
-                                </connectionPointIn>
-                            </variable>
-                            <variable formalParameter="" negated="false">
-                                <connectionPointIn>
-                                    <relPosition x="0" y="50"/>
-                                    <connection refLocalId="5"/>
-                                </connectionPointIn>
-                            </variable>
-                        </inputVariables>
-                        <inOutVariables/>
-                        <outputVariables>
-                            <variable formalParameter="" negated="false">
-                                <connectionPointOut>
-                                    <relPosition x="60" y="30"/>
-                                </connectionPointOut>
-                            </variable>
-                        </outputVariables>
-                    </block>
-                    <inVariable localId="4" height="20" width="80" negated="false">
-                        <position x="40" y="180"/>
-                        <connectionPointOut>
-                            <relPosition x="80" y="10"/>
-                        </connectionPointOut>
-                        <expression>a</expression>
-                    </inVariable>
-                    <inVariable localId="5" height="20" width="80" negated="false">
-                        <position x="40" y="200"/>
-                        <connectionPointOut>
-                            <relPosition x="80" y="10"/>
-                        </connectionPointOut>
-                        <expression>1</expression>
-                    </inVariable>
-                </FBD>
-            </body>
-        </pou>
-        
-    "#;
-
     pub(super) const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
@@ -420,52 +341,6 @@ mod content {
                         </connectionPointOut>
                         <expression>1</expression>
                     </inVariable>
-                </FBD>
-            </body>
-        </pou>
-        
-    "#;
-
-    pub(super) const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
-        <?xml version="1.0" encoding="UTF-8"?>
-        <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-            <interface>
-                <localVars/>
-                <addData>
-                    <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                        <textDeclaration>
-                            <content>
-        PROGRAM program_0
-        VAR
-        	x : DINT;
-        END_VAR
-        					</content>
-                        </textDeclaration>
-                    </data>
-                </addData>
-            </interface>
-            <body>
-                <FBD>
-                    <inVariable localId="1" height="20" width="80" negated="false">
-                        <position x="280" y="80"/>
-                        <connectionPointOut>
-                            <relPosition x="80" y="10"/>
-                        </connectionPointOut>
-                        <expression>x</expression>
-                    </inVariable>
-                    <outVariable localId="2" height="20" width="80" executionOrderId="0" negated="false" storage="none">
-                        <position x="520" y="170"/>
-                        <connectionPointIn>
-                            <relPosition x="0" y="10"/>
-                            <connection refLocalId="1">
-                                <position x="520" y="180"/>
-                                <position x="430" y="180"/>
-                                <position x="430" y="90"/>
-                                <position x="360" y="90"/>
-                            </connection>
-                        </connectionPointIn>
-                        <expression>a</expression>
-                    </outVariable>
                 </FBD>
             </body>
         </pou>

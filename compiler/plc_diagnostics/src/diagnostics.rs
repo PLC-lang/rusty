@@ -733,7 +733,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unconnected_source(connector_name: &str, range: SourceRange) -> Diagnostic {
+    pub fn unconnected_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Source '{connector_name}' is not connected."),
             range: vec![range],
@@ -741,7 +741,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn sink_without_associated_source(connector_name: &str, range: SourceRange) -> Diagnostic {
+    pub fn sink_without_associated_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Sink '{connector_name}' is does not have a source associated with it."),
             range: vec![range],
@@ -749,7 +749,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn cyclic_connection(message: String, range: SourceRange) -> Diagnostic {
+    pub fn cyclic_connection(message: String, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Sink must not be connected to associated source: {message}"),
             range: vec![range],

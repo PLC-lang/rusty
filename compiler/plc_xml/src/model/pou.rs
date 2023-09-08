@@ -114,6 +114,7 @@ impl FromStr for PouType {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
         model::{pou::Pou, project::Project},
@@ -152,7 +153,7 @@ END_VAR
             .with_body(XBody::new().with_fbd(XFbd::new().close()))
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Project::pou_entry(&mut reader));
     }
 
@@ -161,7 +162,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "program").serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -170,7 +171,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "function").serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -179,7 +180,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "functionBlock").serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -188,7 +189,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "asdasd").serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_eq!(
             Pou::visit(&mut reader).unwrap_err().to_string(),
             "Found an unexpected element 'asdasd'".to_string()

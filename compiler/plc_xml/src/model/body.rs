@@ -44,6 +44,7 @@ impl<'xml> Parseable for Body<'xml> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
         model::body::Body,
@@ -56,7 +57,7 @@ mod tests {
     fn empty() {
         let content = XBody::new().with_fbd(XFbd::new().close()).serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
     }
 
@@ -84,7 +85,7 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
     }
 }
