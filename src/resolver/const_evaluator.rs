@@ -7,6 +7,7 @@ use crate::{
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
+use plc_source::source_location::SourceLocation;
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -176,7 +177,7 @@ fn get_default_initializer(
     id: AstId,
     target_type: &str,
     index: &Index,
-    location: &SourceRange,
+    location: &SourceLocation,
 ) -> Result<Option<AstStatement>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
         evaluate(init, None, index) //TODO do we ave a scope here?
@@ -227,7 +228,7 @@ fn cast_if_necessary(
     index: &Index,
 ) -> AstStatement {
     let Some(dti) = target_type_name.and_then(|it| index.find_effective_type_info(it)) else {
-         return statement;
+        return statement;
     };
 
     if let AstStatement::Literal { kind: literal, location, id } = &statement {
@@ -627,7 +628,9 @@ fn get_cast_statement_literal(
             };
 
             let Some(value) = value else {
-                return Err(UnresolvableKind::Misc(format!("cannot resolve constant: {type_name}#{cast_statement:?}")))
+                return Err(UnresolvableKind::Misc(format!(
+                    "cannot resolve constant: {type_name}#{cast_statement:?}"
+                )));
             };
 
             Ok(AstStatement::Literal {
@@ -717,7 +720,7 @@ macro_rules! compare_expression {
             (   AstStatement::Literal{kind: AstLiteral::Integer(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Integer(rvalue), location: loc_right, ..}) => {
                 Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::Literal{kind: AstLiteral::Real{..},  ..},
@@ -727,7 +730,7 @@ macro_rules! compare_expression {
             (   AstStatement::Literal{kind: AstLiteral::Bool(lvalue), location: loc_left, ..},
                 AstStatement::Literal{kind: AstLiteral::Bool(rvalue), location: loc_right, ..}) => {
                 Ok(AstStatement::Literal{
-                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, kind: AstLiteral::new_bool(lvalue $op rvalue), location: loc_left.span(loc_right)
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -736,6 +739,6 @@ macro_rules! compare_expression {
 }
 use compare_expression;
 use plc_ast::{
-    ast::{AstId, AstStatement, Operator, ReferenceAccess, SourceRange},
+    ast::{AstId, AstStatement, Operator, ReferenceAccess},
     literals::{Array, AstLiteral, StringValue},
 };

@@ -1,0 +1,24 @@
+---
+source: compiler/plc_source/./src/source_location.rs
+expression: loc1.span(&loc2)
+---
+SourceLocation {
+    span: Combined(
+        [
+            Block {
+                local_id: 1,
+                execution_order: Some(
+                    1,
+                ),
+                inner_range: None,
+            },
+            Block {
+                local_id: 2,
+                execution_order: Some(
+                    1,
+                ),
+                inner_range: None,
+            },
+        ],
+    ),
+}

@@ -100,9 +100,7 @@ impl CompileError {
     }
 
     pub fn into_diagnostic(self) -> Option<Diagnostic> {
-        let CompileError::Diagnostic(res) = self else {
-            return None
-        };
+        let CompileError::Diagnostic(res) = self else { return None };
         Some(res)
     }
 }

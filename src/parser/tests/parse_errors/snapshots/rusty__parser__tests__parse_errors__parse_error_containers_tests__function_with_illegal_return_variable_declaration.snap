@@ -1,14 +1,17 @@
 ---
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
-expression: pou.statements
+expression: diagnostics
 ---
-[
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "a",
-            },
-        ),
-        base: None,
-    },
-]
+error: Unexpected token: expected DataTypeDefinition but found KeywordVar
+  ┌─ <internal>:3:13
+  │
+3 │             VAR END_VAR
+  │             ^^^ Unexpected token: expected DataTypeDefinition but found KeywordVar
+
+error: Unexpected token: expected Datatype but found VAR
+  ┌─ <internal>:3:13
+  │
+3 │             VAR END_VAR
+  │             ^^^ Unexpected token: expected Datatype but found VAR
+
+

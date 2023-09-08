@@ -1,5 +1,6 @@
-use ast::ast::{AstStatement, SourceRange};
+use ast::ast::AstStatement;
 use indexmap::IndexMap;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
@@ -8,7 +9,7 @@ use super::ParseSession;
 impl<'xml> FunctionBlockDiagram<'xml> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
-    pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
         let mut ast_association = IndexMap::new();
 
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
@@ -34,12 +35,10 @@ impl<'xml> FunctionBlockDiagram<'xml> {
     fn transform_node(
         &self,
         id: NodeId,
-        session: &ParseSession,
+        session: &mut ParseSession,
         ast_association: &IndexMap<usize, AstStatement>,
     ) -> (AstStatement, Option<NodeId>) {
-        let Some(current_node) = self.nodes.get(&id) else {
-            unreachable!()
-        };
+        let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
 
         match current_node {
             Node::Block(block) => (block.transform(session, &self.nodes), None),
@@ -71,19 +70,18 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                     remove_id,
                 )
             }
-            Node::Control(control) => {
-                match control.transform(session, &self.nodes) {
-                    Ok(value) => (value, None),
-                    Err(_) => {
-                        // TODO(volsa): Store diagnostic, return EmptyStatement
-                        let empty = AstStatement::EmptyStatement {
-                            location: SourceRange::undefined(),
-                            id: session.next_id(),
-                        };
-                        (empty, None)
-                    }
+            Node::Control(control) => match control.transform(session, &self.nodes) {
+                Ok(value) => (value, None),
+                Err(why) => {
+                    session.diagnostics.push(why);
+
+                    let empty = AstStatement::EmptyStatement {
+                        location: SourceLocation::undefined(),
+                        id: session.next_id(),
+                    };
+                    (empty, None)
                 }
-            }
+            },
             Node::Connector(_) => todo!(),
         }
     }

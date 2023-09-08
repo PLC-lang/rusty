@@ -1,14 +1,14 @@
-use ast::ast::{AstStatement, Implementation, SourceRange};
+use ast::ast::{AstStatement, Implementation};
 
 use crate::model::pou::Pou;
 
 use super::ParseSession;
 
-impl<'xml> Pou<'xml> {
-    fn transform(&self, session: &ParseSession) -> Vec<AstStatement> {
+impl Pou {
+    fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
         let Some(fbd) = &self.body.function_block_diagram else {
             // empty body
-            return vec![]
+            return vec![];
         };
 
         if cfg!(feature = "debug") {
@@ -21,7 +21,7 @@ impl<'xml> Pou<'xml> {
         fbd.transform(session)
     }
 
-    pub fn build_implementation(&self, session: &ParseSession) -> Implementation {
+    pub fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
         let statements = self.transform(session);
 
         Implementation {
@@ -30,8 +30,8 @@ impl<'xml> Pou<'xml> {
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: session.create_file_only_location(),
+            name_location: session.create_file_only_location(),
             overriding: false,
             generic: false,
             access: None,

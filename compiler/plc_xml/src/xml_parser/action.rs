@@ -1,4 +1,4 @@
-use ast::ast::{AstStatement, Implementation, PouType as AstPouType, SourceRange};
+use ast::ast::{AstStatement, Implementation, PouType as AstPouType};
 
 use crate::model::action::Action;
 
@@ -18,8 +18,8 @@ impl<'xml> Action<'xml> {
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,
-            location: SourceRange::undefined(),
-            name_location: SourceRange::undefined(),
+            location: session.create_file_only_location(),
+            name_location: session.create_file_only_location(),
             overriding: false,
             generic: false,
             access: None,

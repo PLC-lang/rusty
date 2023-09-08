@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
 use plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{symbol::SymbolLocation, Index, PouIndexEntry},
+    index::{Index, PouIndexEntry},
     resolver::AnnotationMap,
     typesystem::{
         self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -216,7 +217,7 @@ impl<'i> TypeAnnotator<'i> {
                     initial_value: None,
                     name: name.clone(),
                     nature: TypeNature::Any,
-                    location: SymbolLocation::internal(),
+                    location: SourceLocation::internal(),
                 });
 
                 name

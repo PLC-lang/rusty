@@ -1,4 +1,4 @@
-use ast::ast::{AstFactory, AstStatement, SourceRange};
+use ast::ast::{AstFactory, AstStatement};
 
 use crate::model::{block::Block, fbd::NodeIndex};
 
@@ -20,7 +20,7 @@ impl<'xml> Block<'xml> {
             parameters,
             session.next_id(),
             session.next_id(),
-            &SourceRange::undefined(),
+            &session.create_block_location(self.local_id, self.execution_order_id),
         )
     }
 }

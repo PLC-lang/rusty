@@ -56,8 +56,8 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(Diagnostic::invalid_vla_container(
                 "VLAs can not be defined as global variables".to_string(),
-                variable.location.clone())
-            )
+                variable.location.clone(),
+            ))
         }
 
         return;
@@ -161,13 +161,13 @@ fn validate_variable<T: AnnotationMap>(
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use plc_diagnostics::diagnostics::Diagnostic;
+    use insta::assert_snapshot;
 
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn validate_empty_struct_declaration() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         TYPE the_struct : STRUCT END_STRUCT END_TYPE
             
@@ -179,19 +179,12 @@ mod variable_validator_tests {
         END_PROGRAM
         ",
         );
-
-        assert_eq!(
-            diagnostics,
-            vec![
-                Diagnostic::empty_variable_block((14..24).into()),
-                Diagnostic::empty_variable_block((131..164).into())
-            ]
-        );
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn validate_empty_enum_declaration() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         TYPE my_enum : (); END_TYPE
             
@@ -202,19 +195,12 @@ mod variable_validator_tests {
         END_PROGRAM
         ",
         );
-
-        assert_eq!(
-            diagnostics,
-            vec![
-                Diagnostic::empty_variable_block((14..21).into()),
-                Diagnostic::empty_variable_block((112..114).into())
-            ]
-        );
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn validate_enum_variant_initializer() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "VAR_GLOBAL
                 x : (red, yellow, green) := 2; // error
             END_VAR
@@ -230,7 +216,6 @@ mod variable_validator_tests {
             END_VAR
             END_PROGRAM",
         );
-
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 }

@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Unresolved constant 'cx' variable", range: [SourceRange { range: 374..376 }], err_no: var__unresolved_constant }
-SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 455..456 }], err_no: reference__unresolved }
-SyntaxError { message: "Unresolved constant 'cai' variable", range: [SourceRange { range: 455..456 }], err_no: var__unresolved_constant }
+SyntaxError { message: "Unresolved constant 'cx' variable", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 28, offset: 374 }..TextLocation { line: 18, column: 30, offset: 376 }) }], err_no: var__unresolved_constant }
+SyntaxError { message: "Could not resolve reference to a", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 29, offset: 455 }..TextLocation { line: 20, column: 30, offset: 456 }) }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved constant 'cai' variable", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 29, offset: 455 }..TextLocation { line: 20, column: 30, offset: 456 }) }], err_no: var__unresolved_constant }
 

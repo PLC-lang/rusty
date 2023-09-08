@@ -8,8 +8,9 @@ use crate::{
 };
 use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
-use plc_ast::ast::{LinkageType, SourceRange};
+use plc_ast::ast::LinkageType;
 use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_source::source_location::SourceLocation;
 
 use super::{
     data_type_generator::get_default_for,
@@ -54,7 +55,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                     if let Some(PouIndexEntry::Program { instance_variable, .. }) =
                         self.global_index.find_pou(name).as_ref()
                     {
-                        Some((name.as_str(), instance_variable))
+                        Some((name.as_str(), instance_variable.as_ref()))
                     } else {
                         None
                     }
@@ -80,7 +81,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             let global_variable =
                 self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
                     ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
-                        Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
+                        Diagnostic::cannot_generate_initializer(name, SourceLocation::undefined())
                     }
                     _ => err,
                 })?;
@@ -154,7 +155,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 if initial_value.is_none() {
                     return Err(Diagnostic::codegen_error(
                         "Cannot generate uninitialized constant",
-                        global_variable.source_location.source_range.clone(),
+                        global_variable.source_location.clone(),
                     ));
                 }
             }

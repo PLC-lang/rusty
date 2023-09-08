@@ -4,13 +4,13 @@ pub mod tests {
     use std::{path::PathBuf, str::FromStr};
 
     use plc_ast::{
-        ast::{pre_process, CompilationUnit, LinkageType, SourceRangeFactory},
+        ast::{pre_process, CompilationUnit, LinkageType},
         provider::IdProvider,
     };
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
-    use source::{Compilable, SourceCode, SourceContainer};
+    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,
@@ -24,24 +24,39 @@ pub mod tests {
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             "test.st",
         )
     }
 
-    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+    pub fn parse_buffered(src: &str) -> (CompilationUnit, String) {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        let (unit, diagnostics) = parse(src);
+        reporter.handle(diagnostics);
+        (unit, reporter.buffer().unwrap_or_default())
+    }
+
+    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, String) {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
             "test.st",
         );
         pre_process(&mut unit, id_provider);
-        (unit, diagnostic)
+        reporter.handle(diagnostic);
+
+        (unit, reporter.buffer().unwrap_or_default())
     }
 
-    fn do_index<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
+    fn do_index<T: Into<SourceCode>>(
+        src: T,
+        id_provider: IdProvider,
+    ) -> (CompilationUnit, Index, Vec<Diagnostic>) {
         let source = src.into();
         let source_str = &source.source;
         let source_path = source.get_location_str();
@@ -55,13 +70,8 @@ pub mod tests {
             index.register_type(data_type);
         }
 
-        let range_factory = if source_path == "<internal>" {
-            SourceRangeFactory::internal()
-        } else {
-            SourceRangeFactory::for_file(source_path)
-        };
-
-        let (mut unit, ..) = parser::parse(
+        let range_factory = SourceLocationFactory::for_source(&source);
+        let (mut unit, diagnostics) = parser::parse(
             lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
             LinkageType::Internal,
             source_path,
@@ -69,16 +79,18 @@ pub mod tests {
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
-        (unit, index)
+        (unit, index, diagnostics)
     }
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
-        do_index(src, id_provider)
+        let (unit, index, _) = do_index(src, id_provider);
+        (unit, index)
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
-        do_index(src, id_provider)
+        let (unit, index, _) = do_index(src, id_provider);
+        (unit, index)
     }
 
     pub fn annotate_with_ids(
@@ -93,6 +105,7 @@ pub mod tests {
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
         let diagnostics = parse_and_validate(src);
+        dbg!(&diagnostics);
         let mut reporter = Diagnostician::buffered();
 
         reporter.register_file("<internal>".to_string(), src.to_string());
@@ -105,7 +118,7 @@ pub mod tests {
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
         let id_provider = IdProvider::default();
-        let (unit, index) = index_with_ids(src, id_provider.clone());
+        let (unit, index, mut diagnostics) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
@@ -114,10 +127,11 @@ pub mod tests {
         let mut validator = Validator::new();
         validator.perform_global_validation(&index);
         validator.visit_unit(&annotations, &index, &unit);
-        validator.diagnostics()
+        diagnostics.extend(validator.diagnostics());
+        diagnostics
     }
 
-    pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
+    pub fn codegen_without_unwrap(src: &str) -> Result<String, String> {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
@@ -125,9 +139,12 @@ pub mod tests {
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, Diagnostic> {
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
-        let (unit, index) = do_index(src, id_provider.clone());
+        let (unit, index, diagnostics) = do_index(src, id_provider.clone());
+        reporter.handle(diagnostics);
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -144,12 +161,20 @@ pub mod tests {
             debug_level,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index =
-            code_generator.generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)?;
+        let llvm_index = code_generator
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+            .map_err(|err| {
+                reporter.handle(vec![err]);
+                reporter.buffer().unwrap()
+            })?;
 
         code_generator
             .generate(&context, &unit, &annotations, &index, &llvm_index)
             .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(vec![err]);
+                reporter.buffer().unwrap()
+            })
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -172,7 +197,7 @@ pub mod tests {
         let mut units = vec![];
         let mut index = Index::default();
         sources.containers().into_iter().map(|source| do_index(source, id_provider.clone())).for_each(
-            |(unit, idx)| {
+            |(unit, idx, ..)| {
                 units.push(unit);
                 index.import(idx);
             },

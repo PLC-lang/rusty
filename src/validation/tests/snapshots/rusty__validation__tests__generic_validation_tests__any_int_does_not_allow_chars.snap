@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'USINT'", range: [SourceRange { range: 137..138 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Int.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'USINT'", range: [SourceRange { range: 206..207 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Int.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 206 }..TextLocation { line: 3, column: 53, offset: 207 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 206 }..TextLocation { line: 3, column: 53, offset: 207 }) }], err_no: type__invalid_nature }
 
