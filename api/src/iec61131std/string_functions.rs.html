@@ -2906,7 +2906,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡϗ he&quot;</span>, string)
         }
     }
@@ -2918,7 +2918,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(
                 <span class="string">&quot;     this is   a  very   long           sentence   with plenty  of    characters and &quot;</span>,
                 string
@@ -2933,7 +2933,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕ\&quot;Ϛ\&quot;ϡϗ&quot;</span>, string)
         }
     }
@@ -2945,7 +2945,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡϗ hello&quot;</span>, string)
         }
     }
@@ -2968,7 +2968,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;hello&quot;</span>, string)
         }
     }
@@ -2980,7 +2980,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;xϗ wϕrld&quot;</span>, string)
         }
     }
@@ -2993,7 +2993,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϡxϗ wϕ&quot;</span>, string)
         }
     }
@@ -3006,7 +3006,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ wϕrld&quot;</span>, string)
         }
     }
@@ -3028,7 +3028,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), <span class="number">6</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ brave new wϕrld&quot;</span>, string)
         }
     }
@@ -3040,7 +3040,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), <span class="number">0</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ new hello world&quot;</span>, string)
         }
     }
@@ -3052,7 +3052,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), (base.len() - <span class="number">1</span>) <span class="kw">as </span>i32, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;hello worldϕϚϡxϗ new &quot;</span>, string)
         }
     }
@@ -3085,7 +3085,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">9</span>, <span class="number">3</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚ&quot;</span>, string)
         }
     }
@@ -3096,7 +3096,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">11</span>, <span class="number">1</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>c_str: <span class="kw-2">&amp;</span>CStr = CStr::from_ptr(dest.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8);
+            <span class="kw">let </span>c_str: <span class="kw-2">&amp;</span>CStr = CStr::from_ptr(dest.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
             <span class="kw">let </span>string: <span class="kw-2">&amp;</span>str = c_str.to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, string)
         }
@@ -3108,7 +3108,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">1</span>, <span class="number">11</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ wϕrl&quot;</span>, string)
         }
     }
@@ -3119,7 +3119,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">1</span>, <span class="number">1</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;Ϛϡxϗ wϕrld&quot;</span>, string)
         }
     }
@@ -3161,7 +3161,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">6</span>, <span class="number">1</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;brϡxϗ new wϕrld&quot;</span>, string)
         }
     }
@@ -3173,7 +3173,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">3</span>, <span class="number">5</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;hellbrϡxϗ newϕrld&quot;</span>, string)
         }
     }
@@ -3185,7 +3185,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">4</span>, <span class="number">8</span>, dest.as_mut_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø waldø, how are you😀&quot;</span>, string)
         }
     }
@@ -3243,7 +3243,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø wørlÞhello world𝄞music&quot;</span>, string)
         }
     }
@@ -3255,7 +3255,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
-            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8).to_str().unwrap();
+            <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, string)
         }
     }
