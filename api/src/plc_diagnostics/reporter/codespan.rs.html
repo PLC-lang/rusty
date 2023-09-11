@@ -252,9 +252,9 @@
     <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
         <span class="kw">for </span>d <span class="kw">in </span>diagnostics {
             <span class="kw">let </span>diagnostic_factory = <span class="kw">match </span>d.severity {
-                Severity::Error =&gt; codespan_reporting::diagnostic::Diagnostic::error(),
+                Severity::Critical | Severity::Error =&gt; codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning =&gt; codespan_reporting::diagnostic::Diagnostic::warning(),
-                Severity::_Info =&gt; codespan_reporting::diagnostic::Diagnostic::note(),
+                Severity::Info =&gt; codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
             <span class="kw">let </span><span class="kw-2">mut </span>labels = <span class="macro">vec!</span>[];

@@ -171,10 +171,19 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use crate</span>::{
     diagnostics::Diagnostic,
+    errno::ErrNo,
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -204,7 +213,7 @@
     }
 
     <span class="doccomment">/// Assess and reports the given diagnostics.
-    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: Vec&lt;Diagnostic&gt;) {
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[Diagnostic]) -&gt; Severity {
         <span class="kw">let </span>resolved_diagnostics = diagnostics
             .iter()
             .flat_map(|it| <span class="kw">match </span>it {
@@ -234,9 +243,12 @@
                         })
                         .collect()
                 }),
-            });
+            })
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="self">self</span>.report(resolved_diagnostics.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().as_slice());
+        <span class="self">self</span>.report(resolved_diagnostics.as_slice());
+
+        resolved_diagnostics.iter().map(|it| it.severity).max().unwrap_or_default()
     }
 
     <span class="doccomment">/// Creates a null-diagnostician that does not report diagnostics
@@ -320,6 +332,7 @@
         <span class="kw">match </span>d {
             <span class="comment">// improvements become warnings
             </span>Diagnostic::ImprovementSuggestion { .. } =&gt; Severity::Warning,
+            <span class="kw">_ if </span><span class="kw-2">*</span>d.get_type() == ErrNo::reference__unresolved =&gt; Severity::Critical,
             <span class="comment">// everything else becomes an error
             </span><span class="kw">_ </span>=&gt; Severity::Error,
         }
@@ -327,19 +340,22 @@
 }
 
 <span class="doccomment">/// a diagnostics severity
-</span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
+</span><span class="attr">#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub enum </span>Severity {
-    Error,
+    <span class="attr">#[default]
+    </span>Info,
     Warning,
-    _Info,
+    Error,
+    Critical,
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Severity {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>severity = <span class="kw">match </span><span class="self">self </span>{
+            Severity::Critical =&gt; <span class="string">&quot;critical&quot;</span>,
             Severity::Error =&gt; <span class="string">&quot;error&quot;</span>,
             Severity::Warning =&gt; <span class="string">&quot;warning&quot;</span>,
-            Severity::_Info =&gt; <span class="string">&quot;info&quot;</span>,
+            Severity::Info =&gt; <span class="string">&quot;info&quot;</span>,
         };
         <span class="macro">write!</span>(f, <span class="string">&quot;{severity}&quot;</span>)
     }

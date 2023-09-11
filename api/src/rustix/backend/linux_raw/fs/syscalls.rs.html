@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.8/src/backend/linux_raw/fs/syscalls.rs`."><title>syscalls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../rustix/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.11/src/backend/linux_raw/fs/syscalls.rs`."><title>syscalls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../rustix/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1629,39 +1629,6 @@
 <a href="#1629" id="1629">1629</a>
 <a href="#1630" id="1630">1630</a>
 <a href="#1631" id="1631">1631</a>
-<a href="#1632" id="1632">1632</a>
-<a href="#1633" id="1633">1633</a>
-<a href="#1634" id="1634">1634</a>
-<a href="#1635" id="1635">1635</a>
-<a href="#1636" id="1636">1636</a>
-<a href="#1637" id="1637">1637</a>
-<a href="#1638" id="1638">1638</a>
-<a href="#1639" id="1639">1639</a>
-<a href="#1640" id="1640">1640</a>
-<a href="#1641" id="1641">1641</a>
-<a href="#1642" id="1642">1642</a>
-<a href="#1643" id="1643">1643</a>
-<a href="#1644" id="1644">1644</a>
-<a href="#1645" id="1645">1645</a>
-<a href="#1646" id="1646">1646</a>
-<a href="#1647" id="1647">1647</a>
-<a href="#1648" id="1648">1648</a>
-<a href="#1649" id="1649">1649</a>
-<a href="#1650" id="1650">1650</a>
-<a href="#1651" id="1651">1651</a>
-<a href="#1652" id="1652">1652</a>
-<a href="#1653" id="1653">1653</a>
-<a href="#1654" id="1654">1654</a>
-<a href="#1655" id="1655">1655</a>
-<a href="#1656" id="1656">1656</a>
-<a href="#1657" id="1657">1657</a>
-<a href="#1658" id="1658">1658</a>
-<a href="#1659" id="1659">1659</a>
-<a href="#1660" id="1660">1660</a>
-<a href="#1661" id="1661">1661</a>
-<a href="#1662" id="1662">1662</a>
-<a href="#1663" id="1663">1663</a>
-<a href="#1664" id="1664">1664</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! linux_raw syscalls supporting `rustix::fs`.
 //!
 //! # Safety
@@ -1704,7 +1671,6 @@
     F_ADD_SEALS, F_GETFL, F_GET_SEALS, F_SETFL, SEEK_CUR, SEEK_DATA, SEEK_END, SEEK_HOLE, SEEK_SET,
     STATX__RESERVED,
 };
-<span class="kw">use </span>linux_raw_sys::ioctl::{BLKPBSZGET, BLKSSZGET, EXT4_IOC_RESIZE_FS, FICLONE};
 <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
 </span><span class="kw">use </span>{
     <span class="kw">crate</span>::backend::conv::{hi, lo, slice_just_addr},
@@ -2577,7 +2543,8 @@
     }
 }
 
-<span class="attr">#[inline]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readlink(path: <span class="kw-2">&amp;</span>CStr, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr_mut, buf_len) = slice_mut(buf);
     <span class="kw">unsafe </span>{
@@ -2591,7 +2558,8 @@
     }
 }
 
-<span class="attr">#[inline]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readlinkat(
     dirfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
     path: <span class="kw-2">&amp;</span>CStr,
@@ -2896,7 +2864,8 @@
     <span class="kw">unsafe </span>{ ret(<span class="macro">syscall_readonly!</span>(__NR_mkdirat, dirfd, path, mode)) }
 }
 
-<span class="attr">#[inline]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getdents(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, dirent: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(dirent_addr_mut, dirent_len) = slice_mut(dirent);
 
@@ -3282,41 +3251,6 @@
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fremovexattr(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, name: <span class="kw-2">&amp;</span>CStr) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ ret(<span class="macro">syscall_readonly!</span>(__NR_fremovexattr, fd, name)) }
-}
-
-<span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ioctl_blksszget(fd: BorrowedFd) -&gt; io::Result&lt;u32&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::&lt;c::c_uint&gt;::uninit();
-    <span class="kw">unsafe </span>{
-        ret(<span class="macro">syscall!</span>(__NR_ioctl, fd, c_uint(BLKSSZGET), <span class="kw-2">&amp;mut </span>result))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(result.assume_init() <span class="kw">as </span>u32)
-    }
-}
-
-<span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ioctl_blkpbszget(fd: BorrowedFd) -&gt; io::Result&lt;u32&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::&lt;c::c_uint&gt;::uninit();
-    <span class="kw">unsafe </span>{
-        ret(<span class="macro">syscall!</span>(__NR_ioctl, fd, c_uint(BLKPBSZGET), <span class="kw-2">&amp;mut </span>result))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(result.assume_init() <span class="kw">as </span>u32)
-    }
-}
-
-<span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ioctl_ficlone(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, src_fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">unsafe </span>{ ret(<span class="macro">syscall_readonly!</span>(__NR_ioctl, fd, c_uint(FICLONE), src_fd)) }
-}
-
-<span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ext4_ioc_resize_fs(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, blocks: u64) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">unsafe </span>{
-        ret(<span class="macro">syscall_readonly!</span>(
-            __NR_ioctl,
-            fd,
-            c_uint(EXT4_IOC_RESIZE_FS),
-            by_ref(<span class="kw-2">&amp;</span>blocks)
-        ))
-    }
 }
 
 <span class="attr">#[test]

@@ -220,7 +220,7 @@
     <span class="kw">let </span>(unit, errors) = parse(<span class="kw-2">&amp;</span>source, linkage, id_provider);
     <span class="comment">//Register the source file with the diagnostician
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
-    diagnostician.handle(errors);
+    diagnostician.handle(<span class="kw-2">&amp;</span>errors);
     unit
 }
 

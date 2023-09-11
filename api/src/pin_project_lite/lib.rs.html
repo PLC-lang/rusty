@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-lite-0.2.12/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pin_project_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pin_project_lite/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-lite-0.2.13/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pin_project_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pin_project_lite/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1676,6 +1676,10 @@
 <a href="#1676" id="1676">1676</a>
 <a href="#1677" id="1677">1677</a>
 <a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 &lt;!-- tidy:crate-doc:start --&gt;
 A lightweight version of [pin-project] written with declarative macros.
@@ -2046,7 +2050,7 @@ pin-project supports this.
         {
             $(<span class="macro-nonterminal">$body_data</span>:tt)*
         }
-        $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
+        $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::__pin_project_reconstruct! </span>{
             [$(<span class="attr">#[<span class="macro-nonterminal">$attrs</span>]</span>)* <span class="macro-nonterminal">$vis $struct_ty_ident $ident</span>]
@@ -2095,7 +2099,7 @@ pin-project supports this.
             {
                 $(<span class="macro-nonterminal">$body_data</span>)*
             }
-            $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
+            $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>}
     };
 }
@@ -2116,7 +2120,7 @@ pin-project supports this.
                 </span><span class="macro-nonterminal">$field_vis</span>:vis <span class="macro-nonterminal">$field</span>:ident: <span class="macro-nonterminal">$field_ty</span>:ty
             ),+ $(,)<span class="question-mark">?
         </span>}
-        $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
+        $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
         <span class="attr">#[allow(explicit_outlives_requirements)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/60993
         </span><span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
@@ -2207,7 +2211,7 @@ pin-project supports this.
             <span class="macro-nonterminal">$</span><span class="macro">crate::__pin_project_make_drop_impl! </span>{
                 [<span class="macro-nonterminal">$ident</span>]
                 [$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>] [$(<span class="kw">where </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?</span>]
-                $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
+                $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
             </span>}
 
             <span class="comment">// Ensure that it&#39;s impossible to use pin projections on a #[repr(packed)] struct.
@@ -2259,7 +2263,7 @@ pin-project supports this.
                 </span>})<span class="question-mark">?
             </span>),+ $(,)<span class="question-mark">?
         </span>}
-        $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
+        $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
         <span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
         // This lint warns of `clippy::*` generated by external macros.
@@ -2338,7 +2342,7 @@ pin-project supports this.
             <span class="macro-nonterminal">$</span><span class="macro">crate::__pin_project_make_drop_impl! </span>{
                 [<span class="macro-nonterminal">$ident</span>]
                 [$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>] [$(<span class="kw">where </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?</span>]
-                $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
+                $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
             </span>}
 
             <span class="comment">// We don&#39;t need to check for &#39;#[repr(packed)]&#39;,
@@ -2894,6 +2898,7 @@ pin-project supports this.
     (
         [<span class="macro-nonterminal">$_ident</span>:ident]
         [$(<span class="macro-nonterminal">$_impl_generics</span>:tt)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$_ty_generics</span>:tt)<span class="kw-2">*</span>] [$(<span class="kw">where </span>$(<span class="macro-nonterminal">$_where_clause</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?</span>]
+        $(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)*
         <span class="kw">impl </span>$(&lt;
             $( <span class="macro-nonterminal">$lifetime</span>:lifetime $(: <span class="macro-nonterminal">$lifetime_bound</span>:lifetime)<span class="question-mark">? </span>),* $(,)<span class="question-mark">?
             </span>$( <span class="macro-nonterminal">$generics</span>:ident
@@ -2910,11 +2915,13 @@ pin-project supports this.
             </span>),* $(,)<span class="question-mark">?
         </span>)<span class="question-mark">?
         </span>{
+            $(<span class="attr">#[<span class="macro-nonterminal">$drop_fn_attrs</span>:meta]</span>)*
             <span class="kw">fn </span>drop($(<span class="macro-nonterminal">$arg</span>:ident)+: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
                 $(<span class="macro-nonterminal">$tt</span>:tt)*
             }
         }
     ) =&gt; {
+        $(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>]</span>)*
         <span class="kw">impl </span>$(&lt;
             $( <span class="macro-nonterminal">$lifetime </span>$(: <span class="macro-nonterminal">$lifetime_bound</span>)<span class="question-mark">? </span>,)*
             $( <span class="macro-nonterminal">$generics
@@ -2931,6 +2938,7 @@ pin-project supports this.
             </span>),*
         )<span class="question-mark">?
         </span>{
+            $(<span class="attr">#[<span class="macro-nonterminal">$drop_fn_attrs</span>]</span>)*
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="comment">// Implementing `__DropInner::__drop_inner` is safe, but calling it is not safe.
                 // This is because destructors can be called multiple times in safe code and
@@ -3251,7 +3259,7 @@ pin-project supports this.
         </span>{
             $(<span class="macro-nonterminal">$body_data</span>:tt)*
         }
-        $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
+        $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::__pin_project_expand! </span>{
             [$(<span class="macro-nonterminal">$proj_mut_ident</span>)<span class="question-mark">?</span>]
@@ -3286,7 +3294,7 @@ pin-project supports this.
             {
                 $(<span class="macro-nonterminal">$body_data</span>)*
             }
-            $(<span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
+            $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>}
     };
 }

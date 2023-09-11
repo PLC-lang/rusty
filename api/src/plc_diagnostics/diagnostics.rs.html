@@ -781,7 +781,19 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, ops::Range};
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, ops::Range};
 
 <span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -797,6 +809,18 @@
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec&lt;SourceLocation&gt; },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec&lt;Diagnostic&gt;, err_no: ErrNo },
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>Diagnostic {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.get_type(), <span class="self">self</span>.get_message())<span class="question-mark">?</span>;
+        <span class="kw">let </span>location = <span class="self">self</span>.get_location();
+        <span class="kw">if </span>!location.is_undefined() {
+            <span class="macro">write!</span>(f, <span class="string">&quot; at: {location}&quot;</span>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(())
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;T: Error&gt; From&lt;T&gt; <span class="kw">for </span>Diagnostic {

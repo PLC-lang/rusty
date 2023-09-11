@@ -340,7 +340,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
         reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
         <span class="kw">let </span>(unit, diagnostics) = parse(src);
-        reporter.handle(diagnostics);
+        reporter.handle(<span class="kw-2">&amp;</span>diagnostics);
         (unit, reporter.buffer().unwrap_or_default())
     }
 
@@ -354,7 +354,7 @@
             <span class="string">&quot;test.st&quot;</span>,
         );
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
-        reporter.handle(diagnostic);
+        reporter.handle(<span class="kw-2">&amp;</span>diagnostic);
 
         (unit, reporter.buffer().unwrap_or_default())
     }
@@ -414,7 +414,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>reporter = Diagnostician::buffered();
 
         reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
-        reporter.handle(diagnostics);
+        reporter.handle(<span class="kw-2">&amp;</span>diagnostics);
 
         reporter.buffer().expect(
             <span class="string">&quot;This should be unreachable, otherwise somethings wrong with the buffered codespan reporter&quot;</span>,
@@ -449,7 +449,7 @@
         reporter.register_file(<span class="string">&quot;&lt;internal&gt;&quot;</span>.to_string(), src.to_string());
         <span class="kw">let </span><span class="kw-2">mut </span>id_provider = IdProvider::default();
         <span class="kw">let </span>(unit, index, diagnostics) = do_index(src, id_provider.clone());
-        reporter.handle(diagnostics);
+        reporter.handle(<span class="kw-2">&amp;</span>diagnostics);
 
         <span class="kw">let </span>(<span class="kw-2">mut </span>index, ..) = evaluate_constants(index);
         <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
@@ -469,7 +469,7 @@
         <span class="kw">let </span>llvm_index = code_generator
             .generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index)
             .map_err(|err| {
-                reporter.handle(<span class="macro">vec!</span>[err]);
+                reporter.handle(<span class="kw-2">&amp;</span>[err]);
                 reporter.buffer().unwrap()
             })<span class="question-mark">?</span>;
 
@@ -477,7 +477,7 @@
             .generate(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>llvm_index)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
-                reporter.handle(<span class="macro">vec!</span>[err]);
+                reporter.handle(<span class="kw-2">&amp;</span>[err]);
                 reporter.buffer().unwrap()
             })
     }

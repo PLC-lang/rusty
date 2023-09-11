@@ -85,13 +85,33 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
-</pre></div><pre class="rust"><code><span class="attr">#[allow(non_camel_case_types)]
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
+
+<span class="attr">#[allow(non_camel_case_types)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 </span><span class="kw">pub enum </span>ErrNo {
     undefined,
 
     <span class="comment">//general
-    </span>general__io_err,
+    </span>general__err,
+    general__io_err,
     general__param_err,
     duplicate_symbol,
 
@@ -171,5 +191,19 @@
     </span>case__duplicate_condition,
     case__case_condition_outside_case_statement,
     case__invalid_case_condition,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>ErrNo {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span>desc = <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::general__err =&gt; <span class="string">&quot;General Error&quot;</span>.into(),
+            <span class="self">Self</span>::codegen__general =&gt; <span class="string">&quot;Codegen Error&quot;</span>.into(),
+            <span class="self">Self</span>::codegen__missing_compare_function =&gt; <span class="string">&quot;Codegen Error: No compare function&quot;</span>.into(),
+            <span class="self">Self</span>::codegen__missing_function =&gt; <span class="string">&quot;Codegen Error: Missing Function&quot;</span>.into(),
+            <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{self:#?}&quot;</span>),
+        };
+
+        <span class="macro">write!</span>(f, <span class="string">&quot;{desc}&quot;</span>)
+    }
 }
 </code></pre></div></section></main></body></html>

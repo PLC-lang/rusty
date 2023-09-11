@@ -288,6 +288,24 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -301,7 +319,7 @@
 </span><span class="kw">use </span>std::{
     env,
     ffi::OsStr,
-    fmt::Debug,
+    fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
 
@@ -382,7 +400,7 @@
     <span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
             CompileError::Diagnostic(err) =&gt; {
-                <span class="macro">println!</span>(<span class="string">&quot;{err:#?}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{err}&quot;</span>);
                 std::process::exit(<span class="number">1</span>)
             }
             CompileError::Parameter(err) =&gt; err.exit(),
@@ -392,6 +410,15 @@
     <span class="kw">pub fn </span>into_diagnostic(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Diagnostic&gt; {
         <span class="kw">let </span>CompileError::Diagnostic(res) = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
         <span class="prelude-val">Some</span>(res)
+    }
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>CompileError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            CompileError::Diagnostic(err) =&gt; Display::fmt(err, f),
+            CompileError::Parameter(err) =&gt; Display::fmt(err, f),
+        }
     }
 }
 
@@ -451,7 +478,7 @@
     </span>annotated_project.validate(<span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
     <span class="comment">// 5 : Codegen
     </span><span class="kw">if </span>!compile_parameters.is_check() {
-        generate(
+        <span class="kw">let </span>res = generate(
             location,
             compile_parameters,
             project,
@@ -459,7 +486,16 @@
             annotated_project,
             build_location,
             lib_location,
-        )<span class="question-mark">?</span>;
+        )
+        .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(res) = res {
+            diagnostician.handle(<span class="kw-2">&amp;</span>[res]);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::GeneralError {
+                message: <span class="string">&quot;Compilation aborted due to previous errors&quot;</span>.into(),
+                err_no: plc_diagnostics::errno::ErrNo::codegen__general,
+            }
+            .into());
+        }
     }
 
     <span class="prelude-val">Ok</span>(())
