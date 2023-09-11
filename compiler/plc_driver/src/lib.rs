@@ -11,7 +11,7 @@
 use std::{
     env,
     ffi::OsStr,
-    fmt::Debug,
+    fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
 
@@ -92,7 +92,7 @@ impl CompileError {
     pub fn exit(&self) {
         match self {
             CompileError::Diagnostic(err) => {
-                println!("{err:#?}");
+                println!("{err}");
                 std::process::exit(1)
             }
             CompileError::Parameter(err) => err.exit(),
@@ -102,6 +102,15 @@ impl CompileError {
     pub fn into_diagnostic(self) -> Option<Diagnostic> {
         let CompileError::Diagnostic(res) = self else { return None };
         Some(res)
+    }
+}
+
+impl Display for CompileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CompileError::Diagnostic(err) => Display::fmt(err, f),
+            CompileError::Parameter(err) => Display::fmt(err, f),
+        }
     }
 }
 
@@ -161,7 +170,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
     annotated_project.validate(&mut diagnostician)?;
     // 5 : Codegen
     if !compile_parameters.is_check() {
-        generate(
+        let res = generate(
             location,
             compile_parameters,
             project,
@@ -169,7 +178,16 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
             annotated_project,
             build_location,
             lib_location,
-        )?;
+        )
+        .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
+        if let Err(res) = res {
+            diagnostician.handle(&[res]);
+            return Err(Diagnostic::GeneralError {
+                message: "Compilation aborted due to previous errors".into(),
+                err_no: plc_diagnostics::errno::ErrNo::codegen__general,
+            }
+            .into());
+        }
     }
 
     Ok(())

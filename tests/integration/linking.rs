@@ -138,7 +138,7 @@ fn link_missing_file() {
                 .into_diagnostic()
                 .unwrap()
                 .get_message()
-                .contains("lld: error: undefined symbol: func2"));
+                .contains("Compilation aborted due to previous errors"));
         }
         _ => panic!("Expected link failure"),
     }
