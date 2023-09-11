@@ -1,9 +1,12 @@
+use std::fmt::Display;
+
 #[allow(non_camel_case_types)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ErrNo {
     undefined,
 
     //general
+    general__err,
     general__io_err,
     general__param_err,
     duplicate_symbol,
@@ -92,4 +95,18 @@ pub enum ErrNo {
     cfc__unconnected_source,
     cfc__cyclic_connection,
     cfc__no_associated_connector,
+}
+
+impl Display for ErrNo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let desc = match self {
+            Self::general__err => "General Error".into(),
+            Self::codegen__general => "Codegen Error".into(),
+            Self::codegen__missing_compare_function => "Codegen Error: No compare function".into(),
+            Self::codegen__missing_function => "Codegen Error: Missing Function".into(),
+            _ => format!("{self:#?}"),
+        };
+
+        write!(f, "{desc}")
+    }
 }
