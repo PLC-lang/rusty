@@ -67,7 +67,7 @@ impl Diagnostician {
 
         self.report(resolved_diagnostics.as_slice());
 
-        resolved_diagnostics.iter().fold(Severity::Info, |prev, current| prev.combine(current.severity))
+        resolved_diagnostics.iter().map(|it| it.severity).max().unwrap_or_default()
     }
 
     /// Creates a null-diagnostician that does not report diagnostics
@@ -159,12 +159,13 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 }
 
 /// a diagnostics severity
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Severity {
-    Critical,
-    Error,
-    Warning,
+    #[default]
     Info,
+    Warning,
+    Error,
+    Critical,
 }
 
 impl std::fmt::Display for Severity {
@@ -176,37 +177,5 @@ impl std::fmt::Display for Severity {
             Severity::Info => "info",
         };
         write!(f, "{severity}")
-    }
-}
-
-impl PartialOrd for Severity {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Severity {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match (self, other) {
-            (Severity::Critical, Severity::Critical) => std::cmp::Ordering::Equal,
-            (Severity::Critical, _) => std::cmp::Ordering::Greater,
-            (_, Severity::Critical) => std::cmp::Ordering::Less,
-            (Severity::Error, Severity::Error) => std::cmp::Ordering::Equal,
-            (Severity::Error, _) => std::cmp::Ordering::Greater,
-            (_, Severity::Error) => std::cmp::Ordering::Less,
-            (Severity::Warning, Severity::Warning) => std::cmp::Ordering::Equal,
-            (Severity::Warning, _) => std::cmp::Ordering::Greater,
-            (_, Severity::Warning) => std::cmp::Ordering::Less,
-            (Severity::Info, Severity::Info) => std::cmp::Ordering::Equal,
-        }
-    }
-}
-
-impl Severity {
-    pub fn combine(self, other: Self) -> Self {
-        match self.cmp(&other) {
-            std::cmp::Ordering::Less => other,
-            _ => self,
-        }
     }
 }

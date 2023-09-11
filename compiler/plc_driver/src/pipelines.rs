@@ -206,7 +206,7 @@ impl AnnotatedProject {
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
             let diagnostics = validator.diagnostics();
-            severity = severity.combine(diagnostician.handle(&diagnostics));
+            severity = severity.max(diagnostician.handle(&diagnostics));
         });
         if severity == Severity::Critical {
             Err(Diagnostic::GeneralError {
