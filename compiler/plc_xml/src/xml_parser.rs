@@ -52,7 +52,7 @@ pub fn parse_file(
     let (unit, errors) = parse(&source, linkage, id_provider);
     //Register the source file with the diagnostician
     diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
-    diagnostician.handle(errors);
+    diagnostician.handle(&errors);
     unit
 }
 

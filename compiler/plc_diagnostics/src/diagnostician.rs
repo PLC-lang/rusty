@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     diagnostics::Diagnostic,
+    errno::ErrNo,
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -31,7 +32,7 @@ impl Diagnostician {
     }
 
     /// Assess and reports the given diagnostics.
-    pub fn handle(&mut self, diagnostics: Vec<Diagnostic>) {
+    pub fn handle(&mut self, diagnostics: &[Diagnostic]) -> Severity {
         let resolved_diagnostics = diagnostics
             .iter()
             .flat_map(|it| match it {
@@ -61,9 +62,12 @@ impl Diagnostician {
                         })
                         .collect()
                 }),
-            });
+            })
+            .collect::<Vec<_>>();
 
-        self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
+        self.report(resolved_diagnostics.as_slice());
+
+        resolved_diagnostics.iter().map(|it| it.severity).max().unwrap_or_default()
     }
 
     /// Creates a null-diagnostician that does not report diagnostics
@@ -147,6 +151,7 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
         match d {
             // improvements become warnings
             Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
+            _ if *d.get_type() == ErrNo::reference__unresolved => Severity::Critical,
             // everything else becomes an error
             _ => Severity::Error,
         }
@@ -154,19 +159,22 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 }
 
 /// a diagnostics severity
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Severity {
-    Error,
+    #[default]
+    Info,
     Warning,
-    _Info,
+    Error,
+    Critical,
 }
 
 impl std::fmt::Display for Severity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let severity = match self {
+            Severity::Critical => "critical",
             Severity::Error => "error",
             Severity::Warning => "warning",
-            Severity::_Info => "info",
+            Severity::Info => "info",
         };
         write!(f, "{severity}")
     }

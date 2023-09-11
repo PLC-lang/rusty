@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Debug, Formatter},
+    fmt::{Debug, Display, Formatter},
     ops::Range,
 };
 
@@ -81,6 +81,28 @@ pub enum CodeSpan {
     None,
 }
 
+impl Display for CodeSpan {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CodeSpan::Block { .. } => write!(f, "Block {}", self.get_line()),
+            CodeSpan::Combined(spans) => {
+                write!(f, "{}", spans.iter().map(|it| it.to_string()).collect::<String>())
+            }
+            CodeSpan::Range(range) => write!(
+                f,
+                "{}:{}:{{{}:{}-{}:{}}}: ",
+                range.start.line,
+                range.start.column,
+                range.start.line,
+                range.start.column,
+                range.end.line,
+                range.end.column,
+            ),
+            CodeSpan::None => Ok(()),
+        }
+    }
+}
+
 impl CodeSpan {
     /// Creates a codespan from line, column and range info
     pub fn from_text_info(start: TextLocation, end: TextLocation) -> Self {
@@ -133,6 +155,15 @@ impl Debug for SourceLocation {
             f.field("file", &self.file);
         }
         f.finish()
+    }
+}
+
+impl Display for SourceLocation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if self.file.filter(|name| *name != "<internal>").is_some() {
+            write!(f, "{}", self.get_file_name().unwrap())?;
+        }
+        write!(f, ":{}", self.span)
     }
 }
 
