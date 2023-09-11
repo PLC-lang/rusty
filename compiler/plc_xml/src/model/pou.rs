@@ -126,7 +126,6 @@ impl FromStr for PouType {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
         model::{pou::Pou, project::Project},

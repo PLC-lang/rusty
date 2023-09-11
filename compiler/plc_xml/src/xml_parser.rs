@@ -166,10 +166,6 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
     fn create_file_only_location(&self) -> SourceLocation {
         self.range_factory.create_file_only_location()
     }
-
-    fn create_empty_statement(&self) -> AstStatement {
-        AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: self.next_id() }
-    }
 }
 
 impl From<PouType> for AstPouType {

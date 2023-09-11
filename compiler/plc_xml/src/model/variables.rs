@@ -232,7 +232,6 @@ fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
         model::variables::{BlockVariable, FunctionBlockVariable},

@@ -1,5 +1,6 @@
 use ast::ast::{AstFactory, AstNode, AstStatement};
 use indexmap::IndexMap;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 

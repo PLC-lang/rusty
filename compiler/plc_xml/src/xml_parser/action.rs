@@ -4,7 +4,7 @@ use crate::model::action::Action;
 
 use super::ParseSession;
 
-impl Action {
+impl<'xml> Action<'xml> {
     pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstNode> {
         todo!()
     }
