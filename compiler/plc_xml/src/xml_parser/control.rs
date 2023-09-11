@@ -1,4 +1,4 @@
-use ast::ast::{AstFactory, AstNode, Operator};
+use ast::ast::{AstFactory, AstNode};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::model::{
@@ -48,7 +48,7 @@ fn transform_return(
     // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often
     let possibly_negated_condition = if control.negated {
         let location = condition.get_location();
-        AstFactory::create_unary_expression(Operator::Not, condition, location, session.next_id())
+        AstFactory::create_not_expression(condition, location, session.next_id())
     } else {
         condition
     };

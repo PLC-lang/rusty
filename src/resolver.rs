@@ -208,7 +208,7 @@ impl TypeAnnotator<'_> {
     }
 
     fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
-        let AstStatement::BinaryExpression ( BinaryExpression{ operator, left, right}) = statement.get_stmt() else {
+        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt() else {
             return;
         };
         let mut ctx = ctx.clone();
@@ -217,6 +217,7 @@ impl TypeAnnotator<'_> {
             Operator::NotEqual => AstFactory::create_not_expression(
                 self.create_typed_compare_call_statement(&mut ctx, &Operator::Equal, left, right, statement),
                 statement.get_location(),
+                ctx.id_provider.next_id(),
             ),
             // a <= b expression is handled as a = b OR a < b
             Operator::LessOrEqual => AstFactory::create_or_expression(
@@ -939,7 +940,7 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
-                        let AstStatement::Literal (AstLiteral::Array(array)) = right.as_ref().get_stmt() else { return };
+                        let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() else { return };
                         let Some(elements) = array.elements() else { return };
 
                         if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
