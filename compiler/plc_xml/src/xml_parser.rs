@@ -31,11 +31,8 @@ pub(crate) trait Parseable {
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
 }
 
-pub(crate) fn visit<'b, 'xml>(
-    content: &'xml str,
-    source_location_factory: &'b SourceLocationFactory,
-) -> Result<Project<'xml>, Error> {
-    let mut reader = PeekableReader::new(content, source_location_factory);
+pub(crate) fn visit(content: &str) -> Result<Project, Error> {
+    let mut reader = PeekableReader::new(content);
     loop {
         match reader.peek()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
@@ -67,17 +64,22 @@ fn parse(
     let source_location_factory = SourceLocationFactory::for_source(source);
     // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let project = match visit(&source.source, &source_location_factory) {
+    let mut project = match visit(&source.source) {
         Ok(project) => project,
         Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
+
+    let mut diagnostics = vec![];
+    let _ = project.desugar(&source_location_factory).map_err(|e| diagnostics.extend(e));
+
     // Create a new parse session
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
     // Parse the declaration data field
-    let Some((unit, mut diagnostics)) = parser.try_parse_declaration() else {
+    let Some((unit, declaration_diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
+    diagnostics.extend(declaration_diagnostics);
 
     // Transform the data-model into an AST
     let (implementations, parser_diagnostics) = parser.parse_model();
@@ -162,6 +164,10 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
 
     fn create_file_only_location(&self) -> SourceLocation {
         self.range_factory.create_file_only_location()
+    }
+
+    fn create_empty_statement(&self) -> AstStatement {
+        AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: self.next_id() }
     }
 }
 

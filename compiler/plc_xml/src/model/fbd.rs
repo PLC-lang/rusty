@@ -1,6 +1,6 @@
 use indexmap::{IndexMap, IndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::Event;
 use std::{cmp::Ordering, collections::HashMap};
 
@@ -20,6 +20,15 @@ pub(crate) type NodeIndex<'xml> = IndexMap<NodeId, Node<'xml>>;
 #[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram<'xml> {
     pub nodes: NodeIndex<'xml>,
+}
+
+impl<'xml> FunctionBlockDiagram<'xml> {
+    pub(crate) fn desugar(
+        &mut self,
+        source_location_factory: &SourceLocationFactory,
+    ) -> Result<(), Vec<Diagnostic>> {
+        self.nodes.desugar_connection_points(source_location_factory)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -113,7 +122,6 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
         }
 
         nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
-        nodes.desugar_connection_points(reader.get_source_location_factory()).map_err(Error::Lowering)?;
 
         Ok(FunctionBlockDiagram { nodes })
     }
@@ -145,8 +153,8 @@ trait ConnectionResolver<'xml> {
     ) -> Result<Vec<ResolvedConnection>, Vec<Diagnostic>>;
     fn find_assignable_sink_value(
         &self,
-        connector_id: NodeId,
         source_connections: &HashMap<&str, SourceReference>,
+        connector_id: NodeId,
         connector_path: &mut IndexSet<String>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic>;
@@ -211,12 +219,12 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                         .map(|ref_id| {
                             if let Some(Node::Connector(Connector {
                                 kind: ConnectorKind::Sink,
-                                local_id,
+                                local_id: sink_id,
                                 ..
                             })) = self.get(&ref_id)
                             {
                                 // source points directly to another sink
-                                SourceReference::Connector(*local_id)
+                                SourceReference::Connector(*sink_id)
                             } else {
                                 // source points to an assignable element
                                 SourceReference::Value(ref_id)
@@ -241,14 +249,12 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         let mut diagnostics = vec![];
 
         let mut resolve_sink_connection_if_needed = |id: NodeId, ref_id: NodeId, param_idx: Option<usize>| {
-            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =
-                self.get(&ref_id)
-            {
+            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, .. })) = self.get(&ref_id) {
                 let mut path: IndexSet<String> = IndexSet::new();
 
                 match self.find_assignable_sink_value(
-                    id,
                     source_connections,
+                    ref_id,
                     &mut path,
                     source_location_factory,
                 ) {
@@ -301,47 +307,51 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     /// Additionally, cyclic connections are detected and reported.
     fn find_assignable_sink_value(
         &self,
-        connector_id: NodeId,
         source_connections: &HashMap<&str, SourceReference>,
+        node_id: NodeId,
         connector_path: &mut IndexSet<String>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic> {
-        self.get(&connector_id)
-            .map(|connector| {
-                let connector_name = connector.get_name();
+        self.get(&node_id)
+            .map(|node| {
+                let connector_name = node.get_name();
                 let Some(source) = source_connections.get(connector_name.as_str()) else {
                     return Err(Diagnostic::sink_without_associated_source(
-                        &connector_name, 
-                        source_location_factory.create_block_location(connector.get_id(), connector.get_exec_id()))
+                        &connector_name,
+                        source_location_factory.create_block_location(node.get_id(), node.get_exec_id()))
                     )
                 };
 
                 match source {
                     SourceReference::Value(id) => Ok(*id),
                     // for direct sink-to-source connections, we need to recurse to find the actual value
-                    SourceReference::Connector(name) => {
+                    SourceReference::Connector(id) => {
                         if connector_path.insert(connector_name) {
                             self.find_assignable_sink_value(
-                                connector_id,
                                 source_connections,
+                                *id,
                                 connector_path,
                                 source_location_factory,
                             )
                         } else {
                             // data-recursion detected
                             let mut message = String::new();
-                            for connector_name in connector_path.iter() {
-                                message = format!("{message}{connector_name} -> ")
+                            for name in connector_path.iter() {
+                                message = format!("{message}{name} -> ")
                             }
 
-                            message = format!("{message}{name}");
+                            message = format!("{}{}", message, node.get_name());
 
-                            Err(Diagnostic::cyclic_connection(message, todo!()))
+                            Err(Diagnostic::cyclic_connection(
+                                message,
+                                source_location_factory.create_block_location(*id, None),
+                            ))
                         }
                     }
-                    SourceReference::Unconnected(id) => {
-                        Err(Diagnostic::unconnected_source(&connector_name, todo!()))
-                    }
+                    SourceReference::Unconnected(id) => Err(Diagnostic::unconnected_source(
+                        &connector_name,
+                        source_location_factory.create_block_location(*id, None),
+                    )),
                 }
             })
             .unwrap()
@@ -350,9 +360,6 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
 
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
-    use plc_source::source_location::SourceLocationFactory;
-
     use crate::{
         model::fbd::FunctionBlockDiagram,
         reader::PeekableReader,
@@ -362,6 +369,7 @@ mod tests {
         },
         xml_parser::Parseable,
     };
+    use insta::assert_debug_snapshot;
 
     #[test]
     fn add_block() {
@@ -408,7 +416,7 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(""));
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
     }
 }

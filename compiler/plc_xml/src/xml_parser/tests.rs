@@ -4,7 +4,7 @@ use ast::{
 };
 use insta::assert_debug_snapshot;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::SourceCode;
+use plc_source::{source_location::SourceLocationFactory, SourceCode, SourceCodeFactory};
 
 use crate::{
     model::project::Project,
@@ -21,9 +21,16 @@ fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
 }
 
 fn visit(content: &str) -> Result<Project, crate::error::Error> {
-    let source_location_factory =
-        plc_source::source_location::SourceLocationFactory::for_source(&SourceCode::new(content, "test.cfc"));
-    xml_parser::visit(content, &source_location_factory)
+    xml_parser::visit(content)
+}
+
+fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
+    let Ok(mut project) = visit(content) else {
+            unreachable!()
+        };
+    let source_location_factory = SourceLocationFactory::for_source(&content.create_source("test"));
+    project.desugar(&source_location_factory)?;
+    Ok(project)
 }
 
 #[test]
@@ -82,7 +89,8 @@ fn connection_block_source_to_multiple_sinks_parses() {
 
 #[test]
 fn direct_connection_of_sink_to_other_source_generates_correct_model() {
-    assert_debug_snapshot!(visit(content::SINK_TO_SOURCE).unwrap());
+    let content = content::SINK_TO_SOURCE;
+    assert_debug_snapshot!(visit_and_desugar(content).unwrap());
 }
 
 #[test]
@@ -92,9 +100,10 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
 
 #[test]
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
-    let Err(diagnostics) = visit(content::SINK_SOURCE_LOOP) else {
-            panic!("Expected test to report data recursion!")
-        };
+    let content = content::SINK_SOURCE_LOOP;
+    let Err(diagnostics) = visit_and_desugar(content) else {
+        panic!("Expected test to report data recursion!")
+    };
     assert_debug_snapshot!(diagnostics);
 }
 

@@ -1,6 +1,5 @@
 use ast::ast::AstStatement;
 use indexmap::IndexMap;
-use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
@@ -75,14 +74,10 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                 Err(why) => {
                     session.diagnostics.push(why);
 
-                    let empty = AstStatement::EmptyStatement {
-                        location: SourceLocation::undefined(),
-                        id: session.next_id(),
-                    };
-                    (empty, None)
+                    (session.create_empty_statement(), None)
                 }
             },
-            Node::Connector(_) => todo!(),
+            Node::Connector(_) => (session.create_empty_statement(), None), /* connector nodes are removed after desugaring, this is just a fallback */
         }
     }
 }

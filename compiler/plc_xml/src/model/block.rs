@@ -83,10 +83,7 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(
-            &content,
-            &plc_source::source_location::SourceLocationFactory::internal(&content),
-        );
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Block::visit(&mut reader).unwrap());
     }
 }

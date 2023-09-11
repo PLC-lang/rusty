@@ -1,0 +1,66 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: "parse(content::VAR_SOURCE_TO_MULTI_SINK).0.implementations[0].statements"
+---
+[
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "y",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "myConnection",
+                },
+            ),
+            base: None,
+        },
+        right: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "myAdd",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "y",
+                                },
+                            ),
+                            base: None,
+                        },
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ],
+                },
+            ),
+        },
+    },
+]

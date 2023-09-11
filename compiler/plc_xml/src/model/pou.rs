@@ -1,5 +1,6 @@
 use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
+use plc_diagnostics::diagnostics::Diagnostic;
 use quick_xml::events::Event;
 
 use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
@@ -24,6 +25,17 @@ impl<'xml> Pou<'xml> {
             actions: self.actions,
             interface: self.interface,
         })
+    }
+
+    pub(crate) fn desugar(
+        &mut self,
+        source_location_factory: &plc_source::source_location::SourceLocationFactory,
+    ) -> Result<(), Vec<Diagnostic>> {
+        if let Some(ref mut fbd) = self.body.function_block_diagram {
+            fbd.desugar(source_location_factory)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -153,7 +165,7 @@ END_VAR
             .with_body(XBody::new().with_fbd(XFbd::new().close()))
             .serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Project::pou_entry(&mut reader));
     }
 
@@ -162,7 +174,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "program").serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -171,7 +183,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "function").serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -180,7 +192,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "functionBlock").serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
+        let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Pou::visit(&mut reader));
     }
 
@@ -189,7 +201,7 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "asdasd").serialize();
 
-        let mut reader = PeekableReader::new(&content, &SourceLocationFactory::internal(&content));
+        let mut reader = PeekableReader::new(&content);
         assert_eq!(
             Pou::visit(&mut reader).unwrap_err().to_string(),
             "Found an unexpected element 'asdasd'".to_string()
