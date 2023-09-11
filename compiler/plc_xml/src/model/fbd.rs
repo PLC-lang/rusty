@@ -198,7 +198,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
             });
         }
 
-        // XXX: removing all connector nodes after resolving might mess with validation later on - revisit
+        // XXX: remove connector nodes from the model after resolving, since they are no longer relevant
         self.retain(|_, node| !matches!(node, Node::Connector(_)));
 
         Ok(())
@@ -270,7 +270,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
             };
         };
 
-        // collect all relevant information on nodes that reference
+        // try to resolve each connector-node in the index
         self.iter().for_each(|(id, node)| match node {
             Node::Block(block) => block.variables.iter().enumerate().for_each(|(param_idx, var)| {
                 if let Some(ref_id) = var.ref_local_id {
