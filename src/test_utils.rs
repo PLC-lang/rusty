@@ -58,7 +58,7 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let (unit, diagnostics) = parse(src);
-        reporter.handle(diagnostics);
+        reporter.handle(&diagnostics);
         (unit, reporter.buffer().unwrap_or_default())
     }
 
@@ -72,7 +72,7 @@ pub mod tests {
             "test.st",
         );
         pre_process(&mut unit, id_provider);
-        reporter.handle(diagnostic);
+        reporter.handle(&diagnostic);
 
         (unit, reporter.buffer().unwrap_or_default())
     }
@@ -132,7 +132,7 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
 
         reporter.register_file("<internal>".to_string(), src.to_string());
-        reporter.handle(diagnostics);
+        reporter.handle(&diagnostics);
 
         reporter.buffer().expect(
             "This should be unreachable, otherwise somethings wrong with the buffered codespan reporter",
@@ -167,7 +167,7 @@ pub mod tests {
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
         let (unit, index, diagnostics) = do_index(src, id_provider.clone());
-        reporter.handle(diagnostics);
+        reporter.handle(&diagnostics);
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
@@ -187,7 +187,7 @@ pub mod tests {
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
             .map_err(|err| {
-                reporter.handle(vec![err]);
+                reporter.handle(&[err]);
                 reporter.buffer().unwrap()
             })?;
 
@@ -195,7 +195,7 @@ pub mod tests {
             .generate(&context, &unit, &annotations, &index, &llvm_index)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
-                reporter.handle(vec![err]);
+                reporter.handle(&[err]);
                 reporter.buffer().unwrap()
             })
     }
