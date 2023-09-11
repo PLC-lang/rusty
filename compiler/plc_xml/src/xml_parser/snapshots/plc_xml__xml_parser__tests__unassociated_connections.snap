@@ -1,0 +1,22 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Sink 's2' does not have a source associated with it.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 3,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__no_associated_connector,
+    },
+]

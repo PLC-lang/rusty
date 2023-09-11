@@ -755,7 +755,7 @@ impl Diagnostic {
 
     pub fn sink_without_associated_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Sink '{connector_name}' is does not have a source associated with it."),
+            message: format!("Sink '{connector_name}' does not have a source associated with it."),
             range: vec![range],
             err_no: ErrNo::cfc__no_associated_connector,
         }

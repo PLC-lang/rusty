@@ -102,10 +102,33 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
 }
 
 #[test]
+fn return_connected_to_sink_parses() {
+    assert_debug_snapshot!(parse(content::RETURN_TO_CONNECTION).0.implementations[0].statements);
+}
+
+#[test]
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
-    let content = content::SINK_SOURCE_LOOP;
+    let content = content::SINK_SOURCE_CYCLE;
     let Err(diagnostics) = visit_and_desugar(content) else {
         panic!("Expected test to report data recursion!")
+    };
+    assert_debug_snapshot!(diagnostics);
+}
+
+#[test]
+fn unconnected_connections() {
+    let content = content::UNCONNECTED_CONNECTIONS;
+    let Err(diagnostics) = visit_and_desugar(content) else {
+        panic!("Expected test to report unconnected source!")
+    };
+    assert_debug_snapshot!(diagnostics);
+}
+
+#[test]
+fn unassociated_connections() {
+    let content = content::UNASSOCIATED_CONNECTIONS;
+    let Err(diagnostics) = visit_and_desugar(content) else {
+        panic!("Expected test to report unassociated sink!")
     };
     assert_debug_snapshot!(diagnostics);
 }
@@ -900,7 +923,7 @@ mod content {
     </pou>
     "#;
 
-    pub(super) const SINK_SOURCE_LOOP: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+    pub(super) const SINK_SOURCE_CYCLE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myConnection" pouType="function">
         <interface>
             <localVars/>
@@ -966,5 +989,191 @@ mod content {
             </FBD>
         </body>
     </pou>    
+    "#;
+
+    pub(super) const RETURN_TO_CONNECTION: &str = r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="positiveOrZero" pouType="function">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION positiveOrZero : DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+                </content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <connector name="s1" localId="1" height="20" width="54">
+                    <position x="550" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="2"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s1" localId="3" height="20" width="64">
+                    <position x="630" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <connector name="s2" localId="4" height="20" width="54">
+                    <position x="750" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="3"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s2" localId="5" height="20" width="64">
+                    <position x="840" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <return localId="6" height="20" width="82" executionOrderId="0">
+                    <position x="1000" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="5"/>
+                    </connectionPointIn>
+                    <addData>
+                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                            <negated value="false"/>
+                        </data>
+                    </addData>
+                </return>
+                <inVariable localId="2" height="20" width="82" negated="false">
+                    <position x="420" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="82" y="10"/>
+                    </connectionPointOut>
+                    <expression>x &lt; 0</expression>
+                </inVariable>
+                <outVariable localId="7" height="20" width="145" executionOrderId="1" negated="false" storage="none">
+                    <position x="1060" y="240"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="8"/>
+                    </connectionPointIn>
+                    <expression>positiveOrZero</expression>
+                </outVariable>
+                <inVariable localId="8" height="20" width="80" negated="false">
+                    <position x="940" y="240"/>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>x</expression>
+                </inVariable>
+            </FBD>
+        </body>
+    </pou>"#;
+
+    pub(super) const UNCONNECTED_CONNECTIONS: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="unconnectedConnections" pouType="function">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION unconnectedConnections : DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+                </content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <connector name="s1" localId="1" height="20" width="54">
+                    <position x="550" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s1" localId="2" height="20" width="64">
+                    <position x="630" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <connector name="s2" localId="3" height="20" width="54">
+                    <position x="750" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="2"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s2" localId="4" height="20" width="64">
+                    <position x="840" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+            </FBD>
+        </body>
+    </pou>
+    "#;
+
+    pub(super) const UNASSOCIATED_CONNECTIONS: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="unassociatedSink" pouType="function">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION unassociatedSink : DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+                </content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <connector name="s1" localId="1" height="20" width="54">
+                    <position x="550" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="2"/>
+                    </connectionPointIn>
+                </connector>
+                <continuation name="s2" localId="3" height="20" width="64">
+                    <position x="630" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="64" y="10"/>
+                    </connectionPointOut>
+                </continuation>
+                <inVariable localId="2" height="20" width="80" negated="false">
+                    <position x="430" y="160"/>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>x</expression>
+                </inVariable>
+                <outVariable localId="4" height="20" width="152" executionOrderId="0" negated="false" storage="none">
+                    <position x="780" y="160"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="3"/>
+                    </connectionPointIn>
+                    <expression>unassociatedSink</expression>
+                </outVariable>
+            </FBD>
+        </body>
+    </pou>
+    
     "#;
 }
