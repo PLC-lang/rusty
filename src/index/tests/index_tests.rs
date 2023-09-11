@@ -1,8 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    pre_process, AstStatement, DataType, GenericBinding, LinkageType, Operator, TypeNature,
-    UserTypeDeclaration,
+    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -1089,12 +1088,12 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     assert_eq!(
         format!(
             "{:#?}",
-            AstStatement::BinaryExpression {
-                id: 0,
-                operator: Operator::Minus,
-                left: Box::new(crate::parser::tests::ref_to("LEN")),
-                right: Box::new(crate::parser::tests::literal_int(1))
-            }
+            AstFactory::create_binary_expression(
+                crate::parser::tests::ref_to("LEN"),
+                Operator::Minus,
+                crate::parser::tests::literal_int(1),
+                0
+            )
         ),
         format!("{end_0:#?}")
     );
@@ -1151,12 +1150,12 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         assert_eq!(
             format!(
                 "{:#?}",
-                &AstStatement::BinaryExpression {
-                    id: actual_len_expression.get_id(),
-                    left: Box::new(actual_len_expression.clone()),
-                    operator: Operator::Plus,
-                    right: Box::new(crate::parser::tests::literal_int(1))
-                }
+                AstFactory::create_binary_expression(
+                    actual_len_expression.clone(),
+                    Operator::Plus,
+                    literal_int(1),
+                    actual_len_expression.get_id()
+                )
             ),
             format!("{:#?}", index.get_const_expressions().get_constant_statement(expr).unwrap())
         );

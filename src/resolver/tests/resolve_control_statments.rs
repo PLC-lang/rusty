@@ -23,11 +23,13 @@ fn binary_expressions_resolves_types() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    if let AstStatement::ControlStatement {
-        kind:
-            AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step: Some(by_step), .. }),
+    if let AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
+        counter,
+        start,
+        end,
+        by_step: Some(by_step),
         ..
-    } = &statements[0]
+    })) = statements[0].get_stmt()
     {
         assert_type_and_hint!(&annotations, &index, counter, "INT", None);
         assert_type_and_hint!(&annotations, &index, start, "DINT", Some("INT"));

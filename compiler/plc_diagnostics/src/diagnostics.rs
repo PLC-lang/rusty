@@ -1,6 +1,6 @@
 use std::{error::Error, ops::Range};
 
-use plc_ast::ast::{AstStatement, DataTypeDeclaration, DiagnosticInfo, PouType};
+use plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
 use plc_source::source_location::SourceLocation;
 
 use crate::errno::ErrNo;
@@ -669,7 +669,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_range_statement(entity: &AstStatement, range: SourceLocation) -> Diagnostic {
+    pub fn invalid_range_statement(entity: &AstNode, range: SourceLocation) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Expected a range statement, got {entity:?} instead"),
             range: vec![range],

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use plc_ast::ast::{flatten_expression_list, AstStatement, GenericBinding, LinkageType, TypeNature};
+use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -32,7 +32,7 @@ impl<'i> TypeAnnotator<'i> {
         index: &'idx Index,
         annotation_map: &'idx AnnotationMapImpl,
         type_name: &str,
-        statement: &AstStatement,
+        statement: &AstNode,
     ) -> Option<(&'idx str, &'idx str)> {
         //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
         let effective_type = index.find_effective_type_info(type_name);
@@ -46,9 +46,9 @@ impl<'i> TypeAnnotator<'i> {
 
         //If generic add a generic annotation
         if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
-            let statement = match statement {
+            let statement = match statement.get_stmt() {
                 //The right side of the assignment is the source of truth
-                AstStatement::Assignment { right, .. } => right,
+                AstStatement::Assignment(data) => &data.right,
                 _ => statement,
             };
             //Find the statement's type
@@ -64,8 +64,8 @@ impl<'i> TypeAnnotator<'i> {
         &mut self,
         generics_candidates: HashMap<String, Vec<String>>,
         implementation_name: &str,
-        operator: &AstStatement,
-        parameters: Option<&AstStatement>,
+        operator: &AstNode,
+        parameters: Option<&AstNode>,
         ctx: VisitorContext,
     ) {
         if let Some(PouIndexEntry::Function { generics, .. }) = self.index.find_pou(implementation_name) {
@@ -231,7 +231,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn update_generic_function_parameters(
         &mut self,
-        s: &AstStatement,
+        s: &AstNode,
         function_name: &str,
         generic_map: &HashMap<String, GenericType>,
     ) {
@@ -279,10 +279,9 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map.add_generic_nature(passed_parameter, generic.generic_nature);
 
                         // for assignments we need to annotate the left side aswell
-                        match parameter_stmt {
-                            AstStatement::Assignment { left, .. }
-                            | AstStatement::OutputAssignment { left, .. } => {
-                                self.annotate(left, StatementAnnotation::value(datatype.get_name()));
+                        match parameter_stmt.get_stmt() {
+                            AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
+                                self.annotate(&data.left, StatementAnnotation::value(datatype.get_name()));
                             }
                             _ => {}
                         }

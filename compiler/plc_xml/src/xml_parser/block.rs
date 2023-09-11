@@ -1,11 +1,11 @@
-use ast::ast::{AstFactory, AstStatement};
+use ast::ast::{AstFactory, AstNode};
 
 use crate::model::{block::Block, fbd::NodeIndex};
 
 use super::ParseSession;
 
-impl<'xml> Block<'xml> {
-    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> AstStatement {
+impl Block {
+    pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> AstNode {
         let parameters = self
             .variables
             .iter()

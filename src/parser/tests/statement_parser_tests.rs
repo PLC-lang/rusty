@@ -1,6 +1,10 @@
-use crate::{parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE};
+use crate::{
+    parser::tests::{empty_stmt, ref_to},
+    test_utils::tests::parse,
+    typesystem::DINT_TYPE,
+};
 use insta::assert_snapshot;
-use plc_ast::ast::{AstFactory, AstStatement, DataType, DataTypeDeclaration, Variable};
+use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, Variable};
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
@@ -10,17 +14,10 @@ fn empty_statements_are_are_parsed() {
     let result = parse(src).0;
 
     let prg = &result.implementations[0];
+
     assert_eq!(
         format!("{:?}", prg.statements),
-        format!(
-            "{:?}",
-            vec![
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-            ]
-        ),
+        format!("{:?}", vec![empty_stmt(), empty_stmt(), empty_stmt(), empty_stmt(),]),
     );
 }
 
@@ -36,10 +33,10 @@ fn empty_statements_are_parsed_before_a_statement() {
         format!(
             "{:?}",
             vec![
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
-                AstStatement::EmptyStatement { location: SourceLocation::undefined(), id: 0 },
+                empty_stmt(),
+                empty_stmt(),
+                empty_stmt(),
+                empty_stmt(),
                 AstFactory::create_member_reference(
                     AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
                     None,
@@ -135,10 +132,11 @@ fn inline_enum_declaration_can_be_parsed() {
             data_type: DataType::EnumType {
                 name: None,
                 numeric_type: DINT_TYPE.to_string(),
-                elements: AstStatement::ExpressionList {
-                    expressions: vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
-                    id: 0,
-                },
+                elements: AstFactory::create_expression_list(
+                    vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
+                    SourceLocation::undefined(),
+                    0,
+                ),
             },
             location: SourceLocation::undefined(),
             scope: None,

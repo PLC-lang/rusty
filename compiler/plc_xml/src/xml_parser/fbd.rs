@@ -1,4 +1,4 @@
-use ast::ast::AstStatement;
+use ast::ast::{AstFactory, AstNode, AstStatement};
 use indexmap::IndexMap;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -8,7 +8,7 @@ use super::ParseSession;
 impl<'xml> FunctionBlockDiagram<'xml> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
-    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstStatement> {
+    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let mut ast_association = IndexMap::new();
 
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
@@ -35,8 +35,8 @@ impl<'xml> FunctionBlockDiagram<'xml> {
         &self,
         id: NodeId,
         session: &mut ParseSession,
-        ast_association: &IndexMap<usize, AstStatement>,
-    ) -> (AstStatement, Option<NodeId>) {
+        ast_association: &IndexMap<usize, AstNode>,
+    ) -> (AstNode, Option<NodeId>) {
         let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
 
         match current_node {
@@ -52,7 +52,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                 let (rhs, remove_id) = ast_association
                     .get(&ref_id)
                     .map(|stmt| {
-                        if matches!(stmt, AstStatement::CallStatement { .. }) {
+                        if matches!(stmt.get_stmt(), AstStatement::CallStatement(..)) {
                             (stmt.clone(), Some(ref_id))
                         } else {
                             self.transform_node(ref_id, session, ast_association)
@@ -60,24 +60,20 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                     })
                     .expect("Expected AST statement, found None");
 
-                (
-                    AstStatement::Assignment {
-                        left: Box::new(lhs),
-                        right: Box::new(rhs),
-                        id: session.next_id(),
-                    },
-                    remove_id,
-                )
+                (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
+
             Node::Control(control) => match control.transform(session, &self.nodes) {
                 Ok(value) => (value, None),
                 Err(why) => {
                     session.diagnostics.push(why);
-
-                    (session.create_empty_statement(), None)
+                    (AstFactory::create_empty_statement(SourceLocation::undefined(), session.next_id()), None)
                 }
             },
-            Node::Connector(_) => (session.create_empty_statement(), None), /* connector nodes are removed after desugaring, this is just a fallback */
+            Node::Connector(_) => {
+                // connector nodes are removed after desugaring, this is just a fallback
+                (AstFactory::create_empty_statement(SourceLocation::undefined(), session.next_id()), None)
+            }
         }
     }
 }

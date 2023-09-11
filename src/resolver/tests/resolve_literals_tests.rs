@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstStatement, ReferenceAccess, TypeNature},
+    ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
@@ -283,7 +283,9 @@ fn enum_literals_target_are_annotated() {
         annotations.get_type_or_void(color_red, &index).get_type_information()
     );
 
-    if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = color_red {
+    if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
+        color_red.get_stmt()
+    {
         // right type gets annotated
         assert_eq!(
             &DataTypeInformation::Enum {
@@ -331,7 +333,10 @@ fn casted_inner_literals_are_annotated() {
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
-            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+            if let AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Cast(target), ..
+            }) = it.get_stmt()
+            {
                 target.as_ref()
             } else {
                 panic!("no cast")
@@ -363,7 +368,10 @@ fn casted_literals_enums_are_annotated_correctly() {
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
-            if let AstStatement::ReferenceExpr { access: ReferenceAccess::Cast(target), .. } = it {
+            if let AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Cast(target), ..
+            }) = it.get_stmt()
+            {
                 target.as_ref()
             } else {
                 unreachable!();
@@ -389,7 +397,7 @@ fn expression_list_members_are_annotated() {
 
     let expected_types = vec!["DINT", "BOOL", "REAL"];
 
-    if let AstStatement::ExpressionList { expressions, .. } = exp_list {
+    if let AstStatement::ExpressionList(expressions, ..) = exp_list.get_stmt() {
         let actual_types: Vec<&str> =
             expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
@@ -420,7 +428,7 @@ fn expression_lists_with_expressions_are_annotated() {
 
     let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
 
-    if let AstStatement::ExpressionList { expressions, .. } = exp_list {
+    if let AstStatement::ExpressionList(expressions, ..) = exp_list.get_stmt() {
         let actual_types: Vec<&str> =
             expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
@@ -469,7 +477,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     // THEN for the first statement
     let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [INT]
-    if let AstStatement::ExpressionList { expressions, .. } = a_init {
+    if let AstStatement::ExpressionList(expressions, ..) = a_init.get_stmt() {
         for exp in expressions {
             if let Some(data_type) = annotations.get_type_hint(exp, &index) {
                 let type_info = data_type.get_type_information();
@@ -485,7 +493,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     // AND for the second statement
     let b_init = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [STRING]
-    if let AstStatement::ExpressionList { expressions, .. } = b_init {
+    if let AstStatement::ExpressionList(expressions, ..) = b_init.get_stmt() {
         for exp in expressions {
             let data_type = annotations.get_type_hint(exp, &index).unwrap();
             let type_info = data_type.get_type_information();
