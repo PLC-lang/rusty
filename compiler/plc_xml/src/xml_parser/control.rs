@@ -30,7 +30,7 @@ fn transform_return(
 
     let Some(node) = index.get(&ref_local_id) else {
         let location = session.range_factory.create_block_location(ref_local_id, None);
-        return Err(Diagnostic::undefined_node(ref_local_id, location));
+        return Err(Diagnostic::undefined_node(control.local_id, ref_local_id, location));
     };
 
     let condition = match node {
