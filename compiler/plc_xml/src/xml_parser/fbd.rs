@@ -1,5 +1,6 @@
 use ast::ast::{AstFactory, AstNode, AstStatement};
 use indexmap::IndexMap;
+use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
@@ -8,7 +9,7 @@ use super::ParseSession;
 impl FunctionBlockDiagram {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
-    pub(crate) fn transform(&self, session: &ParseSession) -> Vec<AstNode> {
+    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let mut ast_association = IndexMap::new();
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
@@ -33,7 +34,7 @@ impl FunctionBlockDiagram {
     fn transform_node(
         &self,
         id: NodeId,
-        session: &ParseSession,
+        session: &mut ParseSession,
         ast_association: &IndexMap<usize, AstNode>,
     ) -> (AstNode, Option<NodeId>) {
         let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
@@ -61,7 +62,14 @@ impl FunctionBlockDiagram {
 
                 (AstFactory::create_assignment(lhs, rhs, session.next_id()), remove_id)
             }
-            Node::Control(_) => todo!(),
+
+            Node::Control(control) => match control.transform(session, &self.nodes) {
+                Ok(value) => (value, None),
+                Err(why) => {
+                    session.diagnostics.push(why);
+                    (AstFactory::create_empty_statement(SourceLocation::undefined(), session.next_id()), None)
+                }
+            },
             Node::Connector(_) => todo!(),
         }
     }

@@ -46,6 +46,13 @@ pub struct ConditionalBlock {
     pub body: Vec<AstNode>,
 }
 
+#[derive(Clone, PartialEq)]
+pub struct ReturnStatement {
+    /// Indicates that the given condition must evaluate to true in order for the return to take place.
+    /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
+    pub condition: Option<Box<AstNode>>,
+}
+
 impl Debug for ConditionalBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ConditionalBlock")

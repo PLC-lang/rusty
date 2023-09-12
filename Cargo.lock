@@ -2001,6 +2001,7 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
+ "plc_xml",
  "pretty_assertions",
  "regex",
  "serde",

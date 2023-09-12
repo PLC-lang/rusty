@@ -1,0 +1,47 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Control statement has no connection",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 1,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test.cfc",
+                ),
+            },
+        ],
+        err_no: cfc__empty_control_statement,
+    },
+    SemanticError {
+        message: "Unexpected relationship between nodes",
+        range: [
+            SourceLocation {
+                span: Combined(
+                    [
+                        Block {
+                            local_id: 2,
+                            execution_order: None,
+                            inner_range: None,
+                        },
+                        Block {
+                            local_id: 1,
+                            execution_order: None,
+                            inner_range: None,
+                        },
+                    ],
+                ),
+                file: Some(
+                    "test.cfc",
+                ),
+            },
+        ],
+        err_no: cfc__unexpected_node,
+    },
+]
