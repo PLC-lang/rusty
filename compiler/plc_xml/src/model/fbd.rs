@@ -150,7 +150,7 @@ trait ConnectionResolver<'xml> {
         &self,
         source_connections: &HashMap<&str, SourceReference>,
         source_location_factory: &SourceLocationFactory,
-    ) -> Result<Vec<ResolvedConnection>, Vec<Diagnostic>>;
+    ) -> (Vec<ResolvedConnection>, Vec<Diagnostic>);
     fn find_assignable_sink_value(
         &self,
         source_connections: &HashMap<&str, SourceReference>,
@@ -179,13 +179,9 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
         let source_connections = self.get_source_references();
-        let resolved_connections =
-            match self.get_resolved_connection_ids(&source_connections, source_location_factory) {
-                Ok(resolved_connections) => resolved_connections,
-                // XXX: returning early here - this will probably need to be refactored when moving
-                // diagnostics to the validation stage (i.e. cycle detection)
-                Err(e) => return Err(e),
-            };
+
+        let (resolved_connections, diagnostics) =
+            self.get_resolved_connection_ids(&source_connections, source_location_factory);
 
         // update sink-connections to point to assignable values of associated source
         for ResolvedConnection { id, resolved_ref_id, block_parameter_index } in resolved_connections {
@@ -200,10 +196,14 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
             });
         }
 
-        // XXX: remove connector nodes from the model after resolving, since they are no longer relevant
-        self.retain(|_, node| !matches!(node, Node::Connector(_)));
-
-        Ok(())
+        // XXX: this probably needs refactoring when moving diagnostics to resolving-stage
+        if diagnostics.is_empty() {
+            // remove connector nodes from the model after resolving, since they are no longer relevant
+            self.retain(|_, node| !matches!(node, Node::Connector(_)));
+            Ok(())
+        } else {
+            Err(diagnostics)
+        }
     }
 
     fn get_source_references(&self) -> HashMap<&str, SourceReference> {
@@ -246,7 +246,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         &self,
         source_connections: &HashMap<&str, SourceReference>,
         source_location_factory: &SourceLocationFactory,
-    ) -> Result<Vec<ResolvedConnection>, Vec<Diagnostic>> {
+    ) -> (Vec<ResolvedConnection>, Vec<Diagnostic>) {
         let mut resolved_connections = vec![];
         let mut diagnostics = vec![];
 
@@ -296,11 +296,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
             }
         });
 
-        if diagnostics.is_empty() {
-            Ok(resolved_connections)
-        } else {
-            Err(diagnostics)
-        }
+        (resolved_connections, diagnostics)
     }
 
     /// Attempts to resolve the LValue or RValue of a sink connection-point by checking the associated node referenced in the
