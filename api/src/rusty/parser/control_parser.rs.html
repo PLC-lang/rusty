@@ -246,7 +246,7 @@
 <span class="kw">fn </span>parse_return_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    AstFactory::create_return_statement(location, lexer.next_id())
+    AstFactory::create_return_statement(<span class="prelude-val">None</span>, location, lexer.next_id())
 }
 
 <span class="kw">fn </span>parse_exit_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {

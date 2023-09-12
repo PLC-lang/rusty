@@ -45,7 +45,7 @@
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
 <span class="kw">impl </span>Pou {
-    <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
+    <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(fbd) = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram <span class="kw">else </span>{
             <span class="comment">// empty body
             </span><span class="kw">return </span><span class="macro">vec!</span>[];
@@ -61,7 +61,7 @@
         fbd.transform(session)
     }
 
-    <span class="kw">pub fn </span>build_implementation(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Implementation {
+    <span class="kw">pub fn </span>build_implementation(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Implementation {
         <span class="kw">let </span>statements = <span class="self">self</span>.transform(session);
 
         Implementation {

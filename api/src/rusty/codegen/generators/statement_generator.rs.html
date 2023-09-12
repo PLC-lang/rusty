@@ -748,11 +748,75 @@
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
-    pou_generator::PouGenerator,
 };
 <span class="kw">use crate</span>::{
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
@@ -771,7 +835,7 @@
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, Operator, ReferenceAccess, ReferenceExpr,
     },
-    control_statements::{AstControlStatement, ConditionalBlock},
+    control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -789,7 +853,6 @@
     llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;a</span>&gt;,
     index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
     annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-    pou_generator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>PouGenerator&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
     llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;a</span>&gt;,
     function_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
 
@@ -810,7 +873,6 @@
         llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;a</span>&gt;,
         index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
         annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-        pou_generator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>PouGenerator&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;a</span>&gt;,
         linking_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
         debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;a</span>&gt;,
@@ -819,7 +881,6 @@
             llvm,
             index,
             annotations,
-            pou_generator,
             llvm_index,
             function_context: linking_context,
             load_prefix: <span class="string">&quot;load_&quot;</span>.to_string(),
@@ -876,11 +937,17 @@
             AstStatement::ControlStatement(ctl_statement, ..) =&gt; {
                 <span class="self">self</span>.generate_control_statement(ctl_statement)<span class="question-mark">?
             </span>}
-            AstStatement::ReturnStatement { .. } =&gt; {
-                <span class="self">self</span>.register_debug_location(statement);
-                <span class="self">self</span>.pou_generator.generate_return_statement(<span class="self">self</span>.function_context, <span class="self">self</span>.llvm_index)<span class="question-mark">?</span>;
-                <span class="self">self</span>.generate_buffer_block();
-            }
+            AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; <span class="kw">match </span>condition {
+                <span class="prelude-val">Some</span>(condition) =&gt; {
+                    <span class="self">self</span>.register_debug_location(statement);
+                    <span class="self">self</span>.generate_conditional_return(condition)<span class="question-mark">?</span>;
+                }
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="self">self</span>.register_debug_location(statement);
+                    <span class="self">self</span>.generate_return_statement()<span class="question-mark">?</span>;
+                    <span class="self">self</span>.generate_buffer_block(); <span class="comment">// XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
+                </span>}
+            },
             AstStatement::ExitStatement(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(exit_block) = <span class="kw-2">&amp;</span><span class="self">self</span>.current_loop_exit {
                     <span class="self">self</span>.register_debug_location(statement);
@@ -1361,7 +1428,11 @@
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         <span class="comment">// for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        </span><span class="kw">let </span>condition = AstFactory::create_not_expression(condition.clone(), condition.get_location());
+        </span><span class="kw">let </span>condition = AstFactory::create_not_expression(
+            condition.clone(),
+            condition.get_location(),
+            condition.get_id(),
+        );
         <span class="kw">let </span>(<span class="kw">_</span>, while_block) = <span class="self">self</span>.generate_base_while_statement(<span class="kw-2">&amp;</span>condition, body)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
@@ -1470,6 +1541,65 @@
         }
         <span class="comment">//Continue
         </span>builder.position_at_end(continue_block);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// generates the function&#39;s return statement only if the given pou_type is a `PouType::Function`
+    ///
+    /// a function returns the value of the local variable that has the function&#39;s name
+    </span><span class="kw">pub fn </span>generate_return_statement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ret_v) =
+            <span class="self">self</span>.index.find_return_variable(<span class="self">self</span>.function_context.linking_context.get_type_name())
+        {
+            <span class="kw">if </span><span class="self">self
+                </span>.index
+                .find_effective_type_by_name(ret_v.get_type_name())
+                .map(|it| it.is_aggregate_type())
+                .unwrap_or(<span class="bool-val">false</span>)
+            {
+                <span class="comment">//generate return void
+                </span><span class="self">self</span>.llvm.builder.build_return(<span class="prelude-val">None</span>);
+            } <span class="kw">else </span>{
+                <span class="comment">// renerate return statement
+                </span><span class="kw">let </span>call_name = <span class="self">self</span>.function_context.linking_context.get_call_name();
+                <span class="kw">let </span>var_name = <span class="macro">format!</span>(<span class="string">&quot;{call_name}_ret&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+                </span><span class="kw">let </span>ret_name = ret_v.get_qualified_name();
+                <span class="kw">let </span>value_ptr =
+                    <span class="self">self</span>.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {call_name:}&quot;</span>),
+                            SourceLocation::undefined(),
+                        )
+                    })<span class="question-mark">?</span>;
+                <span class="kw">let </span>loaded_value = <span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>value_ptr, var_name.as_str());
+                <span class="self">self</span>.llvm.builder.build_return(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>loaded_value));
+            }
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.llvm.builder.build_return(<span class="prelude-val">None</span>);
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
+    /// does nothing otherwise.
+    </span><span class="kw">pub fn </span>generate_conditional_return(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, condition: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>expression_generator = <span class="self">self</span>.create_expr_generator();
+        <span class="kw">let </span>condition = expression_generator.generate_expression(condition)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>then_block = <span class="self">self</span>.llvm.context.append_basic_block(<span class="self">self</span>.function_context.function, <span class="string">&quot;then_block&quot;</span>);
+        <span class="kw">let </span>else_block = <span class="self">self</span>.llvm.context.append_basic_block(<span class="self">self</span>.function_context.function, <span class="string">&quot;else_block&quot;</span>);
+
+        <span class="self">self</span>.llvm.builder.build_conditional_branch(
+            to_i1(condition.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
+            then_block,
+            else_block,
+        );
+
+        <span class="self">self</span>.llvm.builder.position_at_end(then_block);
+        <span class="self">self</span>.generate_return_statement()<span class="question-mark">?</span>;
+
+        <span class="self">self</span>.llvm.builder.position_at_end(else_block);
+
         <span class="prelude-val">Ok</span>(())
     }
 

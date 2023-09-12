@@ -377,6 +377,34 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
 </pre></div><pre class="rust"><code><span class="kw">type </span>Attributes = Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str)&gt;;
 
 <span class="doccomment">/// Number of spaces to use when indenting XML
@@ -524,6 +552,16 @@
                     <span class="self">self
                 </span>}
 
+                <span class="kw">pub fn </span>with_local_id(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+                    <span class="self">self</span>.<span class="number">0</span>.attributes.push((<span class="string">&quot;localId&quot;</span>, value));
+                    <span class="self">self
+                </span>}
+
+                <span class="kw">pub fn </span>with_execution_order_id(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+                    <span class="self">self</span>.<span class="number">0</span>.attributes.push((<span class="string">&quot;executionOrderId&quot;</span>, value));
+                    <span class="self">self
+                </span>}
+
                 <span class="kw">pub fn </span>with_data(<span class="kw-2">mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
                     <span class="self">self</span>.<span class="number">0</span>.content = Content::Data(data);
                     <span class="self">self
@@ -589,7 +627,8 @@
         (XInVariable, with_in_variable),
         (XOutVariable, with_out_variable),
         (XContinuation, with_continuation),
-        (XConnector, with_connector)
+        (XConnector, with_connector),
+        (XReturn, with_return)
     ),
     (
         XVariable, <span class="string">&quot;variable&quot;</span>,
@@ -632,7 +671,8 @@
     ),
     (
         XData, <span class="string">&quot;data&quot;</span>,
-        (XTextDeclaration, with_text_declaration)
+        (XTextDeclaration, with_text_declaration),
+        (XNegated, with_negated_field)
     ),
     (
         XTextDeclaration, <span class="string">&quot;textDeclaration&quot;</span>,
@@ -656,6 +696,14 @@
         (XPosition, with_position),
         (XConnectionPointIn, with_connection_point_in)
     ),
+    (
+        XReturn, <span class="string">&quot;return&quot;</span>,
+        (XConnectionPointIn, with_connection_point_in),
+        (XAddData, with_add_data)
+    ),
+    (
+        XNegated, <span class="string">&quot;negated&quot;</span>,
+    ),
 }
 
 <span class="attr">#[cfg(test)]
@@ -664,8 +712,8 @@
     <span class="kw">use </span><span class="kw">crate</span>::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
     <span class="kw">use super</span>::{
-        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XOutVariable, XPou, XTextDeclaration,
-        XVariable,
+        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou,
+        XTextDeclaration, XVariable,
     };
 
     <span class="comment">// convenience methods to reduce amount of boiler-plate-code
@@ -752,6 +800,14 @@
                 XData::new().with_text_declaration(
                     XTextDeclaration::new().with_content(XContent::new().with_data(declaration)),
                 ),
+            ))
+        }
+    }
+
+    <span class="kw">impl </span>XAddData {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>negated(is_negated: bool) -&gt; <span class="self">Self </span>{
+            XAddData::new().with_data_data(XData::new().with_negated_field(
+                XNegated::new().with_attribute(<span class="string">&quot;value&quot;</span>, <span class="kw">if </span>is_negated { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>}),
             ))
         }
     }

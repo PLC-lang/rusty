@@ -257,42 +257,17 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
-    <span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
+    <span class="kw">use </span>std::{path::PathBuf, str::FromStr};
 
     <span class="kw">use </span>plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
         provider::IdProvider,
     };
     <span class="kw">use </span>plc_diagnostics::{
-        diagnostician::Diagnostician,
-        diagnostics::Diagnostic,
-        reporter::{DiagnosticReporter, ResolvedDiagnostics},
+        diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     <span class="kw">use </span>plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
@@ -305,28 +280,6 @@
         typesystem::get_builtin_types,
         DebugLevel, Validator,
     };
-
-    <span class="doccomment">///a Diagnostic reporter that holds all diagnostics in a list
-    </span><span class="attr">#[derive(Default)]
-    #[cfg(test)]
-    </span><span class="kw">pub struct </span>ListBasedDiagnosticReporter {
-        last_id: usize,
-        <span class="comment">// RC to access from tests, RefCell to avoid changing the signature for the report() method
-        </span>diagnostics: Rc&lt;RefCell&lt;Vec&lt;ResolvedDiagnostics&gt;&gt;&gt;,
-    }
-
-    <span class="attr">#[cfg(test)]
-    </span><span class="kw">impl </span>DiagnosticReporter <span class="kw">for </span>ListBasedDiagnosticReporter {
-        <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
-            <span class="self">self</span>.diagnostics.borrow_mut().extend_from_slice(diagnostics);
-        }
-
-        <span class="kw">fn </span>register(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _path: String, _src: String) -&gt; usize {
-            <span class="comment">// at least provide some unique ids
-            </span><span class="self">self</span>.last_id += <span class="number">1</span>;
-            <span class="self">self</span>.last_id
-        }
-    }
 
     <span class="kw">pub fn </span>parse(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
         parser::parse(
@@ -382,6 +335,7 @@
             LinkageType::Internal,
             source_path,
         );
+
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
         (unit, index, diagnostics)

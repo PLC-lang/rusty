@@ -54,6 +54,13 @@
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{Debug, Formatter};
 
 <span class="kw">use </span><span class="kw">crate</span>::ast::AstNode;
@@ -100,6 +107,13 @@
 </span><span class="kw">pub struct </span>ConditionalBlock {
     <span class="kw">pub </span>condition: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>body: Vec&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Clone, PartialEq)]
+</span><span class="kw">pub struct </span>ReturnStatement {
+    <span class="doccomment">/// Indicates that the given condition must evaluate to true in order for the return to take place.
+    /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
+    </span><span class="kw">pub </span>condition: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>ConditionalBlock {

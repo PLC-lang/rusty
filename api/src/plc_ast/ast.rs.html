@@ -1525,6 +1525,13 @@
 <a href="#1525" id="1525">1525</a>
 <a href="#1526" id="1526">1526</a>
 <a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1537,6 +1544,7 @@
 <span class="kw">use crate</span>::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
+        ReturnStatement,
     },
     literals::{AstLiteral, StringValue},
     pre_processor,
@@ -2141,7 +2149,7 @@
     CaseCondition(Box&lt;AstNode&gt;),
     ExitStatement(()),
     ContinueStatement(()),
-    ReturnStatement(()),
+    ReturnStatement(ReturnStatement),
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>AstNode {
@@ -2241,7 +2249,9 @@
             AstStatement::CaseCondition(condition) =&gt; {
                 f.debug_struct(<span class="string">&quot;CaseCondition&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).finish()
             }
-            AstStatement::ReturnStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ReturnStatement&quot;</span>).finish(),
+            AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; {
+                f.debug_struct(<span class="string">&quot;ReturnStatement&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).finish()
+            }
             AstStatement::ContinueStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ContinueStatement&quot;</span>).finish(),
             AstStatement::ExitStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ExitStatement&quot;</span>).finish(),
             AstStatement::CastStatement(CastStatement { target, type_name }) =&gt; {
@@ -2585,8 +2595,13 @@
         <span class="comment">// AstStatement::EmptyStatement (  EmptyStatement {}, location, id }
     </span>}
 
-    <span class="kw">pub fn </span>create_return_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ReturnStatement(()), location, id }
+    <span class="kw">pub fn </span>create_return_statement(
+        condition: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+        location: SourceLocation,
+        id: AstId,
+    ) -&gt; AstNode {
+        <span class="kw">let </span>condition = condition.map(Box::new);
+        AstNode { stmt: AstStatement::ReturnStatement(ReturnStatement { condition }), location, id }
     }
 
     <span class="kw">pub fn </span>create_exit_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
@@ -2737,8 +2752,7 @@
     }
 
     <span class="doccomment">/// creates a not-expression
-    </span><span class="kw">pub fn </span>create_not_expression(operator: AstNode, location: SourceLocation) -&gt; AstNode {
-        <span class="kw">let </span>id = operator.get_id();
+    </span><span class="kw">pub fn </span>create_not_expression(operator: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
         AstNode {
             stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),

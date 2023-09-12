@@ -102,6 +102,11 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
 
 <span class="attr">#[allow(non_camel_case_types)]
@@ -191,6 +196,11 @@
     </span>case__duplicate_condition,
     case__case_condition_outside_case_statement,
     case__invalid_case_condition,
+
+    <span class="comment">// CFC related
+    </span>cfc__empty_control_statement,
+    cfc__undefined_node,
+    cfc__unexpected_node,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>ErrNo {

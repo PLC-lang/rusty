@@ -2077,6 +2077,12 @@
 <a href="#2077" id="2077">2077</a>
 <a href="#2078" id="2078">2078</a>
 <a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2096,7 +2102,7 @@
         BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
-    control_statements::AstControlStatement,
+    control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
@@ -2287,7 +2293,7 @@
     }
 
     <span class="kw">fn </span>visit_compare_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
-        <span class="kw">let </span>AstStatement::BinaryExpression ( BinaryExpression{ operator, left, right}) = statement.get_stmt() <span class="kw">else </span>{
+        <span class="kw">let </span>AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt() <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx.clone();
@@ -2296,6 +2302,7 @@
             </span>Operator::NotEqual =&gt; AstFactory::create_not_expression(
                 <span class="self">self</span>.create_typed_compare_call_statement(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>Operator::Equal, left, right, statement),
                 statement.get_location(),
+                ctx.id_provider.next_id(),
             ),
             <span class="comment">// a &lt;= b expression is handled as a = b OR a &lt; b
             </span>Operator::LessOrEqual =&gt; AstFactory::create_or_expression(
@@ -3018,7 +3025,7 @@
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) <span class="kw">if </span>left.is_reference() =&gt; {
-                        <span class="kw">let </span>AstStatement::Literal (AstLiteral::Array(array)) = right.as_ref().get_stmt() <span class="kw">else </span>{ <span class="kw">return </span>};
+                        <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() <span class="kw">else </span>{ <span class="kw">return </span>};
                         <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
@@ -3399,6 +3406,11 @@
             }
             AstStatement::ReferenceExpr(data, ..) =&gt; {
                 <span class="self">self</span>.visit_reference_expr(<span class="kw-2">&amp;</span>data.access, data.base.as_deref(), statement, ctx);
+            }
+            AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = condition {
+                    <span class="self">self</span>.visit_statement(ctx, condition)
+                }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, statement);
