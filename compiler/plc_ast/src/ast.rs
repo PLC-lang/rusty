@@ -1218,8 +1218,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstNode, location: SourceLocation) -> AstNode {
-        let id = operator.get_id();
+    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: AstId) -> AstNode {
         AstNode {
             stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),

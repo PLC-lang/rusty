@@ -30,7 +30,7 @@ fn transform_return(
 
     let Some(node) = index.get(&ref_local_id) else {
         let location = session.range_factory.create_block_location(ref_local_id, None);
-        return Err(Diagnostic::undefined_node(ref_local_id, location));
+        return Err(Diagnostic::undefined_node(control.local_id, ref_local_id, location));
     };
 
     let condition = match node {
@@ -48,7 +48,7 @@ fn transform_return(
     // XXX: Introduce trait / helper-function for negation, because we'll probably need it more often
     let possibly_negated_condition = if control.negated {
         let location = condition.get_location();
-        AstFactory::create_unary_expression(Operator::Not, condition, location, session.next_id())
+        AstFactory::create_not_expression(condition, location, session.next_id())
     } else {
         condition
     };

@@ -15,7 +15,7 @@ use crate::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser,
+    xml_parser::{self},
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -248,7 +248,7 @@ mod content {
                 </FBD>
             </body>
         </pou>
-    "#;
+        "#;
 
     pub(super) const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>

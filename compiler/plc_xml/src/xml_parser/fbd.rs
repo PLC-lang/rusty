@@ -71,10 +71,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                     (AstFactory::create_empty_statement(SourceLocation::undefined(), session.next_id()), None)
                 }
             },
-            Node::Connector(_) => {
-                // connector nodes are removed after desugaring, this is just a fallback
-                (AstFactory::create_empty_statement(SourceLocation::undefined(), session.next_id()), None)
-            }
+            Node::Connector(_) => todo!(),
         }
     }
 }

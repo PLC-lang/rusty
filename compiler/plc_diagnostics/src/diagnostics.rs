@@ -729,9 +729,9 @@ impl Diagnostic {
         }
     }
 
-    pub fn undefined_node(id: usize, range: SourceLocation) -> Diagnostic {
+    pub fn undefined_node(local_id: usize, ref_local_id: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Node {id} does not exist"),
+            message: format!("Node {local_id} is referencing a non-existing element with ID {ref_local_id}"),
             range: vec![range],
             err_no: ErrNo::cfc__undefined_node,
         }
