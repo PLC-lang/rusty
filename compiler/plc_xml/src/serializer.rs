@@ -145,6 +145,16 @@ macro_rules! declare_type_and_extend_if_needed {
                     self
                 }
 
+                pub fn with_local_id(mut self, value: &'static str) -> Self {
+                    self.0.attributes.push(("localId", value));
+                    self
+                }
+
+                pub fn with_execution_order_id(mut self, value: &'static str) -> Self {
+                    self.0.attributes.push(("executionOrderId", value));
+                    self
+                }
+
                 pub fn with_data(mut self, data: &'static str) -> Self {
                     self.0.content = Content::Data(data);
                     self
@@ -210,7 +220,8 @@ declare_type_and_extend_if_needed! {
         (XInVariable, with_in_variable),
         (XOutVariable, with_out_variable),
         (XContinuation, with_continuation),
-        (XConnector, with_connector)
+        (XConnector, with_connector),
+        (XReturn, with_return)
     ),
     (
         XVariable, "variable",
@@ -253,7 +264,8 @@ declare_type_and_extend_if_needed! {
     ),
     (
         XData, "data",
-        (XTextDeclaration, with_text_declaration)
+        (XTextDeclaration, with_text_declaration),
+        (XNegated, with_negated_field)
     ),
     (
         XTextDeclaration, "textDeclaration",
@@ -277,6 +289,14 @@ declare_type_and_extend_if_needed! {
         (XPosition, with_position),
         (XConnectionPointIn, with_connection_point_in)
     ),
+    (
+        XReturn, "return",
+        (XConnectionPointIn, with_connection_point_in),
+        (XAddData, with_add_data)
+    ),
+    (
+        XNegated, "negated",
+    ),
 }
 
 #[cfg(test)]
@@ -285,8 +305,8 @@ mod tests {
     use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
 
     use super::{
-        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XOutVariable, XPou, XTextDeclaration,
-        XVariable,
+        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou,
+        XTextDeclaration, XVariable,
     };
 
     // convenience methods to reduce amount of boiler-plate-code
@@ -373,6 +393,14 @@ mod tests {
                 XData::new().with_text_declaration(
                     XTextDeclaration::new().with_content(XContent::new().with_data(declaration)),
                 ),
+            ))
+        }
+    }
+
+    impl XAddData {
+        pub(crate) fn negated(is_negated: bool) -> Self {
+            XAddData::new().with_data_data(XData::new().with_negated_field(
+                XNegated::new().with_attribute("value", if is_negated { "true" } else { "false" }),
             ))
         }
     }
