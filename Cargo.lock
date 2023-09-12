@@ -1149,6 +1149,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1661,7 +1670,7 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
  "env_logger",
- "indexmap 1.9.3",
+ "indexmap 2.0.0",
  "insta",
  "log",
  "plc_ast",
@@ -1710,7 +1719,7 @@ name = "plc_xml"
 version = "0.1.0"
 dependencies = [
  "html-escape",
- "indexmap 1.9.3",
+ "indexmap 2.0.0",
  "insta",
  "logos",
  "plc_ast",
@@ -1796,9 +1805,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.28.2"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce5e73202a820a31f8a0ee32ada5e21029c81fd9e3ebf668a40832e4219d9d1"
+checksum = "eff6510e86862b57b210fd8cbe8ed3f0d7d600b9c2863cd4549a2e033c66e956"
 dependencies = [
  "memchr",
  "serde",
@@ -1976,10 +1985,10 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
  "generational-arena",
- "indexmap 1.9.3",
+ "indexmap 2.0.0",
  "inkwell",
  "insta",
- "itertools",
+ "itertools 0.11.0",
  "lazy_static",
  "lld_rs",
  "log",
@@ -2211,7 +2220,7 @@ version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c12bc9199d1db8234678b7051747c07f517cdcf019262d1847b94ec8b1aee3e"
 dependencies = [
- "itertools",
+ "itertools 0.10.5",
  "nom",
  "unicode_categories",
 ]
@@ -2468,9 +2477,9 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.28.4"
+version = "0.29.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c2f3ca6693feb29a89724516f016488e9aafc7f37264f898593ee4b942f31b"
+checksum = "0a18d114d420ada3a891e6bc8e96a2023402203296a47cdd65083377dad18ba5"
 dependencies = [
  "cfg-if",
  "core-foundation-sys",
