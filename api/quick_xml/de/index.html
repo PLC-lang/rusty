@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde `Deserializer` module."><title>quick_xml::de - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../quick_xml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../quick_xml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2 class="location"><a href="#">Module de</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">quick_xml</a>::<wbr><a class="mod" href="#">de</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/quick_xml/de/mod.rs.html#1-4381">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde <code>Deserializer</code> module.</p>
-<p>Due to the complexity of the XML standard and the fact that serde was developed
-with JSON in mind, not all serde concepts apply smoothly to XML. This leads to
-that fact that some XML concepts are inexpressible in terms of serde derives
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde `Deserializer` module."><title>quick_xml::de - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../quick_xml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../quick_xml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2 class="location"><a href="#">Module de</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">quick_xml</a>::<wbr><a class="mod" href="#">de</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/quick_xml/de/mod.rs.html#1-4468">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde <code>Deserializer</code> module.</p>
+<p>Due to the complexity of the XML standard and the fact that Serde was developed
+with JSON in mind, not all Serde concepts apply smoothly to XML. This leads to
+that fact that some XML concepts are inexpressible in terms of Serde derives
 and may require manual deserialization.</p>
 <p>The most notable restriction is the ability to distinguish between <em>elements</em>
 and <em>attributes</em>, as no other format used by serde has such a conception.</p>
@@ -31,6 +31,8 @@ and <em>attributes</em>, as no other format used by serde has such a conception.
 <li><a href="#frequently-used-patterns">Frequently Used Patterns</a>
 <ul>
 <li><a href="#element-lists"><code>&lt;element&gt;</code> lists</a></li>
+<li><a href="#enumunit-variants-as-a-text">Enum::Unit Variants As a Text</a></li>
+<li><a href="#internally-tagged-enums">Internally Tagged Enums</a></li>
 </ul>
 </li>
 </ul>
@@ -52,15 +54,13 @@ from any valid XML content:
 </li>
 </ul>
 <div style="background:rgba(120,145,255,0.45);padding:0.75em;">
-<p>NOTE: examples, marked with <code>FIXME:</code> does not work yet – any PRs that fixes
-that are welcome! The message after marker is a test failure message.
-Also, all that tests are marked with an <code>ignore</code> option, although their
-compiles. This is by intention, because rustdoc marks such blocks with
-an information icon unlike <code>no_run</code> blocks.</p>
+<p>NOTE: All tests are marked with an <code>ignore</code> option, even though they do
+compile. This is  because rustdoc marks such blocks with an information
+icon unlike <code>no_run</code> blocks.</p>
 </div>
 <table>
 <thead>
-<tr><th>To parse all these XML's...</th><th>...use that Rust type(s)</th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
 </thead>
 <tbody style="vertical-align:top;">
 <tr>
@@ -191,7 +191,7 @@ A typical XML with child elements. The root tag name does not matter:
 &lt;/any-tag&gt;
 </code></pre></div></td>
 <td>
-A structure where an each XML child element are mapped to the field.
+A structure where each XML child element is mapped to the field.
 Each element name becomes a name of field. The name of the struct itself
 does not matter:
 
@@ -245,7 +245,7 @@ for an attribute:</p>
 <!-- ======================================================================================= -->
 <tr><th colspan="2">
 <h3 id="optional-attributes-and-elements"><a href="#optional-attributes-and-elements">Optional attributes and elements</a></h3></th></tr>
-<tr><th>To parse all these XML's...</th><th>...use that Rust type(s)</th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
 <!-- 6 ===================================================================================== -->
 <tr>
 <td>
@@ -303,7 +303,7 @@ duplicated keys).</p>
 <!-- ======================================================================================= -->
 <tr><th colspan="2">
 <h3 id="choices-xschoice-xml-schema-type"><a href="#choices-xschoice-xml-schema-type">Choices (<code>xs:choice</code> XML Schema type)</a></h3></th></tr>
-<tr><th>To parse all these XML's...</th><th>...use that Rust type(s)</th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
 <!-- 8 ===================================================================================== -->
 <tr>
 <td>
@@ -316,9 +316,9 @@ An XML with different root tag names, as well as text / CDATA content:
 CDATA]]&gt; content
 </code></pre></div></td>
 <td>
-<p>An enum where each variant have a name of the possible root tag. The name of
+<p>An enum where each variant has the name of a possible root tag. The name of
 the enum itself does not matter.</p>
-<p>If you need to get a textual content, mark a variant with <code>#[serde(rename = &quot;$text&quot;)]</code>.</p>
+<p>If you need to get the textual content, mark a variant with <code>#[serde(rename = &quot;$text&quot;)]</code>.</p>
 <p>All these structs can be used to deserialize from any XML on the
 left side depending on amount of information that you want to get:</p>
 
@@ -541,7 +541,7 @@ described here is very common, so it is shown explicitly.</p>
 <!-- ======================================================================================== -->
 <tr><th colspan="2">
 <h3 id="sequences-xsall-and-xssequence-xml-schema-types"><a href="#sequences-xsall-and-xssequence-xml-schema-types">Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</a></h3></th></tr>
-<tr><th>To parse all these XML's...</th><th>...use that Rust type(s)</th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
 <!-- 13 ==================================================================================== -->
 <tr>
 <td>
@@ -557,7 +557,7 @@ A sequence inside of a tag without a dedicated name:
 &lt;/any-tag&gt;
 </code></pre></div></td>
 <td>
-<p>A structure with a field which have a sequence type, for example, <a href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>.
+<p>A structure with a field which is a sequence type, for example, <a href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>.
 Because XML syntax does not distinguish between empty sequences and missed
 elements, we should indicate that on the Rust side, because serde will require
 that field <code>item</code> exists. You can do that in two possible ways:</p>
@@ -581,7 +581,7 @@ element after deserialization:</p>
 <!-- 14 ==================================================================================== -->
 <tr>
 <td>
-A sequence with a strict order, probably with a mixed content
+A sequence with a strict order, probably with mixed content
 (text / CDATA and tags):
 <div class="example-wrap"><pre class="language-xml"><code>&lt;one&gt;...&lt;/one&gt;
 text
@@ -783,7 +783,7 @@ so you cannot have two adjacent string types in your sequence.</p>
 </tbody>
 </table>
 <h2 id="composition-rules"><a href="#composition-rules">Composition Rules</a></h2>
-<p>XML format is very different from other formats supported by <code>serde</code>.
+<p>The XML format is very different from other formats supported by <code>serde</code>.
 One such difference it is how data in the serialized form is related to
 the Rust type. Usually each byte in the data can be associated only with
 one field in the data structure. However, XML is an exception.</p>
@@ -818,7 +818,7 @@ Although they may seem the same, there is a distinction. Two different
 names is required mostly for serialization, because quick-xml should know
 how you want to serialize certain constructs, which could be represented
 through XML in multiple different ways.</p>
-<p>The only difference in how complex types and sequences are serialized.
+<p>The only difference is in how complex types and sequences are serialized.
 If you doubt which one you should select, begin with <a href="#value"><code>$value</code></a>.</p>
 <h3 id="text"><a href="#text"><code>$text</code></a></h3>
 <p><code>$text</code> is used when you want to write your XML as a text or a CDATA content.
@@ -857,7 +857,7 @@ types are allowed in this mode:</p>
 <h3 id="value"><a href="#value"><code>$value</code></a></h3><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: a name <code>#content</code> would better explain the purpose of that field,
 but <code>$value</code> is used for compatibility with other XML serde crates, which
-uses that name. This allow you to switch XML crate more smoothly if required.</p>
+uses that name. This will allow you to switch XML crates more smoothly if required.</p>
 </div>
 <p>Representation of primitive types in <code>$value</code> does not differ from their
 representation in <code>$text</code> field. The difference is how sequences are serialized.
@@ -927,10 +927,10 @@ would be a most used example of that attribute:</p>
 <span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
 <span class="macro">assert_eq!</span>(xml, <span class="string">&quot;&lt;AnyName&gt;content&lt;/AnyName&gt;&quot;</span>);</code></pre></div>
 <h4 id="structs-and-sequences-of-structs"><a href="#structs-and-sequences-of-structs">Structs and sequences of structs</a></h4>
-<p>Note, that structures does not have serializable name as well (name of the
-type are never used), so it is impossible to serialize non-unit struct or
+<p>Note, that structures do not have a serializable name as well (name of the
+type is never used), so it is impossible to serialize non-unit struct or
 sequence of non-unit structs in <code>$value</code> field. (sequences of) unit structs
-are serialized as empty string, although, because units itself serializing
+are serialized as empty string, because units itself serializing
 to nothing:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
@@ -1071,6 +1071,65 @@ inner list and apply it via <a href="https://serde.rs/field-attrs.html#deseriali
     &quot;</span>).unwrap(),
 );</code></pre></div>
 <p>Instead of writing such functions manually, you also could try <a href="https://lib.rs/crates/serde-query">https://lib.rs/crates/serde-query</a>.</p>
+<h3 id="enumunit-variants-as-a-text"><a href="#enumunit-variants-as-a-text">Enum::Unit Variants As a Text</a></h3>
+<p>One frequent task and a typical mistake is to creation of mapping a text
+content of some tag to a Rust <code>enum</code>. For example, for the XML:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;some-container&gt;
+  &lt;field&gt;EnumValue&lt;/field&gt;
+&lt;/some-container&gt;
+</code></pre></div>
+<p>one could create an <em>incorrect</em> mapping</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Serialize, Deserialize)]
+</span><span class="kw">enum </span>SomeEnum {
+    EnumValue,
+    ...
+}
+
+<span class="attr">#[derive(Serialize, Deserialize)]
+#[serde(rename = <span class="string">&quot;some-container&quot;</span>)]
+</span><span class="kw">struct </span>SomeContainer {
+    field: SomeEnum,
+}</code></pre></div>
+<p>Actually, those types will be serialized into:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;some-container&gt;
+  &lt;EnumValue/&gt;
+&lt;/some-container&gt;
+</code></pre></div>
+<p>and will not be able to be deserialized.</p>
+<p>You can easily see what’s wrong if you think about attributes, which could
+be defined in the <code>&lt;field&gt;</code> tag:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;some-container&gt;
+  &lt;field some=&quot;attribute&quot;&gt;EnumValue&lt;/field&gt;
+&lt;/some-container&gt;
+</code></pre></div>
+<p>After that you can find the correct solution, using the principles explained
+above. You should wrap <code>SomeEnum</code> into wrapper struct under the <a href="#text"><code>$text</code></a>
+name:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Serialize, Deserialize)]
+</span><span class="kw">struct </span>Field {
+    <span class="comment">// Use a special name `$text` to map field to the text content
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;$text&quot;</span>)]
+    </span>content: SomeEnum,
+}
+
+<span class="attr">#[derive(Serialize, Deserialize)]
+#[serde(rename = <span class="string">&quot;some-container&quot;</span>)]
+</span><span class="kw">struct </span>SomeContainer {
+    field: Field,
+}</code></pre></div>
+<p>If you still want to keep your struct untouched, you can instead use the
+helper module <a href="crate::serde_helpers::text_content"><code>text_content</code></a>.</p>
+<h3 id="internally-tagged-enums"><a href="#internally-tagged-enums">Internally Tagged Enums</a></h3>
+<p><a href="https://serde.rs/enum-representations.html#internally-tagged">Tagged enums</a> are currently not supported because of an issue in the Serde
+design (see <a href="https://github.com/serde-rs/serde/issues/1183">serde#1183</a> and <a href="https://github.com/tafia/quick-xml/issues/586">quick-xml#586</a>) and missing optimizations in
+Serde which could be useful for XML parsing (<a href="https://github.com/serde-rs/serde/issues/1495">serde#1495</a>). This can be worked
+around by manually implementing deserialize with <code>#[serde(deserialize_with = &quot;func&quot;)]</code>
+or implementing <a href="../../serde/de/trait.Deserialize.html" title="trait serde::de::Deserialize"><code>Deserialize</code></a>, but this can get very tedious very fast for
+files with large amounts of tagged enums. To help with this issue quick-xml
+provides a macro <a href="crate::impl_deserialize_for_internally_tagged_enum"><code>impl_deserialize_for_internally_tagged_enum!</code></a>. See the
+macro documentation for details.</p>
 </div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Deserializer.html" title="struct quick_xml::de::Deserializer">Deserializer</a></div><div class="desc docblock-short">A structure that deserializes XML into Rust values.</div></li><li><div class="item-name"><a class="struct" href="struct.IoReader.html" title="struct quick_xml::de::IoReader">IoReader</a></div><div class="desc docblock-short">XML input source that reads from a std::io input stream.</div></li><li><div class="item-name"><a class="struct" href="struct.NoEntityResolver.html" title="struct quick_xml::de::NoEntityResolver">NoEntityResolver</a></div><div class="desc docblock-short">An <code>EntityResolver</code> that does nothing and always returns <code>None</code>.</div></li><li><div class="item-name"><a class="struct" href="struct.SliceReader.html" title="struct quick_xml::de::SliceReader">SliceReader</a></div><div class="desc docblock-short">XML input source that reads from a slice of bytes and can borrow from it.</div></li><li><div class="item-name"><a class="struct" href="struct.Text.html" title="struct quick_xml::de::Text">Text</a></div><div class="desc docblock-short">Decoded and concatenated content of consequent <a href="../events/enum.Event.html#variant.Text" title="variant quick_xml::events::Event::Text"><code>Text</code></a> and <a href="../events/enum.Event.html#variant.CData" title="variant quick_xml::events::Event::CData"><code>CData</code></a>
 events. <em>Consequent</em> means that events should follow each other or be
 delimited only by (any count of) <a href="../events/enum.Event.html#variant.Comment" title="variant quick_xml::events::Event::Comment"><code>Comment</code></a> or <a href="../events/enum.Event.html#variant.PI" title="variant quick_xml::events::Event::PI"><code>PI</code></a> events.</div></li></ul><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.DeError.html" title="enum quick_xml::de::DeError">DeError</a></div><div class="desc docblock-short">(De)serialization error</div></li><li><div class="item-name"><a class="enum" href="enum.DeEvent.html" title="enum quick_xml::de::DeEvent">DeEvent</a></div><div class="desc docblock-short">Simplified event which contains only these variants that used by deserializer</div></li><li><div class="item-name"><a class="enum" href="enum.PayloadEvent.html" title="enum quick_xml::de::PayloadEvent">PayloadEvent</a></div><div class="desc docblock-short">Simplified event which contains only these variants that used by deserializer,

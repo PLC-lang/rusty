@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.28.4/src/linux/system.rs`."><title>system.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../sysinfo/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.10/src/linux/system.rs`."><title>system.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../sysinfo/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -748,6 +748,58 @@
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
 </pre></div><pre class="rust"><code><span class="comment">// Take a look at the license at the top of the repository in the LICENSE file.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::sys::component::{<span class="self">self</span>, Component};
@@ -760,6 +812,7 @@
 };
 
 <span class="kw">use </span>libc::{<span class="self">self</span>, c_char, c_int, sysconf, _SC_CLK_TCK, _SC_HOST_NAME_MAX, _SC_PAGESIZE};
+<span class="kw">use </span>std::cmp::min;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fs::File;
 <span class="kw">use </span>std::io::{BufRead, BufReader, Read};
@@ -999,44 +1052,70 @@
     }
 
     <span class="kw">fn </span>refresh_memory(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(data) = get_all_data(<span class="string">&quot;/proc/meminfo&quot;</span>, <span class="number">16_385</span>) {
-            <span class="kw">let </span><span class="kw-2">mut </span>mem_available_found = <span class="bool-val">false</span>;
-
-            <span class="kw">for </span>line <span class="kw">in </span>data.split(<span class="string">&#39;\n&#39;</span>) {
-                <span class="kw">let </span><span class="kw-2">mut </span>iter = line.split(<span class="string">&#39;:&#39;</span>);
-                <span class="kw">let </span>field = <span class="kw">match </span>iter.next() {
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;MemTotal&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_total,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;MemFree&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_free,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;MemAvailable&quot;</span>) =&gt; {
-                        mem_available_found = <span class="bool-val">true</span>;
-                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_available
-                    }
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;Buffers&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_buffers,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;Cached&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;Shmem&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;SReclaimable&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;SwapTotal&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_total,
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;SwapFree&quot;</span>) =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_free,
-                    <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
-                };
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(val_str) = iter.next().and_then(|s| s.trim_start().split(<span class="string">&#39; &#39;</span>).next()) {
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(value) = u64::from_str(val_str) {
-                        <span class="comment">// /proc/meminfo reports KiB, though it says &quot;kB&quot;. Convert it.
-                        </span><span class="kw-2">*</span>field = value.saturating_mul(<span class="number">1_024</span>);
-                    }
+        <span class="kw">let </span><span class="kw-2">mut </span>mem_available_found = <span class="bool-val">false</span>;
+        read_table(<span class="string">&quot;/proc/meminfo&quot;</span>, <span class="string">&#39;:&#39;</span>, |key, value_kib| {
+            <span class="kw">let </span>field = <span class="kw">match </span>key {
+                <span class="string">&quot;MemTotal&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_total,
+                <span class="string">&quot;MemFree&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_free,
+                <span class="string">&quot;MemAvailable&quot; </span>=&gt; {
+                    mem_available_found = <span class="bool-val">true</span>;
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_available
                 }
+                <span class="string">&quot;Buffers&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_buffers,
+                <span class="string">&quot;Cached&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
+                <span class="string">&quot;Shmem&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
+                <span class="string">&quot;SReclaimable&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
+                <span class="string">&quot;SwapTotal&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_total,
+                <span class="string">&quot;SwapFree&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_free,
+                <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+            };
+            <span class="comment">// /proc/meminfo reports KiB, though it says &quot;kB&quot;. Convert it.
+            </span><span class="kw-2">*</span>field = value_kib.saturating_mul(<span class="number">1_024</span>);
+        });
+
+        <span class="comment">// Linux &lt; 3.14 may not have MemAvailable in /proc/meminfo
+        // So it should fallback to the old way of estimating available memory
+        // https://github.com/KittyKatt/screenFetch/issues/386#issuecomment-249312716
+        </span><span class="kw">if </span>!mem_available_found {
+            <span class="self">self</span>.mem_available = <span class="self">self
+                </span>.mem_free
+                .saturating_add(<span class="self">self</span>.mem_buffers)
+                .saturating_add(<span class="self">self</span>.mem_page_cache)
+                .saturating_add(<span class="self">self</span>.mem_slab_reclaimable)
+                .saturating_sub(<span class="self">self</span>.mem_shmem);
+        }
+
+        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(mem_cur), <span class="prelude-val">Some</span>(mem_max)) = (
+            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.current&quot;</span>),
+            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.max&quot;</span>),
+        ) {
+            <span class="comment">// cgroups v2
+            </span><span class="self">self</span>.mem_total = min(mem_max, <span class="self">self</span>.mem_total);
+            <span class="self">self</span>.mem_free = <span class="self">self</span>.mem_total.saturating_sub(mem_cur);
+            <span class="self">self</span>.mem_available = <span class="self">self</span>.mem_free;
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(swap_cur) = read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.swap.current&quot;</span>) {
+                <span class="self">self</span>.swap_free = <span class="self">self</span>.swap_total.saturating_sub(swap_cur);
             }
 
-            <span class="comment">// Linux &lt; 3.14 may not have MemAvailable in /proc/meminfo
-            // So it should fallback to the old way of estimating available memory
-            // https://github.com/KittyKatt/screenFetch/issues/386#issuecomment-249312716
-            </span><span class="kw">if </span>!mem_available_found {
-                <span class="self">self</span>.mem_available = <span class="self">self</span>.mem_free
-                    + <span class="self">self</span>.mem_buffers
-                    + <span class="self">self</span>.mem_page_cache
-                    + <span class="self">self</span>.mem_slab_reclaimable
-                    - <span class="self">self</span>.mem_shmem;
-            }
+            read_table(<span class="string">&quot;/sys/fs/cgroup/memory.stat&quot;</span>, <span class="string">&#39; &#39;</span>, |key, value| {
+                <span class="kw">let </span>field = <span class="kw">match </span>key {
+                    <span class="string">&quot;slab_reclaimable&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
+                    <span class="string">&quot;file&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
+                    <span class="string">&quot;shmem&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+                };
+                <span class="kw-2">*</span>field = value;
+                <span class="self">self</span>.mem_free = <span class="self">self</span>.mem_free.saturating_sub(value);
+            });
+        } <span class="kw">else if let </span>(<span class="prelude-val">Some</span>(mem_cur), <span class="prelude-val">Some</span>(mem_max)) = (
+            <span class="comment">// cgroups v1
+            </span>read_u64(<span class="string">&quot;/sys/fs/cgroup/memory/memory.usage_in_bytes&quot;</span>),
+            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory/memory.limit_in_bytes&quot;</span>),
+        ) {
+            <span class="self">self</span>.mem_total = min(mem_max, <span class="self">self</span>.mem_total);
+            <span class="self">self</span>.mem_free = <span class="self">self</span>.mem_total.saturating_sub(mem_cur);
+            <span class="self">self</span>.mem_available = <span class="self">self</span>.mem_free;
         }
     }
 
@@ -1327,6 +1406,31 @@
         // and to suppress dead-code warning for DistributionID on Android.
         </span>get_system_info_android(InfoType::DistributionID)
             .unwrap_or_else(|| std::env::consts::OS.to_owned())
+    }
+}
+
+<span class="kw">fn </span>read_u64(filename: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+    get_all_data(filename, <span class="number">16_635</span>)
+        .ok()
+        .and_then(|d| u64::from_str(d.trim()).ok())
+}
+
+<span class="kw">fn </span>read_table&lt;F&gt;(filename: <span class="kw-2">&amp;</span>str, colsep: char, <span class="kw-2">mut </span>f: F)
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>str, u64),
+{
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(content) = get_all_data(filename, <span class="number">16_635</span>) {
+        content
+            .split(<span class="string">&#39;\n&#39;</span>)
+            .flat_map(|line| {
+                <span class="kw">let </span><span class="kw-2">mut </span>split = line.split(colsep);
+                <span class="kw">let </span>key = split.next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>value = split.next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>value0 = value.trim_start().split(<span class="string">&#39; &#39;</span>).next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>value0_u64 = u64::from_str(value0).ok()<span class="question-mark">?</span>;
+                <span class="prelude-val">Some</span>((key, value0_u64))
+            })
+            .for_each(|(k, v)| f(k, v));
     }
 }
 

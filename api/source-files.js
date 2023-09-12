@@ -33,6 +33,7 @@ var sourcesIndex = JSON.parse('{\
 "encoding_rs":["",[],["ascii.rs","big5.rs","data.rs","euc_jp.rs","euc_kr.rs","gb18030.rs","handles.rs","iso_2022_jp.rs","lib.rs","macros.rs","mem.rs","replacement.rs","shift_jis.rs","single_byte.rs","utf_16.rs","utf_8.rs","variant.rs","x_user_defined.rs"]],\
 "encoding_rs_io":["",[],["lib.rs","util.rs"]],\
 "env_logger":["",[["filter",[],["mod.rs","regex.rs"]],["fmt",[["humantime",[],["extern_impl.rs","mod.rs"]],["writer",[["termcolor",[],["extern_impl.rs","mod.rs"]]],["atty.rs","mod.rs"]]],["mod.rs"]]],["lib.rs"]],\
+"equivalent":["",[],["lib.rs"]],\
 "event_listener":["",[],["lib.rs"]],\
 "fastrand":["",[],["global_rng.rs","lib.rs"]],\
 "fnv":["",[],["lib.rs"]],\
@@ -46,12 +47,12 @@ var sourcesIndex = JSON.parse('{\
 "humantime":["",[],["date.rs","duration.rs","lib.rs","wrapper.rs"]],\
 "iana_time_zone":["",[],["ffi_utils.rs","lib.rs","tz_linux.rs"]],\
 "iec61131std":["",[],["arithmetic_functions.rs","bistable_functionblocks.rs","bit_num_conversion.rs","bit_shift_functions.rs","counters.rs","date_time_conversion.rs","date_time_extra_functions.rs","date_time_numeric_functions.rs","endianness_conversion_functions.rs","extra_functions.rs","flanks.rs","lib.rs","numerical_functions.rs","string_conversion.rs","string_functions.rs","timers.rs","types.rs","utils.rs","validation_functions.rs"]],\
-"indexmap":["",[["map",[["core",[],["raw.rs"]]],["core.rs"]]],["arbitrary.rs","equivalent.rs","lib.rs","macros.rs","map.rs","mutable_keys.rs","set.rs","util.rs"]],\
+"indexmap":["",[["map",[["core",[],["raw.rs"]]],["core.rs","iter.rs","slice.rs"]],["set",[],["iter.rs","slice.rs"]]],["arbitrary.rs","lib.rs","macros.rs","map.rs","mutable_keys.rs","set.rs","util.rs"]],\
 "inkwell":["",[["support",[],["error_handling.rs","mod.rs"]],["types",[],["array_type.rs","enums.rs","float_type.rs","fn_type.rs","int_type.rs","metadata_type.rs","mod.rs","ptr_type.rs","struct_type.rs","traits.rs","vec_type.rs","void_type.rs"]],["values",[],["array_value.rs","basic_value_use.rs","call_site_value.rs","callable_value.rs","enums.rs","float_value.rs","fn_value.rs","generic_value.rs","global_value.rs","instruction_value.rs","int_value.rs","metadata_value.rs","mod.rs","phi_value.rs","ptr_value.rs","struct_value.rs","traits.rs","vec_value.rs"]]],["attributes.rs","basic_block.rs","builder.rs","comdat.rs","context.rs","data_layout.rs","debug_info.rs","execution_engine.rs","intrinsics.rs","lib.rs","memory_buffer.rs","module.rs","object_file.rs","passes.rs","targets.rs"]],\
 "inkwell_internals":["",[],["lib.rs"]],\
 "insta":["",[["content",[],["json.rs","mod.rs","yaml.rs"]]],["env.rs","lib.rs","macros.rs","output.rs","runtime.rs","settings.rs","snapshot.rs","utils.rs"]],\
 "is_terminal":["",[],["lib.rs"]],\
-"itertools":["",[["adaptors",[],["coalesce.rs","map.rs","mod.rs","multi_product.rs"]]],["combinations.rs","combinations_with_replacement.rs","concat_impl.rs","cons_tuples_impl.rs","diff.rs","duplicates_impl.rs","either_or_both.rs","exactly_one_err.rs","extrema_set.rs","flatten_ok.rs","format.rs","free.rs","group_map.rs","groupbylazy.rs","grouping_map.rs","impl_macros.rs","intersperse.rs","k_smallest.rs","kmerge_impl.rs","lazy_buffer.rs","lib.rs","merge_join.rs","minmax.rs","multipeek_impl.rs","pad_tail.rs","peek_nth.rs","peeking_take_while.rs","permutations.rs","powerset.rs","process_results_impl.rs","put_back_n_impl.rs","rciter_impl.rs","repeatn.rs","size_hint.rs","sources.rs","tee.rs","tuple_impl.rs","unique_impl.rs","unziptuple.rs","with_position.rs","zip_eq_impl.rs","zip_longest.rs","ziptuple.rs"]],\
+"itertools":["",[["adaptors",[],["coalesce.rs","map.rs","mod.rs","multi_product.rs"]]],["combinations.rs","combinations_with_replacement.rs","concat_impl.rs","cons_tuples_impl.rs","diff.rs","duplicates_impl.rs","either_or_both.rs","exactly_one_err.rs","extrema_set.rs","flatten_ok.rs","format.rs","free.rs","group_map.rs","groupbylazy.rs","grouping_map.rs","impl_macros.rs","intersperse.rs","k_smallest.rs","kmerge_impl.rs","lazy_buffer.rs","lib.rs","merge_join.rs","minmax.rs","multipeek_impl.rs","pad_tail.rs","peek_nth.rs","peeking_take_while.rs","permutations.rs","powerset.rs","process_results_impl.rs","put_back_n_impl.rs","rciter_impl.rs","repeatn.rs","size_hint.rs","sources.rs","take_while_inclusive.rs","tee.rs","tuple_impl.rs","unique_impl.rs","unziptuple.rs","with_position.rs","zip_eq_impl.rs","zip_longest.rs","ziptuple.rs"]],\
 "itoa":["",[],["lib.rs","udiv128.rs"]],\
 "kv_log_macro":["",[],["lib.rs"]],\
 "lazy_static":["",[],["inline_lazy.rs","lib.rs"]],\

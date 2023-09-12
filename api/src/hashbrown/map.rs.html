@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.12.3/src/map.rs`."><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.14.0/src/map.rs`."><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -8406,8 +8406,106 @@
 <a href="#8406" id="8406">8406</a>
 <a href="#8407" id="8407">8407</a>
 <a href="#8408" id="8408">8408</a>
+<a href="#8409" id="8409">8409</a>
+<a href="#8410" id="8410">8410</a>
+<a href="#8411" id="8411">8411</a>
+<a href="#8412" id="8412">8412</a>
+<a href="#8413" id="8413">8413</a>
+<a href="#8414" id="8414">8414</a>
+<a href="#8415" id="8415">8415</a>
+<a href="#8416" id="8416">8416</a>
+<a href="#8417" id="8417">8417</a>
+<a href="#8418" id="8418">8418</a>
+<a href="#8419" id="8419">8419</a>
+<a href="#8420" id="8420">8420</a>
+<a href="#8421" id="8421">8421</a>
+<a href="#8422" id="8422">8422</a>
+<a href="#8423" id="8423">8423</a>
+<a href="#8424" id="8424">8424</a>
+<a href="#8425" id="8425">8425</a>
+<a href="#8426" id="8426">8426</a>
+<a href="#8427" id="8427">8427</a>
+<a href="#8428" id="8428">8428</a>
+<a href="#8429" id="8429">8429</a>
+<a href="#8430" id="8430">8430</a>
+<a href="#8431" id="8431">8431</a>
+<a href="#8432" id="8432">8432</a>
+<a href="#8433" id="8433">8433</a>
+<a href="#8434" id="8434">8434</a>
+<a href="#8435" id="8435">8435</a>
+<a href="#8436" id="8436">8436</a>
+<a href="#8437" id="8437">8437</a>
+<a href="#8438" id="8438">8438</a>
+<a href="#8439" id="8439">8439</a>
+<a href="#8440" id="8440">8440</a>
+<a href="#8441" id="8441">8441</a>
+<a href="#8442" id="8442">8442</a>
+<a href="#8443" id="8443">8443</a>
+<a href="#8444" id="8444">8444</a>
+<a href="#8445" id="8445">8445</a>
+<a href="#8446" id="8446">8446</a>
+<a href="#8447" id="8447">8447</a>
+<a href="#8448" id="8448">8448</a>
+<a href="#8449" id="8449">8449</a>
+<a href="#8450" id="8450">8450</a>
+<a href="#8451" id="8451">8451</a>
+<a href="#8452" id="8452">8452</a>
+<a href="#8453" id="8453">8453</a>
+<a href="#8454" id="8454">8454</a>
+<a href="#8455" id="8455">8455</a>
+<a href="#8456" id="8456">8456</a>
+<a href="#8457" id="8457">8457</a>
+<a href="#8458" id="8458">8458</a>
+<a href="#8459" id="8459">8459</a>
+<a href="#8460" id="8460">8460</a>
+<a href="#8461" id="8461">8461</a>
+<a href="#8462" id="8462">8462</a>
+<a href="#8463" id="8463">8463</a>
+<a href="#8464" id="8464">8464</a>
+<a href="#8465" id="8465">8465</a>
+<a href="#8466" id="8466">8466</a>
+<a href="#8467" id="8467">8467</a>
+<a href="#8468" id="8468">8468</a>
+<a href="#8469" id="8469">8469</a>
+<a href="#8470" id="8470">8470</a>
+<a href="#8471" id="8471">8471</a>
+<a href="#8472" id="8472">8472</a>
+<a href="#8473" id="8473">8473</a>
+<a href="#8474" id="8474">8474</a>
+<a href="#8475" id="8475">8475</a>
+<a href="#8476" id="8476">8476</a>
+<a href="#8477" id="8477">8477</a>
+<a href="#8478" id="8478">8478</a>
+<a href="#8479" id="8479">8479</a>
+<a href="#8480" id="8480">8480</a>
+<a href="#8481" id="8481">8481</a>
+<a href="#8482" id="8482">8482</a>
+<a href="#8483" id="8483">8483</a>
+<a href="#8484" id="8484">8484</a>
+<a href="#8485" id="8485">8485</a>
+<a href="#8486" id="8486">8486</a>
+<a href="#8487" id="8487">8487</a>
+<a href="#8488" id="8488">8488</a>
+<a href="#8489" id="8489">8489</a>
+<a href="#8490" id="8490">8490</a>
+<a href="#8491" id="8491">8491</a>
+<a href="#8492" id="8492">8492</a>
+<a href="#8493" id="8493">8493</a>
+<a href="#8494" id="8494">8494</a>
+<a href="#8495" id="8495">8495</a>
+<a href="#8496" id="8496">8496</a>
+<a href="#8497" id="8497">8497</a>
+<a href="#8498" id="8498">8498</a>
+<a href="#8499" id="8499">8499</a>
+<a href="#8500" id="8500">8500</a>
+<a href="#8501" id="8501">8501</a>
+<a href="#8502" id="8502">8502</a>
+<a href="#8503" id="8503">8503</a>
+<a href="#8504" id="8504">8504</a>
+<a href="#8505" id="8505">8505</a>
+<a href="#8506" id="8506">8506</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::raw::{Allocator, Bucket, Global, RawDrain, RawIntoIter, RawIter, RawTable};
-<span class="kw">use </span><span class="kw">crate</span>::TryReserveError;
+<span class="kw">use crate</span>::{Equivalent, TryReserveError};
 <span class="kw">use </span>core::borrow::Borrow;
 <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
 <span class="kw">use </span>core::hash::{BuildHasher, Hash};
@@ -8418,7 +8516,7 @@
 
 <span class="doccomment">/// Default hasher for `HashMap`.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;ahash&quot;</span>)]
-</span><span class="kw">pub type </span>DefaultHashBuilder = ahash::RandomState;
+</span><span class="kw">pub type </span>DefaultHashBuilder = core::hash::BuildHasherDefault&lt;ahash::AHasher&gt;;
 
 <span class="doccomment">/// Dummy default hasher for `HashMap`.
 </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;ahash&quot;</span>))]
@@ -8617,13 +8715,12 @@
 <span class="doccomment">/// Ensures that a single closure type across uses of this which, in turn prevents multiple
 /// instances of any functions like RawTable::reserve from being generated
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hasher&lt;K, Q, V, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>(Q, V)) -&gt; u64 + <span class="lifetime">&#39;_
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hasher&lt;Q, V, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>(Q, V)) -&gt; u64 + <span class="lifetime">&#39;_
 </span><span class="kw">where
-    </span>K: Borrow&lt;Q&gt;,
-    Q: Hash,
+    </span>Q: Hash,
     S: BuildHasher,
 {
-    <span class="kw">move </span>|val| make_hash::&lt;K, Q, S&gt;(hash_builder, <span class="kw-2">&amp;</span>val.<span class="number">0</span>)
+    <span class="kw">move </span>|val| make_hash::&lt;Q, S&gt;(hash_builder, <span class="kw-2">&amp;</span>val.<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Ensures that a single closure type across uses of this which, in turn prevents multiple
@@ -8631,10 +8728,9 @@
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
 </span><span class="kw">fn </span>equivalent_key&lt;Q, K, V&gt;(k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>(K, V)) -&gt; bool + <span class="lifetime">&#39;_
 </span><span class="kw">where
-    </span>K: Borrow&lt;Q&gt;,
-    Q: <span class="question-mark">?</span>Sized + Eq,
+    </span>Q: <span class="question-mark">?</span>Sized + Equivalent&lt;K&gt;,
 {
-    <span class="kw">move </span>|x| k.eq(x.<span class="number">0</span>.borrow())
+    <span class="kw">move </span>|x| k.equivalent(<span class="kw-2">&amp;</span>x.<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Ensures that a single closure type across uses of this which, in turn prevents multiple
@@ -8642,18 +8738,16 @@
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
 </span><span class="kw">fn </span>equivalent&lt;Q, K&gt;(k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>K) -&gt; bool + <span class="lifetime">&#39;_
 </span><span class="kw">where
-    </span>K: Borrow&lt;Q&gt;,
-    Q: <span class="question-mark">?</span>Sized + Eq,
+    </span>Q: <span class="question-mark">?</span>Sized + Equivalent&lt;K&gt;,
 {
-    <span class="kw">move </span>|x| k.eq(x.borrow())
+    <span class="kw">move </span>|x| k.equivalent(x)
 }
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;nightly&quot;</span>))]
 #[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hash&lt;K, Q, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>Q) -&gt; u64
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hash&lt;Q, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>Q) -&gt; u64
 <span class="kw">where
-    </span>K: Borrow&lt;Q&gt;,
-    Q: Hash + <span class="question-mark">?</span>Sized,
+    </span>Q: Hash + <span class="question-mark">?</span>Sized,
     S: BuildHasher,
 {
     <span class="kw">use </span>core::hash::Hasher;
@@ -8664,33 +8758,9 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;nightly&quot;</span>)]
 #[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hash&lt;K, Q, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>Q) -&gt; u64
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_hash&lt;Q, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>Q) -&gt; u64
 <span class="kw">where
-    </span>K: Borrow&lt;Q&gt;,
-    Q: Hash + <span class="question-mark">?</span>Sized,
-    S: BuildHasher,
-{
-    hash_builder.hash_one(val)
-}
-
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;nightly&quot;</span>))]
-#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_insert_hash&lt;K, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>K) -&gt; u64
-<span class="kw">where
-    </span>K: Hash,
-    S: BuildHasher,
-{
-    <span class="kw">use </span>core::hash::Hasher;
-    <span class="kw">let </span><span class="kw-2">mut </span>state = hash_builder.build_hasher();
-    val.hash(<span class="kw-2">&amp;mut </span>state);
-    state.finish()
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;nightly&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_insert_hash&lt;K, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, val: <span class="kw-2">&amp;</span>K) -&gt; u64
-<span class="kw">where
-    </span>K: Hash,
+    </span>Q: Hash + <span class="question-mark">?</span>Sized,
     S: BuildHasher,
 {
     hash_builder.hash_one(val)
@@ -8702,6 +8772,18 @@
     ///
     /// The hash map is initially created with a capacity of 0, so it will not allocate until it
     /// is first inserted into.
+    ///
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`], for example with
+    /// [`with_hasher`](HashMap::with_hasher) method.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
     ///
     /// # Examples
     ///
@@ -8720,6 +8802,18 @@
     ///
     /// The hash map will be able to hold at least `capacity` elements without
     /// reallocating. If `capacity` is 0, the hash map will not allocate.
+    ///
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`], for example with
+    /// [`with_capacity_and_hasher`](HashMap::with_capacity_and_hasher) method.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
     ///
     /// # Examples
     ///
@@ -8741,6 +8835,41 @@
     ///
     /// The hash map is initially created with a capacity of 0, so it will not allocate until it
     /// is first inserted into.
+    ///
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`], for example with
+    /// [`with_hasher_in`](HashMap::with_hasher_in) method.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use hashbrown::HashMap;
+    /// use bumpalo::Bump;
+    ///
+    /// let bump = Bump::new();
+    /// let mut map = HashMap::new_in(&amp;bump);
+    ///
+    /// // The created HashMap holds none elements
+    /// assert_eq!(map.len(), 0);
+    ///
+    /// // The created HashMap also doesn&#39;t allocate memory
+    /// assert_eq!(map.capacity(), 0);
+    ///
+    /// // Now we insert element inside created HashMap
+    /// map.insert(&quot;One&quot;, 1);
+    /// // We can see that the HashMap holds 1 element
+    /// assert_eq!(map.len(), 1);
+    /// // And it also allocates some capacity
+    /// assert!(map.capacity() &gt; 1);
+    /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>new_in(alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_hasher_in(DefaultHashBuilder::default(), alloc)
@@ -8750,6 +8879,46 @@
     ///
     /// The hash map will be able to hold at least `capacity` elements without
     /// reallocating. If `capacity` is 0, the hash map will not allocate.
+    ///
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`], for example with
+    /// [`with_capacity_and_hasher_in`](HashMap::with_capacity_and_hasher_in) method.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use hashbrown::HashMap;
+    /// use bumpalo::Bump;
+    ///
+    /// let bump = Bump::new();
+    /// let mut map = HashMap::with_capacity_in(5, &amp;bump);
+    ///
+    /// // The created HashMap holds none elements
+    /// assert_eq!(map.len(), 0);
+    /// // But it can hold at least 5 elements without reallocating
+    /// let empty_map_capacity = map.capacity();
+    /// assert!(empty_map_capacity &gt;= 5);
+    ///
+    /// // Now we insert some 5 elements inside created HashMap
+    /// map.insert(&quot;One&quot;,   1);
+    /// map.insert(&quot;Two&quot;,   2);
+    /// map.insert(&quot;Three&quot;, 3);
+    /// map.insert(&quot;Four&quot;,  4);
+    /// map.insert(&quot;Five&quot;,  5);
+    ///
+    /// // We can see that the HashMap holds 5 elements
+    /// assert_eq!(map.len(), 5);
+    /// // But its capacity isn&#39;t changed
+    /// assert_eq!(map.capacity(), empty_map_capacity)
+    /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>with_capacity_in(capacity: usize, alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_capacity_and_hasher_in(capacity, DefaultHashBuilder::default(), alloc)
@@ -8763,13 +8932,20 @@
     /// The hash map is initially created with a capacity of 0, so it will not
     /// allocate until it is first inserted into.
     ///
-    /// Warning: `hash_builder` is normally randomly generated, and
-    /// is designed to allow HashMaps to be resistant to attacks that
-    /// cause many collisions and very poor performance. Setting it
-    /// manually using this function can expose a DoS attack vector.
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`].
     ///
     /// The `hash_builder` passed should implement the [`BuildHasher`] trait for
     /// the HashMap to be useful, see its documentation for details.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
+    /// [`BuildHasher`]: https://doc.rust-lang.org/std/hash/trait.BuildHasher.html
     ///
     /// # Examples
     ///
@@ -8784,8 +8960,6 @@
     ///
     /// map.insert(1, 2);
     /// ```
-    ///
-    /// [`BuildHasher`]: https://doc.rust-lang.org/std/hash/trait.BuildHasher.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub const fn </span>with_hasher(hash_builder: S) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -8800,13 +8974,20 @@
     /// The hash map will be able to hold at least `capacity` elements without
     /// reallocating. If `capacity` is 0, the hash map will not allocate.
     ///
-    /// Warning: `hash_builder` is normally randomly generated, and
-    /// is designed to allow HashMaps to be resistant to attacks that
-    /// cause many collisions and very poor performance. Setting it
-    /// manually using this function can expose a DoS attack vector.
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`].
     ///
     /// The `hash_builder` passed should implement the [`BuildHasher`] trait for
     /// the HashMap to be useful, see its documentation for details.
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
+    /// [`BuildHasher`]: https://doc.rust-lang.org/std/hash/trait.BuildHasher.html
     ///
     /// # Examples
     ///
@@ -8821,8 +9002,6 @@
     ///
     /// map.insert(1, 2);
     /// ```
-    ///
-    /// [`BuildHasher`]: https://doc.rust-lang.org/std/hash/trait.BuildHasher.html
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>with_capacity_and_hasher(capacity: usize, hash_builder: S) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -8842,12 +9021,19 @@
     <span class="doccomment">/// Creates an empty `HashMap` which will use the given hash builder to hash
     /// keys. It will be allocated with the given allocator.
     ///
-    /// The created map has the default initial capacity.
+    /// The hash map is initially created with a capacity of 0, so it will not allocate until it
+    /// is first inserted into.
     ///
-    /// Warning: `hash_builder` is normally randomly generated, and
-    /// is designed to allow HashMaps to be resistant to attacks that
-    /// cause many collisions and very poor performance. Setting it
-    /// manually using this function can expose a DoS attack vector.
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`].
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
     ///
     /// # Examples
     ///
@@ -8860,7 +9046,7 @@
     /// map.insert(1, 2);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>with_hasher_in(hash_builder: S, alloc: A) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>with_hasher_in(hash_builder: S, alloc: A) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             hash_builder,
             table: RawTable::new_in(alloc),
@@ -8873,10 +9059,16 @@
     /// The hash map will be able to hold at least `capacity` elements without
     /// reallocating. If `capacity` is 0, the hash map will not allocate.
     ///
-    /// Warning: `hash_builder` is normally randomly generated, and
-    /// is designed to allow HashMaps to be resistant to attacks that
-    /// cause many collisions and very poor performance. Setting it
-    /// manually using this function can expose a DoS attack vector.
+    /// # HashDoS resistance
+    ///
+    /// The `hash_builder` normally use a fixed key by default and that does
+    /// not allow the `HashMap` to be protected against attacks such as [`HashDoS`].
+    /// Users who require HashDoS resistance should explicitly use
+    /// [`ahash::RandomState`] or [`std::collections::hash_map::RandomState`]
+    /// as the hasher when creating a [`HashMap`].
+    ///
+    /// [`HashDoS`]: https://en.wikipedia.org/wiki/Collision_attack
+    /// [`std::collections::hash_map::RandomState`]: https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html
     ///
     /// # Examples
     ///
@@ -9218,14 +9410,11 @@
     ///
     /// let mut map: HashMap&lt;i32, i32&gt; = (0..8).map(|x|(x, x*10)).collect();
     /// assert_eq!(map.len(), 8);
-    /// let capacity_before_retain = map.capacity();
     ///
     /// map.retain(|&amp;k, _| k % 2 == 0);
     ///
     /// // We can see, that the number of elements inside map is changed.
     /// assert_eq!(map.len(), 4);
-    /// // But map capacity is equal to old one.
-    /// assert_eq!(map.capacity(), capacity_before_retain);
     ///
     /// let mut vec: Vec&lt;(i32, i32)&gt; = map.iter().map(|(&amp;k, &amp;v)| (k, v)).collect();
     /// vec.sort_unstable();
@@ -9252,15 +9441,12 @@
     /// In other words, move all pairs `(k, v)` such that `f(&amp;k, &amp;mut v)` returns `true` out
     /// into another iterator.
     ///
-    /// Note that `drain_filter` lets you mutate every value in the filter closure, regardless of
+    /// Note that `extract_if` lets you mutate every value in the filter closure, regardless of
     /// whether you choose to keep or remove it.
     ///
-    /// When the returned DrainedFilter is dropped, any remaining elements that satisfy
-    /// the predicate are dropped from the table.
-    ///
-    /// It is unspecified how many more elements will be subjected to the closure
-    /// if a panic occurs in the closure, or a panic occurs while dropping an element,
-    /// or if the `DrainFilter` value is leaked.
+    /// If the returned `ExtractIf` is not exhausted, e.g. because it is dropped without iterating
+    /// or the iteration short-circuits, then the remaining elements will be retained.
+    /// Use [`retain()`] with a negated predicate if you do not need the returned iterator.
     ///
     /// Keeps the allocated memory for reuse.
     ///
@@ -9270,8 +9456,8 @@
     /// use hashbrown::HashMap;
     ///
     /// let mut map: HashMap&lt;i32, i32&gt; = (0..8).map(|x| (x, x)).collect();
-    /// let capacity_before_drain_filter = map.capacity();
-    /// let drained: HashMap&lt;i32, i32&gt; = map.drain_filter(|k, _v| k % 2 == 0).collect();
+    ///
+    /// let drained: HashMap&lt;i32, i32&gt; = map.extract_if(|k, _v| k % 2 == 0).collect();
     ///
     /// let mut evens = drained.keys().cloned().collect::&lt;Vec&lt;_&gt;&gt;();
     /// let mut odds = map.keys().cloned().collect::&lt;Vec&lt;_&gt;&gt;();
@@ -9280,27 +9466,24 @@
     ///
     /// assert_eq!(evens, vec![0, 2, 4, 6]);
     /// assert_eq!(odds, vec![1, 3, 5, 7]);
-    /// // Map capacity is equal to old one.
-    /// assert_eq!(map.capacity(), capacity_before_drain_filter);
     ///
     /// let mut map: HashMap&lt;i32, i32&gt; = (0..8).map(|x| (x, x)).collect();
     ///
     /// {   // Iterator is dropped without being consumed.
-    ///     let d = map.drain_filter(|k, _v| k % 2 != 0);
+    ///     let d = map.extract_if(|k, _v| k % 2 != 0);
     /// }
     ///
-    /// // But the map lens have been reduced by half
-    /// // even if we do not use DrainFilter iterator.
-    /// assert_eq!(map.len(), 4);
+    /// // ExtractIf was not exhausted, therefore no elements were drained.
+    /// assert_eq!(map.len(), 8);
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>drain_filter&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, V, F, A&gt;
+    </span><span class="kw">pub fn </span>extract_if&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, V, F, A&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool,
     {
-        DrainFilter {
+        ExtractIf {
             f,
-            inner: DrainFilterInner {
+            inner: ExtractIfInner {
                 iter: <span class="kw">unsafe </span>{ <span class="self">self</span>.table.iter() },
                 table: <span class="kw-2">&amp;mut </span><span class="self">self</span>.table,
             },
@@ -9400,9 +9583,12 @@
     ///
     /// # Panics
     ///
-    /// Panics if the new allocation size overflows [`usize`].
+    /// Panics if the new capacity exceeds [`isize::MAX`] bytes and [`abort`] the program
+    /// in case of allocation error. Use [`try_reserve`](HashMap::try_reserve) instead
+    /// if you want to handle memory allocation failure.
     ///
-    /// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+    /// [`isize::MAX`]: https://doc.rust-lang.org/std/primitive.isize.html
+    /// [`abort`]: https://doc.rust-lang.org/alloc/alloc/fn.handle_alloc_error.html
     ///
     /// # Examples
     ///
@@ -9420,7 +9606,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
         <span class="self">self</span>.table
-            .reserve(additional, make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
+            .reserve(additional, make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
     }
 
     <span class="doccomment">/// Tries to reserve capacity for at least `additional` more elements to be inserted
@@ -9470,7 +9656,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), TryReserveError&gt; {
         <span class="self">self</span>.table
-            .try_reserve(additional, make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder))
+            .try_reserve(additional, make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder))
     }
 
     <span class="doccomment">/// Shrinks the capacity of the map as much as possible. It will drop
@@ -9492,7 +9678,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.table
-            .shrink_to(<span class="number">0</span>, make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
+            .shrink_to(<span class="number">0</span>, make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
     }
 
     <span class="doccomment">/// Shrinks the capacity of the map with a lower limit. It will drop
@@ -9521,7 +9707,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>shrink_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_capacity: usize) {
         <span class="self">self</span>.table
-            .shrink_to(min_capacity, make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
+            .shrink_to(min_capacity, make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
     }
 
     <span class="doccomment">/// Gets the given key&#39;s corresponding entry in the map for in-place manipulation.
@@ -9545,7 +9731,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K) -&gt; Entry&lt;<span class="lifetime">&#39;_</span>, K, V, S, A&gt; {
-        <span class="kw">let </span>hash = make_insert_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
+        <span class="kw">let </span>hash = make_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(elem) = <span class="self">self</span>.table.find(hash, equivalent_key(<span class="kw-2">&amp;</span>key)) {
             Entry::Occupied(OccupiedEntry {
                 hash,
@@ -9582,10 +9768,9 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>entry_ref&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Q) -&gt; EntryRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, K, Q, V, S, A&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
-        <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, key);
+        <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, key);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(elem) = <span class="self">self</span>.table.find(hash, equivalent_key(key)) {
             EntryRef::Occupied(OccupiedEntryRef {
                 hash,
@@ -9624,12 +9809,11 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
         </span><span class="kw">match </span><span class="self">self</span>.get_inner(k) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref </span>v)) =&gt; <span class="prelude-val">Some</span>(v),
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, v)) =&gt; <span class="prelude-val">Some</span>(v),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -9656,12 +9840,11 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_key_value&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
         </span><span class="kw">match </span><span class="self">self</span>.get_inner(k) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref </span>value)) =&gt; <span class="prelude-val">Some</span>((key, value)),
+            <span class="prelude-val">Some</span>((key, value)) =&gt; <span class="prelude-val">Some</span>((key, value)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -9669,13 +9852,12 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_inner&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(K, V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.table.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
+            <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
             <span class="self">self</span>.table.get(hash, equivalent_key(k))
         }
     }
@@ -9706,8 +9888,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_key_value_mut&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
         </span><span class="kw">match </span><span class="self">self</span>.get_inner_mut(k) {
@@ -9738,8 +9919,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>contains_key&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.get_inner(k).is_some()
     }
@@ -9770,8 +9950,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>get_mut&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
         </span><span class="kw">match </span><span class="self">self</span>.get_inner_mut(k) {
@@ -9783,13 +9962,12 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_inner_mut&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>(K, V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.table.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
+            <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
             <span class="self">self</span>.table.get_mut(hash, equivalent_key(k))
         }
     }
@@ -9839,8 +10017,7 @@
     /// ```
     </span><span class="kw">pub fn </span>get_many_mut&lt;Q: <span class="question-mark">?</span>Sized, <span class="kw">const </span>N: usize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ks: [<span class="kw-2">&amp;</span>Q; N]) -&gt; <span class="prelude-ty">Option</span>&lt;[<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>V; N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.get_many_mut_inner(ks).map(|res| res.map(|(<span class="kw">_</span>, v)| v))
     }
@@ -9895,8 +10072,7 @@
         ks: [<span class="kw-2">&amp;</span>Q; N],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;[<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>V; N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.get_many_unchecked_mut_inner(ks)
             .map(|res| res.map(|(<span class="kw">_</span>, v)| v))
@@ -9951,8 +10127,7 @@
         ks: [<span class="kw-2">&amp;</span>Q; N],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>V); N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.get_many_mut_inner(ks)
             .map(|res| res.map(|(k, v)| (<span class="kw-2">&amp;*</span>k, v)))
@@ -10007,8 +10182,7 @@
         ks: [<span class="kw-2">&amp;</span>Q; N],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>V); N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.get_many_unchecked_mut_inner(ks)
             .map(|res| res.map(|(k, v)| (<span class="kw-2">&amp;*</span>k, v)))
@@ -10019,12 +10193,11 @@
         ks: [<span class="kw-2">&amp;</span>Q; N],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;[<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>(K, V); N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="kw">let </span>hashes = <span class="self">self</span>.build_hashes_inner(ks);
         <span class="self">self</span>.table
-            .get_many_mut(hashes, |i, (k, <span class="kw">_</span>)| ks[i].eq(k.borrow()))
+            .get_many_mut(hashes, |i, (k, <span class="kw">_</span>)| ks[i].equivalent(k))
     }
 
     <span class="kw">unsafe fn </span>get_many_unchecked_mut_inner&lt;Q: <span class="question-mark">?</span>Sized, <span class="kw">const </span>N: usize&gt;(
@@ -10032,22 +10205,20 @@
         ks: [<span class="kw-2">&amp;</span>Q; N],
     ) -&gt; <span class="prelude-ty">Option</span>&lt;[<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>(K, V); N]&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="kw">let </span>hashes = <span class="self">self</span>.build_hashes_inner(ks);
         <span class="self">self</span>.table
-            .get_many_unchecked_mut(hashes, |i, (k, <span class="kw">_</span>)| ks[i].eq(k.borrow()))
+            .get_many_unchecked_mut(hashes, |i, (k, <span class="kw">_</span>)| ks[i].equivalent(k))
     }
 
     <span class="kw">fn </span>build_hashes_inner&lt;Q: <span class="question-mark">?</span>Sized, <span class="kw">const </span>N: usize&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ks: [<span class="kw-2">&amp;</span>Q; N]) -&gt; [u64; N]
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>hashes = [<span class="number">0_u64</span>; N];
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..N {
-            hashes[i] = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, ks[i]);
+            hashes[i] = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, ks[i]);
         }
         hashes
     }
@@ -10080,14 +10251,20 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: K, v: V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt; {
-        <span class="kw">let </span>hash = make_insert_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>k);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, item)) = <span class="self">self</span>.table.get_mut(hash, equivalent_key(<span class="kw-2">&amp;</span>k)) {
-            <span class="prelude-val">Some</span>(mem::replace(item, v))
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.table
-                .insert(hash, (k, v), make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
-            <span class="prelude-val">None
-        </span>}
+        <span class="kw">let </span>hash = make_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>k);
+        <span class="kw">let </span>hasher = make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder);
+        <span class="kw">match </span><span class="self">self
+            </span>.table
+            .find_or_find_insert_slot(hash, equivalent_key(<span class="kw-2">&amp;</span>k), hasher)
+        {
+            <span class="prelude-val">Ok</span>(bucket) =&gt; <span class="prelude-val">Some</span>(mem::replace(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span>bucket.as_mut().<span class="number">1 </span>}, v)),
+            <span class="prelude-val">Err</span>(slot) =&gt; {
+                <span class="kw">unsafe </span>{
+                    <span class="self">self</span>.table.insert_in_slot(hash, slot, (k, v));
+                }
+                <span class="prelude-val">None
+            </span>}
+        }
     }
 
     <span class="doccomment">/// Insert a key-value pair into the map without checking
@@ -10141,10 +10318,10 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>insert_unique_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: K, v: V) -&gt; (<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) {
-        <span class="kw">let </span>hash = make_insert_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>k);
+        <span class="kw">let </span>hash = make_hash::&lt;K, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>k);
         <span class="kw">let </span>bucket = <span class="self">self
             </span>.table
-            .insert(hash, (k, v), make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
+            .insert(hash, (k, v), make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder));
         <span class="kw">let </span>(k_ref, v_ref) = <span class="kw">unsafe </span>{ bucket.as_mut() };
         (k_ref, v_ref)
     }
@@ -10209,19 +10386,17 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.insert(1, &quot;a&quot;);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// assert_eq!(map.remove(&amp;1), Some(&quot;a&quot;));
     /// assert_eq!(map.remove(&amp;1), None);
     ///
-    /// // Now map holds none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// // Now map holds none elements
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
         <span class="comment">// Avoid `Option::map` because it bloats LLVM IR.
         </span><span class="kw">match </span><span class="self">self</span>.remove_entry(k) {
@@ -10250,21 +10425,19 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.insert(1, &quot;a&quot;);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// assert_eq!(map.remove_entry(&amp;1), Some((1, &quot;a&quot;)));
     /// assert_eq!(map.remove(&amp;1), None);
     ///
-    /// // Now map hold none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// // Now map hold none elements
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove_entry&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(K, V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        </span>Q: Hash + Equivalent&lt;K&gt;,
     {
-        <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
+        <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.hash_builder, k);
         <span class="self">self</span>.table.remove_entry(hash, equivalent_key(k))
     }
 }
@@ -10421,19 +10594,31 @@
         RawEntryBuilder { map: <span class="self">self </span>}
     }
 
+    <span class="doccomment">/// Returns a reference to the [`RawTable`] used underneath [`HashMap`].
+    /// This function is only available if the `raw` feature of the crate is enabled.
+    ///
+    /// See [`raw_table_mut`] for more.
+    ///
+    /// [`raw_table_mut`]: Self::raw_table_mut
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw&quot;</span>)]
+    #[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">pub fn </span>raw_table(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawTable&lt;(K, V), A&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.table
+    }
+
     <span class="doccomment">/// Returns a mutable reference to the [`RawTable`] used underneath [`HashMap`].
     /// This function is only available if the `raw` feature of the crate is enabled.
     ///
     /// # Note
     ///
-    /// Calling the function safe, but using raw hash table API&#39;s may require
+    /// Calling this function is safe, but using the raw hash table API may require
     /// unsafe functions or blocks.
     ///
     /// `RawTable` API gives the lowest level of control under the map that can be useful
     /// for extending the HashMap&#39;s API, but may lead to *[undefined behavior]*.
     ///
     /// [`HashMap`]: struct.HashMap.html
-    /// [`RawTable`]: raw/struct.RawTable.html
+    /// [`RawTable`]: crate::raw::RawTable
     /// [undefined behavior]: https://doc.rust-lang.org/reference/behavior-considered-undefined.html
     ///
     /// # Examples
@@ -10457,9 +10642,9 @@
     /// where
     ///     F: Fn(&amp;(K, V)) -&gt; bool,
     /// {
-    ///     let raw_table = map.raw_table();
+    ///     let raw_table = map.raw_table_mut();
     ///     match raw_table.find(hash, is_match) {
-    ///         Some(bucket) =&gt; Some(unsafe { raw_table.remove(bucket) }),
+    ///         Some(bucket) =&gt; Some(unsafe { raw_table.remove(bucket).0 }),
     ///         None =&gt; None,
     ///     }
     /// }
@@ -10478,7 +10663,7 @@
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw&quot;</span>)]
     #[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>raw_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>RawTable&lt;(K, V), A&gt; {
+    </span><span class="kw">pub fn </span>raw_table_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>RawTable&lt;(K, V), A&gt; {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.table
     }
 }
@@ -10548,8 +10733,8 @@
 
 <span class="kw">impl</span>&lt;K, Q: <span class="question-mark">?</span>Sized, V, S, A&gt; Index&lt;<span class="kw-2">&amp;</span>Q&gt; <span class="kw">for </span>HashMap&lt;K, V, S, A&gt;
 <span class="kw">where
-    </span>K: Eq + Hash + Borrow&lt;Q&gt;,
-    Q: Eq + Hash,
+    </span>K: Eq + Hash,
+    Q: Hash + Equivalent&lt;K&gt;,
     S: BuildHasher,
     A: Allocator + Clone,
 {
@@ -11009,10 +11194,10 @@
 <span class="doccomment">/// A draining iterator over entries of a `HashMap` which don&#39;t satisfy the predicate
 /// `f(&amp;k, &amp;mut v)` in arbitrary order. The iterator element type is `(K, V)`.
 ///
-/// This `struct` is created by the [`drain_filter`] method on [`HashMap`]. See its
+/// This `struct` is created by the [`extract_if`] method on [`HashMap`]. See its
 /// documentation for more.
 ///
-/// [`drain_filter`]: struct.HashMap.html#method.drain_filter
+/// [`extract_if`]: struct.HashMap.html#method.extract_if
 /// [`HashMap`]: struct.HashMap.html
 ///
 /// # Examples
@@ -11022,54 +11207,31 @@
 ///
 /// let mut map: HashMap&lt;i32, &amp;str&gt; = [(1, &quot;a&quot;), (2, &quot;b&quot;), (3, &quot;c&quot;)].into();
 ///
-/// let mut drain_filter = map.drain_filter(|k, _v| k % 2 != 0);
-/// let mut vec = vec![drain_filter.next(), drain_filter.next()];
+/// let mut extract_if = map.extract_if(|k, _v| k % 2 != 0);
+/// let mut vec = vec![extract_if.next(), extract_if.next()];
 ///
-/// // The `DrainFilter` iterator produces items in arbitrary order, so the
+/// // The `ExtractIf` iterator produces items in arbitrary order, so the
 /// // items must be sorted to test them against a sorted array.
 /// vec.sort_unstable();
 /// assert_eq!(vec, [Some((1, &quot;a&quot;)),Some((3, &quot;c&quot;))]);
 ///
 /// // It is fused iterator
-/// assert_eq!(drain_filter.next(), None);
-/// assert_eq!(drain_filter.next(), None);
-/// drop(drain_filter);
+/// assert_eq!(extract_if.next(), None);
+/// assert_eq!(extract_if.next(), None);
+/// drop(extract_if);
 ///
 /// assert_eq!(map.len(), 1);
 /// ```
-</span><span class="kw">pub struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, V, F, A: Allocator + Clone = Global&gt;
+</span><span class="attr">#[must_use = <span class="string">&quot;Iterators are lazy unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>ExtractIf&lt;<span class="lifetime">&#39;a</span>, K, V, F, A: Allocator + Clone = Global&gt;
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool,
 {
     f: F,
-    inner: DrainFilterInner&lt;<span class="lifetime">&#39;a</span>, K, V, A&gt;,
+    inner: ExtractIfInner&lt;<span class="lifetime">&#39;a</span>, K, V, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V, F, A&gt; Drop <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, K, V, F, A&gt;
-<span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool,
-    A: Allocator + Clone,
-{
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = <span class="self">self</span>.next() {
-            <span class="kw">let </span>guard = ConsumeAllOnDrop(<span class="self">self</span>);
-            drop(item);
-            mem::forget(guard);
-        }
-    }
-}
-
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>ConsumeAllOnDrop&lt;<span class="lifetime">&#39;a</span>, T: Iterator&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
-
-<span class="kw">impl</span>&lt;T: Iterator&gt; Drop <span class="kw">for </span>ConsumeAllOnDrop&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0</span>.for_each(drop);
-    }
-}
-
-<span class="kw">impl</span>&lt;K, V, F, A&gt; Iterator <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, V, F, A&gt;
+<span class="kw">impl</span>&lt;K, V, F, A&gt; Iterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, V, F, A&gt;
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool,
     A: Allocator + Clone,
@@ -11087,15 +11249,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K, V, F&gt; FusedIterator <span class="kw">for </span>DrainFilter&lt;<span class="lifetime">&#39;_</span>, K, V, F&gt; <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool {}
+<span class="kw">impl</span>&lt;K, V, F&gt; FusedIterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, V, F&gt; <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;mut </span>V) -&gt; bool {}
 
-<span class="doccomment">/// Portions of `DrainFilter` shared with `set::DrainFilter`
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>DrainFilterInner&lt;<span class="lifetime">&#39;a</span>, K, V, A: Allocator + Clone&gt; {
+<span class="doccomment">/// Portions of `ExtractIf` shared with `set::ExtractIf`
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>ExtractIfInner&lt;<span class="lifetime">&#39;a</span>, K, V, A: Allocator + Clone&gt; {
     <span class="kw">pub </span>iter: RawIter&lt;(K, V)&gt;,
     <span class="kw">pub </span>table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RawTable&lt;(K, V), A&gt;,
 }
 
-<span class="kw">impl</span>&lt;K, V, A: Allocator + Clone&gt; DrainFilterInner&lt;<span class="lifetime">&#39;_</span>, K, V, A&gt; {
+<span class="kw">impl</span>&lt;K, V, A: Allocator + Clone&gt; ExtractIfInner&lt;<span class="lifetime">&#39;_</span>, K, V, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>F) -&gt; <span class="prelude-ty">Option</span>&lt;(K, V)&gt;
     <span class="kw">where
@@ -11105,7 +11267,7 @@
             <span class="kw">for </span>item <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.iter {
                 <span class="kw">let </span><span class="kw-2">&amp;mut </span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref mut </span>value) = item.as_mut();
                 <span class="kw">if </span>f(key, value) {
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.table.remove(item));
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.table.remove(item).<span class="number">0</span>);
                 }
             }
         }
@@ -11511,10 +11673,9 @@
     </span><span class="kw">pub fn </span>from_key&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; RawEntryMut&lt;<span class="lifetime">&#39;a</span>, K, V, S, A&gt;
     <span class="kw">where
         </span>S: BuildHasher,
-        K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        Q: Hash + Equivalent&lt;K&gt;,
     {
-        <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.map.hash_builder, k);
+        <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.map.hash_builder, k);
         <span class="self">self</span>.from_key_hashed_nocheck(hash, k)
     }
 
@@ -11544,8 +11705,7 @@
     #[allow(clippy::wrong_self_convention)]
     </span><span class="kw">pub fn </span>from_key_hashed_nocheck&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, hash: u64, k: <span class="kw-2">&amp;</span>Q) -&gt; RawEntryMut&lt;<span class="lifetime">&#39;a</span>, K, V, S, A&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Eq,
+        </span>Q: Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.from_hash(hash, equivalent(k))
     }
@@ -11619,10 +11779,9 @@
     </span><span class="kw">pub fn </span>from_key&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V)&gt;
     <span class="kw">where
         </span>S: BuildHasher,
-        K: Borrow&lt;Q&gt;,
-        Q: Hash + Eq,
+        Q: Hash + Equivalent&lt;K&gt;,
     {
-        <span class="kw">let </span>hash = make_hash::&lt;K, Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.map.hash_builder, k);
+        <span class="kw">let </span>hash = make_hash::&lt;Q, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.map.hash_builder, k);
         <span class="self">self</span>.from_key_hashed_nocheck(hash, k)
     }
 
@@ -11650,8 +11809,7 @@
     #[allow(clippy::wrong_self_convention)]
     </span><span class="kw">pub fn </span>from_key_hashed_nocheck&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, hash: u64, k: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V)&gt;
     <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-        Q: Eq,
+        </span>Q: Equivalent&lt;K&gt;,
     {
         <span class="self">self</span>.from_hash(hash, equivalent(k))
     }
@@ -11662,7 +11820,7 @@
         </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
     {
         <span class="kw">match </span><span class="self">self</span>.map.table.get(hash, |(k, <span class="kw">_</span>)| is_match(k)) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref </span>value)) =&gt; <span class="prelude-val">Some</span>((key, value)),
+            <span class="prelude-val">Some</span>((key, value)) =&gt; <span class="prelude-val">Some</span>((key, value)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -12058,7 +12216,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>get_key_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref </span>value) = <span class="self">self</span>.elem.as_ref();
+            <span class="kw">let </span>(key, value) = <span class="self">self</span>.elem.as_ref();
             (key, value)
         }
     }
@@ -12230,7 +12388,7 @@
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove_entry(<span class="self">self</span>) -&gt; (K, V) {
-        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.remove(<span class="self">self</span>.elem) }
+        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.remove(<span class="self">self</span>.elem).<span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Provides shared access to the key and owned access to the value of
@@ -12314,7 +12472,7 @@
         </span>K: Hash,
         S: BuildHasher,
     {
-        <span class="kw">let </span>hash = make_insert_hash::&lt;K, S&gt;(<span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
+        <span class="kw">let </span>hash = make_hash::&lt;K, S&gt;(<span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
         <span class="self">self</span>.insert_hashed_nocheck(hash, key, value)
     }
 
@@ -12358,7 +12516,7 @@
         <span class="kw">let </span><span class="kw-2">&amp;mut </span>(<span class="kw-2">ref mut </span>k, <span class="kw-2">ref mut </span>v) = <span class="self">self</span>.table.insert_entry(
             hash,
             (key, value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="self">self</span>.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="self">self</span>.hash_builder),
         );
         (k, v)
     }
@@ -12422,11 +12580,11 @@
         </span>K: Hash,
         S: BuildHasher,
     {
-        <span class="kw">let </span>hash = make_insert_hash::&lt;K, S&gt;(<span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
+        <span class="kw">let </span>hash = make_hash::&lt;K, S&gt;(<span class="self">self</span>.hash_builder, <span class="kw-2">&amp;</span>key);
         <span class="kw">let </span>elem = <span class="self">self</span>.table.insert(
             hash,
             (key, value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="self">self</span>.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="self">self</span>.hash_builder),
         );
         RawOccupiedEntryMut {
             elem,
@@ -12599,7 +12757,7 @@
 /// assert_eq!(map.get(&amp;&quot;c&quot;), None);
 /// assert_eq!(map.len(), 2);
 /// ```
-</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, S = DefaultHashBuilder, A: Allocator + Clone = Global&gt; {
     hash: u64,
     key: <span class="prelude-ty">Option</span>&lt;K&gt;,
     elem: Bucket&lt;(K, V)&gt;,
@@ -12662,7 +12820,7 @@
 /// }
 /// assert!(map[&amp;&quot;b&quot;] == 20 &amp;&amp; map.len() == 2);
 /// ```
-</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, S = DefaultHashBuilder, A: Allocator + Clone = Global&gt; {
     hash: u64,
     key: K,
     table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>HashMap&lt;K, V, S, A&gt;,
@@ -12870,7 +13028,7 @@
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;OccupiedEntryRef&quot;</span>)
-            .field(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.key())
+            .field(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.key().borrow())
             .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get())
             .finish()
     }
@@ -13591,7 +13749,6 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.entry(&quot;poneyland&quot;).or_insert(12);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// if let Entry::Occupied(o) = map.entry(&quot;poneyland&quot;) {
     ///     // We delete the entry from the map.
@@ -13599,12 +13756,12 @@
     /// }
     ///
     /// assert_eq!(map.contains_key(&quot;poneyland&quot;), false);
-    /// // Now map hold none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// // Now map hold none elements
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove_entry(<span class="self">self</span>) -&gt; (K, V) {
-        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.table.remove(<span class="self">self</span>.elem) }
+        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.table.remove(<span class="self">self</span>.elem).<span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Gets a reference to the value in the entry.
@@ -13727,15 +13884,14 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.entry(&quot;poneyland&quot;).or_insert(12);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// if let Entry::Occupied(o) = map.entry(&quot;poneyland&quot;) {
     ///     assert_eq!(o.remove(), 12);
     /// }
     ///
     /// assert_eq!(map.contains_key(&quot;poneyland&quot;), false);
-    /// // Now map hold none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// // Now map hold none elements
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; V {
@@ -13975,7 +14131,7 @@
         <span class="kw">let </span>entry = table.insert_entry(
             <span class="self">self</span>.hash,
             (<span class="self">self</span>.key, value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
         );
         <span class="kw-2">&amp;mut </span>entry.<span class="number">1
     </span>}
@@ -13989,7 +14145,7 @@
         <span class="kw">let </span>elem = <span class="self">self</span>.table.table.insert(
             <span class="self">self</span>.hash,
             (<span class="self">self</span>.key, value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
         );
         OccupiedEntry {
             hash: <span class="self">self</span>.hash,
@@ -14090,10 +14246,7 @@
 
     <span class="doccomment">/// Ensures a value is in the entry by inserting, if empty, the result of the default function.
     /// This method allows for generating key-derived values for insertion by providing the default
-    /// function a reference to the key that was moved during the `.entry_ref(key)` method call.
-    ///
-    /// The reference to the moved key is provided so that cloning or copying the key is
-    /// unnecessary, unlike with `.or_insert_with(|| ... )`.
+    /// function an access to the borrower form of the key.
     ///
     /// # Examples
     ///
@@ -14145,7 +14298,7 @@
         </span>K: Borrow&lt;Q&gt;,
     {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            EntryRef::Occupied(<span class="kw-2">ref </span>entry) =&gt; entry.key(),
+            EntryRef::Occupied(<span class="kw-2">ref </span>entry) =&gt; entry.key().borrow(),
             EntryRef::Vacant(<span class="kw-2">ref </span>entry) =&gt; entry.key(),
         }
     }
@@ -14241,8 +14394,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>and_replace_entry_with&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span>Q, V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;,
-        K: Borrow&lt;Q&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>K, V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
             EntryRef::Occupied(entry) =&gt; entry.replace_entry_with(f),
@@ -14301,11 +14453,8 @@
     /// }
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
-    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Q
-    <span class="kw">where
-        </span>K: Borrow&lt;Q&gt;,
-    {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><span class="self">self</span>.elem.as_ref().<span class="number">0 </span>}.borrow()
+    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><span class="self">self</span>.elem.as_ref().<span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Take the ownership of the key and value from the map.
@@ -14322,7 +14471,6 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.entry_ref(&quot;poneyland&quot;).or_insert(12);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// if let EntryRef::Occupied(o) = map.entry_ref(&quot;poneyland&quot;) {
     ///     // We delete the entry from the map.
@@ -14331,11 +14479,11 @@
     ///
     /// assert_eq!(map.contains_key(&quot;poneyland&quot;), false);
     /// // Now map hold none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove_entry(<span class="self">self</span>) -&gt; (K, V) {
-        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.table.remove(<span class="self">self</span>.elem) }
+        <span class="kw">unsafe </span>{ <span class="self">self</span>.table.table.remove(<span class="self">self</span>.elem).<span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Gets a reference to the value in the entry.
@@ -14456,7 +14604,6 @@
     /// assert!(map.is_empty() &amp;&amp; map.capacity() == 0);
     ///
     /// map.entry_ref(&quot;poneyland&quot;).or_insert(12);
-    /// let capacity_before_remove = map.capacity();
     ///
     /// if let EntryRef::Occupied(o) = map.entry_ref(&quot;poneyland&quot;) {
     ///     assert_eq!(o.remove(), 12);
@@ -14464,7 +14611,7 @@
     ///
     /// assert_eq!(map.contains_key(&quot;poneyland&quot;), false);
     /// // Now map hold none elements but capacity is equal to the old one
-    /// assert!(map.len() == 0 &amp;&amp; map.capacity() == capacity_before_remove);
+    /// assert!(map.is_empty());
     /// ```
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; V {
@@ -14476,7 +14623,7 @@
     ///
     /// # Panics
     ///
-    /// Will panic if this OccupiedEntry was created through [`EntryRef::insert`].
+    /// Will panic if this OccupiedEntryRef was created through [`EntryRef::insert`].
     ///
     /// # Examples
     ///
@@ -14518,7 +14665,7 @@
     ///
     /// # Panics
     ///
-    /// Will panic if this OccupiedEntry was created through [`Entry::insert`].
+    /// Will panic if this OccupiedEntryRef was created through [`EntryRef::insert`].
     ///
     /// # Examples
     ///
@@ -14546,7 +14693,7 @@
     /// fn reclaim_memory(map: &amp;mut HashMap&lt;Rc&lt;str&gt;, usize&gt;, keys: &amp;[Rc&lt;str&gt;]) {
     ///     for key in keys {
     ///         if let EntryRef::Occupied(entry) = map.entry_ref(key.as_ref()) {
-    ///         /// Replaces the entry&#39;s key with our version of it in `keys`.
+    ///             // Replaces the entry&#39;s key with our version of it in `keys`.
     ///             entry.replace_key();
     ///         }
     ///     }
@@ -14612,8 +14759,7 @@
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">pub fn </span>replace_entry_with&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; EntryRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, K, Q, V, S, A&gt;
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span>Q, V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;,
-        K: Borrow&lt;Q&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>K, V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;,
     {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>spare_key = <span class="prelude-val">None</span>;
@@ -14621,7 +14767,7 @@
             <span class="self">self</span>.table
                 .table
                 .replace_bucket_with(<span class="self">self</span>.elem.clone(), |(key, value)| {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(new_value) = f(key.borrow(), value) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(new_value) = f(<span class="kw-2">&amp;</span>key, value) {
                         <span class="prelude-val">Some</span>((key, new_value))
                     } <span class="kw">else </span>{
                         spare_key = <span class="prelude-val">Some</span>(KeyOrRef::Owned(key));
@@ -14713,7 +14859,7 @@
         <span class="kw">let </span>entry = table.insert_entry(
             <span class="self">self</span>.hash,
             (<span class="self">self</span>.key.into_owned(), value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
         );
         <span class="kw-2">&amp;mut </span>entry.<span class="number">1
     </span>}
@@ -14727,7 +14873,7 @@
         <span class="kw">let </span>elem = <span class="self">self</span>.table.table.insert(
             <span class="self">self</span>.hash,
             (<span class="self">self</span>.key.into_owned(), value),
-            make_hasher::&lt;K, <span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
+            make_hasher::&lt;<span class="kw">_</span>, V, S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.table.hash_builder),
         );
         OccupiedEntryRef {
             hash: <span class="self">self</span>.hash,
@@ -14863,17 +15009,17 @@
     /// map.insert(1, 100);
     ///
     /// let arr = [(1, 1), (2, 2)];
-    /// let some_iter = arr.iter().map(|&amp;(k, v)| (k, v));
+    /// let some_iter = arr.iter().map(|(k, v)| (k, v));
     /// map.extend(some_iter);
     /// // Replace values with existing keys with new values returned from the iterator.
     /// // So that the map.get(&amp;1) doesn&#39;t return Some(&amp;100).
     /// assert_eq!(map.get(&amp;1), Some(&amp;1));
     ///
     /// let some_vec: Vec&lt;_&gt; = vec![(3, 3), (4, 4)];
-    /// map.extend(some_vec.iter().map(|&amp;(k, v)| (k, v)));
+    /// map.extend(some_vec.iter().map(|(k, v)| (k, v)));
     ///
     /// let some_arr = [(5, 5), (6, 6)];
-    /// map.extend(some_arr.iter().map(|&amp;(k, v)| (k, v)));
+    /// map.extend(some_arr.iter().map(|(k, v)| (k, v)));
     ///
     /// // You can also extend from another HashMap
     /// let mut new_map = HashMap::new();
@@ -15235,8 +15381,7 @@
                 }
             });
 
-            <span class="attr">#[allow(clippy::let_underscore_drop)] </span><span class="comment">// kind-of a false positive
-            </span><span class="kw">for _ in </span>half.by_ref() {}
+            <span class="kw">for _ in </span>half.by_ref() {}
 
             DROP_VECTOR.with(|v| {
                 <span class="kw">let </span>nk = (<span class="number">0</span>..<span class="number">100</span>).filter(|<span class="kw-2">&amp;</span>i| v.borrow()[i] == <span class="number">1</span>).count();
@@ -15563,10 +15708,10 @@
         map.insert(<span class="number">1</span>, <span class="number">2</span>);
         map.insert(<span class="number">3</span>, <span class="number">4</span>);
 
-        <span class="kw">let </span>map_str = <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, map);
+        <span class="kw">let </span>map_str = <span class="macro">format!</span>(<span class="string">&quot;{map:?}&quot;</span>);
 
         <span class="macro">assert!</span>(map_str == <span class="string">&quot;{1: 2, 3: 4}&quot; </span>|| map_str == <span class="string">&quot;{3: 4, 1: 2}&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, empty), <span class="string">&quot;{}&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{empty:?}&quot;</span>), <span class="string">&quot;{}&quot;</span>);
     }
 
     <span class="attr">#[test]
@@ -15882,7 +16027,7 @@
                               // Test for #19292
         </span><span class="kw">fn </span>check(m: <span class="kw-2">&amp;</span>HashMap&lt;i32, ()&gt;) {
             <span class="kw">for </span>k <span class="kw">in </span>m.keys() {
-                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{} is in keys() but not in the map?&quot;</span>, k);
+                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{k} is in keys() but not in the map?&quot;</span>);
             }
         }
 
@@ -15918,7 +16063,7 @@
                               // Test for #19292
         </span><span class="kw">fn </span>check(m: <span class="kw-2">&amp;</span>HashMap&lt;std::string::String, ()&gt;) {
             <span class="kw">for </span>k <span class="kw">in </span>m.keys() {
-                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{} is in keys() but not in the map?&quot;</span>, k);
+                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{k} is in keys() but not in the map?&quot;</span>);
             }
         }
 
@@ -15967,6 +16112,7 @@
     }
 
     <span class="attr">#[test]
+    #[allow(clippy::needless_borrow)]
     </span><span class="kw">fn </span>test_extend_ref_kv_tuple() {
         <span class="kw">use </span>std::ops::AddAssign;
         <span class="kw">let </span><span class="kw-2">mut </span>a = HashMap::new();
@@ -15988,7 +16134,7 @@
         <span class="kw">let </span>vec: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">100</span>..<span class="number">200</span>).map(|i| (i, i)).collect();
         a.extend(iter);
         a.extend(<span class="kw-2">&amp;</span>vec);
-        a.extend(<span class="kw-2">&amp;</span>create_arr::&lt;i32, <span class="number">100</span>&gt;(<span class="number">200</span>, <span class="number">1</span>));
+        a.extend(create_arr::&lt;i32, <span class="number">100</span>&gt;(<span class="number">200</span>, <span class="number">1</span>));
 
         <span class="macro">assert_eq!</span>(a.len(), <span class="number">300</span>);
 
@@ -16389,7 +16535,7 @@
                               // Test for #19292
         </span><span class="kw">fn </span>check(m: <span class="kw-2">&amp;</span>HashMap&lt;i32, ()&gt;) {
             <span class="kw">for </span>k <span class="kw">in </span>m.keys() {
-                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{} is in keys() but not in the map?&quot;</span>, k);
+                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{k} is in keys() but not in the map?&quot;</span>);
             }
         }
 
@@ -16419,7 +16565,7 @@
                               // Test for #19292
         </span><span class="kw">fn </span>check(m: <span class="kw-2">&amp;</span>HashMap&lt;std::string::String, ()&gt;) {
             <span class="kw">for </span>k <span class="kw">in </span>m.keys() {
-                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{} is in keys() but not in the map?&quot;</span>, k);
+                <span class="macro">assert!</span>(m.contains_key(k), <span class="string">&quot;{k} is in keys() but not in the map?&quot;</span>);
             }
         }
 
@@ -16457,10 +16603,10 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_drain_filter() {
+    </span><span class="kw">fn </span>test_extract_if() {
         {
             <span class="kw">let </span><span class="kw-2">mut </span>map: HashMap&lt;i32, i32&gt; = (<span class="number">0</span>..<span class="number">8</span>).map(|x| (x, x * <span class="number">10</span>)).collect();
-            <span class="kw">let </span>drained = map.drain_filter(|<span class="kw-2">&amp;</span>k, <span class="kw">_</span>| k % <span class="number">2 </span>== <span class="number">0</span>);
+            <span class="kw">let </span>drained = map.extract_if(|<span class="kw-2">&amp;</span>k, <span class="kw">_</span>| k % <span class="number">2 </span>== <span class="number">0</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>out = drained.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             out.sort_unstable();
             <span class="macro">assert_eq!</span>(<span class="macro">vec!</span>[(<span class="number">0</span>, <span class="number">0</span>), (<span class="number">2</span>, <span class="number">20</span>), (<span class="number">4</span>, <span class="number">40</span>), (<span class="number">6</span>, <span class="number">60</span>)], out);
@@ -16468,7 +16614,7 @@
         }
         {
             <span class="kw">let </span><span class="kw-2">mut </span>map: HashMap&lt;i32, i32&gt; = (<span class="number">0</span>..<span class="number">8</span>).map(|x| (x, x * <span class="number">10</span>)).collect();
-            drop(map.drain_filter(|<span class="kw-2">&amp;</span>k, <span class="kw">_</span>| k % <span class="number">2 </span>== <span class="number">0</span>));
+            map.extract_if(|<span class="kw-2">&amp;</span>k, <span class="kw">_</span>| k % <span class="number">2 </span>== <span class="number">0</span>).for_each(drop);
             <span class="macro">assert_eq!</span>(map.len(), <span class="number">4</span>);
         }
     }
@@ -16478,27 +16624,32 @@
     </span><span class="kw">fn </span>test_try_reserve() {
         <span class="kw">use </span><span class="kw">crate</span>::TryReserveError::{AllocError, CapacityOverflow};
 
-        <span class="kw">const </span>MAX_USIZE: usize = usize::MAX;
+        <span class="kw">const </span>MAX_ISIZE: usize = isize::MAX <span class="kw">as </span>usize;
 
         <span class="kw">let </span><span class="kw-2">mut </span>empty_bytes: HashMap&lt;u8, u8&gt; = HashMap::new();
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(CapacityOverflow) = empty_bytes.try_reserve(MAX_USIZE) {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(CapacityOverflow) = empty_bytes.try_reserve(usize::MAX) {
         } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;usize::MAX should trigger an overflow!&quot;</span>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(AllocError { .. }) = empty_bytes.try_reserve(MAX_USIZE / <span class="number">16</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(CapacityOverflow) = empty_bytes.try_reserve(MAX_ISIZE) {
+        } <span class="kw">else </span>{
+            <span class="macro">panic!</span>(<span class="string">&quot;isize::MAX should trigger an overflow!&quot;</span>);
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(AllocError { .. }) = empty_bytes.try_reserve(MAX_ISIZE / <span class="number">5</span>) {
         } <span class="kw">else </span>{
             <span class="comment">// This may succeed if there is enough free memory. Attempt to
             // allocate a few more hashmaps to ensure the allocation will fail.
             </span><span class="kw">let </span><span class="kw-2">mut </span>empty_bytes2: HashMap&lt;u8, u8&gt; = HashMap::new();
-            <span class="kw">let _ </span>= empty_bytes2.try_reserve(MAX_USIZE / <span class="number">16</span>);
+            <span class="kw">let _ </span>= empty_bytes2.try_reserve(MAX_ISIZE / <span class="number">5</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>empty_bytes3: HashMap&lt;u8, u8&gt; = HashMap::new();
-            <span class="kw">let _ </span>= empty_bytes3.try_reserve(MAX_USIZE / <span class="number">16</span>);
+            <span class="kw">let _ </span>= empty_bytes3.try_reserve(MAX_ISIZE / <span class="number">5</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>empty_bytes4: HashMap&lt;u8, u8&gt; = HashMap::new();
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(AllocError { .. }) = empty_bytes4.try_reserve(MAX_USIZE / <span class="number">16</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(AllocError { .. }) = empty_bytes4.try_reserve(MAX_ISIZE / <span class="number">5</span>) {
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;usize::MAX / 8 should trigger an OOM!&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">&quot;isize::MAX / 5 should trigger an OOM!&quot;</span>);
             }
         }
     }
@@ -16512,7 +16663,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>map: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = xs.iter().copied().collect();
 
         <span class="kw">let </span>compute_hash = |map: <span class="kw-2">&amp;</span>HashMap&lt;i32, i32&gt;, k: i32| -&gt; u64 {
-            <span class="kw">super</span>::make_insert_hash::&lt;i32, <span class="kw">_</span>&gt;(map.hasher(), <span class="kw-2">&amp;</span>k)
+            <span class="kw">super</span>::make_hash::&lt;i32, <span class="kw">_</span>&gt;(map.hasher(), <span class="kw-2">&amp;</span>k)
         };
 
         <span class="comment">// Existing key (insert)
@@ -16674,21 +16825,21 @@
             <span class="kw">loop </span>{
                 <span class="comment">// occasionally remove some elements
                 </span><span class="kw">if </span>i &lt; n &amp;&amp; rng.gen_bool(<span class="number">0.1</span>) {
-                    <span class="kw">let </span>hash_value = <span class="kw">super</span>::make_insert_hash(<span class="kw-2">&amp;</span>hash_builder, <span class="kw-2">&amp;</span>i);
+                    <span class="kw">let </span>hash_value = <span class="kw">super</span>::make_hash(<span class="kw-2">&amp;</span>hash_builder, <span class="kw-2">&amp;</span>i);
 
                     <span class="kw">unsafe </span>{
                         <span class="kw">let </span>e = map.table.find(hash_value, |q| q.<span class="number">0</span>.eq(<span class="kw-2">&amp;</span>i));
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = e {
                             it.reflect_remove(<span class="kw-2">&amp;</span>e);
-                            <span class="kw">let </span>t = map.table.remove(e);
+                            <span class="kw">let </span>t = map.table.remove(e).<span class="number">0</span>;
                             removed.push(t);
                             left -= <span class="number">1</span>;
                         } <span class="kw">else </span>{
-                            <span class="macro">assert!</span>(removed.contains(<span class="kw-2">&amp;</span>(i, <span class="number">2 </span>* i)), <span class="string">&quot;{} not in {:?}&quot;</span>, i, removed);
+                            <span class="macro">assert!</span>(removed.contains(<span class="kw-2">&amp;</span>(i, <span class="number">2 </span>* i)), <span class="string">&quot;{i} not in {removed:?}&quot;</span>);
                             <span class="kw">let </span>e = map.table.insert(
                                 hash_value,
                                 (i, <span class="number">2 </span>* i),
-                                <span class="kw">super</span>::make_hasher::&lt;usize, <span class="kw">_</span>, usize, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>hash_builder),
+                                <span class="kw">super</span>::make_hasher::&lt;<span class="kw">_</span>, usize, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>hash_builder),
                             );
                             it.reflect_insert(<span class="kw-2">&amp;</span>e);
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = removed.iter().position(|e| e == <span class="kw-2">&amp;</span>(i, <span class="number">2 </span>* i)) {
@@ -16812,6 +16963,51 @@
         map2.insert(<span class="number">4</span>, DISARMED);
 
         map2.clone_from(<span class="kw-2">&amp;</span>map1);
+    }
+
+    <span class="attr">#[test]
+    #[should_panic = <span class="string">&quot;panic in clone&quot;</span>]
+    </span><span class="kw">fn </span>test_clone_from_memory_leaks() {
+        <span class="kw">use </span>::alloc::vec::Vec;
+
+        <span class="kw">struct </span>CheckedClone {
+            panic_in_clone: bool,
+            need_drop: Vec&lt;i32&gt;,
+        }
+        <span class="kw">impl </span>Clone <span class="kw">for </span>CheckedClone {
+            <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+                <span class="kw">if </span><span class="self">self</span>.panic_in_clone {
+                    <span class="macro">panic!</span>(<span class="string">&quot;panic in clone&quot;</span>)
+                }
+                <span class="self">Self </span>{
+                    panic_in_clone: <span class="self">self</span>.panic_in_clone,
+                    need_drop: <span class="self">self</span>.need_drop.clone(),
+                }
+            }
+        }
+        <span class="kw">let </span><span class="kw-2">mut </span>map1 = HashMap::new();
+        map1.insert(
+            <span class="number">1</span>,
+            CheckedClone {
+                panic_in_clone: <span class="bool-val">false</span>,
+                need_drop: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],
+            },
+        );
+        map1.insert(
+            <span class="number">2</span>,
+            CheckedClone {
+                panic_in_clone: <span class="bool-val">false</span>,
+                need_drop: <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>],
+            },
+        );
+        map1.insert(
+            <span class="number">3</span>,
+            CheckedClone {
+                panic_in_clone: <span class="bool-val">true</span>,
+                need_drop: <span class="macro">vec!</span>[<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>],
+            },
+        );
+        <span class="kw">let </span>_map2 = map1.clone();
     }
 }
 </code></pre></div></section></main></body></html>

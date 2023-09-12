@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.28.4/src/linux/process.rs`."><title>process.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../sysinfo/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.10/src/linux/process.rs`."><title>process.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../sysinfo/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -716,6 +716,20 @@
 <a href="#716" id="716">716</a>
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
 </pre></div><pre class="rust"><code><span class="comment">// Take a look at the license at the top of the repository in the LICENSE file.
 
 </span><span class="kw">use </span>std::cell::UnsafeCell;
@@ -723,7 +737,6 @@
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::fs::{<span class="self">self</span>, File};
 <span class="kw">use </span>std::io::Read;
-<span class="kw">use </span>std::mem::MaybeUninit;
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::str::FromStr;
 
@@ -797,7 +810,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) updated: bool,
     cpu_usage: f32,
     user_id: <span class="prelude-ty">Option</span>&lt;Uid&gt;,
+    effective_user_id: <span class="prelude-ty">Option</span>&lt;Uid&gt;,
     group_id: <span class="prelude-ty">Option</span>&lt;Gid&gt;,
+    effective_group_id: <span class="prelude-ty">Option</span>&lt;Gid&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) status: ProcessStatus,
     <span class="doccomment">/// Tasks run by this process.
     </span><span class="kw">pub </span>tasks: HashMap&lt;Pid, Process&gt;,
@@ -831,7 +846,9 @@
             start_time: <span class="number">0</span>,
             run_time: <span class="number">0</span>,
             user_id: <span class="prelude-val">None</span>,
+            effective_user_id: <span class="prelude-val">None</span>,
             group_id: <span class="prelude-val">None</span>,
+            effective_group_id: <span class="prelude-val">None</span>,
             status: ProcessStatus::Unknown(<span class="number">0</span>),
             tasks: <span class="kw">if </span>pid.<span class="number">0 </span>== <span class="number">0 </span>{
                 HashMap::with_capacity(<span class="number">1000</span>)
@@ -922,15 +939,23 @@
         <span class="self">self</span>.user_id.as_ref()
     }
 
+    <span class="kw">fn </span>effective_user_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Uid&gt; {
+        <span class="self">self</span>.effective_user_id.as_ref()
+    }
+
     <span class="kw">fn </span>group_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gid&gt; {
         <span class="self">self</span>.group_id
+    }
+
+    <span class="kw">fn </span>effective_group_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gid&gt; {
+        <span class="self">self</span>.effective_group_id
     }
 
     <span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="number">0</span>;
         <span class="comment">// attempt waiting
         </span><span class="kw">unsafe </span>{
-            <span class="kw">if </span>libc::waitpid(<span class="self">self</span>.pid.<span class="number">0</span>, <span class="kw-2">&amp;mut </span>status, <span class="number">0</span>) &lt; <span class="number">0 </span>{
+            <span class="kw">if </span><span class="macro">retry_eintr!</span>(libc::waitpid(<span class="self">self</span>.pid.<span class="number">0</span>, <span class="kw-2">&amp;mut </span>status, <span class="number">0</span>)) &lt; <span class="number">0 </span>{
                 <span class="comment">// attempt failed (non-child process) so loop until process ends
                 </span><span class="kw">let </span>duration = std::time::Duration::from_millis(<span class="number">10</span>);
                 <span class="kw">while </span>kill(<span class="self">self</span>.pid.<span class="number">0</span>, <span class="number">0</span>) == <span class="number">0 </span>{
@@ -960,8 +985,10 @@
 
     <span class="comment">// We use `max_value` to ensure that the process CPU usage will never get bigger than:
     // `&quot;number of CPUs&quot; * 100.`
-    </span>p.cpu_usage = ((p.utime.saturating_sub(p.old_utime) + p.stime.saturating_sub(p.old_stime))
-        <span class="kw">as </span>f32
+    </span>p.cpu_usage = (p
+        .utime
+        .saturating_sub(p.old_utime)
+        .saturating_add(p.stime.saturating_sub(p.old_stime)) <span class="kw">as </span>f32
         / total_time
         * <span class="number">100.</span>)
         .min(max_value);
@@ -1055,9 +1082,13 @@
 }
 
 <span class="kw">fn </span>refresh_user_group_ids&lt;P: PathPush&gt;(p: <span class="kw-2">&amp;mut </span>Process, path: <span class="kw-2">&amp;mut </span>P) {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((user_id, group_id)) = get_uid_and_gid(path.join(<span class="string">&quot;status&quot;</span>)) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(((user_id, effective_user_id), (group_id, effective_group_id))) =
+        get_uid_and_gid(path.join(<span class="string">&quot;status&quot;</span>))
+    {
         p.user_id = <span class="prelude-val">Some</span>(Uid(user_id));
+        p.effective_user_id = <span class="prelude-val">Some</span>(Uid(effective_user_id));
         p.group_id = <span class="prelude-val">Some</span>(Gid(group_id));
+        p.effective_group_id = <span class="prelude-val">Some</span>(Gid(effective_group_id));
     }
 }
 
@@ -1361,43 +1392,38 @@
     }
 }
 
-<span class="kw">fn </span>get_uid_and_gid(file_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;(uid_t, gid_t)&gt; {
-    <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
-
-    <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>sstat: MaybeUninit&lt;libc::stat&gt; = MaybeUninit::uninit();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>file_path: Vec&lt;u8&gt; = file_path.as_os_str().as_bytes().to_vec();
-        file_path.push(<span class="number">0</span>);
-        <span class="kw">if </span>libc::stat(file_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, sstat.as_mut_ptr()) == <span class="number">0 </span>{
-            <span class="kw">let </span>sstat = sstat.assume_init();
-
-            <span class="kw">return </span><span class="prelude-val">Some</span>((sstat.st_uid, sstat.st_gid));
-        }
-    }
-
+<span class="comment">// Fetch tuples of real and effective UID and GID.
+</span><span class="kw">fn </span>get_uid_and_gid(file_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;((uid_t, uid_t), (gid_t, gid_t))&gt; {
     <span class="kw">let </span>status_data = get_all_data(file_path, <span class="number">16_385</span>).ok()<span class="question-mark">?</span>;
 
     <span class="comment">// We&#39;re only interested in the lines starting with Uid: and Gid:
-    // here. From these lines, we&#39;re looking at the second entry to get
-    // the effective u/gid.
+    // here. From these lines, we&#39;re looking at the first and second entries to get
+    // the real u/gid.
 
-    </span><span class="kw">let </span>f = |h: <span class="kw-2">&amp;</span>str, n: <span class="kw-2">&amp;</span>str| -&gt; <span class="prelude-ty">Option</span>&lt;uid_t&gt; {
+    </span><span class="kw">let </span>f = |h: <span class="kw-2">&amp;</span>str, n: <span class="kw-2">&amp;</span>str| -&gt; (<span class="prelude-ty">Option</span>&lt;uid_t&gt;, <span class="prelude-ty">Option</span>&lt;uid_t&gt;) {
         <span class="kw">if </span>h.starts_with(n) {
-            h.split_whitespace().nth(<span class="number">2</span>).unwrap_or(<span class="string">&quot;0&quot;</span>).parse().ok()
+            <span class="kw">let </span><span class="kw-2">mut </span>ids = h.split_whitespace();
+            <span class="kw">let </span>real = ids.nth(<span class="number">1</span>).unwrap_or(<span class="string">&quot;0&quot;</span>).parse().ok();
+            <span class="kw">let </span>effective = ids.next().unwrap_or(<span class="string">&quot;0&quot;</span>).parse().ok();
+
+            (real, effective)
         } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+        }
     };
     <span class="kw">let </span><span class="kw-2">mut </span>uid = <span class="prelude-val">None</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>effective_uid = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>gid = <span class="prelude-val">None</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>effective_gid = <span class="prelude-val">None</span>;
     <span class="kw">for </span>line <span class="kw">in </span>status_data.lines() {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(u) = f(line, <span class="string">&quot;Uid:&quot;</span>) {
-            <span class="macro">debug_assert!</span>(uid.is_none());
-            uid = <span class="prelude-val">Some</span>(u);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(g) = f(line, <span class="string">&quot;Gid:&quot;</span>) {
-            <span class="macro">debug_assert!</span>(gid.is_none());
-            gid = <span class="prelude-val">Some</span>(g);
+        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(real), <span class="prelude-val">Some</span>(effective)) = f(line, <span class="string">&quot;Uid:&quot;</span>) {
+            <span class="macro">debug_assert!</span>(uid.is_none() &amp;&amp; effective_uid.is_none());
+            uid = <span class="prelude-val">Some</span>(real);
+            effective_uid = <span class="prelude-val">Some</span>(effective);
+        } <span class="kw">else if let </span>(<span class="prelude-val">Some</span>(real), <span class="prelude-val">Some</span>(effective)) = f(line, <span class="string">&quot;Gid:&quot;</span>) {
+            <span class="macro">debug_assert!</span>(gid.is_none() &amp;&amp; effective_gid.is_none());
+            gid = <span class="prelude-val">Some</span>(real);
+            effective_gid = <span class="prelude-val">Some</span>(effective);
         } <span class="kw">else </span>{
             <span class="kw">continue</span>;
         }
@@ -1405,8 +1431,10 @@
             <span class="kw">break</span>;
         }
     }
-    <span class="kw">match </span>(uid, gid) {
-        (<span class="prelude-val">Some</span>(u), <span class="prelude-val">Some</span>(g)) =&gt; <span class="prelude-val">Some</span>((u, g)),
+    <span class="kw">match </span>(uid, effective_uid, gid, effective_gid) {
+        (<span class="prelude-val">Some</span>(uid), <span class="prelude-val">Some</span>(effective_uid), <span class="prelude-val">Some</span>(gid), <span class="prelude-val">Some</span>(effective_gid)) =&gt; {
+            <span class="prelude-val">Some</span>(((uid, effective_uid), (gid, effective_gid)))
+        }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }

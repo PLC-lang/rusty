@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/itertools-0.10.5/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/itertools-0.11.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3782,6 +3782,189 @@
 <a href="#3782" id="3782">3782</a>
 <a href="#3783" id="3783">3783</a>
 <a href="#3784" id="3784">3784</a>
+<a href="#3785" id="3785">3785</a>
+<a href="#3786" id="3786">3786</a>
+<a href="#3787" id="3787">3787</a>
+<a href="#3788" id="3788">3788</a>
+<a href="#3789" id="3789">3789</a>
+<a href="#3790" id="3790">3790</a>
+<a href="#3791" id="3791">3791</a>
+<a href="#3792" id="3792">3792</a>
+<a href="#3793" id="3793">3793</a>
+<a href="#3794" id="3794">3794</a>
+<a href="#3795" id="3795">3795</a>
+<a href="#3796" id="3796">3796</a>
+<a href="#3797" id="3797">3797</a>
+<a href="#3798" id="3798">3798</a>
+<a href="#3799" id="3799">3799</a>
+<a href="#3800" id="3800">3800</a>
+<a href="#3801" id="3801">3801</a>
+<a href="#3802" id="3802">3802</a>
+<a href="#3803" id="3803">3803</a>
+<a href="#3804" id="3804">3804</a>
+<a href="#3805" id="3805">3805</a>
+<a href="#3806" id="3806">3806</a>
+<a href="#3807" id="3807">3807</a>
+<a href="#3808" id="3808">3808</a>
+<a href="#3809" id="3809">3809</a>
+<a href="#3810" id="3810">3810</a>
+<a href="#3811" id="3811">3811</a>
+<a href="#3812" id="3812">3812</a>
+<a href="#3813" id="3813">3813</a>
+<a href="#3814" id="3814">3814</a>
+<a href="#3815" id="3815">3815</a>
+<a href="#3816" id="3816">3816</a>
+<a href="#3817" id="3817">3817</a>
+<a href="#3818" id="3818">3818</a>
+<a href="#3819" id="3819">3819</a>
+<a href="#3820" id="3820">3820</a>
+<a href="#3821" id="3821">3821</a>
+<a href="#3822" id="3822">3822</a>
+<a href="#3823" id="3823">3823</a>
+<a href="#3824" id="3824">3824</a>
+<a href="#3825" id="3825">3825</a>
+<a href="#3826" id="3826">3826</a>
+<a href="#3827" id="3827">3827</a>
+<a href="#3828" id="3828">3828</a>
+<a href="#3829" id="3829">3829</a>
+<a href="#3830" id="3830">3830</a>
+<a href="#3831" id="3831">3831</a>
+<a href="#3832" id="3832">3832</a>
+<a href="#3833" id="3833">3833</a>
+<a href="#3834" id="3834">3834</a>
+<a href="#3835" id="3835">3835</a>
+<a href="#3836" id="3836">3836</a>
+<a href="#3837" id="3837">3837</a>
+<a href="#3838" id="3838">3838</a>
+<a href="#3839" id="3839">3839</a>
+<a href="#3840" id="3840">3840</a>
+<a href="#3841" id="3841">3841</a>
+<a href="#3842" id="3842">3842</a>
+<a href="#3843" id="3843">3843</a>
+<a href="#3844" id="3844">3844</a>
+<a href="#3845" id="3845">3845</a>
+<a href="#3846" id="3846">3846</a>
+<a href="#3847" id="3847">3847</a>
+<a href="#3848" id="3848">3848</a>
+<a href="#3849" id="3849">3849</a>
+<a href="#3850" id="3850">3850</a>
+<a href="#3851" id="3851">3851</a>
+<a href="#3852" id="3852">3852</a>
+<a href="#3853" id="3853">3853</a>
+<a href="#3854" id="3854">3854</a>
+<a href="#3855" id="3855">3855</a>
+<a href="#3856" id="3856">3856</a>
+<a href="#3857" id="3857">3857</a>
+<a href="#3858" id="3858">3858</a>
+<a href="#3859" id="3859">3859</a>
+<a href="#3860" id="3860">3860</a>
+<a href="#3861" id="3861">3861</a>
+<a href="#3862" id="3862">3862</a>
+<a href="#3863" id="3863">3863</a>
+<a href="#3864" id="3864">3864</a>
+<a href="#3865" id="3865">3865</a>
+<a href="#3866" id="3866">3866</a>
+<a href="#3867" id="3867">3867</a>
+<a href="#3868" id="3868">3868</a>
+<a href="#3869" id="3869">3869</a>
+<a href="#3870" id="3870">3870</a>
+<a href="#3871" id="3871">3871</a>
+<a href="#3872" id="3872">3872</a>
+<a href="#3873" id="3873">3873</a>
+<a href="#3874" id="3874">3874</a>
+<a href="#3875" id="3875">3875</a>
+<a href="#3876" id="3876">3876</a>
+<a href="#3877" id="3877">3877</a>
+<a href="#3878" id="3878">3878</a>
+<a href="#3879" id="3879">3879</a>
+<a href="#3880" id="3880">3880</a>
+<a href="#3881" id="3881">3881</a>
+<a href="#3882" id="3882">3882</a>
+<a href="#3883" id="3883">3883</a>
+<a href="#3884" id="3884">3884</a>
+<a href="#3885" id="3885">3885</a>
+<a href="#3886" id="3886">3886</a>
+<a href="#3887" id="3887">3887</a>
+<a href="#3888" id="3888">3888</a>
+<a href="#3889" id="3889">3889</a>
+<a href="#3890" id="3890">3890</a>
+<a href="#3891" id="3891">3891</a>
+<a href="#3892" id="3892">3892</a>
+<a href="#3893" id="3893">3893</a>
+<a href="#3894" id="3894">3894</a>
+<a href="#3895" id="3895">3895</a>
+<a href="#3896" id="3896">3896</a>
+<a href="#3897" id="3897">3897</a>
+<a href="#3898" id="3898">3898</a>
+<a href="#3899" id="3899">3899</a>
+<a href="#3900" id="3900">3900</a>
+<a href="#3901" id="3901">3901</a>
+<a href="#3902" id="3902">3902</a>
+<a href="#3903" id="3903">3903</a>
+<a href="#3904" id="3904">3904</a>
+<a href="#3905" id="3905">3905</a>
+<a href="#3906" id="3906">3906</a>
+<a href="#3907" id="3907">3907</a>
+<a href="#3908" id="3908">3908</a>
+<a href="#3909" id="3909">3909</a>
+<a href="#3910" id="3910">3910</a>
+<a href="#3911" id="3911">3911</a>
+<a href="#3912" id="3912">3912</a>
+<a href="#3913" id="3913">3913</a>
+<a href="#3914" id="3914">3914</a>
+<a href="#3915" id="3915">3915</a>
+<a href="#3916" id="3916">3916</a>
+<a href="#3917" id="3917">3917</a>
+<a href="#3918" id="3918">3918</a>
+<a href="#3919" id="3919">3919</a>
+<a href="#3920" id="3920">3920</a>
+<a href="#3921" id="3921">3921</a>
+<a href="#3922" id="3922">3922</a>
+<a href="#3923" id="3923">3923</a>
+<a href="#3924" id="3924">3924</a>
+<a href="#3925" id="3925">3925</a>
+<a href="#3926" id="3926">3926</a>
+<a href="#3927" id="3927">3927</a>
+<a href="#3928" id="3928">3928</a>
+<a href="#3929" id="3929">3929</a>
+<a href="#3930" id="3930">3930</a>
+<a href="#3931" id="3931">3931</a>
+<a href="#3932" id="3932">3932</a>
+<a href="#3933" id="3933">3933</a>
+<a href="#3934" id="3934">3934</a>
+<a href="#3935" id="3935">3935</a>
+<a href="#3936" id="3936">3936</a>
+<a href="#3937" id="3937">3937</a>
+<a href="#3938" id="3938">3938</a>
+<a href="#3939" id="3939">3939</a>
+<a href="#3940" id="3940">3940</a>
+<a href="#3941" id="3941">3941</a>
+<a href="#3942" id="3942">3942</a>
+<a href="#3943" id="3943">3943</a>
+<a href="#3944" id="3944">3944</a>
+<a href="#3945" id="3945">3945</a>
+<a href="#3946" id="3946">3946</a>
+<a href="#3947" id="3947">3947</a>
+<a href="#3948" id="3948">3948</a>
+<a href="#3949" id="3949">3949</a>
+<a href="#3950" id="3950">3950</a>
+<a href="#3951" id="3951">3951</a>
+<a href="#3952" id="3952">3952</a>
+<a href="#3953" id="3953">3953</a>
+<a href="#3954" id="3954">3954</a>
+<a href="#3955" id="3955">3955</a>
+<a href="#3956" id="3956">3956</a>
+<a href="#3957" id="3957">3957</a>
+<a href="#3958" id="3958">3958</a>
+<a href="#3959" id="3959">3959</a>
+<a href="#3960" id="3960">3960</a>
+<a href="#3961" id="3961">3961</a>
+<a href="#3962" id="3962">3962</a>
+<a href="#3963" id="3963">3963</a>
+<a href="#3964" id="3964">3964</a>
+<a href="#3965" id="3965">3965</a>
+<a href="#3966" id="3966">3966</a>
+<a href="#3967" id="3967">3967</a>
 </pre></div><pre class="rust"><code><span class="attr">#![warn(missing_docs)]
 #![crate_name=<span class="string">&quot;itertools&quot;</span>]
 #![cfg_attr(not(feature = <span class="string">&quot;use_std&quot;</span>), no_std)]
@@ -3930,6 +4113,7 @@
     <span class="kw">pub use </span><span class="kw">crate</span>::repeatn::RepeatN;
     <span class="attr">#[allow(deprecated)]
     </span><span class="kw">pub use </span><span class="kw">crate</span>::sources::{RepeatCall, Unfold, Iterate};
+    <span class="kw">pub use </span><span class="kw">crate</span>::take_while_inclusive::TakeWhileInclusive;
     <span class="attr">#[cfg(feature = <span class="string">&quot;use_alloc&quot;</span>)]
     </span><span class="kw">pub use </span><span class="kw">crate</span>::tee::Tee;
     <span class="kw">pub use </span><span class="kw">crate</span>::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
@@ -4017,6 +4201,7 @@
 <span class="kw">mod </span>repeatn;
 <span class="kw">mod </span>size_hint;
 <span class="kw">mod </span>sources;
+<span class="kw">mod </span>take_while_inclusive;
 <span class="attr">#[cfg(feature = <span class="string">&quot;use_alloc&quot;</span>)]
 </span><span class="kw">mod </span>tee;
 <span class="kw">mod </span>tuple_impl;
@@ -4688,7 +4873,7 @@
 
     <span class="doccomment">/// Return an iterator adaptor that flattens every `Result::Ok` value into
     /// a series of `Result::Ok` values. `Result::Err` values are unchanged.
-    /// 
+    ///
     /// This is useful when you have some common error type for your crate and
     /// need to propagate it upwards, but the `Result::Ok` case needs to be flattened.
     ///
@@ -4698,7 +4883,7 @@
     /// let input = vec![Ok(0..2), Err(false), Ok(2..4)];
     /// let it = input.iter().cloned().flatten_ok();
     /// itertools::assert_equal(it.clone(), vec![Ok(0), Ok(1), Err(false), Ok(2), Ok(3)]);
-    /// 
+    ///
     /// // This can also be used to propagate errors when collecting.
     /// let output_result: Result&lt;Vec&lt;i32&gt;, bool&gt; = it.collect();
     /// assert_eq!(output_result, Err(false));
@@ -4710,6 +4895,43 @@
         flatten_ok::flatten_ok(<span class="self">self</span>)
     }
 
+    <span class="doccomment">/// “Lift” a function of the values of the current iterator so as to process
+    /// an iterator of `Result` values instead.
+    ///
+    /// `processor` is a closure that receives an adapted version of the iterator
+    /// as the only argument — the adapted iterator produces elements of type `T`,
+    /// as long as the original iterator produces `Ok` values.
+    ///
+    /// If the original iterable produces an error at any point, the adapted
+    /// iterator ends and it will return the error iself.
+    ///
+    /// Otherwise, the return value from the closure is returned wrapped
+    /// inside `Ok`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// type Item = Result&lt;i32, &amp;&#39;static str&gt;;
+    ///
+    /// let first_values: Vec&lt;Item&gt; = vec![Ok(1), Ok(0), Ok(3)];
+    /// let second_values: Vec&lt;Item&gt; = vec![Ok(2), Ok(1), Err(&quot;overflow&quot;)];
+    ///
+    /// // “Lift” the iterator .max() method to work on the Ok-values.
+    /// let first_max = first_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    /// let second_max = second_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    ///
+    /// assert_eq!(first_max, Ok(3));
+    /// assert!(second_max.is_err());
+    /// ```
+    </span><span class="kw">fn </span>process_results&lt;F, T, E, R&gt;(<span class="self">self</span>, processor: F) -&gt; <span class="prelude-ty">Result</span>&lt;R, E&gt;
+        <span class="kw">where </span><span class="self">Self</span>: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Sized,
+              F: FnOnce(ProcessResults&lt;<span class="self">Self</span>, E&gt;) -&gt; R
+    {
+        process_results(<span class="self">self</span>, processor)
+    }
+
     <span class="doccomment">/// Return an iterator adaptor that merges the two base iterators in
     /// ascending order.  If both base iterators are sorted (ascending), the
     /// result is sorted.
@@ -4719,8 +4941,8 @@
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..11).step(3);
-    /// let b = (0..11).step(5);
+    /// let a = (0..11).step_by(3);
+    /// let b = (0..11).step_by(5);
     /// let it = a.merge(b);
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
@@ -4759,7 +4981,10 @@
     <span class="doccomment">/// Create an iterator that merges items from both this and the specified
     /// iterator in ascending order.
     ///
-    /// It chooses whether to pair elements based on the `Ordering` returned by the
+    /// The function can either return an `Ordering` variant or a boolean.
+    ///
+    /// If `cmp_fn` returns `Ordering`,
+    /// it chooses whether to pair elements based on the `Ordering` returned by the
     /// specified compare function. At any point, inspecting the tip of the
     /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
     /// `J::Item` respectively, the resulting iterator will:
@@ -4775,18 +5000,46 @@
     /// use itertools::Itertools;
     /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
-    /// let multiples_of_2 = (0..10).step(2);
-    /// let multiples_of_3 = (0..10).step(3);
+    /// let a = vec![0, 2, 4, 6, 1].into_iter();
+    /// let b = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
-    ///     multiples_of_2.merge_join_by(multiples_of_3, |i, j| i.cmp(j)),
-    ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(8), Right(9)]
+    ///     a.merge_join_by(b, |i, j| i.cmp(j)),
+    ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(1), Right(9)]
+    /// );
+    /// ```
+    ///
+    /// If `cmp_fn` returns `bool`,
+    /// it chooses whether to pair elements based on the boolean returned by the
+    /// specified function. At any point, inspecting the tip of the
+    /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
+    /// `J::Item` respectively, the resulting iterator will:
+    ///
+    /// - Emit `Either::Left(i)` when `true`,
+    ///   and remove `i` from its source iterator
+    /// - Emit `Either::Right(j)` when `false`,
+    ///   and remove `j` from its source iterator
+    ///
+    /// It is similar to the `Ordering` case if the first argument is considered
+    /// &quot;less&quot; than the second argument.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::Either::{Left, Right};
+    ///
+    /// let a = vec![0, 2, 4, 6, 1].into_iter();
+    /// let b = (0..10).step_by(3);
+    ///
+    /// itertools::assert_equal(
+    ///     a.merge_join_by(b, |i, j| i &lt;= j),
+    ///     vec![Left(0), Right(0), Left(2), Right(3), Left(4), Left(6), Left(1), Right(6), Right(9)]
     /// );
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>merge_join_by&lt;J, F&gt;(<span class="self">self</span>, other: J, cmp_fn: F) -&gt; MergeJoinBy&lt;<span class="self">Self</span>, J::IntoIter, F&gt;
+    </span><span class="kw">fn </span>merge_join_by&lt;J, F, T&gt;(<span class="self">self</span>, other: J, cmp_fn: F) -&gt; MergeJoinBy&lt;<span class="self">Self</span>, J::IntoIter, F&gt;
         <span class="kw">where </span>J: IntoIterator,
-              F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item, <span class="kw-2">&amp;</span>J::Item) -&gt; std::cmp::Ordering,
+              F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item, <span class="kw-2">&amp;</span>J::Item) -&gt; T,
+              T: merge_join::OrderingOrBool&lt;<span class="self">Self</span>::Item, J::Item&gt;,
               <span class="self">Self</span>: Sized
     {
         merge_join_by(<span class="self">self</span>, other, cmp_fn)
@@ -4802,9 +5055,9 @@
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..6).step(3);
-    /// let b = (1..6).step(3);
-    /// let c = (2..6).step(3);
+    /// let a = (0..6).step_by(3);
+    /// let b = (1..6).step_by(3);
+    /// let c = (2..6).step_by(3);
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
@@ -5173,6 +5426,74 @@
         adaptors::take_while_ref(<span class="self">self</span>, accept)
     }
 
+    <span class="doccomment">/// Returns an iterator adaptor that consumes elements while the given
+    /// predicate is `true`, *including* the element for which the predicate
+    /// first returned `false`.
+    ///
+    /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
+    /// when you want items satisfying a predicate, but to know when to stop
+    /// taking elements, we have to consume that first element that doesn&#39;t
+    /// satisfy the predicate. This adaptor includes that element where
+    /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
+    ///
+    /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
+    /// serves a similar purpose, but this adaptor doesn&#39;t require [`Clone`]ing
+    /// the underlying elements.
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// let items = vec![1, 2, 3, 4, 5];
+    /// let filtered: Vec&lt;_&gt; = items
+    ///     .into_iter()
+    ///     .take_while_inclusive(|&amp;n| n % 3 != 0)
+    ///     .collect();
+    ///
+    /// assert_eq!(filtered, vec![1, 2, 3]);
+    /// ```
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// let items = vec![1, 2, 3, 4, 5];
+    ///
+    /// let take_while_inclusive_result: Vec&lt;_&gt; = items
+    ///     .iter()
+    ///     .copied()
+    ///     .take_while_inclusive(|&amp;n| n % 3 != 0)
+    ///     .collect();
+    /// let take_while_result: Vec&lt;_&gt; = items
+    ///     .into_iter()
+    ///     .take_while(|&amp;n| n % 3 != 0)
+    ///     .collect();
+    ///
+    /// assert_eq!(take_while_inclusive_result, vec![1, 2, 3]);
+    /// assert_eq!(take_while_result, vec![1, 2]);
+    /// // both iterators have the same items remaining at this point---the 3
+    /// // is lost from the `take_while` vec
+    /// ```
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// #[derive(Debug, PartialEq)]
+    /// struct NoCloneImpl(i32);
+    ///
+    /// let non_clonable_items: Vec&lt;_&gt; = vec![1, 2, 3, 4, 5]
+    ///     .into_iter()
+    ///     .map(NoCloneImpl)
+    ///     .collect();
+    /// let filtered: Vec&lt;_&gt; = non_clonable_items
+    ///     .into_iter()
+    ///     .take_while_inclusive(|n| n.0 % 3 != 0)
+    ///     .collect();
+    /// let expected: Vec&lt;_&gt; = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
+    /// assert_eq!(filtered, expected);
+    </span><span class="kw">fn </span>take_while_inclusive&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, accept: F) -&gt; TakeWhileInclusive&lt;<span class="self">Self</span>, F&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
+    {
+        take_while_inclusive::TakeWhileInclusive::new(<span class="self">self</span>, accept)
+    }
+
     <span class="doccomment">/// Return an iterator adaptor that filters `Option&lt;A&gt;` iterator elements
     /// and produces `A`. Stops on the first `None` encountered.
     ///
@@ -5404,24 +5725,24 @@
         pad_tail::pad_using(<span class="self">self</span>, min, f)
     }
 
-    <span class="doccomment">/// Return an iterator adaptor that wraps each element in a `Position` to
+    <span class="doccomment">/// Return an iterator adaptor that combines each element with a `Position` to
     /// ease special-case handling of the first or last elements.
     ///
     /// Iterator element type is
-    /// [`Position&lt;Self::Item&gt;`](Position)
+    /// [`(Position, Self::Item)`](Position)
     ///
     /// ```
     /// use itertools::{Itertools, Position};
     ///
     /// let it = (0..4).with_position();
     /// itertools::assert_equal(it,
-    ///                         vec![Position::First(0),
-    ///                              Position::Middle(1),
-    ///                              Position::Middle(2),
-    ///                              Position::Last(3)]);
+    ///                         vec![(Position::First, 0),
+    ///                              (Position::Middle, 1),
+    ///                              (Position::Middle, 2),
+    ///                              (Position::Last, 3)]);
     ///
     /// let it = (0..1).with_position();
-    /// itertools::assert_equal(it, vec![Position::Only(0)]);
+    /// itertools::assert_equal(it, vec![(Position::Only, 0)]);
     /// ```
     </span><span class="kw">fn </span>with_position(<span class="self">self</span>) -&gt; WithPosition&lt;<span class="self">Self</span>&gt;
         <span class="kw">where </span><span class="self">Self</span>: Sized,
@@ -5594,14 +5915,14 @@
     ///
     /// #[derive(PartialEq, Debug)]
     /// enum Enum { A, B, C, D, E, }
-    /// 
+    ///
     /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
-    /// 
+    ///
     /// // search `iter` for `B`
     /// assert_eq!(iter.contains(&amp;Enum::B), true);
     /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
     /// assert_eq!(iter.next(), Some(Enum::C));
-    /// 
+    ///
     /// // search `iter` for `E`
     /// assert_eq!(iter.contains(&amp;Enum::E), false);
     /// // `E` wasn&#39;t found, so `iter` is now exhausted
@@ -5639,6 +5960,37 @@
         <span class="kw">match </span><span class="self">self</span>.next() {
             <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
             <span class="prelude-val">Some</span>(a) =&gt; <span class="self">self</span>.all(|x| a == x),
+        }
+    }
+
+    <span class="doccomment">/// If there are elements and they are all equal, return a single copy of that element.
+    /// If there are no elements, return an Error containing None.
+    /// If there are elements and they are not all equal, return a tuple containing the first
+    /// two non-equal elements found.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 5];
+    /// assert_eq!(data.iter().all_equal_value(), Err(Some((&amp;1, &amp;2))));
+    /// assert_eq!(data[0..3].iter().all_equal_value(), Ok(&amp;1));
+    /// assert_eq!(data[3..5].iter().all_equal_value(), Ok(&amp;2));
+    /// assert_eq!(data[5..8].iter().all_equal_value(), Ok(&amp;3));
+    ///
+    /// let data : Option&lt;usize&gt; = None;
+    /// assert_eq!(data.into_iter().all_equal_value(), Err(None));
+    /// ```
+    </span><span class="kw">fn </span>all_equal_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, <span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>::Item, <span class="self">Self</span>::Item)&gt;&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: Sized,
+            <span class="self">Self</span>::Item: PartialEq
+    {
+        <span class="kw">let </span>first = <span class="self">self</span>.next().ok_or(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>other = <span class="self">self</span>.find(|x| x != <span class="kw-2">&amp;</span>first);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(other) = other {
+            <span class="prelude-val">Err</span>(<span class="prelude-val">Some</span>((first, other)))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(first)
         }
     }
 
@@ -6265,6 +6617,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6294,6 +6648,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6327,6 +6683,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6361,6 +6719,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6390,6 +6750,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6398,7 +6760,7 @@
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 27)];
+    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -6423,6 +6785,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6431,7 +6795,7 @@
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 27)];
+    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -6458,6 +6822,8 @@
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_cached_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -6466,7 +6832,7 @@
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 27)];
+    /// let people = vec![(&quot;Jane&quot;, 20), (&quot;John&quot;, 18), (&quot;Jill&quot;, 30), (&quot;Jack&quot;, 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -6651,13 +7017,13 @@
         group_map::into_group_map_by(<span class="self">self</span>, f)
     }
 
-    <span class="doccomment">/// Constructs a `GroupingMap` to be used later with one of the efficient 
+    <span class="doccomment">/// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The input iterator must yield item in the form of `(K, V)` where the
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
@@ -6668,12 +7034,12 @@
         grouping_map::new(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Constructs a `GroupingMap` to be used later with one of the efficient 
+    <span class="doccomment">/// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
@@ -6843,7 +7209,7 @@
         )
     }
 
-    <span class="doccomment">/// Return all minimum elements of an iterator, as determined by
+    <span class="doccomment">/// Return all maximum elements of an iterator, as determined by
     /// the specified function.
     ///
     /// # Examples
@@ -7384,7 +7750,7 @@
     ///   first_name: &amp;&#39;static str,
     ///   last_name:  &amp;&#39;static str,
     /// }
-    /// 
+    ///
     /// let characters =
     ///     vec![
     ///         Character { first_name: &quot;Amy&quot;,   last_name: &quot;Pond&quot;      },
@@ -7395,12 +7761,12 @@
     ///         Character { first_name: &quot;James&quot;, last_name: &quot;Norington&quot; },
     ///         Character { first_name: &quot;James&quot;, last_name: &quot;Kirk&quot;      },
     ///     ];
-    /// 
-    /// let first_name_frequency = 
+    ///
+    /// let first_name_frequency =
     ///     characters
     ///         .into_iter()
     ///         .counts_by(|c| c.first_name);
-    ///     
+    ///
     /// assert_eq!(first_name_frequency[&quot;Amy&quot;], 3);
     /// assert_eq!(first_name_frequency[&quot;James&quot;], 4);
     /// assert_eq!(first_name_frequency.contains_key(&quot;Asha&quot;), false);
@@ -7421,7 +7787,7 @@
     /// column.
     ///
     /// This function is, in some sense, the opposite of [`multizip`].
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
