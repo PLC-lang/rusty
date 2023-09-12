@@ -182,6 +182,8 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         let resolved_connections =
             match self.get_resolved_connection_ids(&source_connections, source_location_factory) {
                 Ok(resolved_connections) => resolved_connections,
+                // XXX: returning early here - this will probably need to be refactored when moving
+                // diagnostics to the validation stage (i.e. cycle detection)
                 Err(e) => return Err(e),
             };
 
