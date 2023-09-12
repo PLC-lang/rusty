@@ -197,13 +197,13 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         }
 
         // XXX: this probably needs refactoring when moving diagnostics to resolving-stage
-        if diagnostics.is_empty() {
-            // remove connector nodes from the model after resolving, since they are no longer relevant
-            self.retain(|_, node| !matches!(node, Node::Connector(_)));
-            Ok(())
-        } else {
-            Err(diagnostics)
+        if !diagnostics.is_empty() {
+            return Err(diagnostics);
         }
+
+        // remove connector nodes from the model after resolving, since they are no longer relevant
+        self.retain(|_, node| !matches!(node, Node::Connector(_)));
+        Ok(())
     }
 
     fn get_source_references(&self) -> HashMap<&str, SourceReference> {
