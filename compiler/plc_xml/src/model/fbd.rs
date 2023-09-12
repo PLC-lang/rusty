@@ -219,14 +219,11 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 {
                     let source_ref = ref_local_id
                         .map(|ref_id| {
-                            if let Some(Node::Connector(Connector {
-                                kind: ConnectorKind::Sink,
-                                local_id: sink_id,
-                                ..
-                            })) = self.get(&ref_id)
+                            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, .. })) =
+                                self.get(&ref_id)
                             {
                                 // source points directly to another sink
-                                SourceReference::Connector(*sink_id)
+                                SourceReference::Connector(ref_id)
                             } else {
                                 // source points to an assignable element
                                 SourceReference::Value(ref_id)
