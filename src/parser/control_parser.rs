@@ -31,7 +31,7 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> AstNode {
 fn parse_return_statement(lexer: &mut ParseSession) -> AstNode {
     let location = lexer.location();
     lexer.advance();
-    AstFactory::create_return_statement(location, lexer.next_id())
+    AstFactory::create_return_statement(None, location, lexer.next_id())
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> AstNode {
