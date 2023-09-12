@@ -1,4 +1,4 @@
-use ast::ast::{AstFactory, AstNode, Operator};
+use ast::ast::{AstFactory, AstNode};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::model::{
