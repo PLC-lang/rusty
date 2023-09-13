@@ -63,27 +63,13 @@ impl Node {
         }
 
         result = format!("{indent}<{name} {attributes}>\n");
-        self.children.iter().for_each(|it| result = format!("{result}{}", it.serialize(level + 1)));
+        self.children.iter().for_each(|child| result = format!("{result}{}", child.serialize(level + 1)));
         result = format!("{result}{indent}</{name}>\n");
 
         result
     }
 
     //
-    pub fn local_id(mut self, id: i32) -> Self {
-        self = self.attribute("localId", Box::leak(id.to_string().into_boxed_str()));
-        self
-    }
-
-    pub fn ref_local_id(mut self, id: i32) -> Self {
-        self = self.attribute("refLocalId", Box::leak(id.to_string().into_boxed_str()));
-        self
-    }
-
-    pub fn negated(mut self, negated: bool) -> Self {
-        self = self.attribute("negated", Box::leak(negated.to_string().into_boxed_str()));
-        self
-    }
 }
 
 macro_rules! newtype_impl {
@@ -98,100 +84,154 @@ macro_rules! newtype_impl {
         }
 
         impl $name_struct {
-            pub fn new() -> Self {
+            fn new() -> Self {
                 Self(Node::new($name_node))
             }
 
-            pub fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
+            // TODO: Restrict this to only nodes that actually can have an id
+            fn with_id(id: i32) -> Self {
+                Self(Node::new($name_node)).local_id(id)
+            }
+
+            fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
                 self.0 = self.0.attribute(key, value);
                 self
             }
 
-            pub fn child(mut self, node: &dyn IntoNode) -> Self {
+            fn maybe_attribute(mut self, key: &'static str, value: Option<&'static str>) -> Self {
+                if let Some(value) = value {
+                    self.0 = self.0.attribute(key, value);
+                }
+
+                self
+            }
+
+            fn child(mut self, node: &dyn IntoNode) -> Self {
                 self.0 = self.0.child(node);
                 self
             }
 
-            // Pou::new().children(vec![
-            //     relPOsition::new().local_id()
-            //    Variable::new().local_id(10).negated().connect_to(5)
-            // ])
-            pub fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
+            fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
                 self.0 = self.0.children(nodes);
                 self
             }
 
-            pub fn serialize(self) -> String {
+            fn serialize(self) -> String {
                 self.0.serialize(0)
+            }
+
+            fn local_id<T: std::fmt::Display>(mut self, id: T) -> Self {
+                self = self.attribute("localId", Box::leak(id.to_string().into_boxed_str()));
+                self
+            }
+
+            fn ref_local_id<T: std::fmt::Display>(mut self, id: T) -> Self {
+                self = self.attribute("refLocalId", Box::leak(id.to_string().into_boxed_str()));
+                self
+            }
+
+            fn execution_id<T: std::fmt::Display>(mut self, id: T) -> Self {
+                self = self.attribute("executionOrderId", Box::leak(id.to_string().into_boxed_str()));
+                self
+            }
+
+            fn close(mut self) -> Self {
+                self.0 = self.0.close();
+                self
             }
         }
     };
 }
 
-newtype_impl!(XInVariable, "inVariable");
-impl XInVariable {
-    /// <inVariable localId=... negated=...>
-    ///     <position x=... y=.../>
-    ///     <connection refLocalId=.../>
-    /// </inVariable>
-    pub fn init(local_id: i32, negated: bool, ref_local_id: Option<i32>) -> Self {
-        let mut node = Node::new("inVariable").local_id(local_id).negated(negated);
-        node = node.child(&XPosition::init("1", "2"));
-
-        if let Some(ref_local_id) = ref_local_id {
-            node = node.child(&XConnectionPointIn::init(ref_local_id));
-        }
-
-        Self(node)
+newtype_impl!(YInVariable, "inVariable");
+impl YInVariable {
+    /// Adds a child node
+    /// <connectPointIn>
+    ///     <connection refLocalId="..."/>
+    /// </connectionPointIn/>
+    pub fn connect(mut self, ref_local_id: i32, formal_parameter: Option<&'static str>) -> Self {
+        self = self.child(
+            &YConnectionPointIn::new().child(
+                &YConnection::new()
+                    .ref_local_id(ref_local_id)
+                    .maybe_attribute("formalParameter", formal_parameter),
+            ),
+        );
+        self
     }
 }
 
-newtype_impl!(XPosition, "position");
-impl XPosition {
-    // Dynamic
-    // TODO: usize to static str
-    pub fn init(x: &'static str, y: &'static str) -> Self {
-        Self(Node::new("position").attribute("x", x).attribute("y", y).close())
+newtype_impl!(YPou, "pou");
+impl YPou {
+    // TODO: Shouldn't this be merged into a `new` function alongside `with_type` since these fields are mandatory?
+    pub fn with_name(name: &'static str) -> Self {
+        Self::new().attribute("name", name)
+    }
+
+    pub fn with_type(self, kind: &'static str) -> Self {
+        self.attribute("pouType", kind)
+    }
+
+    // pub fn new(name: &'static str, kind: &'static str, content: &'static str) -> Self {
+    //     let mut node = Self::new().attribute("name", name).attribute("pouType", kind);
+    // }
+}
+
+newtype_impl!(YPosition, "position");
+newtype_impl!(YConnectionPointIn, "connectionPointIn");
+newtype_impl!(YRelPosition, "relPosition");
+newtype_impl!(YConnection, "connection");
+newtype_impl!(YBlock, "block");
+impl YBlock {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("typeName", name)
     }
 }
 
-newtype_impl!(XConnectionPointIn, "connectionPointIn");
-newtype_impl!(XRelPosition, "relPosition");
-newtype_impl!(XConnection, "connection");
-
-impl XConnectionPointIn {
-    pub fn init(ref_local_id: i32) -> Self {
-        let mut tmp = Self::new();
-        tmp.0 = tmp.0.child(&XRelPosition::init("10", "20"));
-        tmp.0 = tmp.0.child(&XConnection::init(ref_local_id));
-        tmp
+newtype_impl!(YInputVariables, "inputVariables");
+impl YInputVariables {
+    pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
+        Self::new().children(variables)
     }
 }
 
-impl XRelPosition {
-    // TODO: usize
-    pub fn init(x: &'static str, y: &'static str) -> Self {
-        let mut tmp = Self::new();
-        tmp.0 = tmp.0.attribute("x", x).attribute("y", y).close();
-        tmp.0 = tmp.0.close();
-        tmp
+newtype_impl!(YOutputVariables, "outputVariables");
+impl YOutputVariables {
+    pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
+        Self::new().children(variables)
     }
 }
 
-impl XConnection {
-    // TODO: usize
-    pub fn init(ref_local_id: i32) -> Self {
-        let mut tmp = Self::new();
-        tmp.0 = tmp.0.ref_local_id(ref_local_id);
-        tmp.0 = tmp.0.close();
-        tmp
+newtype_impl!(YVariable, "variable");
+impl YVariable {
+    pub fn with_name(name: &'static str) -> Self {
+        Self::new().attribute("formalParameter", name)
+    }
+
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&YConnection::new().ref_local_id(ref_local_id).close())
     }
 }
 
 #[test]
-fn temp() {
-    println!("{}", XInVariable::init(1, false, None).serialize());
-    println!("{}", XInVariable::init(1, false, Some(2)).serialize());
+fn pou() {
+    #[rustfmt::skip]
+    let serialized = YPou::with_name("foo");
+}
+
+#[test]
+fn block() {
+    // TODO: negate()
+    #[rustfmt::skip]
+    let serialized = YBlock::with_id(14).with_name("myAdd").execution_id(0).children(vec![
+        &YInputVariables::with_variables(vec![
+            &YVariable::with_name("a").connect(16),
+            &YVariable::with_name("b").connect(17),
+        ]),
+        &YOutputVariables::with_variables(vec![&YVariable::with_name("myAdd")])
+    ]).serialize();
+
+    println!("{serialized}");
 }
 
 // #[test]
