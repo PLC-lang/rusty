@@ -8,7 +8,7 @@ expression: err
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 5,
+                    local_id: 6,
                     execution_order: None,
                     inner_range: None,
                 },
@@ -21,7 +21,7 @@ expression: err
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 5,
+                    local_id: 6,
                     execution_order: None,
                     inner_range: None,
                 },
@@ -34,7 +34,7 @@ expression: err
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 6,
+                    local_id: 5,
                     execution_order: None,
                     inner_range: None,
                 },

@@ -30,49 +30,7 @@ Project {
                                     execution_order_id: Some(
                                         1,
                                     ),
-                                    ref_local_id: Some(
-                                        6,
-                                    ),
-                                },
-                            ),
-                            3: Connector(
-                                Connector {
-                                    kind: Source,
-                                    name: "connection1",
-                                    local_id: 3,
-                                    ref_local_id: Some(
-                                        6,
-                                    ),
-                                    formal_parameter: None,
-                                },
-                            ),
-                            4: Connector(
-                                Connector {
-                                    kind: Source,
-                                    name: "connection2",
-                                    local_id: 4,
-                                    ref_local_id: Some(
-                                        5,
-                                    ),
-                                    formal_parameter: None,
-                                },
-                            ),
-                            5: Connector(
-                                Connector {
-                                    kind: Sink,
-                                    name: "connection1",
-                                    local_id: 5,
                                     ref_local_id: None,
-                                    formal_parameter: None,
-                                },
-                            ),
-                            6: Connector(
-                                Connector {
-                                    kind: Sink,
-                                    name: "connection2",
-                                    local_id: 6,
-                                    ref_local_id: None,
-                                    formal_parameter: None,
                                 },
                             ),
                         },

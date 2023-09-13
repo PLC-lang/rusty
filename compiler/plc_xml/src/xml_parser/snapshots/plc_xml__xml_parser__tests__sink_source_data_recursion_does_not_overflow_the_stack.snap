@@ -8,7 +8,7 @@ expression: diagnostics
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 26,
+                    local_id: 23,
                     execution_order: None,
                     inner_range: None,
                 },
@@ -24,7 +24,7 @@ expression: diagnostics
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 23,
+                    local_id: 24,
                     execution_order: None,
                     inner_range: None,
                 },
@@ -40,7 +40,7 @@ expression: diagnostics
         range: [
             SourceLocation {
                 span: Block {
-                    local_id: 24,
+                    local_id: 26,
                     execution_order: None,
                     inner_range: None,
                 },

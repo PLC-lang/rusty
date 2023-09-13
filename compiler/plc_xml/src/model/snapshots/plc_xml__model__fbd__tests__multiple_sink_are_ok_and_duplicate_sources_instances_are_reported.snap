@@ -23,25 +23,36 @@ Project {
                             ),
                             2: FunctionBlockVariable(
                                 FunctionBlockVariable {
-                                    kind: Output,
+                                    kind: Input,
                                     local_id: 2,
                                     negated: false,
                                     expression: "b",
-                                    execution_order_id: Some(
-                                        1,
-                                    ),
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            3: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 3,
+                                    negated: false,
+                                    expression: "c",
+                                    execution_order_id: None,
                                     ref_local_id: Some(
-                                        3,
+                                        2,
                                     ),
                                 },
                             ),
-                            3: Connector(
-                                Connector {
-                                    kind: Sink,
-                                    name: "connection1",
-                                    local_id: 3,
-                                    ref_local_id: None,
-                                    formal_parameter: None,
+                            4: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 4,
+                                    negated: false,
+                                    expression: "a",
+                                    execution_order_id: None,
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
                                 },
                             ),
                         },

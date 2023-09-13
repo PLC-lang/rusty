@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: desugar(content).unwrap()
+expression: visit_and_desugar(content).unwrap()
 ---
 Project {
     pous: [

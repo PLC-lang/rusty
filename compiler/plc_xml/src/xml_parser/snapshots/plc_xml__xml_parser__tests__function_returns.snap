@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: "xml_parser::visit(&content).unwrap()"
+expression: visit(&content).unwrap()
 ---
 Project {
     pous: [

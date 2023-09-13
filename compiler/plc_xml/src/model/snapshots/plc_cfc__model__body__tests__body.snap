@@ -1,9 +1,0 @@
----
-source: compiler/plc_cfc/src/model/body.rs
-expression: "Body::visit(&mut reader).unwrap()"
----
-Body {
-    function_block_diagram: FunctionBlockDiagram {
-        nodes: {},
-    },
-}
