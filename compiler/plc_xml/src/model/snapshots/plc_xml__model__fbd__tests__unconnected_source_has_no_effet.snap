@@ -1,0 +1,19 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    SemanticError {
+        message: "Source 'connection1' is not connected.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 3,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__unconnected_source,
+    },
+]

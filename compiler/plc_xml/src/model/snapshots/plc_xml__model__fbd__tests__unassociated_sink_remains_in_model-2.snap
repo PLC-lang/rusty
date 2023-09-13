@@ -1,0 +1,55 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: model
+---
+Project {
+    pous: [
+        Pou {
+            name: "TestProg",
+            pou_type: Program,
+            body: Body {
+                function_block_diagram: Some(
+                    FunctionBlockDiagram {
+                        nodes: {
+                            1: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 1,
+                                    negated: false,
+                                    expression: "a",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            2: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 2,
+                                    negated: false,
+                                    expression: "b",
+                                    execution_order_id: Some(
+                                        1,
+                                    ),
+                                    ref_local_id: Some(
+                                        3,
+                                    ),
+                                },
+                            ),
+                            3: Connector(
+                                Connector {
+                                    kind: Sink,
+                                    name: "connection1",
+                                    local_id: 3,
+                                    ref_local_id: None,
+                                    formal_parameter: None,
+                                },
+                            ),
+                        },
+                    },
+                ),
+            },
+            actions: [],
+            interface: None,
+        },
+    ],
+}

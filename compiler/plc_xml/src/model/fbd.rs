@@ -349,14 +349,14 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                     )),
                 }
             })
-            .unwrap()
+            .expect("Cannot fail, node with this ref-id is guaranteed to exist")
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        model::fbd::FunctionBlockDiagram,
+        model::{fbd::FunctionBlockDiagram, project::Project, pou::Pou, variables::FunctionBlockVariable, connector::Connector},
         reader::PeekableReader,
         serializer::{
             XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
@@ -365,6 +365,9 @@ mod tests {
         xml_parser::Parseable,
     };
     use insta::assert_debug_snapshot;
+    use plc_source::source_location::SourceLocationFactory;
+
+    use super::Node;
 
     #[test]
     fn add_block() {
@@ -414,4 +417,439 @@ mod tests {
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
     }
+
+    #[test]
+    fn model_with_no_source_sink_unchanged() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(1),
+        })) 
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+    }
+
+    #[test]
+    fn source_to_sink_converted_to_connection() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(4),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(1),
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 4,
+                ref_local_id: None,
+                formal_parameter: None,
+            }))
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+    }
+
+    #[test]
+    fn two_sinks_for_single_source_converted_to_connections() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(4),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(1),
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 4,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            (5, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 5,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+           (6, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 6,
+            negated: false,
+            expression: "c".into(),
+            execution_order_id: Some(2),
+            ref_local_id: Some(5),
+        })),
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+
+    }
+
+    #[test]
+    fn source_sink_chain_converted_to_connection() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(6),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(1),
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection2".into(),
+                local_id: 4,
+                ref_local_id: Some(5),
+                formal_parameter: None,
+            })),
+            (5, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 5,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            (6, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection2".into(),
+                local_id: 6,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+
+    }
+
+    #[test]
+    fn unassociated_source_remains_in_model() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: None,
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(1),
+                formal_parameter: None,
+            })),
+            
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+
+    }
+
+    #[test]
+    fn unassociated_sink_remains_in_model() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(3),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+        //With diagnostic
+
+        let err = model.desugar(&source_location_factory).unwrap_err();
+        assert_debug_snapshot!(err);
+        assert_debug_snapshot!(model)
+    }
+
+    #[test]
+    fn recursive_sink_source_connections_are_an_error() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(6),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(6),
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection2".into(),
+                local_id: 4,
+                ref_local_id: Some(5),
+                formal_parameter: None,
+            })),
+            (5, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 5,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            (6, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection2".into(),
+                local_id: 6,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        let err = model.desugar(&source_location_factory).unwrap_err();
+        assert_debug_snapshot!(err);
+        assert_debug_snapshot!(model)
+
+    }
+
+    #[test]
+    fn unconnected_source_has_no_effect() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: Some(4),
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: None,
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 4,
+                ref_local_id: None,
+                formal_parameter: None,
+            }))
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        let err = model.desugar(&source_location_factory).unwrap_err();
+        assert_debug_snapshot!(err);
+        assert_debug_snapshot!(model)
+    }
+
+    #[test]
+    fn unconnected_sink_has_no_effect() {
+        let source_location_factory = SourceLocationFactory::internal("");
+        let mut model = Project::default();
+        let mut pou = Pou::default();
+        pou.name = "TestProg".into();
+        let fbd = FunctionBlockDiagram { nodes: [
+           (1, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Input,
+            local_id: 1,
+            negated: false,
+            expression: "a".into(),
+            execution_order_id: None,
+            ref_local_id: None,
+        })) ,
+           (2, Node::FunctionBlockVariable(FunctionBlockVariable {
+            kind: crate::model::variables::VariableKind::Output,
+            local_id: 2,
+            negated: false,
+            expression: "b".into(),
+            execution_order_id: Some(1),
+            ref_local_id: None,
+        })),
+            (3, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Source,
+                name: "connection1".into(),
+                local_id: 3,
+                ref_local_id: Some(1),
+                formal_parameter: None,
+            })),
+            (4, Node::Connector(Connector{
+                kind: crate::model::connector::ConnectorKind::Sink,
+                name: "connection1".into(),
+                local_id: 4,
+                ref_local_id: None,
+                formal_parameter: None,
+            }))
+        ].into() };
+        pou.body.function_block_diagram = Some(fbd);
+        model.pous.push(pou);
+
+        model.desugar(&source_location_factory).unwrap();
+        assert_debug_snapshot!(model)
+    }
+
+
+
 }

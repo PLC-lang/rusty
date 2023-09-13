@@ -1,0 +1,19 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    SemanticError {
+        message: "Sink 'connection1' does not have a source associated with it.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 3,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__no_associated_connector,
+    },
+]
