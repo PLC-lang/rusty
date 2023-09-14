@@ -370,16 +370,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &self.llvm,
                 self.index,
                 self.annotations,
-                self,
                 &local_index,
                 &function_context,
                 debug,
             );
-            statement_gen.generate_body(&implementation.statements)?
+            statement_gen.generate_body(&implementation.statements)?;
+            statement_gen.generate_return_statement()?;
         }
-
-        // generate return statement
-        self.generate_return_statement(&function_context, &local_index)?;
 
         Ok(())
     }
@@ -696,45 +693,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
         } else {
             self.llvm.builder.build_store(variable_to_initialize, value);
-        }
-        Ok(())
-    }
-
-    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
-    ///
-    /// a function returns the value of the local variable that has the function's name
-    pub fn generate_return_statement<'a>(
-        &'a self,
-        function_context: &'a FunctionContext<'ink, 'a>,
-        local_index: &'a LlvmTypedIndex<'ink>,
-    ) -> Result<(), Diagnostic> {
-        if let Some(ret_v) = self.index.find_return_variable(function_context.linking_context.get_type_name())
-        {
-            if self
-                .index
-                .find_effective_type_by_name(ret_v.get_type_name())
-                .map(|it| it.is_aggregate_type())
-                .unwrap_or(false)
-            {
-                //generate return void
-                self.llvm.builder.build_return(None);
-            } else {
-                // renerate return statement
-                let call_name = function_context.linking_context.get_call_name();
-                let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
-                let ret_name = ret_v.get_qualified_name();
-                let value_ptr =
-                    local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
-                            SourceLocation::undefined(),
-                        )
-                    })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-                self.llvm.builder.build_return(Some(&loaded_value));
-            }
-        } else {
-            self.llvm.builder.build_return(None);
         }
         Ok(())
     }

@@ -19,6 +19,7 @@ use crate::{
 
 mod action;
 mod block;
+mod control;
 mod fbd;
 mod pou;
 #[cfg(test)]
@@ -60,24 +61,28 @@ fn parse(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
-    // transform the xml file to a data model.
+    // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let Ok(project) = visit(&source.source) else {
-        todo!("cfc errors need to be transformed into diagnostics")
+    let project = match visit(&source.source) {
+        Ok(project) => project,
+        Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
 
-    // create a new parse session
+    // Create a new parse session
     let source_location_factory = SourceLocationFactory::for_source(source);
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
 
-    // try to parse a declaration data field
-    let Some((unit, diagnostics)) = parser.try_parse_declaration() else {
+    // Parse the declaration data field
+    let Some((unit, mut diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
 
-    // transform the data model into rusty AST statements and add them to the compilation unit
-    (unit.with_implementations(parser.parse_model()), diagnostics)
+    // Transform the data-model into an AST
+    let (implementations, parser_diagnostics) = parser.parse_model();
+    diagnostics.extend(parser_diagnostics);
+
+    (unit.with_implementations(implementations), diagnostics)
 }
 
 pub(crate) struct ParseSession<'parse> {
@@ -86,6 +91,7 @@ pub(crate) struct ParseSession<'parse> {
     linkage: LinkageType,
     file_name: &'static str,
     range_factory: SourceLocationFactory,
+    diagnostics: Vec<Diagnostic>,
 }
 
 impl<'parse> ParseSession<'parse> {
@@ -96,7 +102,7 @@ impl<'parse> ParseSession<'parse> {
         linkage: LinkageType,
         range_factory: SourceLocationFactory,
     ) -> Self {
-        ParseSession { project, id_provider, linkage, file_name, range_factory }
+        ParseSession { project, id_provider, linkage, file_name, range_factory, diagnostics: Vec::new() }
     }
 
     /// parse the compilation unit from the addData field
@@ -130,15 +136,16 @@ impl<'parse> ParseSession<'parse> {
         exp
     }
 
-    fn parse_model(&self) -> Vec<Implementation> {
+    fn parse_model(mut self) -> (Vec<Implementation>, Vec<Diagnostic>) {
         let mut implementations = vec![];
         for pou in &self.project.pous {
             // transform body
-            implementations.push(pou.build_implementation(self));
+            implementations.push(pou.build_implementation(&mut self));
             // transform actions
-            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(self)));
+            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(&self)));
         }
-        implementations
+
+        (implementations, self.diagnostics)
     }
 
     fn next_id(&self) -> AstId {

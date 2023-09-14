@@ -1,0 +1,47 @@
+---
+source: tests/integration/cfc.rs
+expression: output_file_content_without_headers.join(NEWLINE)
+---
+%conditional_return = type { i32 }
+
+@__conditional_return__init = constant %conditional_return zeroinitializer
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  %my_val = alloca i32, align 4
+  %conditional = alloca %conditional_return, align 8
+  store i32 5, i32* %my_val, align 4
+  %0 = bitcast %conditional_return* %conditional to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%conditional_return* @__conditional_return__init to i8*), i64 ptrtoint (%conditional_return* getelementptr (%conditional_return, %conditional_return* null, i32 1) to i64), i1 false)
+  store i32 0, i32* %main, align 4
+  %val = getelementptr inbounds %conditional_return, %conditional_return* %conditional, i32 0, i32 0
+  %load_my_val = load i32, i32* %my_val, align 4
+  store i32 %load_my_val, i32* %val, align 4
+  call void @conditional_return(%conditional_return* %conditional)
+  %val1 = getelementptr inbounds %conditional_return, %conditional_return* %conditional, i32 0, i32 0
+  %load_val = load i32, i32* %val1, align 4
+  store i32 %load_val, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+define void @conditional_return(%conditional_return* %0) {
+entry:
+  %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
+  %load_val = load i32, i32* %val, align 4
+  %tmpVar = icmp eq i32 %load_val, 5
+  br i1 %tmpVar, label %then_block, label %else_block
+
+then_block:                                       ; preds = %entry
+  ret void
+
+else_block:                                       ; preds = %entry
+  store i32 10, i32* %val, align 4
+  ret void
+}
+
+attributes #0 = { argmemonly nofree nounwind willreturn }

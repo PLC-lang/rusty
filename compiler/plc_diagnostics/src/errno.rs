@@ -87,6 +87,11 @@ pub enum ErrNo {
     case__duplicate_condition,
     case__case_condition_outside_case_statement,
     case__invalid_case_condition,
+
+    // CFC related
+    cfc__empty_control_statement,
+    cfc__undefined_node,
+    cfc__unexpected_node,
 }
 
 impl Display for ErrNo {

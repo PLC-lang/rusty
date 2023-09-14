@@ -719,6 +719,33 @@ impl Diagnostic {
     }
 }
 
+// CFC related diagnostics
+impl Diagnostic {
+    pub fn empty_control_statement(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Control statement has no connection".to_string(),
+            range: vec![range],
+            err_no: ErrNo::cfc__empty_control_statement,
+        }
+    }
+
+    pub fn undefined_node(local_id: usize, ref_local_id: usize, range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Node {local_id} is referencing a non-existing element with ID {ref_local_id}"),
+            range: vec![range],
+            err_no: ErrNo::cfc__undefined_node,
+        }
+    }
+
+    pub fn unexpected_nodes(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Unexpected relationship between nodes".to_string(),
+            range: vec![range],
+            err_no: ErrNo::cfc__unexpected_node,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use codespan_reporting::files::{Location, SimpleFile};

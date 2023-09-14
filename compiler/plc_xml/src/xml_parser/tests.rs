@@ -14,7 +14,7 @@ use crate::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser,
+    xml_parser::{self},
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -24,8 +24,40 @@ fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
 
 #[test]
 fn variable_assignment() {
-    let pou = xml_parser::visit(ASSIGNMENT_A_B).unwrap();
+    let pou = xml_parser::visit(content::ASSIGNMENT_A_B).unwrap();
     assert_debug_snapshot!(pou);
+}
+
+#[test]
+fn conditional_return() {
+    let statements = &parse(content::CONDITIONAL_RETURN).0.implementations[0].statements;
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements[0]);
+}
+
+#[test]
+fn conditional_return_negated() {
+    let content =
+        &content::CONDITIONAL_RETURN.replace(r#"<negated value="false"/>"#, r#"<negated value="true"/>"#);
+
+    let statements = &parse(content).0.implementations[0].statements;
+
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements[0]);
+}
+
+#[test]
+fn conditional_return_without_connection() {
+    let (_, diagnostics) = parse(content::CONDITIONAL_RETURN_WITHOUT_CONNECTION);
+    assert_eq!(diagnostics.len(), 1);
+    assert_debug_snapshot!(diagnostics);
+}
+
+#[test]
+fn conditional_return_chained_to_another_conditional_return() {
+    let (_, diagnostics) = parse(content::CONDITIONAL_RETURN_CHAINED_TO_ANOTHER_CONDITIONAL_RETURN);
+    assert_eq!(diagnostics.len(), 2);
+    assert_debug_snapshot!(diagnostics);
 }
 
 #[test]
@@ -128,7 +160,7 @@ fn function_returns() {
 
 #[test]
 fn ast_generates_locations() {
-    let source_code = SourceCode::new(CALL_BLOCK, "<internal>.cfc");
+    let source_code = SourceCode::new(content::CALL_BLOCK, "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
@@ -156,7 +188,7 @@ fn ast_generates_locations() {
 #[test]
 #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
 fn ast_diagnostic_locations() {
-    let source_code = SourceCode::new(ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
+    let source_code = SourceCode::new(content::ASSIGNMENT_TO_UNRESOLVED_REFERENCE, "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     assert_debug_snapshot!(impl1);
@@ -165,7 +197,8 @@ fn ast_diagnostic_locations() {
     todo!("Validation in tests not yet done")
 }
 
-const ASSIGNMENT_A_B: &str = r#"
+mod content {
+    pub(super) const ASSIGNMENT_A_B: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="thistimereallyeasy" pouType="program">
             <interface>
@@ -203,9 +236,9 @@ const ASSIGNMENT_A_B: &str = r#"
                 </FBD>
             </body>
         </pou>
-    "#;
+        "#;
 
-const CALL_BLOCK: &str = r#"
+    pub(super) const CALL_BLOCK: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>
@@ -291,7 +324,7 @@ const CALL_BLOCK: &str = r#"
         
     "#;
 
-const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
+    pub(super) const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         <?xml version="1.0" encoding="UTF-8"?>
         <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
             <interface>
@@ -336,3 +369,180 @@ const ASSIGNMENT_TO_UNRESOLVED_REFERENCE: &str = r#"
         </pou>
         
     "#;
+
+    pub(super) const CONDITIONAL_RETURN: &str = r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION_BLOCK conditional_return
+    VAR_INPUT
+        val : DINT;
+    END_VAR</content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <inVariable localId="1" height="20" width="82" negated="false">
+                    <position x="220" y="60"/>
+                    <connectionPointOut>
+                        <relPosition x="82" y="10"/>
+                    </connectionPointOut>
+                    <expression>val = 5</expression>
+                </inVariable>
+                <return localId="2" height="20" width="76" executionOrderId="0">
+                    <position x="330" y="60"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="1"/>
+                    </connectionPointIn>
+                    <addData>
+                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                            <negated value="false"/>
+                        </data>
+                    </addData>
+                </return>
+                <inVariable localId="3" height="20" width="80" negated="false">
+                    <position x="220" y="100"/>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>10</expression>
+                </inVariable>
+                <outVariable localId="4" height="20" width="80" executionOrderId="1" negated="false" storage="none">
+                    <position x="330" y="100"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="3"/>
+                    </connectionPointIn>
+                    <expression>val</expression>
+                </outVariable>
+                <inOutVariable localId="5" height="20" width="80" negatedIn="false" storageIn="none" negatedOut="false">
+                    <position x="780" y="60"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                    </connectionPointIn>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>a</expression>
+                </inOutVariable>
+            </FBD>
+        </body>
+    </pou>
+    "#;
+
+    pub(super) const CONDITIONAL_RETURN_WITHOUT_CONNECTION: &str = r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION_BLOCK conditional_return
+    VAR_INPUT
+        val : DINT;
+    END_VAR</content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <inVariable localId="1" height="20" width="82" negated="false">
+                    <position x="220" y="60"/>
+                    <connectionPointOut>
+                        <relPosition x="82" y="10"/>
+                    </connectionPointOut>
+                    <expression>val = 5</expression>
+                </inVariable>
+                <return localId="2" height="20" width="76" executionOrderId="0">
+                    <position x="330" y="60"/>
+                    <addData>
+                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                            <negated value="false"/>
+                        </data>
+                    </addData>
+                </return>
+                <inVariable localId="3" height="20" width="80" negated="false">
+                    <position x="220" y="100"/>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>10</expression>
+                </inVariable>
+                <outVariable localId="4" height="20" width="80" executionOrderId="1" negated="false" storage="none">
+                    <position x="330" y="100"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="3"/>
+                    </connectionPointIn>
+                    <expression>val</expression>
+                </outVariable>
+                <inOutVariable localId="5" height="20" width="80" negatedIn="false" storageIn="none" negatedOut="false">
+                    <position x="780" y="60"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                    </connectionPointIn>
+                    <connectionPointOut>
+                        <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>a</expression>
+                </inOutVariable>
+            </FBD>
+        </body>
+    </pou>
+    "#;
+
+    pub(super) const CONDITIONAL_RETURN_CHAINED_TO_ANOTHER_CONDITIONAL_RETURN: &str = r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
+        <interface>
+            <localVars/>
+            <addData>
+                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                    <textDeclaration>
+                        <content>
+    FUNCTION_BLOCK conditional_return
+    VAR_INPUT
+        val : DINT;
+    END_VAR</content>
+                    </textDeclaration>
+                </data>
+            </addData>
+        </interface>
+        <body>
+            <FBD>
+                <return localId="1" height="20" width="76" executionOrderId="0">
+                    <position x="330" y="60"/>
+                    <addData>
+                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                            <negated value="false"/>
+                        </data>
+                    </addData>
+                </return>
+                <return localId="2" height="20" width="76" executionOrderId="1">
+                    <position x="330" y="60"/>
+                    <connectionPointIn>
+                        <relPosition x="0" y="10"/>
+                        <connection refLocalId="1"/>
+                    </connectionPointIn>
+                    <addData>
+                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
+                            <negated value="false"/>
+                        </data>
+                    </addData>
+                </return>
+            </FBD>
+        </body>
+    </pou>
+    "#;
+}

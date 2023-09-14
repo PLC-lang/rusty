@@ -1,0 +1,22 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Control statement has no connection",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 2,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test.cfc",
+                ),
+            },
+        ],
+        err_no: cfc__empty_control_statement,
+    },
+]
