@@ -5,9 +5,11 @@ struct Node {
     children: Vec<Node>,
 
     // Single line, e.g. <.../>
+    /// Indicates if the node is a closed element, e.g. `<position x="1" y="2"/>` rather than
+    /// `<position x="1" y="2> ... </position>`
     closed: bool,
 
-    /// <content>...</content> or <expression>...</expression>
+    /// Text inbetween starting and ending-nodes, e.g. `<expression>a + b<expression/>`
     content: Option<&'static str>,
 }
 
@@ -145,6 +147,29 @@ macro_rules! newtype_impl {
     };
 }
 
+newtype_impl!(YInVariable, "inVariable");
+newtype_impl!(YOutVariable, "inVariable");
+newtype_impl!(YInOutVariable, "inVariable");
+newtype_impl!(YInterface, "interface");
+newtype_impl!(YLocalVars, "localVars");
+newtype_impl!(YAddData, "addData");
+newtype_impl!(YData, "data");
+newtype_impl!(YTextDeclaration, "textDeclaration");
+newtype_impl!(YContent, "content");
+newtype_impl!(YPosition, "position");
+newtype_impl!(YConnectionPointIn, "connectionPointIn");
+newtype_impl!(YRelPosition, "relPosition");
+newtype_impl!(YConnection, "connection");
+newtype_impl!(YBlock, "block");
+newtype_impl!(YPou, "pou");
+newtype_impl!(YInputVariables, "inputVariables");
+newtype_impl!(YOutputVariables, "outputVariables");
+newtype_impl!(YVariable, "variable");
+newtype_impl!(YFbd, "FBD");
+newtype_impl!(YExpression, "expression");
+newtype_impl!(YReturn, "return");
+newtype_impl!(YNegate, "negate");
+
 impl YInVariable {
     /// Adds a child node
     /// <connectPointIn>
@@ -166,7 +191,8 @@ impl YOutVariable {
     ///     <connection refLocalId="..."/>
     /// </connectionPointIn/>
     pub fn connect(mut self, ref_local_id: i32) -> Self {
-        self = self.child(&YConnectionPointIn::new().child(&YConnection::new().ref_local_id(ref_local_id)));
+        self = self
+            .child(&YConnectionPointIn::new().child(&YConnection::new().ref_local_id(ref_local_id).close()));
         self
     }
 
@@ -184,51 +210,40 @@ impl YInOutVariable {
         self.child(&YExpression::with_expression(expression))
     }
 }
+impl YReturn {
+    pub fn init(local_id: i32, execution_order: i32) -> Self {
+        Self::new().local_id(local_id).execution_id(execution_order)
+    }
 
-newtype_impl!(YInVariable, "inVariable");
-newtype_impl!(YOutVariable, "inVariable");
-newtype_impl!(YInOutVariable, "inVariable");
-newtype_impl!(YInterface, "interface");
-newtype_impl!(YLocalVars, "localVars");
-newtype_impl!(YAddData, "addData");
-newtype_impl!(YData, "data");
-newtype_impl!(YTextDeclaration, "textDeclaration");
-newtype_impl!(YContent, "content");
-newtype_impl!(YPosition, "position");
-newtype_impl!(YConnectionPointIn, "connectionPointIn");
-newtype_impl!(YRelPosition, "relPosition");
-newtype_impl!(YConnection, "connection");
-newtype_impl!(YBlock, "block");
-newtype_impl!(YPou, "pou");
-newtype_impl!(YInputVariables, "inputVariables");
-newtype_impl!(YOutputVariables, "outputVariables");
-newtype_impl!(YVariable, "variable");
-newtype_impl!(YFbd, "FBD");
-newtype_impl!(YExpression, "expression");
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().child(&YConnection::new().ref_local_id(ref_local_id)))
+    }
+
+    pub fn negate(self) -> Self {
+        self.child(
+            &YAddData::new().child(&YData::new().child(&YNegate::new().attribute("negate", "false").close())),
+        )
+    }
+}
 
 impl YContent {
-    pub fn with_content(self, content: &'static str) -> Self {
+    pub fn with_declaration(self, content: &'static str) -> Self {
         self.inner().content = Some(content);
         self
     }
 }
 
-trait FbdElements: IntoNode {}
-impl FbdElements for YInVariable {}
-impl FbdElements for YOutVariable {}
-impl FbdElements for YInOutVariable {}
-
 impl YPou {
     // TODO: kind -> enum
     #[rustfmt::skip]
-    pub fn init(name: &'static str, kind: &'static str, content: &'static str) -> Self {
+    pub fn init(name: &'static str, kind: &'static str, declaration: &'static str) -> Self {
         Self::new().attribute("name", name).attribute("pouType", kind).child(
             &YInterface::new().children(vec![
                 &YLocalVars::new().close(),
                 &YAddData::new().child(
                     &YData::new().attribute("name", "...").child(
                         &YTextDeclaration::new().child(
-                            &YContent::new().with_content(content)
+                            &YContent::new().with_declaration(declaration)
                         )
                     ),
                 ),
@@ -236,13 +251,10 @@ impl YPou {
         )
     }
 
-    // /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
-    // pub fn with_fbd(self, children: Vec<&dyn FbdElements>) -> Self {
-    //     self.child(
-    //         &YBlock::new()
-    //             .child(&YFbd::new().children(children.into_iter().map(|it| it as &dyn IntoNode).collect())),
-    //     )
-    // }
+    /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
+    pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
+        self.child(&YBlock::new().child(&YFbd::new().children(children)))
+    }
 }
 
 impl YBlock {
@@ -291,23 +303,15 @@ fn pou() {
 #[test]
 fn block() {
     #[rustfmt::skip]
-    let serialized = YPou::init("conditional_return", "functionBlock", "...").child(
-        &YFbd::new().children(vec![
+    let serialized = YPou::init("conditional_return", "functionBlock", "...").with_fbd(vec![
             &YInVariable::with_id(1).with_expression("val = 5"),
             &YInVariable::with_id(3).with_expression("10"),
+            &YReturn::init(2, 0).connect(1).negate(),
             &YOutVariable::with_id(4).with_expression("val").with_execution_id(1).connect(3),
             &YInOutVariable::with_id(5).with_expression("a"),
+            &YPou::new(),
         ])
-    ).serialize();
+        .serialize();
 
-    // let serialized = YPou::init("conditional_return", "functionBlock", "...")
-    //     .with_fbd(vec![
-    //         &YInVariable::with_id(1).with_expression("val = 5"),
-    //         &YInVariable::with_id(3).with_expression("10"),
-    //         &YOutVariable::with_id(4).with_expression("val").with_execution_id(1).connect(3),
-    //         &YInOutVariable::with_id(5).with_expression("a"),
-    //     ])
-    //     .serialize();
-
-    // println!("{serialized}");
+    println!("{serialized}");
 }
