@@ -18,7 +18,7 @@ serde_json = "1"
 clap = { version = "3.0", features = ["derive"] }
 rayon = "1.6.1"
 tempfile = "3"
-indexmap = "1.6"
+indexmap = "2.0"
 env_logger = "0.10"
 log.workspace = true
 encoding_rs.workspace = true
