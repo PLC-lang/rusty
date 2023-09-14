@@ -1,5 +1,6 @@
 // TODO: Remove
 #![allow(dead_code)]
+// #![feature(trait_upcasting)]
 
 pub mod error;
 mod extensions;

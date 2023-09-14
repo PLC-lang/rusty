@@ -1,14 +1,14 @@
 #[derive(Clone)]
 struct Node {
     name: &'static str,
-    attributes: Vec<Attribute>,
+    attributes: Vec<Attribute>, // TODO: HashMap this
     children: Vec<Node>,
 
     // Single line, e.g. <.../>
     closed: bool,
 
     /// <content>...</content> or <expression>...</expression>
-    text: Option<&'static str>,
+    content: Option<&'static str>,
 }
 
 #[derive(Clone)]
@@ -28,33 +28,41 @@ trait IntoNode {
 }
 
 impl Node {
-    pub fn new(name: &'static str) -> Self {
-        Self { name, attributes: Vec::new(), children: Vec::new(), closed: false, text: None }
+    fn new(name: &'static str) -> Self {
+        Self { name, attributes: Vec::new(), children: Vec::new(), closed: false, content: None }
     }
 
-    pub fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
+    fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
         self.attributes.push(Attribute { key, value });
         self
     }
 
-    pub fn child(mut self, node: &dyn IntoNode) -> Self {
+    fn child(mut self, node: &dyn IntoNode) -> Self {
         self.children.push(node.inner());
         self
     }
 
-    pub fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
+    fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
         self.children.extend(nodes.into_iter().map(IntoNode::inner));
         self
     }
 
-    pub fn close(mut self) -> Self {
+    fn close(mut self) -> Self {
         self.closed = true;
         self
     }
 
+    fn indent(level: usize) -> String {
+        " ".repeat(level * 4)
+    }
+
+    fn _content(indent: &str, name: &'static str, content: &'static str) -> String {
+        format!("{indent}<{name}>{content}<{name}/>\n")
+    }
+
     #[allow(unused_assignments)]
-    pub fn serialize(&self, level: usize) -> String {
-        let (name, indent) = (self.name, " ".repeat(level * 4));
+    fn serialize(&self, level: usize) -> String {
+        let (name, indent) = (self.name, Node::indent(level));
         let attributes = self.attributes.iter().map(Attribute::to_string).collect::<Vec<_>>().join(" ");
         let mut result = String::new();
 
@@ -62,18 +70,16 @@ impl Node {
             return format!("{indent}<{name} {attributes}/>\n");
         }
 
-        result = format!("{indent}<{name} {attributes}>\n");
-        if let Some(content) = self.text {
-            result = format!("{result}{indent}{content}\n")
+        if let Some(content) = self.content {
+            return Node::_content(&indent, name, content);
         }
 
+        result = format!("{indent}<{name} {attributes}>\n");
         self.children.iter().for_each(|child| result = format!("{result}{}", child.serialize(level + 1)));
         result = format!("{result}{indent}</{name}>\n");
 
         result
     }
-
-    //
 }
 
 macro_rules! newtype_impl {
@@ -97,97 +103,122 @@ macro_rules! newtype_impl {
                 Self(Node::new($name_node)).local_id(id)
             }
 
-            fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
-                self.0 = self.0.attribute(key, value);
-                self
+            fn attribute(self, key: &'static str, value: &'static str) -> Self {
+                Self(self.inner().attribute(key, value))
             }
 
-            fn maybe_attribute(mut self, key: &'static str, value: Option<&'static str>) -> Self {
-                if let Some(value) = value {
-                    self.0 = self.0.attribute(key, value);
+            fn maybe_attribute(self, key: &'static str, value: Option<&'static str>) -> Self {
+                match value {
+                    Some(value) => Self(self.inner().attribute(key, value)),
+                    None => self,
                 }
-
-                self
             }
 
-            fn child(mut self, node: &dyn IntoNode) -> Self {
-                self.0 = self.0.child(node);
-                self
+            fn child(self, node: &dyn IntoNode) -> Self {
+                Self(self.inner().child(node))
             }
 
-            fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
-                self.0 = self.0.children(nodes);
-                self
+            fn children(self, nodes: Vec<&dyn IntoNode>) -> Self {
+                Self(self.inner().children(nodes))
             }
 
             fn serialize(self) -> String {
-                self.0.serialize(0)
+                self.inner().serialize(0)
             }
 
-            fn local_id<T: std::fmt::Display>(mut self, id: T) -> Self {
-                self = self.attribute("localId", Box::leak(id.to_string().into_boxed_str()));
-                self
+            fn local_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("localId", Box::leak(id.to_string().into_boxed_str()))
             }
 
-            fn ref_local_id<T: std::fmt::Display>(mut self, id: T) -> Self {
-                self = self.attribute("refLocalId", Box::leak(id.to_string().into_boxed_str()));
-                self
+            fn ref_local_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("refLocalId", Box::leak(id.to_string().into_boxed_str()))
             }
 
-            fn execution_id<T: std::fmt::Display>(mut self, id: T) -> Self {
-                self = self.attribute("executionOrderId", Box::leak(id.to_string().into_boxed_str()));
-                self
+            fn execution_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("executionOrderId", Box::leak(id.to_string().into_boxed_str()))
             }
 
-            fn close(mut self) -> Self {
-                self.0 = self.0.close();
-                self
+            fn close(self) -> Self {
+                Self(self.inner().close())
             }
         }
     };
 }
 
-newtype_impl!(YInVariable, "inVariable");
 impl YInVariable {
     /// Adds a child node
     /// <connectPointIn>
     ///     <connection refLocalId="..."/>
     /// </connectionPointIn/>
-    pub fn connect(mut self, ref_local_id: i32, formal_parameter: Option<&'static str>) -> Self {
-        self = self.child(
-            &YConnectionPointIn::new().child(
-                &YConnection::new()
-                    .ref_local_id(ref_local_id)
-                    .maybe_attribute("formalParameter", formal_parameter),
-            ),
-        );
+    pub fn connect(mut self, ref_local_id: i32) -> Self {
+        self = self.child(&YConnectionPointIn::new().child(&YConnection::new().ref_local_id(ref_local_id)));
         self
     }
+
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
 }
+
+impl YOutVariable {
+    /// Adds a child node
+    /// <connectPointIn>
+    ///     <connection refLocalId="..."/>
+    /// </connectionPointIn/>
+    pub fn connect(mut self, ref_local_id: i32) -> Self {
+        self = self.child(&YConnectionPointIn::new().child(&YConnection::new().ref_local_id(ref_local_id)));
+        self
+    }
+
+    pub fn with_execution_id(self, id: i32) -> Self {
+        self.execution_id(id)
+    }
+
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
+}
+
+impl YInOutVariable {
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
+}
+
+newtype_impl!(YInVariable, "inVariable");
+newtype_impl!(YOutVariable, "inVariable");
+newtype_impl!(YInOutVariable, "inVariable");
 newtype_impl!(YInterface, "interface");
 newtype_impl!(YLocalVars, "localVars");
 newtype_impl!(YAddData, "addData");
 newtype_impl!(YData, "data");
 newtype_impl!(YTextDeclaration, "textDeclaration");
 newtype_impl!(YContent, "content");
+newtype_impl!(YPosition, "position");
+newtype_impl!(YConnectionPointIn, "connectionPointIn");
+newtype_impl!(YRelPosition, "relPosition");
+newtype_impl!(YConnection, "connection");
+newtype_impl!(YBlock, "block");
+newtype_impl!(YPou, "pou");
+newtype_impl!(YInputVariables, "inputVariables");
+newtype_impl!(YOutputVariables, "outputVariables");
+newtype_impl!(YVariable, "variable");
+newtype_impl!(YFbd, "FBD");
+newtype_impl!(YExpression, "expression");
+
 impl YContent {
-    pub fn text(mut self, content: &'static str) -> Self {
-        self.0.text = Some(content);
+    pub fn with_content(self, content: &'static str) -> Self {
+        self.inner().content = Some(content);
         self
     }
 }
 
-newtype_impl!(YPou, "pou");
+trait FbdElements: IntoNode {}
+impl FbdElements for YInVariable {}
+impl FbdElements for YOutVariable {}
+impl FbdElements for YInOutVariable {}
+
 impl YPou {
-    // TODO: Shouldn't this be merged into a `new` function alongside `with_type` since these fields are mandatory?
-    pub fn with_name(name: &'static str) -> Self {
-        Self::new().attribute("name", name)
-    }
-
-    pub fn with_type(self, kind: &'static str) -> Self {
-        self.attribute("pouType", kind)
-    }
-
     // TODO: kind -> enum
     #[rustfmt::skip]
     pub fn init(name: &'static str, kind: &'static str, content: &'static str) -> Self {
@@ -197,7 +228,7 @@ impl YPou {
                 &YAddData::new().child(
                     &YData::new().attribute("name", "...").child(
                         &YTextDeclaration::new().child(
-                            &YContent::new().text(content)
+                            &YContent::new().with_content(content)
                         )
                     ),
                 ),
@@ -205,35 +236,33 @@ impl YPou {
         )
     }
 
-    pub fn with_body_fbd() {}
+    // /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
+    // pub fn with_fbd(self, children: Vec<&dyn FbdElements>) -> Self {
+    //     self.child(
+    //         &YBlock::new()
+    //             .child(&YFbd::new().children(children.into_iter().map(|it| it as &dyn IntoNode).collect())),
+    //     )
+    // }
 }
 
-newtype_impl!(YPosition, "position");
-newtype_impl!(YConnectionPointIn, "connectionPointIn");
-newtype_impl!(YRelPosition, "relPosition");
-newtype_impl!(YConnection, "connection");
-newtype_impl!(YBlock, "block");
 impl YBlock {
     pub fn with_name(self, name: &'static str) -> Self {
         self.attribute("typeName", name)
     }
 }
 
-newtype_impl!(YInputVariables, "inputVariables");
 impl YInputVariables {
     pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
         Self::new().children(variables)
     }
 }
 
-newtype_impl!(YOutputVariables, "outputVariables");
 impl YOutputVariables {
     pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
         Self::new().children(variables)
     }
 }
 
-newtype_impl!(YVariable, "variable");
 impl YVariable {
     pub fn with_name(name: &'static str) -> Self {
         Self::new().attribute("formalParameter", name)
@@ -241,6 +270,14 @@ impl YVariable {
 
     pub fn connect(self, ref_local_id: i32) -> Self {
         self.child(&YConnection::new().ref_local_id(ref_local_id).close())
+    }
+}
+
+impl YExpression {
+    pub fn with_expression(expression: &'static str) -> Self {
+        let mut node = Self::new();
+        node.0.content = Some(expression);
+        node
     }
 }
 
@@ -253,17 +290,24 @@ fn pou() {
 
 #[test]
 fn block() {
-    // TODO: negate()
     #[rustfmt::skip]
-    let serialized = YPou::init("a", "b", "ab").child(
-        &YBlock::with_id(14).with_name("myAdd").execution_id(0).children(vec![
-            &YInputVariables::with_variables(vec![
-                &YVariable::with_name("a").connect(16),
-                &YVariable::with_name("b").connect(17),
-            ]),
-            &YOutputVariables::with_variables(vec![&YVariable::with_name("myAdd")])
-        ]))
-        .serialize();
+    let serialized = YPou::init("conditional_return", "functionBlock", "...").child(
+        &YFbd::new().children(vec![
+            &YInVariable::with_id(1).with_expression("val = 5"),
+            &YInVariable::with_id(3).with_expression("10"),
+            &YOutVariable::with_id(4).with_expression("val").with_execution_id(1).connect(3),
+            &YInOutVariable::with_id(5).with_expression("a"),
+        ])
+    ).serialize();
 
-    println!("{serialized}");
+    // let serialized = YPou::init("conditional_return", "functionBlock", "...")
+    //     .with_fbd(vec![
+    //         &YInVariable::with_id(1).with_expression("val = 5"),
+    //         &YInVariable::with_id(3).with_expression("10"),
+    //         &YOutVariable::with_id(4).with_expression("val").with_execution_id(1).connect(3),
+    //         &YInOutVariable::with_id(5).with_expression("a"),
+    //     ])
+    //     .serialize();
+
+    // println!("{serialized}");
 }
