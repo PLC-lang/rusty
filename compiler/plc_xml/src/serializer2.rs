@@ -63,6 +63,10 @@ impl Node {
         }
 
         result = format!("{indent}<{name} {attributes}>\n");
+        if let Some(content) = self.text {
+            result = format!("{result}{indent}{content}\n")
+        }
+
         self.children.iter().for_each(|child| result = format!("{result}{}", child.serialize(level + 1)));
         result = format!("{result}{indent}</{name}>\n");
 
@@ -160,6 +164,18 @@ impl YInVariable {
         self
     }
 }
+newtype_impl!(YInterface, "interface");
+newtype_impl!(YLocalVars, "localVars");
+newtype_impl!(YAddData, "addData");
+newtype_impl!(YData, "data");
+newtype_impl!(YTextDeclaration, "textDeclaration");
+newtype_impl!(YContent, "content");
+impl YContent {
+    pub fn text(mut self, content: &'static str) -> Self {
+        self.0.text = Some(content);
+        self
+    }
+}
 
 newtype_impl!(YPou, "pou");
 impl YPou {
@@ -172,9 +188,24 @@ impl YPou {
         self.attribute("pouType", kind)
     }
 
-    // pub fn new(name: &'static str, kind: &'static str, content: &'static str) -> Self {
-    //     let mut node = Self::new().attribute("name", name).attribute("pouType", kind);
-    // }
+    // TODO: kind -> enum
+    #[rustfmt::skip]
+    pub fn init(name: &'static str, kind: &'static str, content: &'static str) -> Self {
+        Self::new().attribute("name", name).attribute("pouType", kind).child(
+            &YInterface::new().children(vec![
+                &YLocalVars::new().close(),
+                &YAddData::new().child(
+                    &YData::new().attribute("name", "...").child(
+                        &YTextDeclaration::new().child(
+                            &YContent::new().text(content)
+                        )
+                    ),
+                ),
+            ]),
+        )
+    }
+
+    pub fn with_body_fbd() {}
 }
 
 newtype_impl!(YPosition, "position");
@@ -216,76 +247,23 @@ impl YVariable {
 #[test]
 fn pou() {
     #[rustfmt::skip]
-    let serialized = YPou::with_name("foo");
+    let serialized = YPou::init("a", "b", "VERY LONG STRING AAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHH").serialize();
+    println!("{serialized}");
 }
 
 #[test]
 fn block() {
     // TODO: negate()
     #[rustfmt::skip]
-    let serialized = YBlock::with_id(14).with_name("myAdd").execution_id(0).children(vec![
-        &YInputVariables::with_variables(vec![
-            &YVariable::with_name("a").connect(16),
-            &YVariable::with_name("b").connect(17),
-        ]),
-        &YOutputVariables::with_variables(vec![&YVariable::with_name("myAdd")])
-    ]).serialize();
+    let serialized = YPou::init("a", "b", "ab").child(
+        &YBlock::with_id(14).with_name("myAdd").execution_id(0).children(vec![
+            &YInputVariables::with_variables(vec![
+                &YVariable::with_name("a").connect(16),
+                &YVariable::with_name("b").connect(17),
+            ]),
+            &YOutputVariables::with_variables(vec![&YVariable::with_name("myAdd")])
+        ]))
+        .serialize();
 
     println!("{serialized}");
 }
-
-// #[test]
-// fn temp() {
-//     // // serialize(), to_ast()
-//     // fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
-//     //     let source_code = SourceCode::new(content, "test.cfc");
-//     //     xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
-//     // }
-
-//     let pou = format!(
-//         r#"
-//     <?xml version="1.0" encoding="UTF-8"?>
-//     <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="conditional_return" pouType="functionBlock">
-//         <interface>
-//             <localVars/>
-//             <addData>
-//                 <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-//                     <textDeclaration>
-//                         <content>
-//                         FUNCTION_BLOCK conditional_return
-//                         VAR_INPUT
-//                             val : DINT;
-//                         END_VAR</content>
-//                     </textDeclaration>
-//                 </data>
-//             </addData>
-//         </interface>
-//         <body>
-//             <FBD>
-//                 {content}
-//             </FBD>
-//         </body>
-//     </pou>
-//     "#,
-//         content = XInVariable::init(1, false, None).serialize()
-//     );
-
-//     //     let pou = todo!();
-//     //     pou.add_block()
-
-//     //     XPou::new(...).with_children(vec![
-//     //         // XInVariable::init(1, false, Some(2)).serialize();
-//     //         XInVariable::with_id(1).with_expression("...").with_exec_id(...).connected(5).negated(),
-//     //         XInVariable::with_id(1).with_expression("...").with_exec_id(...).connected(5),
-//     //         XInVariable::with_id(1).with_expression("...").with_exec_id(...).connected(5),
-//     //         XInVariable::with_id(1).with_expression("...").with_exec_id(...).connected(5),
-//     //     ])
-
-//     //     XInVariable::with_id(...).
-//     //     XInVariable::init(1, false, Some(2)).serialize();
-//     //     println!("{repeat}", repeat = "=".repeat(100));
-//     //     XInVariable::init(1, false, None).serialize();
-
-//     //     //
-//     //     XInVariable::init(1, false, Some(2));
-//     }

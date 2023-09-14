@@ -3,9 +3,8 @@ use std::cmp::Ordering;
 use indexmap::IndexMap;
 use quick_xml::events::Event;
 
-use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
-
 use super::{block::Block, connector::Connector, control::Control, variables::FunctionBlockVariable};
+use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
 /// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
