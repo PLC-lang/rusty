@@ -768,6 +768,14 @@ impl Diagnostic {
             err_no: ErrNo::cfc__cyclic_connection,
         }
     }
+
+    pub fn unnamed_contol(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Unnamed control".into(),
+            range: vec![range],
+            err_no: ErrNo::cfc__unnamed_control,
+        }
+    }
 }
 
 #[cfg(test)]

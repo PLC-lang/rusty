@@ -927,6 +927,12 @@ impl AstNode {
     pub fn is_default_value(&self) -> bool {
         matches!(self.stmt, AstStatement::DefaultValue { .. })
     }
+
+    /// Negates the given element by adding it to a not expression
+    pub fn negate(self: AstNode, mut id_provider: IdProvider) -> AstNode {
+        let location = self.get_location();
+        AstFactory::create_not_expression(self, location, id_provider.next_id())
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1473,6 +1479,19 @@ impl AstFactory {
             id_provider,
         )
     }
+
+    pub fn create_jump_statement(
+        condition: Box<AstNode>,
+        target: Box<AstNode>,
+        location: SourceLocation,
+        id: AstId,
+    ) -> AstNode {
+        AstNode { stmt: AstStatement::JumpStatement(JumpStatement { condition, target }), location, id }
+    }
+
+    pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
+    }
 }
 #[derive(Clone, PartialEq)]
 pub struct EmptyStatement {}
@@ -1548,14 +1567,10 @@ pub struct JumpStatement {
     condition: Box<AstNode>,
     /// The target location (Label) the statement will jump to
     target: Box<AstNode>,
-    location: SourceLocation,
-    id: AstId,
 }
 
 /// Represents a location in code that could be jumbed to
 #[derive(Clone, Debug, PartialEq)]
 pub struct LabelStatement {
     name: String,
-    location: SourceLocation,
-    id: AstId,
 }
