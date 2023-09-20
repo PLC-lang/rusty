@@ -151,6 +151,17 @@ fn conditional_return_block_evaluating_false() {
     assert_eq!(res, 10);
 }
 
+#[test]
+fn connection_sink_source() {
+    // GIVEN a CFC program which assigns variables through a sink-source-pair and adds them together
+    let st_file = get_test_file("cfc/connection.st");
+    let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
+    // WHEN calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the result will have double the value of the initial value
+    assert_eq!(res, 4);
+}
+
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
@@ -218,5 +229,46 @@ mod ir {
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
         assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+    }
+
+    #[test]
+    fn variable_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
+
+        let result_file = tempfile::NamedTempFile::new().unwrap();
+        let path = result_file.path();
+        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
+        let mut f = std::fs::File::open(path).expect("Temp-file should have been generated");
+        let mut content = String::new();
+        let _ = f.read_to_string(&mut content);
+        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
+
+        //Verify file content
+        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+
+        //clean up
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    #[ignore = "block-to-block connections not yet implemented"]
+    fn block_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_block_source_multi_sink.cfc");
+
+        let result_file = tempfile::NamedTempFile::new().unwrap();
+        let path = result_file.path();
+        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
+        let mut f = std::fs::File::open(path).expect("Temp-file should have been generated");
+        let mut content = String::new();
+        let _ = f.read_to_string(&mut content);
+        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
+
+        //Verify file content
+        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+
+        //clean up
+        let _ = std::fs::remove_file(path);
     }
 }

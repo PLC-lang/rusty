@@ -453,7 +453,7 @@ fn generate_variable_length_array_bound_function<'ink>(
             llvm.i32_type().const_int(offset, false)
         }
         AstStatement::CastStatement(data) => {
-            let ExpressionValue::RValue(value) =  generator.generate_expression_value(&data.target)? else {
+            let ExpressionValue::RValue(value) = generator.generate_expression_value(&data.target)? else {
                 unreachable!()
             };
 

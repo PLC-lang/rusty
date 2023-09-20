@@ -1,0 +1,50 @@
+---
+source: tests/integration/cfc.rs
+expression: output_file_content_without_headers.join(NEWLINE)
+---
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  %value = alloca i32, align 4
+  store i32 2, i32* %value, align 4
+  store i32 0, i32* %main, align 4
+  %load_value = load i32, i32* %value, align 4
+  %call = call i32 @myConnection(i32 %load_value)
+  store i32 %call, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+
+define i32 @myAdd(i32 %0, i32 %1) {
+entry:
+  %myAdd = alloca i32, align 4
+  %a = alloca i32, align 4
+  store i32 %0, i32* %a, align 4
+  %b = alloca i32, align 4
+  store i32 %1, i32* %b, align 4
+  store i32 0, i32* %myAdd, align 4
+  %load_a = load i32, i32* %a, align 4
+  %load_b = load i32, i32* %b, align 4
+  %tmpVar = add i32 %load_a, %load_b
+  store i32 %tmpVar, i32* %myAdd, align 4
+  %myAdd_ret = load i32, i32* %myAdd, align 4
+  ret i32 %myAdd_ret
+}
+
+define i32 @myConnection(i32 %0) {
+entry:
+  %myConnection = alloca i32, align 4
+  %x = alloca i32, align 4
+  store i32 %0, i32* %x, align 4
+  %y = alloca i32, align 4
+  store i32 0, i32* %y, align 4
+  store i32 0, i32* %myConnection, align 4
+  %load_x = load i32, i32* %x, align 4
+  store i32 %load_x, i32* %y, align 4
+  %load_y = load i32, i32* %y, align 4
+  %load_x1 = load i32, i32* %x, align 4
+  %call = call i32 @myAdd(i32 %load_y, i32 %load_x1)
+  store i32 %call, i32* %myConnection, align 4
+  %myConnection_ret = load i32, i32* %myConnection, align 4
+  ret i32 %myConnection_ret
+}

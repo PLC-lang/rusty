@@ -1,0 +1,22 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    SemanticError {
+        message: "Expected a corresponding source-connection mark for sink 's2', but could not find one.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 3,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
+            },
+        ],
+        err_no: cfc__no_associated_connector,
+    },
+]

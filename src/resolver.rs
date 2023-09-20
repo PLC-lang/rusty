@@ -208,7 +208,8 @@ impl TypeAnnotator<'_> {
     }
 
     fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
-        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt() else {
+        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt()
+        else {
             return;
         };
         let mut ctx = ctx.clone();
@@ -940,7 +941,10 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
-                        let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() else { return };
+                        let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt()
+                        else {
+                            return;
+                        };
                         let Some(elements) = array.elements() else { return };
 
                         if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
@@ -959,7 +963,10 @@ impl<'i> TypeAnnotator<'i> {
                 for (idx, member) in members.iter().enumerate() {
                     let data_type = self.index.get_effective_type_or_void_by_name(member.get_type_name());
                     if data_type.is_array() {
-                        let Some(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt()) else { continue };
+                        let Some(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt())
+                        else {
+                            continue;
+                        };
                         self.type_hint_for_array_of_structs(data_type, &data.right, ctx);
                     }
                 }

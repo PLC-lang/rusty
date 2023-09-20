@@ -1,12 +1,12 @@
 ---
-source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: visit(&content).unwrap()
+source: compiler/plc_xml/src/model/fbd.rs
+expression: model
 ---
 Project {
     pous: [
         Pou {
-            name: "FuncyReturn",
-            pou_type: Function,
+            name: "TestProg",
+            pou_type: Program,
             body: Body {
                 function_block_diagram: Some(
                     FunctionBlockDiagram {
@@ -26,13 +26,11 @@ Project {
                                     kind: Output,
                                     local_id: 2,
                                     negated: false,
-                                    expression: "FuncyReturn",
+                                    expression: "b",
                                     execution_order_id: Some(
-                                        0,
-                                    ),
-                                    ref_local_id: Some(
                                         1,
                                     ),
+                                    ref_local_id: None,
                                 },
                             ),
                         },
@@ -40,16 +38,7 @@ Project {
                 ),
             },
             actions: [],
-            interface: Some(
-                Interface {
-                    add_data: Some(
-                        Data {
-                            content: "FUNCTION FuncyReturn : DINT\n                        VAR_INPUT\n                            a : DINT;\n                        END_VAR\nEND_FUNCTION",
-                            handle: Implementation,
-                        },
-                    ),
-                },
-            ),
+            interface: None,
         },
     ],
 }

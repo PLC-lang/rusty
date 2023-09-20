@@ -4,7 +4,7 @@ use crate::model::action::Action;
 
 use super::ParseSession;
 
-impl Action {
+impl<'xml> Action<'xml> {
     pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstNode> {
         todo!()
     }
@@ -13,8 +13,8 @@ impl Action {
         let statements = self.transform(session);
 
         Implementation {
-            name: self.name.to_owned(),
-            type_name: self.type_name.to_owned(),
+            name: self.name.to_string(),
+            type_name: self.type_name.to_string(),
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,

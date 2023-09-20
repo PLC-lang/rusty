@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use quick_xml::events::Event;
 
@@ -9,42 +9,42 @@ use crate::{
     xml_parser::Parseable,
 };
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct Connector {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub(crate) struct Connector<'xml> {
     pub kind: ConnectorKind,
-    pub name: String,
+    pub name: Cow<'xml, str>,
     pub local_id: usize,
     pub ref_local_id: Option<usize>,
-    pub formal_parameter: Option<String>,
+    pub formal_parameter: Option<Cow<'xml, str>>,
 }
 
-impl Connector {
+impl<'xml> Connector<'xml> {
     pub fn new(mut hm: HashMap<String, String>, kind: ConnectorKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
-            name: hm.get_or_err("name")?,
+            name: Cow::from(hm.get_or_err("name")?),
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
-            formal_parameter: hm.remove("formalParameter"),
+            formal_parameter: hm.remove("formalParameter").map(Cow::from),
         })
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub(crate) enum ConnectorKind {
     Source,
     Sink,
 }
 
-impl Parseable for Connector {
+impl<'xml> Parseable for Connector<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
         let next = reader.peek()?;
         let kind = match &next {
             Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"connector" => ConnectorKind::Sink,
-                b"continuation" => ConnectorKind::Source,
+                b"connector" => ConnectorKind::Source,
+                b"continuation" => ConnectorKind::Sink,
                 _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
             },
 

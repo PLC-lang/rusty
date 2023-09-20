@@ -1,0 +1,19 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    SemanticError {
+        message: "Expected a corresponding source-connection mark for sink 'connection1', but could not find one.",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 3,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__no_associated_connector,
+    },
+]

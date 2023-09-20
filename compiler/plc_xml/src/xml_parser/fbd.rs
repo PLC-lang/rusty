@@ -6,11 +6,12 @@ use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
 use super::ParseSession;
 
-impl FunctionBlockDiagram {
+impl<'xml> FunctionBlockDiagram<'xml> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let mut ast_association = IndexMap::new();
+
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
         self.nodes.iter().for_each(|(id, _)| {

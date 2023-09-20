@@ -92,6 +92,9 @@ pub enum ErrNo {
     cfc__empty_control_statement,
     cfc__undefined_node,
     cfc__unexpected_node,
+    cfc__unconnected_source,
+    cfc__cyclic_connection,
+    cfc__no_associated_connector,
 }
 
 impl Display for ErrNo {

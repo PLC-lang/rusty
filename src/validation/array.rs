@@ -95,7 +95,7 @@ impl<'a> Wrapper<'a> {
     {
         match self {
             Wrapper::Statement(statement) => {
-                let AstNode{ stmt: AstStatement::Assignment ( data), ..} = statement else { return None };
+                let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else { return None };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
