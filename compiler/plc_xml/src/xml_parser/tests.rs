@@ -28,9 +28,7 @@ fn visit(content: &str) -> Result<Project, crate::error::Error> {
 }
 
 fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
-    let Ok(mut project) = visit(content) else {
-            unreachable!()
-        };
+    let Ok(mut project) = visit(content) else { unreachable!() };
     let source_location_factory = SourceLocationFactory::for_source(&content.create_source("test"));
     project.desugar(&source_location_factory)?;
     Ok(project)
@@ -176,15 +174,20 @@ fn ast_generates_locations() {
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
-    let AstStatement::Assignment (Assignment{ left, right, .. })= &impl1.statements[0].get_stmt() else {
-            panic!("Not an assignment");
-        };
+    let AstStatement::Assignment(Assignment { left, right, .. }) = &impl1.statements[0].get_stmt() else {
+        panic!("Not an assignment");
+    };
     assert_debug_snapshot!(left.get_location());
     assert_debug_snapshot!(right.get_location());
     //Deconstruct call statement and get locations
-    let AstNode { stmt: AstStatement::CallStatement (CallStatement{ operator, parameters, .. }), location, ..} = &impl1.statements[1] else {
-            panic!("Not a call statement");
-        };
+    let AstNode {
+        stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }),
+        location,
+        ..
+    } = &impl1.statements[1]
+    else {
+        panic!("Not a call statement");
+    };
     assert_debug_snapshot!(location);
     assert_debug_snapshot!(operator.get_location());
     let parameters = parameters.as_deref().unwrap();

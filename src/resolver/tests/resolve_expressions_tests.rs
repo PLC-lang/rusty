@@ -76,7 +76,13 @@ fn cast_expressions_resolves_types() {
     let statements = &unit.implementations[0].statements;
     assert_type_and_hint!(&annotations, &index, &statements[0], BYTE_TYPE, None);
     assert_type_and_hint!(&annotations, &index, &statements[1], INT_TYPE, None);
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{access: ReferenceAccess::Cast(target), ..}), ..} = &statements[1]  else {unreachable!()};
+    let AstNode {
+        stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }),
+        ..
+    } = &statements[1]
+    else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, target.as_ref(), SINT_TYPE, None);
 
     assert_type_and_hint!(&annotations, &index, &statements[2], UINT_TYPE, None);
@@ -97,7 +103,13 @@ fn cast_expression_literals_get_casted_types() {
     let statements = &unit.implementations[0].statements;
     {
         assert_type_and_hint!(&annotations, &index, &statements[0], INT_TYPE, None);
-        let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{access: ReferenceAccess::Cast(target), ..}), ..} = &statements[0]  else {unreachable!()};
+        let AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }),
+            ..
+        } = &statements[0]
+        else {
+            unreachable!()
+        };
         let t = target.as_ref();
         assert_eq!(
             format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
@@ -107,7 +119,11 @@ fn cast_expression_literals_get_casted_types() {
     }
     {
         assert_type_and_hint!(&annotations, &index, &statements[1], WORD_TYPE, None);
-        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), ..} )= &statements[1].get_stmt()  else {unreachable!()};
+        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
+            &statements[1].get_stmt()
+        else {
+            unreachable!()
+        };
         let t = target.as_ref();
         assert_eq!(
             format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
@@ -134,7 +150,11 @@ fn cast_expressions_of_enum_with_resolves_types() {
     assert_type_and_hint!(&annotations, &index, &statements[0], "MyEnum", None);
     assert_type_and_hint!(&annotations, &index, &statements[1], "MyEnum", None);
 
-    let AstStatement::ReferenceExpr (ReferenceExpr { access: ReferenceAccess::Cast(access), ..}) = &statements[0].get_stmt() else { unreachable!()};
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(access), .. }) =
+        &statements[0].get_stmt()
+    else {
+        unreachable!()
+    };
     assert_eq!(
         annotations.get(access),
         Some(&StatementAnnotation::Variable {
@@ -146,7 +166,11 @@ fn cast_expressions_of_enum_with_resolves_types() {
         })
     );
 
-    let AstStatement::ReferenceExpr (ReferenceExpr{ access: ReferenceAccess::Cast(access), ..}) = &statements[1].get_stmt() else { unreachable!()};
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(access), .. }) =
+        &statements[1].get_stmt()
+    else {
+        unreachable!()
+    };
     assert_eq!(
         annotations.get(access),
         Some(&StatementAnnotation::Variable {
@@ -1247,7 +1271,10 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     assert_eq!(index.find_effective_type_by_name("INT"), associated_type);
 
     // AND the reference itself should be ...
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator,..}), ..} = &statements[0] else {unreachable!()};
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = &statements[0]
+    else {
+        unreachable!()
+    };
     assert_eq!(
         Some(&StatementAnnotation::Function {
             return_type: "INT".into(),
@@ -1780,14 +1807,36 @@ fn variable_direct_access_type_resolved() {
     {
         let a_x1 = &statements[0];
         assert_type_and_hint!(&annotations, &index, a_x1, BOOL_TYPE, None);
-        let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(x1), base: Some(a), ..}), ..} = a_x1 else { unreachable!()};
+        let AstNode {
+            stmt:
+                AstStatement::ReferenceExpr(ReferenceExpr {
+                    access: ReferenceAccess::Member(x1),
+                    base: Some(a),
+                    ..
+                }),
+            ..
+        } = a_x1
+        else {
+            unreachable!()
+        };
         assert_type_and_hint!(&annotations, &index, a, INT_TYPE, None);
         assert_type_and_hint!(&annotations, &index, x1, BOOL_TYPE, None);
     }
     {
         let a_w2 = &statements[1];
         assert_type_and_hint!(&annotations, &index, a_w2, WORD_TYPE, None);
-        let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(w2), base: Some(a), ..}), ..} = a_w2 else { unreachable!()};
+        let AstNode {
+            stmt:
+                AstStatement::ReferenceExpr(ReferenceExpr {
+                    access: ReferenceAccess::Member(w2),
+                    base: Some(a),
+                    ..
+                }),
+            ..
+        } = a_w2
+        else {
+            unreachable!()
+        };
         assert_type_and_hint!(&annotations, &index, a, INT_TYPE, None);
         assert_type_and_hint!(&annotations, &index, w2, WORD_TYPE, None);
     }
@@ -1818,8 +1867,21 @@ fn variable_direct_access_type_resolved2() {
     let type_names: Vec<&str> = statements
         .iter()
         .map(|s| {
-            let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{access: ReferenceAccess::Member(reference) ,.. }), .. } = s else { unreachable!("expected ReferenceExpr") };
-            let AstNode { stmt: AstStatement::DirectAccess(DirectAccess { index, .. }), .. } = reference.as_ref() else { unreachable!("expected DirectAccess") };
+            let AstNode {
+                stmt:
+                    AstStatement::ReferenceExpr(ReferenceExpr {
+                        access: ReferenceAccess::Member(reference), ..
+                    }),
+                ..
+            } = s
+            else {
+                unreachable!("expected ReferenceExpr")
+            };
+            let AstNode { stmt: AstStatement::DirectAccess(DirectAccess { index, .. }), .. } =
+                reference.as_ref()
+            else {
+                unreachable!("expected DirectAccess")
+            };
             index
         })
         .map(|s| annotations.get_type_or_void(s, &index).get_name())
@@ -2293,10 +2355,16 @@ fn struct_member_explicit_initialization_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the initializers assignments have correct annotations
-    let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), ..} = &unit.implementations[0].statements[0] else { unreachable!()};
-    let AstStatement::ExpressionList ( expressions) = right.get_stmt() else {unreachable!()};
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
+        &unit.implementations[0].statements[0]
+    else {
+        unreachable!()
+    };
+    let AstStatement::ExpressionList(expressions) = right.get_stmt() else { unreachable!() };
 
-    let AstStatement::Assignment(Assignment { left, ..}) = &expressions[0].get_stmt() else {unreachable!()};
+    let AstStatement::Assignment(Assignment { left, .. }) = &expressions[0].get_stmt() else {
+        unreachable!()
+    };
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             resulting_type: "DINT".to_string(),
@@ -2308,7 +2376,9 @@ fn struct_member_explicit_initialization_test() {
         annotations.get(left)
     );
 
-    let AstStatement::Assignment(Assignment { left, ..}) = &expressions[1].get_stmt() else {unreachable!()};
+    let AstStatement::Assignment(Assignment { left, .. }) = &expressions[1].get_stmt() else {
+        unreachable!()
+    };
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             resulting_type: "BYTE".to_string(),
@@ -2858,19 +2928,37 @@ fn nested_bitwise_access_resolves_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let assignment = &unit.implementations[0].statements[0];
 
-    let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), ..} = assignment else {unreachable!()};
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = assignment else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL")); //strange
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{ base: Some(base),..}), ..} = right.as_ref() else {unreachable!()};
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        right.as_ref()
+    else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{ base: Some(base),..}), ..} = base.as_ref() else {unreachable!()};
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        base.as_ref()
+    else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, base, "WORD", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{ base: Some(base),..}), ..} = base.as_ref() else {unreachable!()};
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        base.as_ref()
+    else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, base, "DWORD", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr{ base: Some(base),..}), ..} = base.as_ref() else {unreachable!()};
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        base.as_ref()
+    else {
+        unreachable!()
+    };
     assert_type_and_hint!(&annotations, &index, base, "LWORD", None);
 }
 
@@ -2934,12 +3022,14 @@ fn array_accessor_in_struct_array_is_annotated() {
     let qr = &unit.implementations[0].statements[0];
 
     assert_type_and_hint!(&annotations, &index, qr, "INT", None);
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), ..}), ..} = qr else {
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } = qr else {
         panic!("expected ReferenceExpr for {:?}", qr);
     };
     assert_type_and_hint!(&annotations, &index, base, "__MyStruct_arr1", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), ..}), ..} = base.as_ref() else {
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        base.as_ref()
+    else {
         panic!("expected ReferenceExpr for {:?}", base);
     };
     assert_type_and_hint!(&annotations, &index, base, "MyStruct", None);
@@ -3275,9 +3365,21 @@ fn call_explicit_parameter_name_is_resolved() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // should be the call statement
     // should contain array access as operator
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, ..}), ..} = &unit.implementations[1].statements[0] else { unreachable!("expected callstatement")};
-    let AstNode { stmt: AstStatement::Assignment(Assignment { left: b, ..}), ..} = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0] else { unreachable!()};
-    let AstNode { stmt: AstStatement::Assignment(Assignment { left: a, ..}), ..} = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[1] else { unreachable!()};
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } =
+        &unit.implementations[1].statements[0]
+    else {
+        unreachable!("expected callstatement")
+    };
+    let AstNode { stmt: AstStatement::Assignment(Assignment { left: b, .. }), .. } =
+        flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0]
+    else {
+        unreachable!()
+    };
+    let AstNode { stmt: AstStatement::Assignment(Assignment { left: a, .. }), .. } =
+        flatten_expression_list(parameters.as_ref().as_ref().unwrap())[1]
+    else {
+        unreachable!()
+    };
 
     assert_eq!(
         Some(&StatementAnnotation::Variable {
@@ -3326,7 +3428,9 @@ fn call_on_function_block_array() {
     // should be the call statement
     let statements = &unit.implementations[1].statements[0];
     // should contain array access as operator
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, ..}), ..} = statements else { unreachable!("expected callstatement")};
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = statements else {
+        unreachable!("expected callstatement")
+    };
     assert!(matches!(
         operator.as_ref(),
         &AstNode {
@@ -3422,7 +3526,9 @@ fn resolve_recursive_function_call() {
 
     let call = &unit.implementations[0].statements[0];
 
-    let AstStatement::CallStatement ( data) = call.get_stmt() else { unreachable!(); };
+    let AstStatement::CallStatement(data) = call.get_stmt() else {
+        unreachable!();
+    };
 
     assert_eq!(
         Some(&StatementAnnotation::Function {
@@ -3466,7 +3572,9 @@ fn resolve_recursive_program_call() {
     let type_map = annotations.type_map;
 
     let call = &unit.implementations[0].statements[0];
-    let AstStatement::CallStatement( data) = call.get_stmt() else { unreachable!(); };
+    let AstStatement::CallStatement(data) = call.get_stmt() else {
+        unreachable!();
+    };
 
     assert_eq!(
         Some(&StatementAnnotation::Program { qualified_name: "mainProg".into() }),
@@ -3766,13 +3874,40 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     index.import(std::mem::take(&mut annotations.new_index));
 
     // THEN the expressions are nested and annotated correctly
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, base: Some(value), .. }), ..} = &statement else { unreachable!("expected ReferenceExpr, but got {statement:#?}")};
+    let AstNode {
+        stmt:
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Deref, base: Some(value), ..
+            }),
+        ..
+    } = &statement
+    else {
+        unreachable!("expected ReferenceExpr, but got {statement:#?}")
+    };
     assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr {  access: ReferenceAccess::Address, base: Some(base),  .. }), .. } = value.as_ref() else { unreachable!("expected ReferenceExpr, but got {value:#?}")};
+    let AstNode {
+        stmt:
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Address, base: Some(base), ..
+            }),
+        ..
+    } = value.as_ref()
+    else {
+        unreachable!("expected ReferenceExpr, but got {value:#?}")
+    };
     assert_type_and_hint!(&annotations, &index, base, "__POINTER_TO_BYTE", None);
 
-    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr {  access: ReferenceAccess::Address, base: Some(base),  .. }), .. } = base.as_ref() else { unreachable!("expected ReferenceExpr, but got {base:#?}")};
+    let AstNode {
+        stmt:
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Address, base: Some(base), ..
+            }),
+        ..
+    } = base.as_ref()
+    else {
+        unreachable!("expected ReferenceExpr, but got {base:#?}")
+    };
     assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
 
     // AND the overall type of the statement is annotated correctly
@@ -4043,9 +4178,7 @@ fn array_passed_to_function_with_vla_param_is_annotated_correctly() {
 
     let stmt = &unit.implementations[1].statements[0];
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt {
-        let Some(param) = parameters.as_ref() else {
-            unreachable!()
-        };
+        let Some(param) = parameters.as_ref() else { unreachable!() };
 
         assert_type_and_hint!(&annotations, &index, param, "__main_a", Some("__foo_arr"));
     } else {
@@ -4081,9 +4214,7 @@ fn vla_with_two_arrays() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[1].statements[0];
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt {
-        let Some(param) = parameters.as_ref() else {
-            unreachable!()
-        };
+        let Some(param) = parameters.as_ref() else { unreachable!() };
 
         assert_type_and_hint!(&annotations, &index, param, "__main_a", Some("__foo_arr"));
     } else {
@@ -4092,9 +4223,7 @@ fn vla_with_two_arrays() {
 
     let stmt = &unit.implementations[1].statements[1];
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt {
-        let Some(param) = parameters.as_ref() else {
-            unreachable!()
-        };
+        let Some(param) = parameters.as_ref() else { unreachable!() };
 
         assert_type_and_hint!(&annotations, &index, param, "__main_b", Some("__foo_arr"));
     } else {
@@ -4469,7 +4598,7 @@ fn vla_call_statement() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, ..}), ..} = stmt else {
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt else {
         unreachable!();
     };
 
@@ -4504,7 +4633,7 @@ fn vla_call_statement_with_nested_arrays() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, ..}), ..} = stmt else {
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt else {
         unreachable!();
     };
 
@@ -4568,7 +4697,7 @@ fn vla_access_assignment_receives_the_correct_type_hint() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), ..} = stmt else {
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = stmt else {
         panic!("expected an assignment, got none")
     };
     // RHS resolves to INT and receives type-hint to DINT
@@ -4594,7 +4723,7 @@ fn multi_dim_vla_access_assignment_receives_the_correct_type_hint() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), ..} = stmt else {
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = stmt else {
         panic!("expected an assignment, got none")
     };
     // RHS resolves to INT and receives type-hint to DINT
@@ -4628,7 +4757,7 @@ fn function_call_resolves_correctly_to_pou_rather_than_local_variable() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[1].statements[0];
 
-    let AstStatement::CallStatement ( data) = stmt.get_stmt() else { unreachable!() };
+    let AstStatement::CallStatement(data) = stmt.get_stmt() else { unreachable!() };
     assert_type_and_hint!(&annotations, &index, &data.operator, "C", None);
 }
 

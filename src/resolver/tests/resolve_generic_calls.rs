@@ -1133,7 +1133,9 @@ fn generic_external_function_having_same_name_as_local_variable() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];
 
-    let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), ..} = statement else { unreachable!() };
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = statement else {
+        unreachable!()
+    };
     assert_eq!(
         annotations.get(right).unwrap(),
         &StatementAnnotation::Value { resulting_type: "INT".to_string() }
