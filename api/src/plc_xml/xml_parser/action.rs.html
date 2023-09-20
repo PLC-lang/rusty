@@ -32,7 +32,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
-<span class="kw">impl </span>Action {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Action&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, _session: <span class="kw-2">&amp;</span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="macro">todo!</span>()
     }
@@ -41,8 +41,8 @@
         <span class="kw">let </span>statements = <span class="self">self</span>.transform(session);
 
         Implementation {
-            name: <span class="self">self</span>.name.to_owned(),
-            type_name: <span class="self">self</span>.type_name.to_owned(),
+            name: <span class="self">self</span>.name.to_string(),
+            type_name: <span class="self">self</span>.type_name.to_string(),
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,

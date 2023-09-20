@@ -195,8 +195,21 @@
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, str::FromStr};
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, collections::HashMap, str::FromStr};
 
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>quick_xml::events::Event;
 
 <span class="kw">use crate</span>::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
@@ -204,23 +217,34 @@
 <span class="kw">use super</span>::{action::Action, body::Body, interface::Interface};
 
 <span class="attr">#[derive(Debug, Default)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pou {
-    <span class="kw">pub </span>name: String,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
+    <span class="kw">pub </span>name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
     <span class="kw">pub </span>pou_type: PouType,
-    <span class="kw">pub </span>body: Body,
-    <span class="kw">pub </span>actions: Vec&lt;Action&gt;,
+    <span class="kw">pub </span>body: Body&lt;<span class="lifetime">&#39;xml</span>&gt;,
+    <span class="kw">pub </span>actions: Vec&lt;Action&lt;<span class="lifetime">&#39;xml</span>&gt;&gt;,
     <span class="kw">pub </span>interface: <span class="prelude-ty">Option</span>&lt;Interface&gt;,
 }
 
-<span class="kw">impl </span>Pou {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">fn </span>with_attributes(<span class="self">self</span>, attributes: HashMap&lt;String, String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(Pou {
-            name: attributes.get_or_err(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>,
+            name: Cow::from(attributes.get_or_err(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>),
             pou_type: attributes.get_or_err(<span class="string">&quot;pouType&quot;</span>).map(|it| it.parse())<span class="question-mark">??</span>,
             body: <span class="self">self</span>.body,
             actions: <span class="self">self</span>.actions,
             interface: <span class="self">self</span>.interface,
         })
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>desugar(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        source_location_factory: <span class="kw-2">&amp;</span>plc_source::source_location::SourceLocationFactory,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Vec&lt;Diagnostic&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>fbd) = <span class="self">self</span>.body.function_block_diagram {
+            fbd.desugar(source_location_factory)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(())
+        }
     }
 }
 
@@ -255,7 +279,7 @@
     }
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>Pou {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">type </span>Item = <span class="self">Self</span>;
 
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {

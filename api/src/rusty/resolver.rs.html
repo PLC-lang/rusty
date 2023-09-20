@@ -2083,6 +2083,13 @@
 <a href="#2083" id="2083">2083</a>
 <a href="#2084" id="2084">2084</a>
 <a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a>
+<a href="#2089" id="2089">2089</a>
+<a href="#2090" id="2090">2090</a>
+<a href="#2091" id="2091">2091</a>
+<a href="#2092" id="2092">2092</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2293,7 +2300,8 @@
     }
 
     <span class="kw">fn </span>visit_compare_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
-        <span class="kw">let </span>AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt() <span class="kw">else </span>{
+        <span class="kw">let </span>AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = statement.get_stmt()
+        <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx.clone();
@@ -3025,7 +3033,10 @@
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) <span class="kw">if </span>left.is_reference() =&gt; {
-                        <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() <span class="kw">else </span>{ <span class="kw">return </span>};
+                        <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt()
+                        <span class="kw">else </span>{
+                            <span class="kw">return</span>;
+                        };
                         <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
@@ -3044,7 +3055,10 @@
                 <span class="kw">for </span>(idx, member) <span class="kw">in </span>members.iter().enumerate() {
                     <span class="kw">let </span>data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(member.get_type_name());
                     <span class="kw">if </span>data_type.is_array() {
-                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt()) <span class="kw">else </span>{ <span class="kw">continue </span>};
+                        <span class="kw">let </span><span class="prelude-val">Some</span>(AstStatement::Assignment(data)) = flattened.get(idx).map(|it| it.get_stmt())
+                        <span class="kw">else </span>{
+                            <span class="kw">continue</span>;
+                        };
                         <span class="self">self</span>.type_hint_for_array_of_structs(data_type, <span class="kw-2">&amp;</span>data.right, ctx);
                     }
                 }

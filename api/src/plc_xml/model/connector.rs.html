@@ -71,7 +71,7 @@
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, collections::HashMap};
 
 <span class="kw">use </span>quick_xml::events::Event;
 
@@ -82,42 +82,42 @@
     xml_parser::Parseable,
 };
 
-<span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connector {
+<span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connector&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">pub </span>kind: ConnectorKind,
-    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
     <span class="kw">pub </span>local_id: usize,
     <span class="kw">pub </span>ref_local_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    <span class="kw">pub </span>formal_parameter: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>formal_parameter: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;&gt;,
 }
 
-<span class="kw">impl </span>Connector {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Connector&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">pub fn </span>new(<span class="kw-2">mut </span>hm: HashMap&lt;String, String&gt;, kind: ConnectorKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
-            name: hm.get_or_err(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>,
+            name: Cow::from(hm.get_or_err(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>),
             local_id: hm.get_or_err(<span class="string">&quot;localId&quot;</span>).map(|it| it.parse())<span class="question-mark">??</span>,
             ref_local_id: hm.get(<span class="string">&quot;refLocalId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
-            formal_parameter: hm.remove(<span class="string">&quot;formalParameter&quot;</span>),
+            formal_parameter: hm.remove(<span class="string">&quot;formalParameter&quot;</span>).map(Cow::from),
         })
     }
 }
 
-<span class="attr">#[derive(Debug, PartialEq)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ConnectorKind {
     Source,
     Sink,
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>Connector {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Connector&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">type </span>Item = <span class="self">Self</span>;
 
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {
         <span class="kw">let </span>next = reader.peek()<span class="question-mark">?</span>;
         <span class="kw">let </span>kind = <span class="kw">match </span><span class="kw-2">&amp;</span>next {
             Event::Start(tag) | Event::Empty(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                <span class="string">b&quot;connector&quot; </span>=&gt; ConnectorKind::Sink,
-                <span class="string">b&quot;continuation&quot; </span>=&gt; ConnectorKind::Source,
+                <span class="string">b&quot;connector&quot; </span>=&gt; ConnectorKind::Source,
+                <span class="string">b&quot;continuation&quot; </span>=&gt; ConnectorKind::Sink,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedElement(tag.name().try_to_string()<span class="question-mark">?</span>)),
             },
 

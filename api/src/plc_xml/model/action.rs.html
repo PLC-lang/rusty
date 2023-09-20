@@ -3,9 +3,13 @@
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
 <a href="#5" id="5">5</a>
-</pre></div><pre class="rust"><code><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Action {
-    <span class="kw">pub </span>name: String,
-    <span class="kw">pub </span>type_name: String,
+<a href="#6" id="6">6</a>
+<a href="#7" id="7">7</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Action&lt;<span class="lifetime">&#39;xml</span>&gt; {
+    <span class="kw">pub </span>name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
+    <span class="kw">pub </span>type_name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
 }
 </code></pre></div></section></main></body></html>

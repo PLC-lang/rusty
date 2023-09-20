@@ -44,7 +44,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
-<span class="kw">impl </span>Pou {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(fbd) = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram <span class="kw">else </span>{
             <span class="comment">// empty body
@@ -65,8 +65,8 @@
         <span class="kw">let </span>statements = <span class="self">self</span>.transform(session);
 
         Implementation {
-            name: <span class="self">self</span>.name.to_owned(),
-            type_name: <span class="self">self</span>.name.to_owned(),
+            name: <span class="self">self</span>.name.to_string(),
+            type_name: <span class="self">self</span>.name.to_string(),
             linkage: session.linkage,
             pou_type: <span class="self">self</span>.pou_type.into(),
             statements,

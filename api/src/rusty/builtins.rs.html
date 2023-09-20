@@ -1008,7 +1008,7 @@
             llvm.i32_type().const_int(offset, <span class="bool-val">false</span>)
         }
         AstStatement::CastStatement(data) =&gt; {
-            <span class="kw">let </span>ExpressionValue::RValue(value) =  generator.generate_expression_value(<span class="kw-2">&amp;</span>data.target)<span class="question-mark">? </span><span class="kw">else </span>{
+            <span class="kw">let </span>ExpressionValue::RValue(value) = generator.generate_expression_value(<span class="kw-2">&amp;</span>data.target)<span class="question-mark">? </span><span class="kw">else </span>{
                 <span class="macro">unreachable!</span>()
             };
 

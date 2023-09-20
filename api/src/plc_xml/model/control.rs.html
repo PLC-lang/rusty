@@ -96,7 +96,7 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, str::FromStr};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 <span class="kw">use </span>quick_xml::events::Event;
 
@@ -107,21 +107,21 @@
     xml_parser::Parseable,
 };
 
-<span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Control {
+<span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Control&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">pub </span>kind: ControlKind,
-    <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;&gt;,
     <span class="kw">pub </span>local_id: usize,
     <span class="kw">pub </span>ref_local_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     <span class="kw">pub </span>execution_order_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     <span class="kw">pub </span>negated: bool,
 }
 
-<span class="kw">impl </span>Control {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Control&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">pub fn </span>new(<span class="kw-2">mut </span>hm: HashMap&lt;String, String&gt;, kind: ControlKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
-            name: hm.remove(<span class="string">&quot;label&quot;</span>),
+            name: hm.remove(<span class="string">&quot;label&quot;</span>).map(Cow::from),
             local_id: hm.get_or_err(<span class="string">&quot;localId&quot;</span>).map(|it| it.parse())<span class="question-mark">??</span>,
             ref_local_id: hm.get(<span class="string">&quot;refLocalId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
             execution_order_id: hm.get(<span class="string">&quot;executionOrderId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
@@ -130,7 +130,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug, PartialEq)]
+<span class="attr">#[derive(Debug, PartialEq, Clone, Eq, Hash, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ControlKind {
     Jump,
     Label,
@@ -150,7 +150,7 @@
     }
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>Control {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Control&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">type </span>Item = <span class="self">Self</span>;
 
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {

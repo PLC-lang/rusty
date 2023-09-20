@@ -174,6 +174,9 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType},
     provider::IdProvider,
@@ -237,22 +240,25 @@
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
+    <span class="kw">let </span>source_location_factory = SourceLocationFactory::for_source(source);
     <span class="comment">// Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    </span><span class="kw">let </span>project = <span class="kw">match </span>visit(<span class="kw-2">&amp;</span>source.source) {
+    </span><span class="kw">let </span><span class="kw-2">mut </span>project = <span class="kw">match </span>visit(<span class="kw-2">&amp;</span>source.source) {
         <span class="prelude-val">Ok</span>(project) =&gt; project,
         <span class="prelude-val">Err</span>(why) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;cfc errors need to be transformed into diagnostics; {why:?}&quot;</span>),
     };
 
-    <span class="comment">// Create a new parse session
-    </span><span class="kw">let </span>source_location_factory = SourceLocationFactory::for_source(source);
-    <span class="kw">let </span>parser =
-        ParseSession::new(<span class="kw-2">&amp;</span>project, source.get_location_str(), id_provider, linkage, source_location_factory);
+    <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = <span class="macro">vec!</span>[];
+    <span class="kw">let _ </span>= project.desugar(<span class="kw-2">&amp;</span>source_location_factory).map_err(|e| diagnostics.extend(e));
 
+    <span class="comment">// Create a new parse session
+    </span><span class="kw">let </span>parser =
+        ParseSession::new(<span class="kw-2">&amp;</span>project, source.get_location_str(), id_provider, linkage, source_location_factory);
     <span class="comment">// Parse the declaration data field
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>((unit, <span class="kw-2">mut </span>diagnostics)) = parser.try_parse_declaration() <span class="kw">else </span>{
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>((unit, declaration_diagnostics)) = parser.try_parse_declaration() <span class="kw">else </span>{
         <span class="macro">unimplemented!</span>(<span class="string">&quot;XML schemas without text declarations are not yet supported&quot;</span>)
     };
+    diagnostics.extend(declaration_diagnostics);
 
     <span class="comment">// Transform the data-model into an AST
     </span><span class="kw">let </span>(implementations, parser_diagnostics) = parser.parse_model();
@@ -261,8 +267,8 @@
     (unit.with_implementations(implementations), diagnostics)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseSession&lt;<span class="lifetime">&#39;parse</span>&gt; {
-    project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseSession&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; {
+    project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project&lt;<span class="lifetime">&#39;xml</span>&gt;,
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -270,9 +276,9 @@
     diagnostics: Vec&lt;Diagnostic&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;parse</span>&gt; ParseSession&lt;<span class="lifetime">&#39;parse</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; ParseSession&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">fn </span>new(
-        project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project,
+        project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project&lt;<span class="lifetime">&#39;xml</span>&gt;,
         file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         id_provider: IdProvider,
         linkage: LinkageType,
