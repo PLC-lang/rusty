@@ -154,33 +154,17 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     }
 }
 
-enum SourceReference {
-    Assignable(NodeId),
-    Connector(NodeId),
-    Unconnected(NodeId),
-}
-
-impl SourceReference {
-    fn get_id(&self) -> NodeId {
-        match self {
-            SourceReference::Connector(id)
-            | SourceReference::Assignable(id)
-            | SourceReference::Unconnected(id) => *id,
-        }
-    }
-}
-
 // IndexMap<NodeId, Node> interface for connection-point (sink/source) desugaring
 trait ConnectionResolver<'xml> {
     fn desugar_connection_points(
         &mut self,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>>;
-    fn get_source_references(&self) -> HashMap<&str, SourceReference>;
+    fn get_source_references(&self) -> HashMap<&str, NodeId>;
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, SourceReference>,
+        source_connections: &HashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic>;
 }
@@ -204,8 +188,10 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
         source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
         let sinks_to_sources = self.get_source_references();
-        let mut update_operations: Vec<(NodeId, Option<NodeId>, usize)> = vec![];
+        let mut update_operations: Vec<(NodeId, Option<NodeId>, usize)> = vec![]; /* (local_id, ref_local_id, parameter index) */
         let mut diagnostics = vec![];
+
+        // for each node, check all nodes which reference/target it and collect the resolved ids
         for (node_id, node) in self.iter() {
             for (pos, id) in node.get_ref_ids().iter().enumerate() {
                 let target_id = id
@@ -219,18 +205,20 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
             }
         }
 
+        // update nodes with resolved target id
         for (id, ref_id, param_idx) in update_operations {
-            //get id
             if let Some(node) = self.get_mut(&id) {
                 node.set_ref_id(param_idx, ref_id);
             }
         }
+
         self.retain(|_, it| !it.is_connector());
-        if diagnostics.is_empty() {
-            Ok(())
-        } else {
-            Err(diagnostics)
-        }
+
+        if !diagnostics.is_empty() {
+            return Err(diagnostics);
+        };
+
+        Ok(())
     }
 
     /// Given a start connection, finds the final resuling connection
@@ -239,7 +227,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, SourceReference>,
+        source_connections: &HashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic> {
         let mut current = connection;
@@ -258,21 +246,18 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                     })?
                 }
                 Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) => {
-                    current = source_connections
-                        .get(name.as_ref())
-                        .ok_or_else(|| {
-                            Diagnostic::sink_without_associated_source(
-                                name.as_ref(),
-                                source_location_factory.create_block_location(current, None),
-                            )
-                        })?
-                        .get_id()
+                    current = *source_connections.get(name.as_ref()).ok_or_else(|| {
+                        Diagnostic::sink_without_associated_source(
+                            name.as_ref(),
+                            source_location_factory.create_block_location(current, None),
+                        )
+                    })?
                 }
                 _ => return Ok(current),
             }
 
             if !visited.insert(current) {
-                // problem
+                // problem: recursive connections
                 let mut msg = String::new();
                 for node in visited {
                     msg.push_str(self.get(&node).expect("Node exists").get_name());
@@ -280,6 +265,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 }
                 let node = self.get(&current).expect("Node exists");
                 msg.push_str(node.get_name());
+
                 return Err(Diagnostic::cyclic_connection(
                     msg.to_string(),
                     source_location_factory.create_block_location(node.get_id(), node.get_exec_id()),
@@ -289,7 +275,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     }
 
     /// Returns a list of all sources along with the id they are connected to
-    fn get_source_references(&self) -> HashMap<&str, SourceReference> {
+    fn get_source_references(&self) -> HashMap<&str, NodeId> {
         self.iter()
             .filter_map(|(_, node)| {
                 if let Node::Connector(Connector {
@@ -300,21 +286,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                     ..
                 }) = node
                 {
-                    let source_ref = ref_local_id
-                        .map(|ref_id| {
-                            if let Some(Node::Connector(Connector { kind: ConnectorKind::Sink, .. })) =
-                                self.get(&ref_id)
-                            {
-                                // source points directly to another sink
-                                SourceReference::Connector(ref_id)
-                            } else {
-                                // source points to an assignable element
-                                SourceReference::Assignable(ref_id)
-                            }
-                        })
-                        .unwrap_or(SourceReference::Unconnected(*local_id));
-
-                    Some((name.as_ref(), source_ref))
+                    Some((name.as_ref(), ref_local_id.unwrap_or(*local_id)))
                 } else {
                     None
                 }

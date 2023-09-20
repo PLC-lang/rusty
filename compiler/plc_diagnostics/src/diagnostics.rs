@@ -755,7 +755,7 @@ impl Diagnostic {
 
     pub fn sink_without_associated_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Sink '{connector_name}' does not have a source associated with it."),
+            message: format!("Expected a corresponding source-connection mark for sink '{connector_name}', but could not find one."),
             range: vec![range],
             err_no: ErrNo::cfc__no_associated_connector,
         }
@@ -763,7 +763,7 @@ impl Diagnostic {
 
     pub fn cyclic_connection(message: String, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Sink must not be connected to associated source: {message}"),
+            message: format!("Sink is connected to itself. Found the following recursion: {message}"),
             range: vec![range],
             err_no: ErrNo::cfc__cyclic_connection,
         }

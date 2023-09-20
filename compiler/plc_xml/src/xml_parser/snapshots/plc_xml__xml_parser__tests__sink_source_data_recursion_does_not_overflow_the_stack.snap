@@ -4,7 +4,7 @@ expression: diagnostics
 ---
 [
     SemanticError {
-        message: "Sink must not be connected to associated source: s3 -> s2 -> s1 -> s3",
+        message: "Sink is connected to itself. Found the following recursion: s3 -> s2 -> s1 -> s3",
         range: [
             SourceLocation {
                 span: Block {
@@ -20,7 +20,7 @@ expression: diagnostics
         err_no: cfc__cyclic_connection,
     },
     SemanticError {
-        message: "Sink must not be connected to associated source: s1 -> s3 -> s2 -> s1",
+        message: "Sink is connected to itself. Found the following recursion: s1 -> s3 -> s2 -> s1",
         range: [
             SourceLocation {
                 span: Block {
@@ -36,7 +36,7 @@ expression: diagnostics
         err_no: cfc__cyclic_connection,
     },
     SemanticError {
-        message: "Sink must not be connected to associated source: s2 -> s1 -> s3 -> s2",
+        message: "Sink is connected to itself. Found the following recursion: s2 -> s1 -> s3 -> s2",
         range: [
             SourceLocation {
                 span: Block {

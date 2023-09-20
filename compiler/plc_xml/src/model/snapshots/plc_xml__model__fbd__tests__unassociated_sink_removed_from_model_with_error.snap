@@ -4,7 +4,7 @@ expression: err
 ---
 [
     SemanticError {
-        message: "Sink 'connection1' does not have a source associated with it.",
+        message: "Expected a corresponding source-connection mark for sink 'connection1', but could not find one.",
         range: [
             SourceLocation {
                 span: Block {
