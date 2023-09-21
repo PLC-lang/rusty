@@ -17,11 +17,16 @@ use std::{
 
 use ast::provider::IdProvider;
 use cli::{CompileParameters, ParameterError};
-use plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+use pipelines::GeneratedProject;
+use plc::{
+    codegen::{CodegenContext, GeneratedModule},
+    output::FormatOption,
+    DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use source_code::SourceContainer;
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 pub mod cli;
 pub mod pipelines;
@@ -191,6 +196,29 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
     }
 
     Ok(())
+}
+
+/// Generates an IR string from a list of sources. Useful for tests or api calls
+pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+    // Parse the source to ast
+    let project = Project::new(name.to_string()).with_sources(src);
+    let id_provider = IdProvider::default();
+    let mut diagnostician = Diagnostician::default();
+    let project = pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+        // Create an index, add builtins
+        .index(id_provider.clone())?
+        // Resolve
+        .annotate(id_provider, &diagnostician)?;
+    // Validate
+    project.validate(&mut diagnostician)?;
+    // Generate
+    let context = CodegenContext::create();
+    let module = project.generate_single_module(&context, &CompileOptions::default())?;
+
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
+        message: "Cannot generate module".to_string(),
+        err_no: plc_diagnostics::errno::ErrNo::general__err,
+    })
 }
 
 fn generate(

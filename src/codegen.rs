@@ -239,7 +239,6 @@ impl<'ink> GeneratedModule<'ink> {
         let module = context.create_module_from_ir(buffer)?;
 
         log::debug!("{}", module.to_string());
-        module.print_to_stderr();
 
         Ok(GeneratedModule { module, engine: RefCell::new(None) })
     }

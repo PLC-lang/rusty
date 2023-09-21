@@ -237,6 +237,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::HardwareAccess { .. } => {
                 Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
+            AstStatement::JumpStatement( .. ) => todo!("Jump"),
+            AstStatement::LabelStatement( .. ) => todo!("Label"),
             //fallback
             _ => self.generate_literal(expression),
         }
