@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
@@ -15,6 +16,7 @@ use crate::{
     resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
 };
+use std::collections::HashMap;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -303,8 +305,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
+
+        //Create all labels this function will have
+        let mut blocks = HashMap::new();
+        if let Some(labels) = self.index.get_labels(&implementation.name) {
+            for name in labels.keys() {
+                blocks.insert(name.to_string(), self.llvm.context.append_basic_block(current_function, name));
+            }
+        }
         self.llvm.builder.position_at_end(block);
-        //Set debug location
+        blocks.insert("entry".into(), block);
 
         let function_context = FunctionContext {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
@@ -316,6 +326,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 },
             )?,
             function: current_function,
+            blocks,
         };
 
         let mut param_index = 0;

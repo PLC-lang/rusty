@@ -614,6 +614,14 @@ impl Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
     }
 
+    pub fn duplicate_label(
+        name: &str,
+        location: SourceLocation,
+        conflicts: Vec<SourceLocation>,
+    ) -> Diagnostic {
+        Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate label.")
+    }
+
     pub fn global_name_conflict_with_text(
         name: &str,
         location: SourceLocation,

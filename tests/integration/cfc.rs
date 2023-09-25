@@ -1,6 +1,8 @@
 use driver::runner::compile_and_run;
 
 use crate::get_test_file;
+mod resolver_tests;
+mod validation_tests;
 
 #[test]
 fn variables_assigned() {
@@ -167,7 +169,6 @@ fn jump_to_label_with_true() {
 
     let res: i32 = compile_and_run(vec![cfc_file], &mut {});
     assert_eq!(res, 3);
-
 }
 
 #[test]
@@ -176,7 +177,6 @@ fn jump_to_label_with_false() {
 
     let res: i32 = compile_and_run(vec![cfc_file], &mut {});
     assert_eq!(res, 5);
-
 }
 
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
@@ -268,7 +268,6 @@ mod ir {
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
         assert_snapshot!(output_file_content_without_headers);
-
     }
 
     #[test]
@@ -281,6 +280,5 @@ mod ir {
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
         assert_snapshot!(output_file_content_without_headers);
-
     }
 }

@@ -105,7 +105,6 @@ pub mod tests {
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
         let diagnostics = parse_and_validate(src);
-        dbg!(&diagnostics);
         let mut reporter = Diagnostician::buffered();
 
         reporter.register_file("<internal>".to_string(), src.to_string());

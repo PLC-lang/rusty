@@ -68,7 +68,7 @@ END_VAR
                 <connectionPointOut>
                     <relPosition x="80" y="10"/>
                 </connectionPointOut>
-                <expression>3</expression>
+                <expression>a + 3</expression>
             </inVariable>
             <inVariable localId="8" height="20" width="80" negated="false">
                 <position x="170" y="70"/>

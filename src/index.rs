@@ -7,7 +7,7 @@ use crate::{
 use indexmap::IndexMap;
 use itertools::Itertools;
 use plc_ast::ast::{
-    AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -26,6 +26,25 @@ pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
+
+/// A label represents a possible jump point in the source.
+/// It can be referenced by jump elements in the same unit
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct Label {
+    pub id: AstId,
+    pub name: String,
+    pub location: SourceLocation,
+}
+
+impl From<&AstNode> for Label {
+    fn from(value: &AstNode) -> Self {
+        Label {
+            id: value.get_id(),
+            name: value.get_label_name().unwrap_or_default().to_string(),
+            location: value.get_location(),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct VariableIndexEntry {
@@ -806,6 +825,9 @@ pub struct Index {
 
     /// Type layout for the target
     data_layout: DataLayout,
+
+    /// The labels contained in each pou
+    labels: IndexMap<String, SymbolMap<String, Label>>,
 }
 
 impl Index {
@@ -914,6 +936,11 @@ impl Index {
                     self.pous.insert(name.clone(), ele);
                 }
             }
+        }
+
+        //labels
+        for (pou, labels) in other.labels.drain(..) {
+            self.labels.insert(pou, labels);
         }
 
         //Constant expressions are intentionally not imported
@@ -1548,6 +1575,20 @@ impl Index {
             }
             _ => None,
         }
+    }
+
+    /// Adds a label definition for the POU
+    pub fn add_label(&mut self, pou_name: &str, label: Label) {
+        let labels = self.labels.entry(pou_name.to_string()).or_default();
+        labels.insert(label.name.clone(), label);
+    }
+
+    pub fn get_label(&self, pou_name: &str, label_name: &str) -> Option<&Label> {
+        self.labels.get(pou_name).and_then(|it| it.get(label_name))
+    }
+
+    pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
+        self.labels.get(pou_name)
     }
 }
 

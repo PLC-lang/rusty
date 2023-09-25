@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 //! Resolves (partial) expressions & statements and annotates the resulting types
 //!
@@ -15,7 +15,8 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -172,6 +173,7 @@ pub struct TypeAnnotator<'i> {
     pub(crate) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
     dependencies: IndexSet<Dependency>,
+    jumps_to_annotate: HashMap<String, HashMap<String, Vec<AstId>>>,
 }
 
 impl TypeAnnotator<'_> {
@@ -319,6 +321,10 @@ pub enum StatementAnnotation {
     ReplacementAst {
         statement: AstNode,
     },
+    /// a reference to a label in a POU
+    Label {
+        name: String,
+    },
 }
 
 impl StatementAnnotation {
@@ -430,8 +436,8 @@ pub trait AnnotationMap {
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
-            StatementAnnotation::Function { .. } => None,
             StatementAnnotation::Type { type_name } => Some(type_name),
+            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
         }
     }
 
@@ -627,6 +633,7 @@ impl<'i> TypeAnnotator<'i> {
             index,
             dependencies: IndexSet::new(),
             string_literals: StringLiterals { utf08: HashSet::new(), utf16: HashSet::new() },
+            jumps_to_annotate: HashMap::new(),
         }
     }
 
@@ -685,6 +692,20 @@ impl<'i> TypeAnnotator<'i> {
                     visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
                     visitor.visit_statement(ctx, statement);
+                }
+            }
+        }
+
+        //Labels have been added to the index, annotate jumps with their appropriate labels
+        for (pou, jumps) in visitor.jumps_to_annotate {
+            for (label, nodes) in jumps {
+                for node in nodes {
+                    if let Some(label) = visitor.annotation_map.new_index.get_label(&pou, &label) {
+                        visitor
+                            .annotation_map
+                            .type_map
+                            .insert(node, StatementAnnotation::Label { name: label.name.clone() });
+                    }
                 }
             }
         }
@@ -1332,6 +1353,19 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::ReturnStatement(ReturnStatement { condition }) => {
                 if let Some(condition) = condition {
                     self.visit_statement(ctx, condition)
+                }
+            }
+            AstStatement::LabelStatement(..) => {
+                if let Some(pou) = ctx.pou {
+                    self.annotation_map.new_index.add_label(pou, statement.into());
+                }
+            }
+            AstStatement::JumpStatement(JumpStatement { condition, target }) => {
+                self.visit_statement(ctx, condition);
+                if let Some((name, pou)) = target.get_flat_reference_name().zip(ctx.pou) {
+                    let pou = self.jumps_to_annotate.entry(pou.to_string()).or_default();
+                    let jumps = pou.entry(name.to_string()).or_default();
+                    jumps.push(statement.get_id());
                 }
             }
             _ => {

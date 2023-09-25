@@ -17,16 +17,15 @@ use std::{
 
 use ast::provider::IdProvider;
 use cli::{CompileParameters, ParameterError};
-use pipelines::GeneratedProject;
+use pipelines::AnnotatedProject;
 use plc::{
-    codegen::{CodegenContext, GeneratedModule},
-    output::FormatOption,
-    DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
 };
+
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use source_code::{source_location::SourceLocation, SourceContainer};
+use source_code::SourceContainer;
 
 pub mod cli;
 pub mod pipelines;
@@ -198,18 +197,27 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
     Ok(())
 }
 
-/// Generates an IR string from a list of sources. Useful for tests or api calls
-pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+/// Parses and annotates a given project. Can be used in tests or api calls
+pub fn parse_and_annotate<T: SourceContainer>(
+    name: &str,
+    src: Vec<T>,
+) -> Result<AnnotatedProject, Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
     let id_provider = IdProvider::default();
     let mut diagnostician = Diagnostician::default();
-    let project = pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
         // Create an index, add builtins
         .index(id_provider.clone())?
         // Resolve
-        .annotate(id_provider, &diagnostician)?;
-    // Validate
+        .annotate(id_provider, &diagnostician)
+}
+
+/// Generates an IR string from a list of sources. Useful for tests or api calls
+pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+    let mut diagnostician = Diagnostician::default();
+    let project = parse_and_annotate(name, src)?;
+    //Validate
     project.validate(&mut diagnostician)?;
     // Generate
     let context = CodegenContext::create();

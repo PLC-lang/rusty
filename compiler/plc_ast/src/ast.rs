@@ -827,6 +827,13 @@ impl AstNode {
         }
     }
 
+    pub fn get_label_name(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
+            _ => None,
+        }
+    }
+
     pub fn is_empty_statement(&self) -> bool {
         matches!(self.stmt, AstStatement::EmptyStatement(..))
     }
@@ -1564,13 +1571,13 @@ pub struct CallStatement {
 #[derive(Clone, Debug, PartialEq)]
 pub struct JumpStatement {
     /// The condition based on which the current statement will perform a jump
-    condition: Box<AstNode>,
+    pub condition: Box<AstNode>,
     /// The target location (Label) the statement will jump to
-    target: Box<AstNode>,
+    pub target: Box<AstNode>,
 }
 
 /// Represents a location in code that could be jumbed to
 #[derive(Clone, Debug, PartialEq)]
 pub struct LabelStatement {
-    name: String,
+    pub name: String,
 }

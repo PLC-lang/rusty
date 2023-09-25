@@ -9,7 +9,7 @@
 FUNCTION main : DINT
 VAR
 	x: BOOL := FALSE;
-	a: DINT := 0;
+	a: DINT := 0;
 END_VAR
 					</content>
                 </textDeclaration>
@@ -28,7 +28,7 @@ END_VAR
             <label localId="2" height="20" width="80" label="lbl" executionOrderId="5">
                 <position x="570" y="50"/>
             </label>
-            <jump localId="3" height="20" width="80" label="lbl" executionOrderId="1">
+            <jump localId="3" height="20" width="80" label="lbl_x" executionOrderId="1">
                 <position x="330" y="160"/>
                 <connectionPointIn>
                     <relPosition x="0" y="10"/>
@@ -75,7 +75,7 @@ END_VAR
                 <connectionPointOut>
                     <relPosition x="80" y="10"/>
                 </connectionPointOut>
-                <expression>FALSE</expression>
+                <expression>TRUE</expression>
             </inVariable>
             <outVariable localId="9" height="20" width="80" executionOrderId="0" negated="false" storage="none">
                 <position x="320" y="70"/>
