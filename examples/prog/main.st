@@ -1,0 +1,3 @@
+FUNCTION main : DINT
+	main := 10;
+END_FUNCTION
