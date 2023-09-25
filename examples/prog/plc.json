@@ -1,0 +1,9 @@
+{
+		"name": "ProjectName",
+    "files" : [
+			"./main.st"
+    ],
+    "compile_type" : "Static",
+    "libraries" : [
+    ]
+}

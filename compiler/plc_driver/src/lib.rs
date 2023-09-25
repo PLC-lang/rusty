@@ -272,6 +272,14 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
         let config = command
             .get_build_configuration()
             .map(PathBuf::from)
+            .map(|it| {
+                if it.is_relative() {
+                    //Make the build path absolute
+                    current_dir.join(it)
+                } else {
+                    it
+                }
+            })
             .or_else(|| get_config(&current_dir))
             .ok_or_else(|| Diagnostic::param_error("Could not find 'plc.json'"))?;
         Project::from_config(&config)
