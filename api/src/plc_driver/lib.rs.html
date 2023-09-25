@@ -306,6 +306,14 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -580,6 +588,14 @@
         </span><span class="kw">let </span>config = command
             .get_build_configuration()
             .map(PathBuf::from)
+            .map(|it| {
+                <span class="kw">if </span>it.is_relative() {
+                    <span class="comment">//Make the build path absolute
+                    </span>current_dir.join(it)
+                } <span class="kw">else </span>{
+                    it
+                }
+            })
             .or_else(|| get_config(<span class="kw-2">&amp;</span>current_dir))
             .ok_or_else(|| Diagnostic::param_error(<span class="string">&quot;Could not find &#39;plc.json&#39;&quot;</span>))<span class="question-mark">?</span>;
         Project::from_config(<span class="kw-2">&amp;</span>config)
