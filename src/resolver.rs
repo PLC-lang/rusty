@@ -1980,7 +1980,10 @@ impl ResolvingScope {
                     index.find_pou(name).and_then(|pou| to_pou_annotation(pou, index)).or_else(|| {
                         ctx.pou.and_then(|pou|
                                 // retry with local pou as qualifier
-                                ResolvingScope::POU.resolve_name(name, Some(pou), index, ctx))
+                                //Use the type name of the pou in case we are resolving a
+                                //neighboring action
+                                index.find_pou(pou).map(|pou| pou.get_container())
+                                .and_then(|pou|ResolvingScope::POU.resolve_name(name, Some(pou), index, ctx)))
                     })
                 }
             }

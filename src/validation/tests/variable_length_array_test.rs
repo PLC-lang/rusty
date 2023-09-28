@@ -64,7 +64,7 @@ mod program {
     #[test]
     fn variable_length_array_program_input_ref() {
         let program = SOURCE.replace("<POU_TYPE>", "PROGRAM");
-        let program_input = parse_and_validate(dbg!(&program.replace("<VAR_TYPE>", "INPUT {ref}")));
+        let program_input = parse_and_validate(&program.replace("<VAR_TYPE>", "INPUT {ref}"));
         assert_validation_snapshot!(program_input);
     }
 
