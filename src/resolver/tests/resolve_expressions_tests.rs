@@ -4280,6 +4280,48 @@ fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
 }
 
 #[test]
+fn action_called_from_other_action_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"
+        PROGRAM mainProg
+        VAR
+        END_VAR
+            act1();
+        END_PROGRAM
+
+        ACTIONS
+        ACTION act1
+            act2();
+        END_ACTION
+        ACTION act2
+            act1();
+        END_ACTION
+        END_ACTIONS
+        "#,
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    //Actions are annotated corretly
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act1");
+
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[1].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act2");
+
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[2].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act1");
+}
+
+#[test]
 fn vla_struct_reference_is_annotated_as_array() {
     let id_provider = IdProvider::default();
 

@@ -52,8 +52,8 @@ jobs:
  
       - uses: actions/upload-artifact@master
         with:
-          name: rustyc
-          path: target/release/rustyc
+          name: plc
+          path: target/release/plc
 
       - uses: actions/upload-artifact@master
         with:
