@@ -2090,6 +2090,9 @@
 <a href="#2090" id="2090">2090</a>
 <a href="#2091" id="2091">2091</a>
 <a href="#2092" id="2092">2092</a>
+<a href="#2093" id="2093">2093</a>
+<a href="#2094" id="2094">2094</a>
+<a href="#2095" id="2095">2095</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -4072,7 +4075,10 @@
                     </span>index.find_pou(name).and_then(|pou| to_pou_annotation(pou, index)).or_else(|| {
                         ctx.pou.and_then(|pou|
                                 <span class="comment">// retry with local pou as qualifier
-                                </span>ResolvingScope::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx))
+                                //Use the type name of the pou in case we are resolving a
+                                //neighboring action
+                                </span>index.find_pou(pou).map(|pou| pou.get_container())
+                                .and_then(|pou|ResolvingScope::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx)))
                     })
                 }
             }
