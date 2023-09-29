@@ -1,3 +1,11 @@
+use std::borrow::Borrow;
+
+use quick_xml::events::{BytesStart, Event};
+use quick_xml::Reader;
+
+use crate::error::Error;
+use crate::xml_parser::Parseable2;
+
 use super::pou::PouType;
 
 #[derive(Debug)]
@@ -32,6 +40,23 @@ impl Interface {
         Interface {
             add_data: Some(Data::new_implementation(&format!("{}\nEND_{}", old_data.content, pou_type))),
         }
+    }
+}
+
+impl Parseable2 for Interface {
+    fn visit2(reader: &mut Reader<&[u8]>, _tag: Option<BytesStart>) -> Result<Self, Error> {
+        let mut interface = Interface { add_data: None };
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::End(tag) if tag.name().as_ref() == b"interface" => break,
+                Event::Text(text) => {
+                    interface.add_data =
+                        Some(Data::new_implementation(text.unescape().map_err(Error::ReadEvent)?.borrow()))
+                }
+                _ => {}
+            }
+        }
+        Ok(interface)
     }
 }
 

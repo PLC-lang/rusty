@@ -237,7 +237,6 @@ mod ir {
         let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
 
         let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
-
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);

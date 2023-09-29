@@ -14,7 +14,7 @@ impl<'xml> PeekableReader<'xml> {
         PeekableReader {
             reader: {
                 let mut reader = Reader::from_str(content);
-                reader.trim_text(true);
+                reader.trim_text(true).expand_empty_elements(true);
                 reader
             },
             peeked: None,

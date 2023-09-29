@@ -1,9 +1,14 @@
 use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 use plc_diagnostics::diagnostics::Diagnostic;
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
-use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::PeekableReader,
+    xml_parser::{get_attributes, Parseable, Parseable2},
+};
 
 use super::{action::Action, body::Body, interface::Interface};
 
@@ -36,6 +41,41 @@ impl<'xml> Pou<'xml> {
         } else {
             Ok(())
         }
+    }
+}
+
+impl<'xml> Parseable2 for Pou<'xml> {
+    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+        let attributes = get_attributes(tag.attributes())?;
+        let mut pou = Pou::default().with_attributes(attributes)?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) if tag.name().as_ref() == b"interface" => {
+                    // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
+                    pou.interface =
+                        Some(Interface::visit2(reader, Some(tag))?.append_end_keyword(&pou.pou_type));
+                    // reader.consume_until_start(b"content")?;
+                    // match reader.next()? {
+                    //     Event::Start(tag) => {
+                    //         pou.interface = Some(Interface::new(&reader.read_text(tag.name())?))
+                    //         pou.interface = Some(pou.interface.unwrap().append_end_keyword(&pou.pou_type));
+                    //     }
+                    //     _ => reader.consume()?,
+                    // }
+                }
+                Event::Start(tag) if tag.name().as_ref() == b"body" => {
+                    pou.body = Body::visit2(reader, Some(tag))?;
+                }
+                Event::End(tag) if tag.name().as_ref() == b"pou" => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
+
+                _ => {}
+            }
+        }
+        Ok(pou)
     }
 }
 

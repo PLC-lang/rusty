@@ -9,7 +9,11 @@ Ok(
                 name: "foo",
                 pou_type: Program,
                 body: Body {
-                    function_block_diagram: None,
+                    function_block_diagram: Some(
+                        FunctionBlockDiagram {
+                            nodes: {},
+                        },
+                    ),
                 },
                 actions: [],
                 interface: Some(

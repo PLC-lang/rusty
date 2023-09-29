@@ -1,8 +1,16 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use quick_xml::events::Event;
+use quick_xml::{
+    events::{BytesStart, Event},
+    Reader,
+};
 
-use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::PeekableReader,
+    xml_parser::{get_attributes, Parseable, Parseable2},
+};
 
 use super::variables::BlockVariable;
 
@@ -24,6 +32,36 @@ impl<'xml> Block<'xml> {
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             variables,
         })
+    }
+}
+
+impl<'xml> Parseable2 for Block<'xml> {
+    fn visit2(reader: &mut Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+        let attributes = get_attributes(tag.attributes())?;
+        let mut variables = Vec::new();
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) => match tag.name().as_ref() {
+                    b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
+                        let new_vars: Vec<BlockVariable> = Parseable2::visit2(reader, Some(tag))?;
+                        variables.extend(new_vars);
+                    }
+                    _ => {}
+                },
+
+                Event::End(tag) if tag.name().as_ref() == b"block" => {
+                    break;
+                }
+
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
+                _ => {}
+            }
+        }
+
+        Block::new(attributes, variables)
     }
 }
 

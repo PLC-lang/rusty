@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     extensions::{GetOrErr, TryToString},
     reader::PeekableReader,
-    xml_parser::Parseable,
+    xml_parser::{get_attributes, Parseable, Parseable2},
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -34,6 +34,35 @@ impl<'xml> Connector<'xml> {
 pub(crate) enum ConnectorKind {
     Source,
     Sink,
+}
+
+impl<'xml> Parseable2 for Connector<'xml> {
+    fn visit2(
+        reader: &mut quick_xml::Reader<&[u8]>,
+        tag: Option<quick_xml::events::BytesStart>,
+    ) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+
+        let kind = match tag.name().as_ref() {
+            b"connector" => ConnectorKind::Source,
+            b"continuation" => ConnectorKind::Sink,
+            _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
+        };
+
+        let mut attributes = get_attributes(tag.attributes())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?)
+                }
+                Event::End(tag) if matches!(tag.name().as_ref(), b"connector" | b"continuation") => break,
+                _ => {}
+            }
+        }
+        Connector::new(attributes, kind)
+    }
 }
 
 impl<'xml> Parseable for Connector<'xml> {

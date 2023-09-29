@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     extensions::{GetOrErr, TryToString},
     reader::PeekableReader,
-    xml_parser::Parseable,
+    xml_parser::{get_attributes, Parseable, Parseable2},
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -49,6 +49,48 @@ impl FromStr for ControlKind {
             "return" => Ok(ControlKind::Return),
             _ => Err(Error::UnexpectedElement(s.to_string())),
         }
+    }
+}
+
+impl<'xml> Parseable2 for Control<'xml> {
+    fn visit2(
+        reader: &mut quick_xml::Reader<&[u8]>,
+        tag: Option<quick_xml::events::BytesStart>,
+    ) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+
+        let kind = ControlKind::from_str(&tag.name().try_to_string()?)?;
+        let mut attributes = get_attributes(tag.attributes())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) => {
+                    match tag.name().as_ref() {
+                        b"connection" => attributes.extend(get_attributes(tag.attributes())?),
+
+                        // As opposed to e.g. variables where the negation information is directly stored in its
+                        // attributes (e.g. `<inVariable negated="false" .../>`) return elements store their
+                        // negation information in a seperate nested element called `negated` with the form of
+                        // `<negated value="..."/>`.
+                        // Hence we search for a negate element and extract its information from their attributes.
+                        b"negated" => {
+                            let value = get_attributes(tag.attributes())?;
+                            attributes.insert(
+                                "negated".to_string(),
+                                (value.get_or_err("value")? == "true").to_string(),
+                            );
+                        }
+                        _ => {}
+                    }
+                }
+                Event::End(tag) if matches!(tag.name().as_ref(), b"jump" | b"label" | b"return") => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
+                _ => {}
+            }
+        }
+
+        Control::new(attributes, kind)
     }
 }
 

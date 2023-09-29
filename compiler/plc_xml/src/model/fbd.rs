@@ -1,10 +1,14 @@
 use indexmap::{IndexMap, IndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 
-use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    reader::PeekableReader,
+    xml_parser::{Parseable, Parseable2},
+};
 
 use super::{
     block::Block,
@@ -145,6 +149,44 @@ impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
                     break;
                 }
                 _ => reader.consume()?,
+            }
+        }
+
+        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
+
+        Ok(FunctionBlockDiagram { nodes })
+    }
+}
+
+impl<'xml> Parseable2 for FunctionBlockDiagram<'xml> {
+    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, _tag: Option<BytesStart>) -> Result<Self, Error> {
+        let mut nodes = IndexMap::new();
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) => match tag.name().as_ref() {
+                    b"block" => {
+                        let node = Block::visit2(reader, Some(tag))?;
+                        nodes.insert(node.local_id, Node::Block(node));
+                    }
+                    b"jump" | b"label" | b"return" => {
+                        let node = Control::visit2(reader, Some(tag))?;
+                        nodes.insert(node.local_id, Node::Control(node));
+                    }
+                    b"inVariable" | b"outVariable" => {
+                        let node = FunctionBlockVariable::visit2(reader, Some(tag))?;
+                        nodes.insert(node.local_id, Node::FunctionBlockVariable(node));
+                    }
+                    b"continuation" | b"connector" => {
+                        let node = Connector::visit2(reader, Some(tag))?;
+                        nodes.insert(node.local_id, Node::Connector(node));
+                    }
+                    _ => {}
+                },
+
+                Event::End(tag) if tag.name().as_ref() == b"FBD" => {
+                    break;
+                }
+                _ => {}
             }
         }
 
@@ -367,8 +409,8 @@ mod tests {
     fn model_with_no_source_sink_unchanged() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
+
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -407,8 +449,7 @@ mod tests {
     fn source_to_sink_converted_to_connection() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -467,8 +508,7 @@ mod tests {
     fn two_sinks_for_single_source_converted_to_connections() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -548,8 +588,7 @@ mod tests {
     fn source_sink_chain_converted_to_connection() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -628,8 +667,7 @@ mod tests {
     fn unassociated_source_remains_in_model() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -678,8 +716,7 @@ mod tests {
     fn unassociated_sink_removed_from_model_with_error() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -730,8 +767,7 @@ mod tests {
     fn recursive_sink_source_connections_are_an_error() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -811,8 +847,7 @@ mod tests {
     fn unconnected_source_has_no_effect() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -873,8 +908,7 @@ mod tests {
         //TODO: split into two tests
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (

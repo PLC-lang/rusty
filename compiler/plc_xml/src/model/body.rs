@@ -1,7 +1,11 @@
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
 use super::fbd::FunctionBlockDiagram;
-use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    reader::PeekableReader,
+    xml_parser::{Parseable, Parseable2},
+};
 
 #[derive(Debug, Default)]
 pub(crate) struct Body<'xml> {
@@ -15,6 +19,24 @@ impl<'xml> Body<'xml> {
 
     fn empty() -> Result<Self, Error> {
         Ok(Self { function_block_diagram: None })
+    }
+}
+
+impl<'xml> Parseable2 for Body<'xml> {
+    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, _tag: Option<BytesStart>) -> Result<Self, Error> {
+        let mut body = Body::default();
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) if tag.name().as_ref() == b"FBD" => {
+                    body.function_block_diagram = Some(FunctionBlockDiagram::visit2(reader, Some(tag))?)
+                }
+                Event::End(tag) if tag.name().as_ref() == b"body" => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"body"])),
+                _ => {}
+            }
+        }
+
+        Ok(body)
     }
 }
 

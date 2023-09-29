@@ -1,7 +1,7 @@
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
 use crate::extensions::GetOrErr;
-use crate::xml_parser::Parseable;
+use crate::xml_parser::{get_attributes, Parseable, Parseable2};
 use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
 use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
@@ -47,13 +47,19 @@ impl BlockVariable {
     pub fn update_ref(&mut self, new_ref: NodeId) {
         self.ref_local_id = Some(new_ref);
     }
+
+    pub fn with_kind(mut self, kind: VariableKind) -> Self {
+        self.kind = kind;
+        self
+    }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(Default, Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
+    #[default]
     Temp,
 }
 
@@ -124,6 +130,42 @@ impl FromStr for Storage {
     }
 }
 
+impl<'xml> Parseable2 for FunctionBlockVariable<'xml> {
+    fn visit2(
+        reader: &mut quick_xml::Reader<&[u8]>,
+        tag: Option<quick_xml::events::BytesStart>,
+    ) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+        let kind = tag.name().as_ref().try_into()?;
+        let mut attributes = get_attributes(tag.attributes())?;
+
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?);
+                }
+
+                Event::Text(tag) => {
+                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
+                }
+
+                Event::End(tag) => match tag.name().as_ref() {
+                    b"inVariable" | b"outVariable" => {
+                        break;
+                    }
+                    _ => {}
+                },
+
+                _ => {}
+            }
+        }
+
+        FunctionBlockVariable::new(attributes, kind)
+    }
+}
+
 impl<'xml> Parseable for FunctionBlockVariable<'xml> {
     type Item = Self;
 
@@ -165,6 +207,70 @@ impl<'xml> Parseable for FunctionBlockVariable<'xml> {
         }
 
         FunctionBlockVariable::new(attributes, kind)
+    }
+}
+
+impl Parseable2 for Vec<BlockVariable> {
+    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+                        unreachable!()
+                    };
+
+        let mut variables = vec![];
+        let kind = VariableKind::try_from(tag.name().as_ref())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) if tag.name().as_ref() == b"variable" => {
+                    variables.push(BlockVariable::visit2(reader, Some(tag))?.with_kind(kind))
+                }
+                Event::End(tag)
+                    if matches!(
+                        tag.name().as_ref(),
+                        b"inputVariables" | b"outputVariables" | b"inOutVariables"
+                    ) =>
+                {
+                    break
+                }
+
+                Event::Eof => {
+                    return Err(Error::UnexpectedEndOfFile(vec![
+                        b"inputVariables",
+                        b"outputVariables",
+                        b"inOutVariables",
+                    ]))
+                }
+                _ => {}
+            };
+        }
+        Ok(variables)
+    }
+}
+
+impl Parseable2 for BlockVariable {
+    fn visit2(
+        reader: &mut quick_xml::Reader<&[u8]>,
+        tag: Option<quick_xml::events::BytesStart>,
+    ) -> Result<Self, Error> {
+        let Some(tag) = tag else {
+            unreachable!()
+        };
+
+        let mut attributes = get_attributes(tag.attributes())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?);
+                }
+
+                Event::End(tag) if tag.name().as_ref() == b"variable" => {
+                    break;
+                }
+
+                _ => {}
+            }
+        }
+
+        BlockVariable::new(attributes, VariableKind::default())
     }
 }
 
