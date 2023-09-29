@@ -5,8 +5,8 @@ use quick_xml::events::Event;
 use crate::{
     error::Error,
     extensions::{GetOrErr, TryToString},
-    reader::PeekableReader,
-    xml_parser::{get_attributes, Parseable, Parseable2},
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -36,11 +36,8 @@ pub(crate) enum ConnectorKind {
     Sink,
 }
 
-impl<'xml> Parseable2 for Connector<'xml> {
-    fn visit2(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        tag: Option<quick_xml::events::BytesStart>,
-    ) -> Result<Self, Error> {
+impl<'xml> Parseable for Connector<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
@@ -61,42 +58,6 @@ impl<'xml> Parseable2 for Connector<'xml> {
                 _ => {}
             }
         }
-        Connector::new(attributes, kind)
-    }
-}
-
-impl<'xml> Parseable for Connector<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.peek()?;
-        let kind = match &next {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"connector" => ConnectorKind::Source,
-                b"continuation" => ConnectorKind::Sink,
-                _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
-            },
-
-            _ => unreachable!(),
-        };
-
-        let mut attributes = reader.attributes()?;
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                    b"connection" => attributes.extend(reader.attributes()?),
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if matches!(tag.name().as_ref(), b"connector" | b"continuation") => {
-                    reader.consume()?;
-                    break;
-                }
-
-                _ => reader.consume()?,
-            }
-        }
-
         Connector::new(attributes, kind)
     }
 }

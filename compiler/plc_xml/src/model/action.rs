@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::xml_parser::Parseable2;
+use crate::{reader::Reader, xml_parser::Parseable};
 
 use super::body::Body;
 
@@ -11,9 +11,9 @@ pub(crate) struct Action<'xml> {
     pub body: Body<'xml>,
 }
 
-impl Parseable2 for Action<'_> {
-    fn visit2(
-        _reader: &mut quick_xml::Reader<&[u8]>,
+impl Parseable for Action<'_> {
+    fn visit(
+        _reader: &mut Reader,
         _tag: Option<quick_xml::events::BytesStart>,
     ) -> Result<Self, crate::error::Error> {
         todo!()

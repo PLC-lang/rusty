@@ -6,8 +6,8 @@ use quick_xml::events::{BytesStart, Event};
 use crate::{
     error::Error,
     extensions::GetOrErr,
-    reader::PeekableReader,
-    xml_parser::{get_attributes, Parseable, Parseable2},
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
 };
 
 use super::{action::Action, body::Body, interface::Interface};
@@ -44,19 +44,19 @@ impl<'xml> Pou<'xml> {
     }
 }
 
-impl<'xml> Parseable2 for Pou<'xml> {
-    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+impl<'xml> Parseable for Pou<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
         let attributes = get_attributes(tag.attributes())?;
         let mut pou = Pou::default().with_attributes(attributes)?;
         loop {
-            match reader.read_event().map_err(Error::ReadEvent)? {
+            match reader.read_event()? {
                 Event::Start(tag) if tag.name().as_ref() == b"interface" => {
                     // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
                     pou.interface =
-                        Some(Interface::visit2(reader, Some(tag))?.append_end_keyword(&pou.pou_type));
+                        Some(Interface::visit(reader, Some(tag))?.append_end_keyword(&pou.pou_type));
                     // reader.consume_until_start(b"content")?;
                     // match reader.next()? {
                     //     Event::Start(tag) => {
@@ -67,7 +67,7 @@ impl<'xml> Parseable2 for Pou<'xml> {
                     // }
                 }
                 Event::Start(tag) if tag.name().as_ref() == b"body" => {
-                    pou.body = Body::visit2(reader, Some(tag))?;
+                    pou.body = Body::visit(reader, Some(tag))?;
                 }
                 Event::End(tag) if tag.name().as_ref() == b"pou" => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
@@ -110,46 +110,6 @@ impl TryFrom<&str> for PouType {
     }
 }
 
-impl<'xml> Parseable for Pou<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let mut pou = Pou::default().with_attributes(reader.attributes()?)?;
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) => match tag.name().as_ref() {
-                    b"interface" => {
-                        // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
-                        reader.consume_until_start(b"content")?;
-                        match reader.next()? {
-                            Event::Start(tag) => {
-                                pou.interface = Some(Interface::new(&reader.read_text(tag.name())?))
-                            }
-                            _ => reader.consume()?,
-                        }
-                    }
-                    b"body" => {
-                        pou.body = Body::visit(reader)?;
-                        if let Some(interface) = pou.interface {
-                            pou.interface = Some(interface.append_end_keyword(&pou.pou_type));
-                        }
-
-                        // TODO: change in order to parse INTERFACE, ACTION etc..
-                        reader.consume_until(vec![b"pou"])?;
-                        return Ok(pou);
-                    }
-
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if tag.name().as_ref() == b"pou" => return Ok(pou),
-
-                _ => reader.consume()?,
-            }
-        }
-    }
-}
-
 impl FromStr for PouType {
     type Err = Error;
 
@@ -168,12 +128,12 @@ mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
-        model::{pou::Pou, project::Project},
-        reader::PeekableReader,
+        model::pou::Pou,
+        reader::{get_start_tag, Reader},
         serializer::{
             XAddData, XBody, XContent, XData, XFbd, XInterface, XLocalVars, XPou, XTextDeclaration,
         },
-        xml_parser::Parseable,
+        xml_parser::{self, Parseable},
     };
 
     #[test]
@@ -204,8 +164,7 @@ END_VAR
             .with_body(XBody::new().with_fbd(XFbd::new().close()))
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Project::pou_entry(&mut reader));
+        assert_debug_snapshot!(xml_parser::visit(&content));
     }
 
     #[test]
@@ -213,8 +172,9 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "program").serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Pou::visit(&mut reader, tag));
     }
 
     #[test]
@@ -222,8 +182,9 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "function").serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Pou::visit(&mut reader, tag));
     }
 
     #[test]
@@ -231,8 +192,9 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "functionBlock").serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Pou::visit(&mut reader, tag));
     }
 
     #[test]
@@ -240,9 +202,10 @@ END_VAR
         let content =
             XPou::new().with_attribute("name", "foo").with_attribute("pouType", "asdasd").serialize();
 
-        let mut reader = PeekableReader::new(&content);
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
         assert_eq!(
-            Pou::visit(&mut reader).unwrap_err().to_string(),
+            Pou::visit(&mut reader, tag).unwrap_err().to_string(),
             "Found an unexpected element 'asdasd'".to_string()
         );
     }

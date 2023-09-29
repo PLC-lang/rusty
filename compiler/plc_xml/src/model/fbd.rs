@@ -4,11 +4,7 @@ use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 
-use crate::{
-    error::Error,
-    reader::PeekableReader,
-    xml_parser::{Parseable, Parseable2},
-};
+use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
 use super::{
     block::Block,
@@ -116,68 +112,25 @@ impl<'xml> Node<'xml> {
 }
 
 impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        reader.consume()?;
-        let mut nodes = IndexMap::new();
-
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) => match tag.name().as_ref() {
-                    b"block" => {
-                        let node = Block::visit(reader)?;
-                        nodes.insert(node.local_id, Node::Block(node));
-                    }
-                    b"jump" | b"label" | b"return" => {
-                        let node = Control::visit(reader)?;
-                        nodes.insert(node.local_id, Node::Control(node));
-                    }
-                    b"inVariable" | b"outVariable" => {
-                        let node = FunctionBlockVariable::visit(reader)?;
-                        nodes.insert(node.local_id, Node::FunctionBlockVariable(node));
-                    }
-                    b"continuation" | b"connector" => {
-                        let node = Connector::visit(reader)?;
-                        nodes.insert(node.local_id, Node::Connector(node));
-                    }
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if tag.name().as_ref() == b"FBD" => {
-                    reader.consume()?;
-                    break;
-                }
-                _ => reader.consume()?,
-            }
-        }
-
-        nodes.sort_by(|_, b, _, d| b.partial_cmp(d).unwrap()); // This _shouldn't_ panic because our `partial_cmp` method covers all cases
-
-        Ok(FunctionBlockDiagram { nodes })
-    }
-}
-
-impl<'xml> Parseable2 for FunctionBlockDiagram<'xml> {
-    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, _tag: Option<BytesStart>) -> Result<Self, Error> {
+    fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut nodes = IndexMap::new();
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"block" => {
-                        let node = Block::visit2(reader, Some(tag))?;
+                        let node = Block::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Block(node));
                     }
                     b"jump" | b"label" | b"return" => {
-                        let node = Control::visit2(reader, Some(tag))?;
+                        let node = Control::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Control(node));
                     }
                     b"inVariable" | b"outVariable" => {
-                        let node = FunctionBlockVariable::visit2(reader, Some(tag))?;
+                        let node = FunctionBlockVariable::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::FunctionBlockVariable(node));
                     }
                     b"continuation" | b"connector" => {
-                        let node = Connector::visit2(reader, Some(tag))?;
+                        let node = Connector::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Connector(node));
                     }
                     _ => {}
@@ -344,7 +297,7 @@ mod tests {
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,
             variables::FunctionBlockVariable,
         },
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{
             XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
             XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
@@ -401,8 +354,9 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader, tag).unwrap());
     }
 
     #[test]

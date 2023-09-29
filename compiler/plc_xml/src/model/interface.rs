@@ -1,10 +1,10 @@
 use std::borrow::Borrow;
 
 use quick_xml::events::{BytesStart, Event};
-use quick_xml::Reader;
 
 use crate::error::Error;
-use crate::xml_parser::Parseable2;
+use crate::reader::Reader;
+use crate::xml_parser::Parseable;
 
 use super::pou::PouType;
 
@@ -43,8 +43,8 @@ impl Interface {
     }
 }
 
-impl Parseable2 for Interface {
-    fn visit2(reader: &mut Reader<&[u8]>, _tag: Option<BytesStart>) -> Result<Self, Error> {
+impl Parseable for Interface {
+    fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut interface = Interface { add_data: None };
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {

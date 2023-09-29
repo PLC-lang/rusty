@@ -101,7 +101,7 @@ mod tests {
 
     use crate::{
         model::control::Control,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{XAddData, XConnectionPointIn, XJump, XLabel, XReturn},
         xml_parser::{self, Parseable},
     };
@@ -115,8 +115,9 @@ mod tests {
             .with_add_data(XAddData::negated(false))
             .serialize();
 
-        let reader = &mut PeekableReader::new(&content);
-        assert_debug_snapshot!(Control::visit(reader).unwrap());
+        let reader = &mut Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Control::visit(reader, tag).unwrap());
     }
 
     #[test]
@@ -128,8 +129,9 @@ mod tests {
             .with_add_data(XAddData::negated(true))
             .serialize();
 
-        let reader = &mut PeekableReader::new(&content);
-        assert_debug_snapshot!(Control::visit(reader).unwrap());
+        let reader = &mut Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Control::visit(reader, tag).unwrap());
     }
 
     #[test]
@@ -203,8 +205,9 @@ mod tests {
     fn unconnected_jump_to_label() {
         let content = XJump::new().with_local_id("1").with_execution_order_id("2").serialize();
 
-        let reader = &mut PeekableReader::new(&content);
-        assert_debug_snapshot!(Control::visit(reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
@@ -278,8 +281,9 @@ mod tests {
     fn label_parsed() {
         let content = XLabel::new().with_local_id("1").with_execution_order_id("2").serialize();
 
-        let reader = &mut PeekableReader::new(&content);
-        assert_debug_snapshot!(Control::visit(reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]

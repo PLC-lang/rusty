@@ -1,8 +1,9 @@
 use quick_xml::events::{BytesStart, Event};
 
+use crate::error::Error;
 use crate::extensions::GetOrErr;
-use crate::xml_parser::{get_attributes, Parseable, Parseable2};
-use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
+use crate::reader::Reader;
+use crate::xml_parser::{get_attributes, Parseable};
 use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
 
@@ -130,11 +131,8 @@ impl FromStr for Storage {
     }
 }
 
-impl<'xml> Parseable2 for FunctionBlockVariable<'xml> {
-    fn visit2(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        tag: Option<quick_xml::events::BytesStart>,
-    ) -> Result<Self, Error> {
+impl<'xml> Parseable for FunctionBlockVariable<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
@@ -148,7 +146,7 @@ impl<'xml> Parseable2 for FunctionBlockVariable<'xml> {
                 }
 
                 Event::Text(tag) => {
-                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
+                    attributes.insert("expression".into(), tag.unescape()?.to_string());
                 }
 
                 Event::End(tag) => match tag.name().as_ref() {
@@ -166,52 +164,8 @@ impl<'xml> Parseable2 for FunctionBlockVariable<'xml> {
     }
 }
 
-impl<'xml> Parseable for FunctionBlockVariable<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.peek()?;
-        let kind = match &next {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"inVariable" => VariableKind::Input,
-                b"outVariable" => VariableKind::Output,
-                b"inOutVariable" => VariableKind::InOut,
-                _ => unreachable!(),
-            },
-
-            _ => unreachable!(),
-        };
-
-        let mut attributes = reader.attributes()?;
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
-                    attributes.extend(reader.attributes()?);
-                }
-
-                Event::Text(tag) => {
-                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
-                    reader.consume()?;
-                }
-
-                Event::End(tag) => match tag.name().as_ref() {
-                    b"inVariable" | b"outVariable" => {
-                        reader.consume()?;
-                        break;
-                    }
-                    _ => reader.consume()?,
-                },
-
-                _ => reader.consume()?,
-            }
-        }
-
-        FunctionBlockVariable::new(attributes, kind)
-    }
-}
-
-impl Parseable2 for Vec<BlockVariable> {
-    fn visit2(reader: &mut quick_xml::Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+impl Parseable for Vec<BlockVariable> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
                         unreachable!()
                     };
@@ -221,7 +175,7 @@ impl Parseable2 for Vec<BlockVariable> {
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) if tag.name().as_ref() == b"variable" => {
-                    variables.push(BlockVariable::visit2(reader, Some(tag))?.with_kind(kind))
+                    variables.push(BlockVariable::visit(reader, Some(tag))?.with_kind(kind))
                 }
                 Event::End(tag)
                     if matches!(
@@ -246,11 +200,8 @@ impl Parseable2 for Vec<BlockVariable> {
     }
 }
 
-impl Parseable2 for BlockVariable {
-    fn visit2(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        tag: Option<quick_xml::events::BytesStart>,
-    ) -> Result<Self, Error> {
+impl Parseable for BlockVariable {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
@@ -274,74 +225,13 @@ impl Parseable2 for BlockVariable {
     }
 }
 
-impl Parseable for BlockVariable {
-    type Item = Vec<Self>;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let kind = match reader.next()? {
-            Event::Start(tag) | Event::Empty(tag) => VariableKind::try_from(tag.name().as_ref())?,
-            _ => unreachable!(),
-        };
-
-        let mut res = vec![];
-
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) if tag.name().as_ref() == b"variable" => {
-                    let attributes = visit_variable(reader)?;
-                    res.push(BlockVariable::new(attributes, kind)?);
-                }
-
-                Event::End(tag)
-                    if matches!(
-                        tag.name().as_ref(),
-                        b"inputVariables" | b"outputVariables" | b"inOutVariables"
-                    ) =>
-                {
-                    reader.consume()?;
-                    return Ok(res);
-                }
-
-                Event::Eof => {
-                    return Err(Error::UnexpectedEndOfFile(vec![
-                        b"inputVariables",
-                        b"outputVariables",
-                        b"inOutVariables",
-                    ]))
-                }
-                _ => reader.consume()?,
-            };
-        }
-    }
-}
-
-fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>, Error> {
-    let mut attributes = HashMap::new();
-    loop {
-        match reader.peek()? {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(reader.attributes()?),
-                _ => reader.consume()?,
-            },
-
-            Event::End(tag) if tag.name().as_ref() == b"variable" => {
-                reader.consume()?;
-                break;
-            }
-            _ => reader.consume()?,
-        }
-    }
-
-    Ok(attributes)
-}
-
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
         model::variables::{BlockVariable, FunctionBlockVariable},
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{
             XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
             XVariable,
@@ -353,24 +243,30 @@ mod tests {
     fn block_input_variable() {
         let content = XInputVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
     fn block_output_variable() {
         let content = XOutputVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
     fn block_inout_variable() {
         let content = XInOutVariables::new().with_variable(XVariable::init("", false)).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
@@ -378,8 +274,9 @@ mod tests {
         let content =
             XInVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
     }
 
     #[test]
@@ -387,7 +284,8 @@ mod tests {
         let content =
             XOutVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
     }
 }

@@ -5,8 +5,8 @@ use quick_xml::events::Event;
 use crate::{
     error::Error,
     extensions::{GetOrErr, TryToString},
-    reader::PeekableReader,
-    xml_parser::{get_attributes, Parseable, Parseable2},
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -52,11 +52,8 @@ impl FromStr for ControlKind {
     }
 }
 
-impl<'xml> Parseable2 for Control<'xml> {
-    fn visit2(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        tag: Option<quick_xml::events::BytesStart>,
-    ) -> Result<Self, Error> {
+impl<'xml> Parseable for Control<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
@@ -87,51 +84,6 @@ impl<'xml> Parseable2 for Control<'xml> {
                 Event::End(tag) if matches!(tag.name().as_ref(), b"jump" | b"label" | b"return") => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
                 _ => {}
-            }
-        }
-
-        Control::new(attributes, kind)
-    }
-}
-
-impl<'xml> Parseable for Control<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let kind = match reader.peek()? {
-            Event::Start(tag) | Event::Empty(tag) => ControlKind::from_str(&tag.name().try_to_string()?)?,
-            _ => unreachable!(),
-        };
-        let mut attributes = reader.attributes()?;
-
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                    b"connection" => attributes.extend(reader.attributes()?),
-
-                    // As opposed to e.g. variables where the negation information is directly stored in its
-                    // attributes (e.g. `<inVariable negated="false" .../>`) return elements store their
-                    // negation information in a seperate nested element called `negated` with the form of
-                    // `<negated value="..."/>`.
-                    // Hence we search for a negate element and extract its information from their attributes.
-                    b"negated" => {
-                        let value = reader.attributes()?;
-                        attributes.insert(
-                            "negated".to_string(),
-                            (value.get_or_err("value")? == "true").to_string(),
-                        );
-                    }
-
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if matches!(tag.name().as_ref(), b"jump" | b"label" | b"return") => {
-                    reader.consume()?;
-                    break;
-                }
-
-                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
-                _ => reader.consume()?,
             }
         }
 

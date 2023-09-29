@@ -11,10 +11,7 @@ use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
 };
-use quick_xml::{
-    events::{attributes::Attributes, BytesStart, Event},
-    Reader,
-};
+use quick_xml::events::{attributes::Attributes, BytesStart, Event};
 
 use crate::{
     error::Error,
@@ -23,7 +20,7 @@ use crate::{
         pou::{Pou, PouType},
         project::Project,
     },
-    reader::PeekableReader,
+    reader::Reader,
 };
 
 mod action;
@@ -35,11 +32,6 @@ mod pou;
 mod tests;
 mod variables;
 
-pub(crate) trait Parseable {
-    type Item;
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
-}
-
 pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, String>, Error> {
     attributes
         .flatten()
@@ -47,34 +39,22 @@ pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, S
         .collect::<Result<HashMap<_, _>, Error>>()
 }
 
-pub(crate) trait Parseable2
+pub(crate) trait Parseable
 where
     Self: Sized,
 {
-    fn visit2(reader: &mut Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error>;
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error>;
 }
 
 pub(crate) fn visit(content: &str) -> Result<Project, Error> {
-    let mut reader = PeekableReader::new(content);
-    loop {
-        match reader.peek()? {
-            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
-            Event::Start(tag) if tag.name().as_ref() == b"project" => return Project::visit(&mut reader),
-            Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
-            _ => reader.consume()?,
-        }
-    }
-}
-
-pub(crate) fn visit2(content: &str) -> Result<Project, Error> {
-    let mut reader = Reader::from_str(content);
+    let mut reader = Reader::new(content);
     reader.trim_text(true).expand_empty_elements(true);
     let mut project = Project::default();
 
     loop {
-        match reader.read_event().map_err(Error::ReadEvent)? {
+        match reader.read_event()? {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => {
-                project.pous.push(Pou::visit2(&mut reader, Some(tag))?)
+                project.pous.push(Pou::visit(&mut reader, Some(tag))?)
             }
             Event::Start(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => {} //TODO: Handle some attributes
             Event::End(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => break,
@@ -106,7 +86,7 @@ fn parse(
     let source_location_factory = SourceLocationFactory::for_source(source);
     // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let mut project = match visit2(&source.source) {
+    let mut project = match visit(&source.source) {
         Ok(project) => project,
         Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };

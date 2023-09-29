@@ -1,15 +1,12 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use quick_xml::{
-    events::{BytesStart, Event},
-    Reader,
-};
+use quick_xml::events::{BytesStart, Event};
 
 use crate::{
     error::Error,
     extensions::GetOrErr,
-    reader::PeekableReader,
-    xml_parser::{get_attributes, Parseable, Parseable2},
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
 };
 
 use super::variables::BlockVariable;
@@ -35,8 +32,8 @@ impl<'xml> Block<'xml> {
     }
 }
 
-impl<'xml> Parseable2 for Block<'xml> {
-    fn visit2(reader: &mut Reader<&[u8]>, tag: Option<BytesStart>) -> Result<Self, Error> {
+impl<'xml> Parseable for Block<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else {
             unreachable!()
         };
@@ -46,7 +43,7 @@ impl<'xml> Parseable2 for Block<'xml> {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
-                        let new_vars: Vec<BlockVariable> = Parseable2::visit2(reader, Some(tag))?;
+                        let new_vars: Vec<BlockVariable> = Parseable::visit(reader, Some(tag))?;
                         variables.extend(new_vars);
                     }
                     _ => {}
@@ -65,43 +62,13 @@ impl<'xml> Parseable2 for Block<'xml> {
     }
 }
 
-impl<'xml> Parseable for Block<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.attributes()?;
-        let mut variables = Vec::new();
-
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) => match tag.name().as_ref() {
-                    b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
-                        variables.extend(BlockVariable::visit(reader)?)
-                    }
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if tag.name().as_ref() == b"block" => {
-                    reader.consume()?;
-                    break;
-                }
-
-                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
-                _ => reader.consume()?,
-            }
-        }
-
-        Block::new(attributes, variables)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
 
     use crate::{
         model::block::Block,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{XBlock, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
         xml_parser::Parseable,
     };
@@ -121,7 +88,8 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Block::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Block::visit(&mut reader, tag).unwrap());
     }
 }
