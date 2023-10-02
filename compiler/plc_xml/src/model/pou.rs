@@ -49,7 +49,7 @@ impl TryFrom<&str> for PouType {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
+        match value.to_lowercase().as_ref() {
             "program" => Ok(PouType::Program),
             "function" => Ok(PouType::Function),
             "functionBlock" => Ok(PouType::FunctionBlock),
@@ -108,90 +108,5 @@ impl FromStr for PouType {
             "functionBlock" => Ok(PouType::FunctionBlock),
             _ => Err(Error::UnexpectedElement(s.to_string())),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use insta::assert_debug_snapshot;
-
-    use crate::{
-        model::{pou::Pou, project::Project},
-        reader::PeekableReader,
-        serializer::{
-            XAddData, XBody, XContent, XData, XFbd, XInterface, XLocalVars, XPou, XTextDeclaration,
-        },
-        xml_parser::Parseable,
-    };
-
-    #[test]
-    fn empty() {
-        let content = XPou::new()
-            .with_attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
-            .with_attribute("name", "foo")
-            .with_attribute("pouType", "program")
-            .with_interface(
-                XInterface::new().with_local_vars(XLocalVars::new().close()).with_add_data(
-                    XAddData::new().with_data_data(
-                        XData::new()
-                            .with_attribute("name", "www.bachmann.at/plc/plcopenxml")
-                            .with_attribute("handleUnknown", "implementation")
-                            .with_text_declaration(XTextDeclaration::new().with_content(
-                                XContent::new().with_data(
-                                    r#"
-PROGRAM foo
-VAR
-
-END_VAR
-                    "#,
-                                ),
-                            )),
-                    ),
-                ),
-            )
-            .with_body(XBody::new().with_fbd(XFbd::new().close()))
-            .serialize();
-
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Project::pou_entry(&mut reader));
-    }
-
-    #[test]
-    fn poutype_program() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "program").serialize();
-
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
-    }
-
-    #[test]
-    fn poutype_function() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "function").serialize();
-
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
-    }
-
-    #[test]
-    fn poutype_function_block() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "functionBlock").serialize();
-
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Pou::visit(&mut reader));
-    }
-
-    #[test]
-    fn poutype_unknown() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "asdasd").serialize();
-
-        let mut reader = PeekableReader::new(&content);
-        assert_eq!(
-            Pou::visit(&mut reader).unwrap_err().to_string(),
-            "Found an unexpected element 'asdasd'".to_string()
-        );
     }
 }

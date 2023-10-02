@@ -65,9 +65,9 @@ mod tests {
         #[rustfmt::skip]
         let content = YBody::new().with_fbd(vec![
             &YBlock::init("ADD", 1, 0)
-                .input(vec![&YVariable::name("a").connect_in(1), &YVariable::name("b").connect_in(2)])
-                .output(vec![&YVariable::name("c")])
-                .inout(vec![])
+                .with_input_variables(vec![&YVariable::name("a").connect_in(1), &YVariable::name("b").connect_in(2)])
+                .with_output_variables(vec![&YVariable::name("c")])
+                .with_inout_variables(vec![])
             ]).serialize();
 
         let mut reader = PeekableReader::new(&content);

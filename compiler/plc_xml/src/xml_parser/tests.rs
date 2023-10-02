@@ -1,3 +1,4 @@
+use ast::ast::PouType;
 use ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement, CompilationUnit,
@@ -9,12 +10,14 @@ use insta::assert_debug_snapshot;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::SourceCode;
 
+use crate::serializer2::{YInOutVariable, YOutVariable, YReturn};
 use crate::{
     serializer::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser::{self}, serializer2::{YPou, YInVariable},
+    serializer2::{YInVariable, YPou},
+    xml_parser::{self},
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -24,13 +27,35 @@ fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
 
 #[test]
 fn variable_assignment() {
-    let pou = xml_parser::visit(content::ASSIGNMENT_A_B).unwrap();
+    let content = YPou::init("foo", "program", "PROGRAM foo VAR a, b : DINT; END_VAR").with_fbd(vec![
+        &YInVariable::new().with_id(1).with_expression("a"),
+        &YOutVariable::new().with_id(2).with_execution_id(0).with_expression("b").connect_in(1),
+    ]);
+
+    let pou = xml_parser::visit(&content.serialize()).unwrap();
     assert_debug_snapshot!(pou);
 }
 
 #[test]
 fn conditional_return() {
-    let statements = &parse(content::CONDITIONAL_RETURN).0.implementations[0].statements;
+    let declaration = r#"
+    FUNCTION_BLOCK conditional_return
+        VAR_INPUT
+            val : DINT;
+        END_VAR
+    "#;
+
+    // TODO: Hmm, maybe replacing new() with id() wouldn't be so bad after all?
+    // But then what about consistency, i.e. elements that do not have an id and instead have to be initialized with new()
+    let content = YPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
+        &YInVariable::new().with_id(1).with_expression("val = 5"),
+        &YReturn::new().with_id(2).with_execution_id(0).connect(1).negate(),
+        &YInVariable::new().with_id(3).with_expression("10"),
+        &YOutVariable::new().with_id(4).with_execution_id(1).connect(3).with_expression("val"),
+        &YInOutVariable::new().with_id(5).with_expression("a"),
+    ]);
+
+    let statements = &parse(&content.serialize()).0.implementations[0].statements;
     assert_eq!(statements.len(), 2);
     assert_debug_snapshot!(statements[0]);
 }
@@ -164,15 +189,20 @@ fn ast_generates_locations() {
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
-    let AstStatement::Assignment (Assignment{ left, right, .. })= &impl1.statements[0].get_stmt() else {
-            panic!("Not an assignment");
-        };
+    let AstStatement::Assignment(Assignment { left, right, .. }) = &impl1.statements[0].get_stmt() else {
+        panic!("Not an assignment");
+    };
     assert_debug_snapshot!(left.get_location());
     assert_debug_snapshot!(right.get_location());
     //Deconstruct call statement and get locations
-    let AstNode { stmt: AstStatement::CallStatement (CallStatement{ operator, parameters, .. }), location, ..} = &impl1.statements[1] else {
-            panic!("Not a call statement");
-        };
+    let AstNode {
+        stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }),
+        location,
+        ..
+    } = &impl1.statements[1]
+    else {
+        panic!("Not a call statement");
+    };
     assert_debug_snapshot!(location);
     assert_debug_snapshot!(operator.get_location());
     let parameters = parameters.as_deref().unwrap();
@@ -227,12 +257,12 @@ mod content {
                         <expression>b</expression>
                     </outVariable>
                     <inVariable localId="1" height="20" width="80" negated="false">
-                    <position x="410" y="130"/>
-                    <connectionPointOut>
-                        <relPosition x="80" y="10"/>
-                    </connectionPointOut>
-                    <expression>a</expression>
-                </inVariable>
+                        <position x="410" y="130"/>
+                        <connectionPointOut>
+                            <relPosition x="80" y="10"/>
+                        </connectionPointOut>
+                        <expression>a</expression>
+                    </inVariable>
                 </FBD>
             </body>
         </pou>

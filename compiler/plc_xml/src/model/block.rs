@@ -70,12 +70,12 @@ mod tests {
 
     #[test]
     fn add_block() {
-        let content = YBlock::new()
-            .with_name("ADD")
-            .with_id(1)
-            .with_execution_id(0)
-            .input(vec![&YVariable::name("a").connect_in(1), &YVariable::name("b").connect_in(1)])
-            .output(vec![&YVariable::name("c").connect_out(1)])
+        let content = YBlock::init("ADD", 1, 0)
+            .with_input_variables(vec![
+                &YVariable::name("a").connect_in(1),
+                &YVariable::name("b").connect_in(1),
+            ])
+            .with_output_variables(vec![&YVariable::name("c").connect_out(1)])
             .serialize();
 
         let mut reader = PeekableReader::new(&content);

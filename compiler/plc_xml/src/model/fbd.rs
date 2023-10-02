@@ -112,61 +112,26 @@ impl Parseable for FunctionBlockDiagram {
 mod tests {
     use insta::assert_debug_snapshot;
 
-    use crate::{
-        model::fbd::FunctionBlockDiagram,
-        reader::PeekableReader,
-        serializer::{
-            XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
-            XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
-        },
-        xml_parser::Parseable,
-    };
+    use crate::serializer2::{YBlock, YFbd, YInVariable, YOutVariable, YVariable};
+    use crate::{model::fbd::FunctionBlockDiagram, reader::PeekableReader, xml_parser::Parseable};
 
     #[test]
     fn add_block() {
-        let content = XFbd::new()
-            .with_block(
-                XBlock::init("1", "ADD", "0")
-                    .with_input_variables(
-                        XInputVariables::new()
-                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                            .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-                    )
-                    .with_inout_variables(XInOutVariables::new().close())
-                    .with_output_variables(
-                        XOutputVariables::new()
-                            .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
-                    ),
-            )
-            .with_in_variable(
-                XInVariable::init("2", false)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data("a")),
-            )
-            .with_in_variable(
-                XInVariable::init("3", false)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data("b")),
-            )
-            .with_out_variable(
-                XOutVariable::init("4", false)
-                    .with_position(XPosition::new().close())
-                    .with_attribute("executionOrderId", "1")
-                    .with_connection_point_in(
-                        XConnectionPointIn::new()
-                            .with_rel_position(XRelPosition::init())
-                            .with_connection(XConnection::new().with_attribute("refLocalId", "1")),
-                    )
-                    .with_expression(XExpression::new().with_data("c")),
-            )
+        let content = YFbd::new()
+            .children(vec![
+                &YBlock::init("ADD", 1, 0)
+                    .with_input_variables(vec![
+                        &YVariable::new().with_name("a").connect_in(1),
+                        &YVariable::new().with_name("b").connect_in(2),
+                    ])
+                    .with_output_variables(vec![&YVariable::new().with_name("c")]),
+                &YInVariable::new().with_id(2).with_expression("a"),
+                &YInVariable::new().with_id(3).with_expression("b"),
+                &YOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect_in(1),
+            ])
             .serialize();
 
+        println!("{content}");
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
     }

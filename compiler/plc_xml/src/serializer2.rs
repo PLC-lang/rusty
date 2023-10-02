@@ -49,7 +49,7 @@ impl Node {
     }
 
     fn _content(indent: &str, name: &'static str, content: &'static str) -> String {
-        format!("{indent}<{name}>{content}<{name}/>\n")
+        format!("{indent}<{name}>{content}</{name}>\n")
     }
 
     #[allow(unused_assignments)]
@@ -141,9 +141,9 @@ macro_rules! newtype_impl {
     };
 }
 
-newtype_impl!(YInVariable, "inVariable", false);
-newtype_impl!(YOutVariable, "outVariable", false);
-newtype_impl!(YInOutVariable, "inOutVariable", false);
+newtype_impl!(YInVariable, "inVariable", true);
+newtype_impl!(YOutVariable, "outVariable", true);
+newtype_impl!(YInOutVariable, "inOutVariable", true);
 newtype_impl!(YInterface, "interface", false);
 newtype_impl!(YLocalVars, "localVars", false);
 newtype_impl!(YAddData, "addData", false);
@@ -221,32 +221,39 @@ impl YReturn {
 }
 
 impl YContent {
-    pub fn with_declaration(self, content: &'static str) -> Self {
-        self.inner().content = Some(content);
+    pub fn with_declaration(mut self, content: &'static str) -> Self {
+        self.0.content = Some(content);
         self
     }
 }
 
 impl YPou {
     // TODO: kind -> enum
-    pub fn init(name: &'static str, kind: PouType, declaration: &'static str) -> Self {
+    pub fn init(name: &'static str, kind: &'static str, declaration: &'static str) -> Self {
         Self::new()
+            .attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
             .attribute("name", name)
-            .attribute("pouType", Box::leak(kind.to_string().into_boxed_str()))
+            .attribute("pouType", kind)
             .child(&YInterface::new().children(vec![
-                &YLocalVars::new().close(),
-                &YAddData::new().child(
-                    &YData::new().attribute("name", "...").child(
-                        &YTextDeclaration::new().child(&YContent::new().with_declaration(declaration)),
+                    &YLocalVars::new().close(),
+                    &YAddData::new().child(
+                        &YData::new()
+                            .attribute("name", "www.bachmann.at/plc/plcopenxml")
+                            .attribute("handleUnknown", "implementation")
+                            .child(
+                                &YTextDeclaration::new()
+                                    .child(&YContent::new().with_declaration(declaration)),
+                            ),
                     ),
-                ),
-            ]))
+                ]))
     }
 
     /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
     pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
-        self.child(&YBlock::new().child(&YFbd::new().children(children)))
+        self.child(&YBody::new().child(&YFbd::new().children(children)))
     }
+
+    // pub fn with_name(name: &'static str) -> Self {}
 }
 
 impl YBlock {
@@ -258,15 +265,15 @@ impl YBlock {
         self.attribute("typeName", name)
     }
 
-    pub fn input(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_input_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YInputVariables::new().children(variables))
     }
 
-    pub fn output(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_output_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YOutputVariables::new().children(variables))
     }
 
-    pub fn inout(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_inout_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YInOutVariables::new().children(variables))
     }
 }
@@ -290,8 +297,13 @@ impl YOutputVariables {
 }
 
 impl YVariable {
+    // TODO: Remove
     pub fn name(name: &'static str) -> Self {
         Self::new().attribute("formalParameter", name)
+    }
+
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("formalParameter", name)
     }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
@@ -320,5 +332,14 @@ impl YExpression {
         let mut node = Self::new();
         node.0.content = Some(expression);
         node
+    }
+}
+
+impl YOutVariable {
+    pub fn connect_in(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
     }
 }
