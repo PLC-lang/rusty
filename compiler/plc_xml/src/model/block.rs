@@ -64,23 +64,18 @@ mod tests {
     use crate::{
         model::block::Block,
         reader::PeekableReader,
-        serializer::{XBlock, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
+        serializer2::{YBlock, YVariable},
         xml_parser::Parseable,
     };
 
     #[test]
     fn add_block() {
-        let content = XBlock::init("1", "ADD", "0")
-            .with_input_variables(
-                XInputVariables::new()
-                    .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                    .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-            )
-            .with_inout_variables(XInOutVariables::new().close())
-            .with_output_variables(
-                XOutputVariables::new()
-                    .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
-            )
+        let content = YBlock::new()
+            .with_name("ADD")
+            .with_id(1)
+            .with_execution_id(0)
+            .input(vec![&YVariable::name("a").connect_in(1), &YVariable::name("b").connect_in(1)])
+            .output(vec![&YVariable::name("c").connect_out(1)])
             .serialize();
 
         let mut reader = PeekableReader::new(&content);

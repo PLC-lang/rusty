@@ -14,7 +14,7 @@ use crate::{
         with_header, XBody, XConnection, XConnectionPointIn, XExpression, XFbd, XInVariable, XOutVariable,
         XPou, XRelPosition,
     },
-    xml_parser::{self},
+    xml_parser::{self}, serializer2::{YPou, YInVariable},
 };
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
