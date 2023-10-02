@@ -69,6 +69,10 @@ impl<'xml> Parseable for Pou<'xml> {
                 Event::Start(tag) if tag.name().as_ref() == b"body" => {
                     pou.body = Body::visit(reader, Some(tag))?;
                 }
+                Event::Start(tag) if tag.name().as_ref() == b"actions" => {
+                    let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;
+                    pou.actions.extend(actions)
+                }
                 Event::End(tag) if tag.name().as_ref() == b"pou" => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
 
