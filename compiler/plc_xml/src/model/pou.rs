@@ -49,7 +49,7 @@ impl TryFrom<&str> for PouType {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value.to_lowercase().as_ref() {
+        match value {
             "program" => Ok(PouType::Program),
             "function" => Ok(PouType::Function),
             "functionBlock" => Ok(PouType::FunctionBlock),

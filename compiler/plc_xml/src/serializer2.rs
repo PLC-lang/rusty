@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use ast::ast::PouType;
-
 #[derive(Clone)]
 pub struct Node {
     name: &'static str,
@@ -165,7 +163,7 @@ newtype_impl!(YVariable, "variable", true);
 newtype_impl!(YFbd, "FBD", false);
 newtype_impl!(YExpression, "expression", false);
 newtype_impl!(YReturn, "return", false);
-newtype_impl!(YNegate, "negate", false);
+newtype_impl!(YNegate, "negated", false);
 
 impl YInVariable {
     /// Adds a child node
@@ -213,10 +211,10 @@ impl YReturn {
         self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)))
     }
 
-    pub fn negate(self) -> Self {
-        self.child(
-            &YAddData::new().child(&YData::new().child(&YNegate::new().attribute("negate", "false").close())),
-        )
+    pub fn negate(self, value: bool) -> Self {
+        self.child(&YAddData::new().child(&YData::new().child(
+            &YNegate::new().attribute("value", Box::leak(value.to_string().into_boxed_str())).close(),
+        )))
     }
 }
 
