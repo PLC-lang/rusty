@@ -1,37 +1,37 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: visit(&content).unwrap()
+expression: visit_and_desugar(content).unwrap()
 ---
 Project {
     pous: [
         Pou {
-            name: "FuncyReturn",
+            name: "myConnection",
             pou_type: Function,
             body: Body {
                 function_block_diagram: Some(
                     FunctionBlockDiagram {
                         nodes: {
-                            1: FunctionBlockVariable(
+                            16: FunctionBlockVariable(
                                 FunctionBlockVariable {
                                     kind: Input,
-                                    local_id: 1,
+                                    local_id: 16,
                                     negated: false,
-                                    expression: "a",
+                                    expression: "x",
                                     execution_order_id: None,
                                     ref_local_id: None,
                                 },
                             ),
-                            2: FunctionBlockVariable(
+                            4: FunctionBlockVariable(
                                 FunctionBlockVariable {
                                     kind: Output,
-                                    local_id: 2,
+                                    local_id: 4,
                                     negated: false,
-                                    expression: "FuncyReturn",
+                                    expression: "myConnection",
                                     execution_order_id: Some(
-                                        0,
+                                        3,
                                     ),
                                     ref_local_id: Some(
-                                        1,
+                                        16,
                                     ),
                                 },
                             ),
@@ -44,7 +44,7 @@ Project {
                 Interface {
                     add_data: Some(
                         Data {
-                            content: "FUNCTION FuncyReturn : DINT\n                        VAR_INPUT\n                            a : DINT;\n                        END_VAR\nEND_FUNCTION",
+                            content: "\n    FUNCTION myConnection : DINT\n    VAR_INPUT\n        x: DINT;\n    END_VAR\n                \nEND_FUNCTION",
                             handle: Implementation,
                         },
                     ),

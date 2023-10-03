@@ -19,14 +19,14 @@ impl BlockVariable {
             Some(Node::Block(block)) => Some(block.transform(session, index)),
             Some(Node::FunctionBlockVariable(var)) => Some(var.transform(session)),
             Some(Node::Control(_)) => todo!(),
-            Some(Node::Connector(_)) => todo!(),
+            Some(Node::Connector(_)) => unreachable!(),
             None => unreachable!(),
         }
     }
 }
 
 // variables, parameters -> more readable names?
-impl FunctionBlockVariable {
+impl<'xml> FunctionBlockVariable<'xml> {
     pub(crate) fn transform(&self, session: &ParseSession) -> AstNode {
         if self.negated {
             let ident = session.parse_expression(&self.expression, self.local_id, self.execution_order_id);

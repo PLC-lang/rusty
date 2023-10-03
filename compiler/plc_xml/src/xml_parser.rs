@@ -61,22 +61,25 @@ fn parse(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
+    let source_location_factory = SourceLocationFactory::for_source(source);
     // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let project = match visit(&source.source) {
+    let mut project = match visit(&source.source) {
         Ok(project) => project,
         Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
 
+    let mut diagnostics = vec![];
+    let _ = project.desugar(&source_location_factory).map_err(|e| diagnostics.extend(e));
+
     // Create a new parse session
-    let source_location_factory = SourceLocationFactory::for_source(source);
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
-
     // Parse the declaration data field
-    let Some((unit, mut diagnostics)) = parser.try_parse_declaration() else {
+    let Some((unit, declaration_diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
+    diagnostics.extend(declaration_diagnostics);
 
     // Transform the data-model into an AST
     let (implementations, parser_diagnostics) = parser.parse_model();
@@ -85,8 +88,8 @@ fn parse(
     (unit.with_implementations(implementations), diagnostics)
 }
 
-pub(crate) struct ParseSession<'parse> {
-    project: &'parse Project,
+pub(crate) struct ParseSession<'parse, 'xml> {
+    project: &'parse Project<'xml>,
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: &'static str,
@@ -94,9 +97,9 @@ pub(crate) struct ParseSession<'parse> {
     diagnostics: Vec<Diagnostic>,
 }
 
-impl<'parse> ParseSession<'parse> {
+impl<'parse, 'xml> ParseSession<'parse, 'xml> {
     fn new(
-        project: &'parse Project,
+        project: &'parse Project<'xml>,
         file_name: &'static str,
         id_provider: IdProvider,
         linkage: LinkageType,

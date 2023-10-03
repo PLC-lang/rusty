@@ -744,6 +744,30 @@ impl Diagnostic {
             err_no: ErrNo::cfc__unexpected_node,
         }
     }
+
+    pub fn unconnected_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Source '{connector_name}' is not connected."),
+            range: vec![range],
+            err_no: ErrNo::cfc__unconnected_source,
+        }
+    }
+
+    pub fn sink_without_associated_source(connector_name: &str, range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Expected a corresponding source-connection mark for sink '{connector_name}', but could not find one."),
+            range: vec![range],
+            err_no: ErrNo::cfc__no_associated_connector,
+        }
+    }
+
+    pub fn cyclic_connection(message: String, range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Sink is connected to itself. Found the following recursion: {message}"),
+            range: vec![range],
+            err_no: ErrNo::cfc__cyclic_connection,
+        }
+    }
 }
 
 #[cfg(test)]

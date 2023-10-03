@@ -1,11 +1,11 @@
 ---
-source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: "visit(content::EXEC_SORTING).unwrap()"
+source: compiler/plc_xml/src/model/fbd.rs
+expression: model
 ---
 Project {
     pous: [
         Pou {
-            name: "thistimereallyeasy",
+            name: "TestProg",
             pou_type: Program,
             body: Body {
                 function_block_diagram: Some(
@@ -21,40 +21,26 @@ Project {
                                     ref_local_id: None,
                                 },
                             ),
-                            3: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Output,
-                                    local_id: 3,
-                                    negated: false,
-                                    expression: "c",
-                                    execution_order_id: Some(
-                                        0,
-                                    ),
-                                    ref_local_id: Some(
-                                        1,
-                                    ),
-                                },
-                            ),
-                            4: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Output,
-                                    local_id: 4,
-                                    negated: false,
-                                    expression: "d",
-                                    execution_order_id: Some(
-                                        1,
-                                    ),
-                                    ref_local_id: Some(
-                                        1,
-                                    ),
-                                },
-                            ),
                             2: FunctionBlockVariable(
                                 FunctionBlockVariable {
                                     kind: Output,
                                     local_id: 2,
                                     negated: false,
                                     expression: "b",
+                                    execution_order_id: Some(
+                                        1,
+                                    ),
+                                    ref_local_id: Some(
+                                        1,
+                                    ),
+                                },
+                            ),
+                            6: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 6,
+                                    negated: false,
+                                    expression: "c",
                                     execution_order_id: Some(
                                         2,
                                     ),
@@ -68,16 +54,7 @@ Project {
                 ),
             },
             actions: [],
-            interface: Some(
-                Interface {
-                    add_data: Some(
-                        Data {
-                            content: "\n    PROGRAM thistimereallyeasy\n    VAR\n        a, b, c, d : DINT;\n    END_VAR\n                        \nEND_PROGRAM",
-                            handle: Implementation,
-                        },
-                    ),
-                },
-            ),
+            interface: None,
         },
     ],
 }

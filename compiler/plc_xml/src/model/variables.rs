@@ -3,9 +3,12 @@ use quick_xml::events::Event;
 use crate::extensions::GetOrErr;
 use crate::xml_parser::Parseable;
 use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
+use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
 
-#[derive(Debug, PartialEq)]
+use super::fbd::NodeId;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
@@ -16,13 +19,13 @@ pub(crate) struct BlockVariable {
     pub enable: Option<bool>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub(crate) enum Edge {
     Falling,
     Rising,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub(crate) enum Storage {
     Set,
     Reset,
@@ -40,9 +43,13 @@ impl BlockVariable {
             enable: hm.get("enable").map(|it| it == "true"),
         })
     }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
+    }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub(crate) enum VariableKind {
     Input,
     Output,
@@ -50,26 +57,30 @@ pub(crate) enum VariableKind {
     Temp,
 }
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct FunctionBlockVariable {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub(crate) struct FunctionBlockVariable<'xml> {
     pub kind: VariableKind,
     pub local_id: usize,
     pub negated: bool,
-    pub expression: String,
+    pub expression: Cow<'xml, str>,
     pub execution_order_id: Option<usize>,
     pub ref_local_id: Option<usize>,
 }
 
-impl FunctionBlockVariable {
+impl<'xml> FunctionBlockVariable<'xml> {
     pub fn new(hm: HashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             negated: hm.get_or_err("negated").map(|it| it == "true")?,
-            expression: hm.get_or_err("expression")?,
+            expression: Cow::from(hm.get_or_err("expression")?),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
         })
+    }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
     }
 }
 
@@ -113,7 +124,7 @@ impl FromStr for Storage {
     }
 }
 
-impl Parseable for FunctionBlockVariable {
+impl<'xml> Parseable for FunctionBlockVariable<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

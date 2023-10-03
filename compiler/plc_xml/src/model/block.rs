@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use quick_xml::events::Event;
 
@@ -6,28 +6,28 @@ use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_pars
 
 use super::variables::BlockVariable;
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct Block {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub(crate) struct Block<'xml> {
     pub local_id: usize,
-    pub type_name: String,
-    pub instance_name: Option<String>,
+    pub type_name: Cow<'xml, str>,
+    pub instance_name: Option<Cow<'xml, str>>,
     pub execution_order_id: Option<usize>,
     pub variables: Vec<BlockVariable>,
 }
 
-impl Block {
+impl<'xml> Block<'xml> {
     pub fn new(mut hm: HashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
-            type_name: hm.get_or_err("typeName")?,
-            instance_name: hm.remove("instanceName"),
+            type_name: Cow::from(hm.get_or_err("typeName")?),
+            instance_name: hm.remove("instanceName").map(Cow::from),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             variables,
         })
     }
 }
 
-impl Parseable for Block {
+impl<'xml> Parseable for Block<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

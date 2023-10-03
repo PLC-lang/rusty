@@ -8,7 +8,7 @@ use crate::model::{
 
 use super::ParseSession;
 
-impl Control {
+impl<'xml> Control<'xml> {
     pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> Result<AstNode, Diagnostic> {
         match self.kind {
             ControlKind::Jump => unimplemented!(),

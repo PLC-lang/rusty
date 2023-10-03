@@ -1,0 +1,66 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: model
+---
+Project {
+    pous: [
+        Pou {
+            name: "TestProg",
+            pou_type: Program,
+            body: Body {
+                function_block_diagram: Some(
+                    FunctionBlockDiagram {
+                        nodes: {
+                            1: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 1,
+                                    negated: false,
+                                    expression: "a",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            2: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 2,
+                                    negated: false,
+                                    expression: "b",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            3: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 3,
+                                    negated: false,
+                                    expression: "c",
+                                    execution_order_id: None,
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
+                                },
+                            ),
+                            4: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 4,
+                                    negated: false,
+                                    expression: "a",
+                                    execution_order_id: None,
+                                    ref_local_id: Some(
+                                        2,
+                                    ),
+                                },
+                            ),
+                        },
+                    },
+                ),
+            },
+            actions: [],
+            interface: None,
+        },
+    ],
+}

@@ -4,12 +4,12 @@ use super::fbd::FunctionBlockDiagram;
 use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
 
 #[derive(Debug, Default)]
-pub(crate) struct Body {
-    pub function_block_diagram: Option<FunctionBlockDiagram>,
+pub(crate) struct Body<'xml> {
+    pub function_block_diagram: Option<FunctionBlockDiagram<'xml>>,
 }
 
-impl Body {
-    fn new(fbd: Option<FunctionBlockDiagram>) -> Result<Self, Error> {
+impl<'xml> Body<'xml> {
+    fn new(fbd: Option<FunctionBlockDiagram<'xml>>) -> Result<Self, Error> {
         Ok(Self { function_block_diagram: fbd })
     }
 
@@ -18,7 +18,7 @@ impl Body {
     }
 }
 
-impl Parseable for Body {
+impl<'xml> Parseable for Body<'xml> {
     type Item = Self;
 
     fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {

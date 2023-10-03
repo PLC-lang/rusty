@@ -1,0 +1,45 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: connection2 -> connection1 -> connection2",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 6,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: connection2 -> connection1 -> connection2",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 6,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+    SemanticError {
+        message: "Sink is connected to itself. Found the following recursion: connection1 -> connection2 -> connection1",
+        range: [
+            SourceLocation {
+                span: Block {
+                    local_id: 5,
+                    execution_order: None,
+                    inner_range: None,
+                },
+            },
+        ],
+        err_no: cfc__cyclic_connection,
+    },
+]
