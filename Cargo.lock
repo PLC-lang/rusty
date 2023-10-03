@@ -1719,7 +1719,7 @@ dependencies = [
  "html-escape",
  "indexmap 2.0.0",
  "insta",
- "itertools 0.11.0",
+ "itertools",
  "logos",
  "plc_ast",
  "plc_diagnostics",

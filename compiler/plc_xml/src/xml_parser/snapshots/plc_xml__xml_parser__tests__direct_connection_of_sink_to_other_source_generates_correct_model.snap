@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: visit_and_desugar(content).unwrap()
+expression: visit_and_desugar(&content.serialize()).unwrap()
 ---
 Project {
     pous: [
@@ -44,7 +44,7 @@ Project {
                 Interface {
                     add_data: Some(
                         Data {
-                            content: "\n    FUNCTION myConnection : DINT\n    VAR_INPUT\n        x: DINT;\n    END_VAR\n                \nEND_FUNCTION",
+                            content: "\n        FUNCTION myConnection : DINT\n        VAR_INPUT\n            x: DINT;\n        END_VAR\n    \nEND_FUNCTION",
                             handle: Implementation,
                         },
                     ),

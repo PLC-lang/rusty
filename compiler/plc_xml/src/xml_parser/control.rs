@@ -64,36 +64,22 @@ fn transform_return(
 mod tests {
     use insta::assert_debug_snapshot;
 
-    use crate::{
-        model::control::Control,
-        reader::PeekableReader,
-        serializer::{XAddData, XConnectionPointIn, XReturn},
-        xml_parser::Parseable,
-    };
+    use crate::serializer2::YReturn;
+    use crate::{model::control::Control, reader::PeekableReader, xml_parser::Parseable};
 
     #[test]
     fn simple_return() {
-        let content = XReturn::new()
-            .with_local_id("1")
-            .with_execution_order_id("2")
-            .with_connection_point_in(XConnectionPointIn::with_ref("3"))
-            .with_add_data(XAddData::negated(false))
-            .serialize();
-
+        let content = YReturn::new().with_id(1).with_execution_id(2).connect(3).negate(false).serialize();
         let reader = &mut PeekableReader::new(&content);
+
         assert_debug_snapshot!(Control::visit(reader).unwrap());
     }
 
     #[test]
     fn simple_negated_return() {
-        let content = XReturn::new()
-            .with_local_id("1")
-            .with_execution_order_id("2")
-            .with_connection_point_in(XConnectionPointIn::with_ref("3"))
-            .with_add_data(XAddData::negated(true))
-            .serialize();
-
+        let content = YReturn::new().with_id(1).with_execution_id(2).connect(3).negate(true).serialize();
         let reader = &mut PeekableReader::new(&content);
+
         assert_debug_snapshot!(Control::visit(reader).unwrap());
     }
 }

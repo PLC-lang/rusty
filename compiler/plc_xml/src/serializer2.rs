@@ -164,6 +164,8 @@ newtype_impl!(YFbd, "FBD", false);
 newtype_impl!(YExpression, "expression", false);
 newtype_impl!(YReturn, "return", false);
 newtype_impl!(YNegate, "negated", false);
+newtype_impl!(YConnector, "connector", false);
+newtype_impl!(YContinuation, "continuation", false);
 
 impl YInVariable {
     /// Adds a child node
@@ -188,6 +190,14 @@ impl YOutVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
         self = self
             .child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()));
+        self
+    }
+
+    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
+        self =
+            self.child(&YConnectionPointIn::new().child(
+                &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
+            ));
         self
     }
 
@@ -336,6 +346,43 @@ impl YExpression {
 impl YOutVariable {
     pub fn connect_in(self, ref_local_id: i32) -> Self {
         self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+}
+
+impl YConnector {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("name", name)
+    }
+
+    // TODO: Naming?
+    pub fn connect_in(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+
+    // TODO: Naming?
+    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
+        self = self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
+        ]));
+
+        self
+    }
+}
+
+impl YContinuation {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("name", name)
+    }
+
+    pub fn connect_out(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointOut::new().children(vec![
             &YRelPosition::new().close(), // TODO: Positions
             &YConnection::new().with_ref_id(ref_local_id).close(),
         ]))
