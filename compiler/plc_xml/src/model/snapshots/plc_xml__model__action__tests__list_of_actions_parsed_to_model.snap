@@ -17,7 +17,7 @@ Project {
             actions: [
                 Action {
                     name: "newAction",
-                    type_name: "",
+                    type_name: "program_0",
                     body: Body {
                         function_block_diagram: Some(
                             FunctionBlockDiagram {
@@ -68,7 +68,7 @@ Project {
                 },
                 Action {
                     name: "newAction2",
-                    type_name: "",
+                    type_name: "program_0",
                     body: Body {
                         function_block_diagram: Some(
                             FunctionBlockDiagram {

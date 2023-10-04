@@ -57,21 +57,17 @@ impl<'xml> Parseable for Pou<'xml> {
                     // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
                     pou.interface =
                         Some(Interface::visit(reader, Some(tag))?.append_end_keyword(&pou.pou_type));
-                    // reader.consume_until_start(b"content")?;
-                    // match reader.next()? {
-                    //     Event::Start(tag) => {
-                    //         pou.interface = Some(Interface::new(&reader.read_text(tag.name())?))
-                    //         pou.interface = Some(pou.interface.unwrap().append_end_keyword(&pou.pou_type));
-                    //     }
-                    //     _ => reader.consume()?,
-                    // }
                 }
                 Event::Start(tag) if tag.name().as_ref() == b"body" => {
                     pou.body = Body::visit(reader, Some(tag))?;
                 }
                 Event::Start(tag) if tag.name().as_ref() == b"actions" => {
                     let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;
-                    pou.actions.extend(actions)
+                    for mut action in actions.into_iter() {
+                        // Copy the action type names
+                        action.type_name = pou.name.clone();
+                        pou.actions.push(action);
+                    }
                 }
                 Event::End(tag) if tag.name().as_ref() == b"pou" => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),

@@ -167,7 +167,9 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
             // transform body
             implementations.push(pou.build_implementation(&mut self));
             // transform actions
-            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(&self)));
+            pou.actions
+                .iter()
+                .for_each(|action| implementations.push(action.build_implementation(&mut self)));
         }
 
         (implementations, self.diagnostics)

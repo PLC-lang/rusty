@@ -179,6 +179,24 @@ fn jump_to_label_with_false() {
     assert_eq!(res, 5);
 }
 
+#[test]
+fn actions_called_correctly() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        b: i32,
+    }
+
+    let mut main = MainType::default();
+
+    let file = get_test_file("cfc/actions.cfc");
+    let _: i32 = compile_and_run(vec![file], &mut main);
+
+    assert_eq!(main.a, 1);
+    assert_eq!(main.b, 2);
+}
+
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
