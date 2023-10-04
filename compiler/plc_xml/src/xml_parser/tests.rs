@@ -9,7 +9,7 @@ use insta::assert_debug_snapshot;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::{source_location::SourceLocationFactory, SourceCode, SourceCodeFactory};
 
-use crate::serializer2::{
+use crate::serializer::{
     YBlock, YConnector, YContinuation, YInOutVariable, YInVariable, YOutVariable, YPou, YReturn, YVariable,
 };
 use crate::{

@@ -19,4 +19,3 @@ pub(crate) mod model {
 }
 mod reader;
 mod serializer;
-mod serializer2;

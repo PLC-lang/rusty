@@ -297,7 +297,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
 
 #[cfg(test)]
 mod tests {
-    use crate::serializer2::{YBlock, YFbd, YInVariable, YOutVariable, YVariable};
+    use crate::serializer::{YBlock, YFbd, YInVariable, YOutVariable, YVariable};
     use crate::{
         model::{
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,

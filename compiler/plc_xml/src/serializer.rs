@@ -1,407 +1,390 @@
-type Attributes = Vec<(&'static str, &'static str)>;
+use std::collections::HashMap;
 
-/// Number of spaces to use when indenting XML
-const INDENT_SPACES: usize = 4;
-
-#[derive(Debug, Default)]
-enum Content {
-    Node(Vec<Node>),
-    Data(&'static str),
-
-    #[default]
-    Empty,
-}
-
-impl<'b> Content {
-    fn push(&mut self, node: Node) {
-        let mut nodes = match self.take() {
-            Content::Node(nodes) => nodes,
-            Content::Empty => vec![],
-            _ => unreachable!("cannot push onto data field"),
-        };
-
-        nodes.push(node);
-
-        self.replace(Content::Node(nodes));
-    }
-
-    fn replace(&'b mut self, other: Content) -> Content {
-        std::mem::replace(self, other)
-    }
-
-    fn take(&'b mut self) -> Content {
-        std::mem::take(self)
-    }
-
-    fn iter(self) -> impl Iterator<Item = Node> {
-        match self {
-            Content::Node(nodes) => nodes,
-            _ => vec![],
-        }
-        .into_iter()
-    }
-}
-
-#[derive(Debug)]
-struct Node {
+#[derive(Clone)]
+pub struct Node {
     name: &'static str,
-    attributes: Attributes,
+    attributes: HashMap<&'static str, &'static str>,
+    children: Vec<Node>,
+
+    /// Indicates if an element has a closed form, e.g. `<position x="1" y="2"/>`
     closed: bool,
-    content: Content,
+
+    /// Indicates if an element has some text wrapped inside itself, e.g. `<expression>a + b</expression>`
+    content: Option<&'static str>,
+}
+
+pub trait IntoNode {
+    fn inner(&self) -> Node;
 }
 
 impl Node {
-    fn attributes(&self) -> String {
-        let mut fmt = String::new();
-        for attr in &self.attributes {
-            fmt = format!(r#"{fmt}{key}="{value}" "#, key = attr.0, value = attr.1)
-        }
-
-        fmt
+    fn new(name: &'static str) -> Self {
+        Self { name, attributes: HashMap::new(), children: Vec::new(), closed: false, content: None }
     }
 
-    // TODO: ✨ Beautify ✨ this
-    fn serialize(self, level: usize) -> String {
-        let (indent, name, attributes) = (" ".repeat(level * INDENT_SPACES), self.name, self.attributes());
-        let mut fmt = String::new();
-        match self.content {
-            Content::Data(data) => fmt = format!("{indent}<{name} {attributes}>{data}</{name}>\n",),
-            _ => {
-                if self.closed {
-                    fmt = format!(
-                        "{indent}<{name} {attributes}/>\n",
-                        indent = " ".repeat(level * INDENT_SPACES),
-                        name = self.name,
-                        attributes = self.attributes()
-                    );
-                }
+    fn attribute(mut self, key: &'static str, value: &'static str) -> Self {
+        self.attributes.insert(key, value);
+        self
+    }
 
-                if !self.closed {
-                    fmt = format!(
-                        "{indent}<{name} {attributes}>\n",
-                        indent = " ".repeat(level * INDENT_SPACES),
-                        name = self.name,
-                        attributes = self.attributes()
-                    );
-                }
+    fn child(mut self, node: &dyn IntoNode) -> Self {
+        self.children.push(node.inner());
+        self
+    }
 
-                for node in self.content.iter() {
-                    fmt = format!("{fmt}{}", node.serialize(level + 1));
-                }
+    fn children(mut self, nodes: Vec<&dyn IntoNode>) -> Self {
+        self.children.extend(nodes.into_iter().map(IntoNode::inner));
+        self
+    }
 
-                if !self.closed {
-                    fmt = format!(
-                        "{fmt}{indent}</{name}>\n",
-                        indent = " ".repeat(level * INDENT_SPACES),
-                        name = &self.name
-                    );
+    fn close(mut self) -> Self {
+        self.closed = true;
+        self
+    }
+
+    fn indent(level: usize) -> String {
+        " ".repeat(level * 4)
+    }
+
+    fn _content(indent: &str, name: &'static str, content: &'static str) -> String {
+        format!("{indent}<{name}>{content}</{name}>\n")
+    }
+
+    #[allow(unused_assignments)]
+    pub fn serialize(&self, level: usize) -> String {
+        let (name, indent) = (self.name, Node::indent(level));
+        let attributes = self.attributes.iter().map(|(key, value)| format!("{key}=\"{value}\""));
+        let attributes_str = attributes.collect::<Vec<_>>().join(" ");
+        let mut result = String::new();
+
+        if self.closed {
+            return format!("{indent}<{name} {attributes_str}/>\n");
+        }
+
+        if let Some(content) = self.content {
+            return Node::_content(&indent, name, content);
+        }
+
+        result = format!("{indent}<{name} {attributes_str}>\n");
+        self.children.iter().for_each(|child| result = format!("{result}{}", child.serialize(level + 1)));
+        result = format!("{result}{indent}</{name}>\n");
+
+        result
+    }
+}
+
+macro_rules! newtype_impl {
+    ($name_struct:ident, $name_node:expr, $negatable:expr) => {
+        pub struct $name_struct(Node);
+
+        // TODO: Perhaps deref
+        impl IntoNode for $name_struct {
+            fn inner(&self) -> Node {
+                self.0.clone()
+            }
+        }
+
+        impl $name_struct {
+            pub fn new() -> Self {
+                match $negatable {
+                    true => Self(Node::new($name_node).attribute("negated", "false")),
+                    false => Self(Node::new($name_node)),
                 }
             }
-        };
 
-        #[cfg(feature = "debug")]
-        println!("{fmt}");
+            pub fn id(local_id: i32) -> Self {
+                let new = $name_struct::new();
+                new.with_id(local_id)
+            }
 
-        fmt
-    }
-}
+            fn attribute(self, key: &'static str, value: &'static str) -> Self {
+                Self(self.inner().attribute(key, value))
+            }
 
-pub(crate) fn with_header(data: &str) -> String {
-    let header = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
-    format!("{header}\n{data}")
-}
-
-// For `declare_type_and_extend_if_needed! { (Pou, "pou", (Body, with_body)) }` the macro will expand to
-//
-// pub(crate) struct Pou(Node);
-//
-// impl Pou {
-//     pub fn new() -> Self {
-//         Self(Node { name: "pou", attributes: vec![], closed: false, nodes: vec![] })
-//     }
-//
-//     ... the remaining non-optional functions in the impl block ...
-//
-//     ... the optional extend method
-//     pub(crate) fn with_body(arg: Body) -> Self {
-//         self.get_inner_ref_mut().nodes.push(arg.get_inner());
-//         self
-//     }
-// }
-// TODO: revisit visiblity of functions
-macro_rules! declare_type_and_extend_if_needed {
-    ($(($name:ident, $name_xml:expr, $(($arg:ty, $fn_name:ident)),*),) +) => {
-        $(
-            // will be implemented for every $name
-            #[derive(Debug)]
-            pub(crate) struct $name(Node);
-            impl $name {
-                pub fn new() -> Self {
-                    Self(Node { name: $name_xml, attributes: vec![], closed: false, content: Content::Empty })
+            fn maybe_attribute(self, key: &'static str, value: Option<&'static str>) -> Self {
+                match value {
+                    Some(value) => Self(self.inner().attribute(key, value)),
+                    None => self,
                 }
+            }
 
-                pub fn with_attribute(mut self, key: &'static str, value: &'static str) -> Self {
-                    self.0.attributes.push((key, value));
-                    self
-                }
+            fn child(self, node: &dyn IntoNode) -> Self {
+                Self(self.inner().child(node))
+            }
 
-                pub fn with_local_id(mut self, value: &'static str) -> Self {
-                    self.0.attributes.push(("localId", value));
-                    self
-                }
+            pub fn children(self, nodes: Vec<&dyn IntoNode>) -> Self {
+                Self(self.inner().children(nodes))
+            }
 
-                pub fn with_execution_order_id(mut self, value: &'static str) -> Self {
-                    self.0.attributes.push(("executionOrderId", value));
-                    self
-                }
+            pub fn serialize(self) -> String {
+                self.inner().serialize(0)
+            }
 
-                pub fn with_data(mut self, data: &'static str) -> Self {
-                    self.0.content = Content::Data(data);
-                    self
-                }
+            pub fn with_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("localId", Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                pub fn close(mut self) -> Self {
-                    self.0.closed = true;
-                    self
-                }
+            pub fn with_ref_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("refLocalId", Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                pub fn serialize(self) -> String {
-                    self.0.serialize(0)
-                }
+            pub fn with_execution_id<T: std::fmt::Display>(self, id: T) -> Self {
+                self.attribute("executionOrderId", Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                fn get_inner(self) -> Node {
-                    self.0
-                }
-
-                fn get_inner_ref_mut(&mut self) -> &mut Node {
-                    &mut self.0
-                }
-
-                // this part is optional.
-                $(
-                    pub(crate) fn $fn_name(mut self, value: $arg) -> Self {
-                    self.get_inner_ref_mut().content.push(value.get_inner());
-                    self
-                })*
-        })*
-    }
-}
-
-declare_type_and_extend_if_needed! {
-    (
-        XPou, "pou",
-        (XBody, with_body),
-        (XInterface, with_interface)
-    ),
-    (
-        XBlock, "block",
-        (XInOutVariables, with_inout_variables),
-        (XInputVariables, with_input_variables),
-        (XOutputVariables, with_output_variables)
-    ),
-    (
-
-        XBody, "body",
-        (XFbd, with_fbd)
-    ),
-    (
-        XConnectionPointIn, "connectionPointIn",
-        (XConnection, with_connection),
-        (XRelPosition, with_rel_position)
-    ),
-    (
-        XConnectionPointOut, "connectionPointOut",
-        (XConnection, with_connection),
-        (XRelPosition, with_rel_position)
-    ),
-    (
-        XFbd, "FBD",
-        (XBlock, with_block),
-        (XInVariable, with_in_variable),
-        (XOutVariable, with_out_variable),
-        (XContinuation, with_continuation),
-        (XConnector, with_connector),
-        (XReturn, with_return)
-    ),
-    (
-        XVariable, "variable",
-        (XConnectionPointIn, with_connection_in),
-        (XConnectionPointOut, with_connection_out)
-    ),
-    (
-        XInVariable, "inVariable",
-        (XConnectionPointOut, with_connection_point_out),
-        (XPosition, with_position),
-        (XExpression, with_expression)
-    ),
-    (
-        XOutVariable, "outVariable",
-        (XPosition, with_position),
-        (XConnectionPointIn, with_connection_point_in),
-        (XExpression, with_expression)
-    ),
-    (
-        XInOutVariables, "inOutVariables",
-        (XVariable, with_variable)
-    ),
-    (
-        XInputVariables, "inputVariables",
-        (XVariable, with_variable)
-    ),
-    (
-        XOutputVariables, "outputVariables",
-        (XVariable, with_variable)
-    ),
-    (
-        XInterface, "interface",
-        (XLocalVars, with_local_vars),
-        (XAddData, with_add_data)
-    ),
-    (XLocalVars, "localVars",),
-    (
-        XAddData, "addData",
-        (XData, with_data_data)
-    ),
-    (
-        XData, "data",
-        (XTextDeclaration, with_text_declaration),
-        (XNegated, with_negated_field)
-    ),
-    (
-        XTextDeclaration, "textDeclaration",
-        (XContent, with_content)
-    ),
-    (XContent, "content",),
-
-    // these are not being extended:
-    (XPosition, "position",),
-    (XRelPosition, "relPosition",),
-    (XConnection, "connection",),
-    (XExpression, "expression",),
-
-    (
-        XContinuation, "continuation",
-        (XPosition, with_position),
-        (XConnectionPointOut, with_connection_point_out)
-    ),
-    (
-        XConnector, "connector",
-        (XPosition, with_position),
-        (XConnectionPointIn, with_connection_point_in)
-    ),
-    (
-        XReturn, "return",
-        (XConnectionPointIn, with_connection_point_in),
-        (XAddData, with_add_data)
-    ),
-    (
-        XNegated, "negated",
-    ),
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
-
-    use super::{
-        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou,
-        XTextDeclaration, XVariable,
+            fn close(self) -> Self {
+                Self(self.inner().close())
+            }
+        }
     };
+}
 
-    // convenience methods to reduce amount of boiler-plate-code
-    impl XVariable {
-        pub(crate) fn init(name: &'static str, negated: bool) -> Self {
-            XVariable::new()
-                .with_attribute("formalParameter", name)
-                .with_attribute("negated", if negated { "true" } else { "false" })
-        }
+newtype_impl!(YInVariable, "inVariable", true);
+newtype_impl!(YOutVariable, "outVariable", true);
+newtype_impl!(YInOutVariable, "inOutVariable", true);
+newtype_impl!(YInterface, "interface", false);
+newtype_impl!(YLocalVars, "localVars", false);
+newtype_impl!(YAddData, "addData", false);
+newtype_impl!(YData, "data", false);
+newtype_impl!(YTextDeclaration, "textDeclaration", false);
+newtype_impl!(YContent, "content", false);
+newtype_impl!(YPosition, "position", false);
+newtype_impl!(YConnectionPointIn, "connectionPointIn", false);
+newtype_impl!(YConnectionPointOut, "connectionPointOut", false);
+newtype_impl!(YRelPosition, "relPosition", false);
+newtype_impl!(YConnection, "connection", false);
+newtype_impl!(YBlock, "block", false);
+newtype_impl!(YBody, "body", false);
+newtype_impl!(YPou, "pou", false);
+newtype_impl!(YInputVariables, "inputVariables", false);
+newtype_impl!(YOutputVariables, "outputVariables", false);
+newtype_impl!(YInOutVariables, "inOutVariables", false);
+newtype_impl!(YVariable, "variable", true);
+newtype_impl!(YFbd, "FBD", false);
+newtype_impl!(YExpression, "expression", false);
+newtype_impl!(YReturn, "return", false);
+newtype_impl!(YNegate, "negated", false);
+newtype_impl!(YConnector, "connector", false);
+newtype_impl!(YContinuation, "continuation", false);
 
-        pub(crate) fn with_connection_in_initialized(self, ref_lid: &'static str) -> Self {
-            self.with_connection_in(
-                XConnectionPointIn::new()
-                    .with_rel_position(XRelPosition::init().close())
-                    .with_connection(XConnection::new().with_attribute("refLocalId", ref_lid).close()),
-            )
-        }
-
-        pub(crate) fn with_connection_out_initialized(self) -> Self {
-            self.with_connection_out(
-                XConnectionPointOut::new().with_rel_position(XRelPosition::init().close()),
-            )
-        }
+impl YInVariable {
+    /// Adds a child node
+    /// <connectPointIn>
+    ///     <connection refLocalId="..."/>
+    /// </connectionPointIn/>
+    pub fn connect(mut self, ref_local_id: i32) -> Self {
+        self = self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)));
+        self
     }
 
-    impl XRelPosition {
-        pub(crate) fn init() -> Self {
-            XRelPosition::new().with_attribute("x", "0").with_attribute("y", "0").close()
-        }
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
+}
+
+impl YOutVariable {
+    /// Adds a child node
+    /// <connectPointIn>
+    ///     <connection refLocalId="..."/>
+    /// </connectionPointIn/>
+    pub fn connect(mut self, ref_local_id: i32) -> Self {
+        self = self
+            .child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()));
+        self
     }
 
-    impl XConnectionPointIn {
-        pub(crate) fn with_ref(ref_local_id: &'static str) -> Self {
-            XConnectionPointIn::new()
-                .with_rel_position(XRelPosition::init().close())
-                .with_connection(XConnection::new().with_attribute("refLocalId", ref_local_id).close())
-        }
+    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
+        self =
+            self.child(&YConnectionPointIn::new().child(
+                &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
+            ));
+        self
     }
 
-    impl XConnectionPointOut {
-        pub(crate) fn with_rel_pos() -> Self {
-            XConnectionPointOut::new().with_rel_position(XRelPosition::init().close())
-        }
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
+}
+
+impl YInOutVariable {
+    pub fn with_expression(self, expression: &'static str) -> Self {
+        self.child(&YExpression::with_expression(expression))
+    }
+}
+
+impl YReturn {
+    pub fn init(local_id: i32, execution_order: i32) -> Self {
+        Self::new().with_id(local_id).with_execution_id(execution_order)
     }
 
-    impl XInVariable {
-        pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
-            XInVariable::new()
-                .with_attribute("localId", local_id)
-                .with_attribute("negated", if negated { "true" } else { "false" })
-        }
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)))
     }
 
-    impl XOutVariable {
-        pub(crate) fn init(local_id: &'static str, negated: bool) -> Self {
-            XOutVariable::new()
-                .with_attribute("localId", local_id)
-                .with_attribute("negated", if negated { "true" } else { "false" })
-        }
+    pub fn negate(self, value: bool) -> Self {
+        self.child(&YAddData::new().child(&YData::new().child(
+            &YNegate::new().attribute("value", Box::leak(value.to_string().into_boxed_str())).close(),
+        )))
+    }
+}
+
+impl YContent {
+    pub fn with_declaration(mut self, content: &'static str) -> Self {
+        self.0.content = Some(content);
+        self
+    }
+}
+
+impl YPou {
+    // TODO: kind -> enum
+    pub fn init(name: &'static str, kind: &'static str, declaration: &'static str) -> Self {
+        Self::new()
+            .attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
+            .attribute("name", name)
+            .attribute("pouType", kind)
+            .child(&YInterface::new().children(vec![
+                    &YLocalVars::new().close(),
+                    &YAddData::new().child(
+                        &YData::new()
+                            .attribute("name", "www.bachmann.at/plc/plcopenxml")
+                            .attribute("handleUnknown", "implementation")
+                            .child(
+                                &YTextDeclaration::new()
+                                    .child(&YContent::new().with_declaration(declaration)),
+                            ),
+                    ),
+                ]))
     }
 
-    impl XBlock {
-        pub(crate) fn init(local_id: &'static str, type_name: &'static str, exec_id: &'static str) -> Self {
-            XBlock::new()
-                .with_attribute("localId", local_id)
-                .with_attribute("typeName", type_name)
-                .with_attribute("executionOrderId", exec_id)
-        }
+    /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
+    pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
+        self.child(&YBody::new().child(&YFbd::new().children(children)))
     }
 
-    impl XPou {
-        pub(crate) fn init(name: &'static str, pou_type: &'static str, declaration: &'static str) -> Self {
-            XPou::new()
-                .with_attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
-                .with_attribute("name", name)
-                .with_attribute("pouType", pou_type)
-                .with_interface(XInterface::init_with_text_declaration(declaration))
-        }
+    // pub fn with_name(name: &'static str) -> Self {}
+}
+
+impl YBlock {
+    pub fn init(name: &'static str, local_id: i32, execution_order_id: i32) -> Self {
+        Self::new().with_name(name).with_id(local_id).with_execution_id(execution_order_id)
     }
 
-    impl XInterface {
-        pub(crate) fn init_with_text_declaration(declaration: &'static str) -> Self {
-            XInterface::new().with_add_data(XAddData::new().with_data_data(
-                XData::new().with_text_declaration(
-                    XTextDeclaration::new().with_content(XContent::new().with_data(declaration)),
-                ),
-            ))
-        }
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("typeName", name)
     }
 
-    impl XAddData {
-        pub(crate) fn negated(is_negated: bool) -> Self {
-            XAddData::new().with_data_data(XData::new().with_negated_field(
-                XNegated::new().with_attribute("value", if is_negated { "true" } else { "false" }),
-            ))
-        }
+    pub fn with_input_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+        self.child(&YInputVariables::new().children(variables))
+    }
+
+    pub fn with_output_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+        self.child(&YOutputVariables::new().children(variables))
+    }
+
+    pub fn with_inout_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+        self.child(&YInOutVariables::new().children(variables))
+    }
+}
+
+impl YBody {
+    pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
+        Self::new().child(&YFbd::new().children(children))
+    }
+}
+
+impl YInputVariables {
+    pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
+        Self::new().children(variables)
+    }
+}
+
+impl YOutputVariables {
+    pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
+        Self::new().children(variables)
+    }
+}
+
+impl YVariable {
+    // TODO: Remove
+    pub fn name(name: &'static str) -> Self {
+        Self::new().attribute("formalParameter", name)
+    }
+
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("formalParameter", name)
+    }
+
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&YConnection::new().with_ref_id(ref_local_id).close())
+    }
+
+    pub fn connect_in(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+
+    pub fn connect_out(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointOut::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+}
+
+impl YInVariable {}
+
+impl YExpression {
+    pub fn with_expression(expression: &'static str) -> Self {
+        let mut node = Self::new();
+        node.0.content = Some(expression);
+        node
+    }
+}
+
+impl YOutVariable {
+    pub fn connect_in(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+}
+
+impl YConnector {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("name", name)
+    }
+
+    // TODO: Naming?
+    pub fn connect_in(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
+    }
+
+    // TODO: Naming?
+    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
+        self = self.child(&YConnectionPointIn::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
+        ]));
+
+        self
+    }
+}
+
+impl YContinuation {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("name", name)
+    }
+
+    pub fn connect_out(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointOut::new().children(vec![
+            &YRelPosition::new().close(), // TODO: Positions
+            &YConnection::new().with_ref_id(ref_local_id).close(),
+        ]))
     }
 }

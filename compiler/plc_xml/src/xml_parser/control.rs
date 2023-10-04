@@ -64,7 +64,7 @@ fn transform_return(
 mod tests {
     use insta::assert_debug_snapshot;
 
-    use crate::serializer2::YReturn;
+    use crate::serializer::YReturn;
     use crate::{model::control::Control, reader::PeekableReader, xml_parser::Parseable};
 
     #[test]

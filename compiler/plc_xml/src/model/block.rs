@@ -64,7 +64,7 @@ mod tests {
     use crate::{
         model::block::Block,
         reader::PeekableReader,
-        serializer2::{YBlock, YVariable},
+        serializer::{YBlock, YVariable},
         xml_parser::Parseable,
     };
 
