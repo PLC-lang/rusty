@@ -736,7 +736,19 @@
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 </span><span class="kw">use super</span>::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
@@ -753,6 +765,7 @@
     resolver::{AstAnnotations, Dependency},
     typesystem::{<span class="self">self</span>, DataType, VarArgs},
 };
+<span class="kw">use </span>std::collections::HashMap;
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -1041,10 +1054,18 @@
 
         <span class="comment">//generate the body
         </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">&quot;entry&quot;</span>);
-        <span class="self">self</span>.llvm.builder.position_at_end(block);
-        <span class="comment">//Set debug location
 
-        </span><span class="kw">let </span>function_context = FunctionContext {
+        <span class="comment">//Create all labels this function will have
+        </span><span class="kw">let </span><span class="kw-2">mut </span>blocks = HashMap::new();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(labels) = <span class="self">self</span>.index.get_labels(<span class="kw-2">&amp;</span>implementation.name) {
+            <span class="kw">for </span>name <span class="kw">in </span>labels.keys() {
+                blocks.insert(name.to_string(), <span class="self">self</span>.llvm.context.append_basic_block(current_function, name));
+            }
+        }
+        <span class="self">self</span>.llvm.builder.position_at_end(block);
+        blocks.insert(<span class="string">&quot;entry&quot;</span>.into(), block);
+
+        <span class="kw">let </span>function_context = FunctionContext {
             linking_context: <span class="self">self</span>.index.find_implementation_by_name(<span class="kw-2">&amp;</span>implementation.name).ok_or_else(
                 || {
                     Diagnostic::codegen_error(
@@ -1054,6 +1075,7 @@
                 },
             )<span class="question-mark">?</span>,
             function: current_function,
+            blocks,
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>param_index = <span class="number">0</span>;

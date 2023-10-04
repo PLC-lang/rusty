@@ -314,6 +314,42 @@
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -333,7 +369,11 @@
 
 <span class="kw">use </span>ast::provider::IdProvider;
 <span class="kw">use </span>cli::{CompileParameters, ParameterError};
-<span class="kw">use </span>plc::{output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads};
+<span class="kw">use </span>pipelines::AnnotatedProject;
+<span class="kw">use </span>plc::{
+    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+};
+
 <span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 <span class="kw">use </span>project::project::{LibraryInformation, Project};
 <span class="kw">use </span>rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -507,6 +547,38 @@
     }
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="doccomment">/// Parses and annotates a given project. Can be used in tests or api calls
+</span><span class="kw">pub fn </span>parse_and_annotate&lt;T: SourceContainer&gt;(
+    name: <span class="kw-2">&amp;</span>str,
+    src: Vec&lt;T&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;AnnotatedProject, Diagnostic&gt; {
+    <span class="comment">// Parse the source to ast
+    </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
+    <span class="kw">let </span>id_provider = IdProvider::default();
+    <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::default();
+    pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>project, <span class="prelude-val">None</span>, id_provider.clone(), <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
+        </span><span class="comment">// Create an index, add builtins
+        </span>.index(id_provider.clone())<span class="question-mark">?
+        </span><span class="comment">// Resolve
+        </span>.annotate(id_provider, <span class="kw-2">&amp;</span>diagnostician)
+}
+
+<span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
+</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::default();
+    <span class="kw">let </span>project = parse_and_annotate(name, src)<span class="question-mark">?</span>;
+    <span class="comment">//Validate
+    </span>project.validate(<span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+    <span class="comment">// Generate
+    </span><span class="kw">let </span>context = CodegenContext::create();
+    <span class="kw">let </span>module = project.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>CompileOptions::default())<span class="question-mark">?</span>;
+
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
+        message: <span class="string">&quot;Cannot generate module&quot;</span>.to_string(),
+        err_no: plc_diagnostics::errno::ErrNo::general__err,
+    })
 }
 
 <span class="kw">fn </span>generate(

@@ -511,7 +511,6 @@
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
 <a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     cell::RefCell,
@@ -753,7 +752,6 @@
         <span class="kw">let </span>module = context.create_module_from_ir(buffer)<span class="question-mark">?</span>;
 
         <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, module.to_string());
-        module.print_to_stderr();
 
         <span class="prelude-val">Ok</span>(GeneratedModule { module, engine: RefCell::new(<span class="prelude-val">None</span>) })
     }

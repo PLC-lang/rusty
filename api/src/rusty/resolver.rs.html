@@ -2093,7 +2093,43 @@
 <a href="#2093" id="2093">2093</a>
 <a href="#2094" id="2094">2094</a>
 <a href="#2095" id="2095">2095</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+<a href="#2096" id="2096">2096</a>
+<a href="#2097" id="2097">2097</a>
+<a href="#2098" id="2098">2098</a>
+<a href="#2099" id="2099">2099</a>
+<a href="#2100" id="2100">2100</a>
+<a href="#2101" id="2101">2101</a>
+<a href="#2102" id="2102">2102</a>
+<a href="#2103" id="2103">2103</a>
+<a href="#2104" id="2104">2104</a>
+<a href="#2105" id="2105">2105</a>
+<a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a>
+<a href="#2109" id="2109">2109</a>
+<a href="#2110" id="2110">2110</a>
+<a href="#2111" id="2111">2111</a>
+<a href="#2112" id="2112">2112</a>
+<a href="#2113" id="2113">2113</a>
+<a href="#2114" id="2114">2114</a>
+<a href="#2115" id="2115">2115</a>
+<a href="#2116" id="2116">2116</a>
+<a href="#2117" id="2117">2117</a>
+<a href="#2118" id="2118">2118</a>
+<a href="#2119" id="2119">2119</a>
+<a href="#2120" id="2120">2120</a>
+<a href="#2121" id="2121">2121</a>
+<a href="#2122" id="2122">2122</a>
+<a href="#2123" id="2123">2123</a>
+<a href="#2124" id="2124">2124</a>
+<a href="#2125" id="2125">2125</a>
+<a href="#2126" id="2126">2126</a>
+<a href="#2127" id="2127">2127</a>
+<a href="#2128" id="2128">2128</a>
+<a href="#2129" id="2129">2129</a>
+<a href="#2130" id="2130">2130</a>
+<a href="#2131" id="2131">2131</a>
+</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2110,7 +2146,8 @@
     ast::{
         <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -2267,6 +2304,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
     dependencies: IndexSet&lt;Dependency&gt;,
+    <span class="doccomment">/// A map containing every jump encountered in a file, and the label of where this jump should
+    /// point. This is later used to annotate all jumps after the initial visit is done.
+    </span>jumps_to_annotate: HashMap&lt;String, HashMap&lt;String, Vec&lt;AstId&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -2414,6 +2454,10 @@
     ReplacementAst {
         statement: AstNode,
     },
+    <span class="doccomment">/// a reference to a label in a POU
+    </span>Label {
+        name: String,
+    },
 }
 
 <span class="kw">impl </span>StatementAnnotation {
@@ -2525,8 +2569,8 @@
                 .or_else(|| <span class="self">self</span>.get(statement))
                 .and_then(|it| <span class="self">self</span>.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
-            StatementAnnotation::Function { .. } =&gt; <span class="prelude-val">None</span>,
             StatementAnnotation::Type { type_name } =&gt; <span class="prelude-val">Some</span>(type_name),
+            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2722,6 +2766,7 @@
             index,
             dependencies: IndexSet::new(),
             string_literals: StringLiterals { utf08: HashSet::new(), utf16: HashSet::new() },
+            jumps_to_annotate: HashMap::new(),
         }
     }
 
@@ -2780,6 +2825,20 @@
                     visitor.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(scope), statement);
                 } <span class="kw">else </span>{
                     visitor.visit_statement(ctx, statement);
+                }
+            }
+        }
+
+        <span class="comment">//Labels have been added to the index, annotate jumps with their appropriate labels
+        </span><span class="kw">for </span>(pou, jumps) <span class="kw">in </span>visitor.jumps_to_annotate {
+            <span class="kw">for </span>(label, nodes) <span class="kw">in </span>jumps {
+                <span class="kw">for </span>node <span class="kw">in </span>nodes {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = visitor.annotation_map.new_index.get_label(<span class="kw-2">&amp;</span>pou, <span class="kw-2">&amp;</span>label) {
+                        visitor
+                            .annotation_map
+                            .type_map
+                            .insert(node, StatementAnnotation::Label { name: label.name.clone() });
+                    }
                 }
             }
         }
@@ -3427,6 +3486,19 @@
             AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = condition {
                     <span class="self">self</span>.visit_statement(ctx, condition)
+                }
+            }
+            AstStatement::LabelStatement(..) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = ctx.pou {
+                    <span class="self">self</span>.annotation_map.new_index.add_label(pou, statement.into());
+                }
+            }
+            AstStatement::JumpStatement(JumpStatement { condition, target }) =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, condition);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((name, pou)) = target.get_flat_reference_name().zip(ctx.pou) {
+                    <span class="kw">let </span>pou = <span class="self">self</span>.jumps_to_annotate.entry(pou.to_string()).or_default();
+                    <span class="kw">let </span>jumps = pou.entry(name.to_string()).or_default();
+                    jumps.push(statement.get_id());
                 }
             }
             <span class="kw">_ </span>=&gt; {

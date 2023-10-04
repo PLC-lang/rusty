@@ -844,6 +844,22 @@
 <a href="#844" id="844">844</a>
 <a href="#845" id="845">845</a>
 <a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, ops::Range};
 
 <span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
@@ -1460,6 +1476,14 @@
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, <span class="string">&quot;Duplicate symbol.&quot;</span>)
     }
 
+    <span class="kw">pub fn </span>duplicate_label(
+        name: <span class="kw-2">&amp;</span>str,
+        location: SourceLocation,
+        conflicts: Vec&lt;SourceLocation&gt;,
+    ) -&gt; Diagnostic {
+        Diagnostic::global_name_conflict_with_text(name, location, conflicts, <span class="string">&quot;Duplicate label.&quot;</span>)
+    }
+
     <span class="kw">pub fn </span>global_name_conflict_with_text(
         name: <span class="kw-2">&amp;</span>str,
         location: SourceLocation,
@@ -1612,6 +1636,14 @@
             message: <span class="macro">format!</span>(<span class="string">&quot;Sink is connected to itself. Found the following recursion: {message}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::cfc__cyclic_connection,
+        }
+    }
+
+    <span class="kw">pub fn </span>unnamed_control(range: SourceLocation) -&gt; Diagnostic {
+        Diagnostic::SemanticError {
+            message: <span class="string">&quot;Unnamed control&quot;</span>.into(),
+            range: <span class="macro">vec!</span>[range],
+            err_no: ErrNo::cfc__unnamed_control,
         }
     }
 }

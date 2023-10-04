@@ -1086,12 +1086,21 @@
 <a href="#1086" id="1086">1086</a>
 <a href="#1087" id="1087">1087</a>
 <a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, Operator,
-        ReferenceAccess,
+        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
+        Operator, ReferenceAccess,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -1205,6 +1214,15 @@
             ));
             visit_statement(validator, condition, context);
         }
+        AstStatement::JumpStatement(JumpStatement { condition, target }) =&gt; {
+            visit_statement(validator, condition, context);
+            <span class="kw">if </span>context.annotations.get(statement).is_none() {
+                validator.push_diagnostic(Diagnostic::unresolved_reference(
+                    target.get_flat_reference_name().unwrap_or_default(),
+                    statement.get_location(),
+                ))
+            }
+        }
         <span class="comment">// AstStatement::ExitStatement { location, id } =&gt; (),
         // AstStatement::ContinueStatement { location, id } =&gt; (),
         // AstStatement::ReturnStatement { location, id } =&gt; (),
@@ -1241,7 +1259,7 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
                 visit_array_access(validator, base, i, context)
             } <span class="kw">else </span>{
-                validator.diagnostics.push(Diagnostic::invalid_operation(
+                validator.push_diagnostic(Diagnostic::invalid_operation(
                     <span class="string">&quot;Index-Access requires an array-value.&quot;</span>,
                     statement.get_location(),
                 ));

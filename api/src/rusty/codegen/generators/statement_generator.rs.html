@@ -813,7 +813,51 @@
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+
+<span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
@@ -822,7 +866,7 @@
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     index::{ImplementationIndexEntry, Index},
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{<span class="self">self</span>, DataTypeInformation},
 };
 <span class="kw">use </span>inkwell::{
@@ -833,7 +877,8 @@
 };
 <span class="kw">use </span>plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, Operator, ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, AstFactory, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
+        ReferenceAccess, ReferenceExpr,
     },
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
@@ -846,6 +891,8 @@
     </span><span class="kw">pub </span>linking_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ImplementationIndexEntry,
     <span class="doccomment">/// the llvm function to generate statements into
     </span><span class="kw">pub </span>function: FunctionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+    <span class="doccomment">/// The blocks/labels this function can use
+    </span><span class="kw">pub </span>blocks: HashMap&lt;String, BasicBlock&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -948,6 +995,43 @@
                     <span class="self">self</span>.generate_buffer_block(); <span class="comment">// XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 </span>}
             },
+            AstStatement::LabelStatement(LabelStatement { name }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(block) = <span class="self">self</span>.function_context.blocks.get(name) {
+                    <span class="comment">//unconditionally jump to the label
+                    </span><span class="self">self</span>.register_debug_location(statement);
+                    <span class="self">self</span>.llvm.builder.build_unconditional_branch(<span class="kw-2">*</span>block);
+                    <span class="comment">//Place the current instert block at the label statement
+                    </span><span class="self">self</span>.llvm.builder.position_at_end(<span class="kw-2">*</span>block);
+                }
+            }
+            AstStatement::JumpStatement(JumpStatement { condition, .. }) =&gt; {
+                <span class="comment">//Find the label to jump to
+                </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_block) = <span class="self">self</span>.annotations.get(statement).and_then(
+                        |label| <span class="kw">if let </span>StatementAnnotation::Label { name } = label {
+                            <span class="self">self</span>.function_context.blocks.get(name)
+                        } <span class="kw">else </span>{
+                            <span class="prelude-val">None
+                        </span>})
+                <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Could not find label for {statement:?}&quot;</span>, statement.get_location()));
+                };
+                <span class="comment">//Set current location as else block
+                </span><span class="kw">let </span>current_block = <span class="self">self</span>.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+                <span class="kw">let </span>else_block = <span class="self">self</span>.llvm.context.insert_basic_block_after(current_block, <span class="string">&quot;else_block&quot;</span>);
+
+                <span class="self">self</span>.register_debug_location(condition);
+                <span class="kw">let </span>expression_generator = <span class="self">self</span>.create_expr_generator();
+                <span class="kw">let </span>condition = expression_generator.generate_expression(condition)<span class="question-mark">?</span>;
+
+                <span class="self">self</span>.register_debug_location(statement);
+                <span class="self">self</span>.llvm.builder.build_conditional_branch(
+                    condition.into_int_value(),
+                    <span class="kw-2">*</span>then_block,
+                    else_block,
+                );
+                <span class="comment">// Make sure further code is at the else block
+                </span><span class="self">self</span>.llvm.builder.position_at_end(else_block);
+            }
             AstStatement::ExitStatement(<span class="kw">_</span>) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(exit_block) = <span class="kw-2">&amp;</span><span class="self">self</span>.current_loop_exit {
                     <span class="self">self</span>.register_debug_location(statement);

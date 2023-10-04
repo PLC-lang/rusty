@@ -697,8 +697,8 @@
 <span class="doccomment">/// A project that has been annotated with information about different types and used units
 </span><span class="kw">pub struct </span>AnnotatedProject {
     <span class="kw">pub </span>units: Vec&lt;(CompilationUnit, IndexSet&lt;Dependency&gt;, StringLiterals)&gt;,
-    index: Index,
-    annotations: AstAnnotations,
+    <span class="kw">pub </span>index: Index,
+    <span class="kw">pub </span>annotations: AstAnnotations,
 }
 
 <span class="kw">impl </span>AnnotatedProject {
@@ -813,7 +813,7 @@
                 )
                 .map(Into::into)<span class="question-mark">?</span>;
 
-            result.push(GeneratedProject { target, objects: <span class="macro">vec!</span>[obj] });
+            result.push(GeneratedProject { target: target.clone(), objects: <span class="macro">vec!</span>[obj] });
         }
 
         <span class="prelude-val">Ok</span>(result)
@@ -873,7 +873,7 @@
                     })
                     .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Ok</span>(GeneratedProject { target, objects })
+                <span class="prelude-val">Ok</span>(GeneratedProject { target: target.clone(), objects })
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
@@ -908,12 +908,12 @@
 <span class="doccomment">/// A project that has been transformed into a binary representation
 /// Can be linked to generate a usable application
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>GeneratedProject&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Target,
+</span><span class="kw">pub struct </span>GeneratedProject {
+    target: Target,
     objects: Vec&lt;Object&gt;,
 }
 
-<span class="kw">impl </span>GeneratedProject&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>GeneratedProject {
     <span class="kw">pub fn </span>link(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         objects: <span class="kw-2">&amp;</span>[Object],
@@ -1014,7 +1014,7 @@
             }
         }<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>output: Object = Object::from(output_location).with_target(<span class="kw-2">&amp;</span><span class="self">self</span>.target.clone());
+        <span class="kw">let </span>output: Object = Object::from(output_location).with_target(<span class="kw-2">&amp;</span><span class="self">self</span>.target);
         <span class="prelude-val">Ok</span>(output)
     }
 }
