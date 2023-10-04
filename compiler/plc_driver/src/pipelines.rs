@@ -187,8 +187,8 @@ impl IndexedProject {
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject {
     pub units: Vec<(CompilationUnit, IndexSet<Dependency>, StringLiterals)>,
-    index: Index,
-    annotations: AstAnnotations,
+    pub index: Index,
+    pub annotations: AstAnnotations,
 }
 
 impl AnnotatedProject {
@@ -303,7 +303,7 @@ impl AnnotatedProject {
                 )
                 .map(Into::into)?;
 
-            result.push(GeneratedProject { target, objects: vec![obj] });
+            result.push(GeneratedProject { target: target.clone(), objects: vec![obj] });
         }
 
         Ok(result)
@@ -363,7 +363,7 @@ impl AnnotatedProject {
                     })
                     .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-                Ok(GeneratedProject { target, objects })
+                Ok(GeneratedProject { target: target.clone(), objects })
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
@@ -398,12 +398,12 @@ fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(
 /// A project that has been transformed into a binary representation
 /// Can be linked to generate a usable application
 #[derive(Debug)]
-pub struct GeneratedProject<'ctx> {
-    target: &'ctx Target,
+pub struct GeneratedProject {
+    target: Target,
     objects: Vec<Object>,
 }
 
-impl GeneratedProject<'_> {
+impl GeneratedProject {
     pub fn link(
         &self,
         objects: &[Object],
@@ -504,7 +504,7 @@ impl GeneratedProject<'_> {
             }
         }?;
 
-        let output: Object = Object::from(output_location).with_target(&self.target.clone());
+        let output: Object = Object::from(output_location).with_target(&self.target);
         Ok(output)
     }
 }

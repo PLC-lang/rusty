@@ -9,7 +9,9 @@ expression: diagnostics
             SourceLocation {
                 span: Block {
                     local_id: 1,
-                    execution_order: None,
+                    execution_order: Some(
+                        0,
+                    ),
                     inner_range: None,
                 },
                 file: Some(
@@ -27,12 +29,16 @@ expression: diagnostics
                     [
                         Block {
                             local_id: 2,
-                            execution_order: None,
+                            execution_order: Some(
+                                1,
+                            ),
                             inner_range: None,
                         },
                         Block {
                             local_id: 1,
-                            execution_order: None,
+                            execution_order: Some(
+                                0,
+                            ),
                             inner_range: None,
                         },
                     ],
