@@ -29,6 +29,25 @@ pub fn visit_implementation<T: AnnotationMap>(
     }
     if implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
+        //Validate the label uniquiness
+        if let Some(labels) = context.index.get_labels(&implementation.name) {
+            for (_, labels) in labels.entries() {
+                let mut label_iter = labels.iter();
+                if let Some(first) = label_iter.next() {
+                    if let Some(second) = label_iter.next() {
+                        //Collect remaining
+                        let mut locations: Vec<_> = label_iter.map(|it| it.location.clone()).collect();
+                        locations.push(first.location.clone());
+                        locations.push(second.location.clone());
+                        validator.push_diagnostic(Diagnostic::duplicate_label(
+                            &first.name,
+                            first.location.clone(),
+                            locations,
+                        ));
+                    }
+                }
+            }
+        }
         implementation.statements.iter().for_each(|s| {
             visit_statement(validator, s, &context.with_qualifier(implementation.name.as_str()))
         });

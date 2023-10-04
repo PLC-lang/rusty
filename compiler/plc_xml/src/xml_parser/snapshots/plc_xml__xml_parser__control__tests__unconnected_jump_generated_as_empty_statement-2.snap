@@ -1,5 +1,5 @@
 ---
-source: compiler/plc_xml/src/xml_parser/tests.rs
+source: compiler/plc_xml/src/xml_parser/control.rs
 expression: diagnostics
 ---
 [
@@ -10,13 +10,10 @@ expression: diagnostics
                 span: Block {
                     local_id: 2,
                     execution_order: Some(
-                        0,
+                        1,
                     ),
                     inner_range: None,
                 },
-                file: Some(
-                    "test.cfc",
-                ),
             },
         ],
         err_no: cfc__empty_control_statement,

@@ -221,7 +221,9 @@ declare_type_and_extend_if_needed! {
         (XOutVariable, with_out_variable),
         (XContinuation, with_continuation),
         (XConnector, with_connector),
-        (XReturn, with_return)
+        (XReturn, with_return),
+        (XJump, with_jump),
+        (XLabel, with_label)
     ),
     (
         XVariable, "variable",
@@ -294,6 +296,12 @@ declare_type_and_extend_if_needed! {
         (XConnectionPointIn, with_connection_point_in),
         (XAddData, with_add_data)
     ),
+    (
+        XJump, "jump",
+        (XConnectionPointIn, with_connection_point_in),
+        (XAddData, with_add_data)
+    ),
+    (XLabel, "label",),
     (
         XNegated, "negated",
     ),

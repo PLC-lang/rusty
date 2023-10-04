@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Ghaith Hachem and Mathias Rieder
 
-use indexmap::IndexMap;
+use indexmap::{Equivalent, IndexMap};
 use std::hash::Hash;
 
 /// A multi-map implementation with a stable order of elements. When iterating
@@ -24,13 +24,19 @@ where
 {
     /// returns the first element associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+    where
+        Q: Hash + Equivalent<K>,
+    {
         self.get_all(key).and_then(|it| it.get(0))
     }
 
     /// returns all elements associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get_all(&self, key: &K) -> Option<&Vec<V>> {
+    pub fn get_all<Q: ?Sized>(&self, key: &Q) -> Option<&Vec<V>>
+    where
+        Q: Hash + Equivalent<K>,
+    {
         self.inner_map.get(key)
     }
 
