@@ -768,6 +768,14 @@ impl Diagnostic {
             err_no: ErrNo::cfc__cyclic_connection,
         }
     }
+
+    pub fn invalid_build_description_file(message: String) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message,
+            range: vec![SourceLocation::internal()],
+            err_no: ErrNo::plc_json__invalid,
+        }
+    }
 }
 
 #[cfg(test)]

@@ -51,6 +51,7 @@ impl ProjectConfig {
     /// Retuns a project from the given string (in json format)
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
     pub fn try_parse(content: &str) -> Result<Self, Diagnostic> {
+        validate_build_description_file(&content)?;
         let content = resolve_environment_variables(content)?;
         serde_json::from_str(&content).map_err(Into::into)
     }
@@ -80,6 +81,31 @@ fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic>
     Ok(result.replace('\\', r"\\"))
 }
 
+fn validate_build_description_file(content: &str) -> Result<(), Diagnostic> {
+    use jsonschema::JSONSchema;
+    use serde_json::json;
+
+    // TODO: create schema
+    let schema = json!({"maxLength": 5});
+    let instance = json!(content);
+    let compiled = JSONSchema::compile(&schema).expect("A valid schema");
+    compiled.validate(&instance).map_err(|errors| {
+        let mut message = String::from("plc.json could not be validated due to the following errors:");
+        for err in errors {
+            let raw_err = format!("{err}");
+            let Some(pretty_print) =
+                err.instance.as_ref().as_str().map(|string| string.replace("\"", r#"""#))
+            else {
+                todo!()
+            };
+
+            message.push_str(&format!("{}", raw_err.replace(&err.instance.to_string(), &pretty_print)));
+        }
+
+        Diagnostic::invalid_build_description_file(message)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -90,6 +116,52 @@ mod tests {
 
     use super::LibraryConfig;
     use super::{LinkageInfo, ProjectConfig};
+
+    const SIMPLE_PROGRAM: &str = r#"
+    {
+        "name": "MyProject",
+        "files" : [
+            "simple_program.st"
+        ],
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "libraries" : [
+            {
+                "name" : "copy",
+                "path" : "libs/",
+                "package" : "Copy",
+                "include_path" : [
+                    "simple_program.st"
+                ]
+            },
+            {
+                "name" : "nocopy",
+                "path" : "libs/",
+                "package" : "System",
+                "include_path" : [
+                    "simple_program.st"
+                ]
+            },
+            {
+                "name" : "static",
+                "path" : "libs/",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
+                ]
+            },
+            {
+                "name" : "withTargets",
+                "path" : "libs/",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
+                ],
+                "architectures": ["myArch", "myArch2"]
+            }
+        ]
+    }
+"#;
 
     #[test]
     fn check_build_struct_from_file() {
@@ -130,54 +202,7 @@ mod tests {
             ],
             package_commands: vec![],
         };
-        let proj = ProjectConfig::try_parse(
-            r#"
-            {
-                "name": "MyProject",
-                "files" : [
-                    "simple_program.st"
-                ],
-                "compile_type" : "Shared",
-                "output": "proj.so",
-                "libraries" : [
-                    {
-                        "name" : "copy",
-                        "path" : "libs/",
-                        "package" : "Copy",
-                        "include_path" : [
-                            "simple_program.st"
-                        ]
-                    },
-                    {
-                        "name" : "nocopy",
-                        "path" : "libs/",
-                        "package" : "System",
-                        "include_path" : [
-                            "simple_program.st"
-                        ]
-                    },
-                    {
-                        "name" : "static",
-                        "path" : "libs/",
-                        "package" : "Static",
-                        "include_path" : [
-                            "simple_program.st"
-                        ]
-                    },
-                    {
-                        "name" : "withTargets",
-                        "path" : "libs/",
-                        "package" : "Static",
-                        "include_path" : [
-                            "simple_program.st"
-                        ],
-                        "architectures": ["myArch", "myArch2"]
-                    }
-                ]
-            }
-        "#,
-        )
-        .unwrap();
+        let proj = ProjectConfig::try_parse(SIMPLE_PROGRAM).unwrap();
 
         assert_eq!(test_project.name, proj.name);
         assert_eq!(test_project.files, proj.files);
@@ -212,5 +237,12 @@ mod tests {
         .unwrap();
 
         assert_eq!("test_value", &proj.name);
+    }
+
+    #[test]
+    fn json_validates() {
+        let _ = ProjectConfig::try_parse(SIMPLE_PROGRAM).map_err(|diagnostic| {
+            insta::assert_snapshot!(format!("{diagnostic}"));
+        });
     }
 }
