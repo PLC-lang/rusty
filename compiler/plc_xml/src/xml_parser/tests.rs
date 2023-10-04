@@ -37,8 +37,8 @@ fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
 fn variable_assignment() {
     let content = YPou::init("foo", "program", "PROGRAM foo VAR a, b : DINT; END_VAR")
         .with_fbd(vec![
-            &YInVariable::new().with_id(1).with_expression("a"),
-            &YOutVariable::new().with_id(2).with_execution_id(0).with_expression("b").connect_in(1),
+            &YInVariable::id(1).with_expression("a"),
+            &YOutVariable::id(2).with_execution_id(0).with_expression("b").connect_in(1),
         ])
         .serialize();
 
@@ -55,14 +55,12 @@ fn conditional_return() {
         END_VAR
     "#;
 
-    // TODO: Hmm, maybe replacing new() with id() wouldn't be so bad after all?
-    // But then what about consistency, i.e. elements that do not have an id and instead have to be initialized with new()
     let content = YPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("val = 5"),
-        &YReturn::new().with_id(2).with_execution_id(0).connect(1).negate(false),
-        &YInVariable::new().with_id(3).with_expression("10"),
-        &YOutVariable::new().with_id(4).with_execution_id(1).connect(3).with_expression("val"),
-        &YInOutVariable::new().with_id(5).with_expression("a"),
+        &YInVariable::id(1).with_expression("val = 5"),
+        &YReturn::id(2).with_execution_id(0).connect(1).negate(false),
+        &YInVariable::id(3).with_expression("10"),
+        &YOutVariable::id(4).with_execution_id(1).connect(3).with_expression("val"),
+        &YInOutVariable::id(5).with_expression("a"),
     ]);
 
     let statements = &parse(&content.serialize()).0.implementations[0].statements;
@@ -80,11 +78,11 @@ fn conditional_return_negated() {
     "#;
 
     let content = YPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("val = 5"),
-        &YReturn::new().with_id(2).with_execution_id(0).negate(true).connect(1),
-        &YInVariable::new().with_id(3).with_expression("10"),
-        &YOutVariable::new().with_id(4).with_execution_id(1).connect(3).with_expression("val"),
-        &YInOutVariable::new().with_id(5).with_expression("a"),
+        &YInVariable::id(1).with_expression("val = 5"),
+        &YReturn::id(2).with_execution_id(0).negate(true).connect(1),
+        &YInVariable::id(3).with_expression("10"),
+        &YOutVariable::id(4).with_execution_id(1).connect(3).with_expression("val"),
+        &YInOutVariable::id(5).with_expression("a"),
     ]);
 
     let statements = &parse(&content.serialize()).0.implementations[0].statements;
@@ -103,11 +101,11 @@ fn conditional_return_without_connection() {
     "#;
 
     let content = YPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("val = 5"),
-        &YReturn::new().with_id(2).with_execution_id(0).negate(false), // This return isn't connected to any other node
-        &YInVariable::new().with_id(3).with_expression("10"),
-        &YOutVariable::new().with_id(4).with_execution_id(1).with_expression("val").connect(3),
-        &YInOutVariable::new().with_id(5).with_expression("a"),
+        &YInVariable::id(1).with_expression("val = 5"),
+        &YReturn::id(2).with_execution_id(0).negate(false), // This return isn't connected to any other node
+        &YInVariable::id(3).with_expression("10"),
+        &YOutVariable::id(4).with_execution_id(1).with_expression("val").connect(3),
+        &YInOutVariable::id(5).with_expression("a"),
     ]);
 
     let (_, diagnostics) = parse(&content.serialize());
@@ -125,8 +123,8 @@ fn conditional_return_chained_to_another_conditional_return() {
     "#;
 
     let content = YPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
-        &YReturn::new().with_id(1).with_execution_id(0),
-        &YReturn::new().with_id(2).with_execution_id(1).connect(1),
+        &YReturn::id(1).with_execution_id(0),
+        &YReturn::id(2).with_execution_id(1).connect(1),
     ]);
 
     let (_, diagnostics) = parse(&content.serialize());
@@ -137,10 +135,10 @@ fn conditional_return_chained_to_another_conditional_return() {
 #[test]
 fn model_is_sorted_by_execution_order() {
     let content = YPou::init("foo", "program", "PROGRAM foo VAR a, b, c, d : DINT; END_VAR").with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("a"),
-        &YOutVariable::new().with_id(2).with_execution_id(2).with_expression("b").connect(1),
-        &YOutVariable::new().with_id(3).with_execution_id(0).with_expression("c").connect(1),
-        &YOutVariable::new().with_id(4).with_execution_id(1).with_expression("d").connect(1),
+        &YInVariable::id(1).with_expression("a"),
+        &YOutVariable::id(2).with_execution_id(2).with_expression("b").connect(1),
+        &YOutVariable::id(3).with_execution_id(0).with_expression("c").connect(1),
+        &YOutVariable::id(4).with_execution_id(1).with_expression("d").connect(1),
     ]);
 
     assert_debug_snapshot!(xml_parser::visit(&content.serialize()).unwrap());
@@ -160,12 +158,12 @@ fn connection_variable_source_to_multiple_sinks_parses() {
 
     #[rustfmt::skip]
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1").connect_in(2),
-        &YContinuation::new().with_id(3).with_name("s1"),
-        &YInVariable::new().with_id(2).with_expression("x"),
-        &YOutVariable::new().with_id(4).with_expression("myConnection").with_execution_id(2).connect_temp(9, "myAdd"),
-        &YInVariable::new().with_id(7).with_expression("y"),
-        &YOutVariable::new().with_id(8).with_expression("y").with_execution_id(0).connect(3),
+        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YContinuation::id(3).with_name("s1"),
+        &YInVariable::id(2).with_expression("x"),
+        &YOutVariable::id(4).with_expression("myConnection").with_execution_id(2).connect_temp(9, "myAdd"),
+        &YInVariable::id(7).with_expression("y"),
+        &YOutVariable::id(8).with_expression("y").with_execution_id(0).connect(3),
         &YBlock::init("myAdd", 9, 1)
             .with_input_variables(vec![
                 &YVariable::new().with_name("a").connect(7),
@@ -193,12 +191,12 @@ fn direct_connection_of_sink_to_other_source_generates_correct_model() {
     "#;
 
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1").connect_in(16),
-        &YContinuation::new().with_id(3).with_name("s1"),
-        &YOutVariable::new().with_id(4).with_expression("myConnection").with_execution_id(3).connect(20),
-        &YInVariable::new().with_id(16).with_expression("x"),
-        &YConnector::new().with_id(21).with_name("s2").connect_in(3),
-        &YContinuation::new().with_id(20).with_name("s2"),
+        &YConnector::id(1).with_name("s1").connect_in(16),
+        &YContinuation::id(3).with_name("s1"),
+        &YOutVariable::id(4).with_expression("myConnection").with_execution_id(3).connect(20),
+        &YInVariable::id(16).with_expression("x"),
+        &YConnector::id(21).with_name("s2").connect_in(3),
+        &YContinuation::id(20).with_name("s2"),
     ]);
 
     assert_debug_snapshot!(visit_and_desugar(&content.serialize()).unwrap());
@@ -214,12 +212,12 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
     "#;
 
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1").connect_in(16),
-        &YContinuation::new().with_id(3).with_name("s1"),
-        &YOutVariable::new().with_id(4).with_expression("myConnection").with_execution_id(3).connect(20),
-        &YInVariable::new().with_id(16).with_expression("x"),
-        &YConnector::new().with_id(21).with_name("s2").connect_in(3),
-        &YContinuation::new().with_id(20).with_name("s2"),
+        &YConnector::id(1).with_name("s1").connect_in(16),
+        &YContinuation::id(3).with_name("s1"),
+        &YOutVariable::id(4).with_expression("myConnection").with_execution_id(3).connect(20),
+        &YInVariable::id(16).with_expression("x"),
+        &YConnector::id(21).with_name("s2").connect_in(3),
+        &YContinuation::id(20).with_name("s2"),
     ]);
 
     assert_debug_snapshot!(parse(&content.serialize()).0.implementations[0].statements);
@@ -230,14 +228,14 @@ fn return_connected_to_sink_parses() {
     let declaration = "FUNCTION positivOrZero : DINT VAR_INPUT x : DINT; END_VAR";
     #[rustfmt::skip]
     let content = YPou::init("positiveOrZero", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1").connect_in(2),
-        &YContinuation::new().with_id(3).with_name("s1"),
-        &YConnector::new().with_id(4).with_name("s2").connect_in(3),
-        &YContinuation::new().with_id(5).with_name("s2"),
-        &YReturn::new().with_id(6).with_execution_id(0).connect(5),
-        &YInVariable::new().with_id(2).with_expression("x &lt; 0"), // TODO: The less-than symbol has to be written this way?
-        &YOutVariable::new().with_id(7).with_execution_id(1).with_expression("positiveOrZero").connect(8),
-        &YInVariable::new().with_id(8).with_expression("x"),
+        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YContinuation::id(3).with_name("s1"),
+        &YConnector::id(4).with_name("s2").connect_in(3),
+        &YContinuation::id(5).with_name("s2"),
+        &YReturn::id(6).with_execution_id(0).connect(5),
+        &YInVariable::id(2).with_expression("x &lt; 0"), // TODO: The less-than symbol has to be written this way?
+        &YOutVariable::id(7).with_execution_id(1).with_expression("positiveOrZero").connect(8),
+        &YInVariable::id(8).with_expression("x"),
     ]);
 
     assert_debug_snapshot!(parse(&content.serialize()).0.implementations[0].statements);
@@ -247,12 +245,12 @@ fn return_connected_to_sink_parses() {
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
     let declaration = "FUNCTION myConnection : DINT VAR_INPUT x: DINT; END_VAR";
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(22).with_name("s1").connect_in(23),
-        &YContinuation::new().with_id(24).with_name("s1"),
-        &YConnector::new().with_id(25).with_name("s2").connect_in(24),
-        &YContinuation::new().with_id(26).with_name("s2"),
-        &YConnector::new().with_id(27).with_name("s3").connect_in(26),
-        &YContinuation::new().with_id(23).with_name("s3"),
+        &YConnector::id(22).with_name("s1").connect_in(23),
+        &YContinuation::id(24).with_name("s1"),
+        &YConnector::id(25).with_name("s2").connect_in(24),
+        &YContinuation::id(26).with_name("s2"),
+        &YConnector::id(27).with_name("s3").connect_in(26),
+        &YContinuation::id(23).with_name("s3"),
     ]);
 
     let Err(diagnostics) = visit_and_desugar(&content.serialize()) else {
@@ -265,10 +263,10 @@ fn sink_source_data_recursion_does_not_overflow_the_stack() {
 fn unconnected_connections() {
     let declaration = "FUNCTION unconnectedConnections : DINT VAR_INPUT x : DINT; END_VAR";
     let content = YPou::init("unconnectedConnections", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1"),
-        &YContinuation::new().with_id(2).with_name("s1"),
-        &YConnector::new().with_id(3).with_name("s2").connect_in(2),
-        &YContinuation::new().with_id(4).with_name("s2"),
+        &YConnector::id(1).with_name("s1"),
+        &YContinuation::id(2).with_name("s1"),
+        &YConnector::id(3).with_name("s2").connect_in(2),
+        &YContinuation::id(4).with_name("s2"),
     ]);
 
     let Err(diagnostics) = visit_and_desugar(&content.serialize()) else {
@@ -281,10 +279,10 @@ fn unconnected_connections() {
 fn unassociated_connections() {
     let declaration = "FUNCTION unconnectedConnections : DINT VAR_INPUT x : DINT; END_VAR";
     let content = YPou::init("unassociatedSink", "function", declaration).with_fbd(vec![
-        &YConnector::new().with_id(1).with_name("s1").connect_in(2),
-        &YContinuation::new().with_id(3).with_name("s2"),
-        &YInVariable::new().with_id(2).with_expression("x"),
-        &YOutVariable::new().with_id(4).with_expression("unassociatedSink").with_execution_id(0).connect(3),
+        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YContinuation::id(3).with_name("s2"),
+        &YInVariable::id(2).with_expression("x"),
+        &YOutVariable::id(4).with_expression("unassociatedSink").with_execution_id(0).connect(3),
     ]);
 
     let Err(diagnostics) = visit_and_desugar(&content.serialize()) else {
@@ -297,8 +295,8 @@ fn unassociated_connections() {
 fn function_returns() {
     let content =
         YPou::init("foo", "function", "FUNCTION foo : DINT VAR_INPUT a : DINT; END_VAR").with_fbd(vec![
-            &YInVariable::new().with_id("1").with_expression("a"),
-            &YOutVariable::new().with_id("2").with_execution_id(0).with_expression("foo").connect(1),
+            &YInVariable::id(1).with_expression("a"),
+            &YOutVariable::id(2).with_execution_id(0).with_expression("foo").connect(1),
         ]);
 
     assert_debug_snapshot!(xml_parser::visit(&content.serialize()).unwrap());
@@ -307,8 +305,8 @@ fn function_returns() {
 #[test]
 fn ast_generates_locations() {
     let content = YPou::init("foo", "program", "PROGRAM foo VAR a, x : DINT; END_VAR").with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("x"),
-        &YOutVariable::new().with_id(2).with_expression("a").with_execution_id(0).connect(1),
+        &YInVariable::id(1).with_expression("x"),
+        &YOutVariable::id(2).with_expression("a").with_execution_id(0).connect(1),
         &YBlock::init("ADD", 3, 1)
             .with_input_variables(vec![
                 &YVariable::new().with_name("").connect(4),
@@ -316,8 +314,8 @@ fn ast_generates_locations() {
             ])
             .with_output_variables(vec![&YVariable::new().with_name("")])
             .with_inout_variables(vec![]),
-        &YInVariable::new().with_id(4).with_expression("a"),
-        &YInVariable::new().with_id(5).with_expression("1"),
+        &YInVariable::id(4).with_expression("a"),
+        &YInVariable::id(5).with_expression("1"),
     ]);
 
     let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");
@@ -354,8 +352,8 @@ fn ast_generates_locations() {
 #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
 fn ast_diagnostic_locations() {
     let content = YPou::init("foo", "program", "PROGRAM foo VAR x : DINT; END_VAR").with_fbd(vec![
-        &YInVariable::new().with_id(1).with_expression("x"),
-        &YOutVariable::new().with_id(2).with_execution_id(0).with_expression("a").connect(1), // "a" isn't declared anywhere, hence the error
+        &YInVariable::id(1).with_expression("x"),
+        &YOutVariable::id(2).with_execution_id(0).with_expression("a").connect(1), // "a" isn't declared anywhere, hence the error
     ]);
 
     let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");

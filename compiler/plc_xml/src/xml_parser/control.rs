@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn simple_return() {
-        let content = YReturn::new().with_id(1).with_execution_id(2).connect(3).negate(false).serialize();
+        let content = YReturn::id(1).with_execution_id(2).connect(3).negate(false).serialize();
         let reader = &mut PeekableReader::new(&content);
 
         assert_debug_snapshot!(Control::visit(reader).unwrap());
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn simple_negated_return() {
-        let content = YReturn::new().with_id(1).with_execution_id(2).connect(3).negate(true).serialize();
+        let content = YReturn::id(1).with_execution_id(2).connect(3).negate(true).serialize();
         let reader = &mut PeekableReader::new(&content);
 
         assert_debug_snapshot!(Control::visit(reader).unwrap());
