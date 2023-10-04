@@ -777,7 +777,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn unnamed_contol(range: SourceLocation) -> Diagnostic {
+    pub fn unnamed_control(range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: "Unnamed control".into(),
             range: vec![range],

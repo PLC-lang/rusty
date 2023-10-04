@@ -173,6 +173,8 @@ pub struct TypeAnnotator<'i> {
     pub(crate) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
     dependencies: IndexSet<Dependency>,
+    /// A map containing every jump encountered in a file, and the label of where this jump should
+    /// point. This is later used to annotate all jumps after the initial visit is done.
     jumps_to_annotate: HashMap<String, HashMap<String, Vec<AstId>>>,
 }
 

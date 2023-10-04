@@ -63,9 +63,8 @@ fn transform_jump(
         .as_ref()
         .filter(|it| !it.is_empty())
         .map(|it| session.parse_expression(it.as_ref(), control.local_id, control.execution_order_id))
-        .ok_or_else(|| Diagnostic::unnamed_contol(location.clone()))?;
+        .ok_or_else(|| Diagnostic::unnamed_control(location.clone()))?;
 
-    //Parse target
     Ok(AstFactory::create_jump_statement(Box::new(condition), Box::new(target), location, session.next_id()))
 }
 
@@ -77,7 +76,7 @@ fn transform_label(control: &Control, session: &ParseSession) -> Result<AstNode,
         .as_ref()
         .filter(|it| !it.is_empty())
         .map(|it| AstFactory::create_label_statement(it.to_string(), location.clone(), session.next_id()))
-        .ok_or_else(|| Diagnostic::unnamed_contol(location))
+        .ok_or_else(|| Diagnostic::unnamed_control(location))
 }
 
 fn transform_return(
@@ -354,7 +353,7 @@ mod tests {
     }
 
     #[test]
-    fn unconnected_jump_generated_as_empty() {
+    fn unconnected_jump_generated_as_empty_statement() {
         let content = r###"
             <?xml version="1.0" encoding="UTF-8"?>
             <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">

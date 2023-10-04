@@ -939,9 +939,7 @@ impl Index {
         }
 
         //labels
-        for (pou, labels) in other.labels.drain(..) {
-            self.labels.insert(pou, labels);
-        }
+        self.labels.extend(other.labels);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)

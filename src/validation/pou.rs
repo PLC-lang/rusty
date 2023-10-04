@@ -4,7 +4,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::{index::symbol::SymbolMap, resolver::AnnotationMap};
+use crate::resolver::AnnotationMap;
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
@@ -30,18 +30,21 @@ pub fn visit_implementation<T: AnnotationMap>(
     if implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
         //Validate the label uniquiness
-        if let Some(mut labels) = context.index.get_labels(&implementation.name).map(SymbolMap::values) {
-            if let Some(first) = labels.next() {
-                if let Some(second) = labels.next() {
-                    //Collect remaining
-                    let mut locations: Vec<_> = labels.map(|it| it.location.clone()).collect();
-                    locations.push(first.location.clone());
-                    locations.push(second.location.clone());
-                    validator.push_diagnostic(Diagnostic::duplicate_label(
-                        &first.name,
-                        first.location.clone(),
-                        locations,
-                    ));
+        if let Some(labels) = context.index.get_labels(&implementation.name) {
+            for (_, labels) in labels.entries() {
+                let mut label_iter = labels.iter();
+                if let Some(first) = label_iter.next() {
+                    if let Some(second) = label_iter.next() {
+                        //Collect remaining
+                        let mut locations: Vec<_> = label_iter.map(|it| it.location.clone()).collect();
+                        locations.push(first.location.clone());
+                        locations.push(second.location.clone());
+                        validator.push_diagnostic(Diagnostic::duplicate_label(
+                            &first.name,
+                            first.location.clone(),
+                            locations,
+                        ));
+                    }
                 }
             }
         }
