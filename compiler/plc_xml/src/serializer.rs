@@ -144,109 +144,109 @@ macro_rules! newtype_impl {
     };
 }
 
-newtype_impl!(YInVariable, "inVariable", true);
-newtype_impl!(YOutVariable, "outVariable", true);
-newtype_impl!(YInOutVariable, "inOutVariable", true);
-newtype_impl!(YInterface, "interface", false);
-newtype_impl!(YLocalVars, "localVars", false);
-newtype_impl!(YAddData, "addData", false);
-newtype_impl!(YData, "data", false);
-newtype_impl!(YTextDeclaration, "textDeclaration", false);
-newtype_impl!(YContent, "content", false);
-newtype_impl!(YPosition, "position", false);
-newtype_impl!(YConnectionPointIn, "connectionPointIn", false);
-newtype_impl!(YConnectionPointOut, "connectionPointOut", false);
-newtype_impl!(YRelPosition, "relPosition", false);
-newtype_impl!(YConnection, "connection", false);
-newtype_impl!(YBlock, "block", false);
-newtype_impl!(YBody, "body", false);
-newtype_impl!(YPou, "pou", false);
-newtype_impl!(YInputVariables, "inputVariables", false);
-newtype_impl!(YOutputVariables, "outputVariables", false);
-newtype_impl!(YInOutVariables, "inOutVariables", false);
-newtype_impl!(YVariable, "variable", true);
+newtype_impl!(SInVariable, "inVariable", true);
+newtype_impl!(SOutVariable, "outVariable", true);
+newtype_impl!(SInOutVariable, "inOutVariable", true);
+newtype_impl!(SInterface, "interface", false);
+newtype_impl!(SLocalVars, "localVars", false);
+newtype_impl!(SAddData, "addData", false);
+newtype_impl!(SData, "data", false);
+newtype_impl!(STextDeclaration, "textDeclaration", false);
+newtype_impl!(SContent, "content", false);
+newtype_impl!(SPosition, "position", false);
+newtype_impl!(SConnectionPointIn, "connectionPointIn", false);
+newtype_impl!(SConnectionPointOut, "connectionPointOut", false);
+newtype_impl!(SRelPosition, "relPosition", false);
+newtype_impl!(SConnection, "connection", false);
+newtype_impl!(SBlock, "block", false);
+newtype_impl!(SBody, "body", false);
+newtype_impl!(SPou, "pou", false);
+newtype_impl!(SInputVariables, "inputVariables", false);
+newtype_impl!(SOutputVariables, "outputVariables", false);
+newtype_impl!(SInOutVariables, "inOutVariables", false);
+newtype_impl!(SVariable, "variable", true);
 newtype_impl!(YFbd, "FBD", false);
-newtype_impl!(YExpression, "expression", false);
-newtype_impl!(YReturn, "return", false);
-newtype_impl!(YNegate, "negated", false);
-newtype_impl!(YConnector, "connector", false);
-newtype_impl!(YContinuation, "continuation", false);
+newtype_impl!(SExpression, "expression", false);
+newtype_impl!(SReturn, "return", false);
+newtype_impl!(SNegate, "negated", false);
+newtype_impl!(SConnector, "connector", false);
+newtype_impl!(SContinuation, "continuation", false);
 
-impl YInVariable {
+impl SInVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
-        self = self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)));
+        self = self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id)));
         self
     }
 
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::expression(expression))
+        self.child(&SExpression::expression(expression))
     }
 }
 
-impl YOutVariable {
+impl SOutVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
         self = self
-            .child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()));
+            .child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()));
         self
     }
 
     pub fn connect_name(mut self, ref_local_id: i32, name: &'static str) -> Self {
         self =
-            self.child(&YConnectionPointIn::new().child(
-                &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
+            self.child(&SConnectionPointIn::new().child(
+                &SConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
             ));
         self
     }
 
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::expression(expression))
+        self.child(&SExpression::expression(expression))
     }
 }
 
-impl YInOutVariable {
+impl SInOutVariable {
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::expression(expression))
+        self.child(&SExpression::expression(expression))
     }
 }
 
-impl YReturn {
+impl SReturn {
     pub fn init(local_id: i32, execution_order: i32) -> Self {
         Self::new().with_id(local_id).with_execution_id(execution_order)
     }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)))
+        self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id)))
     }
 
     pub fn negate(self, value: bool) -> Self {
-        self.child(&YAddData::new().child(&YData::new().child(
-            &YNegate::new().attribute("value", Box::leak(value.to_string().into_boxed_str())).close(),
+        self.child(&SAddData::new().child(&SData::new().child(
+            &SNegate::new().attribute("value", Box::leak(value.to_string().into_boxed_str())).close(),
         )))
     }
 }
 
-impl YContent {
+impl SContent {
     pub fn with_declaration(mut self, content: &'static str) -> Self {
         self.0.content = Some(content);
         self
     }
 }
 
-impl YPou {
+impl SPou {
     pub fn init(name: &'static str, kind: &'static str, declaration: &'static str) -> Self {
         Self::new()
             .attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
             .attribute("name", name)
             .attribute("pouType", kind)
-            .child(&YInterface::new().children(vec![
-                    &YLocalVars::new().close(),
-                    &YAddData::new().child(
-                        &YData::new()
+            .child(&SInterface::new().children(vec![
+                    &SLocalVars::new().close(),
+                    &SAddData::new().child(
+                        &SData::new()
                             .attribute("name", "www.bachmann.at/plc/plcopenxml")
                             .attribute("handleUnknown", "implementation")
                             .child(
-                                &YTextDeclaration::new()
-                                    .child(&YContent::new().with_declaration(declaration)),
+                                &STextDeclaration::new()
+                                    .child(&SContent::new().with_declaration(declaration)),
                             ),
                     ),
                 ]))
@@ -254,11 +254,11 @@ impl YPou {
 
     /// Implicitly wraps the fbd in a block node, i.e. <block><fbd>...<fbd/><block/>
     pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
-        self.child(&YBody::new().child(&YFbd::new().children(children)))
+        self.child(&SBody::new().child(&YFbd::new().children(children)))
     }
 }
 
-impl YBlock {
+impl SBlock {
     pub fn init(name: &'static str, local_id: i32, execution_order_id: i32) -> Self {
         Self::new().with_name(name).with_id(local_id).with_execution_id(execution_order_id)
     }
@@ -268,51 +268,51 @@ impl YBlock {
     }
 
     pub fn with_input(self, variables: Vec<&dyn IntoNode>) -> Self {
-        self.child(&YInputVariables::new().children(variables))
+        self.child(&SInputVariables::new().children(variables))
     }
 
     pub fn with_output(self, variables: Vec<&dyn IntoNode>) -> Self {
-        self.child(&YOutputVariables::new().children(variables))
+        self.child(&SOutputVariables::new().children(variables))
     }
 
     pub fn with_inout(self, variables: Vec<&dyn IntoNode>) -> Self {
-        self.child(&YInOutVariables::new().children(variables))
+        self.child(&SInOutVariables::new().children(variables))
     }
 }
 
-impl YBody {
+impl SBody {
     pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
         Self::new().child(&YFbd::new().children(children))
     }
 }
 
-impl YInputVariables {
+impl SInputVariables {
     pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
         Self::new().children(variables)
     }
 }
 
-impl YOutputVariables {
+impl SOutputVariables {
     pub fn with_variables(variables: Vec<&dyn IntoNode>) -> Self {
         Self::new().children(variables)
     }
 }
 
-impl YVariable {
+impl SVariable {
     pub fn with_name(self, name: &'static str) -> Self {
         self.attribute("formalParameter", name)
     }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
+        self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
     }
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointOut::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
+        self.child(&SConnectionPointOut::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
     }
 }
 
-impl YExpression {
+impl SExpression {
     pub fn expression(expression: &'static str) -> Self {
         let mut node = Self::new();
         node.0.content = Some(expression);
@@ -320,22 +320,22 @@ impl YExpression {
     }
 }
 
-impl YConnector {
+impl SConnector {
     pub fn with_name(self, name: &'static str) -> Self {
         self.attribute("name", name)
     }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
+        self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
     }
 }
 
-impl YContinuation {
+impl SContinuation {
     pub fn with_name(self, name: &'static str) -> Self {
         self.attribute("name", name)
     }
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointOut::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
+        self.child(&SConnectionPointOut::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
     }
 }

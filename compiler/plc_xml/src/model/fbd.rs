@@ -297,7 +297,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
 
 #[cfg(test)]
 mod tests {
-    use crate::serializer::{YBlock, YFbd, YInVariable, YOutVariable, YVariable};
+    use crate::serializer::{SBlock, SInVariable, SOutVariable, SVariable, YFbd};
     use crate::{
         model::{
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,
@@ -315,15 +315,15 @@ mod tests {
     fn add_block() {
         let content = YFbd::new()
             .children(vec![
-                &YBlock::init("ADD", 1, 0)
+                &SBlock::init("ADD", 1, 0)
                     .with_input(vec![
-                        &YVariable::new().with_name("a").connect(1),
-                        &YVariable::new().with_name("b").connect(2),
+                        &SVariable::new().with_name("a").connect(1),
+                        &SVariable::new().with_name("b").connect(2),
                     ])
-                    .with_output(vec![&YVariable::new().with_name("c")]),
-                &YInVariable::new().with_id(2).with_expression("a"),
-                &YInVariable::new().with_id(3).with_expression("b"),
-                &YOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect(1),
+                    .with_output(vec![&SVariable::new().with_name("c")]),
+                &SInVariable::new().with_id(2).with_expression("a"),
+                &SInVariable::new().with_id(3).with_expression("b"),
+                &SOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect(1),
             ])
             .serialize();
 

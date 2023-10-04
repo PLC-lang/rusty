@@ -48,13 +48,13 @@ mod tests {
     use crate::{
         model::body::Body,
         reader::PeekableReader,
-        serializer::{YBlock, YBody, YVariable},
+        serializer::{SBlock, SBody, SVariable},
         xml_parser::Parseable,
     };
 
     #[test]
     fn empty() {
-        let content = YBody::new().with_fbd(vec![]).serialize();
+        let content = SBody::new().with_fbd(vec![]).serialize();
 
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
@@ -62,13 +62,13 @@ mod tests {
 
     #[test]
     fn fbd_with_add_block() {
-        let content = YBody::new()
-            .with_fbd(vec![&YBlock::init("ADD", 1, 0)
+        let content = SBody::new()
+            .with_fbd(vec![&SBlock::init("ADD", 1, 0)
                 .with_input(vec![
-                    &YVariable::new().with_name("a").connect(1),
-                    &YVariable::new().with_name("b").connect(2),
+                    &SVariable::new().with_name("a").connect(1),
+                    &SVariable::new().with_name("b").connect(2),
                 ])
-                .with_output(vec![&YVariable::new().with_name("c")])
+                .with_output(vec![&SVariable::new().with_name("c")])
                 .with_inout(vec![])])
             .serialize();
 

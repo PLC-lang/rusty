@@ -64,12 +64,12 @@ fn transform_return(
 mod tests {
     use insta::assert_debug_snapshot;
 
-    use crate::serializer::YReturn;
+    use crate::serializer::SReturn;
     use crate::{model::control::Control, reader::PeekableReader, xml_parser::Parseable};
 
     #[test]
     fn simple_return() {
-        let content = YReturn::id(1).with_execution_id(2).connect(3).negate(false).serialize();
+        let content = SReturn::id(1).with_execution_id(2).connect(3).negate(false).serialize();
         let reader = &mut PeekableReader::new(&content);
 
         assert_debug_snapshot!(Control::visit(reader).unwrap());
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn simple_negated_return() {
-        let content = YReturn::id(1).with_execution_id(2).connect(3).negate(true).serialize();
+        let content = SReturn::id(1).with_execution_id(2).connect(3).negate(true).serialize();
         let reader = &mut PeekableReader::new(&content);
 
         assert_debug_snapshot!(Control::visit(reader).unwrap());
