@@ -3,8 +3,14 @@ use std::collections::HashMap;
 #[derive(Clone)]
 pub struct Node {
     name: &'static str,
-    attributes: HashMap<&'static str, &'static str>,
     children: Vec<Node>,
+
+    /// XML attributes, e.g. `<position x="1">` where `x` is the attribute
+    ///
+    /// Design Note: We use a HashMap here to avoid duplicates but also update existing values in case of
+    /// repeated function calls, e.g. `with_attribute("x", 1)` and `with_attribute("x", 2)` where the value of
+    /// x has been updated from 1 to 2.
+    attributes: HashMap<&'static str, &'static str>,
 
     /// Indicates if an element has a closed form, e.g. `<position x="1" y="2"/>`
     closed: bool,
@@ -46,7 +52,7 @@ impl Node {
         " ".repeat(level * 4)
     }
 
-    fn _content(indent: &str, name: &'static str, content: &'static str) -> String {
+    fn serialize_content(indent: &str, name: &'static str, content: &'static str) -> String {
         format!("{indent}<{name}>{content}</{name}>\n")
     }
 
@@ -62,7 +68,7 @@ impl Node {
         }
 
         if let Some(content) = self.content {
-            return Node::_content(&indent, name, content);
+            return Node::serialize_content(&indent, name, content);
         }
 
         result = format!("{indent}<{name} {attributes_str}>\n");
@@ -77,7 +83,6 @@ macro_rules! newtype_impl {
     ($name_struct:ident, $name_node:expr, $negatable:expr) => {
         pub struct $name_struct(Node);
 
-        // TODO: Perhaps deref
         impl IntoNode for $name_struct {
             fn inner(&self) -> Node {
                 self.0.clone()
@@ -168,32 +173,24 @@ newtype_impl!(YConnector, "connector", false);
 newtype_impl!(YContinuation, "continuation", false);
 
 impl YInVariable {
-    /// Adds a child node
-    /// <connectPointIn>
-    ///     <connection refLocalId="..."/>
-    /// </connectionPointIn/>
     pub fn connect(mut self, ref_local_id: i32) -> Self {
         self = self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id)));
         self
     }
 
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::with_expression(expression))
+        self.child(&YExpression::expression(expression))
     }
 }
 
 impl YOutVariable {
-    /// Adds a child node
-    /// <connectPointIn>
-    ///     <connection refLocalId="..."/>
-    /// </connectionPointIn/>
     pub fn connect(mut self, ref_local_id: i32) -> Self {
         self = self
             .child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()));
         self
     }
 
-    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
+    pub fn connect_name(mut self, ref_local_id: i32, name: &'static str) -> Self {
         self =
             self.child(&YConnectionPointIn::new().child(
                 &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
@@ -202,13 +199,13 @@ impl YOutVariable {
     }
 
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::with_expression(expression))
+        self.child(&YExpression::expression(expression))
     }
 }
 
 impl YInOutVariable {
     pub fn with_expression(self, expression: &'static str) -> Self {
-        self.child(&YExpression::with_expression(expression))
+        self.child(&YExpression::expression(expression))
     }
 }
 
@@ -236,7 +233,6 @@ impl YContent {
 }
 
 impl YPou {
-    // TODO: kind -> enum
     pub fn init(name: &'static str, kind: &'static str, declaration: &'static str) -> Self {
         Self::new()
             .attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
@@ -256,12 +252,10 @@ impl YPou {
                 ]))
     }
 
-    /// Implicitly wraps the fbd in a block node, i.e. <block>/* fbd */<block/>
+    /// Implicitly wraps the fbd in a block node, i.e. <block><fbd>...<fbd/><block/>
     pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
         self.child(&YBody::new().child(&YFbd::new().children(children)))
     }
-
-    // pub fn with_name(name: &'static str) -> Self {}
 }
 
 impl YBlock {
@@ -273,15 +267,15 @@ impl YBlock {
         self.attribute("typeName", name)
     }
 
-    pub fn with_input_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_input(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YInputVariables::new().children(variables))
     }
 
-    pub fn with_output_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_output(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YOutputVariables::new().children(variables))
     }
 
-    pub fn with_inout_variables(self, variables: Vec<&dyn IntoNode>) -> Self {
+    pub fn with_inout(self, variables: Vec<&dyn IntoNode>) -> Self {
         self.child(&YInOutVariables::new().children(variables))
     }
 }
@@ -305,50 +299,24 @@ impl YOutputVariables {
 }
 
 impl YVariable {
-    // TODO: Remove
-    pub fn name(name: &'static str) -> Self {
-        Self::new().attribute("formalParameter", name)
-    }
-
     pub fn with_name(self, name: &'static str) -> Self {
         self.attribute("formalParameter", name)
     }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
-        self.child(&YConnection::new().with_ref_id(ref_local_id).close())
-    }
-
-    pub fn connect_in(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).close(),
-        ]))
+        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
     }
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointOut::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).close(),
-        ]))
+        self.child(&YConnectionPointOut::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
     }
 }
 
-impl YInVariable {}
-
 impl YExpression {
-    pub fn with_expression(expression: &'static str) -> Self {
+    pub fn expression(expression: &'static str) -> Self {
         let mut node = Self::new();
         node.0.content = Some(expression);
         node
-    }
-}
-
-impl YOutVariable {
-    pub fn connect_in(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).close(),
-        ]))
     }
 }
 
@@ -357,22 +325,8 @@ impl YConnector {
         self.attribute("name", name)
     }
 
-    // TODO: Naming?
-    pub fn connect_in(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointIn::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).close(),
-        ]))
-    }
-
-    // TODO: Naming?
-    pub fn connect_temp(mut self, ref_local_id: i32, name: &'static str) -> Self {
-        self = self.child(&YConnectionPointIn::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).attribute("formalParameter", name).close(),
-        ]));
-
-        self
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&YConnectionPointIn::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
     }
 }
 
@@ -382,9 +336,6 @@ impl YContinuation {
     }
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
-        self.child(&YConnectionPointOut::new().children(vec![
-            &YRelPosition::new().close(), // TODO: Positions
-            &YConnection::new().with_ref_id(ref_local_id).close(),
-        ]))
+        self.child(&YConnectionPointOut::new().child(&YConnection::new().with_ref_id(ref_local_id).close()))
     }
 }

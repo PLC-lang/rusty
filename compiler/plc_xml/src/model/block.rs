@@ -71,11 +71,11 @@ mod tests {
     #[test]
     fn add_block() {
         let content = YBlock::init("ADD", 1, 0)
-            .with_input_variables(vec![
-                &YVariable::name("a").connect_in(1),
-                &YVariable::name("b").connect_in(2),
+            .with_input(vec![
+                &YVariable::new().with_name("a").connect(1),
+                &YVariable::new().with_name("b").connect(2),
             ])
-            .with_output_variables(vec![&YVariable::name("c")])
+            .with_output(vec![&YVariable::new().with_name("c")])
             .serialize();
 
         let mut reader = PeekableReader::new(&content);

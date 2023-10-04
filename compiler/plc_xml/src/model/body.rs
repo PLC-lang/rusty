@@ -62,13 +62,15 @@ mod tests {
 
     #[test]
     fn fbd_with_add_block() {
-        #[rustfmt::skip]
-        let content = YBody::new().with_fbd(vec![
-            &YBlock::init("ADD", 1, 0)
-                .with_input_variables(vec![&YVariable::name("a").connect_in(1), &YVariable::name("b").connect_in(2)])
-                .with_output_variables(vec![&YVariable::name("c")])
-                .with_inout_variables(vec![])
-            ]).serialize();
+        let content = YBody::new()
+            .with_fbd(vec![&YBlock::init("ADD", 1, 0)
+                .with_input(vec![
+                    &YVariable::new().with_name("a").connect(1),
+                    &YVariable::new().with_name("b").connect(2),
+                ])
+                .with_output(vec![&YVariable::new().with_name("c")])
+                .with_inout(vec![])])
+            .serialize();
 
         let mut reader = PeekableReader::new(&content);
         assert_debug_snapshot!(Body::visit(&mut reader).unwrap());

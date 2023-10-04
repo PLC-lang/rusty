@@ -38,7 +38,7 @@ fn variable_assignment() {
     let content = YPou::init("foo", "program", "PROGRAM foo VAR a, b : DINT; END_VAR")
         .with_fbd(vec![
             &YInVariable::id(1).with_expression("a"),
-            &YOutVariable::id(2).with_execution_id(0).with_expression("b").connect_in(1),
+            &YOutVariable::id(2).with_execution_id(0).with_expression("b").connect(1),
         ])
         .serialize();
 
@@ -158,18 +158,18 @@ fn connection_variable_source_to_multiple_sinks_parses() {
 
     #[rustfmt::skip]
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YConnector::id(1).with_name("s1").connect(2),
         &YContinuation::id(3).with_name("s1"),
         &YInVariable::id(2).with_expression("x"),
-        &YOutVariable::id(4).with_expression("myConnection").with_execution_id(2).connect_temp(9, "myAdd"),
+        &YOutVariable::id(4).with_expression("myConnection").with_execution_id(2).connect_name(9, "myAdd"),
         &YInVariable::id(7).with_expression("y"),
         &YOutVariable::id(8).with_expression("y").with_execution_id(0).connect(3),
         &YBlock::init("myAdd", 9, 1)
-            .with_input_variables(vec![
+            .with_input(vec![
                 &YVariable::new().with_name("a").connect(7),
                 &YVariable::new().with_name("b").connect(3),
             ])
-            .with_output_variables(vec![&YVariable::new().with_name("myAdd")]),
+            .with_output(vec![&YVariable::new().with_name("myAdd")]),
     ]).serialize();
 
     assert_debug_snapshot!(parse(&content).0.implementations[0].statements);
@@ -191,11 +191,11 @@ fn direct_connection_of_sink_to_other_source_generates_correct_model() {
     "#;
 
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::id(1).with_name("s1").connect_in(16),
+        &YConnector::id(1).with_name("s1").connect(16),
         &YContinuation::id(3).with_name("s1"),
         &YOutVariable::id(4).with_expression("myConnection").with_execution_id(3).connect(20),
         &YInVariable::id(16).with_expression("x"),
-        &YConnector::id(21).with_name("s2").connect_in(3),
+        &YConnector::id(21).with_name("s2").connect(3),
         &YContinuation::id(20).with_name("s2"),
     ]);
 
@@ -212,11 +212,11 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
     "#;
 
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::id(1).with_name("s1").connect_in(16),
+        &YConnector::id(1).with_name("s1").connect(16),
         &YContinuation::id(3).with_name("s1"),
         &YOutVariable::id(4).with_expression("myConnection").with_execution_id(3).connect(20),
         &YInVariable::id(16).with_expression("x"),
-        &YConnector::id(21).with_name("s2").connect_in(3),
+        &YConnector::id(21).with_name("s2").connect(3),
         &YContinuation::id(20).with_name("s2"),
     ]);
 
@@ -228,9 +228,9 @@ fn return_connected_to_sink_parses() {
     let declaration = "FUNCTION positivOrZero : DINT VAR_INPUT x : DINT; END_VAR";
     #[rustfmt::skip]
     let content = YPou::init("positiveOrZero", "function", declaration).with_fbd(vec![
-        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YConnector::id(1).with_name("s1").connect(2),
         &YContinuation::id(3).with_name("s1"),
-        &YConnector::id(4).with_name("s2").connect_in(3),
+        &YConnector::id(4).with_name("s2").connect(3),
         &YContinuation::id(5).with_name("s2"),
         &YReturn::id(6).with_execution_id(0).connect(5),
         &YInVariable::id(2).with_expression("x &lt; 0"), // TODO: The less-than symbol has to be written this way?
@@ -245,11 +245,11 @@ fn return_connected_to_sink_parses() {
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
     let declaration = "FUNCTION myConnection : DINT VAR_INPUT x: DINT; END_VAR";
     let content = YPou::init("myConnection", "function", declaration).with_fbd(vec![
-        &YConnector::id(22).with_name("s1").connect_in(23),
+        &YConnector::id(22).with_name("s1").connect(23),
         &YContinuation::id(24).with_name("s1"),
-        &YConnector::id(25).with_name("s2").connect_in(24),
+        &YConnector::id(25).with_name("s2").connect(24),
         &YContinuation::id(26).with_name("s2"),
-        &YConnector::id(27).with_name("s3").connect_in(26),
+        &YConnector::id(27).with_name("s3").connect(26),
         &YContinuation::id(23).with_name("s3"),
     ]);
 
@@ -265,7 +265,7 @@ fn unconnected_connections() {
     let content = YPou::init("unconnectedConnections", "function", declaration).with_fbd(vec![
         &YConnector::id(1).with_name("s1"),
         &YContinuation::id(2).with_name("s1"),
-        &YConnector::id(3).with_name("s2").connect_in(2),
+        &YConnector::id(3).with_name("s2").connect(2),
         &YContinuation::id(4).with_name("s2"),
     ]);
 
@@ -279,7 +279,7 @@ fn unconnected_connections() {
 fn unassociated_connections() {
     let declaration = "FUNCTION unconnectedConnections : DINT VAR_INPUT x : DINT; END_VAR";
     let content = YPou::init("unassociatedSink", "function", declaration).with_fbd(vec![
-        &YConnector::id(1).with_name("s1").connect_in(2),
+        &YConnector::id(1).with_name("s1").connect(2),
         &YContinuation::id(3).with_name("s2"),
         &YInVariable::id(2).with_expression("x"),
         &YOutVariable::id(4).with_expression("unassociatedSink").with_execution_id(0).connect(3),
@@ -308,12 +308,12 @@ fn ast_generates_locations() {
         &YInVariable::id(1).with_expression("x"),
         &YOutVariable::id(2).with_expression("a").with_execution_id(0).connect(1),
         &YBlock::init("ADD", 3, 1)
-            .with_input_variables(vec![
+            .with_input(vec![
                 &YVariable::new().with_name("").connect(4),
                 &YVariable::new().with_name("").connect(5),
             ])
-            .with_output_variables(vec![&YVariable::new().with_name("")])
-            .with_inout_variables(vec![]),
+            .with_output(vec![&YVariable::new().with_name("")])
+            .with_inout(vec![]),
         &YInVariable::id(4).with_expression("a"),
         &YInVariable::id(5).with_expression("1"),
     ]);

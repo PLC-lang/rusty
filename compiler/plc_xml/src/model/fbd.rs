@@ -316,14 +316,14 @@ mod tests {
         let content = YFbd::new()
             .children(vec![
                 &YBlock::init("ADD", 1, 0)
-                    .with_input_variables(vec![
-                        &YVariable::new().with_name("a").connect_in(1),
-                        &YVariable::new().with_name("b").connect_in(2),
+                    .with_input(vec![
+                        &YVariable::new().with_name("a").connect(1),
+                        &YVariable::new().with_name("b").connect(2),
                     ])
-                    .with_output_variables(vec![&YVariable::new().with_name("c")]),
+                    .with_output(vec![&YVariable::new().with_name("c")]),
                 &YInVariable::new().with_id(2).with_expression("a"),
                 &YInVariable::new().with_id(3).with_expression("b"),
-                &YOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect_in(1),
+                &YOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect(1),
             ])
             .serialize();
 
