@@ -12,9 +12,9 @@ use crate::{
 /// the Diagnostician handle's Diangostics with the help of a
 /// assessor and a reporter
 pub struct Diagnostician {
-    reporter: Box<dyn DiagnosticReporter>,
-    assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize>,
+    pub reporter: Box<dyn DiagnosticReporter>,
+    pub assessor: Box<dyn DiagnosticAssessor>,
+    pub filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {

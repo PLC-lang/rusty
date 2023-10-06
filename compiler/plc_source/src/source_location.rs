@@ -49,11 +49,11 @@ impl SourceLocationFactory {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TextLocation {
     /// Line in the source code where this location points to
-    line: usize,
+    pub line: usize,
     /// Column in the sourcecode where this location points o
-    column: usize,
+    pub column: usize,
     /// Raw offset to this location from the start of the file
-    offset: usize,
+    pub offset: usize,
 }
 
 impl TextLocation {

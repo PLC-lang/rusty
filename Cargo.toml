@@ -68,6 +68,7 @@ members = [
 	"compiler/plc_util",
 	"compiler/plc_xml",
 	"compiler/plc_derive",
+	"ide/lsp"
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 

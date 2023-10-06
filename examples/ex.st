@@ -1,0 +1,3 @@
+PROGRAM main 
+x : DI;
+END_PROGRAM

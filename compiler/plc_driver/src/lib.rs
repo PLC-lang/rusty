@@ -22,7 +22,7 @@ use plc::{
     codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
 };
 
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{diagnostician::{Diagnostician, self}, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;
@@ -121,6 +121,15 @@ impl Display for CompileError {
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), CompileError> {
     //Parse the arguments
     let compile_parameters = CompileParameters::parse(args)?;
+    let diagnostician = match compile_parameters.error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+        ErrorFormat::None => Diagnostician::null_diagnostician(),
+    }; 
+    compile_with_diagnostician(compile_parameters, diagnostician)
+}
+
+pub fn compile_with_diagnostician(compile_parameters: CompileParameters, mut diagnostician: Diagnostician) -> Result<(), CompileError> {
     let project = get_project(&compile_parameters)?;
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
@@ -139,11 +148,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         env::set_var("LIB_LOCATION", location);
     }
     let id_provider = IdProvider::default();
-    let mut diagnostician = match compile_parameters.error_format {
-        ErrorFormat::Rich => Diagnostician::default(),
-        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
-        ErrorFormat::None => Diagnostician::null_diagnostician(),
-    };
+
 
     //Set the global thread count
     let thread_pool = rayon::ThreadPoolBuilder::new();
