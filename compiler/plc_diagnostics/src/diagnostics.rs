@@ -653,6 +653,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn struct_inside_array_assignment(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Structs within arrays must be surrounded with `()`".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment, // TODO:
+        }
+    }
+
     pub fn array_size(name: &str, len_lhs: usize, len_rhs: usize, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided"),

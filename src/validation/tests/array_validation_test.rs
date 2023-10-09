@@ -296,3 +296,24 @@ fn assignment_multiplied_statement() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn demo() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE foo : STRUCT
+            id      : DINT;
+            arr     : ARRAY[1..3] OF DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                arr_correct : ARRAY[1..1] OF foo := [(id := 0, arr := [1, 2, 3])];
+                arr_incorrect : ARRAY[1..1] OF foo := [id := 0, arr := [1, 2, 3]];
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
