@@ -171,6 +171,8 @@ newtype_impl!(SReturn, "return", false);
 newtype_impl!(SNegate, "negated", false);
 newtype_impl!(SConnector, "connector", false);
 newtype_impl!(SContinuation, "continuation", false);
+newtype_impl!(SJump, "jump", false);
+newtype_impl!(SLabel, "label", false);
 
 impl SInVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
@@ -337,5 +339,27 @@ impl SContinuation {
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
         self.child(&SConnectionPointOut::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+}
+
+impl SLabel {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("label", name)
+    }
+}
+
+impl SJump {
+    pub fn with_name(self, name: &'static str) -> Self {
+        self.attribute("label", name)
+    }
+
+    pub fn connect(self, ref_local_id: i32) -> Self {
+        self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+
+    pub fn negate(self) -> Self {
+        self.child(
+            &SAddData::new().child(&SData::new().child(&SNegate::new().attribute("value", "true").close())),
+        )
     }
 }
