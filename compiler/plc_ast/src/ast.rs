@@ -616,6 +616,8 @@ pub enum AstStatement {
     ExitStatement(()),
     ContinueStatement(()),
     ReturnStatement(ReturnStatement),
+    JumpStatement(JumpStatement),
+    LabelStatement(LabelStatement),
 }
 
 impl Debug for AstNode {
@@ -726,6 +728,12 @@ impl Debug for AstNode {
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
                 f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
             }
+            AstStatement::JumpStatement(JumpStatement { condition, target, .. }) => {
+                f.debug_struct("JumpStatement").field("condition", condition).field("target", target).finish()
+            }
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => {
+                f.debug_struct("LabelStatement").field("name", name).finish()
+            }
         }
     }
 }
@@ -815,6 +823,13 @@ impl AstNode {
                 }
             }
             AstStatement::Identifier(name, ..) => Some(name),
+            _ => None,
+        }
+    }
+
+    pub fn get_label_name(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
             _ => None,
         }
     }
@@ -918,6 +933,12 @@ impl AstNode {
 
     pub fn is_default_value(&self) -> bool {
         matches!(self.stmt, AstStatement::DefaultValue { .. })
+    }
+
+    /// Negates the given element by adding it to a not expression
+    pub fn negate(self: AstNode, mut id_provider: IdProvider) -> AstNode {
+        let location = self.get_location();
+        AstFactory::create_not_expression(self, location, id_provider.next_id())
     }
 }
 
@@ -1218,7 +1239,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -> AstNode {
         AstNode {
             stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),
@@ -1465,6 +1486,19 @@ impl AstFactory {
             id_provider,
         )
     }
+
+    pub fn create_jump_statement(
+        condition: Box<AstNode>,
+        target: Box<AstNode>,
+        location: SourceLocation,
+        id: AstId,
+    ) -> AstNode {
+        AstNode { stmt: AstStatement::JumpStatement(JumpStatement { condition, target }), location, id }
+    }
+
+    pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
+    }
 }
 #[derive(Clone, PartialEq)]
 pub struct EmptyStatement {}
@@ -1531,4 +1565,19 @@ pub struct Assignment {
 pub struct CallStatement {
     pub operator: Box<AstNode>,
     pub parameters: Option<Box<AstNode>>,
+}
+
+/// Represents a conditional jump from current location to a specified label
+#[derive(Clone, Debug, PartialEq)]
+pub struct JumpStatement {
+    /// The condition based on which the current statement will perform a jump
+    pub condition: Box<AstNode>,
+    /// The target location (Label) the statement will jump to
+    pub target: Box<AstNode>,
+}
+
+/// Represents a location in code that could be jumbed to
+#[derive(Clone, Debug, PartialEq)]
+pub struct LabelStatement {
+    pub name: String,
 }
