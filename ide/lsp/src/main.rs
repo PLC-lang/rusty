@@ -3,9 +3,10 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::error::Error;
 use std::rc::Rc;
+use std::str::FromStr;
 
 use lsp_types::notification::{PublishDiagnostics, Notification, DidChangeTextDocument, DidSaveTextDocument};
-use lsp_types::{OneOf, DiagnosticServerCapabilities, PublishDiagnosticsParams, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentContentChangeEvent};
+use lsp_types::{OneOf, DiagnosticServerCapabilities, PublishDiagnosticsParams, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentContentChangeEvent, Location, Range, Url, Position};
 use lsp_types::{
     request::GotoDefinition, GotoDefinitionResponse, InitializeParams, ServerCapabilities,
 };
@@ -13,6 +14,7 @@ use lsp_types::{
 use lsp_server::{Connection, ExtractError, Message, Request, RequestId, Response};
 use plc_diagnostics::reporter::ResolvedDiagnostics;
 use plc_driver::cli::CompileParameters;
+use plc_driver::pipelines::AnnotatedProject;
 use plc_source::source_location::{CodeSpan, TextLocation};
 
 fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
@@ -25,9 +27,9 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
 
     // Run the server and wait for the two threads to end (typically by trigger LSP Exit event).
     let server_capabilities = serde_json::to_value(&ServerCapabilities {
-        // definition_provider: Some(OneOf::Left(true)),
         diagnostic_provider: Some(DiagnosticServerCapabilities::Options(Default::default())),
         text_document_sync : Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+        definition_provider: Some(OneOf::Left(true)),
         ..Default::default()
     })
     .unwrap();
@@ -54,24 +56,38 @@ fn main_loop(
                     return Ok(());
                 }
                 eprintln!("got request: {req:?}");
-                // connection.sender.send(Message::Notification(lsp_server::Notification::new(PublishDiagnostics::METHOD.to_string(), PublishDiagnosticsParams {
-                //     uri: todo!(),
-                //     diagnostics: todo!(),
-                //     version: todo!(),
-                // }))).unwrap();
-                 // match cast::<>(req) {
-                //     Ok((id, params)) => {
-                //         eprintln!("got gotoDefinition request #{id}: {params:?}");
-                //         let result = Some(GotoDefinitionResponse::Array(Vec::new()));
-                //         let result = serde_json::to_value(&result).unwrap();
-                //         let resp = Response { id, result: Some(result), error: None };
-                //         connection.sender.send(Message::Response(resp))?;
-                //         continue;
-                //     }
-                //     Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
-                //     Err(ExtractError::MethodMismatch(req)) => req,
-                // };
-                // ...
+                 match cast::<GotoDefinition>(req) {
+                    Ok((id, params)) => {
+                        eprintln!("got gotoDefinition request #{id}: {params:?}");
+                        
+                        if let Ok(project) = plc_driver::parse_and_annotate("plc", vec![params.text_document_position_params.text_document.uri.path()]) {
+                            //Element under cursor
+                            if let Some(location) = project.annotations.get_declaration_location(&project.index,
+                            params.text_document_position_params.position.line,
+                            params.text_document_position_params.position.character) {
+                                let start = Position::new(location.get_line() as u32, location.get_column() as u32);
+                                let range = Range::new(start, start);
+                                let url = location.get_file_name().map(|it| Url::from_str(it)).unwrap().unwrap();
+                            let result = Some(GotoDefinitionResponse::Scalar(Location::new(url, range)));
+                            let result = serde_json::to_value(&result).unwrap();
+                            let resp = Response { id, result: Some(result), error: None };
+                            connection.sender.send(Message::Response(resp))?;
+
+                            } else {
+
+                            }
+
+                        } else {
+                            let result = Some(GotoDefinitionResponse::Array(Vec::new()));
+                            let result = serde_json::to_value(&result).unwrap();
+                            let resp = Response { id, result: Some(result), error: None };
+                            connection.sender.send(Message::Response(resp))?;
+                        };
+                        continue;
+                    }
+                    Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
+                    Err(ExtractError::MethodMismatch(req)) => req,
+                };
             }
             Message::Response(resp) => {
                 eprintln!("got response: {resp:?}");

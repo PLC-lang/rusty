@@ -6,8 +6,8 @@
 //! records all resulting types associated with the statement's id.
 
 use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
+    collections::{HashMap, HashSet, BTreeMap},
+    hash::Hash, ops::Range,
 };
 
 use indexmap::{IndexMap, IndexSet};
@@ -506,6 +506,7 @@ impl AnnotationMap for AstAnnotations {
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.annotation_map.get_generic_nature(s)
     }
+
 }
 
 impl AstAnnotations {
@@ -515,6 +516,24 @@ impl AstAnnotations {
 
     pub fn get_bool_id(&self) -> AstId {
         self.bool_id
+    }
+
+    pub fn get_declaration_location(&self, index: &Index, line: u32, column: u32) -> Option<SourceLocation> {
+        self.annotation_map
+            .get_ast_element_at_offset(line, column).as_ref()
+            .and_then(|it| self.annotation_map.type_map.get(it)
+                      .or_else(|| self.annotation_map.type_hint_map.get(it)))
+            .and_then(|it| match it {
+                StatementAnnotation::Value { resulting_type: type_name } | 
+                StatementAnnotation::Type { type_name } => index.find_type(type_name).map(|it| it.location.clone()),
+                StatementAnnotation::Variable { qualified_name, .. } => {
+                    let segments : Vec<_> = qualified_name.split('.').collect();
+                    index.find_variable(None, &segments).map(|it| it.source_location.clone())
+                },
+                StatementAnnotation::Function { qualified_name, .. } | 
+                StatementAnnotation::Program { qualified_name } => index.find_pou(&qualified_name).map(|it| it.get_location().clone()),
+                _ => None
+            })
     }
 }
 
@@ -548,6 +567,9 @@ pub struct AnnotationMapImpl {
 
     //An index of newly created types
     pub new_index: Index,
+
+    /// the location to ast_id map
+    pub locations : BTreeMap<usize, (AstId, SourceLocation)>,
 }
 
 impl AnnotationMapImpl {
@@ -566,10 +588,12 @@ impl AnnotationMapImpl {
     /// annotates the given statement (using it's `get_id()`) with the given type-name
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_map.insert(s.get_id(), annotation);
+        self.locations.insert(s.get_location().get_span().to_range().unwrap_or_default().start, (s.get_id(), s.get_location()));
     }
 
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+        self.locations.insert(s.get_location().get_span().to_range().unwrap_or_default().start, (s.get_id(), s.get_location()));
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate
@@ -581,6 +605,12 @@ impl AnnotationMapImpl {
     /// Annotates the ast statement with its original generic nature
     pub fn add_generic_nature(&mut self, s: &AstNode, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
+    }
+
+    pub fn get_ast_element_at_offset(&self, line: u32, column: u32) -> Option<AstId> {
+        dbg!(line, column);
+        self.locations.values().find(|(o, loc)| loc.get_line() as u32 == line && loc.get_column() as u32 == column)
+            .map(|(id, _)| id).copied()
     }
 }
 
