@@ -133,9 +133,7 @@ impl FromStr for Storage {
 
 impl<'xml> Parseable for FunctionBlockVariable<'xml> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
         let kind = tag.name().as_ref().try_into()?;
         let mut attributes = get_attributes(tag.attributes())?;
 
@@ -166,9 +164,7 @@ impl<'xml> Parseable for FunctionBlockVariable<'xml> {
 
 impl Parseable for Vec<BlockVariable> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-                        unreachable!()
-                    };
+        let Some(tag) = tag else { unreachable!() };
 
         let mut variables = vec![];
         let kind = VariableKind::try_from(tag.name().as_ref())?;
@@ -202,9 +198,7 @@ impl Parseable for Vec<BlockVariable> {
 
 impl Parseable for BlockVariable {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
 
         let mut attributes = get_attributes(tag.attributes())?;
         loop {

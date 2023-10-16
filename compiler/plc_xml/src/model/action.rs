@@ -3,8 +3,9 @@ use std::borrow::Cow;
 use quick_xml::events::Event;
 
 use crate::{
+    error::Error,
     reader::Reader,
-    xml_parser::{get_attributes, Parseable}, error::Error,
+    xml_parser::{get_attributes, Parseable},
 };
 
 use super::body::Body;
@@ -48,14 +49,10 @@ impl Parseable for Action<'_> {
         reader: &mut Reader,
         tag: Option<quick_xml::events::BytesStart>,
     ) -> Result<Self, crate::error::Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
 
         let attributes = get_attributes(tag.attributes())?;
-        let Some(name) = attributes.get("name") else {
-            todo!()
-        };
+        let Some(name) = attributes.get("name") else { todo!() };
         let mut action = Action::new(name);
         loop {
             match reader.read_event()? {

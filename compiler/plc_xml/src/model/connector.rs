@@ -38,9 +38,7 @@ pub(crate) enum ConnectorKind {
 
 impl<'xml> Parseable for Connector<'xml> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
 
         let kind = match tag.name().as_ref() {
             b"connector" => ConnectorKind::Source,

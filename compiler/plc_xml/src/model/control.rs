@@ -54,9 +54,7 @@ impl FromStr for ControlKind {
 
 impl<'xml> Parseable for Control<'xml> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
 
         let kind = ControlKind::from_str(&tag.name().try_to_string()?)?;
         let mut attributes = get_attributes(tag.attributes())?;

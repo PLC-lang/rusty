@@ -64,12 +64,14 @@ fn action_variables_annotated() {
     let act2 = &unit.implementations[0].statements[2];
     assert_debug_snapshot!(annotations.get(act2));
     //In action 1 a is annotated
-    let AstStatement::Assignment(Assignment { left, .. }) =  &unit.implementations[1].statements[0].get_stmt() else {
+    let AstStatement::Assignment(Assignment { left, .. }) = &unit.implementations[1].statements[0].get_stmt()
+    else {
         unreachable!("Statement must be an assingment");
     };
     assert_debug_snapshot!(annotations.get(left));
     //In action 2 b is annotated
-    let AstStatement::Assignment(Assignment { left, .. }) =  &unit.implementations[2].statements[0].get_stmt() else {
+    let AstStatement::Assignment(Assignment { left, .. }) = &unit.implementations[2].statements[0].get_stmt()
+    else {
         unreachable!("Statement must be an assingment");
     };
     assert_debug_snapshot!(annotations.get(left));

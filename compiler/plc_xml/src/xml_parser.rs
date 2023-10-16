@@ -56,7 +56,9 @@ pub(crate) fn visit(content: &str) -> Result<Project, Error> {
             Event::Start(tag) if tag.name().as_ref() == b"pou" => {
                 project.pous.push(Pou::visit(&mut reader, Some(tag))?)
             }
-            Event::Start(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => {todo!("Project support comming in #977")}
+            Event::Start(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => {
+                todo!("Project support comming in #977")
+            }
             Event::End(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => break,
             Event::Eof => break,
             _ => {}

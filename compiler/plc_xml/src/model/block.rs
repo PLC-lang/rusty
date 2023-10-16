@@ -34,9 +34,7 @@ impl<'xml> Block<'xml> {
 
 impl<'xml> Parseable for Block<'xml> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;
         let mut variables = Vec::new();
         loop {
