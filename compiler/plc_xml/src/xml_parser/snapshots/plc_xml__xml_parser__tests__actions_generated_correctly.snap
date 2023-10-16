@@ -1,0 +1,153 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: units.implementations
+---
+[
+    Implementation {
+        name: "program_0",
+        type_name: "program_0",
+        linkage: Internal,
+        pou_type: Program,
+        statements: [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "newAction",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [],
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "newAction2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [],
+                    },
+                ),
+            },
+        ],
+        location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        name_location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        overriding: false,
+        generic: false,
+        access: None,
+    },
+    Implementation {
+        name: "program_0.newAction",
+        type_name: "program_0",
+        linkage: Internal,
+        pou_type: Action,
+        statements: [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "a",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+        ],
+        location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        name_location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        overriding: false,
+        generic: false,
+        access: None,
+    },
+    Implementation {
+        name: "program_0.newAction2",
+        type_name: "program_0",
+        linkage: Internal,
+        pou_type: Action,
+        statements: [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+        ],
+        location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        name_location: SourceLocation {
+            span: None,
+            file: Some(
+                "<internal>.cfc",
+            ),
+        },
+        overriding: false,
+        generic: false,
+        access: None,
+    },
+]

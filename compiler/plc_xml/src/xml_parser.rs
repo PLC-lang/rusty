@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
@@ -9,12 +11,16 @@ use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
 };
-use quick_xml::events::Event;
+use quick_xml::events::{attributes::Attributes, BytesStart, Event};
 
 use crate::{
     error::Error,
-    model::{pou::PouType, project::Project},
-    reader::PeekableReader,
+    extensions::TryToString,
+    model::{
+        pou::{Pou, PouType},
+        project::Project,
+    },
+    reader::Reader,
 };
 
 mod action;
@@ -26,21 +32,39 @@ mod pou;
 mod tests;
 mod variables;
 
-pub(crate) trait Parseable {
-    type Item;
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
+pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, String>, Error> {
+    attributes
+        .flatten()
+        .map(|it| Ok((it.key.try_to_string()?, it.value.try_to_string()?)))
+        .collect::<Result<HashMap<_, _>, Error>>()
+}
+
+pub(crate) trait Parseable
+where
+    Self: Sized,
+{
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error>;
 }
 
 pub(crate) fn visit(content: &str) -> Result<Project, Error> {
-    let mut reader = PeekableReader::new(content);
+    let mut reader = Reader::new(content);
+    reader.trim_text(true).expand_empty_elements(true);
+    let mut project = Project::default();
+
     loop {
-        match reader.peek()? {
-            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
-            Event::Start(tag) if tag.name().as_ref() == b"project" => return Project::visit(&mut reader),
-            Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
-            _ => reader.consume()?,
+        match reader.read_event()? {
+            Event::Start(tag) if tag.name().as_ref() == b"pou" => {
+                project.pous.push(Pou::visit(&mut reader, Some(tag))?)
+            }
+            Event::Start(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => {
+                todo!("Project support comming in #977")
+            }
+            Event::End(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => break,
+            Event::Eof => break,
+            _ => {}
         }
     }
+    Ok(project)
 }
 
 pub fn parse_file(
@@ -145,7 +169,9 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
             // transform body
             implementations.push(pou.build_implementation(&mut self));
             // transform actions
-            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(&self)));
+            pou.actions
+                .iter()
+                .for_each(|action| implementations.push(action.build_implementation(&mut self)));
         }
 
         (implementations, self.diagnostics)
