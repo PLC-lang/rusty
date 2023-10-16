@@ -55,7 +55,40 @@
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::pou::PouType;
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
+
+<span class="kw">use </span>quick_xml::events::{BytesStart, Event};
+
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::reader::Reader;
+<span class="kw">use </span><span class="kw">crate</span>::xml_parser::Parseable;
+
+<span class="kw">use </span><span class="kw">super</span>::pou::PouType;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Interface {
@@ -89,6 +122,23 @@
         Interface {
             add_data: <span class="prelude-val">Some</span>(Data::new_implementation(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}\nEND_{}&quot;</span>, old_data.content, pou_type))),
         }
+    }
+}
+
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Interface {
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>interface = Interface { add_data: <span class="prelude-val">None </span>};
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;interface&quot; </span>=&gt; <span class="kw">break</span>,
+                Event::Text(text) =&gt; {
+                    interface.add_data =
+                        <span class="prelude-val">Some</span>(Data::new_implementation(text.unescape().map_err(Error::ReadEvent)<span class="question-mark">?</span>.borrow()))
+                }
+                <span class="kw">_ </span>=&gt; {}
+            }
+        }
+        <span class="prelude-val">Ok</span>(interface)
     }
 }
 

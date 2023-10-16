@@ -283,13 +283,12 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::Event;
+</pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
 <span class="kw">use </span><span class="kw">crate</span>::extensions::GetOrErr;
-<span class="kw">use </span><span class="kw">crate</span>::xml_parser::Parseable;
-<span class="kw">use crate</span>::{error::Error, extensions::TryToString, reader::PeekableReader};
+<span class="kw">use </span><span class="kw">crate</span>::reader::Reader;
+<span class="kw">use </span><span class="kw">crate</span>::xml_parser::{get_attributes, Parseable};
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::{collections::HashMap, str::FromStr};
 
@@ -334,14 +333,20 @@
     <span class="kw">pub fn </span>update_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_ref: NodeId) {
         <span class="self">self</span>.ref_local_id = <span class="prelude-val">Some</span>(new_ref);
     }
+
+    <span class="kw">pub fn </span>with_kind(<span class="kw-2">mut </span><span class="self">self</span>, kind: VariableKind) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = kind;
+        <span class="self">self
+    </span>}
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+<span class="attr">#[derive(Default, Debug, PartialEq, Eq, Hash, Copy, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>VariableKind {
     Input,
     Output,
     InOut,
-    Temp,
+    <span class="attr">#[default]
+    </span>Temp,
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
@@ -412,42 +417,29 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockVariable&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">type </span>Item = <span class="self">Self</span>;
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
+        <span class="kw">let </span>kind = tag.name().as_ref().try_into()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;
 
-    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {
-        <span class="kw">let </span>next = reader.peek()<span class="question-mark">?</span>;
-        <span class="kw">let </span>kind = <span class="kw">match </span><span class="kw-2">&amp;</span>next {
-            Event::Start(tag) | Event::Empty(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                <span class="string">b&quot;inVariable&quot; </span>=&gt; VariableKind::Input,
-                <span class="string">b&quot;outVariable&quot; </span>=&gt; VariableKind::Output,
-                <span class="string">b&quot;inOutVariable&quot; </span>=&gt; VariableKind::InOut,
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-            },
-
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-        };
-
-        <span class="kw">let </span><span class="kw-2">mut </span>attributes = reader.attributes()<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span>reader.peek()<span class="question-mark">? </span>{
+            <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
                 Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;connection&quot; </span>=&gt; {
-                    attributes.extend(reader.attributes()<span class="question-mark">?</span>);
+                    attributes.extend(get_attributes(tag.attributes())<span class="question-mark">?</span>);
                 }
 
                 Event::Text(tag) =&gt; {
-                    attributes.insert(<span class="string">&quot;expression&quot;</span>.into(), tag.as_ref().try_to_string()<span class="question-mark">?</span>);
-                    reader.consume()<span class="question-mark">?</span>;
+                    attributes.insert(<span class="string">&quot;expression&quot;</span>.into(), tag.unescape()<span class="question-mark">?</span>.to_string());
                 }
 
                 Event::End(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
                     <span class="string">b&quot;inVariable&quot; </span>| <span class="string">b&quot;outVariable&quot; </span>=&gt; {
-                        reader.consume()<span class="question-mark">?</span>;
                         <span class="kw">break</span>;
                     }
-                    <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
+                    <span class="kw">_ </span>=&gt; {}
                 },
 
-                <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
+                <span class="kw">_ </span>=&gt; {}
             }
         }
 
@@ -455,33 +447,25 @@
     }
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>BlockVariable {
-    <span class="kw">type </span>Item = Vec&lt;<span class="self">Self</span>&gt;;
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Vec&lt;BlockVariable&gt; {
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
-    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {
-        <span class="kw">let </span>kind = <span class="kw">match </span>reader.next()<span class="question-mark">? </span>{
-            Event::Start(tag) | Event::Empty(tag) =&gt; VariableKind::try_from(tag.name().as_ref())<span class="question-mark">?</span>,
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-        };
-
-        <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
-
+        <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>kind = VariableKind::try_from(tag.name().as_ref())<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span>reader.peek()<span class="question-mark">? </span>{
+            <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
                 Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;variable&quot; </span>=&gt; {
-                    <span class="kw">let </span>attributes = visit_variable(reader)<span class="question-mark">?</span>;
-                    res.push(BlockVariable::new(attributes, kind)<span class="question-mark">?</span>);
+                    variables.push(BlockVariable::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>.with_kind(kind))
                 }
-
                 Event::End(tag)
                     <span class="kw">if </span><span class="macro">matches!</span>(
                         tag.name().as_ref(),
                         <span class="string">b&quot;inputVariables&quot; </span>| <span class="string">b&quot;outputVariables&quot; </span>| <span class="string">b&quot;inOutVariables&quot;
                     </span>) =&gt;
                 {
-                    reader.consume()<span class="question-mark">?</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(res);
-                }
+                    <span class="kw">break
+                </span>}
 
                 Event::Eof =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[
@@ -490,30 +474,34 @@
                         <span class="string">b&quot;inOutVariables&quot;</span>,
                     ]))
                 }
-                <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
+                <span class="kw">_ </span>=&gt; {}
             };
         }
+        <span class="prelude-val">Ok</span>(variables)
     }
 }
 
-<span class="kw">fn </span>visit_variable(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;String, String&gt;, Error&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>attributes = HashMap::new();
-    <span class="kw">loop </span>{
-        <span class="kw">match </span>reader.peek()<span class="question-mark">? </span>{
-            Event::Start(tag) | Event::Empty(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                <span class="string">b&quot;variable&quot; </span>| <span class="string">b&quot;connection&quot; </span>=&gt; attributes.extend(reader.attributes()<span class="question-mark">?</span>),
-                <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
-            },
+<span class="kw">impl </span>Parseable <span class="kw">for </span>BlockVariable {
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
-            Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;variable&quot; </span>=&gt; {
-                reader.consume()<span class="question-mark">?</span>;
-                <span class="kw">break</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
+                Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;connection&quot; </span>=&gt; {
+                    attributes.extend(get_attributes(tag.attributes())<span class="question-mark">?</span>);
+                }
+
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;variable&quot; </span>=&gt; {
+                    <span class="kw">break</span>;
+                }
+
+                <span class="kw">_ </span>=&gt; {}
             }
-            <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
         }
-    }
 
-    <span class="prelude-val">Ok</span>(attributes)
+        BlockVariable::new(attributes, VariableKind::default())
+    }
 }
 
 <span class="attr">#[cfg(test)]
@@ -522,7 +510,7 @@
 
     <span class="kw">use crate</span>::{
         model::variables::{BlockVariable, FunctionBlockVariable},
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{
             XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
             XVariable,
@@ -534,24 +522,30 @@
     </span><span class="kw">fn </span>block_input_variable() {
         <span class="kw">let </span>content = XInputVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(BlockVariable::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="kw">let </span>variables: <span class="prelude-ty">Result</span>&lt;Vec&lt;BlockVariable&gt;, <span class="kw">_</span>&gt; = Parseable::visit(<span class="kw-2">&amp;mut </span>reader, tag);
+        <span class="macro">assert_debug_snapshot!</span>(variables);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_output_variable() {
         <span class="kw">let </span>content = XOutputVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(BlockVariable::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="kw">let </span>variables: <span class="prelude-ty">Result</span>&lt;Vec&lt;BlockVariable&gt;, <span class="kw">_</span>&gt; = Parseable::visit(<span class="kw-2">&amp;mut </span>reader, tag);
+        <span class="macro">assert_debug_snapshot!</span>(variables);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_inout_variable() {
         <span class="kw">let </span>content = XInOutVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(BlockVariable::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="kw">let </span>variables: <span class="prelude-ty">Result</span>&lt;Vec&lt;BlockVariable&gt;, <span class="kw">_</span>&gt; = Parseable::visit(<span class="kw-2">&amp;mut </span>reader, tag);
+        <span class="macro">assert_debug_snapshot!</span>(variables);
     }
 
     <span class="attr">#[test]
@@ -559,8 +553,9 @@
         <span class="kw">let </span>content =
             XInVariable::init(<span class="string">&quot;0&quot;</span>, <span class="bool-val">false</span>).with_expression(XExpression::new().with_data(<span class="string">&quot;a&quot;</span>)).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(FunctionBlockVariable::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(FunctionBlockVariable::visit(<span class="kw-2">&amp;mut </span>reader, tag));
     }
 
     <span class="attr">#[test]
@@ -568,8 +563,9 @@
         <span class="kw">let </span>content =
             XOutVariable::init(<span class="string">&quot;0&quot;</span>, <span class="bool-val">false</span>).with_expression(XExpression::new().with_data(<span class="string">&quot;a&quot;</span>)).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(FunctionBlockVariable::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(FunctionBlockVariable::visit(<span class="kw-2">&amp;mut </span>reader, tag));
     }
 }
 </code></pre></div></section></main></body></html>

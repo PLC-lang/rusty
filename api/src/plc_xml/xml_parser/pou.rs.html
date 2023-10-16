@@ -35,9 +35,6 @@
 <a href="#35" id="35">35</a>
 <a href="#36" id="36">36</a>
 <a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstNode, Implementation};
 
 <span class="kw">use </span><span class="kw">crate</span>::model::pou::Pou;
@@ -46,10 +43,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(fbd) = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram <span class="kw">else </span>{
-            <span class="comment">// empty body
-            </span><span class="kw">return </span><span class="macro">vec!</span>[];
-        };
+        <span class="kw">let </span>fbd = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram;
 
         <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;debug&quot;</span>) {
             <span class="kw">let </span>statements = fbd.transform(session);

@@ -84,50 +84,41 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::Event;
+</pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
 <span class="kw">use </span><span class="kw">super</span>::fbd::FunctionBlockDiagram;
-<span class="kw">use crate</span>::{error::Error, reader::PeekableReader, xml_parser::Parseable};
+<span class="kw">use crate</span>::{error::Error, reader::Reader, xml_parser::Parseable};
 
 <span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Body&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">pub </span>function_block_diagram: <span class="prelude-ty">Option</span>&lt;FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt;&gt;,
+    <span class="kw">pub </span>function_block_diagram: FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Body&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">fn </span>new(fbd: <span class="prelude-ty">Option</span>&lt;FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    <span class="kw">fn </span>new(fbd: FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ function_block_diagram: fbd })
     }
 
     <span class="kw">fn </span>empty() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ function_block_diagram: <span class="prelude-val">None </span>})
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ function_block_diagram: FunctionBlockDiagram::default() })
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Body&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">type </span>Item = <span class="self">Self</span>;
-
-    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>body = Body::default();
         <span class="kw">loop </span>{
-            <span class="kw">match </span>reader.peek()<span class="question-mark">? </span>{
-                Event::Start(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                    <span class="string">b&quot;FBD&quot; </span>=&gt; {
-                        <span class="kw">let </span>fbd = FunctionBlockDiagram::visit(reader)<span class="question-mark">?</span>;
-                        reader.consume_until(<span class="macro">vec!</span>[<span class="string">b&quot;body&quot;</span>])<span class="question-mark">?</span>;
-
-                        <span class="kw">return </span>Body::new(<span class="prelude-val">Some</span>(fbd));
-                    }
-                    <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
-                },
-                Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;FBD&quot; </span>=&gt; <span class="kw">return </span>Body::empty(),
+            <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;FBD&quot; </span>=&gt; {
+                    body.function_block_diagram = FunctionBlockDiagram::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?
+                </span>}
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;body&quot; </span>=&gt; <span class="kw">break</span>,
                 Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b&quot;body&quot;</span>])),
-                <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
+                <span class="kw">_ </span>=&gt; {}
             }
         }
+
+        <span class="prelude-val">Ok</span>(body)
     }
 }
 
@@ -137,7 +128,7 @@
 
     <span class="kw">use crate</span>::{
         model::body::Body,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{XBlock, XBody, XFbd, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
         xml_parser::Parseable,
     };
@@ -146,8 +137,8 @@
     </span><span class="kw">fn </span>empty() {
         <span class="kw">let </span>content = XBody::new().with_fbd(XFbd::new().close()).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Body::visit(<span class="kw-2">&amp;mut </span>reader).unwrap());
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="macro">assert_debug_snapshot!</span>(Body::visit(<span class="kw-2">&amp;mut </span>reader, <span class="prelude-val">None</span>).unwrap());
     }
 
     <span class="attr">#[test]
@@ -174,8 +165,9 @@
             )
             .serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Body::visit(<span class="kw-2">&amp;mut </span>reader).unwrap());
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Body::visit(<span class="kw-2">&amp;mut </span>reader, tag).unwrap());
     }
 }
 </code></pre></div></section></main></body></html>

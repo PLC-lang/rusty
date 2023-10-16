@@ -855,6 +855,9 @@
 <a href="#855" id="855">855</a>
 <a href="#856" id="856">856</a>
 <a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
@@ -1006,14 +1009,17 @@
             }
             AstStatement::JumpStatement(JumpStatement { condition, .. }) =&gt; {
                 <span class="comment">//Find the label to jump to
-                </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_block) = <span class="self">self</span>.annotations.get(statement).and_then(
-                        |label| <span class="kw">if let </span>StatementAnnotation::Label { name } = label {
-                            <span class="self">self</span>.function_context.blocks.get(name)
-                        } <span class="kw">else </span>{
-                            <span class="prelude-val">None
-                        </span>})
-                <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Could not find label for {statement:?}&quot;</span>, statement.get_location()));
+                </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_block) = <span class="self">self</span>.annotations.get(statement).and_then(|label| {
+                    <span class="kw">if let </span>StatementAnnotation::Label { name } = label {
+                        <span class="self">self</span>.function_context.blocks.get(name)
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                }) <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
+                        <span class="string">&quot;Could not find label for {statement:?}&quot;</span>,
+                        statement.get_location(),
+                    ));
                 };
                 <span class="comment">//Set current location as else block
                 </span><span class="kw">let </span>current_block = <span class="self">self</span>.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);

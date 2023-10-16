@@ -204,15 +204,17 @@
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
-<span class="kw">use </span>quick_xml::events::Event;
+<span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
-<span class="kw">use crate</span>::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+<span class="kw">use crate</span>::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
+};
 
 <span class="kw">use super</span>::{action::Action, body::Body, interface::Interface};
 
@@ -240,11 +242,40 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         source_location_factory: <span class="kw-2">&amp;</span>plc_source::source_location::SourceLocationFactory,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Vec&lt;Diagnostic&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>fbd) = <span class="self">self</span>.body.function_block_diagram {
-            fbd.desugar(source_location_factory)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(())
+        <span class="self">self</span>.body.function_block_diagram.desugar(source_location_factory)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
+    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
+        <span class="kw">let </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou::default().with_attributes(attributes)<span class="question-mark">?</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>reader.read_event()<span class="question-mark">? </span>{
+                <span class="comment">// XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
+                </span>Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;interface&quot; </span>=&gt; {
+                    pou.interface =
+                        <span class="prelude-val">Some</span>(Interface::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>.append_end_keyword(<span class="kw-2">&amp;</span>pou.pou_type))
+                }
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;body&quot; </span>=&gt; {
+                    pou.body = Body::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?
+                </span>}
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;actions&quot; </span>=&gt; {
+                    <span class="kw">let </span>actions: Vec&lt;Action&lt;<span class="lifetime">&#39;_</span>&gt;&gt; = Parseable::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
+                    <span class="kw">for </span><span class="kw-2">mut </span>action <span class="kw">in </span>actions.into_iter() {
+                        <span class="comment">// Copy the action type names
+                        </span>action.type_name = pou.name.clone();
+                        pou.actions.push(action);
+                    }
+                }
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;pou&quot; </span>=&gt; <span class="kw">break</span>,
+                Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b&quot;pou&quot;</span>])),
+
+                <span class="kw">_ </span>=&gt; {}
+            }
         }
+        <span class="prelude-val">Ok</span>(pou)
     }
 }
 
@@ -279,46 +310,6 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>Pou&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">type </span>Item = <span class="self">Self</span>;
-
-    <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>PeekableReader) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Item, Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou::default().with_attributes(reader.attributes()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <span class="kw">loop </span>{
-            <span class="kw">match </span>reader.peek()<span class="question-mark">? </span>{
-                Event::Start(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                    <span class="string">b&quot;interface&quot; </span>=&gt; {
-                        <span class="comment">// XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
-                        </span>reader.consume_until_start(<span class="string">b&quot;content&quot;</span>)<span class="question-mark">?</span>;
-                        <span class="kw">match </span>reader.next()<span class="question-mark">? </span>{
-                            Event::Start(tag) =&gt; {
-                                pou.interface = <span class="prelude-val">Some</span>(Interface::new(<span class="kw-2">&amp;</span>reader.read_text(tag.name())<span class="question-mark">?</span>))
-                            }
-                            <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
-                        }
-                    }
-                    <span class="string">b&quot;body&quot; </span>=&gt; {
-                        pou.body = Body::visit(reader)<span class="question-mark">?</span>;
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = pou.interface {
-                            pou.interface = <span class="prelude-val">Some</span>(interface.append_end_keyword(<span class="kw-2">&amp;</span>pou.pou_type));
-                        }
-
-                        <span class="comment">// TODO: change in order to parse INTERFACE, ACTION etc..
-                        </span>reader.consume_until(<span class="macro">vec!</span>[<span class="string">b&quot;pou&quot;</span>])<span class="question-mark">?</span>;
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(pou);
-                    }
-
-                    <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
-                },
-
-                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;pou&quot; </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(pou),
-
-                <span class="kw">_ </span>=&gt; reader.consume()<span class="question-mark">?</span>,
-            }
-        }
-    }
-}
-
 <span class="kw">impl </span>FromStr <span class="kw">for </span>PouType {
     <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
@@ -337,12 +328,12 @@
     <span class="kw">use </span>insta::assert_debug_snapshot;
 
     <span class="kw">use crate</span>::{
-        model::{pou::Pou, project::Project},
-        reader::PeekableReader,
+        model::pou::Pou,
+        reader::{get_start_tag, Reader},
         serializer::{
             XAddData, XBody, XContent, XData, XFbd, XInterface, XLocalVars, XPou, XTextDeclaration,
         },
-        xml_parser::Parseable,
+        xml_parser::{<span class="self">self</span>, Parseable},
     };
 
     <span class="attr">#[test]
@@ -373,8 +364,7 @@ END_VAR
             .with_body(XBody::new().with_fbd(XFbd::new().close()))
             .serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Project::pou_entry(<span class="kw-2">&amp;mut </span>reader));
+        <span class="macro">assert_debug_snapshot!</span>(xml_parser::visit(<span class="kw-2">&amp;</span>content));
     }
 
     <span class="attr">#[test]
@@ -382,8 +372,9 @@ END_VAR
         <span class="kw">let </span>content =
             XPou::new().with_attribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;foo&quot;</span>).with_attribute(<span class="string">&quot;pouType&quot;</span>, <span class="string">&quot;program&quot;</span>).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader, tag));
     }
 
     <span class="attr">#[test]
@@ -391,8 +382,9 @@ END_VAR
         <span class="kw">let </span>content =
             XPou::new().with_attribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;foo&quot;</span>).with_attribute(<span class="string">&quot;pouType&quot;</span>, <span class="string">&quot;function&quot;</span>).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader, tag));
     }
 
     <span class="attr">#[test]
@@ -400,8 +392,9 @@ END_VAR
         <span class="kw">let </span>content =
             XPou::new().with_attribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;foo&quot;</span>).with_attribute(<span class="string">&quot;pouType&quot;</span>, <span class="string">&quot;functionBlock&quot;</span>).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader));
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Pou::visit(<span class="kw-2">&amp;mut </span>reader, tag));
     }
 
     <span class="attr">#[test]
@@ -409,9 +402,10 @@ END_VAR
         <span class="kw">let </span>content =
             XPou::new().with_attribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;foo&quot;</span>).with_attribute(<span class="string">&quot;pouType&quot;</span>, <span class="string">&quot;asdasd&quot;</span>).serialize();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = PeekableReader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
         <span class="macro">assert_eq!</span>(
-            Pou::visit(<span class="kw-2">&amp;mut </span>reader).unwrap_err().to_string(),
+            Pou::visit(<span class="kw-2">&amp;mut </span>reader, tag).unwrap_err().to_string(),
             <span class="string">&quot;Found an unexpected element &#39;asdasd&#39;&quot;</span>.to_string()
         );
     }

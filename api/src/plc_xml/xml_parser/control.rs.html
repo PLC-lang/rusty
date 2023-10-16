@@ -555,6 +555,10 @@
 <a href="#555" id="555">555</a>
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -658,7 +662,7 @@
 
     <span class="kw">use crate</span>::{
         model::control::Control,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{XAddData, XConnectionPointIn, XJump, XLabel, XReturn},
         xml_parser::{<span class="self">self</span>, Parseable},
     };
@@ -672,8 +676,9 @@
             .with_add_data(XAddData::negated(<span class="bool-val">false</span>))
             .serialize();
 
-        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader).unwrap());
+        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader, tag).unwrap());
     }
 
     <span class="attr">#[test]
@@ -685,8 +690,9 @@
             .with_add_data(XAddData::negated(<span class="bool-val">true</span>))
             .serialize();
 
-        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader).unwrap());
+        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader, tag).unwrap());
     }
 
     <span class="attr">#[test]
@@ -760,8 +766,9 @@
     </span><span class="kw">fn </span>unconnected_jump_to_label() {
         <span class="kw">let </span>content = XJump::new().with_local_id(<span class="string">&quot;1&quot;</span>).with_execution_order_id(<span class="string">&quot;2&quot;</span>).serialize();
 
-        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader).unwrap());
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Control::visit(<span class="kw-2">&amp;mut </span>reader, tag).unwrap());
     }
 
     <span class="attr">#[test]
@@ -835,8 +842,9 @@
     </span><span class="kw">fn </span>label_parsed() {
         <span class="kw">let </span>content = XLabel::new().with_local_id(<span class="string">&quot;1&quot;</span>).with_execution_order_id(<span class="string">&quot;2&quot;</span>).serialize();
 
-        <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>PeekableReader::new(<span class="kw-2">&amp;</span>content);
-        <span class="macro">assert_debug_snapshot!</span>(Control::visit(reader).unwrap());
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
+        <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
+        <span class="macro">assert_debug_snapshot!</span>(Control::visit(<span class="kw-2">&amp;mut </span>reader, tag).unwrap());
     }
 
     <span class="attr">#[test]
