@@ -36,30 +36,24 @@ impl<'xml> Pou<'xml> {
         &mut self,
         source_location_factory: &plc_source::source_location::SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
-        if let Some(ref mut fbd) = self.body.function_block_diagram {
-            fbd.desugar(source_location_factory)
-        } else {
-            Ok(())
-        }
+        self.body.function_block_diagram.desugar(source_location_factory)
     }
 }
 
 impl<'xml> Parseable for Pou<'xml> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
-        let Some(tag) = tag else {
-            unreachable!()
-        };
+        let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;
         let mut pou = Pou::default().with_attributes(attributes)?;
         loop {
             match reader.read_event()? {
+                // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
                 Event::Start(tag) if tag.name().as_ref() == b"interface" => {
-                    // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
                     pou.interface =
-                        Some(Interface::visit(reader, Some(tag))?.append_end_keyword(&pou.pou_type));
+                        Some(Interface::visit(reader, Some(tag))?.append_end_keyword(&pou.pou_type))
                 }
                 Event::Start(tag) if tag.name().as_ref() == b"body" => {
-                    pou.body = Body::visit(reader, Some(tag))?;
+                    pou.body = Body::visit(reader, Some(tag))?
                 }
                 Event::Start(tag) if tag.name().as_ref() == b"actions" => {
                     let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;

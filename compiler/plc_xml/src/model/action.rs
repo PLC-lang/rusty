@@ -4,7 +4,7 @@ use quick_xml::events::Event;
 
 use crate::{
     reader::Reader,
-    xml_parser::{get_attributes, Parseable},
+    xml_parser::{get_attributes, Parseable}, error::Error,
 };
 
 use super::body::Body;
@@ -34,7 +34,7 @@ impl Parseable for Vec<Action<'_>> {
                     res.push(Action::visit(reader, Some(tag))?);
                 }
                 Event::End(tag) if tag.name().as_ref() == b"actions" => break,
-                Event::Eof => todo!(),
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"actions"])),
                 _ => {}
             }
         }
@@ -63,7 +63,7 @@ impl Parseable for Action<'_> {
                     action.body = Body::visit(reader, Some(tag))?;
                 }
                 Event::End(tag) if tag.name().as_ref() == b"action" => break,
-                Event::Eof => todo!(),
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"actions"])),
                 _ => {}
             }
         }

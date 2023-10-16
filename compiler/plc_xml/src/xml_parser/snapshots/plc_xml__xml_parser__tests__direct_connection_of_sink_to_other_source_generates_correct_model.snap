@@ -8,36 +8,34 @@ Project {
             name: "myConnection",
             pou_type: Function,
             body: Body {
-                function_block_diagram: Some(
-                    FunctionBlockDiagram {
-                        nodes: {
-                            16: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Input,
-                                    local_id: 16,
-                                    negated: false,
-                                    expression: "x",
-                                    execution_order_id: None,
-                                    ref_local_id: None,
-                                },
-                            ),
-                            4: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Output,
-                                    local_id: 4,
-                                    negated: false,
-                                    expression: "myConnection",
-                                    execution_order_id: Some(
-                                        3,
-                                    ),
-                                    ref_local_id: Some(
-                                        16,
-                                    ),
-                                },
-                            ),
-                        },
+                function_block_diagram: FunctionBlockDiagram {
+                    nodes: {
+                        16: FunctionBlockVariable(
+                            FunctionBlockVariable {
+                                kind: Input,
+                                local_id: 16,
+                                negated: false,
+                                expression: "x",
+                                execution_order_id: None,
+                                ref_local_id: None,
+                            },
+                        ),
+                        4: FunctionBlockVariable(
+                            FunctionBlockVariable {
+                                kind: Output,
+                                local_id: 4,
+                                negated: false,
+                                expression: "myConnection",
+                                execution_order_id: Some(
+                                    3,
+                                ),
+                                ref_local_id: Some(
+                                    16,
+                                ),
+                            },
+                        ),
                     },
-                ),
+                },
             },
             actions: [],
             interface: Some(

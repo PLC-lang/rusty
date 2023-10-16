@@ -5,16 +5,16 @@ use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
 #[derive(Debug, Default)]
 pub(crate) struct Body<'xml> {
-    pub function_block_diagram: Option<FunctionBlockDiagram<'xml>>,
+    pub function_block_diagram: FunctionBlockDiagram<'xml>,
 }
 
 impl<'xml> Body<'xml> {
-    fn new(fbd: Option<FunctionBlockDiagram<'xml>>) -> Result<Self, Error> {
+    fn new(fbd: FunctionBlockDiagram<'xml>) -> Result<Self, Error> {
         Ok(Self { function_block_diagram: fbd })
     }
 
     fn empty() -> Result<Self, Error> {
-        Ok(Self { function_block_diagram: None })
+        Ok(Self { function_block_diagram: FunctionBlockDiagram::default() })
     }
 }
 
@@ -24,7 +24,7 @@ impl<'xml> Parseable for Body<'xml> {
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) if tag.name().as_ref() == b"FBD" => {
-                    body.function_block_diagram = Some(FunctionBlockDiagram::visit(reader, Some(tag))?)
+                    body.function_block_diagram = FunctionBlockDiagram::visit(reader, Some(tag))?
                 }
                 Event::End(tag) if tag.name().as_ref() == b"body" => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"body"])),

@@ -392,7 +392,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -451,7 +451,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -531,7 +531,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -610,7 +610,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -659,7 +659,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -708,7 +708,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
         //With diagnostic
 
@@ -789,7 +789,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         let err = model.desugar(&source_location_factory).unwrap_err();
@@ -849,7 +849,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         let err = model.desugar(&source_location_factory).unwrap_err();
@@ -952,7 +952,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
