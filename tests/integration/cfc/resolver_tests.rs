@@ -1,6 +1,6 @@
 use driver::parse_and_annotate;
 use insta::assert_debug_snapshot;
-use plc_ast::ast::{Assignment, AstStatement, CallStatement};
+use plc_ast::ast::{Assignment, AstStatement};
 use plc_source::SourceContainer;
 use rusty::resolver::AnnotationMap;
 
