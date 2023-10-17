@@ -661,6 +661,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn struct_inside_array_assignment(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Structs within arrays must be surrounded by `()`".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
     pub fn recursive_datastructure(path: &str, range: Vec<SourceLocation>) -> Diagnostic {
         Diagnostic::SemanticError {
             message: format!("Recursive data structure `{path}` has infinite size"),

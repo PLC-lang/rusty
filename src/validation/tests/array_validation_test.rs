@@ -296,3 +296,27 @@ fn assignment_multiplied_statement() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn demo() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE foo : STRUCT
+            id      : DINT;
+            arr     : ARRAY[1..2] OF DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+				// Valid
+				arr_one : ARRAY[1..2] OF foo := [(id := 0, arr := [1, 2])];
+
+				// Invalid, because the second argument isn't surrounded by `()`
+				arr_two : ARRAY[1..2] OF foo := [(id := 0, arr := [1, 2]), id := 1, arr := [1, 2]];
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}

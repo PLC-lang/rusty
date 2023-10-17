@@ -44,6 +44,25 @@ pub(super) fn validate_array_assignment<T>(
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
+    let ty = dti_lhs.get_inner_array_type_name().and_then(|it| context.index.find_effective_type_info(it));
+    if ty.is_some_and(|it| it.is_struct()) {
+        // We want to validate if every element within the array initialization is
+        // a) an expression list and b) the type hint of said expression list is the struct type
+        let AstStatement::Literal(AstLiteral::Array(array)) = &stmt_rhs.stmt else { todo!() };
+        let AstStatement::ExpressionList(elements) = array.elements().unwrap().get_stmt() else { todo!() };
+
+        // TODO: Not very elegant
+        if elements.iter().any(AstNode::is_expression_list) {
+            for element in elements {
+                if !element.is_expression_list() {
+                    validator
+                        .push_diagnostic(Diagnostic::struct_inside_array_assignment(element.get_location()));
+                    continue;
+                }
+            }
+        }
+    }
+
     let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
     let len_rhs = statement_to_array_length(stmt_rhs);
 
