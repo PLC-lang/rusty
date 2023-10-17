@@ -15,7 +15,6 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::typesystem::DataTypeInformationProvider;
 use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
@@ -43,21 +42,6 @@ pub(super) fn validate_array_assignment<T>(
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
-    }
-
-    let AstStatement::Literal(AstLiteral::Array(array)) = &stmt_rhs.stmt else {
-        todo!()
-    };
-
-    let ty = dti_lhs.get_inner_array_type_name().and_then(|it| context.index.find_effective_type_info(it));
-    if ty.is_some_and(|it| it.is_struct()) {
-        if let Some(AstStatement::ExpressionList(expressions)) = array.elements().map(|it| it.get_stmt()) {
-            for expr in expressions {
-                if !dbg!(expr).is_expression_list() {
-                    validator.push_diagnostic(Diagnostic::struct_inside_array_assignment(expr.get_location()))
-                }
-            }
-        }
     }
 
     let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
@@ -88,7 +72,7 @@ fn statement_to_array_length(statement: &AstNode) -> usize {
         // Any literal other than an array can be counted as 1
         AstStatement::Literal { .. } => 1,
 
-        _ => {
+        _any => {
             // XXX: Not sure what else could be in here
             log::warn!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
             0
