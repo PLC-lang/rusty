@@ -1,0 +1,105 @@
+---
+source: src/parser/tests/inline_variable_tests.rs
+expression: result
+---
+CompilationUnit {
+    global_vars: [],
+    units: [
+        POU {
+            name: "main",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "x",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Program,
+            return_type: None,
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Program,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 10,
+                    },
+                },
+                Assignment {
+                    left: InlineVariable {
+                        name: Identifier {
+                            name: "y",
+                        },
+                        datatype: None,
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 10,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 12,
+                        offset: 73,
+                    }..TextLocation {
+                        line: 6,
+                        column: 23,
+                        offset: 150,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 20,
+                        offset: 21,
+                    }..TextLocation {
+                        line: 1,
+                        column: 24,
+                        offset: 25,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    user_types: [],
+    file_name: "test.st",
+}

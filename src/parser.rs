@@ -338,7 +338,7 @@ fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
     let start_return_type = lexer.range().start;
     if lexer.try_consume(&KeywordColon) {
-        if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
+        if let Some((declaration, initializer)) = parse_datatype_with_initializer(lexer, None) {
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
                     init.get_location(),
@@ -587,7 +587,7 @@ fn parse_full_data_type_definition(
                 None,
             ))
         } else {
-            parse_data_type_definition(lexer, name).map(|(type_def, initializer)| {
+            parse_datatype_with_initializer(lexer, name).map(|(type_def, initializer)| {
                 if lexer.try_consume(&KeywordDotDotDot) {
                     (
                         DataTypeDeclaration::DataTypeDefinition {
@@ -605,23 +605,29 @@ fn parse_full_data_type_definition(
     })
 }
 
-// TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
-fn parse_data_type_definition(
+fn parse_datatype_with_initializer(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
+    parse_data_type_definition(lexer, name).map(|type_def| {
+        let initializer =
+            if lexer.try_consume(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
+
+        (type_def, initializer)
+    })
+}
+
+// TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
+fn parse_data_type_definition(lexer: &mut ParseSession, name: Option<String>) -> Option<DataTypeDeclaration> {
     let start = lexer.location();
     if lexer.try_consume(&KeywordStruct) {
         // Parse struct
         let variables = parse_variable_list(lexer);
-        Some((
-            DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::StructType { name, variables },
-                location: start.span(&lexer.location()),
-                scope: lexer.scope.clone(),
-            },
-            None,
-        ))
+        Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StructType { name, variables },
+            location: start.span(&lexer.location()),
+            scope: lexer.scope.clone(),
+        })
     } else if lexer.try_consume(&KeywordArray) {
         parse_array_type_definition(lexer, name)
     } else if lexer.try_consume(&KeywordPointer) {
@@ -661,23 +667,18 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
     start_pos: usize,
-) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
-    parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
-        (
-            DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
-                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
-                scope: lexer.scope.clone(),
-            },
-            initializer,
-        )
+) -> Option<DataTypeDeclaration> {
+    parse_data_type_definition(lexer, None).map(|decl| DataTypeDeclaration::DataTypeDefinition {
+        data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
+        location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
+        scope: lexer.scope.clone(),
     })
 }
 
 fn parse_type_reference_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
+) -> Option<DataTypeDeclaration> {
     let start = lexer.range().start;
     //Subrange
     let referenced_type = lexer.slice_and_advance();
@@ -691,9 +692,6 @@ fn parse_type_reference_type_definition(
     } else {
         None
     };
-
-    let initial_value =
-        if lexer.try_consume(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
@@ -732,15 +730,12 @@ fn parse_type_reference_type_definition(
                 scope: lexer.scope.clone(),
             },
         };
-        Some((data_type, initial_value))
+        Some(data_type)
     } else {
-        Some((
-            DataTypeDeclaration::DataTypeReference {
-                referenced_type,
-                location: lexer.source_range_factory.create_range(start..end),
-            },
-            initial_value,
-        ))
+        Some(DataTypeDeclaration::DataTypeReference {
+            referenced_type,
+            location: lexer.source_range_factory.create_range(start..end),
+        })
     }
 }
 
@@ -778,7 +773,7 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
 fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
+) -> Option<DataTypeDeclaration> {
     let text = lexer.slice().to_string();
     let start = lexer.range().start;
     let is_wide = lexer.token == KeywordWideString;
@@ -805,34 +800,26 @@ fn parse_string_type_definition(
         }),
         _ => Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
     }
-    .zip(Some(lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer))))
 }
 
-fn parse_enum_type_definition(
-    lexer: &mut ParseSession,
-    name: Option<String>,
-) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
+fn parse_enum_type_definition(lexer: &mut ParseSession, name: Option<String>) -> Option<DataTypeDeclaration> {
     let start = lexer.last_location();
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
         let elements = parse_expression_list(lexer);
         Some(elements)
     })?;
-    let initializer = lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer));
-    Some((
-        DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
-            location: start.span(&lexer.last_location()),
-            scope: lexer.scope.clone(),
-        },
-        initializer,
-    ))
+    Some(DataTypeDeclaration::DataTypeDefinition {
+        data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
+        location: start.span(&lexer.last_location()),
+        scope: lexer.scope.clone(),
+    })
 }
 
 fn parse_array_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
+) -> Option<DataTypeDeclaration> {
     let start = lexer.last_range.start;
     let range = parse_any_in_region(lexer, vec![KeywordOf], |lexer| {
         // Parse Array range
@@ -849,7 +836,7 @@ fn parse_array_type_definition(
     })?;
 
     let inner_type_defintion = parse_data_type_definition(lexer, None);
-    inner_type_defintion.map(|(reference, initializer)| {
+    inner_type_defintion.map(|reference| {
         let reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(0);
         let location = lexer.source_range_factory.create_range(start..reference_end);
 
@@ -876,19 +863,16 @@ fn parse_array_type_definition(
             }
         };
 
-        (
-            DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::ArrayType {
-                    name,
-                    bounds: range,
-                    referenced_type: Box::new(reference),
-                    is_variable_length,
-                },
-                location,
-                scope: lexer.scope.clone(),
+        DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                name,
+                bounds: range,
+                referenced_type: Box::new(reference),
+                is_variable_length,
             },
-            initializer,
-        )
+            location,
+            scope: lexer.scope.clone(),
+        }
     })
 }
 

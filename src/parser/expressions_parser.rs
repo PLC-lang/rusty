@@ -15,7 +15,7 @@ use plc_source::source_location::SourceLocation;
 use regex::{Captures, Regex};
 use std::{ops::Range, str::FromStr};
 
-use super::parse_hardware_access;
+use super::{parse_data_type_definition, parse_hardware_access};
 
 macro_rules! parse_left_associative_expression {
     ($lexer: expr, $action : expr,
@@ -281,6 +281,12 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstNode,
         LiteralNull => parse_null_literal(lexer),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         DirectAccess(access) => parse_direct_access(lexer, access),
+        PropertyDef => {
+            //Just consume the {def} and go further, if it's a variable we parse it next
+            lexer.advance();
+            parse_atomic_leaf_expression(lexer)
+        }
+        KeywordVar => parse_inline_declaration(lexer),
         _ => {
             if lexer.closing_keywords.contains(&vec![KeywordParensClose])
                 && matches!(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
@@ -294,6 +300,27 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstNode,
             }
         }
     }
+}
+
+fn parse_inline_declaration(lexer: &mut ParseSession<'_>) -> Result<AstNode, Diagnostic> {
+    //Consume the direct access
+    let location = lexer.location();
+    //Inline variable declaration
+    lexer.advance();
+    //Parse the name
+    let name = parse_identifier(lexer);
+    let datatype = if lexer.try_consume(&KeywordColon) {
+        //Parse datatype
+        let type_location = lexer.location();
+        parse_data_type_definition(lexer, None).map(|it| {
+            AstFactory::create_type_declaration(it, lexer.next_id(), type_location.span(&lexer.location()))
+        })
+    } else {
+        None
+    };
+    let location = location.span(&lexer.last_location());
+
+    Ok(AstFactory::create_inline_declaration(name, datatype, lexer.next_id(), location))
 }
 
 fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstNode {

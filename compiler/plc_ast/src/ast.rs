@@ -619,6 +619,8 @@ pub enum AstStatement {
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+    InlineVariable(InlineVariable),
+    DataTypeDeclaration(Box<DataTypeDeclaration>),
 }
 
 impl Debug for AstNode {
@@ -737,6 +739,12 @@ impl Debug for AstNode {
             }
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
+            }
+            AstStatement::InlineVariable(InlineVariable { name, datatype }) => {
+                f.debug_struct("InlineVariable").field("name", name).field("datatype", datatype).finish()
+            }
+            AstStatement::DataTypeDeclaration(decl) => {
+                f.debug_tuple("DataTypeDeclaration").field(decl).finish()
             }
         }
     }
@@ -1512,6 +1520,27 @@ impl AstFactory {
     pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
         AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
     }
+
+    /// Creates a new inline declaration by boxing the name and datatype
+    pub fn create_inline_declaration(
+        name: AstNode,
+        datatype: Option<AstNode>,
+        id: AstId,
+        location: SourceLocation,
+    ) -> AstNode {
+        let name = Box::new(name);
+        let datatype = datatype.map(Box::new);
+        AstNode { stmt: AstStatement::InlineVariable(InlineVariable { name, datatype }), id, location }
+    }
+
+    pub fn create_type_declaration(
+        datatype: DataTypeDeclaration,
+        id: AstId,
+        location: SourceLocation,
+    ) -> AstNode {
+        let datatype = Box::new(datatype);
+        AstNode { stmt: AstStatement::DataTypeDeclaration(datatype), id, location }
+    }
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}
@@ -1593,4 +1622,11 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+/// Represents a new vaiable declaration in the body
+#[derive(Clone, Debug, PartialEq)]
+pub struct InlineVariable {
+    pub name: Box<AstNode>,
+    pub datatype: Option<Box<AstNode>>,
 }
