@@ -1,8 +1,10 @@
+use jsonschema::JSONSchema;
 use plc::Target;
 use plc_diagnostics::diagnostics::Diagnostic;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -34,26 +36,38 @@ pub enum LinkageInfo {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectConfig {
     pub name: String,
     pub files: Vec<PathBuf>,
     #[serde(default)]
     pub compile_type: FormatOption,
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub output: Option<String>,
     #[serde(default)]
     pub libraries: Vec<LibraryConfig>,
     #[serde(default)]
     pub package_commands: Vec<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "format-version")]
+    #[serde(rename(serialize = "format-version"))]
+    pub format_version: Option<String>,
 }
 
 impl ProjectConfig {
     /// Retuns a project from the given string (in json format)
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
     pub fn try_parse(content: &str) -> Result<Self, Diagnostic> {
-        validate_build_description_file(&content)?;
         let content = resolve_environment_variables(content)?;
-        serde_json::from_str(&content).map_err(Into::into)
+        let content: ProjectConfig = serde_json::from_str(&content).map_err(Diagnostic::from)?;
+        content.validate()?;
+
+        Ok(content)
     }
 
     pub(crate) fn from_file(config: &Path) -> Result<Self, Diagnostic> {
@@ -64,6 +78,27 @@ impl ProjectConfig {
         let project = ProjectConfig::try_parse(&content)?;
 
         Ok(project)
+    }
+
+    fn validate(&self) -> Result<(), Diagnostic> {
+        let schema =
+            serde_json::from_str(crate::build_description_schema::PLC_JSON_SCHEMA).expect("A valid schema");
+        let instance = json!(self);
+        let compiled = JSONSchema::compile(&schema).expect("A valid schema");
+        compiled.validate(&instance).map_err(|errors| {
+            let mut message = String::from("plc.json could not be validated due to the following errors:\n");
+            for err in errors {
+                let prefix = match err.kind {
+                    jsonschema::error::ValidationErrorKind::MinItems { .. } => {
+                        err.instance_path.to_string().replace('/', "")
+                    }
+                    _ => "".into(),
+                };
+                message.push_str(&format!("{prefix}{err}\n"));
+            }
+
+            Diagnostic::invalid_build_description_file(message)
+        })
     }
 }
 
@@ -81,37 +116,13 @@ fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic>
     Ok(result.replace('\\', r"\\"))
 }
 
-fn validate_build_description_file(content: &str) -> Result<(), Diagnostic> {
-    use jsonschema::JSONSchema;
-    use serde_json::json;
-
-    // TODO: create schema
-    let schema = json!({"maxLength": 5});
-    let instance = json!(content);
-    let compiled = JSONSchema::compile(&schema).expect("A valid schema");
-    compiled.validate(&instance).map_err(|errors| {
-        let mut message = String::from("plc.json could not be validated due to the following errors:");
-        for err in errors {
-            let raw_err = format!("{err}");
-            let Some(pretty_print) =
-                err.instance.as_ref().as_str().map(|string| string.replace("\"", r#"""#))
-            else {
-                todo!()
-            };
-
-            message.push_str(&format!("{}", raw_err.replace(&err.instance.to_string(), &pretty_print)));
-        }
-
-        Diagnostic::invalid_build_description_file(message)
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
     use std::{env, vec};
 
     use crate::build_config::default_targets;
+    use insta::assert_snapshot;
     use plc::output::FormatOption;
 
     use super::LibraryConfig;
@@ -163,6 +174,80 @@ mod tests {
     }
 "#;
 
+    const ADDITIONAL_UNKNOWN_PROPERTIES: &str = r#"
+    {
+        "name": "MyProject",
+        "files" : [
+            "file.st"
+            ],
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "additional_field" : "should give an error"
+    }
+"#;
+
+    const NO_FILES_SPECIFIED: &str = r#"
+    {
+        "name": "MyProject",
+        "files" : [],
+        "compile_type" : "Shared",
+        "output": "proj.so"
+    }
+    "#;
+
+    const INVALID_ENUM_VARIANTS: &str = r#"
+    {
+        "name": "MyProject",
+        "files" : [
+            "simple_program.st"
+        ],
+        "compile_type" : "Interpreted",
+        "output": "proj.so",
+        "libraries" : [
+            {
+                "name" : "static",
+                "path" : "libs/",
+                "package" : "Opened",
+                "include_path" : [
+                    "simple_program.st"
+                ]
+            }
+        ]
+    }
+"#;
+
+    const MISSING_REQUIRED_PROPERTIES: &str = r#"
+    {
+        "files" : [
+            "simple_program.st"
+        ],
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "libraries" : [
+            {
+                "name" : "static",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
+                ]
+            }
+        ]
+    }
+"#;
+
+    const OPTIONAL_PROPERTIES: &str = r#"
+    {
+        "version": "0.1",
+        "format-version": "0.2",
+        "name": "MyProject",
+        "files" : [
+            "file.st"
+            ],
+        "compile_type" : "Shared",
+        "output": "proj.so"
+    }
+"#;
+
     #[test]
     fn check_build_struct_from_file() {
         let test_project = ProjectConfig {
@@ -201,6 +286,8 @@ mod tests {
                 },
             ],
             package_commands: vec![],
+            version: None,
+            format_version: None,
         };
         let proj = ProjectConfig::try_parse(SIMPLE_PROGRAM).unwrap();
 
@@ -230,7 +317,9 @@ mod tests {
                 "name" : "$test_var",
                 "files" : [
                     "simple_program.st"
-                ]
+                ],
+                "compile_type" : "Shared",
+                "output": "proj.so"
             }
         "#,
         )
@@ -240,9 +329,49 @@ mod tests {
     }
 
     #[test]
-    fn json_validates() {
-        let _ = ProjectConfig::try_parse(SIMPLE_PROGRAM).map_err(|diagnostic| {
-            insta::assert_snapshot!(format!("{diagnostic}"));
-        });
+    fn valid_json_validates_without_errors() {
+        let cfg = ProjectConfig::try_parse(SIMPLE_PROGRAM);
+
+        assert!(cfg.is_ok())
+    }
+
+    #[test]
+    fn json_with_additional_fields_reports_unexpected_fields() {
+        let Err(diag) = ProjectConfig::try_parse(ADDITIONAL_UNKNOWN_PROPERTIES) else {
+            panic!("expected errors")
+        };
+
+        assert_snapshot!(diag.to_string())
+    }
+
+    #[test]
+    fn json_with_invalid_enum_variants_reports_error() {
+        let Err(diag) = ProjectConfig::try_parse(INVALID_ENUM_VARIANTS) else { panic!("expected errors") };
+
+        assert_snapshot!(diag.to_string())
+    }
+
+    #[test]
+    fn json_with_missing_required_properties_reports_error() {
+        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES) else {
+            panic!("expected errors")
+        };
+
+        assert_snapshot!(diag.to_string())
+    }
+
+    #[test]
+    fn json_with_empty_files_array_reports_error() {
+        let Err(diag) = ProjectConfig::try_parse(NO_FILES_SPECIFIED) else { panic!("expected errors") };
+
+        assert_snapshot!(diag.to_string())
+    }
+
+    #[test]
+    fn json_with_optional_properties_is_valid() {
+        match ProjectConfig::try_parse(OPTIONAL_PROPERTIES) {
+            Ok(cfg) => assert_snapshot!(&format!("{:#?}", cfg)),
+            Err(err) => panic!("expected ProjectConfig to be OK, got \n {err}"),
+        };
     }
 }
