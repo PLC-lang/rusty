@@ -2,8 +2,8 @@ use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, Operator,
-        ReferenceAccess,
+        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
+        Operator, ReferenceAccess,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -117,6 +117,15 @@ pub fn visit_statement<T: AnnotationMap>(
             ));
             visit_statement(validator, condition, context);
         }
+        AstStatement::JumpStatement(JumpStatement { condition, target }) => {
+            visit_statement(validator, condition, context);
+            if context.annotations.get(statement).is_none() {
+                validator.push_diagnostic(Diagnostic::unresolved_reference(
+                    target.get_flat_reference_name().unwrap_or_default(),
+                    statement.get_location(),
+                ))
+            }
+        }
         // AstStatement::ExitStatement { location, id } => (),
         // AstStatement::ContinueStatement { location, id } => (),
         // AstStatement::ReturnStatement { location, id } => (),
@@ -153,7 +162,7 @@ fn validate_reference_expression<T: AnnotationMap>(
             if let Some(base) = base {
                 visit_array_access(validator, base, i, context)
             } else {
-                validator.diagnostics.push(Diagnostic::invalid_operation(
+                validator.push_diagnostic(Diagnostic::invalid_operation(
                     "Index-Access requires an array-value.",
                     statement.get_location(),
                 ));

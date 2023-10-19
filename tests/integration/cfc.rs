@@ -1,6 +1,8 @@
 use driver::runner::compile_and_run;
 
 use crate::get_test_file;
+mod resolver_tests;
+mod validation_tests;
 
 #[test]
 fn variables_assigned() {
@@ -161,14 +163,45 @@ fn connection_sink_source() {
     // THEN the result will have double the value of the initial value
     assert_eq!(res, 4);
 }
+#[test]
+fn jump_to_label_with_true() {
+    let cfc_file = get_test_file("cfc/jump_true.cfc");
+
+    let res: i32 = compile_and_run(vec![cfc_file], &mut {});
+    assert_eq!(res, 3);
+}
+
+#[test]
+fn jump_to_label_with_false() {
+    let cfc_file = get_test_file("cfc/jump_false.cfc");
+
+    let res: i32 = compile_and_run(vec![cfc_file], &mut {});
+    assert_eq!(res, 5);
+}
+
+#[test]
+fn actions_called_correctly() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        b: i32,
+    }
+
+    let mut main = MainType::default();
+
+    let file = get_test_file("cfc/actions.cfc");
+    let _: i32 = compile_and_run(vec![file], &mut main);
+
+    assert_eq!(main.a, 1);
+    assert_eq!(main.b, 2);
+}
 
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
 mod ir {
-    use std::io::Read;
-
-    use driver::compile;
+    use driver::{compile, generate_to_string};
     use insta::assert_snapshot;
 
     use crate::get_test_file;
@@ -182,15 +215,12 @@ mod ir {
         let output_file = tempfile::NamedTempFile::new().unwrap();
         let output_file_path = output_file.path().to_string_lossy();
         compile(&["plc", &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -198,18 +228,12 @@ mod ir {
         let st_file = get_test_file("cfc/conditional_return_evaluating_true.st");
         let cfc_file = get_test_file("cfc/conditional_return.cfc");
 
-        let output_file = tempfile::NamedTempFile::new().unwrap();
-        let output_file_path = output_file.path().to_string_lossy();
-        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -217,18 +241,12 @@ mod ir {
         let st_file = get_test_file("cfc/conditional_return_evaluating_true_negated.st");
         let cfc_file = get_test_file("cfc/conditional_return_negated.cfc");
 
-        let output_file = tempfile::NamedTempFile::new().unwrap();
-        let output_file_path = output_file.path().to_string_lossy();
-        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -236,19 +254,11 @@ mod ir {
         let st_file = get_test_file("cfc/connection.st");
         let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
 
-        let result_file = tempfile::NamedTempFile::new().unwrap();
-        let path = result_file.path();
-        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
-        let mut f = std::fs::File::open(path).expect("Temp-file should have been generated");
-        let mut content = String::new();
-        let _ = f.read_to_string(&mut content);
-        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
-
-        //Verify file content
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
-
-        //clean up
-        let _ = std::fs::remove_file(path);
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -257,18 +267,35 @@ mod ir {
         let st_file = get_test_file("cfc/connection.st");
         let cfc_file = get_test_file("cfc/connection_block_source_multi_sink.cfc");
 
-        let result_file = tempfile::NamedTempFile::new().unwrap();
-        let path = result_file.path();
-        compile(&["plc", &st_file, &cfc_file, "-o", &path.to_str().unwrap(), "--ir"]).unwrap();
-        let mut f = std::fs::File::open(path).expect("Temp-file should have been generated");
-        let mut content = String::new();
-        let _ = f.read_to_string(&mut content);
-        let output_file_content_without_headers = content.lines().skip(3).collect::<Vec<&str>>();
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
 
-        //Verify file content
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
 
-        //clean up
-        let _ = std::fs::remove_file(path);
+    #[test]
+    fn jump_to_label_with_true() {
+        let cfc_file = get_test_file("cfc/jump_true.cfc");
+
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    fn jump_to_label_with_false() {
+        let cfc_file = get_test_file("cfc/jump_false.cfc");
+
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 }

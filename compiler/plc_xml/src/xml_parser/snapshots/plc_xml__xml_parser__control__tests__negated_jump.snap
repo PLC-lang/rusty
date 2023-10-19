@@ -1,0 +1,95 @@
+---
+source: compiler/plc_xml/src/xml_parser/control.rs
+expression: "xml_parser::visit(content)"
+---
+Ok(
+    Project {
+        pous: [
+            Pou {
+                name: "program_0",
+                pou_type: Program,
+                body: Body {
+                    function_block_diagram: FunctionBlockDiagram {
+                        nodes: {
+                            0: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 0,
+                                    negated: false,
+                                    expression: "x",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            4: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Input,
+                                    local_id: 4,
+                                    negated: false,
+                                    expression: "FALSE",
+                                    execution_order_id: None,
+                                    ref_local_id: None,
+                                },
+                            ),
+                            1: Control(
+                                Control {
+                                    kind: Label,
+                                    name: Some(
+                                        "lbl",
+                                    ),
+                                    local_id: 1,
+                                    ref_local_id: None,
+                                    execution_order_id: Some(
+                                        0,
+                                    ),
+                                    negated: false,
+                                },
+                            ),
+                            2: Control(
+                                Control {
+                                    kind: Jump,
+                                    name: Some(
+                                        "lbl",
+                                    ),
+                                    local_id: 2,
+                                    ref_local_id: Some(
+                                        0,
+                                    ),
+                                    execution_order_id: Some(
+                                        1,
+                                    ),
+                                    negated: true,
+                                },
+                            ),
+                            3: FunctionBlockVariable(
+                                FunctionBlockVariable {
+                                    kind: Output,
+                                    local_id: 3,
+                                    negated: false,
+                                    expression: "x",
+                                    execution_order_id: Some(
+                                        2,
+                                    ),
+                                    ref_local_id: Some(
+                                        4,
+                                    ),
+                                },
+                            ),
+                        },
+                    },
+                },
+                actions: [],
+                interface: Some(
+                    Interface {
+                        add_data: Some(
+                            Data {
+                                content: "PROGRAM program_0\n                                    VAR\r\n                                        x: BOOL := 0;\r\n                                    END_VAR\nEND_PROGRAM",
+                                handle: Implementation,
+                            },
+                        ),
+                    },
+                ),
+            },
+        ],
+    },
+)

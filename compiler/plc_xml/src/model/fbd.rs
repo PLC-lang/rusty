@@ -1,10 +1,10 @@
 use indexmap::{IndexMap, IndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 
-use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
+use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
 use super::{
     block::Block,
@@ -112,39 +112,34 @@ impl<'xml> Node<'xml> {
 }
 
 impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        reader.consume()?;
+    fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut nodes = IndexMap::new();
-
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"block" => {
-                        let node = Block::visit(reader)?;
+                        let node = Block::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Block(node));
                     }
                     b"jump" | b"label" | b"return" => {
-                        let node = Control::visit(reader)?;
+                        let node = Control::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Control(node));
                     }
                     b"inVariable" | b"outVariable" => {
-                        let node = FunctionBlockVariable::visit(reader)?;
+                        let node = FunctionBlockVariable::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::FunctionBlockVariable(node));
                     }
                     b"continuation" | b"connector" => {
-                        let node = Connector::visit(reader)?;
+                        let node = Connector::visit(reader, Some(tag))?;
                         nodes.insert(node.local_id, Node::Connector(node));
                     }
-                    _ => reader.consume()?,
+                    _ => {}
                 },
 
                 Event::End(tag) if tag.name().as_ref() == b"FBD" => {
-                    reader.consume()?;
                     break;
                 }
-                _ => reader.consume()?,
+                _ => {}
             }
         }
 
@@ -302,7 +297,7 @@ mod tests {
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,
             variables::FunctionBlockVariable,
         },
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{
             XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
             XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
@@ -359,16 +354,17 @@ mod tests {
             )
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockDiagram::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
     fn model_with_no_source_sink_unchanged() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
+
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -396,7 +392,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -407,8 +403,7 @@ mod tests {
     fn source_to_sink_converted_to_connection() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -456,7 +451,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -467,8 +462,7 @@ mod tests {
     fn two_sinks_for_single_source_converted_to_connections() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -537,7 +531,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -548,8 +542,7 @@ mod tests {
     fn source_sink_chain_converted_to_connection() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -617,7 +610,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -628,8 +621,7 @@ mod tests {
     fn unassociated_source_remains_in_model() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -667,7 +659,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();
@@ -678,8 +670,7 @@ mod tests {
     fn unassociated_sink_removed_from_model_with_error() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -717,7 +708,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
         //With diagnostic
 
@@ -730,8 +721,7 @@ mod tests {
     fn recursive_sink_source_connections_are_an_error() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -799,7 +789,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         let err = model.desugar(&source_location_factory).unwrap_err();
@@ -811,8 +801,7 @@ mod tests {
     fn unconnected_source_has_no_effect() {
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -860,7 +849,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         let err = model.desugar(&source_location_factory).unwrap_err();
@@ -873,8 +862,7 @@ mod tests {
         //TODO: split into two tests
         let source_location_factory = SourceLocationFactory::internal("");
         let mut model = Project::default();
-        let mut pou = Pou::default();
-        pou.name = "TestProg".into();
+        let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -964,7 +952,7 @@ mod tests {
             ]
             .into(),
         };
-        pou.body.function_block_diagram = Some(fbd);
+        pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
 
         model.desugar(&source_location_factory).unwrap();

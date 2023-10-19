@@ -614,6 +614,14 @@ impl Diagnostic {
         Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
     }
 
+    pub fn duplicate_label(
+        name: &str,
+        location: SourceLocation,
+        conflicts: Vec<SourceLocation>,
+    ) -> Diagnostic {
+        Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate label.")
+    }
+
     pub fn global_name_conflict_with_text(
         name: &str,
         location: SourceLocation,
@@ -766,6 +774,14 @@ impl Diagnostic {
             message: format!("Sink is connected to itself. Found the following recursion: {message}"),
             range: vec![range],
             err_no: ErrNo::cfc__cyclic_connection,
+        }
+    }
+
+    pub fn unnamed_control(range: SourceLocation) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: "Unnamed control".into(),
+            range: vec![range],
+            err_no: ErrNo::cfc__unnamed_control,
         }
     }
 

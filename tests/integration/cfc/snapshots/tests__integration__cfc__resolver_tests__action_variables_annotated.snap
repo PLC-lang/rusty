@@ -1,0 +1,9 @@
+---
+source: tests/integration/cfc/resolver_tests.rs
+expression: annotations.get(act1)
+---
+Some(
+    Program {
+        qualified_name: "main.newAction",
+    },
+)

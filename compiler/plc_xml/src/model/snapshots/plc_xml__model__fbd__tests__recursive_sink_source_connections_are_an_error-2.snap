@@ -8,34 +8,32 @@ Project {
             name: "TestProg",
             pou_type: Program,
             body: Body {
-                function_block_diagram: Some(
-                    FunctionBlockDiagram {
-                        nodes: {
-                            1: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Input,
-                                    local_id: 1,
-                                    negated: false,
-                                    expression: "a",
-                                    execution_order_id: None,
-                                    ref_local_id: None,
-                                },
-                            ),
-                            2: FunctionBlockVariable(
-                                FunctionBlockVariable {
-                                    kind: Output,
-                                    local_id: 2,
-                                    negated: false,
-                                    expression: "b",
-                                    execution_order_id: Some(
-                                        1,
-                                    ),
-                                    ref_local_id: None,
-                                },
-                            ),
-                        },
+                function_block_diagram: FunctionBlockDiagram {
+                    nodes: {
+                        1: FunctionBlockVariable(
+                            FunctionBlockVariable {
+                                kind: Input,
+                                local_id: 1,
+                                negated: false,
+                                expression: "a",
+                                execution_order_id: None,
+                                ref_local_id: None,
+                            },
+                        ),
+                        2: FunctionBlockVariable(
+                            FunctionBlockVariable {
+                                kind: Output,
+                                local_id: 2,
+                                negated: false,
+                                expression: "b",
+                                execution_order_id: Some(
+                                    1,
+                                ),
+                                ref_local_id: None,
+                            },
+                        ),
                     },
-                ),
+                },
             },
             actions: [],
             interface: None,

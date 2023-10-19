@@ -95,6 +95,7 @@ pub enum ErrNo {
     cfc__unconnected_source,
     cfc__cyclic_connection,
     cfc__no_associated_connector,
+    cfc__unnamed_control,
 
     // Project description file
     plc_json__invalid,

@@ -9,7 +9,9 @@ expression: diagnostics
             SourceLocation {
                 span: Block {
                     local_id: 2,
-                    execution_order: None,
+                    execution_order: Some(
+                        0,
+                    ),
                     inner_range: None,
                 },
                 file: Some(
