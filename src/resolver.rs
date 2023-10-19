@@ -1084,6 +1084,7 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
+            AstStatement::ParenthesizedExpression(expr) => self.visit_statement_control(ctx, expr),
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());

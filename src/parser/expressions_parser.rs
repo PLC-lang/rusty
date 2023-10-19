@@ -257,7 +257,17 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstNode,
         KeywordParensOpen => {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
                 lexer.advance(); // eat KeywordParensOpen
-                Ok(parse_expression(lexer))
+                let expr = parse_expression(lexer);
+
+                if lexer.paren {
+                    Ok(AstFactory::create_parenthesized_expression(
+                        expr,
+                        lexer.last_location(),
+                        lexer.next_id(),
+                    ))
+                } else {
+                    Ok(expr)
+                }
             })
         }
         Identifier => Ok(parse_identifier(lexer)),
@@ -305,10 +315,12 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstNode, Diagnostic> 
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
+    lexer.paren = true;
     let elements = Some(Box::new(parse_expression(lexer)));
     let end = lexer.range().end;
     lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
+    lexer.paren = false;
 
     Ok(AstNode::new_literal(
         AstLiteral::new_array(elements),

@@ -601,6 +601,7 @@ pub enum AstStatement {
     BinaryExpression(BinaryExpression),
     UnaryExpression(UnaryExpression),
     ExpressionList(Vec<AstNode>),
+    ParenthesizedExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
     // Assignment
@@ -638,6 +639,9 @@ impl Debug for AstNode {
             }
             AstStatement::ExpressionList(expressions) => {
                 f.debug_struct("ExpressionList").field("expressions", expressions).finish()
+            }
+            AstStatement::ParenthesizedExpression(expression) => {
+                f.debug_struct("ParenthesizedExpression").field("expression", expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
@@ -1131,6 +1135,14 @@ impl AstFactory {
 
     pub fn create_expression_list(expressions: Vec<AstNode>, location: SourceLocation, id: AstId) -> AstNode {
         AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
+    }
+
+    pub fn create_parenthesized_expression(
+        expression: AstNode,
+        location: SourceLocation,
+        id: AstId,
+    ) -> AstNode {
+        AstNode { stmt: AstStatement::ParenthesizedExpression(Box::new(expression)), location, id }
     }
 
     /// creates a new if-statement
