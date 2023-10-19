@@ -73,8 +73,6 @@ pub(crate) const PLC_JSON_SCHEMA: &str = r#"
             "required": [
               "name",
               "files",
-              "compile_type",
-              "output",
-              "libraries"
+              "compile_type"
             ]
         }"#;

@@ -216,8 +216,9 @@ mod tests {
     }
 "#;
 
-    const MISSING_REQUIRED_PROPERTIES: &str = r#"
+    const MISSING_REQUIRED_LIBRARY_PROPERTIES: &str = r#"
     {
+        "name": "MyProject",
         "files" : [
             "simple_program.st"
         ],
@@ -234,6 +235,14 @@ mod tests {
         ]
     }
 "#;
+
+    const MISSING_REQUIRED_PROPERTIES: &str = r#"
+        {
+            "files" : [
+                "simple_program.st"
+            ]
+        }
+    "#;
 
     const OPTIONAL_PROPERTIES: &str = r#"
     {
@@ -353,10 +362,17 @@ mod tests {
 
     #[test]
     fn json_with_missing_required_properties_reports_error() {
+        // missing name and compile_type
+        //XXX: only the first error found is reported by both serde and jsonschema
         let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES) else {
             panic!("expected errors")
         };
+        assert_snapshot!(diag.to_string());
 
+        // missing library path
+        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_LIBRARY_PROPERTIES) else {
+            panic!("expected errors")
+        };
         assert_snapshot!(diag.to_string())
     }
 

@@ -1,9 +1,7 @@
 {
-    "name" : "cc_proj",
-    "files" : [
+    "name": "cc_proj",
+    "files": [
         "simple_program.st"
     ],
-    "compile_type" : "Shared",
-    "optimization" : "Default",
-    "error_format": "Rich"
+    "compile_type": "Shared"
 }
