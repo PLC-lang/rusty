@@ -864,6 +864,10 @@ impl AstNode {
         )
     }
 
+    pub fn is_parenthesized_expression(&self) -> bool {
+        matches!(self.stmt, AstStatement::ParenthesizedExpression { .. })
+    }
+
     pub fn is_expression_list(&self) -> bool {
         matches!(self.stmt, AstStatement::ExpressionList { .. })
     }

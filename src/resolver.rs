@@ -944,23 +944,30 @@ impl<'i> TypeAnnotator<'i> {
 
                 match statement.get_stmt() {
                     AstStatement::Literal(AstLiteral::Array(array)) => match array.elements() {
-                        Some(elements) if elements.is_expression_list() => {
+                        Some(elements) if elements.is_expression_list() || elements.is_parenthesized_expression() => {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
 
                         _ => (),
                     },
 
+                    AstStatement::ParenthesizedExpression(expression) => {
+                        self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
+                    }
+
                     AstStatement::ExpressionList(expressions) => {
+                        let name = inner_data_type.get_name().to_string();
+                        let hint = StatementAnnotation::Value { resulting_type: name };
+
                         for expression in expressions {
-                            // annotate with the arrays inner_type
-                            let name = inner_data_type.get_name().to_string();
-                            let hint = StatementAnnotation::Value { resulting_type: name };
-                            self.annotation_map.annotate_type_hint(expression, hint);
+                            self.annotation_map.annotate_type_hint(expression, hint.clone());
 
                             self.visit_statement(&ctx, expression);
                             self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
                         }
+
+                        // annotate the expression list as well
+                        self.annotation_map.annotate_type_hint(statement, hint);
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
