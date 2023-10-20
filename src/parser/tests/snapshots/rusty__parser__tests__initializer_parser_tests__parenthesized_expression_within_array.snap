@@ -1,0 +1,31 @@
+---
+source: src/parser/tests/initializer_parser_tests.rs
+expression: "&member.initializer"
+---
+Some(
+    LiteralArray {
+        elements: Some(
+            ParenthesizedExpression {
+                expression: ExpressionList {
+                    expressions: [
+                        LiteralInteger {
+                            value: 1,
+                        },
+                        LiteralInteger {
+                            value: 2,
+                        },
+                        LiteralInteger {
+                            value: 3,
+                        },
+                        LiteralInteger {
+                            value: 4,
+                        },
+                        LiteralInteger {
+                            value: 5,
+                        },
+                    ],
+                },
+            },
+        ),
+    },
+)

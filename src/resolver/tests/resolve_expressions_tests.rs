@@ -3959,6 +3959,53 @@ fn multiple_negative_annotates_correctly() {
 }
 
 #[test]
+fn array_with_parenthesized_expression() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE foo : STRUCT
+            idx : DINT;
+            val : DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR
+                arr : ARRAY[1..2] OF foo := [(idx := 0, val := 0), (idx := 1, val := 1)];
+            END_VAR
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    let container_name = &unit.implementations[0].name;
+    let members = index.get_container_members(container_name);
+    assert_eq!(1, members.len());
+
+    let AstStatement::Literal(AstLiteral::Array(Array { elements })) = index
+        .get_const_expressions()
+        .maybe_get_constant_statement(&members[0].initial_value)
+        .map(AstNode::get_stmt).unwrap() else { panic!() };
+
+    let AstStatement::ExpressionList(expressions) = elements.as_ref().unwrap().get_stmt() else { panic!() };
+
+    // We want to verify if every expression within parentheses got a type-hint, e.g.
+    // ARRAY[1..2] OF foo := [(idx := 0, val := 0), ...]
+    //                        ^^^^^^^^^^^^^^^^^^^^ -> should have a type hint @ `foo`
+    let target = index.find_effective_type_by_name("foo").unwrap();
+    for expression in expressions.iter().map(AstNode::get_stmt) {
+        let AstStatement::ParenthesizedExpression(expression) = expression else { panic!() };
+        let hint = annotations.get_type_hint(expression, &index).unwrap();
+
+        assert!(expression.is_expression_list());
+        assert_eq!(target, hint);
+    }
+}
+
+#[test]
 fn array_of_struct_with_inital_values_annotated_correctly() {
     let id_provider = IdProvider::default();
     // GIVEN
