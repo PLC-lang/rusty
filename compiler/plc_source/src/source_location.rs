@@ -50,7 +50,7 @@ impl SourceLocationFactory {
 pub struct TextLocation {
     /// Line in the source code where this location points to
     line: usize,
-    /// Column in the sourcecode where this location points o
+    /// Column in the sourcecode where this location points to
     column: usize,
     /// Raw offset to this location from the start of the file
     offset: usize,

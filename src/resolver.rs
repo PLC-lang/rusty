@@ -944,7 +944,9 @@ impl<'i> TypeAnnotator<'i> {
 
                 match statement.get_stmt() {
                     AstStatement::Literal(AstLiteral::Array(array)) => match array.elements() {
-                        Some(elements) if elements.is_expression_list() || elements.is_parenthesized_expression() => {
+                        Some(elements)
+                            if elements.is_expression_list() || elements.is_parenthesized_expression() =>
+                        {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
 
