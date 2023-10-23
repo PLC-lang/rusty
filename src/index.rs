@@ -22,6 +22,7 @@ use self::{
 
 pub mod const_expressions;
 mod instance_iterator;
+pub mod scoped_index;
 pub mod symbol;
 #[cfg(test)]
 mod tests;
@@ -734,7 +735,7 @@ impl PouIndexEntry {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: SymbolMap<String, DataType>,
