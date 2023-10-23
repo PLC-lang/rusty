@@ -359,5 +359,5 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }

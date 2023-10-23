@@ -553,7 +553,7 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
     /**
      * a, a.b
@@ -584,7 +584,7 @@ pub struct AstNode {
     pub location: SourceLocation,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
     // a placeholder that indicates a default value of a datatype
@@ -1516,75 +1516,75 @@ impl AstFactory {
         AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
     }
 }
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DefaultValue {}
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CastStatement {
     pub target: Box<AstNode>,
     pub type_name: String,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MultipliedStatement {
     pub multiplier: u32,
     pub element: Box<AstNode>,
 }
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReferenceExpr {
     pub access: ReferenceAccess,
     pub base: Option<Box<AstNode>>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DirectAccess {
     pub access: DirectAccessType,
     pub index: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HardwareAccess {
     pub direction: HardwareAccessType,
     pub access: DirectAccessType,
     pub address: Vec<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinaryExpression {
     pub operator: Operator,
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnaryExpression {
     pub operator: Operator,
     pub value: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RangeStatement {
     pub start: Box<AstNode>,
     pub end: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Assignment {
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CallStatement {
     pub operator: Box<AstNode>,
     pub parameters: Option<Box<AstNode>>,
 }
 
 /// Represents a conditional jump from current location to a specified label
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JumpStatement {
     /// The condition based on which the current statement will perform a jump
     pub condition: Box<AstNode>,
@@ -1593,7 +1593,7 @@ pub struct JumpStatement {
 }
 
 /// Represents a location in code that could be jumbed to
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
 }

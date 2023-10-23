@@ -52,6 +52,18 @@ pub(super) fn validate_array_assignment<T>(
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(Diagnostic::array_size(name, len_lhs, len_rhs, location));
     }
+
+    let dti =
+        context.index.find_effective_type_by_name(dti_lhs.get_inner_array_type_name().unwrap()).unwrap();
+
+    if dti.is_struct() {
+        let AstStatement::Literal(AstLiteral::Array(array)) = dbg!(stmt_rhs.get_stmt()) else { panic!() };
+        let Some(AstStatement::ExpressionList(expressions)) = array.elements().map(AstNode::get_stmt) else { return };
+
+        for invalid in expressions.iter().filter(|it| !it.is_parenthesized_expression()) {
+            validator.push_diagnostic(Diagnostic::array_struct_assignment(dbg!(invalid).get_location()));
+        }
+    }
 }
 
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function

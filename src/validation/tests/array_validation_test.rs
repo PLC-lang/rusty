@@ -296,3 +296,53 @@ fn assignment_multiplied_statement() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn parenthesized_struct_initializers() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE foo : STRUCT
+            idx : DINT;
+            val : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                foo_valid : ARRAY[1..2] OF foo := [(idx := 0, val := 0), (idx := 1, val := 1)];
+                foo_invalid_a : ARRAY[1..2] OF foo := [idx := 0, val := 0, idx := 1, val := 1];     // Both initializers missing parens
+                foo_invalid_b : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // First initializer missing parens
+                foo_invalid_c : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // Second initializer missing parens
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn parenthesized_struct_initializers_multiple() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE foo : STRUCT
+            idx : DINT;
+            arr : ARRAY[1..2] OF bar;
+        END_STRUCT END_TYPE
+
+        TYPE bar : STRUCT
+            val : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                foo_valid : ARRAY[1..2] OF foo := [(idx := 0, arr := [(val := 0), (val := 1)]), (idx := 0, arr := [(val := 0, val := 1)])];
+                // foo_invalid_a : ARRAY[1..2] OF foo := [idx := 0, val := 0, idx := 1, val := 1];     // Both initializers missing parens
+                // foo_invalid_b : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // First initializer missing parens
+                // foo_invalid_c : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // Second initializer missing parens
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
