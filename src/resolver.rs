@@ -844,6 +844,10 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
+            AstStatement::ParenthesizedExpression(expr) => {
+                // TODO: What do I need to update here for the ParenExpr itself, type or typehint?
+                self.update_expected_types(expected_type, expr);
+            }
             AstStatement::ExpressionList(expressions, ..) => {
                 //annotate the type to all elements
                 for ele in expressions {
@@ -1093,7 +1097,18 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatement::ParenthesizedExpression(expr) => self.visit_statement_control(ctx, expr),
+            AstStatement::ParenthesizedExpression(expr) => {
+                self.visit_statement_control(ctx, expr);
+
+                // Copy whatever annotation the inner expression got and paste it onto the ParenExpr
+                if let Some(annotation) = self.annotation_map.get_type(expr, self.index) {
+                    dbg!(expr, annotation);
+                    self.annotate(
+                        statement,
+                        StatementAnnotation::Value { resulting_type: annotation.name.clone() },
+                    )
+                }
+            }
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
@@ -1285,6 +1300,7 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) => {
+                dbg!(statement);
                 self.visit_statement(ctx, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
