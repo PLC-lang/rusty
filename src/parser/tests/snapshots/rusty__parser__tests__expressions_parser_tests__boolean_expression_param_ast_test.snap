@@ -12,37 +12,41 @@ BinaryExpression {
         ),
         base: None,
     },
-    right: BinaryExpression {
-        operator: Xor,
-        left: UnaryExpression {
-            operator: Not,
-            value: BinaryExpression {
-                operator: Or,
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "b",
+    right: ParenthesizedExpression {
+        expression: BinaryExpression {
+            operator: Xor,
+            left: UnaryExpression {
+                operator: Not,
+                value: ParenthesizedExpression {
+                    expression: BinaryExpression {
+                        operator: Or,
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "b",
+                                },
+                            ),
+                            base: None,
                         },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "c",
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "c",
+                                },
+                            ),
+                            base: None,
                         },
-                    ),
-                    base: None,
+                    },
                 },
             },
-        },
-        right: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "d",
-                },
-            ),
-            base: None,
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "d",
+                    },
+                ),
+                base: None,
+            },
         },
     },
 }
