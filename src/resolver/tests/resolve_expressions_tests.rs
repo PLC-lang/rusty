@@ -2688,6 +2688,8 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
+        // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
+        let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2701,6 +2703,8 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
+        // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
+        let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2741,12 +2745,13 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         .initial_value
         .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
         .unwrap();
+    // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
+    let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
 
     assert_eq!(annotations.get_type_hint(initializer, &index), index.find_effective_type_by_name("MyStruct"));
 
     //check the initializer-part
-    let AstStatement::ParenthesizedExpression(expr) = initializer.get_stmt() else { panic!() };
-    if let AstStatement::ExpressionList(expressions, ..) = expr.get_stmt() {
+    if let AstStatement::ExpressionList(expressions, ..) = initializer.get_stmt() {
         // v := (a := 1, b := 2)
         if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
             &expressions[0]

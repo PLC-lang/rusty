@@ -666,7 +666,6 @@ impl<'i> TypeAnnotator<'i> {
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
-            dbg!(global_variable);
             visitor.dependencies.insert(Dependency::Variable(global_variable.name.to_string()));
             visitor.visit_variable(ctx, global_variable);
         }
@@ -731,7 +730,6 @@ impl<'i> TypeAnnotator<'i> {
             if let Some((initializer, name)) =
                 user_data_type.initializer.as_ref().zip(user_data_type.data_type.get_name())
             {
-                dbg!(initializer);
                 self.visit_statement(ctx, initializer);
 
                 //update the type-hint for the initializer
@@ -750,7 +748,6 @@ impl<'i> TypeAnnotator<'i> {
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
-                dbg!(variable);
                 self.visit_variable(&pou_ctx, variable);
             }
         }

@@ -20,6 +20,7 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 use super::{ValidationContext, Validator, Validators};
 
 /// Indicates whether an array was defined in a VAR block or a POU body
+#[derive(Debug)]
 pub(super) enum Wrapper<'a> {
     Statement(&'a AstNode),
     Variable(&'a Variable),

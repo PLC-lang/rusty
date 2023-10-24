@@ -41,8 +41,6 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
                 &diagnostic.severity,
                 &diagnostic.message,
             );
-
-            eprintln!("{res}");
         }
     }
     fn register(&mut self, path: String, src: String) -> usize {
