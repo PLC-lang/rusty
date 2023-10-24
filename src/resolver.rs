@@ -556,6 +556,14 @@ impl AnnotationMapImpl {
         Default::default()
     }
 
+    pub fn temp(&self, unit: &CompilationUnit) {
+        for unit in &unit.implementations {
+            for statement in &unit.statements {
+                println!("{statement:?}");
+            }
+        }
+    }
+
     pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
@@ -658,6 +666,7 @@ impl<'i> TypeAnnotator<'i> {
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
+            dbg!(global_variable);
             visitor.dependencies.insert(Dependency::Variable(global_variable.name.to_string()));
             visitor.visit_variable(ctx, global_variable);
         }
@@ -722,6 +731,7 @@ impl<'i> TypeAnnotator<'i> {
             if let Some((initializer, name)) =
                 user_data_type.initializer.as_ref().zip(user_data_type.data_type.get_name())
             {
+                dbg!(initializer);
                 self.visit_statement(ctx, initializer);
 
                 //update the type-hint for the initializer
@@ -740,6 +750,7 @@ impl<'i> TypeAnnotator<'i> {
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
+                dbg!(variable);
                 self.visit_variable(&pou_ctx, variable);
             }
         }
@@ -754,6 +765,10 @@ impl<'i> TypeAnnotator<'i> {
         annotated_left_side: &AstNode,
         right_side: &AstNode,
     ) {
+        if let AstStatement::ParenthesizedExpression(expr) = &right_side.stmt {
+            self.update_right_hand_side_expected_type(ctx, annotated_left_side, expr);
+        }
+
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
             if let DataTypeInformation::SubRange { sub_range, .. } = expected_type.get_type_information() {
@@ -911,6 +926,7 @@ impl<'i> TypeAnnotator<'i> {
                 //right side being the local context
                 let ctx = ctx.with_lhs(expected_type.get_name());
 
+                // TODO: Move this up, without else
                 if initializer.is_default_value() {
                     // the default-placeholder must be annotated with the correct type,
                     // it will be replaced by the appropriate literal later
@@ -919,13 +935,48 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, initializer);
                 }
 
-                self.annotation_map
-                    .annotate_type_hint(initializer, StatementAnnotation::value(expected_type.get_name()));
-                self.update_expected_types(expected_type, initializer);
+                // self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(et.get_name()));
+                // self.update_expected_types(et, initializer);
+                //
+                // self.type_hint_for_array_of_structs(et, initializer, &ctx);
 
-                self.type_hint_for_array_of_structs(expected_type, initializer, &ctx);
+                self.type_hint_initializer(initializer, expected_type, &ctx);
             }
         }
+    }
+
+    fn type_hint_initializer(
+        &mut self,
+        initializer: &AstNode,
+        et: &typesystem::DataType,
+        ctx: &VisitorContext,
+    ) {
+        /*
+        * TYPE foo : STRUCT
+        *     a : bar
+        * END_STRUCT END_TYPE
+
+        * TYPE bar : STRUCT
+        *     b : DINT;
+        *     c : DINT;
+        * END_STRUCT END_TYPE
+
+        * VAR_GLOBAL
+        *     x : foo  := (a := (b := 5, c := 7));
+        *     //                 ^^^^^^  ^^^^^^   => DINT
+        *     //                ^^^^^^^^^^^^^^^^  => bar
+        *     //          ^^^^^^^^^^^^^^^^^^^^^^^ -> foo
+        * END_VAR
+        */
+        if let AstStatement::ParenthesizedExpression(expr) = &initializer.stmt {
+            self.type_hint_initializer(expr, et, ctx);
+            return;
+        }
+
+        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(et.get_name()));
+        self.update_expected_types(et, initializer);
+
+        self.type_hint_for_array_of_structs(et, initializer, &ctx);
     }
 
     fn type_hint_for_array_of_structs(
@@ -1102,11 +1153,15 @@ impl<'i> TypeAnnotator<'i> {
 
                 // Copy whatever annotation the inner expression got and paste it onto the ParenExpr
                 if let Some(annotation) = self.annotation_map.get_type(expr, self.index) {
-                    dbg!(expr, annotation);
                     self.annotate(
                         statement,
                         StatementAnnotation::Value { resulting_type: annotation.name.clone() },
                     )
+                }
+
+                if let Some(annotation) = self.annotation_map.get_type_hint(expr, self.index) {
+                    self.annotation_map
+                        .annotate_type_hint(statement, StatementAnnotation::value(annotation.get_name()));
                 }
             }
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
@@ -1300,7 +1355,6 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) => {
-                dbg!(statement);
                 self.visit_statement(ctx, &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
@@ -1308,6 +1362,7 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     self.visit_statement(ctx, &data.left);
                 }
+
                 // give a type hint that we want the right side to be stored in the left's type
                 self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }

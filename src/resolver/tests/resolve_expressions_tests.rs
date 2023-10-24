@@ -2377,7 +2377,6 @@ fn struct_member_explicit_initialization_test() {
 
     // WHEN this type is annotated
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    dbg!(&annotations);
 
     // THEN the initializers assignments have correct annotations
     let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
@@ -2399,7 +2398,7 @@ fn struct_member_explicit_initialization_test() {
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_auto_deref: false
         }),
-        annotations.get(dbg!(left))
+        annotations.get(left)
     );
 
     let AstStatement::Assignment(Assignment { left, .. }) = &expressions[1].get_stmt() else {
@@ -2710,7 +2709,6 @@ fn struct_variable_initialization_annotates_initializer() {
 }
 
 #[test]
-// #[ignore = "TODO(volsa): Not entirely sure but somethings wrong here due to introduction of ParenExpr"]
 fn deep_struct_variable_initialization_annotates_initializer() {
     //GIVEN a 2 lvl-STRUCT type and global variables of this type
     let id_provider = IdProvider::default();

@@ -237,6 +237,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::HardwareAccess { .. } => {
                 Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
+            AstStatement::ParenthesizedExpression(expr) => self.generate_expression_value(expr),
             //fallback
             _ => self.generate_literal(expression),
         }
@@ -1773,6 +1774,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
+            AstStatement::ParenthesizedExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
@@ -1893,6 +1895,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(&self, assignments: &AstNode) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        // TODO: here
         if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
