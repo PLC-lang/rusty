@@ -737,7 +737,7 @@ fn ref_builtin_function_reports_invalid_param_count() {
 
 #[test]
 fn address_of_operations() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         TYPE MyStruct: STRUCT
             a : SubStruct;
@@ -769,7 +769,7 @@ fn address_of_operations() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]

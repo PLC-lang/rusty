@@ -213,8 +213,8 @@ fn assignment_structs() {
 				foo_valid_2 	: FOO := (idx := 0, arr := [(arr := [1, 2, 3, 4, 5]), (arr := [1, 2, 3, 4, 5])]);
 				foo_valid_3 	: FOO := (arr := [(arr := [1, 2, 3, 4, 5]), (arr := [1, 2, 3, 4, 5])], idx := 0);
 
-				foo_invalid_0 	: FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
-				foo_invalid_1 	: FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+				foo_invalid_0 	: FOO := (idx := 8, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
+				foo_invalid_1 	: FOO := (idx := 8, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
 			END_VAR
 		END_FUNCTION
 		",

@@ -212,6 +212,11 @@ fn validate_address_of_expression<T: AnnotationMap>(
     location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    if let AstStatement::ParenthesizedExpression(expr) = &target.stmt {
+        validate_address_of_expression(validator, expr, location, context);
+        return;
+    }
+
     let a = context.annotations.get(target);
     //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(
