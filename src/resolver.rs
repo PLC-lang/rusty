@@ -973,7 +973,7 @@ impl<'i> TypeAnnotator<'i> {
         self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(et.get_name()));
         self.update_expected_types(et, initializer);
 
-        self.type_hint_for_array_of_structs(et, initializer, &ctx);
+        self.type_hint_for_array_of_structs(et, initializer, ctx);
     }
 
     fn type_hint_for_array_of_structs(
