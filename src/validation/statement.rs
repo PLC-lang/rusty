@@ -42,6 +42,7 @@ pub fn visit_statement<T: AnnotationMap>(
     statement: &AstNode,
     context: &ValidationContext<T>,
 ) {
+    eprintln!("{statement:?}", statement = statement.get_stmt());
     match statement.get_stmt() {
         // AstStatement::EmptyStatement { location, id } => (),
         // AstStatement::DefaultValue { location, id } => (),
@@ -95,6 +96,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
+            eprintln!("{statement:?}");
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
             validate_array_assignment(validator, context, Wrapper::Statement(statement));
         }
@@ -130,6 +132,7 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ContinueStatement { location, id } => (),
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
+        AstStatement::ParenthesizedExpression(expr) => visit_statement(validator, expr, context),
         _ => {}
     }
     validate_type_nature(validator, statement, context);

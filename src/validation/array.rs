@@ -40,13 +40,14 @@ pub(super) fn validate_array_assignment<T>(
         return;
     }
 
+    let stmt_rhs = peel(stmt_rhs);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
     let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(stmt_rhs);
+    let len_rhs = statement_to_array_length(&stmt_rhs);
 
     if len_lhs < len_rhs {
         let name = dti_lhs.get_name();
@@ -105,5 +106,12 @@ impl<'a> Wrapper<'a> {
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(&it)),
         }
+    }
+}
+
+fn peel(node: &AstNode) -> &AstNode {
+    match &node.stmt {
+        AstStatement::ParenthesizedExpression(expr) => peel(expr),
+        _ => node,
     }
 }

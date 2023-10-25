@@ -39,28 +39,28 @@ error: Array __main_arr has a size of 5, but 6 elements were provided
   │                                          ^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 5, but 6 elements were provided
 
 error: Array assignments must be surrounded with `[]`
-  ┌─ <internal>:5:39
+  ┌─ <internal>:5:40
   │
 5 │         arr_alt   : ARRAY[1..5] OF DINT := (1, 2, 3, 4, 5, 6);
-  │                                            ^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+  │                                             ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
 error: Array assignments must be surrounded with `[]`
-   ┌─ <internal>:11:11
+   ┌─ <internal>:11:12
    │
 11 │       arr := (1, 2, 3, 4);
-   │              ^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+   │               ^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
 error: Array assignments must be surrounded with `[]`
-   ┌─ <internal>:12:11
+   ┌─ <internal>:12:12
    │
 12 │       arr := (1, 2, 3, 4, 5);
-   │              ^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+   │               ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
 error: Array assignments must be surrounded with `[]`
-   ┌─ <internal>:13:11
+   ┌─ <internal>:13:12
    │
 13 │       arr := (1, 2, 3, 4, 5, 6);
-   │              ^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+   │               ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
 error: Array __main_arr has a size of 5, but 6 elements were provided
    ┌─ <internal>:14:11
@@ -75,9 +75,9 @@ error: Array assignments must be surrounded with `[]`
    │                            ^ Array assignments must be surrounded with `[]`
 
 error: Array assignments must be surrounded with `[]`
-   ┌─ <internal>:16:11
+   ┌─ <internal>:16:12
    │
 16 │       arr := (1, 2, 3, 4, 5];
-   │              ^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+   │               ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
 
