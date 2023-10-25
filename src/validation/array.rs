@@ -111,7 +111,7 @@ impl<'a> Wrapper<'a> {
 
 fn peel(node: &AstNode) -> &AstNode {
     match &node.stmt {
-        AstStatement::ParenthesizedExpression(expr) => peel(expr),
+        AstStatement::ParenExpression(expr) => peel(expr),
         _ => node,
     }
 }

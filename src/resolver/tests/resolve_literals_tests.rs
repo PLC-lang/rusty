@@ -397,7 +397,7 @@ fn expression_list_members_are_annotated() {
 
     let expected_types = vec!["DINT", "BOOL", "REAL"];
 
-    let AstStatement::ParenthesizedExpression(expr) = statement.get_stmt() else { panic!() };
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
     let AstStatement::ExpressionList(expressions, ..) = expr.get_stmt() else { panic!() };
 
     let actual_types: Vec<&str> =
@@ -427,7 +427,7 @@ fn expression_lists_with_expressions_are_annotated() {
     let statement = &unit.implementations[0].statements[0];
     let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
 
-    let AstStatement::ParenthesizedExpression(expr) = statement.get_stmt() else { panic!() };
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
     let AstStatement::ExpressionList(expressions, ..) = expr.get_stmt() else { panic!() };
 
     let actual_types =

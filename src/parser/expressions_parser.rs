@@ -261,11 +261,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Result<AstNode,
                 let start = lexer.last_location();
                 let expr = parse_expression(lexer);
 
-                Ok(AstFactory::create_parenthesized_expression(
-                    expr,
-                    start.span(&lexer.location()),
-                    lexer.next_id(),
-                ))
+                Ok(AstFactory::create_paren_expression(expr, start.span(&lexer.location()), lexer.next_id()))
             })
         }
         Identifier => Ok(parse_identifier(lexer)),

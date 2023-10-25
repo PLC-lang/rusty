@@ -132,7 +132,7 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ContinueStatement { location, id } => (),
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
-        AstStatement::ParenthesizedExpression(expr) => visit_statement(validator, expr, context),
+        AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -215,7 +215,7 @@ fn validate_address_of_expression<T: AnnotationMap>(
     location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
-    if let AstStatement::ParenthesizedExpression(expr) = &target.stmt {
+    if let AstStatement::ParenExpression(expr) = &target.stmt {
         validate_address_of_expression(validator, expr, location, context);
         return;
     }

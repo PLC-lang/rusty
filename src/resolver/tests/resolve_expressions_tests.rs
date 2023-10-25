@@ -454,7 +454,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
         // ((b + USINT#7) - c)
         assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(BYTE_TYPE));
 
-        let AstStatement::ParenthesizedExpression(right) = right.get_stmt() else { panic!() };
+        let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
         if let AstNode {
             stmt: AstStatement::BinaryExpression(BinaryExpression { left, right: c, .. }), ..
         } = right.as_ref()
@@ -464,7 +464,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             // (b + USINT#7)
             assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
 
-            let AstStatement::ParenthesizedExpression(left) = left.get_stmt() else { panic!() };
+            let AstStatement::ParenExpression(left) = left.get_stmt() else { panic!() };
             if let AstNode {
                 stmt: AstStatement::BinaryExpression(BinaryExpression { left: b, right: seven, .. }),
                 ..
@@ -2384,7 +2384,7 @@ fn struct_member_explicit_initialization_test() {
     else {
         unreachable!()
     };
-    let AstStatement::ParenthesizedExpression(right) = right.get_stmt() else { panic!() };
+    let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
     let AstStatement::ExpressionList(expressions) = right.get_stmt() else { unreachable!() };
 
     let AstStatement::Assignment(Assignment { left, .. }) = &expressions[0].get_stmt() else {
@@ -2689,7 +2689,7 @@ fn struct_variable_initialization_annotates_initializer() {
             .unwrap();
 
         // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
-        let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
+        let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2704,7 +2704,7 @@ fn struct_variable_initialization_annotates_initializer() {
             .unwrap();
 
         // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
-        let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
+        let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2746,7 +2746,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
         .unwrap();
     // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
-    let AstStatement::ParenthesizedExpression(initializer) = &initializer.stmt else { panic!() };
+    let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
 
     assert_eq!(annotations.get_type_hint(initializer, &index), index.find_effective_type_by_name("MyStruct"));
 
@@ -2760,7 +2760,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
             assert_eq!(annotations.get_type_hint(right, &index), index.find_effective_type_by_name("Point"));
 
             // (a := 1, b := 2)
-            let AstStatement::ParenthesizedExpression(right) = right.get_stmt() else { panic!() };
+            let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
             if let AstStatement::ExpressionList(expressions, ..) = right.get_stmt() {
                 // a := 1
                 if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
@@ -3641,7 +3641,7 @@ fn function_block_initialization_test() {
 
     //PT will be a TIME variable, qualified name will be TON.PT
     let statement = unit.units[1].variable_blocks[0].variables[0].initializer.as_ref().unwrap();
-    let AstStatement::ParenthesizedExpression(expr) = statement.get_stmt() else { panic!() };
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } = expr.as_ref() {
         let left = left.as_ref();
         let annotation = annotations.get(left).unwrap();
@@ -3919,7 +3919,7 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     };
     assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
 
-    let AstStatement::ParenthesizedExpression(expr) = value.get_stmt() else { panic!() };
+    let AstStatement::ParenExpression(expr) = value.get_stmt() else { panic!() };
     let AstNode {
         stmt:
             AstStatement::ReferenceExpr(ReferenceExpr {
@@ -4031,7 +4031,7 @@ fn array_with_parenthesized_expression() {
     //                        ^^^^^^^^^^^^^^^^^^^^ -> should have a type hint @ `foo`
     let target = index.find_effective_type_by_name("foo").unwrap();
     for expression in expressions.iter().map(AstNode::get_stmt) {
-        let AstStatement::ParenthesizedExpression(expression) = expression else { panic!() };
+        let AstStatement::ParenExpression(expression) = expression else { panic!() };
         let hint = annotations.get_type_hint(expression, &index).unwrap();
 
         assert!(expression.is_expression_list());

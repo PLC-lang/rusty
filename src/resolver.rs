@@ -762,7 +762,7 @@ impl<'i> TypeAnnotator<'i> {
         annotated_left_side: &AstNode,
         right_side: &AstNode,
     ) {
-        if let AstStatement::ParenthesizedExpression(expr) = &right_side.stmt {
+        if let AstStatement::ParenExpression(expr) = &right_side.stmt {
             self.update_right_hand_side_expected_type(ctx, annotated_left_side, expr);
         }
 
@@ -856,7 +856,7 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatement::ParenthesizedExpression(expr) => {
+            AstStatement::ParenExpression(expr) => {
                 // TODO: What do I need to update here for the ParenExpr itself, type or typehint?
                 self.update_expected_types(expected_type, expr);
             }
@@ -965,7 +965,7 @@ impl<'i> TypeAnnotator<'i> {
         *     //          ^^^^^^^^^^^^^^^^^^^^^^^ -> foo
         * END_VAR
         */
-        if let AstStatement::ParenthesizedExpression(expr) = &initializer.stmt {
+        if let AstStatement::ParenExpression(expr) = &initializer.stmt {
             self.type_hint_initializer(expr, et, ctx);
             return;
         }
@@ -996,16 +996,14 @@ impl<'i> TypeAnnotator<'i> {
 
                 match statement.get_stmt() {
                     AstStatement::Literal(AstLiteral::Array(array)) => match array.elements() {
-                        Some(elements)
-                            if elements.is_expression_list() || elements.is_parenthesized_expression() =>
-                        {
+                        Some(elements) if elements.is_expression_list() || elements.is_paren() => {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
 
                         _ => (),
                     },
 
-                    AstStatement::ParenthesizedExpression(expression) => {
+                    AstStatement::ParenExpression(expression) => {
                         self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
                     }
 
@@ -1145,7 +1143,7 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatement::ParenthesizedExpression(expr) => {
+            AstStatement::ParenExpression(expr) => {
                 self.visit_statement_control(ctx, expr);
 
                 // Copy whatever annotation the inner expression got and paste it onto the ParenExpr
