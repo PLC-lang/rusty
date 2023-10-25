@@ -756,6 +756,7 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         if let AstStatement::ParenExpression(expr) = &right_side.stmt {
             self.update_right_hand_side_expected_type(ctx, annotated_left_side, expr);
+            self.inherit_annotations(right_side, expr);
         }
 
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
@@ -849,8 +850,8 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::ParenExpression(expr) => {
-                // TODO: What do I need to update here for the ParenExpr itself, type or typehint?
                 self.update_expected_types(expected_type, expr);
+                self.inherit_annotations(statement, expr);
             }
             AstStatement::ExpressionList(expressions, ..) => {
                 //annotate the type to all elements
@@ -936,6 +937,7 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         if let AstStatement::ParenExpression(expr) = &initializer.stmt {
             self.type_hint_for_variable_initializer(expr, ty, ctx);
+            self.inherit_annotations(initializer, expr);
             return;
         }
 
@@ -974,6 +976,7 @@ impl<'i> TypeAnnotator<'i> {
 
                     AstStatement::ParenExpression(expression) => {
                         self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
+                        self.inherit_annotations(statement, expression);
                     }
 
                     AstStatement::ExpressionList(expressions) => {
@@ -1109,26 +1112,22 @@ impl<'i> TypeAnnotator<'i> {
         self.visit_statement_control(ctx, statement);
     }
 
+    fn inherit_annotations(&mut self, paren: &AstNode, inner: &AstNode) {
+        if let Some(annotation) = self.annotation_map.get_type(inner, self.index) {
+            self.annotate(paren, StatementAnnotation::value(&annotation.name))
+        }
+
+        if let Some(annotation) = self.annotation_map.get_type_hint(inner, self.index) {
+            self.annotation_map.annotate_type_hint(paren, StatementAnnotation::value(&annotation.name))
+        }
+    }
+
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
             AstStatement::ParenExpression(expr) => {
                 self.visit_statement(ctx, expr);
-
-                // Copy whatever annotation the inner expression got and paste it onto the ParenExpr
-                if let Some(annotation) = self.annotation_map.get_type(expr, self.index) {
-                    self.annotate(
-                        statement,
-                        StatementAnnotation::Value { resulting_type: annotation.name.clone() },
-                    )
-                }
-
-                if let Some(annotation) = self.annotation_map.get_type_hint(expr, self.index) {
-                    self.annotation_map.annotate_type_hint(
-                        statement,
-                        StatementAnnotation::Value { resulting_type: annotation.name.clone() },
-                    )
-                }
+                self.inherit_annotations(statement, expr);
             }
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
