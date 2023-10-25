@@ -4,7 +4,7 @@ expression: statement
 ---
 BinaryExpression {
     operator: Multiplication,
-    left: ParenthesizedExpression {
+    left: ParenExpression {
         expression: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
@@ -15,7 +15,7 @@ BinaryExpression {
             },
         },
     },
-    right: ParenthesizedExpression {
+    right: ParenExpression {
         expression: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {

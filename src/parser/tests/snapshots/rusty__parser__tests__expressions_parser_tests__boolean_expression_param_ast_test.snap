@@ -12,12 +12,12 @@ BinaryExpression {
         ),
         base: None,
     },
-    right: ParenthesizedExpression {
+    right: ParenExpression {
         expression: BinaryExpression {
             operator: Xor,
             left: UnaryExpression {
                 operator: Not,
-                value: ParenthesizedExpression {
+                value: ParenExpression {
                     expression: BinaryExpression {
                         operator: Or,
                         left: ReferenceExpr {

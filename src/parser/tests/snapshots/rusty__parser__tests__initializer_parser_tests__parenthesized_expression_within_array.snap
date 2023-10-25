@@ -5,7 +5,7 @@ expression: "&member.initializer"
 Some(
     LiteralArray {
         elements: Some(
-            ParenthesizedExpression {
+            ParenExpression {
                 expression: ExpressionList {
                     expressions: [
                         LiteralInteger {

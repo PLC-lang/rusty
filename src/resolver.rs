@@ -1138,7 +1138,7 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
             AstStatement::ParenExpression(expr) => {
-                self.visit_statement_control(ctx, expr);
+                self.visit_statement(ctx, expr);
 
                 // Copy whatever annotation the inner expression got and paste it onto the ParenExpr
                 if let Some(annotation) = self.annotation_map.get_type(expr, self.index) {
@@ -1149,8 +1149,10 @@ impl<'i> TypeAnnotator<'i> {
                 }
 
                 if let Some(annotation) = self.annotation_map.get_type_hint(expr, self.index) {
-                    self.annotation_map
-                        .annotate_type_hint(statement, StatementAnnotation::value(annotation.get_name()));
+                    self.annotation_map.annotate_type_hint(
+                        statement,
+                        StatementAnnotation::Value { resulting_type: annotation.name.clone() },
+                    )
                 }
             }
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {

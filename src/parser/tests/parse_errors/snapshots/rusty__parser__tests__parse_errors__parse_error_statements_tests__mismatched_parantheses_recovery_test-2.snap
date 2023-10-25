@@ -3,7 +3,7 @@ source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: pou.statements
 ---
 [
-    ParenthesizedExpression {
+    ParenExpression {
         expression: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {

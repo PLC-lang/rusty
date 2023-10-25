@@ -488,23 +488,74 @@ fn complex_expressions_resolves_types_for_literals_directly() {
 
 #[test]
 fn parenthesized_expressions() {
-    // let id_provider = IdProvider::default();
-    // let (unit, index) = index_with_ids(
-    //     "PROGRAM PRG
-    //         (2+3);
-    //     END_PROGRAM",
-    //     id_provider.clone(),
-    // );
-    // let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    // let statements = &unit.implementations[0].statements;
-    //
-    // let expected_types = vec!["DINT"];
-    //
-    // let types: Vec<&str> =
-    //     statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
-    //
-    // assert_eq!(expected_types, types);
-    todo!()
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM PRG
+              (1 + 2);
+             ((1 + 2));
+            (((1 + 2)));
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    fn peel_once(node: &AstNode) -> &AstNode {
+        let AstStatement::ParenExpression(expr) = &node.stmt else { panic!("Expected ParenExpr") };
+        expr.as_ref()
+    }
+
+    // (1 + 2)
+    let statement = dbg!(&unit.implementations[0].statements[0]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+
+    // ((1 + 2))
+    let mut statement = dbg!(&unit.implementations[0].statements[1]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+
+    // (((1 + 2)))
+    let mut statement = dbg!(&unit.implementations[0].statements[2]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+}
+
+#[test]
+fn parenthesized_expression_assignment() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main
+            VAR
+                one : DINT;
+                two : SINT;
+            END_VAR
+
+            one := (1 + 2); // ParenExpr should have a type but no hint
+            two := (3 + 4); // ParenExpr should have a type and a hint
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let one = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(Assignment {right, ..}) = &one.stmt else { panic!() };
+    assert!(&right.is_paren());
+    assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
+
+    let two = &unit.implementations[0].statements[1];
+    let AstStatement::Assignment(Assignment {right, ..}) = &two.stmt else { panic!() };
+    assert!(&right.is_paren());
+    assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
+    assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "SINT");
 }
 
 #[test]

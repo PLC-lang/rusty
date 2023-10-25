@@ -641,7 +641,7 @@ impl Debug for AstNode {
                 f.debug_struct("ExpressionList").field("expressions", expressions).finish()
             }
             AstStatement::ParenExpression(expression) => {
-                f.debug_struct("ParenthesizedExpression").field("expression", expression).finish()
+                f.debug_struct("ParenExpression").field("expression", expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()

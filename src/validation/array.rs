@@ -47,7 +47,7 @@ pub(super) fn validate_array_assignment<T>(
     }
 
     let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(&stmt_rhs);
+    let len_rhs = statement_to_array_length(stmt_rhs);
 
     if len_lhs < len_rhs {
         let name = dti_lhs.get_name();
