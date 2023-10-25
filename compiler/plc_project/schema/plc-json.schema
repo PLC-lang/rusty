@@ -1,5 +1,4 @@
-pub(crate) const PLC_JSON_SCHEMA: &str = r#"
-        {
+{
             "$schema": "http://json-schema.org/draft-06/schema#",
             "title": "Schema for plc.json",
             "type": "object",
@@ -10,7 +9,7 @@ pub(crate) const PLC_JSON_SCHEMA: &str = r#"
               "version": {
                 "type": "string"
               },
-              "format-version": {
+              "format_version": {
                 "type": "string"
               },
               "files": {
@@ -75,4 +74,4 @@ pub(crate) const PLC_JSON_SCHEMA: &str = r#"
               "files",
               "compile_type"
             ]
-        }"#;
+        }

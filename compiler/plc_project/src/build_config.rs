@@ -55,12 +55,11 @@ pub struct ProjectConfig {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(alias = "format-version")]
-    #[serde(rename(serialize = "format-version"))]
     pub format_version: Option<String>,
 }
 
 impl ProjectConfig {
-    /// Retuns a project from the given string (in json format)
+    /// Returns a project from the given string (in json format)
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
     pub fn try_parse(content: &str) -> Result<Self, Diagnostic> {
         let content = resolve_environment_variables(content)?;
@@ -81,10 +80,11 @@ impl ProjectConfig {
     }
 
     fn validate(&self) -> Result<(), Diagnostic> {
-        let schema =
-            serde_json::from_str(crate::build_description_schema::PLC_JSON_SCHEMA).expect("A valid schema");
+        let schema_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new("schema/plc-json.schema"));
+        let schema = fs::read_to_string(schema_path).map_err(Diagnostic::from)?;
+        let schema_obj = serde_json::from_str(&schema).map_err(Diagnostic::from)?;
+        let compiled = JSONSchema::compile(&schema_obj).expect("A valid schema");
         let instance = json!(self);
-        let compiled = JSONSchema::compile(&schema).expect("A valid schema");
         compiled.validate(&instance).map_err(|errors| {
             let mut message = String::from("plc.json could not be validated due to the following errors:\n");
             for err in errors {
