@@ -2739,7 +2739,6 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
-        // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
         let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
@@ -2754,7 +2753,6 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
-        // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
         let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
@@ -2796,9 +2794,8 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         .initial_value
         .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
         .unwrap();
-    // TODO: This seems wrong, the ParenExpr should have a type-hint so no need to peel here?
-    let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
 
+    let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
     assert_eq!(annotations.get_type_hint(initializer, &index), index.find_effective_type_by_name("MyStruct"));
 
     //check the initializer-part

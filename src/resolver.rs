@@ -1112,6 +1112,9 @@ impl<'i> TypeAnnotator<'i> {
         self.visit_statement_control(ctx, statement);
     }
 
+    /// This function is only really useful for [`AstStatement::ParenExpression`] where we would
+    /// like to annotate the parenthese itself with whatever annotation the inner expression got.
+    /// For example ((1 + 2)), `1 + 2` => DINT, but also `(...)` => DINT and `((...)))` => DINT
     fn inherit_annotations(&mut self, paren: &AstNode, inner: &AstNode) {
         if let Some(annotation) = self.annotation_map.get_type(inner, self.index) {
             self.annotate(paren, StatementAnnotation::value(&annotation.name))
