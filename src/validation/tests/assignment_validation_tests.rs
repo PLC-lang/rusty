@@ -592,7 +592,6 @@ fn array_assignment_validation() {
 }
 
 #[test]
-#[ignore = "stack overflow"]
 fn struct_assignment_validation() {
     let diagnostics = parse_and_validate(
         r#"

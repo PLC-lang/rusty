@@ -556,14 +556,6 @@ impl AnnotationMapImpl {
         Default::default()
     }
 
-    pub fn temp(&self, unit: &CompilationUnit) {
-        for unit in &unit.implementations {
-            for statement in &unit.statements {
-                println!("{statement:?}");
-            }
-        }
-    }
-
     pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
@@ -931,36 +923,19 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, initializer);
                 }
 
-                self.type_hint_initializer(initializer, expected_type, &ctx);
+                self.type_hint_for_variable_initializer(initializer, expected_type, &ctx);
             }
         }
     }
 
-    fn type_hint_initializer(
+    fn type_hint_for_variable_initializer(
         &mut self,
         initializer: &AstNode,
         ty: &typesystem::DataType,
         ctx: &VisitorContext,
     ) {
-        /*
-        * TYPE foo : STRUCT
-        *     a : bar
-        * END_STRUCT END_TYPE
-
-        * TYPE bar : STRUCT
-        *     b : DINT;
-        *     c : DINT;
-        * END_STRUCT END_TYPE
-
-        * VAR_GLOBAL
-        *     x : foo  := (a := (b := 5, c := 7));
-        *     //                 ^^^^^^  ^^^^^^   => DINT
-        *     //                ^^^^^^^^^^^^^^^^  => bar
-        *     //          ^^^^^^^^^^^^^^^^^^^^^^^ -> foo
-        * END_VAR
-        */
         if let AstStatement::ParenExpression(expr) = &initializer.stmt {
-            self.type_hint_initializer(expr, ty, ctx);
+            self.type_hint_for_variable_initializer(expr, ty, ctx);
             return;
         }
 

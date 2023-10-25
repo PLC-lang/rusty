@@ -34,13 +34,15 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
             let end =
                 self.files.location(file_id, location.span.to_range().map(|it| it.end).unwrap_or(0)).ok();
 
-            self.build_diagnostic_msg(
+            let res = self.build_diagnostic_msg(
                 file,
                 start.as_ref(),
                 end.as_ref(),
                 &diagnostic.severity,
                 &diagnostic.message,
             );
+
+            eprintln!("{res}");
         }
     }
     fn register(&mut self, path: String, src: String) -> usize {

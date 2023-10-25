@@ -150,8 +150,6 @@ pub mod tests {
             TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
-        annotations.temp(&unit);
-
         let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(
