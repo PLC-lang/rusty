@@ -754,6 +754,11 @@ impl<'i> TypeAnnotator<'i> {
         annotated_left_side: &AstNode,
         right_side: &AstNode,
     ) {
+        if let AstStatement::ParenExpression(expr) = &right_side.stmt {
+            self.update_right_hand_side_expected_type(ctx, annotated_left_side, expr);
+            self.inherit_annotations(right_side, expr);
+        }
+
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
             if let DataTypeInformation::SubRange { sub_range, .. } = expected_type.get_type_information() {
@@ -844,6 +849,10 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
+            AstStatement::ParenExpression(expr) => {
+                self.update_expected_types(expected_type, expr);
+                self.inherit_annotations(statement, expr);
+            }
             AstStatement::ExpressionList(expressions, ..) => {
                 //annotate the type to all elements
                 for ele in expressions {
@@ -915,13 +924,27 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, initializer);
                 }
 
-                self.annotation_map
-                    .annotate_type_hint(initializer, StatementAnnotation::value(expected_type.get_name()));
-                self.update_expected_types(expected_type, initializer);
-
-                self.type_hint_for_array_of_structs(expected_type, initializer, &ctx);
+                self.type_hint_for_variable_initializer(initializer, expected_type, &ctx);
             }
         }
+    }
+
+    fn type_hint_for_variable_initializer(
+        &mut self,
+        initializer: &AstNode,
+        ty: &typesystem::DataType,
+        ctx: &VisitorContext,
+    ) {
+        if let AstStatement::ParenExpression(expr) = &initializer.stmt {
+            self.type_hint_for_variable_initializer(expr, ty, ctx);
+            self.inherit_annotations(initializer, expr);
+            return;
+        }
+
+        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));
+        self.update_expected_types(ty, initializer);
+
+        self.type_hint_for_array_of_structs(ty, initializer, ctx);
     }
 
     fn type_hint_for_array_of_structs(
@@ -944,17 +967,16 @@ impl<'i> TypeAnnotator<'i> {
 
                 match statement.get_stmt() {
                     AstStatement::Literal(AstLiteral::Array(array)) => match array.elements() {
-                        Some(elements)
-                            if elements.is_expression_list() || elements.is_parenthesized_expression() =>
-                        {
+                        Some(elements) if elements.is_expression_list() || elements.is_paren() => {
                             self.type_hint_for_array_of_structs(expected_type, elements, &ctx)
                         }
 
                         _ => (),
                     },
 
-                    AstStatement::ParenthesizedExpression(expression) => {
+                    AstStatement::ParenExpression(expression) => {
                         self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
+                        self.inherit_annotations(statement, expression);
                     }
 
                     AstStatement::ExpressionList(expressions) => {
@@ -1090,10 +1112,26 @@ impl<'i> TypeAnnotator<'i> {
         self.visit_statement_control(ctx, statement);
     }
 
+    /// This function is only really useful for [`AstStatement::ParenExpression`] where we would
+    /// like to annotate the parenthese itself with whatever annotation the inner expression got.
+    /// For example ((1 + 2)), `1 + 2` => DINT, but also `(...)` => DINT and `((...)))` => DINT
+    fn inherit_annotations(&mut self, paren: &AstNode, inner: &AstNode) {
+        if let Some(annotation) = self.annotation_map.get_type(inner, self.index) {
+            self.annotate(paren, StatementAnnotation::value(&annotation.name))
+        }
+
+        if let Some(annotation) = self.annotation_map.get_type_hint(inner, self.index) {
+            self.annotation_map.annotate_type_hint(paren, StatementAnnotation::value(&annotation.name))
+        }
+    }
+
     /// annotate a control statement
     fn visit_statement_control(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
-            AstStatement::ParenthesizedExpression(expr) => self.visit_statement_control(ctx, expr),
+            AstStatement::ParenExpression(expr) => {
+                self.visit_statement(ctx, expr);
+                self.inherit_annotations(statement, expr);
+            }
             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
@@ -1292,6 +1330,7 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     self.visit_statement(ctx, &data.left);
                 }
+
                 // give a type hint that we want the right side to be stored in the left's type
                 self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
             }

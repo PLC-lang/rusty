@@ -601,7 +601,7 @@ pub enum AstStatement {
     BinaryExpression(BinaryExpression),
     UnaryExpression(UnaryExpression),
     ExpressionList(Vec<AstNode>),
-    ParenthesizedExpression(Box<AstNode>),
+    ParenExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
     // Assignment
@@ -640,8 +640,8 @@ impl Debug for AstNode {
             AstStatement::ExpressionList(expressions) => {
                 f.debug_struct("ExpressionList").field("expressions", expressions).finish()
             }
-            AstStatement::ParenthesizedExpression(expression) => {
-                f.debug_struct("ParenthesizedExpression").field("expression", expression).finish()
+            AstStatement::ParenExpression(expression) => {
+                f.debug_struct("ParenExpression").field("expression", expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
@@ -864,8 +864,8 @@ impl AstNode {
         )
     }
 
-    pub fn is_parenthesized_expression(&self) -> bool {
-        matches!(self.stmt, AstStatement::ParenthesizedExpression { .. })
+    pub fn is_paren(&self) -> bool {
+        matches!(self.stmt, AstStatement::ParenExpression { .. })
     }
 
     pub fn is_expression_list(&self) -> bool {
@@ -1020,6 +1020,7 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
             std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
+        AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
     }
 }
@@ -1141,12 +1142,8 @@ impl AstFactory {
         AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
     }
 
-    pub fn create_parenthesized_expression(
-        expression: AstNode,
-        location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode { stmt: AstStatement::ParenthesizedExpression(Box::new(expression)), location, id }
+    pub fn create_paren_expression(expression: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ParenExpression(Box::new(expression)), location, id }
     }
 
     /// creates a new if-statement

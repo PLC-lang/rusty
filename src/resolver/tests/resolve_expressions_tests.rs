@@ -453,6 +453,8 @@ fn complex_expressions_resolves_types_for_literals_directly() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[0] {
         // ((b + USINT#7) - c)
         assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(BYTE_TYPE));
+
+        let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
         if let AstNode {
             stmt: AstStatement::BinaryExpression(BinaryExpression { left, right: c, .. }), ..
         } = right.as_ref()
@@ -462,6 +464,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             // (b + USINT#7)
             assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
 
+            let AstStatement::ParenExpression(left) = left.get_stmt() else { panic!() };
             if let AstNode {
                 stmt: AstStatement::BinaryExpression(BinaryExpression { left: b, right: seven, .. }),
                 ..
@@ -481,6 +484,78 @@ fn complex_expressions_resolves_types_for_literals_directly() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn parenthesized_expressions() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM PRG
+              (1 + 2);
+             ((1 + 2));
+            (((1 + 2)));
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    fn peel_once(node: &AstNode) -> &AstNode {
+        let AstStatement::ParenExpression(expr) = &node.stmt else { panic!("Expected ParenExpr") };
+        expr.as_ref()
+    }
+
+    // (1 + 2)
+    let statement = dbg!(&unit.implementations[0].statements[0]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+
+    // ((1 + 2))
+    let mut statement = dbg!(&unit.implementations[0].statements[1]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+
+    // (((1 + 2)))
+    let mut statement = dbg!(&unit.implementations[0].statements[2]);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+    statement = peel_once(statement);
+    assert!(statement.is_paren());
+    assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
+}
+
+#[test]
+fn parenthesized_expression_assignment() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main
+            VAR
+                one : DINT;
+                two : SINT;
+            END_VAR
+
+            one := (1 + 2); // ParenExpr should have a type but no hint
+            two := (3 + 4); // ParenExpr should have a type and a hint
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let one = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(Assignment {right, ..}) = &one.stmt else { panic!() };
+    assert!(&right.is_paren());
+    assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
+
+    let two = &unit.implementations[0].statements[1];
+    let AstStatement::Assignment(Assignment {right, ..}) = &two.stmt else { panic!() };
+    assert!(&right.is_paren());
+    assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
+    assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "SINT");
 }
 
 #[test]
@@ -2360,6 +2435,7 @@ fn struct_member_explicit_initialization_test() {
     else {
         unreachable!()
     };
+    let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
     let AstStatement::ExpressionList(expressions) = right.get_stmt() else { unreachable!() };
 
     let AstStatement::Assignment(Assignment { left, .. }) = &expressions[0].get_stmt() else {
@@ -2663,6 +2739,7 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
+        let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2676,6 +2753,7 @@ fn struct_variable_initialization_annotates_initializer() {
             .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
             .unwrap();
 
+        let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
             index.find_effective_type_by_name("MyStruct")
@@ -2717,6 +2795,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
         .unwrap();
 
+    let AstStatement::ParenExpression(initializer) = &initializer.stmt else { panic!() };
     assert_eq!(annotations.get_type_hint(initializer, &index), index.find_effective_type_by_name("MyStruct"));
 
     //check the initializer-part
@@ -2729,6 +2808,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
             assert_eq!(annotations.get_type_hint(right, &index), index.find_effective_type_by_name("Point"));
 
             // (a := 1, b := 2)
+            let AstStatement::ParenExpression(right) = right.get_stmt() else { panic!() };
             if let AstStatement::ExpressionList(expressions, ..) = right.get_stmt() {
                 // a := 1
                 if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
@@ -3609,7 +3689,8 @@ fn function_block_initialization_test() {
 
     //PT will be a TIME variable, qualified name will be TON.PT
     let statement = unit.units[1].variable_blocks[0].variables[0].initializer.as_ref().unwrap();
-    if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } = statement {
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } = expr.as_ref() {
         let left = left.as_ref();
         let annotation = annotations.get(left).unwrap();
         assert_eq!(
@@ -3886,13 +3967,14 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     };
     assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
 
+    let AstStatement::ParenExpression(expr) = value.get_stmt() else { panic!() };
     let AstNode {
         stmt:
             AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Address, base: Some(base), ..
             }),
         ..
-    } = value.as_ref()
+    } = expr.as_ref()
     else {
         unreachable!("expected ReferenceExpr, but got {value:#?}")
     };
@@ -3997,7 +4079,7 @@ fn array_with_parenthesized_expression() {
     //                        ^^^^^^^^^^^^^^^^^^^^ -> should have a type hint @ `foo`
     let target = index.find_effective_type_by_name("foo").unwrap();
     for expression in expressions.iter().map(AstNode::get_stmt) {
-        let AstStatement::ParenthesizedExpression(expression) = expression else { panic!() };
+        let AstStatement::ParenExpression(expression) = expression else { panic!() };
         let hint = annotations.get_type_hint(expression, &index).unwrap();
 
         assert!(expression.is_expression_list());
@@ -4006,7 +4088,7 @@ fn array_with_parenthesized_expression() {
 }
 
 #[test]
-fn array_of_struct_with_inital_values_annotated_correctly() {
+fn array_of_struct_with_initial_values_annotated_correctly() {
     let id_provider = IdProvider::default();
     // GIVEN
     let (unit, mut index) = index_with_ids(
@@ -4019,7 +4101,7 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
 
 		PROGRAM main
 		VAR
-			arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), (a := 50, b := 60, c := (70, 80)));
+			arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), (a := 50, b := 60, c := [70, 80])];
 		END_VAR
 		END_PROGRAM",
         id_provider.clone(),
@@ -4033,39 +4115,38 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
     // there is only one member => main.arr
     assert_eq!(1, members.len());
 
-    if let Some(AstStatement::ExpressionList(expressions)) = index
+    let AstStatement::Literal(AstLiteral::Array(array)) = index
         .get_const_expressions()
         .maybe_get_constant_statement(&members[0].initial_value)
         .map(|it| it.get_stmt())
-    {
-        // we initialized the array with 2 structs
-        assert_eq!(2, expressions.len());
-        let target_type =
-            index.find_effective_type_by_name("myStruct").expect("at this point we should have the type");
-        // each expression is an expression list and contains assignments for the struct fields (a, b, c)
-        for e in expressions {
-            // the expression list should be annotated with the structs type
-            let type_hint = annotations.get_type_hint(e, &index).expect("we should have a type hint");
-            assert_eq!(target_type, type_hint);
+        .unwrap() else { panic!() };
+    let AstStatement::ExpressionList(expressions) = array.elements().unwrap().get_stmt() else { panic!() };
 
-            // we have three assignments (a, b, c)
-            let assignments = flatten_expression_list(e);
-            assert_eq!(3, assignments.len());
-            // the last expression of the list is the assignment to myStruct.c (array initialization)
-            if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
-                assignments.last().expect("this should be the array initialization for myStruct.c")
-            {
-                // the array initialization should be annotated with the correct type hint (myStruct.c type)
-                let target_type = annotations.get_type(left, &index).expect("we should have the type");
-                let array_init_type =
-                    annotations.get_type_hint(right, &index).expect("we should have a type hint");
-                assert_eq!(target_type, array_init_type);
-            } else {
-                panic!("should be an assignment")
-            }
+    // we initialized the array with 2 structs
+    assert_eq!(2, expressions.len());
+    let target_type =
+        index.find_effective_type_by_name("myStruct").expect("at this point we should have the type");
+    // each expression is an expression list and contains assignments for the struct fields (a, b, c)
+    for e in expressions {
+        // the expression list should be annotated with the structs type
+        let type_hint = annotations.get_type_hint(e, &index).expect("we should have a type hint");
+        assert_eq!(target_type, type_hint);
+
+        // we have three assignments (a, b, c)
+        let assignments = flatten_expression_list(e);
+        assert_eq!(3, assignments.len());
+        // the last expression of the list is the assignment to myStruct.c (array initialization)
+        if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
+            assignments.last().expect("this should be the array initialization for myStruct.c")
+        {
+            // the array initialization should be annotated with the correct type hint (myStruct.c type)
+            let target_type = annotations.get_type(left, &index).expect("we should have the type");
+            let array_init_type =
+                annotations.get_type_hint(right, &index).expect("we should have a type hint");
+            assert_eq!(target_type, array_init_type);
+        } else {
+            panic!("should be an assignment")
         }
-    } else {
-        panic!("No initial value, initial value should be an expression list")
     }
 }
 

@@ -147,7 +147,7 @@ fn additon_of_three_variables_parsed() {
 }
 
 #[test]
-fn parenthesis_expressions_should_not_change_the_ast() {
+fn parenthesis_expressions_should_change_the_ast() {
     let src = "PROGRAM exp (x+y); END_PROGRAM";
     let result = parse(src).0;
 

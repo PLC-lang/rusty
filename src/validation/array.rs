@@ -20,6 +20,7 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 use super::{ValidationContext, Validator, Validators};
 
 /// Indicates whether an array was defined in a VAR block or a POU body
+#[derive(Debug)]
 pub(super) enum Wrapper<'a> {
     Statement(&'a AstNode),
     Variable(&'a Variable),
@@ -39,6 +40,7 @@ pub(super) fn validate_array_assignment<T>(
         return;
     }
 
+    let stmt_rhs = peel(stmt_rhs);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
@@ -116,5 +118,12 @@ impl<'a> Wrapper<'a> {
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(&it)),
         }
+    }
+}
+
+fn peel(node: &AstNode) -> &AstNode {
+    match &node.stmt {
+        AstStatement::ParenExpression(expr) => peel(expr),
+        _ => node,
     }
 }

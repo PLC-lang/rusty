@@ -24,7 +24,6 @@ pub struct ParseSession<'a> {
     pub id_provider: IdProvider,
     pub source_range_factory: SourceLocationFactory,
     pub scope: Option<String>,
-    pub paren: bool,
 }
 
 #[macro_export]
@@ -58,7 +57,6 @@ impl<'a> ParseSession<'a> {
             id_provider,
             scope: None,
             source_range_factory,
-            paren: false,
         };
         lexer.advance();
         lexer

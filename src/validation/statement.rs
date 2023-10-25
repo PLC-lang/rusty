@@ -130,6 +130,7 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ContinueStatement { location, id } => (),
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
+        AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -212,6 +213,11 @@ fn validate_address_of_expression<T: AnnotationMap>(
     location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    if let AstStatement::ParenExpression(expr) = &target.stmt {
+        validate_address_of_expression(validator, expr, location, context);
+        return;
+    }
+
     let a = context.annotations.get(target);
     //TODO: resolver should also annotate information whether this results in an LValue or RValue
     // array-access results in a value, but it is an LValue :-(

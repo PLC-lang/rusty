@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 
 use crate::ast::AstNode;
 
@@ -40,7 +40,7 @@ pub enum AstControlStatement {
     Case(CaseStatement),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConditionalBlock {
     pub condition: Box<AstNode>,
     pub body: Vec<AstNode>,
@@ -51,13 +51,4 @@ pub struct ReturnStatement {
     /// Indicates that the given condition must evaluate to true in order for the return to take place.
     /// Only used in CFC where the condition may be [`Some`] and [`None`] otherwise.
     pub condition: Option<Box<AstNode>>,
-}
-
-impl Debug for ConditionalBlock {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ConditionalBlock")
-            .field("condition", &self.condition)
-            .field("body", &self.body)
-            .finish()
-    }
 }
