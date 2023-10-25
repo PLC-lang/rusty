@@ -923,7 +923,6 @@ impl<'i> TypeAnnotator<'i> {
                 //right side being the local context
                 let ctx = ctx.with_lhs(expected_type.get_name());
 
-                // TODO: Move this up, without else
                 if initializer.is_default_value() {
                     // the default-placeholder must be annotated with the correct type,
                     // it will be replaced by the appropriate literal later
@@ -931,11 +930,6 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     self.visit_statement(&ctx, initializer);
                 }
-
-                // self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(et.get_name()));
-                // self.update_expected_types(et, initializer);
-                //
-                // self.type_hint_for_array_of_structs(et, initializer, &ctx);
 
                 self.type_hint_initializer(initializer, expected_type, &ctx);
             }
@@ -945,7 +939,7 @@ impl<'i> TypeAnnotator<'i> {
     fn type_hint_initializer(
         &mut self,
         initializer: &AstNode,
-        et: &typesystem::DataType,
+        ty: &typesystem::DataType,
         ctx: &VisitorContext,
     ) {
         /*
@@ -966,14 +960,14 @@ impl<'i> TypeAnnotator<'i> {
         * END_VAR
         */
         if let AstStatement::ParenExpression(expr) = &initializer.stmt {
-            self.type_hint_initializer(expr, et, ctx);
+            self.type_hint_initializer(expr, ty, ctx);
             return;
         }
 
-        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(et.get_name()));
-        self.update_expected_types(et, initializer);
+        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));
+        self.update_expected_types(ty, initializer);
 
-        self.type_hint_for_array_of_structs(et, initializer, ctx);
+        self.type_hint_for_array_of_structs(ty, initializer, ctx);
     }
 
     fn type_hint_for_array_of_structs(
