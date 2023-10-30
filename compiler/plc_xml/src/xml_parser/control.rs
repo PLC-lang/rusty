@@ -110,18 +110,18 @@ mod tests {
     fn simple_return() {
         let content = SReturn::id(1).with_execution_id(2).connect(3).negate(false).serialize();
 
-        let reader = &mut Reader::new(&content);
+        let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
-        assert_debug_snapshot!(Control::visit(reader, None).unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
     fn simple_negated_return() {
         let content = SReturn::id(1).with_execution_id(2).connect(3).negate(true).serialize();
 
-        let reader = &mut Reader::new(&content);
+        let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
-        assert_debug_snapshot!(Control::visit(reader, None).unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
