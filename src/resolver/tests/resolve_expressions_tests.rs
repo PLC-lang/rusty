@@ -505,12 +505,12 @@ fn parenthesized_expressions() {
     }
 
     // (1 + 2)
-    let statement = dbg!(&unit.implementations[0].statements[0]);
+    let statement = &unit.implementations[0].statements[0];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
 
     // ((1 + 2))
-    let mut statement = dbg!(&unit.implementations[0].statements[1]);
+    let mut statement = &unit.implementations[0].statements[1];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
     statement = peel_once(statement);
@@ -518,7 +518,7 @@ fn parenthesized_expressions() {
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
 
     // (((1 + 2)))
-    let mut statement = dbg!(&unit.implementations[0].statements[2]);
+    let mut statement = &unit.implementations[0].statements[2];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
     statement = peel_once(statement);
@@ -539,8 +539,8 @@ fn parenthesized_expression_assignment() {
                 two : SINT;
             END_VAR
 
-            one := (1 + 2); // ParenExpr should have a type but no hint
-            two := (3 + 4); // ParenExpr should have a type and a hint
+            one := (1 + 2); // ParenExpr should have a type (DINT) and a hint (DINT)
+            two := (3 + 4); // ParenExpr should have a type (DINT) and a hint (SINT)
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -550,6 +550,7 @@ fn parenthesized_expression_assignment() {
     let AstStatement::Assignment(Assignment {right, ..}) = &one.stmt else { panic!() };
     assert!(&right.is_paren());
     assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
+    assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "DINT");
 
     let two = &unit.implementations[0].statements[1];
     let AstStatement::Assignment(Assignment {right, ..}) = &two.stmt else { panic!() };

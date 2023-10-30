@@ -527,9 +527,6 @@ pub struct AnnotationMapImpl {
     /// example:
     /// x : BYTE := 1;  //1's actual type is DINT, 1's target type is BYTE
     /// x : INT := 1;   //1's actual type is DINT, 1's target type is INT
-    ///
-    /// if the type-hint is equal to the actual type, or there is no
-    /// useful type-hint to resolve, there is no mapping in this map
     type_hint_map: IndexMap<AstId, StatementAnnotation>,
 
     /// A map from a call to the generic function name of that call
