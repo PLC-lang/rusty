@@ -1,8 +1,9 @@
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
+use crate::error::Error;
 use crate::extensions::GetOrErr;
-use crate::xml_parser::Parseable;
-use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
+use crate::reader::Reader;
+use crate::xml_parser::{get_attributes, Parseable};
 use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
 
@@ -47,13 +48,19 @@ impl BlockVariable {
     pub fn update_ref(&mut self, new_ref: NodeId) {
         self.ref_local_id = Some(new_ref);
     }
+
+    pub fn with_kind(mut self, kind: VariableKind) -> Self {
+        self.kind = kind;
+        self
+    }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(Default, Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
+    #[default]
     Temp,
 }
 
@@ -125,42 +132,29 @@ impl FromStr for Storage {
 }
 
 impl<'xml> Parseable for FunctionBlockVariable<'xml> {
-    type Item = Self;
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
+        let kind = tag.name().as_ref().try_into()?;
+        let mut attributes = get_attributes(tag.attributes())?;
 
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.peek()?;
-        let kind = match &next {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"inVariable" => VariableKind::Input,
-                b"outVariable" => VariableKind::Output,
-                b"inOutVariable" => VariableKind::InOut,
-                _ => unreachable!(),
-            },
-
-            _ => unreachable!(),
-        };
-
-        let mut attributes = reader.attributes()?;
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
-                    attributes.extend(reader.attributes()?);
+                    attributes.extend(get_attributes(tag.attributes())?);
                 }
 
                 Event::Text(tag) => {
-                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
-                    reader.consume()?;
+                    attributes.insert("expression".into(), tag.unescape()?.to_string());
                 }
 
                 Event::End(tag) => match tag.name().as_ref() {
                     b"inVariable" | b"outVariable" => {
-                        reader.consume()?;
                         break;
                     }
-                    _ => reader.consume()?,
+                    _ => {}
                 },
 
-                _ => reader.consume()?,
+                _ => {}
             }
         }
 
@@ -168,32 +162,24 @@ impl<'xml> Parseable for FunctionBlockVariable<'xml> {
     }
 }
 
-impl Parseable for BlockVariable {
-    type Item = Vec<Self>;
+impl Parseable for Vec<BlockVariable> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
 
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let kind = match reader.next()? {
-            Event::Start(tag) | Event::Empty(tag) => VariableKind::try_from(tag.name().as_ref())?,
-            _ => unreachable!(),
-        };
-
-        let mut res = vec![];
-
+        let mut variables = vec![];
+        let kind = VariableKind::try_from(tag.name().as_ref())?;
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) if tag.name().as_ref() == b"variable" => {
-                    let attributes = visit_variable(reader)?;
-                    res.push(BlockVariable::new(attributes, kind)?);
+                    variables.push(BlockVariable::visit(reader, Some(tag))?.with_kind(kind))
                 }
-
                 Event::End(tag)
                     if matches!(
                         tag.name().as_ref(),
                         b"inputVariables" | b"outputVariables" | b"inOutVariables"
                     ) =>
                 {
-                    reader.consume()?;
-                    return Ok(res);
+                    break
                 }
 
                 Event::Eof => {
@@ -203,28 +189,32 @@ impl Parseable for BlockVariable {
                         b"inOutVariables",
                     ]))
                 }
-                _ => reader.consume()?,
+                _ => {}
             };
         }
+        Ok(variables)
     }
 }
 
-fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>, Error> {
-    let mut attributes = HashMap::new();
-    loop {
-        match reader.peek()? {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(reader.attributes()?),
-                _ => reader.consume()?,
-            },
+impl Parseable for BlockVariable {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
 
-            Event::End(tag) if tag.name().as_ref() == b"variable" => {
-                reader.consume()?;
-                break;
+        let mut attributes = get_attributes(tag.attributes())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?);
+                }
+
+                Event::End(tag) if tag.name().as_ref() == b"variable" => {
+                    break;
+                }
+
+                _ => {}
             }
-            _ => reader.consume()?,
         }
-    }
 
-    Ok(attributes)
+        BlockVariable::new(attributes, VariableKind::default())
+    }
 }

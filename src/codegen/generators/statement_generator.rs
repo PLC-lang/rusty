@@ -149,14 +149,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::JumpStatement(JumpStatement { condition, .. }) => {
                 //Find the label to jump to
-                let Some(then_block) = self.annotations.get(statement).and_then(
-                        |label| if let StatementAnnotation::Label { name } = label {
-                            self.function_context.blocks.get(name)
-                        } else {
-                            None
-                        })
-                else {
-                    return Err(Diagnostic::codegen_error("Could not find label for {statement:?}", statement.get_location()));
+                let Some(then_block) = self.annotations.get(statement).and_then(|label| {
+                    if let StatementAnnotation::Label { name } = label {
+                        self.function_context.blocks.get(name)
+                    } else {
+                        None
+                    }
+                }) else {
+                    return Err(Diagnostic::codegen_error(
+                        "Could not find label for {statement:?}",
+                        statement.get_location(),
+                    ));
                 };
                 //Set current location as else block
                 let current_block = self.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);

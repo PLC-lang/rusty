@@ -179,6 +179,24 @@ fn jump_to_label_with_false() {
     assert_eq!(res, 5);
 }
 
+#[test]
+fn actions_called_correctly() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        b: i32,
+    }
+
+    let mut main = MainType::default();
+
+    let file = get_test_file("cfc/actions.cfc");
+    let _: i32 = compile_and_run(vec![file], &mut main);
+
+    assert_eq!(main.a, 1);
+    assert_eq!(main.b, 2);
+}
+
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
@@ -237,7 +255,6 @@ mod ir {
         let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
 
         let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
-
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);

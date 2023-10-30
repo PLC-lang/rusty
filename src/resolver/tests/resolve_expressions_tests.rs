@@ -4305,17 +4305,23 @@ fn action_called_from_other_action_resolved() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //Actions are annotated corretly
-    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[0].statements[0].get_stmt() else {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) =
+        unit.implementations[0].statements[0].get_stmt()
+    else {
         unreachable!()
     };
     assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act1");
 
-    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[1].statements[0].get_stmt() else {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) =
+        unit.implementations[1].statements[0].get_stmt()
+    else {
         unreachable!()
     };
     assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act2");
 
-    let AstStatement::CallStatement(CallStatement { operator, .. }) = unit.implementations[2].statements[0].get_stmt() else {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) =
+        unit.implementations[2].statements[0].get_stmt()
+    else {
         unreachable!()
     };
     assert_eq!(annotations.get_call_name(operator).unwrap(), "mainProg.act1");

@@ -1,43 +1,38 @@
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
 use super::fbd::FunctionBlockDiagram;
-use crate::{error::Error, reader::PeekableReader, xml_parser::Parseable};
+use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
 #[derive(Debug, Default)]
 pub(crate) struct Body<'xml> {
-    pub function_block_diagram: Option<FunctionBlockDiagram<'xml>>,
+    pub function_block_diagram: FunctionBlockDiagram<'xml>,
 }
 
 impl<'xml> Body<'xml> {
-    fn new(fbd: Option<FunctionBlockDiagram<'xml>>) -> Result<Self, Error> {
+    fn new(fbd: FunctionBlockDiagram<'xml>) -> Result<Self, Error> {
         Ok(Self { function_block_diagram: fbd })
     }
 
     fn empty() -> Result<Self, Error> {
-        Ok(Self { function_block_diagram: None })
+        Ok(Self { function_block_diagram: FunctionBlockDiagram::default() })
     }
 }
 
 impl<'xml> Parseable for Body<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
+    fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
+        let mut body = Body::default();
         loop {
-            match reader.peek()? {
-                Event::Start(tag) => match tag.name().as_ref() {
-                    b"FBD" => {
-                        let fbd = FunctionBlockDiagram::visit(reader)?;
-                        reader.consume_until(vec![b"body"])?;
-
-                        return Body::new(Some(fbd));
-                    }
-                    _ => reader.consume()?,
-                },
-                Event::Empty(tag) if tag.name().as_ref() == b"FBD" => return Body::empty(),
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) if tag.name().as_ref() == b"FBD" => {
+                    body.function_block_diagram = FunctionBlockDiagram::visit(reader, Some(tag))?
+                }
+                Event::End(tag) if tag.name().as_ref() == b"body" => break,
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"body"])),
-                _ => reader.consume()?,
+                _ => {}
             }
         }
+
+        Ok(body)
     }
 }
 
@@ -47,7 +42,7 @@ mod tests {
 
     use crate::{
         model::body::Body,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{SBlock, SBody, SVariable},
         xml_parser::Parseable,
     };
@@ -56,8 +51,8 @@ mod tests {
     fn empty() {
         let content = SBody::new().with_fbd(vec![]).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        assert_debug_snapshot!(Body::visit(&mut reader, None).unwrap());
     }
 
     #[test]
@@ -72,7 +67,8 @@ mod tests {
                 .with_inout(vec![])])
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Body::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Body::visit(&mut reader, tag).unwrap());
     }
 }

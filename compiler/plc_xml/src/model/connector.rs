@@ -5,8 +5,8 @@ use quick_xml::events::Event;
 use crate::{
     error::Error,
     extensions::{GetOrErr, TryToString},
-    reader::PeekableReader,
-    xml_parser::Parseable,
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -37,37 +37,25 @@ pub(crate) enum ConnectorKind {
 }
 
 impl<'xml> Parseable for Connector<'xml> {
-    type Item = Self;
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
 
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.peek()?;
-        let kind = match &next {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"connector" => ConnectorKind::Source,
-                b"continuation" => ConnectorKind::Sink,
-                _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
-            },
-
-            _ => unreachable!(),
+        let kind = match tag.name().as_ref() {
+            b"connector" => ConnectorKind::Source,
+            b"continuation" => ConnectorKind::Sink,
+            _ => return Err(Error::UnexpectedElement(tag.name().try_to_string()?)),
         };
 
-        let mut attributes = reader.attributes()?;
+        let mut attributes = get_attributes(tag.attributes())?;
         loop {
-            match reader.peek()? {
-                Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                    b"connection" => attributes.extend(reader.attributes()?),
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if matches!(tag.name().as_ref(), b"connector" | b"continuation") => {
-                    reader.consume()?;
-                    break;
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?)
                 }
-
-                _ => reader.consume()?,
+                Event::End(tag) if matches!(tag.name().as_ref(), b"connector" | b"continuation") => break,
+                _ => {}
             }
         }
-
         Connector::new(attributes, kind)
     }
 }

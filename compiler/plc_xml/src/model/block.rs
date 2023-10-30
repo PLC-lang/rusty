@@ -1,8 +1,13 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
-use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
+};
 
 use super::variables::BlockVariable;
 
@@ -28,28 +33,27 @@ impl<'xml> Block<'xml> {
 }
 
 impl<'xml> Parseable for Block<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.attributes()?;
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
+        let attributes = get_attributes(tag.attributes())?;
         let mut variables = Vec::new();
 
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
-                        variables.extend(BlockVariable::visit(reader)?)
+                        let new_vars: Vec<BlockVariable> = Parseable::visit(reader, Some(tag))?;
+                        variables.extend(new_vars);
                     }
-                    _ => reader.consume()?,
+                    _ => {}
                 },
 
                 Event::End(tag) if tag.name().as_ref() == b"block" => {
-                    reader.consume()?;
                     break;
                 }
 
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
-                _ => reader.consume()?,
+                _ => {}
             }
         }
 
@@ -63,7 +67,7 @@ mod tests {
 
     use crate::{
         model::block::Block,
-        reader::PeekableReader,
+        reader::{get_start_tag, Reader},
         serializer::{SBlock, SVariable},
         xml_parser::Parseable,
     };
@@ -78,7 +82,8 @@ mod tests {
             .with_output(vec![&SVariable::new().with_name("c")])
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Block::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Block::visit(&mut reader, tag).unwrap());
     }
 }

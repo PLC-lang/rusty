@@ -1,9 +1,14 @@
 use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 use plc_diagnostics::diagnostics::Diagnostic;
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
-use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
+};
 
 use super::{action::Action, body::Body, interface::Interface};
 
@@ -31,11 +36,40 @@ impl<'xml> Pou<'xml> {
         &mut self,
         source_location_factory: &plc_source::source_location::SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
-        if let Some(ref mut fbd) = self.body.function_block_diagram {
-            fbd.desugar(source_location_factory)
-        } else {
-            Ok(())
+        self.body.function_block_diagram.desugar(source_location_factory)
+    }
+}
+
+impl<'xml> Parseable for Pou<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
+        let attributes = get_attributes(tag.attributes())?;
+        let mut pou = Pou::default().with_attributes(attributes)?;
+        loop {
+            match reader.read_event()? {
+                // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
+                Event::Start(tag) if tag.name().as_ref() == b"interface" => {
+                    pou.interface =
+                        Some(Interface::visit(reader, Some(tag))?.append_end_keyword(&pou.pou_type))
+                }
+                Event::Start(tag) if tag.name().as_ref() == b"body" => {
+                    pou.body = Body::visit(reader, Some(tag))?
+                }
+                Event::Start(tag) if tag.name().as_ref() == b"actions" => {
+                    let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;
+                    for mut action in actions.into_iter() {
+                        // Copy the action type names
+                        action.type_name = pou.name.clone();
+                        pou.actions.push(action);
+                    }
+                }
+                Event::End(tag) if tag.name().as_ref() == b"pou" => break,
+                Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
+
+                _ => {}
+            }
         }
+        Ok(pou)
     }
 }
 
@@ -66,46 +100,6 @@ impl TryFrom<&str> for PouType {
             "function" => Ok(PouType::Function),
             "functionBlock" => Ok(PouType::FunctionBlock),
             _ => Err(Error::UnexpectedElement(value.to_string())),
-        }
-    }
-}
-
-impl<'xml> Parseable for Pou<'xml> {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let mut pou = Pou::default().with_attributes(reader.attributes()?)?;
-        loop {
-            match reader.peek()? {
-                Event::Start(tag) => match tag.name().as_ref() {
-                    b"interface" => {
-                        // XXX: this is very specific to our own xml schema, but does not adhere to the plc open standard
-                        reader.consume_until_start(b"content")?;
-                        match reader.next()? {
-                            Event::Start(tag) => {
-                                pou.interface = Some(Interface::new(&reader.read_text(tag.name())?))
-                            }
-                            _ => reader.consume()?,
-                        }
-                    }
-                    b"body" => {
-                        pou.body = Body::visit(reader)?;
-                        if let Some(interface) = pou.interface {
-                            pou.interface = Some(interface.append_end_keyword(&pou.pou_type));
-                        }
-
-                        // TODO: change in order to parse INTERFACE, ACTION etc..
-                        reader.consume_until(vec![b"pou"])?;
-                        return Ok(pou);
-                    }
-
-                    _ => reader.consume()?,
-                },
-
-                Event::End(tag) if tag.name().as_ref() == b"pou" => return Ok(pou),
-
-                _ => reader.consume()?,
-            }
         }
     }
 }
