@@ -505,12 +505,12 @@ fn parenthesized_expressions() {
     }
 
     // (1 + 2)
-    let statement = dbg!(&unit.implementations[0].statements[0]);
+    let statement = &unit.implementations[0].statements[0];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
 
     // ((1 + 2))
-    let mut statement = dbg!(&unit.implementations[0].statements[1]);
+    let mut statement = &unit.implementations[0].statements[1];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
     statement = peel_once(statement);
@@ -518,7 +518,7 @@ fn parenthesized_expressions() {
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
 
     // (((1 + 2)))
-    let mut statement = dbg!(&unit.implementations[0].statements[2]);
+    let mut statement = &unit.implementations[0].statements[2];
     assert!(statement.is_paren());
     assert_eq!("DINT", annotations.get_type_or_void(statement, &index).get_name());
     statement = peel_once(statement);

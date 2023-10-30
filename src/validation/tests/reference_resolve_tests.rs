@@ -305,7 +305,7 @@ fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
         "
 		PROGRAM mainProg
         VAR
-            var_str1 : STRUCT1 := (myArr := [x1 := FALSE, x2 := TRUE]);
+            var_str1 : STRUCT1 := (myArr := [(x1 := FALSE, x2 := TRUE)]);
         END_VAR
         END_PROGRAM
 

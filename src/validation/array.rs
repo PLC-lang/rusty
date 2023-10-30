@@ -26,44 +26,59 @@ pub(super) enum Wrapper<'a> {
     Variable(&'a Variable),
 }
 
-pub(super) fn validate_array_assignment<T>(
+pub(super) fn validate_array_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
     wrapper: Wrapper,
-) where
-    T: AnnotationMap,
-{
-    let Some(dti_lhs) = wrapper.datatype_info_lhs(context) else { return };
-    let Some(stmt_rhs) = wrapper.get_rhs() else { return };
+) {
+    let Some(lhs_type) = wrapper.datatype_info_lhs(context) else { return };
+    let Some(rhs_stmt) = wrapper.get_rhs() else { return };
 
-    if !dti_lhs.is_array() {
+    if !lhs_type.is_array() {
         return;
     }
 
-    let stmt_rhs = peel(stmt_rhs);
+    validate_array(validator, context, lhs_type, rhs_stmt);
+    validate_array_of_structs(validator, context, lhs_type, rhs_stmt);
+}
+
+fn validate_array<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    lhs_type: &DataTypeInformation,
+    rhs_stmt: &AstNode,
+) {
+    let stmt_rhs = peel(rhs_stmt);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
-    let len_lhs = dti_lhs.get_array_length(context.index).unwrap_or(0);
+    let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
     let len_rhs = statement_to_array_length(stmt_rhs);
 
     if len_lhs < len_rhs {
-        let name = dti_lhs.get_name();
+        let name = lhs_type.get_name();
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(Diagnostic::array_size(name, len_lhs, len_rhs, location));
     }
+}
 
-    let dti =
-        context.index.find_effective_type_by_name(dti_lhs.get_inner_array_type_name().unwrap()).unwrap();
+fn validate_array_of_structs<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    lhs_type: &DataTypeInformation,
+    rhs_stmt: &AstNode,
+) {
+    let Some(array_type_name) = lhs_type.get_inner_array_type_name() else { return };
+    let Some(dti) = context.index.find_effective_type_by_name(array_type_name) else { return };
 
     if dti.is_struct() {
-        let AstStatement::Literal(AstLiteral::Array(array)) = dbg!(stmt_rhs.get_stmt()) else { panic!() };
+        let AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() else { return };
         let Some(AstStatement::ExpressionList(expressions)) = array.elements().map(AstNode::get_stmt) else { return };
 
-        for invalid in expressions.iter().filter(|it| !it.is_parenthesized_expression()) {
-            validator.push_diagnostic(Diagnostic::array_struct_assignment(dbg!(invalid).get_location()));
+        for invalid in expressions.iter().filter(|it| !it.is_paren()) {
+            validator.push_diagnostic(Diagnostic::array_struct_assignment(invalid.get_location()));
         }
     }
 }
@@ -73,6 +88,7 @@ pub(super) fn validate_array_assignment<T>(
 fn statement_to_array_length(statement: &AstNode) -> usize {
     match statement.get_stmt() {
         AstStatement::ExpressionList { .. } => 1,
+        AstStatement::ParenExpression(_) => 1,
         AstStatement::MultipliedStatement(data) => data.multiplier as usize,
         AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
