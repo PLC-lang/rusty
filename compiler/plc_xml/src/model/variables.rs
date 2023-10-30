@@ -218,3 +218,65 @@ impl Parseable for BlockVariable {
         BlockVariable::new(attributes, VariableKind::default())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+
+    use crate::serializer::{
+        SInOutVariables, SInVariable, SInputVariables, SOutVariable, SOutputVariables, SVariable,
+    };
+    use crate::{
+        model::variables::{BlockVariable, FunctionBlockVariable},
+        reader::{get_start_tag, Reader},
+        xml_parser::Parseable,
+    };
+
+    #[test]
+    fn block_input_variable() {
+        let content = SInputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
+    }
+
+    #[test]
+    fn block_output_variable() {
+        let content = SOutputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
+    }
+
+    #[test]
+    fn block_inout_variable() {
+        let content = SInOutVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
+    }
+
+    #[test]
+    fn fbd_in_variable() {
+        let content = SInVariable::id(0).with_expression("a").serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
+    }
+
+    #[test]
+    fn fbd_out_variable() {
+        let content = SOutVariable::id(0).with_expression("a").serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
+    }
+}
