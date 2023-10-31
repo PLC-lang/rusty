@@ -1,6 +1,6 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::codegen_with_debug;
+use crate::test_utils::tests::{codegen_with_debug, codegen_with_debug_cfc};
 
 #[test]
 fn implementation_added_as_subroutine() {
@@ -307,5 +307,13 @@ fn for_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
+#[test]
+fn temp() {
+    let content = std::fs::read_to_string("tests/integration/data/cfc/jump_true.cfc").unwrap();
+    let result = codegen_with_debug_cfc(&content);
+
     assert_snapshot!(result);
 }
