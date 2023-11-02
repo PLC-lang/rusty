@@ -1,6 +1,8 @@
 use insta::assert_snapshot;
 
 use crate::test_utils::tests::{codegen_with_debug, codegen_with_debug_cfc};
+use plc_xml::serializer::{SInOutVariable, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn};
+use serde::Serialize;
 
 #[test]
 fn implementation_added_as_subroutine() {
@@ -311,9 +313,36 @@ fn for_conditions_location_marked() {
 }
 
 #[test]
-fn temp() {
-    let content = std::fs::read_to_string("tests/integration/data/cfc/jump_true.cfc").unwrap();
-    let result = codegen_with_debug_cfc(&content);
+fn conditional_return() {
+    let declaration = "FUNCTION foo VAR_INPUT val : DINT; END_VAR";
+    let content = SPou::init("foo", "function", declaration).with_fbd(vec![
+        // IF val = 1 THEN RETURN
+        &SInVariable::id(2).with_expression("val = 5"), // Condition
+        &SReturn::id(3).with_execution_id(2).connect(2).negate(false), // Statement
+        // ELSE val := 10
+        &SInVariable::id(4).with_expression("10"),
+        &SInVariable::id(5).with_execution_id(3).connect(4).with_expression("val"),
+    ]);
 
+    // We expect two different !dbg statements for the return statement and its condition
+    let result = codegen_with_debug_cfc(&content.serialize());
+    assert_snapshot!(result);
+}
+
+#[test]
+fn jump() {
+    let declaration = "PROGRAM foo VAR val : DINT := 0; END_VAR";
+    let content = SPou::init("foo", "program", declaration).with_fbd(vec![
+        // IF TRUE THEN GOTO lbl
+        &SInVariable::id(1).with_expression("val = 0"), // condition
+        &SLabel::id(2).with_name("lbl").with_execution_id(1), // label
+        &SJump::id(3).with_name("lbl").with_execution_id(2).connect(1), // statement
+        // ELSE x := FALSE
+        &SOutVariable::id(4).with_execution_id(3).with_expression("val").connect(5), // assignment
+        &SInVariable::id(5).with_expression("1"),
+    ]);
+
+    // We expect four different !dbg statement for the condition, label, statement and the assignment
+    let result = codegen_with_debug_cfc(&content.serialize());
     assert_snapshot!(result);
 }

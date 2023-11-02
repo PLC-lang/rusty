@@ -129,8 +129,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ReturnStatement(ReturnStatement { condition }) => match condition {
                 Some(condition) => {
-                    self.register_debug_location(statement);
-                    self.generate_conditional_return(condition)?;
+                    self.generate_conditional_return(statement, condition)?;
                 }
                 None => {
                     self.register_debug_location(statement);
@@ -812,8 +811,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
     /// does nothing otherwise.
-    pub fn generate_conditional_return(&'a self, condition: &AstNode) -> Result<(), Diagnostic> {
+    pub fn generate_conditional_return(
+        &'a self,
+        statement: &AstNode,
+        condition: &AstNode,
+    ) -> Result<(), Diagnostic> {
         let expression_generator = self.create_expr_generator();
+
+        self.register_debug_location(condition);
         let condition = expression_generator.generate_expression(condition)?;
 
         let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
@@ -826,8 +831,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         self.llvm.builder.position_at_end(then_block);
+        self.register_debug_location(statement);
         self.generate_return_statement()?;
-
         self.llvm.builder.position_at_end(else_block);
 
         Ok(())
