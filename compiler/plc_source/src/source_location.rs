@@ -120,6 +120,14 @@ impl CodeSpan {
         }
     }
 
+    pub fn get_line_dbg(&self) -> usize {
+        match self {
+            Self::Range(range) => range.start.line + 1,
+            Self::Block { local_id, .. } => *local_id,
+            _ => 0,
+        }
+    }
+
     /// Gets the colmumn representation for a source location
     /// If the location does not represent a line, 0 is returned
     pub fn get_column(&self) -> usize {
@@ -178,6 +186,10 @@ impl SourceLocation {
     // That is 0 for None and the ID for id/inner spans
     pub fn get_line(&self) -> usize {
         self.span.get_line()
+    }
+
+    pub fn get_line_plus_one(&self) -> usize {
+        self.span.get_line_dbg()
     }
 
     /// Gets the colmumn representation for a source location

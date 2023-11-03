@@ -192,8 +192,6 @@ pub mod tests {
             id_provider: IdProvider,
         ) -> (CompilationUnit, Index, Vec<Diagnostic>) {
             let source = src.into();
-            let source_str = &source.source;
-            let source_path = source.get_location_str();
             let mut index = Index::default();
             //Import builtins
             let builtins = builtins::parse_built_ins(id_provider.clone());
@@ -204,7 +202,6 @@ pub mod tests {
                 index.register_type(data_type);
             }
 
-            let range_factory = SourceLocationFactory::for_source(&source);
             let (mut unit, diagnostics) =
                 plc_xml::xml_parser::parse(&source.into(), LinkageType::Internal, id_provider.clone());
 

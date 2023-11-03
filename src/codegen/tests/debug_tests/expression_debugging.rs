@@ -1,8 +1,9 @@
 use insta::assert_snapshot;
 
 use crate::test_utils::tests::{codegen_with_debug, codegen_with_debug_cfc};
-use plc_xml::serializer::{SInOutVariable, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn};
-use serde::Serialize;
+use plc_xml::serializer::{
+    SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
+};
 
 #[test]
 fn implementation_added_as_subroutine() {
@@ -343,6 +344,43 @@ fn jump() {
     ]);
 
     // We expect four different !dbg statement for the condition, label, statement and the assignment
+    let result = codegen_with_debug_cfc(&content.serialize());
+    assert_snapshot!(result);
+}
+
+#[test]
+fn actions() {
+    let content = SPou::init("main", "program", "PROGRAM main VAR a, b : DINT; END_VAR")
+        .with_actions(vec![
+            &SAction::name("newAction").with_fbd(vec![
+                &SOutVariable::id(1).with_expression("a").with_execution_id(0).connect(2),
+                &SInVariable::id(2).with_expression("a + 1"),
+            ]),
+            &SAction::name("newAction2").with_fbd(vec![
+                &SInVariable::id(1).with_expression("b + 2"),
+                &SOutVariable::id(2).with_expression("b").with_execution_id(0).connect(1),
+            ]),
+        ])
+        .with_fbd(vec![
+            &SBlock::id(1).with_name("newAction").with_execution_id(1),
+            &SBlock::id(2).with_name("newAction2").with_execution_id(2),
+            &SInVariable::id(4).with_expression("0"),
+            &SOutVariable::id(3).with_expression("a").with_execution_id(0).connect(4),
+        ]);
+
+    let result = codegen_with_debug_cfc(&content.serialize());
+    assert_snapshot!(result);
+}
+
+#[test]
+fn sink_source() {
+    let content = SPou::init("main", "program", "PROGRAM main VAR x: DINT; END_VAR").with_fbd(vec![
+        &SInVariable::id(1).with_expression("5"),
+        &SConnector::id(2).with_name("s1").connect(1),
+        &SContinuation::id(3).with_name("s1"),
+        &SOutVariable::id(4).with_expression("x").with_execution_id(1).connect(3),
+    ]);
+
     let result = codegen_with_debug_cfc(&content.serialize());
     assert_snapshot!(result);
 }

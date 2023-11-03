@@ -283,7 +283,7 @@ impl<'ink> DebugBuilder<'ink> {
                         file.as_debug_info_scope(),
                         member_name,
                         file,
-                        location.get_line().wrapping_add(1) as u32,
+                        location.get_line_plus_one() as u32,
                         size.bits().into(),
                         alignment.bits(),
                         running_offset.bits().into(),
@@ -302,7 +302,7 @@ impl<'ink> DebugBuilder<'ink> {
             file.as_debug_info_scope(),
             name,
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             running_offset.bits().into(),
             struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
@@ -429,7 +429,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             name,
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
             inner_dt.get_type_information().get_alignment(index).bits(),
         );
@@ -484,7 +484,7 @@ impl<'ink> DebugBuilder<'ink> {
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             // entry for the function
             ditype,
             false, // TODO: what is this
@@ -562,7 +562,7 @@ impl<'ink> DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -691,7 +691,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 name,
                 "",
                 file,
-                location.get_line().wrapping_add(1) as u32,
+                location.get_line_plus_one() as u32,
                 debug_type.into(),
                 false,
                 None,
@@ -717,7 +717,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
 
         let scope = scope
             .get_subprogram()
@@ -751,7 +751,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -785,7 +785,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
                 .unwrap_or_else(|| self.compile_unit.get_file());
-            let line = pou.get_location().get_line().wrapping_add(1) as u32;
+            let line = pou.get_location().get_line_plus_one() as u32;
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 pou.get_name(),
