@@ -280,9 +280,6 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
 <span class="kw">use </span><span class="kw">crate</span>::error::Error;
@@ -508,19 +505,18 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>insta::assert_debug_snapshot;
 
+    <span class="kw">use </span><span class="kw">crate</span>::serializer::{
+        SInOutVariables, SInVariable, SInputVariables, SOutVariable, SOutputVariables, SVariable,
+    };
     <span class="kw">use crate</span>::{
         model::variables::{BlockVariable, FunctionBlockVariable},
         reader::{get_start_tag, Reader},
-        serializer::{
-            XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
-            XVariable,
-        },
         xml_parser::Parseable,
     };
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_input_variable() {
-        <span class="kw">let </span>content = XInputVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
+        <span class="kw">let </span>content = SInputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -530,7 +526,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_output_variable() {
-        <span class="kw">let </span>content = XOutputVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
+        <span class="kw">let </span>content = SOutputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -540,7 +536,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_inout_variable() {
-        <span class="kw">let </span>content = XInOutVariables::new().with_variable(XVariable::init(<span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>)).serialize();
+        <span class="kw">let </span>content = SInOutVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -550,8 +546,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fbd_in_variable() {
-        <span class="kw">let </span>content =
-            XInVariable::init(<span class="string">&quot;0&quot;</span>, <span class="bool-val">false</span>).with_expression(XExpression::new().with_data(<span class="string">&quot;a&quot;</span>)).serialize();
+        <span class="kw">let </span>content = SInVariable::id(<span class="number">0</span>).with_expression(<span class="string">&quot;a&quot;</span>).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -560,8 +555,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fbd_out_variable() {
-        <span class="kw">let </span>content =
-            XOutVariable::init(<span class="string">&quot;0&quot;</span>, <span class="bool-val">false</span>).with_expression(XExpression::new().with_data(<span class="string">&quot;a&quot;</span>)).serialize();
+        <span class="kw">let </span>content = SOutVariable::id(<span class="number">0</span>).with_expression(<span class="string">&quot;a&quot;</span>).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ParseError"],"fn":["at","at_utc","empty_tm","get_time","now","now_utc","precise_time_ns","precise_time_s","strftime","strptime","tzset"],"struct":["Duration","OutOfRangeError","PreciseTime","SteadyTime","Timespec","Tm","TmFmt"]};

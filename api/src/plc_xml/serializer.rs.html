@@ -363,469 +363,369 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-</pre></div><pre class="rust"><code><span class="kw">type </span>Attributes = Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str)&gt;;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
-<span class="doccomment">/// Number of spaces to use when indenting XML
-</span><span class="kw">const </span>INDENT_SPACES: usize = <span class="number">4</span>;
-
-<span class="attr">#[derive(Debug, Default)]
-</span><span class="kw">enum </span>Content {
-    Node(Vec&lt;Node&gt;),
-    Data(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
-
-    <span class="attr">#[default]
-    </span>Empty,
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>&gt; Content {
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Node) {
-        <span class="kw">let </span><span class="kw-2">mut </span>nodes = <span class="kw">match </span><span class="self">self</span>.take() {
-            Content::Node(nodes) =&gt; nodes,
-            Content::Empty =&gt; <span class="macro">vec!</span>[],
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;cannot push onto data field&quot;</span>),
-        };
-
-        nodes.push(node);
-
-        <span class="self">self</span>.replace(Content::Node(nodes));
-    }
-
-    <span class="kw">fn </span>replace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="self">self</span>, other: Content) -&gt; Content {
-        std::mem::replace(<span class="self">self</span>, other)
-    }
-
-    <span class="kw">fn </span>take(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; Content {
-        std::mem::take(<span class="self">self</span>)
-    }
-
-    <span class="kw">fn </span>iter(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Node&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            Content::Node(nodes) =&gt; nodes,
-            <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[],
-        }
-        .into_iter()
-    }
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>Node {
+<span class="attr">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Node {
     name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    attributes: Attributes,
-    closed: bool,
-    content: Content,
+    children: Vec&lt;Node&gt;,
+
+    <span class="doccomment">/// XML attributes, e.g. `&lt;position x=&quot;1&quot;&gt;` where `x` is the attribute
+    ///
+    /// Design Note: We use a HashMap here to avoid duplicates but also update existing values in case of
+    /// repeated function calls, e.g. `with_attribute(&quot;x&quot;, 1)` and `with_attribute(&quot;x&quot;, 2)` where the value of
+    /// x has been updated from 1 to 2.
+    </span>attributes: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+
+    <span class="doccomment">/// Indicates if an element has a closed form, e.g. `&lt;position x=&quot;1&quot; y=&quot;2&quot;/&gt;`
+    </span>closed: bool,
+
+    <span class="doccomment">/// Indicates if an element has some text wrapped inside itself, e.g. `&lt;expression&gt;a + b&lt;/expression&gt;`
+    </span>content: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+}
+
+<span class="kw">pub trait </span>IntoNode {
+    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Node;
 }
 
 <span class="kw">impl </span>Node {
-    <span class="kw">fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="kw">let </span><span class="kw-2">mut </span>fmt = String::new();
-        <span class="kw">for </span>attr <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.attributes {
-            fmt = <span class="macro">format!</span>(<span class="string">r#&quot;{fmt}{key}=&quot;{value}&quot; &quot;#</span>, key = attr.<span class="number">0</span>, value = attr.<span class="number">1</span>)
-        }
-
-        fmt
+    <span class="kw">fn </span>new(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ name, attributes: HashMap::new(), children: Vec::new(), closed: <span class="bool-val">false</span>, content: <span class="prelude-val">None </span>}
     }
 
-    <span class="comment">// TODO: ✨ Beautify ✨ this
-    </span><span class="kw">fn </span>serialize(<span class="self">self</span>, level: usize) -&gt; String {
-        <span class="kw">let </span>(indent, name, attributes) = (<span class="string">&quot; &quot;</span>.repeat(level * INDENT_SPACES), <span class="self">self</span>.name, <span class="self">self</span>.attributes());
-        <span class="kw">let </span><span class="kw-2">mut </span>fmt = String::new();
-        <span class="kw">match </span><span class="self">self</span>.content {
-            Content::Data(data) =&gt; fmt = <span class="macro">format!</span>(<span class="string">&quot;{indent}&lt;{name} {attributes}&gt;{data}&lt;/{name}&gt;\n&quot;</span>,),
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">if </span><span class="self">self</span>.closed {
-                    fmt = <span class="macro">format!</span>(
-                        <span class="string">&quot;{indent}&lt;{name} {attributes}/&gt;\n&quot;</span>,
-                        indent = <span class="string">&quot; &quot;</span>.repeat(level * INDENT_SPACES),
-                        name = <span class="self">self</span>.name,
-                        attributes = <span class="self">self</span>.attributes()
-                    );
-                }
+    <span class="kw">fn </span>attribute(<span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attributes.insert(key, value);
+        <span class="self">self
+    </span>}
 
-                <span class="kw">if </span>!<span class="self">self</span>.closed {
-                    fmt = <span class="macro">format!</span>(
-                        <span class="string">&quot;{indent}&lt;{name} {attributes}&gt;\n&quot;</span>,
-                        indent = <span class="string">&quot; &quot;</span>.repeat(level * INDENT_SPACES),
-                        name = <span class="self">self</span>.name,
-                        attributes = <span class="self">self</span>.attributes()
-                    );
-                }
+    <span class="kw">fn </span>child(<span class="kw-2">mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.children.push(node.inner());
+        <span class="self">self
+    </span>}
 
-                <span class="kw">for </span>node <span class="kw">in </span><span class="self">self</span>.content.iter() {
-                    fmt = <span class="macro">format!</span>(<span class="string">&quot;{fmt}{}&quot;</span>, node.serialize(level + <span class="number">1</span>));
-                }
+    <span class="kw">fn </span>children(<span class="kw-2">mut </span><span class="self">self</span>, nodes: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.children.extend(nodes.into_iter().map(IntoNode::inner));
+        <span class="self">self
+    </span>}
 
-                <span class="kw">if </span>!<span class="self">self</span>.closed {
-                    fmt = <span class="macro">format!</span>(
-                        <span class="string">&quot;{fmt}{indent}&lt;/{name}&gt;\n&quot;</span>,
-                        indent = <span class="string">&quot; &quot;</span>.repeat(level * INDENT_SPACES),
-                        name = <span class="kw-2">&amp;</span><span class="self">self</span>.name
-                    );
+    <span class="kw">fn </span>close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.closed = <span class="bool-val">true</span>;
+        <span class="self">self
+    </span>}
+
+    <span class="kw">fn </span>indent(level: usize) -&gt; String {
+        <span class="string">&quot; &quot;</span>.repeat(level * <span class="number">4</span>)
+    }
+
+    <span class="kw">fn </span>serialize_content(indent: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">&quot;{indent}&lt;{name}&gt;{content}&lt;/{name}&gt;\n&quot;</span>)
+    }
+
+    <span class="attr">#[allow(unused_assignments)]
+    </span><span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>, level: usize) -&gt; String {
+        <span class="kw">let </span>(name, indent) = (<span class="self">self</span>.name, Node::indent(level));
+        <span class="kw">let </span>attributes = <span class="self">self</span>.attributes.iter().map(|(key, value)| <span class="macro">format!</span>(<span class="string">&quot;{key}=\&quot;{value}\&quot;&quot;</span>));
+        <span class="kw">let </span>attributes_str = attributes.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
+
+        <span class="kw">if </span><span class="self">self</span>.closed {
+            <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;{indent}&lt;{name} {attributes_str}/&gt;\n&quot;</span>);
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(content) = <span class="self">self</span>.content {
+            <span class="kw">return </span>Node::serialize_content(<span class="kw-2">&amp;</span>indent, name, content);
+        }
+
+        result = <span class="macro">format!</span>(<span class="string">&quot;{indent}&lt;{name} {attributes_str}&gt;\n&quot;</span>);
+        <span class="self">self</span>.children.iter().for_each(|child| result = <span class="macro">format!</span>(<span class="string">&quot;{result}{}&quot;</span>, child.serialize(level + <span class="number">1</span>)));
+        result = <span class="macro">format!</span>(<span class="string">&quot;{result}{indent}&lt;/{name}&gt;\n&quot;</span>);
+
+        result
+    }
+}
+
+<span class="macro">macro_rules! </span>newtype_impl {
+    (<span class="macro-nonterminal">$name_struct</span>:ident, <span class="macro-nonterminal">$name_node</span>:expr, <span class="macro-nonterminal">$negatable</span>:expr) =&gt; {
+        <span class="kw">pub struct </span><span class="macro-nonterminal">$name_struct</span>(Node);
+
+        <span class="kw">impl </span>IntoNode <span class="kw">for </span><span class="macro-nonterminal">$name_struct </span>{
+            <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Node {
+                <span class="self">self</span>.<span class="number">0</span>.clone()
+            }
+        }
+
+        <span class="kw">impl </span><span class="macro-nonterminal">$name_struct </span>{
+            <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+                <span class="kw">match </span><span class="macro-nonterminal">$negatable </span>{
+                    <span class="bool-val">true </span>=&gt; <span class="self">Self</span>(Node::new(<span class="macro-nonterminal">$name_node</span>).attribute(<span class="string">&quot;negated&quot;</span>, <span class="string">&quot;false&quot;</span>)),
+                    <span class="bool-val">false </span>=&gt; <span class="self">Self</span>(Node::new(<span class="macro-nonterminal">$name_node</span>)),
                 }
             }
-        };
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
-        </span><span class="macro">println!</span>(<span class="string">&quot;{fmt}&quot;</span>);
+            <span class="kw">pub fn </span>id(local_id: i32) -&gt; <span class="self">Self </span>{
+                <span class="kw">let </span>new = <span class="macro-nonterminal">$name_struct::new</span>();
+                new.with_id(local_id)
+            }
 
-        fmt
-    }
-}
+            <span class="kw">fn </span>attribute(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+                <span class="self">Self</span>(<span class="self">self</span>.inner().attribute(key, value))
+            }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_header(data: <span class="kw-2">&amp;</span>str) -&gt; String {
-    <span class="kw">let </span>header = <span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&quot;#</span>;
-    <span class="macro">format!</span>(<span class="string">&quot;{header}\n{data}&quot;</span>)
-}
-
-<span class="comment">// For `declare_type_and_extend_if_needed! { (Pou, &quot;pou&quot;, (Body, with_body)) }` the macro will expand to
-//
-// pub(crate) struct Pou(Node);
-//
-// impl Pou {
-//     pub fn new() -&gt; Self {
-//         Self(Node { name: &quot;pou&quot;, attributes: vec![], closed: false, nodes: vec![] })
-//     }
-//
-//     ... the remaining non-optional functions in the impl block ...
-//
-//     ... the optional extend method
-//     pub(crate) fn with_body(arg: Body) -&gt; Self {
-//         self.get_inner_ref_mut().nodes.push(arg.get_inner());
-//         self
-//     }
-// }
-// TODO: revisit visiblity of functions
-</span><span class="macro">macro_rules! </span>declare_type_and_extend_if_needed {
-    ($((<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$name_xml</span>:expr, $((<span class="macro-nonterminal">$arg</span>:ty, <span class="macro-nonterminal">$fn_name</span>:ident)),<span class="kw-2">*</span>),) +) =&gt; {
-        $(
-            <span class="comment">// will be implemented for every $name
-            </span><span class="attr">#[derive(Debug)]
-            </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span><span class="macro-nonterminal">$name</span>(Node);
-            <span class="kw">impl </span><span class="macro-nonterminal">$name </span>{
-                <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-                    <span class="self">Self</span>(Node { name: <span class="macro-nonterminal">$name_xml</span>, attributes: <span class="macro">vec!</span>[], closed: <span class="bool-val">false</span>, content: Content::Empty })
+            <span class="kw">fn </span>maybe_attribute(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="self">Self </span>{
+                <span class="kw">match </span>value {
+                    <span class="prelude-val">Some</span>(value) =&gt; <span class="self">Self</span>(<span class="self">self</span>.inner().attribute(key, value)),
+                    <span class="prelude-val">None </span>=&gt; <span class="self">self</span>,
                 }
+            }
 
-                <span class="kw">pub fn </span>with_attribute(<span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.<span class="number">0</span>.attributes.push((key, value));
-                    <span class="self">self
-                </span>}
+            <span class="kw">fn </span>child(<span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode) -&gt; <span class="self">Self </span>{
+                <span class="self">Self</span>(<span class="self">self</span>.inner().child(node))
+            }
 
-                <span class="kw">pub fn </span>with_local_id(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.<span class="number">0</span>.attributes.push((<span class="string">&quot;localId&quot;</span>, value));
-                    <span class="self">self
-                </span>}
+            <span class="kw">pub fn </span>children(<span class="self">self</span>, nodes: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+                <span class="self">Self</span>(<span class="self">self</span>.inner().children(nodes))
+            }
 
-                <span class="kw">pub fn </span>with_execution_order_id(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.<span class="number">0</span>.attributes.push((<span class="string">&quot;executionOrderId&quot;</span>, value));
-                    <span class="self">self
-                </span>}
+            <span class="kw">pub fn </span>serialize(<span class="self">self</span>) -&gt; String {
+                <span class="self">self</span>.inner().serialize(<span class="number">0</span>)
+            }
 
-                <span class="kw">pub fn </span>with_data(<span class="kw-2">mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.<span class="number">0</span>.content = Content::Data(data);
-                    <span class="self">self
-                </span>}
+            <span class="kw">pub fn </span>with_id&lt;T: std::fmt::Display&gt;(<span class="self">self</span>, id: T) -&gt; <span class="self">Self </span>{
+                <span class="self">self</span>.attribute(<span class="string">&quot;localId&quot;</span>, Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                <span class="kw">pub fn </span>close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.<span class="number">0</span>.closed = <span class="bool-val">true</span>;
-                    <span class="self">self
-                </span>}
+            <span class="kw">pub fn </span>with_ref_id&lt;T: std::fmt::Display&gt;(<span class="self">self</span>, id: T) -&gt; <span class="self">Self </span>{
+                <span class="self">self</span>.attribute(<span class="string">&quot;refLocalId&quot;</span>, Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                <span class="kw">pub fn </span>serialize(<span class="self">self</span>) -&gt; String {
-                    <span class="self">self</span>.<span class="number">0</span>.serialize(<span class="number">0</span>)
-                }
+            <span class="kw">pub fn </span>with_execution_id&lt;T: std::fmt::Display&gt;(<span class="self">self</span>, id: T) -&gt; <span class="self">Self </span>{
+                <span class="self">self</span>.attribute(<span class="string">&quot;executionOrderId&quot;</span>, Box::leak(id.to_string().into_boxed_str()))
+            }
 
-                <span class="kw">fn </span>get_inner(<span class="self">self</span>) -&gt; Node {
-                    <span class="self">self</span>.<span class="number">0
-                </span>}
-
-                <span class="kw">fn </span>get_inner_ref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Node {
-                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
-                </span>}
-
-                <span class="comment">// this part is optional.
-                </span>$(
-                    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span><span class="macro-nonterminal">$fn_name</span>(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="macro-nonterminal">$arg</span>) -&gt; <span class="self">Self </span>{
-                    <span class="self">self</span>.get_inner_ref_mut().content.push(value.get_inner());
-                    <span class="self">self
-                </span>})*
-        })*
-    }
-}
-
-<span class="macro">declare_type_and_extend_if_needed! </span>{
-    (
-        XPou, <span class="string">&quot;pou&quot;</span>,
-        (XBody, with_body),
-        (XInterface, with_interface)
-    ),
-    (
-        XBlock, <span class="string">&quot;block&quot;</span>,
-        (XInOutVariables, with_inout_variables),
-        (XInputVariables, with_input_variables),
-        (XOutputVariables, with_output_variables)
-    ),
-    (
-
-        XBody, <span class="string">&quot;body&quot;</span>,
-        (XFbd, with_fbd)
-    ),
-    (
-        XConnectionPointIn, <span class="string">&quot;connectionPointIn&quot;</span>,
-        (XConnection, with_connection),
-        (XRelPosition, with_rel_position)
-    ),
-    (
-        XConnectionPointOut, <span class="string">&quot;connectionPointOut&quot;</span>,
-        (XConnection, with_connection),
-        (XRelPosition, with_rel_position)
-    ),
-    (
-        XFbd, <span class="string">&quot;FBD&quot;</span>,
-        (XBlock, with_block),
-        (XInVariable, with_in_variable),
-        (XOutVariable, with_out_variable),
-        (XContinuation, with_continuation),
-        (XConnector, with_connector),
-        (XReturn, with_return),
-        (XJump, with_jump),
-        (XLabel, with_label)
-    ),
-    (
-        XVariable, <span class="string">&quot;variable&quot;</span>,
-        (XConnectionPointIn, with_connection_in),
-        (XConnectionPointOut, with_connection_out)
-    ),
-    (
-        XInVariable, <span class="string">&quot;inVariable&quot;</span>,
-        (XConnectionPointOut, with_connection_point_out),
-        (XPosition, with_position),
-        (XExpression, with_expression)
-    ),
-    (
-        XOutVariable, <span class="string">&quot;outVariable&quot;</span>,
-        (XPosition, with_position),
-        (XConnectionPointIn, with_connection_point_in),
-        (XExpression, with_expression)
-    ),
-    (
-        XInOutVariables, <span class="string">&quot;inOutVariables&quot;</span>,
-        (XVariable, with_variable)
-    ),
-    (
-        XInputVariables, <span class="string">&quot;inputVariables&quot;</span>,
-        (XVariable, with_variable)
-    ),
-    (
-        XOutputVariables, <span class="string">&quot;outputVariables&quot;</span>,
-        (XVariable, with_variable)
-    ),
-    (
-        XInterface, <span class="string">&quot;interface&quot;</span>,
-        (XLocalVars, with_local_vars),
-        (XAddData, with_add_data)
-    ),
-    (XLocalVars, <span class="string">&quot;localVars&quot;</span>,),
-    (
-        XAddData, <span class="string">&quot;addData&quot;</span>,
-        (XData, with_data_data)
-    ),
-    (
-        XData, <span class="string">&quot;data&quot;</span>,
-        (XTextDeclaration, with_text_declaration),
-        (XNegated, with_negated_field)
-    ),
-    (
-        XTextDeclaration, <span class="string">&quot;textDeclaration&quot;</span>,
-        (XContent, with_content)
-    ),
-    (XContent, <span class="string">&quot;content&quot;</span>,),
-
-    <span class="comment">// these are not being extended:
-    </span>(XPosition, <span class="string">&quot;position&quot;</span>,),
-    (XRelPosition, <span class="string">&quot;relPosition&quot;</span>,),
-    (XConnection, <span class="string">&quot;connection&quot;</span>,),
-    (XExpression, <span class="string">&quot;expression&quot;</span>,),
-
-    (
-        XContinuation, <span class="string">&quot;continuation&quot;</span>,
-        (XPosition, with_position),
-        (XConnectionPointOut, with_connection_point_out)
-    ),
-    (
-        XConnector, <span class="string">&quot;connector&quot;</span>,
-        (XPosition, with_position),
-        (XConnectionPointIn, with_connection_point_in)
-    ),
-    (
-        XReturn, <span class="string">&quot;return&quot;</span>,
-        (XConnectionPointIn, with_connection_point_in),
-        (XAddData, with_add_data)
-    ),
-    (
-        XJump, <span class="string">&quot;jump&quot;</span>,
-        (XConnectionPointIn, with_connection_point_in),
-        (XAddData, with_add_data)
-    ),
-    (XLabel, <span class="string">&quot;label&quot;</span>,),
-    (
-        XNegated, <span class="string">&quot;negated&quot;</span>,
-    ),
-}
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-
-    <span class="kw">use </span><span class="kw">crate</span>::serializer::{XConnection, XConnectionPointIn, XConnectionPointOut, XRelPosition};
-
-    <span class="kw">use super</span>::{
-        XAddData, XBlock, XContent, XData, XInVariable, XInterface, XNegated, XOutVariable, XPou,
-        XTextDeclaration, XVariable,
+            <span class="kw">fn </span>close(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+                <span class="self">Self</span>(<span class="self">self</span>.inner().close())
+            }
+        }
     };
+}
 
-    <span class="comment">// convenience methods to reduce amount of boiler-plate-code
-    </span><span class="kw">impl </span>XVariable {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, negated: bool) -&gt; <span class="self">Self </span>{
-            XVariable::new()
-                .with_attribute(<span class="string">&quot;formalParameter&quot;</span>, name)
-                .with_attribute(<span class="string">&quot;negated&quot;</span>, <span class="kw">if </span>negated { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>})
-        }
+<span class="macro">newtype_impl!</span>(SInVariable, <span class="string">&quot;inVariable&quot;</span>, <span class="bool-val">true</span>);
+<span class="macro">newtype_impl!</span>(SOutVariable, <span class="string">&quot;outVariable&quot;</span>, <span class="bool-val">true</span>);
+<span class="macro">newtype_impl!</span>(SInOutVariable, <span class="string">&quot;inOutVariable&quot;</span>, <span class="bool-val">true</span>);
+<span class="macro">newtype_impl!</span>(SInterface, <span class="string">&quot;interface&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SLocalVars, <span class="string">&quot;localVars&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SAddData, <span class="string">&quot;addData&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SData, <span class="string">&quot;data&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(STextDeclaration, <span class="string">&quot;textDeclaration&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SContent, <span class="string">&quot;content&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SPosition, <span class="string">&quot;position&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SConnectionPointIn, <span class="string">&quot;connectionPointIn&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SConnectionPointOut, <span class="string">&quot;connectionPointOut&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SRelPosition, <span class="string">&quot;relPosition&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SConnection, <span class="string">&quot;connection&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SBlock, <span class="string">&quot;block&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SBody, <span class="string">&quot;body&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SPou, <span class="string">&quot;pou&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SInputVariables, <span class="string">&quot;inputVariables&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SOutputVariables, <span class="string">&quot;outputVariables&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SInOutVariables, <span class="string">&quot;inOutVariables&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SVariable, <span class="string">&quot;variable&quot;</span>, <span class="bool-val">true</span>);
+<span class="macro">newtype_impl!</span>(YFbd, <span class="string">&quot;FBD&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SExpression, <span class="string">&quot;expression&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SReturn, <span class="string">&quot;return&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SNegate, <span class="string">&quot;negated&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SConnector, <span class="string">&quot;connector&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SContinuation, <span class="string">&quot;continuation&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SJump, <span class="string">&quot;jump&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SLabel, <span class="string">&quot;label&quot;</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_connection_in_initialized(<span class="self">self</span>, ref_lid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-            <span class="self">self</span>.with_connection_in(
-                XConnectionPointIn::new()
-                    .with_rel_position(XRelPosition::init().close())
-                    .with_connection(XConnection::new().with_attribute(<span class="string">&quot;refLocalId&quot;</span>, ref_lid).close()),
-            )
-        }
+<span class="kw">impl </span>SInVariable {
+    <span class="kw">pub fn </span>connect(<span class="kw-2">mut </span><span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self </span>= <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id)));
+        <span class="self">self
+    </span>}
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_connection_out_initialized(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-            <span class="self">self</span>.with_connection_out(
-                XConnectionPointOut::new().with_rel_position(XRelPosition::init().close()),
-            )
-        }
+    <span class="kw">pub fn </span>with_expression(<span class="self">self</span>, expression: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SExpression::expression(expression))
+    }
+}
+
+<span class="kw">impl </span>SOutVariable {
+    <span class="kw">pub fn </span>connect(<span class="kw-2">mut </span><span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self </span>= <span class="self">self
+            </span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()));
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub fn </span>connect_name(<span class="kw-2">mut </span><span class="self">self</span>, ref_local_id: i32, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self </span>=
+            <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(
+                <span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).attribute(<span class="string">&quot;formalParameter&quot;</span>, name).close(),
+            ));
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub fn </span>with_expression(<span class="self">self</span>, expression: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SExpression::expression(expression))
+    }
+}
+
+<span class="kw">impl </span>SInOutVariable {
+    <span class="kw">pub fn </span>with_expression(<span class="self">self</span>, expression: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SExpression::expression(expression))
+    }
+}
+
+<span class="kw">impl </span>SReturn {
+    <span class="kw">pub fn </span>init(local_id: i32, execution_order: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().with_id(local_id).with_execution_id(execution_order)
     }
 
-    <span class="kw">impl </span>XRelPosition {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init() -&gt; <span class="self">Self </span>{
-            XRelPosition::new().with_attribute(<span class="string">&quot;x&quot;</span>, <span class="string">&quot;0&quot;</span>).with_attribute(<span class="string">&quot;y&quot;</span>, <span class="string">&quot;0&quot;</span>).close()
-        }
+    <span class="kw">pub fn </span>connect(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id)))
     }
 
-    <span class="kw">impl </span>XConnectionPointIn {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_ref(ref_local_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-            XConnectionPointIn::new()
-                .with_rel_position(XRelPosition::init().close())
-                .with_connection(XConnection::new().with_attribute(<span class="string">&quot;refLocalId&quot;</span>, ref_local_id).close())
-        }
+    <span class="kw">pub fn </span>negate(<span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SAddData::new().child(<span class="kw-2">&amp;</span>SData::new().child(
+            <span class="kw-2">&amp;</span>SNegate::new().attribute(<span class="string">&quot;value&quot;</span>, Box::leak(value.to_string().into_boxed_str())).close(),
+        )))
+    }
+}
+
+<span class="kw">impl </span>SContent {
+    <span class="kw">pub fn </span>with_declaration(<span class="kw-2">mut </span><span class="self">self</span>, content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.<span class="number">0</span>.content = <span class="prelude-val">Some</span>(content);
+        <span class="self">self
+    </span>}
+}
+
+<span class="kw">impl </span>SPou {
+    <span class="kw">pub fn </span>init(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, kind: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, declaration: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+            .attribute(<span class="string">&quot;xmlns&quot;</span>, <span class="string">&quot;http://www.plcopen.org/xml/tc6_0201&quot;</span>)
+            .attribute(<span class="string">&quot;name&quot;</span>, name)
+            .attribute(<span class="string">&quot;pouType&quot;</span>, kind)
+            .child(<span class="kw-2">&amp;</span>SInterface::new().children(<span class="macro">vec!</span>[
+                    <span class="kw-2">&amp;</span>SLocalVars::new().close(),
+                    <span class="kw-2">&amp;</span>SAddData::new().child(
+                        <span class="kw-2">&amp;</span>SData::new()
+                            .attribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;www.bachmann.at/plc/plcopenxml&quot;</span>)
+                            .attribute(<span class="string">&quot;handleUnknown&quot;</span>, <span class="string">&quot;implementation&quot;</span>)
+                            .child(
+                                <span class="kw-2">&amp;</span>STextDeclaration::new()
+                                    .child(<span class="kw-2">&amp;</span>SContent::new().with_declaration(declaration)),
+                            ),
+                    ),
+                ]))
     }
 
-    <span class="kw">impl </span>XConnectionPointOut {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_rel_pos() -&gt; <span class="self">Self </span>{
-            XConnectionPointOut::new().with_rel_position(XRelPosition::init().close())
-        }
+    <span class="doccomment">/// Implicitly wraps the fbd in a block node, i.e. &lt;block&gt;&lt;fbd&gt;...&lt;fbd/&gt;&lt;block/&gt;
+    </span><span class="kw">pub fn </span>with_fbd(<span class="self">self</span>, children: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SBody::new().child(<span class="kw-2">&amp;</span>YFbd::new().children(children)))
+    }
+}
+
+<span class="kw">impl </span>SBlock {
+    <span class="kw">pub fn </span>init(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, local_id: i32, execution_order_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().with_name(name).with_id(local_id).with_execution_id(execution_order_id)
     }
 
-    <span class="kw">impl </span>XInVariable {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(local_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, negated: bool) -&gt; <span class="self">Self </span>{
-            XInVariable::new()
-                .with_attribute(<span class="string">&quot;localId&quot;</span>, local_id)
-                .with_attribute(<span class="string">&quot;negated&quot;</span>, <span class="kw">if </span>negated { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>})
-        }
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;typeName&quot;</span>, name)
     }
 
-    <span class="kw">impl </span>XOutVariable {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(local_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, negated: bool) -&gt; <span class="self">Self </span>{
-            XOutVariable::new()
-                .with_attribute(<span class="string">&quot;localId&quot;</span>, local_id)
-                .with_attribute(<span class="string">&quot;negated&quot;</span>, <span class="kw">if </span>negated { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>})
-        }
+    <span class="kw">pub fn </span>with_input(<span class="self">self</span>, variables: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SInputVariables::new().children(variables))
     }
 
-    <span class="kw">impl </span>XBlock {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(local_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, type_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, exec_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-            XBlock::new()
-                .with_attribute(<span class="string">&quot;localId&quot;</span>, local_id)
-                .with_attribute(<span class="string">&quot;typeName&quot;</span>, type_name)
-                .with_attribute(<span class="string">&quot;executionOrderId&quot;</span>, exec_id)
-        }
+    <span class="kw">pub fn </span>with_output(<span class="self">self</span>, variables: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SOutputVariables::new().children(variables))
     }
 
-    <span class="kw">impl </span>XPou {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, pou_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, declaration: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-            XPou::new()
-                .with_attribute(<span class="string">&quot;xmlns&quot;</span>, <span class="string">&quot;http://www.plcopen.org/xml/tc6_0201&quot;</span>)
-                .with_attribute(<span class="string">&quot;name&quot;</span>, name)
-                .with_attribute(<span class="string">&quot;pouType&quot;</span>, pou_type)
-                .with_interface(XInterface::init_with_text_declaration(declaration))
-        }
+    <span class="kw">pub fn </span>with_inout(<span class="self">self</span>, variables: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SInOutVariables::new().children(variables))
+    }
+}
+
+<span class="kw">impl </span>SBody {
+    <span class="kw">pub fn </span>with_fbd(<span class="self">self</span>, children: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().child(<span class="kw-2">&amp;</span>YFbd::new().children(children))
+    }
+}
+
+<span class="kw">impl </span>SInputVariables {
+    <span class="kw">pub fn </span>with_variables(variables: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().children(variables)
+    }
+}
+
+<span class="kw">impl </span>SOutputVariables {
+    <span class="kw">pub fn </span>with_variables(variables: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().children(variables)
+    }
+}
+
+<span class="kw">impl </span>SVariable {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;formalParameter&quot;</span>, name)
     }
 
-    <span class="kw">impl </span>XInterface {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_with_text_declaration(declaration: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
-            XInterface::new().with_add_data(XAddData::new().with_data_data(
-                XData::new().with_text_declaration(
-                    XTextDeclaration::new().with_content(XContent::new().with_data(declaration)),
-                ),
-            ))
-        }
+    <span class="kw">pub fn </span>connect(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()))
     }
 
-    <span class="kw">impl </span>XAddData {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>negated(is_negated: bool) -&gt; <span class="self">Self </span>{
-            XAddData::new().with_data_data(XData::new().with_negated_field(
-                XNegated::new().with_attribute(<span class="string">&quot;value&quot;</span>, <span class="kw">if </span>is_negated { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>}),
-            ))
-        }
+    <span class="kw">pub fn </span>connect_out(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointOut::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+}
+
+<span class="kw">impl </span>SExpression {
+    <span class="kw">pub fn </span>expression(expression: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="self">Self</span>::new();
+        node.<span class="number">0</span>.content = <span class="prelude-val">Some</span>(expression);
+        node
+    }
+}
+
+<span class="kw">impl </span>SConnector {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;name&quot;</span>, name)
+    }
+
+    <span class="kw">pub fn </span>connect(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+}
+
+<span class="kw">impl </span>SContinuation {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;name&quot;</span>, name)
+    }
+
+    <span class="kw">pub fn </span>connect_out(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointOut::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+}
+
+<span class="kw">impl </span>SLabel {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;label&quot;</span>, name)
+    }
+}
+
+<span class="kw">impl </span>SJump {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.attribute(<span class="string">&quot;label&quot;</span>, name)
+    }
+
+    <span class="kw">pub fn </span>connect(<span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SConnectionPointIn::new().child(<span class="kw-2">&amp;</span>SConnection::new().with_ref_id(ref_local_id).close()))
+    }
+
+    <span class="kw">pub fn </span>negate(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(
+            <span class="kw-2">&amp;</span>SAddData::new().child(<span class="kw-2">&amp;</span>SData::new().child(<span class="kw-2">&amp;</span>SNegate::new().attribute(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;true&quot;</span>).close())),
+        )
     }
 }
 </code></pre></div></section></main></body></html>

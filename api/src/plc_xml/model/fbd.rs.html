@@ -928,37 +928,6 @@
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>indexmap::{IndexMap, IndexSet};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
@@ -1075,6 +1044,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>nodes = IndexMap::new();
+
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
                 Event::Start(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
@@ -1253,16 +1223,13 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::serializer::{SBlock, SInVariable, SOutVariable, SVariable, YFbd};
     <span class="kw">use crate</span>::{
         model::{
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,
             variables::FunctionBlockVariable,
         },
         reader::{get_start_tag, Reader},
-        serializer::{
-            XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
-            XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
-        },
         xml_parser::Parseable,
     };
     <span class="kw">use </span>insta::assert_debug_snapshot;
@@ -1272,47 +1239,18 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_block() {
-        <span class="kw">let </span>content = XFbd::new()
-            .with_block(
-                XBlock::init(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;ADD&quot;</span>, <span class="string">&quot;0&quot;</span>)
-                    .with_input_variables(
-                        XInputVariables::new()
-                            .with_variable(XVariable::init(<span class="string">&quot;a&quot;</span>, <span class="bool-val">false</span>).with_connection_in_initialized(<span class="string">&quot;1&quot;</span>))
-                            .with_variable(XVariable::init(<span class="string">&quot;b&quot;</span>, <span class="bool-val">false</span>).with_connection_in_initialized(<span class="string">&quot;2&quot;</span>)),
-                    )
-                    .with_inout_variables(XInOutVariables::new().close())
-                    .with_output_variables(
-                        XOutputVariables::new()
-                            .with_variable(XVariable::init(<span class="string">&quot;c&quot;</span>, <span class="bool-val">false</span>).with_connection_out_initialized()),
-                    ),
-            )
-            .with_in_variable(
-                XInVariable::init(<span class="string">&quot;2&quot;</span>, <span class="bool-val">false</span>)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data(<span class="string">&quot;a&quot;</span>)),
-            )
-            .with_in_variable(
-                XInVariable::init(<span class="string">&quot;3&quot;</span>, <span class="bool-val">false</span>)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data(<span class="string">&quot;b&quot;</span>)),
-            )
-            .with_out_variable(
-                XOutVariable::init(<span class="string">&quot;4&quot;</span>, <span class="bool-val">false</span>)
-                    .with_position(XPosition::new().close())
-                    .with_attribute(<span class="string">&quot;executionOrderId&quot;</span>, <span class="string">&quot;1&quot;</span>)
-                    .with_connection_point_in(
-                        XConnectionPointIn::new()
-                            .with_rel_position(XRelPosition::init())
-                            .with_connection(XConnection::new().with_attribute(<span class="string">&quot;refLocalId&quot;</span>, <span class="string">&quot;1&quot;</span>)),
-                    )
-                    .with_expression(XExpression::new().with_data(<span class="string">&quot;c&quot;</span>)),
-            )
+        <span class="kw">let </span>content = YFbd::new()
+            .children(<span class="macro">vec!</span>[
+                <span class="kw-2">&amp;</span>SBlock::init(<span class="string">&quot;ADD&quot;</span>, <span class="number">1</span>, <span class="number">0</span>)
+                    .with_input(<span class="macro">vec!</span>[
+                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;a&quot;</span>).connect(<span class="number">1</span>),
+                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;b&quot;</span>).connect(<span class="number">2</span>),
+                    ])
+                    .with_output(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;c&quot;</span>)]),
+                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">2</span>).with_expression(<span class="string">&quot;a&quot;</span>),
+                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">3</span>).with_expression(<span class="string">&quot;b&quot;</span>),
+                <span class="kw-2">&amp;</span>SOutVariable::new().with_id(<span class="number">4</span>).with_expression(<span class="string">&quot;c&quot;</span>).with_execution_id(<span class="number">1</span>).connect(<span class="number">1</span>),
+            ])
             .serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);

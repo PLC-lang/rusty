@@ -72,18 +72,6 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
 <span class="kw">use </span><span class="kw">super</span>::fbd::FunctionBlockDiagram;
@@ -129,13 +117,13 @@
     <span class="kw">use crate</span>::{
         model::body::Body,
         reader::{get_start_tag, Reader},
-        serializer::{XBlock, XBody, XFbd, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
+        serializer::{SBlock, SBody, SVariable},
         xml_parser::Parseable,
     };
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>empty() {
-        <span class="kw">let </span>content = XBody::new().with_fbd(XFbd::new().close()).serialize();
+        <span class="kw">let </span>content = SBody::new().with_fbd(<span class="macro">vec!</span>[]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="macro">assert_debug_snapshot!</span>(Body::visit(<span class="kw-2">&amp;mut </span>reader, <span class="prelude-val">None</span>).unwrap());
@@ -143,26 +131,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fbd_with_add_block() {
-        <span class="kw">let </span>content = XBody::new()
-            .with_fbd(
-                XFbd::new().with_block(
-                    XBlock::init(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;ADD&quot;</span>, <span class="string">&quot;0&quot;</span>)
-                        .with_input_variables(
-                            XInputVariables::new()
-                                .with_variable(
-                                    XVariable::init(<span class="string">&quot;a&quot;</span>, <span class="bool-val">false</span>).with_connection_in_initialized(<span class="string">&quot;1&quot;</span>),
-                                )
-                                .with_variable(
-                                    XVariable::init(<span class="string">&quot;b&quot;</span>, <span class="bool-val">false</span>).with_connection_in_initialized(<span class="string">&quot;2&quot;</span>),
-                                ),
-                        )
-                        .with_inout_variables(XInOutVariables::new().close())
-                        .with_output_variables(
-                            XOutputVariables::new()
-                                .with_variable(XVariable::init(<span class="string">&quot;c&quot;</span>, <span class="bool-val">false</span>).with_connection_out_initialized()),
-                        ),
-                ),
-            )
+        <span class="kw">let </span>content = SBody::new()
+            .with_fbd(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SBlock::init(<span class="string">&quot;ADD&quot;</span>, <span class="number">1</span>, <span class="number">0</span>)
+                .with_input(<span class="macro">vec!</span>[
+                    <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;a&quot;</span>).connect(<span class="number">1</span>),
+                    <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;b&quot;</span>).connect(<span class="number">2</span>),
+                ])
+                .with_output(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;c&quot;</span>)])
+                .with_inout(<span class="macro">vec!</span>[])])
             .serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);

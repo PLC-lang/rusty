@@ -3,9 +3,9 @@
 general purpose system call for making calls into the kernel. In addition
 to the wide variety of system calls that are included by default in the
 kernel, many drivers expose their own <code>ioctl</code>’s for controlling their
-behavior, some of which are proprietary.  Therefore it is impossible to
-make a safe interface for every <code>ioctl</code> call, as they all have wildly
-varying semantics.</p>
+behavior, some of which are proprietary. Therefore it is impossible to make
+a safe interface for every <code>ioctl</code> call, as they all have wildly varying
+semantics.</p>
 <p>This module provides an unsafe interface to write your own <code>ioctl</code> API. To
 start, create a type that implements <a href="trait.Ioctl.html" title="trait rustix::ioctl::Ioctl"><code>Ioctl</code></a>. Then, pass it to <a href="fn.ioctl.html" title="fn rustix::ioctl::ioctl"><code>ioctl</code></a>
 to make the <code>ioctl</code> call.</p>
