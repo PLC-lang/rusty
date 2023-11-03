@@ -121,50 +121,24 @@ impl FromStr for PouType {
 mod tests {
     use insta::assert_debug_snapshot;
 
+    use crate::serializer::SPou;
     use crate::{
         model::pou::Pou,
         reader::{get_start_tag, Reader},
-        serializer::{
-            XAddData, XBody, XContent, XData, XFbd, XInterface, XLocalVars, XPou, XTextDeclaration,
-        },
         xml_parser::{self, Parseable},
     };
 
     #[test]
     fn empty() {
-        let content = XPou::new()
-            .with_attribute("xmlns", "http://www.plcopen.org/xml/tc6_0201")
-            .with_attribute("name", "foo")
-            .with_attribute("pouType", "program")
-            .with_interface(
-                XInterface::new().with_local_vars(XLocalVars::new().close()).with_add_data(
-                    XAddData::new().with_data_data(
-                        XData::new()
-                            .with_attribute("name", "www.bachmann.at/plc/plcopenxml")
-                            .with_attribute("handleUnknown", "implementation")
-                            .with_text_declaration(XTextDeclaration::new().with_content(
-                                XContent::new().with_data(
-                                    r#"
-PROGRAM foo
-VAR
-
-END_VAR
-                    "#,
-                                ),
-                            )),
-                    ),
-                ),
-            )
-            .with_body(XBody::new().with_fbd(XFbd::new().close()))
-            .serialize();
+        let declaration = "PROGRAM foo VAR END_VAR";
+        let content = SPou::init("foo", "program", declaration).with_fbd(vec![]).serialize();
 
         assert_debug_snapshot!(xml_parser::visit(&content));
     }
 
     #[test]
     fn poutype_program() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "program").serialize();
+        let content = SPou::init("foo", "program", "").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -173,8 +147,7 @@ END_VAR
 
     #[test]
     fn poutype_function() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "function").serialize();
+        let content = SPou::init("foo", "function", "").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -183,8 +156,7 @@ END_VAR
 
     #[test]
     fn poutype_function_block() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "functionBlock").serialize();
+        let content = SPou::init("foo", "functionBlock", "").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -193,8 +165,7 @@ END_VAR
 
     #[test]
     fn poutype_unknown() {
-        let content =
-            XPou::new().with_attribute("name", "foo").with_attribute("pouType", "asdasd").serialize();
+        let content = SPou::init("foo", "asdasd", "").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());

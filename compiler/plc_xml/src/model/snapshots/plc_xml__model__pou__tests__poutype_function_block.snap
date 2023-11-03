@@ -12,6 +12,10 @@ Ok(
             },
         },
         actions: [],
-        interface: None,
+        interface: Some(
+            Interface {
+                add_data: None,
+            },
+        ),
     },
 )
