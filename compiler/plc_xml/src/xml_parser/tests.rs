@@ -12,10 +12,7 @@ use plc_source::{source_location::SourceLocationFactory, SourceCode, SourceCodeF
 use crate::serializer::{
     SBlock, SConnector, SContinuation, SInOutVariable, SInVariable, SOutVariable, SPou, SReturn, SVariable,
 };
-use crate::{
-    model::project::Project,
-    xml_parser::{self},
-};
+use crate::{model::project::Project, xml_parser};
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
     let source_code = SourceCode::new(content, "test.cfc");
@@ -35,7 +32,6 @@ fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
 
 #[test]
 fn variable_assignment() {
-    // Replaces the `ASSIGNMENT_A_B` XML file
     let content = SPou::init("foo", "program", "PROGRAM foo VAR a, b : DINT; END_VAR")
         .with_fbd(vec![
             &SInVariable::id(1).with_expression("a"),
@@ -56,7 +52,6 @@ fn conditional_return() {
         END_VAR
     "#;
 
-    // Replaces the `CONDITIONAL_RETURN` XML file
     let content = SPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
         &SInVariable::id(1).with_expression("val = 5"),
         &SReturn::id(2).with_execution_id(0).connect(1).negate(false),
@@ -79,7 +74,6 @@ fn conditional_return_negated() {
         END_VAR
     "#;
 
-    // Replaces the `CONDITIONAL_RETURN` XML file
     let content = SPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
         &SInVariable::id(1).with_expression("val = 5"),
         &SReturn::id(2).with_execution_id(0).negate(true).connect(1),
@@ -103,7 +97,6 @@ fn conditional_return_without_connection() {
         END_VAR
     "#;
 
-    // Replaces the `CONDITIONAL_RETURN_WITHOUT_CONNECTION` XML file
     let content = SPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
         &SInVariable::id(1).with_expression("val = 5"),
         &SReturn::id(2).with_execution_id(0).negate(false), // This return isn't connected to any other node
@@ -126,7 +119,6 @@ fn conditional_return_chained_to_another_conditional_return() {
         END_VAR
     "#;
 
-    // Replaces the `CONDITIONAL_RETURN_CHAINED_TO_ANOTHER_CONDITIONAL_RETURN` XML file
     let content = SPou::init("conditional_return", "functionBlock", declaration).with_fbd(vec![
         &SReturn::id(1).with_execution_id(0),
         &SReturn::id(2).with_execution_id(1).connect(1),
@@ -139,7 +131,6 @@ fn conditional_return_chained_to_another_conditional_return() {
 
 #[test]
 fn model_is_sorted_by_execution_order() {
-    // Replaces the `EXEC_SORTING` XML file
     let content = SPou::init("foo", "program", "PROGRAM foo VAR a, b, c, d : DINT; END_VAR").with_fbd(vec![
         &SInVariable::id(1).with_expression("a"),
         &SOutVariable::id(2).with_execution_id(2).with_expression("b").connect(1),
@@ -162,7 +153,6 @@ fn connection_variable_source_to_multiple_sinks_parses() {
         END_VAR
     "#;
 
-    // Replaces the `VAR_SOURCE_TO_MULTI_SINK` XML file
     #[rustfmt::skip]
     let content = SPou::init("myConnection", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1").connect(2),
@@ -197,7 +187,6 @@ fn direct_connection_of_sink_to_other_source_generates_correct_model() {
         END_VAR
     "#;
 
-    // Replaces the `SINK_TO_SOURCE` XML file
     let content = SPou::init("myConnection", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1").connect(16),
         &SContinuation::id(3).with_name("s1"),
@@ -219,7 +208,6 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
         END_VAR
     "#;
 
-    // Replaces the `SINK_TO_SOURCE` XML file
     let content = SPou::init("myConnection", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1").connect(16),
         &SContinuation::id(3).with_name("s1"),
@@ -236,7 +224,6 @@ fn direct_connection_of_sink_to_other_source_ast_parses() {
 fn return_connected_to_sink_parses() {
     let declaration = "FUNCTION positivOrZero : DINT VAR_INPUT x : DINT; END_VAR";
 
-    // Replaces the `RETURN_TO_CONNECTION` XML file
     #[rustfmt::skip]
     let content = SPou::init("positiveOrZero", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1").connect(2),
@@ -256,7 +243,6 @@ fn return_connected_to_sink_parses() {
 fn sink_source_data_recursion_does_not_overflow_the_stack() {
     let declaration = "FUNCTION myConnection : DINT VAR_INPUT x: DINT; END_VAR";
 
-    // Replaces the `SINK_SOURCE_CYCLE` XML file
     let content = SPou::init("myConnection", "function", declaration).with_fbd(vec![
         &SConnector::id(22).with_name("s1").connect(23),
         &SContinuation::id(24).with_name("s1"),
@@ -276,7 +262,6 @@ fn sink_source_data_recursion_does_not_overflow_the_stack() {
 fn unconnected_connections() {
     let declaration = "FUNCTION unconnectedConnections : DINT VAR_INPUT x : DINT; END_VAR";
 
-    // Replaces the `UNCONNECTED_CONNECTIONS` XML file
     let content = SPou::init("unconnectedConnections", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1"),
         &SContinuation::id(2).with_name("s1"),
@@ -294,7 +279,6 @@ fn unconnected_connections() {
 fn unassociated_connections() {
     let declaration = "FUNCTION unconnectedConnections : DINT VAR_INPUT x : DINT; END_VAR";
 
-    // Replaces the `UNASSOCIATED_CONNECTIONS` XML file
     let content = SPou::init("unassociatedSink", "function", declaration).with_fbd(vec![
         &SConnector::id(1).with_name("s1").connect(2),
         &SContinuation::id(3).with_name("s2"),
@@ -321,7 +305,6 @@ fn function_returns() {
 
 #[test]
 fn ast_generates_locations() {
-    // Replaces the `CALL_BLOCK` XML file
     let content = SPou::init("foo", "program", "PROGRAM foo VAR a, x : DINT; END_VAR").with_fbd(vec![
         &SInVariable::id(1).with_expression("x"),
         &SOutVariable::id(2).with_expression("a").with_execution_id(0).connect(1),
@@ -378,7 +361,6 @@ fn actions_generated_correctly() {
 #[test]
 #[ignore = "Validation is not implemented on CFC tests yet, we need to be able to change parsers on the test utils level"]
 fn ast_diagnostic_locations() {
-    // Replaces the `ASSIGNMENT_TO_UNRESOLVED_REFERENCE` XML file
     let content = SPou::init("foo", "program", "PROGRAM foo VAR x : DINT; END_VAR").with_fbd(vec![
         &SInVariable::id(1).with_expression("x"),
         &SOutVariable::id(2).with_execution_id(0).with_expression("a").connect(1), // "a" isn't declared anywhere, hence the error
