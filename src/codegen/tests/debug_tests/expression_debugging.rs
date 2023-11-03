@@ -1,9 +1,6 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::{codegen_with_debug, codegen_with_debug_cfc};
-use plc_xml::serializer::{
-    SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
-};
+use crate::test_utils::tests::codegen_with_debug;
 
 #[test]
 fn implementation_added_as_subroutine() {
