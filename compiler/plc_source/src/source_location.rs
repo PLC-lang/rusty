@@ -120,7 +120,7 @@ impl CodeSpan {
         }
     }
 
-    pub fn get_line_dbg(&self) -> usize {
+    pub fn get_line_plus_one(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line + 1,
             Self::Block { local_id, .. } => *local_id,
@@ -189,7 +189,7 @@ impl SourceLocation {
     }
 
     pub fn get_line_plus_one(&self) -> usize {
-        self.span.get_line_dbg()
+        self.span.get_line_plus_one()
     }
 
     /// Gets the colmumn representation for a source location

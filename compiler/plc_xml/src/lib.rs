@@ -17,4 +17,4 @@ pub(crate) mod model {
     pub mod variables;
 }
 mod reader;
-pub mod serializer; // TODO: Change visibility to pub(crate)
+pub mod serializer;

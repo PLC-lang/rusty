@@ -80,8 +80,7 @@ pub fn parse_file(
     unit
 }
 
-// TODO: Remove pub visibility
-pub fn parse(
+fn parse(
     source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
