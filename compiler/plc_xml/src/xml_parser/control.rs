@@ -99,111 +99,48 @@ mod tests {
     use ast::provider::IdProvider;
     use insta::assert_debug_snapshot;
 
+    use crate::serializer::{SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn};
     use crate::{
         model::control::Control,
         reader::{get_start_tag, Reader},
-        serializer::{XAddData, XConnectionPointIn, XJump, XLabel, XReturn},
         xml_parser::{self, Parseable},
     };
 
     #[test]
     fn simple_return() {
-        let content = XReturn::new()
-            .with_local_id("1")
-            .with_execution_order_id("2")
-            .with_connection_point_in(XConnectionPointIn::with_ref("3"))
-            .with_add_data(XAddData::negated(false))
-            .serialize();
+        let content = SReturn::id(1).with_execution_id(2).connect(3).negate(false).serialize();
 
-        let reader = &mut Reader::new(&content);
+        let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
-        assert_debug_snapshot!(Control::visit(reader, tag).unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
     fn simple_negated_return() {
-        let content = XReturn::new()
-            .with_local_id("1")
-            .with_execution_order_id("2")
-            .with_connection_point_in(XConnectionPointIn::with_ref("3"))
-            .with_add_data(XAddData::negated(true))
-            .serialize();
+        let content = SReturn::id(1).with_execution_id(2).connect(3).negate(true).serialize();
 
-        let reader = &mut Reader::new(&content);
+        let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
-        assert_debug_snapshot!(Control::visit(reader, tag).unwrap());
+        assert_debug_snapshot!(Control::visit(&mut reader, tag).unwrap());
     }
 
     #[test]
     fn jump_to_label() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                    VAR&#xd;
-                                        x: BOOL := 0;&#xd;
-                                    END_VAR
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="lbl" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="lbl" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="0"/>
-                            </connectionPointIn>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="false"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###;
+        let declaration = "PROGRAM program_0 VAR x : BOOL := 0; END_VAR";
+        let content = SPou::init("program_0", "program", declaration).with_fbd(vec![
+            &SInVariable::id(0).with_expression("x"),
+            &SLabel::id(1).with_name("lbl").with_execution_id(0),
+            &SJump::id(2).with_name("lbl").with_execution_id(1).connect(0),
+            &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+            &SInVariable::id(4).with_expression("FALSE"),
+        ]);
 
-        assert_debug_snapshot!(xml_parser::visit(content));
+        assert_debug_snapshot!(xml_parser::visit(&content.serialize()));
     }
 
     #[test]
     fn unconnected_jump_to_label() {
-        let content = XJump::new().with_local_id("1").with_execution_order_id("2").serialize();
+        let content = SJump::id(1).with_execution_id(2).serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -212,74 +149,40 @@ mod tests {
 
     #[test]
     fn negated_jump() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                    VAR&#xd;
-                                        x: BOOL := 0;&#xd;
-                                    END_VAR
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="lbl" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="lbl" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="0"/>
-                            </connectionPointIn>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="true"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###;
+        let declaration = "PROGRAM program_0 VAR x : BOOL := 0; END_VAR";
+        let content = SPou::init("program_0", "program", declaration).with_fbd(vec![
+            &SInVariable::id(0).with_expression("x"),
+            &SLabel::id(1).with_name("lbl").with_execution_id(0),
+            &SJump::id(2).with_name("lbl").with_execution_id(1).connect(0).negate(),
+            &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+            &SInVariable::id(4).with_expression("FALSE"),
+        ]);
 
-        assert_debug_snapshot!(xml_parser::visit(content));
+        assert_debug_snapshot!(xml_parser::visit(&content.serialize()));
+    }
+
+    #[test]
+    fn negated_jump_ast() {
+        let declaration = "PROGRAM program_0 VAR x : BOOL := 0; END_VAR";
+        let content = SPou::init("program_0", "program", declaration)
+            .with_fbd(vec![
+                &SInVariable::id(0).with_expression("x"),
+                &SLabel::id(1).with_name("lbl").with_execution_id(0),
+                &SJump::id(2).with_name("lbl").with_execution_id(1).connect(0).negate(),
+                &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+                &SInVariable::id(4).with_expression("FALSE"),
+            ])
+            .serialize();
+
+        let (ast, diagnostics) =
+            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
+        assert_debug_snapshot!(ast);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
     fn label_parsed() {
-        let content = XLabel::new().with_local_id("1").with_execution_order_id("2").serialize();
+        let content = SLabel::id(1).with_execution_id(2).serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -288,67 +191,16 @@ mod tests {
 
     #[test]
     fn jump_and_label_converted_to_ast() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                    VAR
-                                        x: BOOL := 0;
-                                    END_VAR
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="lbl" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="lbl" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="0"/>
-                            </connectionPointIn>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="false"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###.to_string();
+        let declaration = "PROGRAM program_0 VAR x : BOOL := 0; END_VAR";
+        let content = SPou::init("program_0", "program", declaration)
+            .with_fbd(vec![
+                &SInVariable::id(0).with_expression("x"),
+                &SLabel::id(1).with_name("lbl").with_execution_id(0),
+                &SJump::id(2).with_name("lbl").with_execution_id(1).connect(0),
+                &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+                &SInVariable::id(4).with_expression("FALSE"),
+            ])
+            .serialize();
 
         let (ast, diagnostics) =
             xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
@@ -358,63 +210,16 @@ mod tests {
 
     #[test]
     fn unconnected_jump_generated_as_empty_statement() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                    VAR
-                                        x: BOOL := 0;
-                                    END_VAR
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="lbl" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="lbl" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="false"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###.to_string();
+        let declaration = "PROGRAM program_0 VAR x : BOOL := 0; END_VAR";
+        let content = SPou::init("program_0", "program", declaration)
+            .with_fbd(vec![
+                &SInVariable::id(0).with_expression("x"),
+                &SLabel::id(1).with_name("lbl").with_execution_id(0),
+                &SJump::id(2).with_name("lbl").with_execution_id(1),
+                &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+                &SInVariable::id(4).with_expression("FALSE"),
+            ])
+            .serialize();
 
         let (ast, diagnostics) =
             xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
@@ -423,135 +228,16 @@ mod tests {
     }
 
     #[test]
-    fn negated_jump_ast() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                    VAR
-                                        x: BOOL := 0;
-                                    END_VAR
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="lbl" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="lbl" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="0"/>
-                            </connectionPointIn>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="true"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###.to_string();
-
-        let (ast, diagnostics) =
-            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
-        assert_debug_snapshot!(ast);
-        assert!(diagnostics.is_empty());
-    }
-
-    #[test]
     fn unnamed_controls() {
-        let content = r###"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program">
-                <interface>
-                    <localVars/>
-                    <addData>
-                        <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                            <textDeclaration>
-                                <content>
-                                    PROGRAM program_0
-                                </content>
-                            </textDeclaration>
-                        </data>
-                    </addData>
-                </interface>
-                <body>
-                    <FBD>
-                        <inVariable localId="0" height="20" width="80" negated="false">
-                            <position x="160" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>x</expression>
-                        </inVariable>
-                        <label localId="1" height="20" width="80" label="" executionOrderId="0">
-                            <position x="570" y="50"/>
-                        </label>
-                        <jump localId="2" height="20" width="80" label="" executionOrderId="1">
-                            <position x="320" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="0"/>
-                            </connectionPointIn>
-                            <addData>
-                                <data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                                    <negated value="false"/>
-                                </data>
-                            </addData>
-                        </jump>
-                        <outVariable localId="3" height="20" width="80" executionOrderId="2" negated="false" storage="none">
-                            <position x="790" y="110"/>
-                            <connectionPointIn>
-                                <relPosition x="0" y="10"/>
-                                <connection refLocalId="4"/>
-                            </connectionPointIn>
-                            <expression>x</expression>
-                        </outVariable>
-                        <inVariable localId="4" height="20" width="80" negated="false">
-                            <position x="640" y="110"/>
-                            <connectionPointOut>
-                                <relPosition x="80" y="10"/>
-                            </connectionPointOut>
-                            <expression>FALSE</expression>
-                        </inVariable>
-                    </FBD>
-                </body>
-            </pou>
-        "###.to_string();
+        let content = SPou::init("program_0", "program", "PROGRAM program_0")
+            .with_fbd(vec![
+                &SInVariable::id(0).with_expression("x"),
+                &SLabel::id(1).with_execution_id(0),
+                &SJump::id(2).with_execution_id(1).connect(0),
+                &SOutVariable::id(3).with_execution_id(2).with_expression("x").connect(4),
+                &SInVariable::id(4).with_expression("FALSE"),
+            ])
+            .serialize();
 
         let (ast, diagnostics) =
             xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
