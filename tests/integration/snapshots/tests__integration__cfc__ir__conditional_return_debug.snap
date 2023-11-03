@@ -1,10 +1,7 @@
 ---
-source: src/codegen/tests/debug_tests/expression_debugging.rs
-expression: result
+source: tests/integration/cfc.rs
+expression: output_file_content_without_headers
 ---
-; ModuleID = 'main'
-source_filename = "main"
-
 define void @foo(i32 %0) !dbg !3 {
 entry:
   %val = alloca i32, align 4, !dbg !8
@@ -32,7 +29,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !0 = !{i32 2, !"Dwarf Version", i32 5}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!2 = !DIFile(filename: "main", directory: "src")
+!2 = !DIFile(filename: "<internal>.cfc", directory: "")
 !3 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 1, type: !4, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !1, retainedNodes: !7)
 !4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
 !5 = !{null, !6}
@@ -43,4 +40,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !10 = !DILocation(line: 1, column: 23, scope: !3)
 !11 = !DILocation(line: 2, scope: !3)
 !12 = !DILocation(line: 5, scope: !3)
-

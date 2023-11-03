@@ -215,13 +215,35 @@ pub fn parse_and_annotate<T: SourceContainer>(
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
 pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+    generate_to_string_internal(name, src, false)
+}
+
+/// Generates an IR string from a list of sources with debug information enabled. Useful for tests or api calls
+pub fn generate_to_string_debug<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+    generate_to_string_internal(name, src, true)
+}
+
+fn generate_to_string_internal<T: SourceContainer>(
+    name: &str,
+    src: Vec<T>,
+    debug: bool,
+) -> Result<String, Diagnostic> {
     let mut diagnostician = Diagnostician::default();
     let project = parse_and_annotate(name, src)?;
-    //Validate
+
+    // Validate
     project.validate(&mut diagnostician)?;
+
     // Generate
     let context = CodegenContext::create();
-    let module = project.generate_single_module(&context, &CompileOptions::default())?;
+    let mut options = CompileOptions::default();
+    if debug {
+        options.debug_level = DebugLevel::Full;
+    }
+
+    dbg!(&options);
+
+    let module = project.generate_single_module(&context, &options)?;
 
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
         message: "Cannot generate module".to_string(),

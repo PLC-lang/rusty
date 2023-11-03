@@ -201,8 +201,12 @@ fn actions_called_correctly() {
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
 mod ir {
-    use driver::{compile, generate_to_string};
+    use driver::{compile, generate_to_string, generate_to_string_debug};
     use insta::assert_snapshot;
+    use plc_source::SourceCode;
+    use plc_xml::serializer::{
+        SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
+    };
 
     use crate::get_test_file;
 
@@ -296,6 +300,110 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    fn conditional_return_debug() {
+        let declaration = "FUNCTION foo VAR_INPUT val : DINT; END_VAR";
+        let content = SPou::init("foo", "function", declaration).with_fbd(vec![
+            // IF val = 1 THEN RETURN
+            &SInVariable::id(2).with_expression("val = 5"), // Condition
+            &SReturn::id(3).with_execution_id(2).connect(2).negate(false), // Statement
+            // ELSE val := 10
+            &SInVariable::id(4).with_expression("10"),
+            &SInVariable::id(5).with_execution_id(3).connect(4).with_expression("val"),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        // We expect two different !dbg statements for the return statement and its condition
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    fn jump_debug() {
+        let declaration = "PROGRAM foo VAR val : DINT := 0; END_VAR";
+        let content = SPou::init("foo", "program", declaration).with_fbd(vec![
+            // IF TRUE THEN GOTO lbl
+            &SInVariable::id(1).with_expression("val = 0"), // condition
+            &SLabel::id(2).with_name("lbl").with_execution_id(1), // label
+            &SJump::id(3).with_name("lbl").with_execution_id(2).connect(1), // statement
+            // ELSE x := FALSE
+            &SOutVariable::id(4).with_execution_id(3).with_expression("val").connect(5), // assignment
+            &SInVariable::id(5).with_expression("1"),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        // We expect four different !dbg statement for the condition, label, statement and the assignment
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    fn actions_debug() {
+        let content = SPou::init("main", "program", "PROGRAM main VAR a, b : DINT; END_VAR")
+            .with_actions(vec![
+                &SAction::name("newAction").with_fbd(vec![
+                    &SOutVariable::id(1).with_expression("a").with_execution_id(0).connect(2),
+                    &SInVariable::id(2).with_expression("a + 1"),
+                ]),
+                &SAction::name("newAction2").with_fbd(vec![
+                    &SInVariable::id(1).with_expression("b + 2"),
+                    &SOutVariable::id(2).with_expression("b").with_execution_id(0).connect(1),
+                ]),
+            ])
+            .with_fbd(vec![
+                &SBlock::id(1).with_name("newAction").with_execution_id(1),
+                &SBlock::id(2).with_name("newAction2").with_execution_id(2),
+                &SInVariable::id(4).with_expression("0"),
+                &SOutVariable::id(3).with_expression("a").with_execution_id(0).connect(4),
+            ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    fn sink_source_debug() {
+        let content = SPou::init("main", "program", "PROGRAM main VAR x: DINT; END_VAR").with_fbd(vec![
+            &SInVariable::id(1).with_expression("5"),
+            &SConnector::id(2).with_name("s1").connect(1),
+            &SContinuation::id(3).with_name("s1"),
+            &SOutVariable::id(4).with_expression("x").with_execution_id(1).connect(3),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
         assert_snapshot!(output_file_content_without_headers);
     }
 }
