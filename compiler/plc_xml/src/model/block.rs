@@ -37,6 +37,7 @@ impl<'xml> Parseable for Block<'xml> {
         let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;
         let mut variables = Vec::new();
+
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
@@ -67,23 +68,18 @@ mod tests {
     use crate::{
         model::block::Block,
         reader::{get_start_tag, Reader},
-        serializer::{XBlock, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
+        serializer::{SBlock, SVariable},
         xml_parser::Parseable,
     };
 
     #[test]
     fn add_block() {
-        let content = XBlock::init("1", "ADD", "0")
-            .with_input_variables(
-                XInputVariables::new()
-                    .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                    .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-            )
-            .with_inout_variables(XInOutVariables::new().close())
-            .with_output_variables(
-                XOutputVariables::new()
-                    .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
-            )
+        let content = SBlock::init("ADD", 1, 0)
+            .with_input(vec![
+                &SVariable::new().with_name("a").connect(1),
+                &SVariable::new().with_name("b").connect(2),
+            ])
+            .with_output(vec![&SVariable::new().with_name("c")])
             .serialize();
 
         let mut reader = Reader::new(&content);
