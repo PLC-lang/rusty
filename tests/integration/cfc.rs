@@ -304,13 +304,13 @@ mod ir {
     }
 
     #[test]
-    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
     fn conditional_return_debug() {
         let declaration = "FUNCTION foo VAR_INPUT val : DINT; END_VAR";
         let content = SPou::init("foo", "function", declaration).with_fbd(vec![
             // IF val = 1 THEN RETURN
-            &SInVariable::id(2).with_expression("val = 5"), // Condition
-            &SReturn::id(3).with_execution_id(2).connect(2).negate(false), // Statement
+            &SInVariable::id(2).with_expression("val = 5"),
+            &SReturn::id(3).with_execution_id(2).connect(2).negate(false),
             // ELSE val := 10
             &SInVariable::id(4).with_expression("10"),
             &SInVariable::id(5).with_execution_id(3).connect(4).with_expression("val"),
@@ -329,7 +329,7 @@ mod ir {
     }
 
     #[test]
-    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
     fn jump_debug() {
         let declaration = "PROGRAM foo VAR val : DINT := 0; END_VAR";
         let content = SPou::init("foo", "program", declaration).with_fbd(vec![
@@ -355,7 +355,7 @@ mod ir {
     }
 
     #[test]
-    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
     fn actions_debug() {
         let content = SPou::init("main", "program", "PROGRAM main VAR a, b : DINT; END_VAR")
             .with_actions(vec![
@@ -387,7 +387,7 @@ mod ir {
     }
 
     #[test]
-    // TODO: This test should be located in `codegen/tests/debug_tests/expression_debugging.rs`
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
     fn sink_source_debug() {
         let content = SPou::init("main", "program", "PROGRAM main VAR x: DINT; END_VAR").with_fbd(vec![
             &SInVariable::id(1).with_expression("5"),
