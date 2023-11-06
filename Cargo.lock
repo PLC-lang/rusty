@@ -1911,6 +1911,7 @@ dependencies = [
  "codespan-reporting",
  "plc_ast",
  "plc_source",
+ "serde_json",
 ]
 
 [[package]]

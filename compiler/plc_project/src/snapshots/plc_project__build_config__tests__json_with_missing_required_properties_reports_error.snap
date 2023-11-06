@@ -2,4 +2,4 @@
 source: compiler/plc_project/src/build_config.rs
 expression: diag.to_string()
 ---
-general__io_err: missing field `name` at line 6 column 9
+plc_json__invalid: missing field `name`  at: :6:9:{6:9-6:100}: 
