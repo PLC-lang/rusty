@@ -42,6 +42,12 @@ impl SourceLocationFactory {
     pub fn create_file_only_location(&self) -> SourceLocation {
         SourceLocation { span: CodeSpan::None, file: self.file }
     }
+
+    pub fn create_range_to_end_of_line(&self, line: usize, column: usize) -> SourceLocation {
+        let start = TextLocation::new(line, column, 0);
+        let end = TextLocation::new(line, self.newlines.get_end_of_line(line), 0);
+        SourceLocation { span: CodeSpan::Range(start..end), file: self.file }
+    }
 }
 
 /// The location of a certain element in a text file
@@ -322,6 +328,12 @@ impl NewLines {
         } else {
             offset
         }
+    }
+
+    ///
+    /// returns the 0 based column of end-of-line character for the given line
+    pub fn get_end_of_line(&self, line: usize) -> usize {
+        self.line_breaks.get(line).map(|l| *l).unwrap_or_default()
     }
 }
 

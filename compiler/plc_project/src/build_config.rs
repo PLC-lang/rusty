@@ -1,10 +1,12 @@
 use jsonschema::JSONSchema;
 use plc::Target;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::diagnostics::SerdeError;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use source_code::BuildDescriptionSource;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -59,22 +61,27 @@ pub struct ProjectConfig {
 }
 
 impl ProjectConfig {
-    /// Returns a project from the given string (in json format)
+    /// Returns a project from the given json-source
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
-    pub fn try_parse(content: &str) -> Result<Self, Diagnostic> {
+    pub fn try_parse(source: BuildDescriptionSource) -> Result<Self, Diagnostic> {
+        let content = source.source.as_str();
         let content = resolve_environment_variables(content)?;
-        let content: ProjectConfig = serde_json::from_str(&content).map_err(Diagnostic::from)?;
-        content.validate()?;
+        let config: ProjectConfig = serde_json::from_str(&content).map_err(|err| {
+            let err = SerdeError::from(err);
+            err.into_diagnostic(&source)
+        })?;
+        config.validate()?;
 
-        Ok(content)
+        Ok(config)
     }
 
     pub(crate) fn from_file(config: &Path) -> Result<Self, Diagnostic> {
         //read from file
         let content = fs::read_to_string(config)?;
+        let content = BuildDescriptionSource::new(content, config);
 
         //convert file to Object
-        let project = ProjectConfig::try_parse(&content)?;
+        let project = ProjectConfig::try_parse(content)?;
 
         Ok(project)
     }
@@ -82,7 +89,7 @@ impl ProjectConfig {
     fn validate(&self) -> Result<(), Diagnostic> {
         let schema_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new("schema/plc-json.schema"));
         let schema = fs::read_to_string(schema_path).map_err(Diagnostic::from)?;
-        let schema_obj = serde_json::from_str(&schema).map_err(Diagnostic::from)?;
+        let schema_obj = serde_json::from_str(&schema).expect("A valid schema");
         let compiled = JSONSchema::compile(&schema_obj).expect("A valid schema");
         let instance = json!(self);
         compiled.validate(&instance).map_err(|errors| {
@@ -97,7 +104,8 @@ impl ProjectConfig {
                 message.push_str(&format!("{prefix}{err}\n"));
             }
 
-            Diagnostic::invalid_build_description_file(message)
+            // XXX: jsonschema does not provide error messages with location info
+            Diagnostic::invalid_build_description_file(message, None)
         })
     }
 }
@@ -298,7 +306,7 @@ mod tests {
             version: None,
             format_version: None,
         };
-        let proj = ProjectConfig::try_parse(SIMPLE_PROGRAM).unwrap();
+        let proj = ProjectConfig::try_parse(SIMPLE_PROGRAM.into()).unwrap();
 
         assert_eq!(test_project.name, proj.name);
         assert_eq!(test_project.files, proj.files);
@@ -330,7 +338,8 @@ mod tests {
                 "compile_type" : "Shared",
                 "output": "proj.so"
             }
-        "#,
+        "#
+            .into(),
         )
         .unwrap();
 
@@ -339,14 +348,14 @@ mod tests {
 
     #[test]
     fn valid_json_validates_without_errors() {
-        let cfg = ProjectConfig::try_parse(SIMPLE_PROGRAM);
+        let cfg = ProjectConfig::try_parse(SIMPLE_PROGRAM.into());
 
         assert!(cfg.is_ok())
     }
 
     #[test]
     fn json_with_additional_fields_reports_unexpected_fields() {
-        let Err(diag) = ProjectConfig::try_parse(ADDITIONAL_UNKNOWN_PROPERTIES) else {
+        let Err(diag) = ProjectConfig::try_parse(ADDITIONAL_UNKNOWN_PROPERTIES.into()) else {
             panic!("expected errors")
         };
 
@@ -355,7 +364,9 @@ mod tests {
 
     #[test]
     fn json_with_invalid_enum_variants_reports_error() {
-        let Err(diag) = ProjectConfig::try_parse(INVALID_ENUM_VARIANTS) else { panic!("expected errors") };
+        let Err(diag) = ProjectConfig::try_parse(INVALID_ENUM_VARIANTS.into()) else {
+            panic!("expected errors")
+        };
 
         assert_snapshot!(diag.to_string())
     }
@@ -364,13 +375,13 @@ mod tests {
     fn json_with_missing_required_properties_reports_error() {
         // missing name and compile_type
         //XXX: only the first error found is reported by both serde and jsonschema
-        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES) else {
+        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES.into()) else {
             panic!("expected errors")
         };
         assert_snapshot!(diag.to_string());
 
         // missing library path
-        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_LIBRARY_PROPERTIES) else {
+        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_LIBRARY_PROPERTIES.into()) else {
             panic!("expected errors")
         };
         assert_snapshot!(diag.to_string())
@@ -378,14 +389,16 @@ mod tests {
 
     #[test]
     fn json_with_empty_files_array_reports_error() {
-        let Err(diag) = ProjectConfig::try_parse(NO_FILES_SPECIFIED) else { panic!("expected errors") };
+        let Err(diag) = ProjectConfig::try_parse(NO_FILES_SPECIFIED.into()) else {
+            panic!("expected errors")
+        };
 
         assert_snapshot!(diag.to_string())
     }
 
     #[test]
     fn json_with_optional_properties_is_valid() {
-        match ProjectConfig::try_parse(OPTIONAL_PROPERTIES) {
+        match ProjectConfig::try_parse(OPTIONAL_PROPERTIES.into()) {
             Ok(cfg) => assert_snapshot!(&format!("{:#?}", cfg)),
             Err(err) => panic!("expected ProjectConfig to be OK, got \n {err}"),
         };
