@@ -333,7 +333,7 @@ impl NewLines {
     ///
     /// returns the 0 based column of end-of-line character for the given line
     pub fn get_end_of_line(&self, line: usize) -> usize {
-        self.line_breaks.get(line).map(|l| *l).unwrap_or_default()
+        self.line_breaks.get(line).copied().unwrap_or_default()
     }
 }
 
