@@ -240,9 +240,6 @@ fn generate_to_string_internal<T: SourceContainer>(
     if debug {
         options.debug_level = DebugLevel::Full;
     }
-
-    dbg!(&options);
-
     let module = project.generate_single_module(&context, &options)?;
 
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {

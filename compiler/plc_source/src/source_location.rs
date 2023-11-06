@@ -183,11 +183,12 @@ impl SourceLocation {
 
     /// Gets the line representation for a source location
     /// If the location does not represent a line, the closest equivalent is returned
-    // That is 0 for None and the ID for id/inner spans
+    /// That is 0 for None and the ID for id/inner spans
     pub fn get_line(&self) -> usize {
         self.span.get_line()
     }
 
+    /// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
     pub fn get_line_plus_one(&self) -> usize {
         self.span.get_line_plus_one()
     }
