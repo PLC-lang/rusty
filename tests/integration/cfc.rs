@@ -163,6 +163,7 @@ fn connection_sink_source() {
     // THEN the result will have double the value of the initial value
     assert_eq!(res, 4);
 }
+
 #[test]
 fn jump_to_label_with_true() {
     let cfc_file = get_test_file("cfc/jump_true.cfc");
