@@ -79,15 +79,15 @@ fn action_variables_annotated() {
 
 #[test]
 fn function_block_calls_are_annotated_correctly() {
-    let main = get_test_file("cfc/function_block_call_fb.cfc");
-    let fb = get_test_file("cfc/function_block_call_main.cfc");
+    let main = get_test_file("cfc/function_block_call_main.cfc");
+    let fb = get_test_file("cfc/function_block_call_fb.cfc");
 
     let main = main.load_source(None).unwrap();
     let fb = fb.load_source(None).unwrap();
 
     let annotated_project = parse_and_annotate("plc", vec![main, fb]).unwrap();
     let annotations = &annotated_project.annotations;
-    let (unit, ..) = &annotated_project.units[1];
+    let (unit, ..) = &annotated_project.units[0];
 
     let call_annotation = annotations.get(&unit.implementations[0].statements[0]).unwrap().clone();
     assert_debug_snapshot!(call_annotation, @r###"
