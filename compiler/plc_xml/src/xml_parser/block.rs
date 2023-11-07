@@ -16,7 +16,7 @@ impl<'xml> Block<'xml> {
             .collect();
 
         AstFactory::create_call_to(
-            self.type_name.to_string(),
+            self.instance_name.as_ref().unwrap_or(&self.type_name).to_string(),
             parameters,
             session.next_id(),
             session.next_id(),
