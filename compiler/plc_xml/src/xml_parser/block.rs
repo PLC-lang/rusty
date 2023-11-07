@@ -1,5 +1,4 @@
 use ast::ast::{AstFactory, AstNode};
-use std::borrow::Cow;
 
 use crate::model::{block::Block, fbd::NodeIndex};
 
@@ -17,7 +16,7 @@ impl<'xml> Block<'xml> {
             .collect();
 
         AstFactory::create_call_to(
-            self.instance_name.as_ref().map(Cow::to_string).unwrap_or(self.type_name.to_string()),
+            self.instance_name.as_ref().unwrap_or(&self.type_name).to_string(),
             parameters,
             session.next_id(),
             session.next_id(),
