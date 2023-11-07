@@ -2129,6 +2129,8 @@
 <a href="#2129" id="2129">2129</a>
 <a href="#2130" id="2130">2130</a>
 <a href="#2131" id="2131">2131</a>
+<a href="#2132" id="2132">2132</a>
+<a href="#2133" id="2133">2133</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2696,10 +2698,12 @@
 
     <span class="doccomment">/// annotates the given statement (using it&#39;s `get_id()`) with the given type-name
     </span><span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;Annotation: {annotation:?} @ {s:?}&quot;</span>);
         <span class="self">self</span>.type_map.insert(s.get_id(), annotation);
     }
 
     <span class="kw">pub fn </span>annotate_type_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;Annotation (type-hint): {annotation:?} @ {s:?}&quot;</span>);
         <span class="self">self</span>.type_hint_map.insert(s.get_id(), annotation);
     }
 
