@@ -1,5 +1,10 @@
 # Model-to-Model Conversion
 
+As previously mentioned, the lexical and parsing phases are replaced by a model-to-model conversion process which consists of two steps:
+1. Transform the input file (XML) into a data-model
+2. Transform the data-model into an AST
+
+## XML to Data-Model
 Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#example-myprogramcfc), which translates to the CFC chart below.
 ```
                  x                      MyAdd
@@ -17,37 +22,33 @@ Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#example-myprogra
                                      local_id:2
 ``` 
 
-The initial phase of the transformation process involves streaming the entire input file. During the streaming process, whenever important keywords are encountered, they are directly mapped into a corresponding model structure. For example, when reaching the line `<block localId="3" ...>` within the XML file, we generate a model that can be represented as follows:
+The initial phase of the transformation process involves streaming the entire input file.
+During the streaming process, whenever important keywords such as `block` are encountered, they are directly mapped into a corresponding model structure. 
+For example, when reaching the line `<block localId="3" ...>` within the XML file, we generate a model that can be represented as follows:
 ```rust
 struct Block {
-    localId: 3,
+    localId: 2,
     type_name: "MyAdd",
     instance_name: None,
     execution_order_id: 0,
     variables: [
-        InputVariable  { ... }, // x
-        InputVariable  { ... }, // y
-        OutputVariable { ... }, // MyAdd, eventually becoming `z := MyAdd`
+        InputVariable  { ... }, // x, with localId = 0
+        InputVariable  { ... }, // y, with localId = 1
+        OutputVariable { ... }, // MyAdd eventually becoming `z := MyAdd`, with z having a localId = 2
     ]
 }
 ```
 
-This structure of the CFC graph corresponds to the ST expression `z := MyAdd(x, y);`. 
-For more information referer to the internal [`plc_xml`](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml) crate.
+This is process is repeated for every element defined in the [model](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model) folder, and once done is fed into the next phase of the transformation process.
 
-<!-- ### Examples
-`MyAdd.st`
-```smalltalk
-FUNCTION MyAdd : DINT
-    VAR_INPUT
-        x, y : DINT;
-    END_VAR
+[//]: # (This structure of the CFC graph corresponds to the ST expression `z := MyAdd&#40;x, y&#41;;`. )
+[//]: # (For more information referer to the internal [`plc_xml`]&#40;https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml&#41; crate.)
 
-    MyAdd := x + y;
-END_FUNCTION
-``` -->
+## Data-Model to AST
 
-## Example: `MyProgram.cfc`
+
+## Appendix
+### MyProgram.cfc
 ```xml
 <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myProgram" pouType="program">
     <content>
@@ -91,4 +92,15 @@ END_FUNCTION
         </FBD>
     </body>
 </pou>
+```
+
+### MyAdd.st
+```smalltalk
+FUNCTION MyAdd : DINT
+    VAR_INPUT
+        x, y : DINT;
+    END_VAR
+
+    MyAdd := x + y;
+END_FUNCTION
 ```
