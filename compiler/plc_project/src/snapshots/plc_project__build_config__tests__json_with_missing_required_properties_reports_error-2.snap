@@ -1,0 +1,5 @@
+---
+source: compiler/plc_project/src/build_config.rs
+expression: diag.to_string()
+---
+plc_json__invalid: missing field `path`  at: :16:13:{16:13-16:391}: 

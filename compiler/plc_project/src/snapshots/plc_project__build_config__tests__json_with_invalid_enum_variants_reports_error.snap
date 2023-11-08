@@ -1,0 +1,5 @@
+---
+source: compiler/plc_project/src/build_config.rs
+expression: diag.to_string()
+---
+plc_json__invalid: unknown variant `Interpreted`, expected one of `Object`, `Static`, `PIC`, `Shared`, `NoPIC`, `Relocatable`, `Bitcode`, `IR`  at: :7:38:{7:38-7:168}: 
