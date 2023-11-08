@@ -161,40 +161,8 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
     let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-    BinaryExpression {
-        operator: Plus,
-        left: BinaryExpression {
-            operator: Minus,
-            left: BinaryExpression {
-                operator: Plus,
-                left: LiteralInteger {
-                    value: 1,
-                },
-                right: LiteralInteger {
-                    value: 2,
-                },
-            },
-            right: EmptyStatement,
-        },
-        right: LiteralInteger {
-            value: 3,
-        },
-    },
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "x",
-            },
-        ),
-        base: None,
-    },
-]"#
-    );
-
     assert_snapshot!(diagnostics);
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
@@ -208,30 +176,9 @@ fn mismatched_parantheses_recovery_test() {
 
     let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.implementations[0];
-    assert_eq!(
-        format!("{:#?}", pou.statements),
-        r#"[
-    BinaryExpression {
-        operator: Plus,
-        left: LiteralInteger {
-            value: 1,
-        },
-        right: LiteralInteger {
-            value: 2,
-        },
-    },
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "x",
-            },
-        ),
-        base: None,
-    },
-]"#
-    );
 
     assert_snapshot!(diagnostics);
+    assert_debug_snapshot!(pou.statements);
 }
 
 #[test]
