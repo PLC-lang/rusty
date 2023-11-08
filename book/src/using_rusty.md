@@ -19,8 +19,8 @@ A minimal invocation looks like this:
 `plc input.st` this will take in the file `input.st` and compile it into a static object that will be written to a file named `input.o`.
 
 More examples:
-
 - `plc --ir file1.st file2.st` will compile file1.st and file2.st.
+- `plc --ir file1.cfc file2.st` will compile file1.cfc and file2.st.
 - `plc --ir src/*.st` will compile all ST files in the src-folder.
 - `plc --ir "**/*.st"` will compile all ST-files in the current folder and its subfolders recursively.
 

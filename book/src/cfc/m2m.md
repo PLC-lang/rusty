@@ -6,12 +6,12 @@ As previously mentioned, the lexical and parsing phases are replaced by a model-
 
 ## XML to Data-Model
 
-Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#example-myprogramcfc), which translates to the CFC chart below.
+Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#myprogramcfc), which translates to the CFC chart below.
 ```
                    x                      MyAdd
             ┌─────────────┐        ┌─────────────────┐
             │             │        │    exec_id:0    │
-            │             ├───────►│ a               │               z
+            │             ├───────►│ a               │                 z
             │ local_id: 0 │        │ ref_local_id: 0 │          ┌──────────────┐
             └─────────────┘        │                 │          │  exec_id: 1  │
                    y               │                 ├─────────►│              │
@@ -20,7 +20,7 @@ Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#example-myprogra
             │             ├───────►│ b               │             local_id: 3
             │ local_id:1  │        │ ref_local_id: 1 │
             └─────────────┘        └─────────────────┘
-                                        local_id: 2
+                                       local_id: 2
 ``` 
 
 The initial phase of the transformation process involves streaming the entire input file.
@@ -40,7 +40,7 @@ struct Block {
 }
 ```
 
-This is process is repeated for every element defined in the [model](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model) folder.
+This is process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the [model](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model) folder.
 
 Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
 with the sequencing of block execution and inter-block links represented through corresponding `localId`, `refLocalId` and `excutionOrderId`,
@@ -49,7 +49,7 @@ Otherwise the generated AST statements would be out of order and hence semantica
 
 ## Data-Model to AST
 The final part of the model-to-model transformation takes the input from the previous step and transforms it into an AST which the compiler pipeline understands and can generate code from.
-Consider the previous `block` example the transformer first encounters the element with the `executionOrderId` of 0, which is a call to `myAdd`.
+Consider the previous `block` example - the transformer first encounters the element with the `executionOrderId` of 0, which is a call to `myAdd`.
 We then check and transform each parameter, input `a` and `b` corresponding to the variables `x` and `y` respectively. The result of this transformation looks as follows:
 
 ```Rust
