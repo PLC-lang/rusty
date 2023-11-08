@@ -1,7 +1,11 @@
 use std::{error::Error, fmt::Display, ops::Range};
 
 use plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
-use plc_source::source_location::SourceLocation;
+
+use plc_source::{
+    source_location::{SourceLocation, SourceLocationFactory},
+    BuildDescriptionSource,
+};
 
 use crate::errno::ErrNo;
 
@@ -14,6 +18,13 @@ pub enum Diagnostic {
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec<SourceLocation> },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec<Diagnostic>, err_no: ErrNo },
+}
+
+#[derive(Debug)]
+pub struct SerdeError {
+    message: String,
+    line: usize,
+    column: usize,
 }
 
 impl Display for Diagnostic {
@@ -783,6 +794,39 @@ impl Diagnostic {
             range: vec![range],
             err_no: ErrNo::cfc__unnamed_control,
         }
+    }
+
+    pub fn invalid_build_description_file(message: String, location: Option<SourceLocation>) -> Diagnostic {
+        let range = if let Some(range) = location { vec![range] } else { vec![SourceLocation::internal()] };
+        Diagnostic::SemanticError { message, range, err_no: ErrNo::plc_json__invalid }
+    }
+}
+
+// Necessary in-between step to convert serde error to diagnostics, since there is
+// a conflicting `From<T: Error>` impl for `Diagnostic`
+impl From<serde_json::Error> for SerdeError {
+    fn from(value: serde_json::Error) -> Self {
+        let line = value.line();
+        let column = value.column();
+
+        // remove line, column from message
+        let message = value.to_string();
+        let message = if let Some(pos) = message.find("at line") {
+            message.chars().take(pos).collect()
+        } else {
+            message
+        };
+
+        SerdeError { message, line, column }
+    }
+}
+
+impl SerdeError {
+    pub fn into_diagnostic(self, src: &BuildDescriptionSource) -> Diagnostic {
+        let factory = SourceLocationFactory::for_source(src);
+        let range = factory.create_range_to_end_of_line(self.line, self.column);
+
+        Diagnostic::invalid_build_description_file(self.message, Some(range))
     }
 }
 

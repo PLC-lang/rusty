@@ -1,0 +1,7 @@
+---
+source: compiler/plc_project/src/build_config.rs
+expression: diag.to_string()
+---
+plc_json__invalid: plc.json could not be validated due to the following errors:
+files[] has less than 1 item
+
