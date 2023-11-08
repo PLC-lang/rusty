@@ -2682,6 +2682,7 @@
 <a href="#2682" id="2682">2682</a>
 <a href="#2683" id="2683">2683</a>
 <a href="#2684" id="2684">2684</a>
+<a href="#2685" id="2685">2685</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2921,6 +2922,7 @@
             </span>AstStatement::HardwareAccess { .. } =&gt; {
                 <span class="prelude-val">Ok</span>(ExpressionValue::RValue(<span class="self">self</span>.llvm.i32_type().const_zero().into()))
             }
+            AstStatement::ParenExpression(expr) =&gt; <span class="self">self</span>.generate_expression_value(expr),
             <span class="comment">//fallback
             </span><span class="kw">_ </span>=&gt; <span class="self">self</span>.generate_literal(expression),
         }

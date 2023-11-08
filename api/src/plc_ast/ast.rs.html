@@ -1581,6 +1581,19 @@
 <a href="#1581" id="1581">1581</a>
 <a href="#1582" id="1582">1582</a>
 <a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2167,7 +2180,7 @@
     <span class="kw">pub </span>location: SourceLocation,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>AstStatement {
     EmptyStatement(EmptyStatement),
     <span class="comment">// a placeholder that indicates a default value of a datatype
@@ -2184,6 +2197,7 @@
     BinaryExpression(BinaryExpression),
     UnaryExpression(UnaryExpression),
     ExpressionList(Vec&lt;AstNode&gt;),
+    ParenExpression(Box&lt;AstNode&gt;),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
     <span class="comment">// Assignment
@@ -2221,6 +2235,9 @@
             }
             AstStatement::ExpressionList(expressions) =&gt; {
                 f.debug_struct(<span class="string">&quot;ExpressionList&quot;</span>).field(<span class="string">&quot;expressions&quot;</span>, expressions).finish()
+            }
+            AstStatement::ParenExpression(expression) =&gt; {
+                f.debug_struct(<span class="string">&quot;ParenExpression&quot;</span>).field(<span class="string">&quot;expression&quot;</span>, expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) =&gt; {
                 f.debug_struct(<span class="string">&quot;RangeStatement&quot;</span>).field(<span class="string">&quot;start&quot;</span>, start).field(<span class="string">&quot;end&quot;</span>, end).finish()
@@ -2443,6 +2460,10 @@
         )
     }
 
+    <span class="kw">pub fn </span>is_paren(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ParenExpression { .. })
+    }
+
     <span class="kw">pub fn </span>is_expression_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ExpressionList { .. })
     }
@@ -2595,6 +2616,7 @@
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) =&gt; {
             std::iter::repeat(flatten_expression_list(element)).take(<span class="kw-2">*</span>multiplier <span class="kw">as </span>usize).flatten().collect()
         }
+        AstStatement::ParenExpression(expression) =&gt; flatten_expression_list(expression),
         <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[list],
     }
 }
@@ -2714,6 +2736,10 @@
 
     <span class="kw">pub fn </span>create_expression_list(expressions: Vec&lt;AstNode&gt;, location: SourceLocation, id: AstId) -&gt; AstNode {
         AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
+    }
+
+    <span class="kw">pub fn </span>create_paren_expression(expression: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
+        AstNode { stmt: AstStatement::ParenExpression(Box::new(expression)), location, id }
     }
 
     <span class="doccomment">/// creates a new if-statement
@@ -3083,75 +3109,75 @@
         AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
     }
 }
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>EmptyStatement {}
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>DefaultValue {}
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>CastStatement {
     <span class="kw">pub </span>target: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>type_name: String,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>MultipliedStatement {
     <span class="kw">pub </span>multiplier: u32,
     <span class="kw">pub </span>element: Box&lt;AstNode&gt;,
 }
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>ReferenceExpr {
     <span class="kw">pub </span>access: ReferenceAccess,
     <span class="kw">pub </span>base: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>DirectAccess {
     <span class="kw">pub </span>access: DirectAccessType,
     <span class="kw">pub </span>index: Box&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>HardwareAccess {
     <span class="kw">pub </span>direction: HardwareAccessType,
     <span class="kw">pub </span>access: DirectAccessType,
     <span class="kw">pub </span>address: Vec&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>BinaryExpression {
     <span class="kw">pub </span>operator: Operator,
     <span class="kw">pub </span>left: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>right: Box&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>UnaryExpression {
     <span class="kw">pub </span>operator: Operator,
     <span class="kw">pub </span>value: Box&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>RangeStatement {
     <span class="kw">pub </span>start: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>end: Box&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Assignment {
     <span class="kw">pub </span>left: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>right: Box&lt;AstNode&gt;,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>CallStatement {
     <span class="kw">pub </span>operator: Box&lt;AstNode&gt;,
     <span class="kw">pub </span>parameters: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
 }
 
 <span class="doccomment">/// Represents a conditional jump from current location to a specified label
-</span><span class="attr">#[derive(Clone, Debug, PartialEq)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>JumpStatement {
     <span class="doccomment">/// The condition based on which the current statement will perform a jump
     </span><span class="kw">pub </span>condition: Box&lt;AstNode&gt;,
@@ -3160,7 +3186,7 @@
 }
 
 <span class="doccomment">/// Represents a location in code that could be jumbed to
-</span><span class="attr">#[derive(Clone, Debug, PartialEq)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>LabelStatement {
     <span class="kw">pub </span>name: String,
 }

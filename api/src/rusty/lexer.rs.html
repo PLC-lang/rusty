@@ -352,6 +352,7 @@
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>core::ops::Range;
 <span class="kw">use </span>logos::{Filter, Lexer, Logos};
@@ -468,6 +469,7 @@
     }
 
     <span class="kw">pub fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="macro">log::trace!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.slice());
         <span class="self">self</span>.last_range = <span class="self">self</span>.range();
         <span class="self">self</span>.last_token = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.token, <span class="self">self</span>.lexer.next().unwrap_or(Token::End));
         <span class="self">self</span>.parse_progress += <span class="number">1</span>;

@@ -106,6 +106,15 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for validating array assignments both in their syntax and semantics.
 //!
 //! Specifically this module checks if the array assignments start with a leading `[` symbol and the fed
@@ -128,6 +137,7 @@
 <span class="kw">use super</span>::{ValidationContext, Validator, Validators};
 
 <span class="doccomment">/// Indicates whether an array was defined in a VAR block or a POU body
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Wrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
     Statement(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode),
     Variable(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Variable),
@@ -147,6 +157,7 @@
         <span class="kw">return</span>;
     }
 
+    <span class="kw">let </span>stmt_rhs = peel(stmt_rhs);
     <span class="kw">if </span>!(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         <span class="kw">return</span>; <span class="comment">// Return here, because array size validation is error-prone with incorrect assignments
@@ -212,6 +223,13 @@
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(<span class="kw-2">&amp;</span>it)),
         }
+    }
+}
+
+<span class="kw">fn </span>peel(node: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="kw-2">&amp;</span>AstNode {
+    <span class="kw">match </span><span class="kw-2">&amp;</span>node.stmt {
+        AstStatement::ParenExpression(expr) =&gt; peel(expr),
+        <span class="kw">_ </span>=&gt; node,
     }
 }
 </code></pre></div></section></main></body></html>
