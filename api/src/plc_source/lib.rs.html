@@ -210,6 +210,8 @@
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     fs::File,
     io::Read,
@@ -286,6 +288,8 @@
         <span class="self">self</span>.path.as_deref()
     }
 }
+
+<span class="kw">pub type </span>BuildDescriptionSource = SourceCode;
 
 <span class="doccomment">///Extension trait to create sources with names from strs, used in tests
 </span><span class="kw">pub trait </span>SourceCodeFactory {

@@ -860,10 +860,58 @@
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
 <a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, ops::Range};
 
 <span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
-<span class="kw">use </span>plc_source::source_location::SourceLocation;
+
+<span class="kw">use </span>plc_source::{
+    source_location::{SourceLocation, SourceLocationFactory},
+    BuildDescriptionSource,
+};
 
 <span class="kw">use </span><span class="kw">crate</span>::errno::ErrNo;
 
@@ -876,6 +924,13 @@
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec&lt;SourceLocation&gt; },
     CombinedDiagnostic { message: String, inner_diagnostics: Vec&lt;Diagnostic&gt;, err_no: ErrNo },
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>SerdeError {
+    message: String,
+    line: usize,
+    column: usize,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Diagnostic {
@@ -1645,6 +1700,39 @@
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::cfc__unnamed_control,
         }
+    }
+
+    <span class="kw">pub fn </span>invalid_build_description_file(message: String, location: <span class="prelude-ty">Option</span>&lt;SourceLocation&gt;) -&gt; Diagnostic {
+        <span class="kw">let </span>range = <span class="kw">if let </span><span class="prelude-val">Some</span>(range) = location { <span class="macro">vec!</span>[range] } <span class="kw">else </span>{ <span class="macro">vec!</span>[SourceLocation::internal()] };
+        Diagnostic::SemanticError { message, range, err_no: ErrNo::plc_json__invalid }
+    }
+}
+
+<span class="comment">// Necessary in-between step to convert serde error to diagnostics, since there is
+// a conflicting `From&lt;T: Error&gt;` impl for `Diagnostic`
+</span><span class="kw">impl </span>From&lt;serde_json::Error&gt; <span class="kw">for </span>SerdeError {
+    <span class="kw">fn </span>from(value: serde_json::Error) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>line = value.line();
+        <span class="kw">let </span>column = value.column();
+
+        <span class="comment">// remove line, column from message
+        </span><span class="kw">let </span>message = value.to_string();
+        <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = message.find(<span class="string">&quot;at line&quot;</span>) {
+            message.chars().take(pos).collect()
+        } <span class="kw">else </span>{
+            message
+        };
+
+        SerdeError { message, line, column }
+    }
+}
+
+<span class="kw">impl </span>SerdeError {
+    <span class="kw">pub fn </span>into_diagnostic(<span class="self">self</span>, src: <span class="kw-2">&amp;</span>BuildDescriptionSource) -&gt; Diagnostic {
+        <span class="kw">let </span>factory = SourceLocationFactory::for_source(src);
+        <span class="kw">let </span>range = factory.create_range_to_end_of_line(<span class="self">self</span>.line, <span class="self">self</span>.column);
+
+        Diagnostic::invalid_build_description_file(<span class="self">self</span>.message, <span class="prelude-val">Some</span>(range))
     }
 }
 

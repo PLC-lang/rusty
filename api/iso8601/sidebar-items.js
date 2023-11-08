@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Date","Duration"],"fn":["date","datetime","duration","time"],"mod":["parsers"],"struct":["DateTime","Time"]};

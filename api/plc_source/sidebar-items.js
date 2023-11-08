@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SourceType"],"fn":["create_source_code"],"mod":["source_location"],"struct":["SourceCode"],"trait":["Compilable","SourceCodeFactory","SourceContainer"]};
+window.SIDEBAR_ITEMS = {"enum":["SourceType"],"fn":["create_source_code"],"mod":["source_location"],"struct":["SourceCode"],"trait":["Compilable","SourceCodeFactory","SourceContainer"],"type":["BuildDescriptionSource"]};
