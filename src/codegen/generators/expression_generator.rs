@@ -1774,7 +1774,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
-            AstStatement::ParenExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
