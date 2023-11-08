@@ -7,7 +7,7 @@ As previously mentioned, the lexical and parsing phases are replaced by a model-
 ## XML to Data-Model
 
 Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#myprogramcfc), which translates to the CFC chart below.
-```
+```ignore
                    x                      MyAdd
             ┌─────────────┐        ┌─────────────────┐
             │             │        │    exec_id:0    │
@@ -26,7 +26,7 @@ Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#myprogramcfc), w
 The initial phase of the transformation process involves streaming the entire input file.
 During the streaming process, whenever important keywords such as `block` are encountered, they are directly mapped into a corresponding model structure. 
 For example, when reaching the line `<block localId="3" ...>` within the XML file, we generate a model that can be represented as follows:
-```rust
+```rust,ignore
 struct Block {
     localId: 2,
     type_name: "MyAdd",
@@ -52,7 +52,7 @@ The final part of the model-to-model transformation takes the input from the pre
 Consider the previous `block` example - the transformer first encounters the element with the `executionOrderId` of 0, which is a call to `myAdd`.
 We then check and transform each parameter, input `a` and `b` corresponding to the variables `x` and `y` respectively. The result of this transformation looks as follows:
 
-```Rust
+```rust,ignore
 CallStatement { 
     operator: myAdd, 
     parameters: [x, y] 
@@ -61,7 +61,7 @@ CallStatement {
 
    Next, we process the element with an `executionOrderId` of 1, which corresponds to an assignment of the previous call's result to z. This update modifies the generated AST as follows:
 
-```Rust
+```rust,ignore
 AssignmentStatement {
     left: z, 
     right: CallStatement {
@@ -77,7 +77,7 @@ Finally, after transforming all elements into their respective AST statements, t
 
 ## Appendix
 ### MyAdd.st
-```smalltalk
+```st,ignore
 FUNCTION MyAdd : DINT
     VAR_INPUT
         x, y : DINT;
@@ -88,7 +88,7 @@ END_FUNCTION
 ```
 
 ### MyProgram.cfc
-```xml
+```xml,ignore
 <pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myProgram" pouType="program">
     <content>
         PROGRAM myProgram
