@@ -223,19 +223,18 @@ impl Parseable for BlockVariable {
 mod tests {
     use insta::assert_debug_snapshot;
 
+    use crate::serializer::{
+        SInOutVariables, SInVariable, SInputVariables, SOutVariable, SOutputVariables, SVariable,
+    };
     use crate::{
         model::variables::{BlockVariable, FunctionBlockVariable},
         reader::{get_start_tag, Reader},
-        serializer::{
-            XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
-            XVariable,
-        },
         xml_parser::Parseable,
     };
 
     #[test]
     fn block_input_variable() {
-        let content = XInputVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SInputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -245,7 +244,7 @@ mod tests {
 
     #[test]
     fn block_output_variable() {
-        let content = XOutputVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SOutputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -255,7 +254,7 @@ mod tests {
 
     #[test]
     fn block_inout_variable() {
-        let content = XInOutVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SInOutVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -265,8 +264,7 @@ mod tests {
 
     #[test]
     fn fbd_in_variable() {
-        let content =
-            XInVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
+        let content = SInVariable::id(0).with_expression("a").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
@@ -275,8 +273,7 @@ mod tests {
 
     #[test]
     fn fbd_out_variable() {
-        let content =
-            XOutVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
+        let content = SOutVariable::id(0).with_expression("a").serialize();
 
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());

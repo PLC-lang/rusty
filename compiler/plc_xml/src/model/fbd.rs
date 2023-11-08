@@ -114,6 +114,7 @@ impl<'xml> Node<'xml> {
 impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut nodes = IndexMap::new();
+
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
@@ -292,16 +293,13 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
 
 #[cfg(test)]
 mod tests {
+    use crate::serializer::{SBlock, SInVariable, SOutVariable, SVariable, YFbd};
     use crate::{
         model::{
             connector::Connector, fbd::FunctionBlockDiagram, pou::Pou, project::Project,
             variables::FunctionBlockVariable,
         },
         reader::{get_start_tag, Reader},
-        serializer::{
-            XBlock, XConnection, XConnectionPointIn, XConnectionPointOut, XExpression, XFbd, XInOutVariables,
-            XInVariable, XInputVariables, XOutVariable, XOutputVariables, XPosition, XRelPosition, XVariable,
-        },
         xml_parser::Parseable,
     };
     use insta::assert_debug_snapshot;
@@ -311,47 +309,18 @@ mod tests {
 
     #[test]
     fn add_block() {
-        let content = XFbd::new()
-            .with_block(
-                XBlock::init("1", "ADD", "0")
-                    .with_input_variables(
-                        XInputVariables::new()
-                            .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                            .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-                    )
-                    .with_inout_variables(XInOutVariables::new().close())
-                    .with_output_variables(
-                        XOutputVariables::new()
-                            .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
-                    ),
-            )
-            .with_in_variable(
-                XInVariable::init("2", false)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data("a")),
-            )
-            .with_in_variable(
-                XInVariable::init("3", false)
-                    .with_position(XPosition::new().close())
-                    .with_connection_point_out(
-                        XConnectionPointOut::new().with_rel_position(XRelPosition::init()),
-                    )
-                    .with_expression(XExpression::new().with_data("b")),
-            )
-            .with_out_variable(
-                XOutVariable::init("4", false)
-                    .with_position(XPosition::new().close())
-                    .with_attribute("executionOrderId", "1")
-                    .with_connection_point_in(
-                        XConnectionPointIn::new()
-                            .with_rel_position(XRelPosition::init())
-                            .with_connection(XConnection::new().with_attribute("refLocalId", "1")),
-                    )
-                    .with_expression(XExpression::new().with_data("c")),
-            )
+        let content = YFbd::new()
+            .children(vec![
+                &SBlock::init("ADD", 1, 0)
+                    .with_input(vec![
+                        &SVariable::new().with_name("a").connect(1),
+                        &SVariable::new().with_name("b").connect(2),
+                    ])
+                    .with_output(vec![&SVariable::new().with_name("c")]),
+                &SInVariable::new().with_id(2).with_expression("a"),
+                &SInVariable::new().with_id(3).with_expression("b"),
+                &SOutVariable::new().with_id(4).with_expression("c").with_execution_id(1).connect(1),
+            ])
             .serialize();
 
         let mut reader = Reader::new(&content);
