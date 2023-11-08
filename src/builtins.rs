@@ -8,13 +8,12 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, Operator, TypeNature, AstNode,
+        self, flatten_expression_list, pre_process, AstNode, AstStatement, CompilationUnit, GenericBinding,
+        LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
 };
-use plc_ast::ast::pre_process;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
@@ -27,7 +26,7 @@ use crate::{
         generics::{no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_literal_actual_signed_type_name, get_bigger_type},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name},
     validation::{Validator, Validators},
 };
 
@@ -372,31 +371,31 @@ lazy_static! {
                 }
             }
         ),
-        (
-            "SUB",
-            BuiltIn {
-                decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
-                generic_name_resolver: no_generic_name_resolver,
-                code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Minus)
-                }
-            }
-        ),
+        // (
+        //     "SUB",
+        //     BuiltIn {
+        //         decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
+        //         VAR_INPUT
+        //             IN1 : T1;
+        //             IN2 : T2;
+        //         END_VAR
+        //         END_FUNCTION
+        //         ",
+        //         annotation: Some(|annotator, _, parameters, _| {
+        //             let Some(params) = parameters else {
+        //                 unreachable!("must have parameters")
+        //             };
+        //             annotate_arithmetic_function(annotator, params);
+        //         }),
+        //         validation: Some(|validator, operator, parameters, annotations, index| {
+        //             validate_arithmetic_function(validator, operator, parameters, annotations, index);
+        //         }),
+        //         generic_name_resolver: no_generic_name_resolver,
+        //         code: |generator, params, _| {
+        //             generate_arithmetic_function(generator, params, Operator::Minus)
+        //         }
+        //     }
+        // ),
         (
             "DIV",
             BuiltIn {
@@ -494,7 +493,6 @@ fn generate_arithmetic_function<'ink, 'b>(
     params: &[&AstNode],
     operator: Operator,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-
     // generate the accumulator from the initial parameter and
     // todo: default to float values if any value is float
     let mut accum = generator.generate_expression(params.get(0).expect("must have this parameter"))?;
