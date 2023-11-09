@@ -393,18 +393,17 @@ fn expression_list_members_are_annotated() {
         id_provider.clone(),
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let exp_list = &unit.implementations[0].statements[0];
+    let statement = &unit.implementations[0].statements[0];
 
     let expected_types = vec!["DINT", "BOOL", "REAL"];
 
-    if let AstStatement::ExpressionList(expressions, ..) = exp_list.get_stmt() {
-        let actual_types: Vec<&str> =
-            expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
+    let AstStatement::ExpressionList(expressions, ..) = expr.get_stmt() else { panic!() };
 
-        assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
-    } else {
-        unreachable!()
-    }
+    let actual_types: Vec<&str> =
+        expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
+
+    assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
 }
 
 #[test]
@@ -423,19 +422,18 @@ fn expression_lists_with_expressions_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let exp_list = &unit.implementations[0].statements[0];
 
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
     let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
 
-    if let AstStatement::ExpressionList(expressions, ..) = exp_list.get_stmt() {
-        let actual_types: Vec<&str> =
-            expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
+    let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
+    let AstStatement::ExpressionList(expressions, ..) = expr.get_stmt() else { panic!() };
 
-        assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
-    } else {
-        unreachable!()
-    }
+    let actual_types =
+        expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect::<Vec<_>>();
+
+    assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
 }
 
 #[test]

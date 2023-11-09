@@ -75,6 +75,8 @@ impl SourceContainer for SourceCode {
     }
 }
 
+pub type BuildDescriptionSource = SourceCode;
+
 ///Extension trait to create sources with names from strs, used in tests
 pub trait SourceCodeFactory {
     fn create_source(self, path: impl Into<PathBuf>) -> SourceCode;

@@ -237,6 +237,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::HardwareAccess { .. } => {
                 Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
+            AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
             //fallback
             _ => self.generate_literal(expression),
         }

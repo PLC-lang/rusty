@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug source 'demo.st'",
+            "name": "Debug source 'target/demo.st'",
             "cargo": {
                 "args": [
                     "build",

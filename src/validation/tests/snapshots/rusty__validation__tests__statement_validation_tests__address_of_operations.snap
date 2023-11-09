@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 12, offset: 462 }..TextLocation { line: 24, column: 15, offset: 465 }) }], err_no: type__invalid_operation }
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 12, offset: 479 }..TextLocation { line: 25, column: 16, offset: 483 }) }], err_no: type__invalid_operation }
-SyntaxError { message: "Invalid address-of operation", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 12, offset: 497 }..TextLocation { line: 26, column: 17, offset: 502 }) }], err_no: type__invalid_operation }
+error: Invalid address-of operation
+   ┌─ <internal>:25:13
+   │
+25 │             &&a;
+   │             ^^^ Invalid address-of operation
+
+error: Invalid address-of operation
+   ┌─ <internal>:26:13
+   │
+26 │             &100;
+   │             ^^^^ Invalid address-of operation
+
+error: Invalid address-of operation
+   ┌─ <internal>:27:13
+   │
+27 │             &(a+3);
+   │             ^^^^^^ Invalid address-of operation
+
 
