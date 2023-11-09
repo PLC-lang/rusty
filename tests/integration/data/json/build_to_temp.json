@@ -1,25 +1,26 @@
 {
-    "name" : "proj",
-    "files" : [
+    "name": "proj",
+    "files": [
         "simple_program.st"
     ],
-    "compile_type" : "Shared",
-    "libraries" : [
+    "compile_type": "Shared",
+    "libraries": [
         {
-            "name" : "copy",
-            "path" : "libs/",
-            "package" : "Copy",
-            "include_path" : [
+            "name": "copy",
+            "path": "libs/",
+            "package": "Copy",
+            "include_path": [
                 "program_with_expressions.st"
             ]
         },
         {
-            "name" : "nocopy",
-            "path" : "libs/",
-            "package" : "System",
-            "include_path" : [
+            "name": "nocopy",
+            "path": "libs/",
+            "package": "System",
+            "include_path": [
                 "program_with_variables.st"
             ]
         }
-    ]
+    ],
+    "output": "proj.so"
 }

@@ -547,6 +547,7 @@ fn evaluate_with_target_hint(
             let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
             Some(AstFactory::create_range_statement(start, end, id))
         }
+        AstStatement::ParenExpression(expr) => evaluate_with_target_hint(expr, scope, index, target_type)?,
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)
