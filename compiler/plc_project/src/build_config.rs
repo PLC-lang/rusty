@@ -86,8 +86,35 @@ impl ProjectConfig {
         Ok(project)
     }
 
+    fn get_schema() -> Result<PathBuf, Diagnostic> {
+        let current_exe_dir =
+            std::env::current_exe()?.parent().map(|it| it.to_path_buf()).unwrap_or_default();
+        let schema_dir = current_exe_dir.join("schema");
+        #[cfg(feature = "integration")]
+        //Fallback to the build location
+        let schema_dir = if !&schema_dir.exists() {
+            let project_dir: PathBuf = env!("CARGO_MANIFEST_DIR").into();
+            project_dir.join("schema")
+        } else {
+            schema_dir
+        };
+        let path = schema_dir.join("plc-json.schema");
+        if !path.exists() {
+            Err(Diagnostic::io_read_error(&path.to_string_lossy(), "File not found"))
+        } else {
+            Ok(path)
+        }
+    }
+
     fn validate(&self) -> Result<(), Diagnostic> {
-        let schema_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new("schema/plc-json.schema"));
+        let schema_path = match Self::get_schema() {
+            Ok(path) => path,
+            Err(error) => {
+                eprintln!("Could not find schema, validation skipped. Original error: {error:?}");
+                //Skip validation but do not fail
+                return Ok(());
+            }
+        };
         let schema = fs::read_to_string(schema_path).map_err(Diagnostic::from)?;
         let schema_obj = serde_json::from_str(&schema).expect("A valid schema");
         let compiled = JSONSchema::compile(&schema_obj).expect("A valid schema");
