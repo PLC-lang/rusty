@@ -25,7 +25,7 @@ use plc::{
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use source_code::SourceContainer;
+use source_code::{SourceContainer, SourceMap};
 
 pub mod cli;
 pub mod pipelines;
@@ -159,6 +159,12 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
+    let mut source_map = SourceMap::new();
+    for source in project.get_sources() {
+        source_map.insert(source);
+    }
+    println!("{source_map:?}");
+
     // 1 : Parse
     let annotated_project = pipelines::ParsedProject::parse(
         &project,
@@ -167,7 +173,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         &mut diagnostician,
     )?
     // 2 : Index
-    .index(id_provider.clone())?
+    .index(source_map, id_provider.clone())?
     // 3 : Resolve
     .annotate(id_provider, &diagnostician)?;
     // 4 : Validate
@@ -208,7 +214,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
     let mut diagnostician = Diagnostician::default();
     pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
         // Create an index, add builtins
-        .index(id_provider.clone())?
+        .index(todo!(), id_provider.clone())?
         // Resolve
         .annotate(id_provider, &diagnostician)
 }

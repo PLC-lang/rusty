@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{
     env,
     fs::{self, File},
@@ -31,7 +32,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::{source_location::SourceLocation, SourceContainer};
+use source_code::{source_location::SourceLocation, SourceContainer, SourceMap};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -107,7 +108,7 @@ impl ParsedProject {
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
+    pub fn index(self, source_map: SourceMap, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
         let indexed_units = self
             .0
             .into_par_iter()
@@ -122,6 +123,7 @@ impl ParsedProject {
             .collect::<Vec<_>>();
 
         let mut global_index = Index::default();
+        global_index.source_map = Arc::new(source_map);
         let mut units = vec![];
         for (index, unit) in indexed_units {
             units.push(unit);

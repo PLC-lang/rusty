@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{
     fs::File,
     io::Read,
@@ -6,6 +7,21 @@ use std::{
 
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+
+#[derive(Debug, Default)]
+pub struct SourceMap {
+    pub sources: HashMap<String, String>,
+}
+
+impl SourceMap {
+    pub fn new() -> Self {
+        Self { sources: HashMap::new() }
+    }
+
+    pub fn insert(&mut self, path: &PathBuf) {
+        self.sources.insert(path.to_str().unwrap().to_string(), path.load_source(None).unwrap().source);
+    }
+}
 
 pub mod source_location;
 /// Represents the type of source a SourceContainer holds

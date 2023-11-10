@@ -4,7 +4,7 @@ use ast::provider::IdProvider;
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
 use project::project::Project;
-use source_code::Compilable;
+use source_code::{Compilable, SourceMap};
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -26,11 +26,16 @@ impl Default for MainType {
 pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule<'_> {
     let source = source.containers();
     let project = Project::new("TestProject".to_string()).with_sources(source);
+    // let mut source_map = SourceMap::new();
+    // for source in project.get_sources() {
+    //     source_map.insert(source);
+    // }
+
     let mut diagnostician = Diagnostician::null_diagnostician();
     let id_provider = IdProvider::default();
     let parsed_project =
         ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician).unwrap();
-    let indexed_project = parsed_project.index(id_provider.clone()).unwrap();
+    let indexed_project = parsed_project.index(todo!(), id_provider.clone()).unwrap();
     let annotated_project = indexed_project.annotate(id_provider, &diagnostician).unwrap();
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,

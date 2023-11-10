@@ -1,3 +1,4 @@
+use std::sync::Arc;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     builtins::{self, BuiltIn},
@@ -12,6 +13,7 @@ use plc_ast::ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use plc_source::SourceMap;
 use plc_util::convention::qualified_name;
 
 use self::{
@@ -828,9 +830,16 @@ pub struct Index {
 
     /// The labels contained in each pou
     labels: IndexMap<String, SymbolMap<String, Label>>,
+
+    pub source_map: Arc<SourceMap>,
 }
 
 impl Index {
+    pub fn slice(&self, node: &AstNode) -> &str {
+        let name = node.location.get_file_name().unwrap();
+        &self.source_map.as_ref().sources.get(name).unwrap()[node.location.to_range().unwrap()]
+    }
+
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, types and implementations
