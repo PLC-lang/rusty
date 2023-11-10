@@ -4,7 +4,7 @@
 
 RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC ("FBD") are supported.
 It utilizes the LLVM compiler infrastructurue and contributes a [Structured Text](https://en.wikipedia.org/wiki/Structured_text) frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
-[CFC](todo: insert link) uses a M2M-transformation and reuses most of the ST frontend for compilation.
+[CFC](../cfc/cfc.md) uses a M2M-transformation and reuses most of the ST frontend for compilation.
 The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see [here](https://www.aosabook.org/en/llvm.html)).
 
 ```ignore
