@@ -1,0 +1,22 @@
+---
+source: compiler/plc_project/src/build_config.rs
+expression: "&format!(\"{:#?}\", cfg)"
+---
+ProjectConfig {
+    name: "MyProject",
+    files: [
+        "file.st",
+    ],
+    compile_type: Shared,
+    output: Some(
+        "proj.so",
+    ),
+    libraries: [],
+    package_commands: [],
+    version: Some(
+        "0.1",
+    ),
+    format_version: Some(
+        "0.2",
+    ),
+}

@@ -3,8 +3,8 @@ source: compiler/plc_xml/src/xml_parser/tests.rs
 expression: impl1
 ---
 Implementation {
-    name: "program_0",
-    type_name: "program_0",
+    name: "foo",
+    type_name: "foo",
     linkage: Internal,
     pou_type: Program,
     statements: [

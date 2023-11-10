@@ -49,6 +49,7 @@ fn validate_array<T: AnnotationMap>(
     rhs_stmt: &AstNode,
 ) {
     let stmt_rhs = peel(rhs_stmt);
+    let stmt_rhs = peel(stmt_rhs);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
