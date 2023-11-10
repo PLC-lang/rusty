@@ -268,6 +268,10 @@ This is the value of either the <a href="#lib-location"><code>--lib-location</co
  ]
 }
 </code></pre>
+<h2 id="validation"><a class="header" href="#validation">Validation</a></h2>
+<p>The build description file uses a <a href="https://json-schema.org/">Json Schema</a> file located at <code>compiler/plc_project/schema/plc-json.schema</code> to validate the build description before build.
+In order for the schema to be used, it has to be either in that location for source builds or copied next to the build binaries.
+If the schema is not found, the schema based validation will be skipped.</p>
 
                     </main>
 

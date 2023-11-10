@@ -485,6 +485,10 @@ This is the value of either the <a href="using_rusty/build_configuration.html#li
  ]
 }
 </code></pre>
+<h2 id="validation"><a class="header" href="#validation">Validation</a></h2>
+<p>The build description file uses a <a href="https://json-schema.org/">Json Schema</a> file located at <code>compiler/plc_project/schema/plc-json.schema</code> to validate the build description before build.
+In order for the schema to be used, it has to be either in that location for source builds or copied next to the build binaries.
+If the schema is not found, the schema based validation will be skipped.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>
@@ -1676,7 +1680,7 @@ The code-generation steps can easily decide when to generate casts, by simply co
 <p>When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
 This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
 This information can then be used during the <a href="arch/./codegen.html">codegen</a> period to only generated types and variables that are relevant to the unit.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="validation"><a class="header" href="#validation">Validation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="validation-1"><a class="header" href="#validation-1">Validation</a></h1>
 <p>The validation module implements the semantic validation step of the compiler.
 The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
 <p>The validation rules are implemented in dedicated validator-structs:</p>
