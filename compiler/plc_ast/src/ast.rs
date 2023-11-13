@@ -553,7 +553,7 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
     /**
      * a, a.b
