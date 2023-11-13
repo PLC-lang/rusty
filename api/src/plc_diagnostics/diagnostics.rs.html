@@ -904,6 +904,14 @@
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, ops::Range};
 
 <span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
@@ -1565,6 +1573,14 @@
     <span class="kw">pub fn </span>array_assignment(range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SyntaxError {
             message: <span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>.to_string(),
+            range: <span class="macro">vec!</span>[range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
+    <span class="kw">pub fn </span>array_struct_assignment(range: SourceLocation) -&gt; Diagnostic {
+        Diagnostic::SyntaxError {
+            message: <span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>.to_string(),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }

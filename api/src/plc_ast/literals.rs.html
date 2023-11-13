@@ -346,14 +346,14 @@
     </span>Array(Array),
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Date {
     year: i32,
     month: u32,
     day: u32,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>DateAndTime {
     year: i32,
     month: u32,
@@ -364,7 +364,7 @@
     nano: u32,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>TimeOfDay {
     hour: u32,
     min: u32,
@@ -372,7 +372,7 @@
     nano: u32,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Time {
     <span class="kw">pub </span>day: f64,
     <span class="kw">pub </span>hour: f64,
@@ -384,13 +384,13 @@
     <span class="kw">pub </span>negative: bool,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>StringValue {
     <span class="kw">pub </span>value: String,
     <span class="kw">pub </span>is_wide: bool,
 }
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Array {
     <span class="kw">pub </span>elements: <span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;, <span class="comment">// expression-list
 </span>}

@@ -2683,6 +2683,7 @@
 <a href="#2683" id="2683">2683</a>
 <a href="#2684" id="2684">2684</a>
 <a href="#2685" id="2685">2685</a>
+<a href="#2686" id="2686">2686</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -4459,6 +4460,7 @@
             AstStatement::MultipliedStatement { .. } =&gt; {
                 <span class="self">self</span>.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
+            AstStatement::ParenExpression(expr) =&gt; <span class="self">self</span>.generate_literal(expr),
             <span class="comment">// if there is an expression-list this might be a struct-initialization or array-initialization
             </span>AstStatement::ExpressionList { .. } =&gt; {
                 <span class="kw">let </span>type_hint = <span class="self">self</span>.get_type_hint_info_for(literal_statement)<span class="question-mark">?</span>;
