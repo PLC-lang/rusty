@@ -40,7 +40,7 @@ struct Block {
 }
 ```
 
-This is process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the [model](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model) folder.
+This process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the [model](https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model) folder.
 
 Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
 with the sequencing of block execution and inter-block links represented through corresponding `localId`, `refLocalId` and `excutionOrderId`,
