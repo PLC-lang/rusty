@@ -57,6 +57,11 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
+          name: schema
+          path: compiler/plc_project/schema
+
+      - uses: actions/upload-artifact@master
+        with:
           name: stdlib
           path: output
 
