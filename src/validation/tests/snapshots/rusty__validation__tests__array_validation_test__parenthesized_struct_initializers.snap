@@ -27,27 +27,27 @@ error: Struct initializers within arrays have to be wrapped by `()`
    │                                                                                      ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
 
 error: Struct initializers within arrays have to be wrapped by `()`
-   ┌─ <internal>:11:78
+   ┌─ <internal>:11:56
    │
-11 │                 foo_invalid_b : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // First initializer missing parens
-   │                                                                              ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
-
-error: Struct initializers within arrays have to be wrapped by `()`
-   ┌─ <internal>:11:88
-   │
-11 │                 foo_invalid_b : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // First initializer missing parens
-   │                                                                                        ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
-
-error: Struct initializers within arrays have to be wrapped by `()`
-   ┌─ <internal>:12:56
-   │
-12 │                 foo_invalid_c : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // Second initializer missing parens
+11 │                 foo_invalid_b : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // First initializer missing parens
    │                                                        ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
 
 error: Struct initializers within arrays have to be wrapped by `()`
-   ┌─ <internal>:12:66
+   ┌─ <internal>:11:66
    │
-12 │                 foo_invalid_c : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // Second initializer missing parens
+11 │                 foo_invalid_b : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // First initializer missing parens
    │                                                                  ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
+
+error: Struct initializers within arrays have to be wrapped by `()`
+   ┌─ <internal>:12:78
+   │
+12 │                 foo_invalid_c : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // Second initializer missing parens
+   │                                                                              ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
+
+error: Struct initializers within arrays have to be wrapped by `()`
+   ┌─ <internal>:12:88
+   │
+12 │                 foo_invalid_c : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // Second initializer missing parens
+   │                                                                                        ^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
 
 

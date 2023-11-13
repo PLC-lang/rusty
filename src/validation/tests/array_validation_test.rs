@@ -310,8 +310,8 @@ fn parenthesized_struct_initializers() {
             VAR
                 foo_valid : ARRAY[1..2] OF foo := [(idx := 0, val := 0), (idx := 1, val := 1)];
                 foo_invalid_a : ARRAY[1..2] OF foo := [idx := 0, val := 0, idx := 1, val := 1];     // Both initializers missing parens
-                foo_invalid_b : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // First initializer missing parens
-                foo_invalid_c : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // Second initializer missing parens
+                foo_invalid_b : ARRAY[1..2] OF foo := [idx := 0, val := 0, (idx := 1, val := 1)];   // First initializer missing parens
+                foo_invalid_c : ARRAY[1..2] OF foo := [(idx := 0, val := 0), idx := 1, val := 1];   // Second initializer missing parens
             END_VAR
         END_FUNCTION
         ",
