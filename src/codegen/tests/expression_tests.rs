@@ -570,9 +570,8 @@ fn allowed_assignable_types() {
     insta::assert_snapshot!(result);
 }
 
-
 #[test]
-fn add() {
+fn builtin_add_ints() {
     let src = r#"
         FUNCTION main : DINT
         VAR
@@ -581,6 +580,194 @@ fn add() {
             s1 : SINT;
         END_VAR
             ADD(x1, x2, x3, l1, s1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_add_float() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : REAL;
+            l1 : LREAL;
+        END_VAR
+            ADD(x1, x2, x3, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_add_mixed() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : REAL;
+            l1 : LINT;
+        END_VAR
+            ADD(x1, x2, x3, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_mul_ints() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : DINT;
+            l1 : LINT;
+            s1 : SINT;
+        END_VAR
+            MUL(x1, x2, x3, l1, s1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_mul_float() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : REAL;
+            l1 : LREAL;
+        END_VAR
+            MUL(x1, x2, x3, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_mul_mixed() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1, x2, x3 : REAL;
+            l1 : LINT;
+        END_VAR
+            MUL(x1, x2, x3, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_sub_ints() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : DINT;
+            l1 : LINT;
+        END_VAR
+            SUB(x1, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_sub_float() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : REAL;
+            l1 : LREAL;
+        END_VAR
+            SUB(x1, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_sub_mixed() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : REAL;
+            l1 : LINT;
+        END_VAR
+            SUB(x1, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_div_ints() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : DINT;
+            l1 : LINT;
+        END_VAR
+            DIV(x1, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_div_float() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : REAL;
+            l1 : LREAL;
+        END_VAR
+            DIV(x1, l1);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_div_mixed() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x1 : REAL;
+            l1 : LINT;
+        END_VAR
+            DIV(x1, l1);
         END_FUNCTION
     "#;
 

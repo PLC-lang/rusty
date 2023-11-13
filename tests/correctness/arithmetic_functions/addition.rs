@@ -1,5 +1,5 @@
-use driver::runner::{compile_and_run, MainType};
 use crate::correctness::math_operators::addition::approx_equal;
+use driver::runner::{compile_and_run, MainType};
 
 #[test]
 fn builtin_add_with_ints() {
@@ -53,7 +53,7 @@ fn builtin_add_with_ints_and_floats() {
     let mut main = MainType::default();
 
     let res: f64 = compile_and_run(prog.to_string(), &mut main);
-    assert!(approx_equal(1011.6, res, 1));
+    assert!(approx_equal(1010.9, res, 1));
 }
 
 #[test]

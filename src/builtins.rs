@@ -323,10 +323,11 @@ lazy_static! {
                 }
             }
         ),
+        // Arithmetic functions
         (
             "ADD",
             BuiltIn {
-                decl: "FUNCTION ADD<T: ANY_MAGNITUDE> : T
+                decl: "FUNCTION ADD<T: ANY_NUM> : T
                 VAR_INPUT
                     args: T...;
                 END_VAR
@@ -350,7 +351,7 @@ lazy_static! {
         (
             "MUL",
             BuiltIn {
-                decl: "FUNCTION MUL<T: ANY_MAGNITUDE> : T
+                decl: "FUNCTION MUL<T: ANY_NUM> : T
                 VAR_INPUT
                     args: T...;
                 END_VAR
@@ -371,60 +372,10 @@ lazy_static! {
                 }
             }
         ),
-        // (
-        //     "SUB",
-        //     BuiltIn {
-        //         decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
-        //         VAR_INPUT
-        //             IN1 : T1;
-        //             IN2 : T2;
-        //         END_VAR
-        //         END_FUNCTION
-        //         ",
-        //         annotation: Some(|annotator, _, parameters, _| {
-        //             let Some(params) = parameters else {
-        //                 unreachable!("must have parameters")
-        //             };
-        //             annotate_arithmetic_function(annotator, params);
-        //         }),
-        //         validation: Some(|validator, operator, parameters, annotations, index| {
-        //             validate_arithmetic_function(validator, operator, parameters, annotations, index);
-        //         }),
-        //         generic_name_resolver: no_generic_name_resolver,
-        //         code: |generator, params, _| {
-        //             generate_arithmetic_function(generator, params, Operator::Minus)
-        //         }
-        //     }
-        // ),
         (
-            "DIV",
+            "SUB",
             BuiltIn {
-                decl: "FUNCTION DIV<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
-                generic_name_resolver: no_generic_name_resolver,
-                code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Division)
-                }
-            }
-        ),
-        (
-            "MOD",
-            BuiltIn {
-                decl: "FUNCTION SUB<T1: ANY_MAGNITUDE, T2: ANY_MAGNITUDE> : T1
+                decl: "FUNCTION SUB<T1: ANY_NUM, T2: ANY_NUM> : T1
                 VAR_INPUT
                     IN1 : T1;
                     IN2 : T2;
@@ -446,8 +397,106 @@ lazy_static! {
                 }
             }
         ),
-        // expt?
-
+        (
+            "DIV",
+            BuiltIn {
+                decl: "FUNCTION DIV<T1: ANY_NUM, T2: ANY_NUM> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Division)
+                }
+            }
+        ),
+        // (
+        //     "MOD", // FIXME: should be named "MOD" according to the standard, but then it causes weird "sitofp" casts in IR in unrelated tests. Will be fixed alongside with EXIT keyword...
+        //     BuiltIn {
+        //         decl: "FUNCTION MOD<T1: ANY_INT, T2: ANY_INT> : T1
+        //         VAR_INPUT
+        //             IN1 : T1;
+        //             IN2 : T2;
+        //         END_VAR
+        //         END_FUNCTION
+        //         ",
+        //         annotation: Some(|annotator, _, parameters, _| {
+        //             let Some(params) = parameters else {
+        //                 unreachable!("must have parameters")
+        //             };
+        //             annotate_arithmetic_function(annotator, params);
+        //         }),
+        //         validation: Some(|validator, operator, parameters, annotations, index| {
+        //             validate_arithmetic_function(validator, operator, parameters, annotations, index);
+        //         }),
+        //         generic_name_resolver: no_generic_name_resolver,
+        //         code: |generator, params, _| {
+        //             generate_arithmetic_function(generator, params, Operator::Modulo)
+        //         }
+        //     }
+        // ),
+        (
+            "EXPT",
+            BuiltIn {
+                decl: "FUNCTION EXPT<T1: ANY_REAL, T2: ANY_NUM> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, _, parameters, _| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_arithmetic_function(annotator, params);
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    generate_arithmetic_function(generator, params, Operator::Exponentiation)
+                }
+            }
+        ),
+        // Bit-comparison functions
+        // TODO: AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean )
+        // comparison functions
+        // TODO: GT, GE, EQ, LE, LT, NE ANY_ELEMENTARY
+        // (
+        //     "GT",
+        //     BuiltIn {
+        //         decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
+        //         VAR_INPUT
+        //             IN : T...;
+        //         END_VAR
+        //         END_FUNCTION
+        //         ",
+        //         annotation: Some(|annotator, _, parameters, _| {
+        //             todo!()
+        //         }),
+        //         validation: Some(|validator, operator, parameters, annotations, index| {
+        //             todo!()
+        //         }),
+        //         generic_name_resolver: no_generic_name_resolver,
+        //         code: |generator, params, _| {
+        //             todo!()
+        //         }
+        //     }
+        // ),
 
     ]);
 }
@@ -494,7 +543,6 @@ fn generate_arithmetic_function<'ink, 'b>(
     operator: Operator,
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     // generate the accumulator from the initial parameter and
-    // todo: default to float values if any value is float
     let mut accum = generator.generate_expression(params.get(0).expect("must have this parameter"))?;
     let generate_binary_expr = match accum {
         BasicValueEnum::IntValue(_) => ExpressionCodeGenerator::create_llvm_int_binary_expression,

@@ -27,7 +27,7 @@ mod correctness {
     mod strings;
     mod sub_range_types;
     mod math_operators {
-        pub(crate) mod addition;
+        pub(super) mod addition;
         mod division;
         mod mixed;
         mod multiplication;
