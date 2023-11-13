@@ -2,7 +2,9 @@
 use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{AstFactory, AstNode, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType};
+use plc_ast::ast::{
+    AstFactory, AstNode, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
+};
 use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -145,7 +147,7 @@ fn additon_of_three_variables_parsed() {
 }
 
 #[test]
-fn parenthesis_expressions_should_not_change_the_ast() {
+fn parenthesis_expressions_should_change_the_ast() {
     let src = "PROGRAM exp (x+y); END_PROGRAM";
     let result = parse(src).0;
 
@@ -1764,4 +1766,17 @@ fn direct_access_as_expression_parsed() {
 
     //THEN the AST contains direct address nodes at the access location
     assert_debug_snapshot!(result);
+}
+
+#[test]
+fn parenthesized_expression_span() {
+    let src = "PROGRAM prg [(1 + 2)] END_PROGRAM";
+
+    let (result, _) = parse(src);
+    let AstStatement::Literal(AstLiteral::Array(array)) = result.implementations[0].statements[0].get_stmt()
+    else {
+        panic!()
+    };
+    let range = array.elements().unwrap().get_location().get_span().to_range().unwrap();
+    assert_eq!(&src[range.start..range.end], "(1 + 2)");
 }

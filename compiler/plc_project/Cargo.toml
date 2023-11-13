@@ -12,6 +12,13 @@ source_code = { path = "../plc_source/", package = "plc_source" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 regex = "1"
+jsonschema = "0.17"
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
 glob = "*"
+
+[dev-dependencies]
+insta = "1.31.0"
+
+[features]
+integration = []
