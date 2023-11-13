@@ -547,13 +547,13 @@ fn parenthesized_expression_assignment() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let one = &unit.implementations[0].statements[0];
-    let AstStatement::Assignment(Assignment {right, ..}) = &one.stmt else { panic!() };
+    let AstStatement::Assignment(Assignment { right, .. }) = &one.stmt else { panic!() };
     assert!(&right.is_paren());
     assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
     assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "DINT");
 
     let two = &unit.implementations[0].statements[1];
-    let AstStatement::Assignment(Assignment {right, ..}) = &two.stmt else { panic!() };
+    let AstStatement::Assignment(Assignment { right, .. }) = &two.stmt else { panic!() };
     assert!(&right.is_paren());
     assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
     assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "SINT");
@@ -4071,7 +4071,11 @@ fn array_with_parenthesized_expression() {
     let AstStatement::Literal(AstLiteral::Array(Array { elements })) = index
         .get_const_expressions()
         .maybe_get_constant_statement(&members[0].initial_value)
-        .map(AstNode::get_stmt).unwrap() else { panic!() };
+        .map(AstNode::get_stmt)
+        .unwrap()
+    else {
+        panic!()
+    };
 
     let AstStatement::ExpressionList(expressions) = elements.as_ref().unwrap().get_stmt() else { panic!() };
 
@@ -4120,7 +4124,10 @@ fn array_of_struct_with_initial_values_annotated_correctly() {
         .get_const_expressions()
         .maybe_get_constant_statement(&members[0].initial_value)
         .map(|it| it.get_stmt())
-        .unwrap() else { panic!() };
+        .unwrap()
+    else {
+        panic!()
+    };
     let AstStatement::ExpressionList(expressions) = array.elements().unwrap().get_stmt() else { panic!() };
 
     // we initialized the array with 2 structs

@@ -1773,7 +1773,10 @@ fn parenthesized_expression_span() {
     let src = "PROGRAM prg [(1 + 2)] END_PROGRAM";
 
     let (result, _) = parse(src);
-    let AstStatement::Literal(AstLiteral::Array(array)) = result.implementations[0].statements[0].get_stmt() else { panic!() };
+    let AstStatement::Literal(AstLiteral::Array(array)) = result.implementations[0].statements[0].get_stmt()
+    else {
+        panic!()
+    };
     let range = array.elements().unwrap().get_location().get_span().to_range().unwrap();
     assert_eq!(&src[range.start..range.end], "(1 + 2)");
 }

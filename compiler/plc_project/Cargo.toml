@@ -19,3 +19,6 @@ glob = "*"
 
 [dev-dependencies]
 insta = "1.31.0"
+
+[features]
+integration = []
