@@ -5313,3 +5313,30 @@ fn annotate_method_in_super() {
         );
     }
 }
+
+// these test checks if builtin calls to GT, LT, GE, LE, EQ, NE are annotated correctly
+#[test]
+fn builtin_gt_replacement_ast() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION main : DINT
+        VAR
+            a : DINT;
+            b : INT;
+            c : LINT;
+            d : LWORD;
+        END_VAR
+            GT(a, b, c, d);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        unreachable!()
+    };
+    insta::assert_debug_snapshot!(annotations.get(operator));
+}

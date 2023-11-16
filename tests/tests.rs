@@ -41,6 +41,14 @@ mod correctness {
         mod substraction;
     }
     mod vla;
+    mod comparison_functions {
+        mod equal;
+        mod greater_than;
+        mod greater_than_or_equal;
+        mod less_than;
+        mod less_than_or_equal;
+        mod not_equal;
+    }
 }
 mod integration {
     mod build_description_tests;

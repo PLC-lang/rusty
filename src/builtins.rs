@@ -8,8 +8,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstNode, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, Operator, TypeNature,
+        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, BinaryExpression,
+        CompilationUnit, GenericBinding, LinkageType, Operator, ReferenceAccess, ReferenceExpr, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -19,7 +19,7 @@ use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
-    index::Index,
+    index::{Index, MemberInfo},
     lexer, parser,
     resolver::{
         self,
@@ -329,22 +329,24 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION ADD<T: ANY_NUM> : T
                 VAR_INPUT
-                    args: T...;
+                    args: {sized} T...;
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
+                annotation: None,
+                // Some(|annotator, _, parameters, _| {
+                //     let Some(params) = parameters else {
+                //         unreachable!("must have parameters")
+                //     };
+                //     annotate_arithmetic_function(annotator, params);
+                // }),
+                validation: None,
+                // Some(|validator, operator, parameters, annotations, index| {
+                //     validate_arithmetic_function(validator, operator, parameters, annotations, index);
+                // }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Plus)
+                    generate_arithmetic_instruction(generator, params, Operator::Plus)
                 }
             }
         ),
@@ -357,18 +359,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
+                annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Multiplication)
+                    generate_arithmetic_instruction(generator, params, Operator::Multiplication)
                 }
             }
         ),
@@ -382,18 +377,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
+                annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Minus)
+                    generate_arithmetic_instruction(generator, params, Operator::Minus)
                 }
             }
         ),
@@ -407,18 +395,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
+                annotation: None,
+                validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Division)
+                    generate_arithmetic_instruction(generator, params, Operator::Division)
                 }
             }
         ),
@@ -447,39 +428,37 @@ lazy_static! {
         //         }
         //     }
         // ),
-        (
-            "EXPT",
-            BuiltIn {
-                decl: "FUNCTION EXPT<T1: ANY_REAL, T2: ANY_NUM> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
-                annotation: Some(|annotator, _, parameters, _| {
-                    let Some(params) = parameters else {
-                        unreachable!("must have parameters")
-                    };
-                    annotate_arithmetic_function(annotator, params);
-                }),
-                validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                }),
-                generic_name_resolver: no_generic_name_resolver,
-                code: |generator, params, _| {
-                    generate_arithmetic_function(generator, params, Operator::Exponentiation)
-                }
-            }
-        ),
-        // Bit-comparison functions
-        // TODO: AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean )
-        // comparison functions
-        // TODO: GT, GE, EQ, LE, LT, NE ANY_ELEMENTARY
         // (
-        //     "GT",
+        //     "EXPT",
         //     BuiltIn {
-        //         decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
+        //         decl: "FUNCTION EXPT<T1: ANY_REAL, T2: ANY_NUM> : T1
+        //         VAR_INPUT
+        //             IN1 : T1;
+        //             IN2 : T2;
+        //         END_VAR
+        //         END_FUNCTION
+        //         ",
+        //         annotation: Some(|annotator, _, parameters, _| {
+        //             let Some(params) = parameters else {
+        //                 unreachable!("must have parameters")
+        //             };
+        //             annotate_arithmetic_function(annotator, params);
+        //         }),
+        //         validation: Some(|validator, operator, parameters, annotations, index| {
+        //             validate_arithmetic_function(validator, operator, parameters, annotations, index);
+        //         }),
+        //         generic_name_resolver: no_generic_name_resolver,
+        //         code: |generator, params, _| {
+        //             generate_arithmetic_function(generator, params, Operator::Exponentiation)
+        //         }
+        //     }
+        // ),
+        // Bit-comparison functions
+        // TODO: AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
+        // (
+        //     "AND",
+        //     BuiltIn {
+        //         decl: "FUNCTION AND<T: ANY_BIT> : BOOL
         //         VAR_INPUT
         //             IN : T...;
         //         END_VAR
@@ -497,8 +476,162 @@ lazy_static! {
         //         }
         //     }
         // ),
+        // comparison functions
+        // TODO: GT, GE, EQ, LE, LT, NE ANY_ELEMENTARY
+        (
+            "GT",
+            BuiltIn {
+                decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
 
+                }
+            }
+        ),
+        (
+            "GE",
+            BuiltIn {
+                decl: "FUNCTION GE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+
+                }
+            }
+        ),
+        (
+            "EQ",
+            BuiltIn {
+                decl: "FUNCTION EQ<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+
+                }
+            }
+        ),
+        (
+            "LE",
+            BuiltIn {
+                decl: "FUNCTION LE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+
+                }
+            }
+        ),
+        (
+            "LT",
+            BuiltIn {
+                decl: "FUNCTION LT<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                }
+            }
+        ),
     ]);
+}
+
+fn annotate_comparison_function(
+    annotator: &mut TypeAnnotator,
+    operator: &AstNode,
+    parameters: &AstNode,
+    ctx: VisitorContext,
+) {
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(node), .. }) =
+        operator.get_stmt()
+    else {
+        unreachable!()
+    };
+
+    let AstStatement::Identifier(name) = node.get_stmt() else { unreachable!() };
+
+    let cmp_op = match name.as_str() {
+        "GT" => Operator::Greater,
+        "GE" => Operator::GreaterOrEqual,
+        "EQ" => Operator::Equal,
+        "LE" => Operator::LessOrEqual,
+        "LT" => Operator::Less,
+        "NE" => Operator::NotEqual,
+        _ => unreachable!(),
+    };
+
+    // create nested AstStatement::BinaryExpression for each parameter, such that
+    // GT(a, b, c) ends up as GT(a, GT(b, c))
+    let mut ctx = ctx;
+    let parameters = flatten_expression_list(parameters);
+    let mut statement = (*parameters.get(0).expect("Must exist")).clone();
+    for right in parameters.iter().map(|it| (*it).clone()).skip(1) {
+        statement =
+            AstFactory::create_binary_expression(statement.clone(), cmp_op, right, ctx.id_provider.next_id());
+    }
+    annotator.visit_statement(&ctx, &statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &statement);
+    annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), operator);
 }
 
 fn annotate_arithmetic_function(annotator: &mut TypeAnnotator, node: &AstNode) {
@@ -537,7 +670,7 @@ fn validate_arithmetic_function(
     // TODO
 }
 
-fn generate_arithmetic_function<'ink, 'b>(
+fn generate_arithmetic_instruction<'ink, 'b>(
     generator: &'b ExpressionCodeGenerator<'ink, 'b>,
     params: &[&AstNode],
     operator: Operator,
@@ -554,6 +687,45 @@ fn generate_arithmetic_function<'ink, 'b>(
         accum = generate_binary_expr(generator, &operator, accum, generator.generate_expression(param)?)
     }
     Ok(ExpressionValue::RValue(accum))
+}
+
+fn generate_compare_instruction<'ink, 'b>(
+    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
+    params: &[&AstNode],
+    operator: Operator,
+) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    let mut cmp = generator.llvm.create_const_bool(false)?;
+    let Some(data_type) = generator
+        .annotations
+        .get_type_hint(params.get(0).expect("param must exist"), generator.index)
+        .map(|hint| {
+            let dti = hint.get_type_information();
+            generator.index.get_effective_type_or_void_by_name(dti.get_name())
+        })
+    else {
+        unreachable!()
+    };
+    let generate_binary_expr = match data_type.get_type_information() {
+        typesystem::DataTypeInformation::Pointer { .. } | typesystem::DataTypeInformation::Integer { .. } => {
+            ExpressionCodeGenerator::create_llvm_int_binary_expression
+        }
+        typesystem::DataTypeInformation::Float { .. } => {
+            ExpressionCodeGenerator::create_llvm_float_binary_expression
+        }
+        // typesystem::DataTypeInformation::Enum { name, referenced_type, elements } => todo!(),
+        _ => todo!("Diagnostic: invalid type for comparison: {}", data_type.get_name()),
+    };
+    for index in 0..(params.len() - 1) {
+        let left = generator.generate_expression(params.get(index).expect("must have this parameter"))?;
+        let right =
+            generator.generate_expression(params.get(index + 1).expect("must have this parameter"))?;
+        cmp = generate_binary_expr(generator, &operator, left, right);
+        if cmp.into_int_value().is_null() {
+            break;
+        }
+    }
+
+    Ok(ExpressionValue::RValue(cmp))
 }
 
 fn annotate_variable_length_array_bound_function(

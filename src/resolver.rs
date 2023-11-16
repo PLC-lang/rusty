@@ -78,7 +78,7 @@ pub struct VisitorContext<'s> {
     /// true the visitor entered a body (so no declarations)
     in_body: bool,
 
-    id_provider: IdProvider,
+    pub id_provider: IdProvider,
 
     // what's the current strategy for resolving
     resolve_strategy: Vec<ResolvingScope>,
@@ -797,7 +797,7 @@ impl<'i> TypeAnnotator<'i> {
 
     /// updates the expected types of statements on the right side of an assignment
     /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
-    fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
+    pub fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
         //see if we need to dive into it
         match statement.get_stmt() {
             AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) }), ..) => {

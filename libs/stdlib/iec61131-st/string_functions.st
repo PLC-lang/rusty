@@ -7,9 +7,9 @@ Description: String character length
 Input:
     - IN:   A character string
 Return: String length
-******************************************************************************)
+***************************************************************************** *)
 {external}
-FUNCTION LEN <T: ANY_STRING> : DINT
+FUNCTION LEN < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -21,8 +21,8 @@ Input:
     - IN:   A character string
     - L:    The length of the substring
 Return: A substring consisting of the leftmost L characters of IN
-******************************************************************************)
-FUNCTION LEFT <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION LEFT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -32,7 +32,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION LEFT_EXT <T: ANY_STRING> : DINT
+FUNCTION LEFT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -96,8 +96,8 @@ Input:
     - IN:   A character string
     - L:    The length of the substring
 Return: A substring consisting of the rightmost L characters of IN
-******************************************************************************)
-FUNCTION RIGHT <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION RIGHT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -107,7 +107,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION RIGHT_EXT <T: ANY_STRING> : DINT
+FUNCTION RIGHT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -174,8 +174,8 @@ Input:
 Return:
     A substring that contains L characters starting
     from position P in a string.
-******************************************************************************)
-FUNCTION MID <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION MID < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -186,7 +186,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION MID_EXT <T: ANY_STRING> : DINT
+FUNCTION MID_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -257,7 +257,7 @@ Input:
 Return:
     A string combining all given input strings in the same order
     as the given string parameters.
-******************************************************************************)
+***************************************************************************** *)
 {external}
 FUNCTION CONCAT__STRING : STRING[2048]
 VAR_INPUT {ref}
@@ -272,14 +272,14 @@ VAR_INPUT {ref}
 END_VAR
 END_FUNCTION
 
-FUNCTION CONCAT <T: ANY_STRING> : T
+FUNCTION CONCAT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	args : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION CONCAT_EXT <T: ANY_STRING> : DINT
+FUNCTION CONCAT_EXT < T : ANY_STRING > : DINT
 VAR_IN_OUT
     OUT : T;
 END_VAR
@@ -296,8 +296,8 @@ Input:
     P:      The position at which to insert
 Return:
     A string consisting of IN2 inserted at position P into string IN1
-******************************************************************************)
-FUNCTION INSERT <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION INSERT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN1 : T;
     IN2 : T;
@@ -308,7 +308,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION INSERT_EXT <T: ANY_STRING> : DINT
+FUNCTION INSERT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN1 : T;
     IN2 : T;
@@ -378,8 +378,8 @@ Input:
     L:  The amount of characters to delete
     P:  The position at which to start deleting
 Return: A new string with L characters deleted from P onwards
-******************************************************************************)
-FUNCTION DELETE <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION DELETE < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -390,7 +390,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION DELETE_EXT <T: ANY_STRING> : DINT
+FUNCTION DELETE_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN : T;
 END_VAR
@@ -460,8 +460,8 @@ Input:
     L:      The amount of characters to delete
     P:      The position at which to start deleting
 Return: A new string which has L characters replaced by IN2 from position P onwards
-******************************************************************************)
-FUNCTION REPLACE <T: ANY_STRING> : T
+***************************************************************************** *)
+FUNCTION REPLACE < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN1 : T;
     IN2 : T;
@@ -473,7 +473,7 @@ END_VAR
 END_FUNCTION
 
 {external}
-FUNCTION REPLACE_EXT <T: ANY_STRING> : DINT
+FUNCTION REPLACE_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
     IN1 : T;
     IN2 : T;
@@ -548,9 +548,9 @@ Input:
     IN1:    The string in which to search in
     IN2:    The substring to search for
 Return: The character index of the first match. 0 if there are no matches.
-******************************************************************************)
+***************************************************************************** *)
 {external}
-FUNCTION FIND <T: ANY_STRING> : DINT
+FUNCTION FIND < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
 	IN1 : T;
     IN2 : T;
@@ -563,41 +563,39 @@ Input:  The strings to compare, in order. ((IN1>IN2) & (IN2>IN3) & .. & (INn-1>I
 Return:
     TRUE if codepoints are in decreasing order (alphabetical order: ZYX > YXW > XWV ..)
     FALSE otherwise
-******************************************************************************)
-{external}
-FUNCTION GT <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} T...;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION GT < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} T...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION GT__STRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
-END_VAR
-END_FUNCTION
+// FUNCTION GT__STRING : BOOL
+// VAR_INPUT
+// 	IN : {sized} STRING...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION GT__WSTRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
-END_VAR
-END_FUNCTION
+// FUNCTION GT__WSTRING : BOOL
+// VAR_INPUT
+// 	IN : {sized} WSTRING...;
+// END_VAR
+// END_FUNCTION
 
 // passing strings by ref causes an error/warning. code still compiles and works correctly
 FUNCTION STRING_GREATER : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_GREATER := GT(a, b);
+    STRING_GREATER := __GT__STRING(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_GREATER : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_GREATER := GT(a, b);
+    WSTRING_GREATER := __GT__WSTRING(a, b);
 END_FUNCTION
 
 (******************************************************************************
@@ -606,27 +604,27 @@ Input:  The strings to compare, in order. ((IN1>=IN2) & (IN2>=IN3) & .. & (INn-1
 Return:
     TRUE if codepoints are in decreasing order or are equal to adjacent codepoints (alphabetical order: ZYX >= ZYX >= YXW ..)
     FALSE otherwise
-******************************************************************************)
-{external}
-FUNCTION GE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} T...;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION GE < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} T...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION GE__STRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION GE__STRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} STRING...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION GE__WSTRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION GE__WSTRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} WSTRING...;
+// END_VAR
+// END_FUNCTION
 
 (******************************************************************************
 Description: Equality
@@ -634,40 +632,40 @@ Input: The strings to compare, in order. ((IN1=IN2) & (IN2=IN3) & .. & (INn-1=IN
 Return:
     TRUE if codepoints are equal to each other
     FALSE otherwise.
-******************************************************************************)
-{external}
-FUNCTION EQ <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} T...;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION EQ < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} T...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION EQ__STRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION EQ__STRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} STRING...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION EQ__WSTRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION EQ__WSTRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} WSTRING...;
+// END_VAR
+// END_FUNCTION
 
 FUNCTION STRING_EQUAL : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_EQUAL := EQ(a, b);
+    STRING_EQUAL := __EQ__STRING(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_EQUAL : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_EQUAL := EQ(a, b);
+    WSTRING_EQUAL := __EQ__WSTRING(a, b);
 END_FUNCTION
 
 (******************************************************************************
@@ -676,27 +674,27 @@ Input:  The strings to compare, in order. ((IN1<=IN2) & (IN2<=IN3) & .. & (INn-1
 Return:
     TRUE if codepoints are in increasing order or are equal to adjacent codepoints (alphabetical order: ABC <= ABC <= BCD ..)
     FALSE otherwise
-******************************************************************************)
-{external}
-FUNCTION LE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} T...;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION LE < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} T...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION LE__STRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION LE__STRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} STRING...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION LE__WSTRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION LE__WSTRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} WSTRING...;
+// END_VAR
+// END_FUNCTION
 
 (******************************************************************************
 Description: Increasing sequence
@@ -704,40 +702,40 @@ Input:  The strings to compare, in order. ((IN1<IN2) & (IN2<IN3) & .. & (INn-1<I
 Return:
     TRUE if codepoints are in increasing order (alphabetical order: ABC < BCD < CDE ..)
     FALSE otherwise
-******************************************************************************)
-{external}
-FUNCTION LT <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} T...;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION LT < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} T...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION LT__STRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION LT__STRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} STRING...;
+// END_VAR
+// END_FUNCTION
 
-{external}
-FUNCTION LT__WSTRING : BOOL
-VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
-END_VAR
-END_FUNCTION
+// {external}
+// FUNCTION LT__WSTRING : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : {sized} WSTRING...;
+// END_VAR
+// END_FUNCTION
 
 FUNCTION STRING_LESS : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_LESS := LT(a, b);
+    STRING_LESS := __LT__STRING(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_LESS : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_LESS := LT(a, b);
+    WSTRING_LESS := __LT__WSTRING(a, b);
 END_FUNCTION
 
 (******************************************************************************
@@ -746,11 +744,11 @@ Input: The strings to compare. (IN1<>IN2)
 Return:
     TRUE if strings do not match
     FALSE otherwise
-******************************************************************************)
-{external}
-FUNCTION NE <T: ANY_STRING> : BOOL
-VAR_INPUT {ref}
-	IN1 : T;
-    IN2 : T;
-END_VAR
-END_FUNCTION
+***************************************************************************** *)
+// {external}
+// FUNCTION NE < T : ANY_STRING > : BOOL
+// VAR_INPUT {ref}
+// 	IN1 : T;
+//     IN2 : T;
+// END_VAR
+// END_FUNCTION

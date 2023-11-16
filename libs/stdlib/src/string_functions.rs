@@ -760,7 +760,7 @@ where
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn GT__STRING(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C" fn __GT__STRING(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -772,7 +772,7 @@ pub unsafe extern "C" fn GT__STRING(argc: i32, argv: *const *const u8) -> bool {
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn GT__WSTRING(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C" fn __GT__WSTRING(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -784,7 +784,7 @@ pub unsafe extern "C" fn GT__WSTRING(argc: i32, argv: *const *const u16) -> bool
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn GE__STRING(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C" fn __GE__STRING(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_ge)
 }
 
@@ -796,7 +796,7 @@ pub unsafe extern "C" fn GE__STRING(argc: i32, argv: *const *const u8) -> bool {
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn GE__WSTRING(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C" fn __GE__WSTRING(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_ge)
 }
 
@@ -808,7 +808,7 @@ pub unsafe extern "C" fn GE__WSTRING(argc: i32, argv: *const *const u16) -> bool
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn EQ__STRING(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C" fn __EQ__STRING(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -820,7 +820,7 @@ pub unsafe extern "C" fn EQ__STRING(argc: i32, argv: *const *const u8) -> bool {
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn EQ__WSTRING(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C" fn __EQ__WSTRING(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -832,7 +832,7 @@ pub unsafe extern "C" fn EQ__WSTRING(argc: i32, argv: *const *const u16) -> bool
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LE__STRING(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C" fn __LE__STRING(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_le)
 }
 
@@ -844,7 +844,7 @@ pub unsafe extern "C" fn LE__STRING(argc: i32, argv: *const *const u8) -> bool {
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LE__WSTRING(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C" fn __LE__WSTRING(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_le)
 }
 
@@ -856,7 +856,7 @@ pub unsafe extern "C" fn LE__WSTRING(argc: i32, argv: *const *const u16) -> bool
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LT__STRING(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C" fn __LT__STRING(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
@@ -868,7 +868,7 @@ pub unsafe extern "C" fn LT__STRING(argc: i32, argv: *const *const u8) -> bool {
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LT__WSTRING(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C" fn __LT__WSTRING(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
@@ -880,7 +880,7 @@ pub unsafe extern "C" fn LT__WSTRING(argc: i32, argv: *const *const u16) -> bool
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn NE__STRING(string1: *const u8, string2: *const u8) -> bool {
+pub unsafe extern "C" fn __NE__STRING(string1: *const u8, string2: *const u8) -> bool {
     ptr_to_slice(string1).cmp(ptr_to_slice(string2)).is_ne()
 }
 
@@ -892,7 +892,7 @@ pub unsafe extern "C" fn NE__STRING(string1: *const u8, string2: *const u8) -> b
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn NE__WSTRING(string1: *const u16, string2: *const u16) -> bool {
+pub unsafe extern "C" fn __NE__WSTRING(string1: *const u16, string2: *const u16) -> bool {
     ptr_to_slice(string1).cmp(ptr_to_slice(string2)).is_ne()
 }
 
@@ -1329,49 +1329,49 @@ mod test {
     fn test_greater_than_string_is_false_for_equal_strings() {
         let argv = ["hællø wørlÞ\0".as_ptr(), "hællø wørlÞ\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(!GT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__GT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_greater_than_string_is_true_for_decreasing_sequence() {
         let argv = ["zyxZabcdefghijklmn\0".as_ptr(), "zyxA\0".as_ptr(), "zyx\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(GT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__GT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_greater_than_string_is_false_for_increasing_sequence() {
         let argv = ["abc\0".as_ptr(), "bce\0".as_ptr(), "xyz\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(!GT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__GT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_greater_than_string_works_correctly_for_two_params() {
         let argv = ["zyxAabcdefghijklmn\0".as_ptr(), "zyxZ".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(!GT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__GT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_greater_or_equal_string() {
         let argv = ["xyz\0".as_ptr(), "bcefghijkl\0".as_ptr(), "abc\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(GE__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__GE__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_greater_or_equal_string_is_true_for_equal_strings() {
         let argv = ["hællø wørlÞ\0".as_ptr(), "hællø wørlÞ\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(GE__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__GE__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_equal_string() {
         let argv = ["hællø wørlÞ\0".as_ptr(), "hællø wørlÞ\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(EQ__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__EQ__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1383,21 +1383,21 @@ mod test {
             "hællø wørlÞZZc\0".as_ptr(),
         ];
         let argc = argv.len() as i32;
-        unsafe { assert!(!EQ__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__EQ__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_lesser_than_string() {
         let argv = ["hællø wørlÞabc\0".as_ptr(), "hællø wørlÞz\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(LT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__LT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_lesser_than_string_is_false() {
         let argv = ["z\0".as_ptr(), "hællø wørlÞzbc\0".as_ptr()];
         let argc = argv.len() as i32;
-        unsafe { assert!(!LT__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__LT__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1414,7 +1414,7 @@ mod test {
             "q".as_ptr(),
         ];
         let argc = argv.len() as i32;
-        unsafe { assert!(LE__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__LE__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1431,21 +1431,21 @@ mod test {
             "a".as_ptr(),
         ];
         let argc = argv.len() as i32;
-        unsafe { assert!(!LE__STRING(argc, argv.as_ptr())) }
+        unsafe { assert!(!__LE__STRING(argc, argv.as_ptr())) }
     }
 
     #[test]
     fn test_not_equal_string_is_true_for_unequal_strings() {
         let string1 = "these strings".as_ptr();
         let string2 = "are not equal".as_ptr();
-        unsafe { assert!(NE__STRING(string1, string2)) }
+        unsafe { assert!(__NE__STRING(string1, string2)) }
     }
 
     #[test]
     fn test_not_equal_string_is_false_for_equal_strings() {
         let string1 = "these strings are  equal".as_ptr();
         let string2 = "these strings are  equal".as_ptr();
-        unsafe { assert!(!NE__STRING(string1, string2)) }
+        unsafe { assert!(!__NE__STRING(string1, string2)) }
     }
 
     // -----------------------------------UTF16
@@ -1855,7 +1855,7 @@ mod test {
             argv[i] = arg.as_ptr();
         }
         let argc = argv.len() as i32;
-        unsafe { assert!(GT__WSTRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__GT__WSTRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1870,7 +1870,7 @@ mod test {
             argv[i] = arg.as_ptr();
         }
         let argc = argv.len() as i32;
-        unsafe { assert!(GE__WSTRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__GE__WSTRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1885,7 +1885,7 @@ mod test {
             argv[i] = arg.as_ptr();
         }
         let argc = argv.len() as i32;
-        unsafe { assert!(EQ__WSTRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__EQ__WSTRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1900,7 +1900,7 @@ mod test {
             argv[i] = arg.as_ptr();
         }
         let argc = argv.len() as i32;
-        unsafe { assert!(LT__WSTRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__LT__WSTRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1918,7 +1918,7 @@ mod test {
             argv[i] = arg.as_ptr();
         }
         let argc = argv.len() as i32;
-        unsafe { assert!(LE__WSTRING(argc, argv.as_ptr())) }
+        unsafe { assert!(__LE__WSTRING(argc, argv.as_ptr())) }
     }
 
     #[test]
@@ -1929,6 +1929,6 @@ mod test {
         for (i, arg) in argvec.iter().enumerate() {
             argv[i] = arg.as_ptr();
         }
-        unsafe { assert!(NE__WSTRING(argv[0], argv[1])) }
+        unsafe { assert!(__NE__WSTRING(argv[0], argv[1])) }
     }
 }

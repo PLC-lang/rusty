@@ -319,3 +319,42 @@ fn compare_instructions_with_different_types() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn builtin_gt_with_ints_descending() {
+    let src: &str = r#"
+        FUNCTION main : DINT
+        VAR
+            i1, i2, i3 : DINT;
+        END_VAR
+            i1 := 3;
+            i2 := 2;
+            i3 := 1;
+            GT(i1, i2, i3);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_gt_with_ints() {
+    let src = r#"
+    FUNCTION main : BOOL
+    VAR
+        i1, i2: DINT;
+        i3 : LINT;
+    END_VAR
+        i1 := 3;
+        i2 := 2; // not greater than i3, should return false
+        i3 := 3; 
+        main := GT(i1, i2, i3);
+    END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    insta::assert_snapshot!(res);
+}
