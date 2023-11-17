@@ -564,67 +564,20 @@ Return:
     TRUE if codepoints are in decreasing order (alphabetical order: ZYX > YXW > XWV ..)
     FALSE otherwise
 ***************************************************************************** *)
-// {external}
-// FUNCTION GT < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} T...;
-// END_VAR
-// END_FUNCTION
-
-// FUNCTION GT__STRING : BOOL
-// VAR_INPUT
-// 	IN : {sized} STRING...;
-// END_VAR
-// END_FUNCTION
-
-// FUNCTION GT__WSTRING : BOOL
-// VAR_INPUT
-// 	IN : {sized} WSTRING...;
-// END_VAR
-// END_FUNCTION
-
 // passing strings by ref causes an error/warning. code still compiles and works correctly
 FUNCTION STRING_GREATER : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_GREATER := __GT__STRING(a, b);
+    STRING_GREATER := __STRING_GREATER(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_GREATER : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_GREATER := __GT__WSTRING(a, b);
+    WSTRING_GREATER := __WSTRING_GREATER(a, b);
 END_FUNCTION
-
-(******************************************************************************
-Description: Monotonic sequence
-Input:  The strings to compare, in order. ((IN1>=IN2) & (IN2>=IN3) & .. & (INn-1>=INn))
-Return:
-    TRUE if codepoints are in decreasing order or are equal to adjacent codepoints (alphabetical order: ZYX >= ZYX >= YXW ..)
-    FALSE otherwise
-***************************************************************************** *)
-// {external}
-// FUNCTION GE < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} T...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION GE__STRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} STRING...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION GE__WSTRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} WSTRING...;
-// END_VAR
-// END_FUNCTION
 
 (******************************************************************************
 Description: Equality
@@ -633,68 +586,19 @@ Return:
     TRUE if codepoints are equal to each other
     FALSE otherwise.
 ***************************************************************************** *)
-// {external}
-// FUNCTION EQ < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} T...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION EQ__STRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} STRING...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION EQ__WSTRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} WSTRING...;
-// END_VAR
-// END_FUNCTION
-
 FUNCTION STRING_EQUAL : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_EQUAL := __EQ__STRING(a, b);
+    STRING_EQUAL := __STRING_EQUAL(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_EQUAL : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_EQUAL := __EQ__WSTRING(a, b);
+    WSTRING_EQUAL := __WSTRING_EQUAL(a, b);
 END_FUNCTION
-
-(******************************************************************************
-Description: Monotonic sequence
-Input:  The strings to compare, in order. ((IN1<=IN2) & (IN2<=IN3) & .. & (INn-1<=INn))
-Return:
-    TRUE if codepoints are in increasing order or are equal to adjacent codepoints (alphabetical order: ABC <= ABC <= BCD ..)
-    FALSE otherwise
-***************************************************************************** *)
-// {external}
-// FUNCTION LE < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} T...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION LE__STRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} STRING...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION LE__WSTRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} WSTRING...;
-// END_VAR
-// END_FUNCTION
 
 (******************************************************************************
 Description: Increasing sequence
@@ -703,52 +607,59 @@ Return:
     TRUE if codepoints are in increasing order (alphabetical order: ABC < BCD < CDE ..)
     FALSE otherwise
 ***************************************************************************** *)
-// {external}
-// FUNCTION LT < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} T...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION LT__STRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} STRING...;
-// END_VAR
-// END_FUNCTION
-
-// {external}
-// FUNCTION LT__WSTRING : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : {sized} WSTRING...;
-// END_VAR
-// END_FUNCTION
-
 FUNCTION STRING_LESS : BOOL
 VAR_INPUT
     a, b : STRING;
 END_VAR
-    STRING_LESS := __LT__STRING(a, b);
+    STRING_LESS := __STRING_LESS(a, b);
 END_FUNCTION
 
 FUNCTION WSTRING_LESS : BOOL
 VAR_INPUT
     a, b : WSTRING;
 END_VAR
-    WSTRING_LESS := __LT__WSTRING(a, b);
+    WSTRING_LESS := __WSTRING_LESS(a, b);
 END_FUNCTION
 
-(******************************************************************************
-Description: Inequality
-Input: The strings to compare. (IN1<>IN2)
-Return:
-    TRUE if strings do not match
-    FALSE otherwise
-***************************************************************************** *)
-// {external}
-// FUNCTION NE < T : ANY_STRING > : BOOL
-// VAR_INPUT {ref}
-// 	IN1 : T;
-//     IN2 : T;
-// END_VAR
-// END_FUNCTION
+// internal functions
+{external}
+FUNCTION __STRING_GREATER : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION __STRING_EQUAL : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION __STRING_LESS : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION __WSTRING_GREATER : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION __WSTRING_EQUAL : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION __WSTRING_LESS : BOOL
+VAR_INPUT {ref}
+    IN : {sized} STRING...;
+END_VAR
+END_FUNCTION

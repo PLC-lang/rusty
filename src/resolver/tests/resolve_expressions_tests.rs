@@ -5329,6 +5329,8 @@ fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
         END_VAR
             a > b AND b > c AND c > d;
             GT(a, b, c, d);
+            a <= b AND b <= c AND c <= d;
+            LE(a, b, c, d);
         END_FUNCTION
     ",
         id_provider.clone(),
@@ -5336,10 +5338,26 @@ fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
 
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
+    // check if a > b AND b > c AND c < d produces the same AST to GT(a, b, c, d)
     let stmt = &unit.implementations[0].statements[0];
     let AstNode { stmt: expected, .. } = stmt;
 
     let stmt = &unit.implementations[0].statements[1];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        unreachable!()
+    };
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(operator) else {
+        unreachable!()
+    };
+    let AstNode { stmt: actual, .. } = statement;
+
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", actual));
+
+    // check if a <= b AND b <= c AND c <= d produces the same AST to LE(a, b, c, d)
+    let stmt = &unit.implementations[0].statements[2];
+    let AstNode { stmt: expected, .. } = stmt;
+
+    let stmt = &unit.implementations[0].statements[3];
     let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
         unreachable!()
     };
