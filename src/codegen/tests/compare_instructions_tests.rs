@@ -321,40 +321,62 @@ fn compare_instructions_with_different_types() {
 }
 
 #[test]
-fn builtin_gt_with_ints_descending() {
-    let src: &str = r#"
-        FUNCTION main : DINT
-        VAR
-            i1, i2, i3 : DINT;
-        END_VAR
-            i1 := 3;
-            i2 := 2;
-            i3 := 1;
-            GT(i1, i2, i3);
+fn compare_instruction_functions_with_different_types() {
+    let result = codegen(
+        "
+        TYPE MySubRangeInt: INT(0..500); END_TYPE
+        TYPE MyDint: DINT; END_TYPE
+
+        FUNCTION foo : REAL
         END_FUNCTION
-    "#;
 
-    let res = codegen(src);
+        PROGRAM main
+        VAR
+            ptr_float : REF_TO REAL;
 
-    insta::assert_snapshot!(res);
-}
+            a : MySubRangeInt;
+            b : MyDint;
 
-#[test]
-fn builtin_gt_with_ints() {
-    let src = r#"
-    FUNCTION main : BOOL
-    VAR
-        i1, i2: DINT;
-        i3 : LINT;
-    END_VAR
-        i1 := 3;
-        i2 := 2; // not greater than i3, should return false
-        i3 := 3; 
-        main := GT(i1, i2, i3);
-    END_FUNCTION
-    "#;
+            var_real : REAL;
+            var_lreal : LREAL;
+            
+            var_sint : SINT;
+            var_int  : INT;
+            var_dint : DINT;
+            var_lint : LINT;
+            
+            var_usint : USINT;
+            var_uint  : UINT;
+            var_udint : UDINT;
+            var_ulint : ULINT;
+        END_VAR
+            ptr_float := &(var_real);
 
-    let res = codegen(src);
+            EQ(var_sint, var_dint)
+            GT(var_int, 30);
+            GT(10.5, var_lreal);
 
-    insta::assert_snapshot!(res);
+            NE(var_usint, var_udint);
+            LE(var_uint, UDINT#40);
+            GE(UDINT#10, var_ulint);
+
+            EQ(var_sint, var_usint);
+            LE(var_uint, var_lint);
+            GE(var_dint, var_ulint);
+
+            LT(var_lint, a);
+            GT(a, var_sint);
+            LT(b, var_lint);
+            NE(SINT#5, b);
+
+            LE(ptr_float, var_usint);
+            EQ(a, ptr_float);
+
+            NE(foo(), 40.5);
+            LE(var_udint, foo());
+            EQ(foo(), var_lint);
+        END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(result);
 }

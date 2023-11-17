@@ -37,7 +37,6 @@ mod correctness {
         mod addition;
         mod division;
         mod multiplication;
-        // mod mixed;
         mod substraction;
     }
     mod vla;

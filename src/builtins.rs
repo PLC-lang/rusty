@@ -496,7 +496,7 @@ lazy_static! {
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, _| {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
 
                 }
             }
@@ -519,7 +519,7 @@ lazy_static! {
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, _| {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
 
                 }
             }
@@ -542,7 +542,7 @@ lazy_static! {
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, _| {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
 
                 }
             }
@@ -565,7 +565,7 @@ lazy_static! {
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, _| {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
 
                 }
             }
@@ -588,7 +588,29 @@ lazy_static! {
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, _| {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                }
+            }
+        ),
+        (
+            "NE",
+            BuiltIn {
+                decl: "FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        unreachable!("must have parameters")
+                    };
+                    annotate_comparison_function(annotator, operator, params, ctx);
+                }),
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, _| {
+                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
                 }
             }
         ),
@@ -620,14 +642,30 @@ fn annotate_comparison_function(
     };
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
-    // GT(a, b, c) ends up as GT(a, GT(b, c))
+    // GT(a, b, c, d) ends up as ((a > b) > c) > d
     let mut ctx = ctx;
     let parameters = flatten_expression_list(parameters);
-    let mut statement = (*parameters.get(0).expect("Must exist")).clone();
-    for right in parameters.iter().map(|it| (*it).clone()).skip(1) {
-        statement =
-            AstFactory::create_binary_expression(statement.clone(), cmp_op, right, ctx.id_provider.next_id());
-    }
+    let comparisons = parameters
+        .windows(2)
+        .map(|window| {
+            AstFactory::create_binary_expression(
+                window[0].clone(),
+                cmp_op,
+                window[1].clone(),
+                ctx.id_provider.next_id(),
+            )
+        })
+        .collect::<Vec<_>>();
+    let mut statement = comparisons.get(0).expect("Must exist").to_owned();
+    comparisons.iter().skip(1).for_each(|right| {
+        statement = AstFactory::create_binary_expression(
+            statement.clone(),
+            Operator::And,
+            right.clone(),
+            ctx.id_provider.next_id(),
+        )
+    });
+
     annotator.visit_statement(&ctx, &statement);
     annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &statement);
     annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
@@ -687,45 +725,6 @@ fn generate_arithmetic_instruction<'ink, 'b>(
         accum = generate_binary_expr(generator, &operator, accum, generator.generate_expression(param)?)
     }
     Ok(ExpressionValue::RValue(accum))
-}
-
-fn generate_compare_instruction<'ink, 'b>(
-    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-    params: &[&AstNode],
-    operator: Operator,
-) -> Result<ExpressionValue<'ink>, Diagnostic> {
-    let mut cmp = generator.llvm.create_const_bool(false)?;
-    let Some(data_type) = generator
-        .annotations
-        .get_type_hint(params.get(0).expect("param must exist"), generator.index)
-        .map(|hint| {
-            let dti = hint.get_type_information();
-            generator.index.get_effective_type_or_void_by_name(dti.get_name())
-        })
-    else {
-        unreachable!()
-    };
-    let generate_binary_expr = match data_type.get_type_information() {
-        typesystem::DataTypeInformation::Pointer { .. } | typesystem::DataTypeInformation::Integer { .. } => {
-            ExpressionCodeGenerator::create_llvm_int_binary_expression
-        }
-        typesystem::DataTypeInformation::Float { .. } => {
-            ExpressionCodeGenerator::create_llvm_float_binary_expression
-        }
-        // typesystem::DataTypeInformation::Enum { name, referenced_type, elements } => todo!(),
-        _ => todo!("Diagnostic: invalid type for comparison: {}", data_type.get_name()),
-    };
-    for index in 0..(params.len() - 1) {
-        let left = generator.generate_expression(params.get(index).expect("must have this parameter"))?;
-        let right =
-            generator.generate_expression(params.get(index + 1).expect("must have this parameter"))?;
-        cmp = generate_binary_expr(generator, &operator, left, right);
-        if cmp.into_int_value().is_null() {
-            break;
-        }
-    }
-
-    Ok(ExpressionValue::RValue(cmp))
 }
 
 fn annotate_variable_length_array_bound_function(

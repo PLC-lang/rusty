@@ -5316,20 +5316,88 @@ fn annotate_method_in_super() {
 
 // these test checks if builtin calls to GT, LT, GE, LE, EQ, NE are annotated correctly
 #[test]
-fn builtin_gt_replacement_ast() {
+fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-        FUNCTION main : DINT
+        FUNCTION foo: DINT
         VAR
-            a : DINT;
-            b : INT;
-            c : LINT;
-            d : LWORD;
+            a: DINT;
+            b: DINT;
+            c: REAL;
+            d: DATE;
         END_VAR
+            a > b AND b > c AND c > d;
             GT(a, b, c, d);
         END_FUNCTION
-        ",
+    ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode { stmt: expected, .. } = stmt;
+
+    let stmt = &unit.implementations[0].statements[1];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        unreachable!()
+    };
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(operator) else {
+        unreachable!()
+    };
+    let AstNode { stmt: actual, .. } = statement;
+
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", actual))
+}
+
+#[test]
+fn builtin_gt_replacement_ast() {
+    generate_comparison_test("GT")
+}
+#[test]
+fn builtin_ge_replacement_ast() {
+    generate_comparison_test("GE");
+}
+
+#[test]
+fn builtin_eq_replacement_ast() {
+    generate_comparison_test("EQ");
+}
+
+#[test]
+fn builtin_lt_replacement_ast() {
+    generate_comparison_test("LT");
+}
+
+#[test]
+fn builtin_le_replacement_ast() {
+    generate_comparison_test("LE");
+}
+
+#[test]
+fn builtin_ne_replacement_ast() {
+    generate_comparison_test("NE");
+}
+
+// Helper function to generate the comparison test
+fn generate_comparison_test(operator: &str) {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        format!(
+            "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LINT;
+                d : LWORD;
+            END_VAR
+                {}(a, b, c, d);
+            END_FUNCTION
+            ",
+            operator
+        ),
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);

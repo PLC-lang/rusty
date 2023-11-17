@@ -79,3 +79,24 @@ fn builtin_gt_with_floats() {
     let res: bool = compile_and_run(prog.to_string(), &mut main);
     assert_eq!(res, false);
 }
+
+#[test]
+fn builtin_gt_with_mixed_ints_and_floats() {
+    let prog = r#"
+    FUNCTION main : BOOL
+    VAR
+        i1 : DINT;
+        r1, r2 : REAL;
+    END_VAR
+        i1 := 5;
+        r1 := 4.5;
+        r2 := 3.2;
+        main := GT(i1, r1, r2);
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType::default();
+
+    let res: bool = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, true);
+}
