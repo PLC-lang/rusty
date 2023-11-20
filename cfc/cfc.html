@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Validation - RuSTy User Documentation</title>
+        <title>CFC - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html" class="active"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="../cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="../cfc/cfc.html" class="active"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,41 +144,21 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="validation"><a class="header" href="#validation">Validation</a></h1>
-<p>The validation module implements the semantic validation step of the compiler.
-The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
-<p>The validation rules are implemented in dedicated validator-structs:</p>
-<div class="table-wrapper"><table><thead><tr><th>Validator</th><th>Responsibilities</th></tr></thead><tbody>
-<tr><td>global_validator</td><td>Semantic rules on the level of declarations as a whole (e.g. name-conflicts)</td></tr>
-<tr><td>pou_validator</td><td>Semantic rules on the level of programs, function- and function-blocks.</td></tr>
-<tr><td>recursive_validator</td><td>Semantic rules on the level of recursion (e.g. struct referencing itself)</td></tr>
-<tr><td>stmt_validator</td><td>Semantic rules on the level of statements (e.g. invalid type-casts).</td></tr>
-<tr><td>variable_validator</td><td>Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.).</td></tr>
-</tbody></table>
-</div>
-<h2 id="diagnostics"><a class="header" href="#diagnostics">Diagnostics</a></h2>
-<p>Problems (semantic or syntactic) are represented as <em>Diagnostics</em> <sup class="footnote-reference"><a href="#1">1</a></sup>.
-Diagnostics carry information on the exact location inside the source-string (start- &amp; end-offset), a custom message and a unique error-number to identify the problem.</p>
-<p>There are 3 types of <em>Diagnostics</em>:</p>
-<div class="table-wrapper"><table><thead><tr><th>Diagnostic</th><th>Description</th></tr></thead><tbody>
-<tr><td>SyntaxError</td><td>A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar.</td></tr>
-<tr><td>GeneralError</td><td>General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.).</td></tr>
-<tr><td>Improvement</td><td>Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>).</td></tr>
-</tbody></table>
-</div>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
-<p>:(i): The diagnostics are subject to change since they don't elegantly represent the different types of problems (e.g. semantic problems).</p>
-</div>
+                        <h1 id="cfc-continous-function-chart"><a class="header" href="#cfc-continous-function-chart">CFC (Continous Function Chart)</a></h1>
+<p>RuSTy is compatible with CFC, as per the FBD part detailed in the <a href="https://www.plcopen.org/system/files/downloads/tc6_xml_v201_technical_doc.pdf">IEC61131-3 XML-exchange format</a>. 
+The CFC implementation borrows extensively from the <a href="../arch/architecture.html">ST compiler-pipeline</a>, with the exception that the lexical analysis and parsing phases are replaced by a model-to-model conversion process. 
+This involves converting the XML into a structured model, which is then converted into ST AST statements. </p>
+<p>The next chapter will walk you through the CFC implementation, giving you a better understanding of underlying <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml">code</a>. </p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../arch/linker.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../arch/codegen.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../arch/codegen.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../cfc/m2m.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -188,11 +168,11 @@ Diagnostics carry information on the exact location inside the source-string (st
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../arch/linker.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../arch/codegen.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../arch/codegen.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../cfc/m2m.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

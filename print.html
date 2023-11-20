@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -269,7 +269,7 @@ the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 <blockquote>
 <p>The RuSTy compiler binary is called <code>plc</code></p>
 </blockquote>
-<p><code>plc</code> offers a comprehensive help via the -h (--help) option.
+<p><code>plc</code> offers a comprehensive help via the <code>-h</code> (<code>--help</code>) option.
 <code>plc</code> takes one output-format parameter and any number of input-files.
 The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
 <p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
@@ -279,12 +279,13 @@ In the case that no output format switch has been specified, the compiler will s
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
 <p>A minimal invocation looks like this:
-<code>plc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
+<code>plc input.st</code> this will take in the file <code>input.st</code> and compile it into a static object that will be written to a file named <code>input.o</code>.</p>
 <p>More examples:</p>
 <ul>
 <li><code>plc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
-<li><code>plc --ir src/*.st</code> will compile all st files in the src-folder.</li>
-<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
+<li><code>plc --ir file1.cfc file2.st</code> will compile file1.cfc and file2.st.</li>
+<li><code>plc --ir src/*.st</code> will compile all ST files in the src-folder.</li>
+<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all ST-files in the current folder and its subfolders recursively.</li>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
@@ -293,7 +294,7 @@ This example is available under <code>examples/hello_world.st</code> in the main
 <ul>
 <li><code>main</code> is our entry point to the program.</li>
 <li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument.</li>
-<li>On windows, replace this with --linker=clang as cc is usually not available.</li>
+<li>On Windows and MacOS, replace this with <code>--linker=clang</code> as cc is usually not available.</li>
 </ul>
 <pre><code class="language-iecst">{external} 
 FUNCTION puts : DINT
@@ -1112,9 +1113,10 @@ END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="overview-3"><a class="header" href="#overview-3">Overview</a></h2>
-<p>RuSTy is a Compiler for Structured Text.
-It utilizes the llvm compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> Frontend that translates Structured Text into llvm's language independent intermediate representation (IR).
-The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
+<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC (&quot;FBD&quot;) are supported.
+It utilizes the LLVM compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
+<a href="arch/../cfc/cfc.html">CFC</a> uses a M2M-transformation and reuses most of the ST frontend for compilation.
+The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
 <pre><code class="language-ignore">    ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
     │                  │    │               │    │                │
     │      RuSTy       │    │  LLVM Common  │    │  LLVM Backend  │
@@ -1126,9 +1128,10 @@ The Further optimization and native code generation is performed by the existing
 <p>So RuSTy consists of the frontend part of the llvm compiler-infrastructure.
 This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
 <h2 id="rusty-frontend-architecture"><a class="header" href="#rusty-frontend-architecture">Rusty Frontend Architecture</a></h2>
-<p>Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
+<p>Ultimately the goal of a compiler frontend is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
 RuSTy treats this task as a compilation step of its own.
 While a fully fledged compiler generates machine code as a last step, RuSTy generates LLVM IR assembly code.</p>
+<h2 id="structured-text"><a class="header" href="#structured-text">Structured Text</a></h2>
 <pre><code class="language-ignore">      ┌────────┐                                                          ┌────────┐
       │ Source │                                                          │  LLVM  │
       │        │                                                          │   IR   │
@@ -1143,6 +1146,22 @@ While a fully fledged compiler generates machine code as a last step, RuSTy gene
     │            │   │            │   │            │   │            │   │            │
     │            │   │            │   │            │   │            │   │            │
     └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
+</code></pre>
+<h2 id="cfcfbd"><a class="header" href="#cfcfbd">CFC/FBD</a></h2>
+<pre><code class="language-ignore">         ┌────────┐                                                            ┌────────┐
+         │ Source │                                                            │  LLVM  │
+         │        │                                                            │   IR   │
+         │ Files  │                                                            │        │
+         └───┬────┘                                                            └────────┘
+             │                                                                      ▲
+             ▼                                                                      │
+    ┌────────────────┐    ┌────────────┐   ┌────────────┐   ┌────────────┐   ┌──────┴─────┐
+    │                │    │            │   │            │   │            │   │            │
+    │ Model-to-Model │    │            │   │            │   │            │   │            │
+    │ Transformation ├───►│   Indexer  ├──►│   Linker   ├──►│ Validation ├──►│   Codegen  │
+    │                │    │            │   │            │   │            │   │            │
+    │                │    │            │   │            │   │            │   │            │
+    └────────────────┘    └────────────┘   └────────────┘   └────────────┘   └────────────┘
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="parser"><a class="header" href="#parser">Parser</a></h1>
 <p>The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code.
@@ -1885,6 +1904,124 @@ END_VAR
 <p>Strings can be represented in two different encodings: <em>UTF-8 (STRING)</em> or <em>UTF-16 (WSTRING)</em>.</p>
 <pre><code class="language-llvm">@str = global [21 x i8] zeroinitializer
 @wstr = global [21 x i16] zeroinitializer
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cfc-continous-function-chart"><a class="header" href="#cfc-continous-function-chart">CFC (Continous Function Chart)</a></h1>
+<p>RuSTy is compatible with CFC, as per the FBD part detailed in the <a href="https://www.plcopen.org/system/files/downloads/tc6_xml_v201_technical_doc.pdf">IEC61131-3 XML-exchange format</a>. 
+The CFC implementation borrows extensively from the <a href="cfc/../arch/architecture.html">ST compiler-pipeline</a>, with the exception that the lexical analysis and parsing phases are replaced by a model-to-model conversion process. 
+This involves converting the XML into a structured model, which is then converted into ST AST statements. </p>
+<p>The next chapter will walk you through the CFC implementation, giving you a better understanding of underlying <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml">code</a>. </p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="model-to-model-conversion"><a class="header" href="#model-to-model-conversion">Model-to-Model Conversion</a></h1>
+<p>As previously mentioned, the lexical and parsing phases are replaced by a model-to-model conversion process which consists of two steps:</p>
+<ol>
+<li>Transform the input file (XML) into a data-model</li>
+<li>Transform the data-model into an AST</li>
+</ol>
+<h2 id="xml-to-data-model"><a class="header" href="#xml-to-data-model">XML to Data-Model</a></h2>
+<p>Consider the heavily minified CFC file <a href="cfc/m2m.html#myprogramcfc"><code>MyProgram.cfc</code></a>, which translates to the CFC chart below.</p>
+<pre><code class="language-ignore">                   x                      MyAdd
+            ┌─────────────┐        ┌─────────────────┐
+            │             │        │    exec_id:0    │
+            │             ├───────►│ a               │                 z
+            │ local_id: 0 │        │ ref_local_id: 0 │          ┌──────────────┐
+            └─────────────┘        │                 │          │  exec_id: 1  │
+                   y               │                 ├─────────►│              │
+            ┌─────────────┐        │                 │          │ref_local_id:2│
+            │             │        │                 │          └──────────────┘
+            │             ├───────►│ b               │             local_id: 3
+            │ local_id:1  │        │ ref_local_id: 1 │
+            └─────────────┘        └─────────────────┘
+                                       local_id: 2
+</code></pre>
+<p>The initial phase of the transformation process involves streaming the entire input file.
+During the streaming process, whenever important keywords such as <code>block</code> are encountered, they are directly mapped into a corresponding model structure. 
+For example, when reaching the line <code>&lt;block localId=&quot;3&quot; ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
+<pre><code class="language-rust ignore">struct Block {
+    localId: 2,
+    type_name: &quot;MyAdd&quot;,
+    instance_name: None,
+    execution_order_id: 0,
+    variables: [
+        InputVariable  { ... }, // x, with localId = 0
+        InputVariable  { ... }, // y, with localId = 1
+        OutputVariable { ... }, // MyAdd eventually becoming `z := MyAdd`, with z having a localId = 2
+    ]
+}</code></pre>
+<p>This process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model">model</a> folder.</p>
+<p>Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
+with the sequencing of block execution and inter-block links represented through corresponding <code>localId</code>, <code>refLocalId</code> and <code>excutionOrderId</code>,
+we have to order each element by their execution ID before proceeding to the next phase. 
+Otherwise the generated AST statements would be out of order and hence semantically incorrect.</p>
+<h2 id="data-model-to-ast"><a class="header" href="#data-model-to-ast">Data-Model to AST</a></h2>
+<p>The final part of the model-to-model transformation takes the input from the previous step and transforms it into an AST which the compiler pipeline understands and can generate code from.
+Consider the previous <code>block</code> example - the transformer first encounters the element with the <code>executionOrderId</code> of 0, which is a call to <code>myAdd</code>.
+We then check and transform each parameter, input <code>a</code> and <code>b</code> corresponding to the variables <code>x</code> and <code>y</code> respectively. The result of this transformation looks as follows:</p>
+<pre><code class="language-rust ignore">CallStatement { 
+    operator: myAdd, 
+    parameters: [x, y] 
+}</code></pre>
+<p>Next, we process the element with an <code>executionOrderId</code> of 1, which corresponds to an assignment of the previous call's result to z. This update modifies the generated AST as follows:</p>
+<pre><code class="language-rust ignore">AssignmentStatement {
+    left: z, 
+    right: CallStatement {
+        operator: myAdd,
+        parameters: [x, y]
+    }
+}</code></pre>
+<p>While this explanation covers the handling of blocks and variables, there are other elements (e.g. control-flow), that are not discussed here. For more information on implementation details, see <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/xml_parser"><code>plc_xml/src/xml_parser</code></a>.</p>
+<p>Finally, after transforming all elements into their respective AST statements, the result is passed to the indexer and subsequently enters the next stages of the compiler pipeline, as described in the <a href="cfc/../arch/architecture.html#rusty-frontend-architecture">architecture documentation</a>).</p>
+<h2 id="appendix"><a class="header" href="#appendix">Appendix</a></h2>
+<h3 id="myaddst"><a class="header" href="#myaddst">MyAdd.st</a></h3>
+<pre><code class="language-st ignore">FUNCTION MyAdd : DINT
+    VAR_INPUT
+        x, y : DINT;
+    END_VAR
+
+    MyAdd := x + y;
+END_FUNCTION
+</code></pre>
+<h3 id="myprogramcfc"><a class="header" href="#myprogramcfc">MyProgram.cfc</a></h3>
+<pre><code class="language-xml ignore">&lt;pou xmlns=&quot;http://www.plcopen.org/xml/tc6_0201&quot; name=&quot;myProgram&quot; pouType=&quot;program&quot;&gt;
+    &lt;content&gt;
+        PROGRAM myProgram
+            VAR
+                x, y, z : DINT;
+            END_VAR
+    &lt;/content&gt;
+    &lt;body&gt;
+        &lt;FBD&gt;
+            &lt;inVariable localId=&quot;1&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+                &lt;expression&gt;x&lt;/expression&gt;
+            &lt;/inVariable&gt;
+            &lt;inVariable localId=&quot;2&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+                &lt;expression&gt;y&lt;/expression&gt;
+            &lt;/inVariable&gt;
+            &lt;block localId=&quot;3&quot; width=&quot;74&quot; height=&quot;60&quot; typeName=&quot;MyAdd&quot; executionOrderId=&quot;0&quot;&gt;
+                &lt;inputVariables&gt;
+                    &lt;variable formalParameter=&quot;x&quot; negated=&quot;false&quot;&gt;
+                        &lt;connectionPointIn&gt;
+                            &lt;connection refLocalId=&quot;1&quot;/&gt;
+                        &lt;/connectionPointIn&gt;
+                    &lt;/variable&gt;
+                    &lt;variable formalParameter=&quot;y&quot; negated=&quot;false&quot;&gt;
+                        &lt;connectionPointIn&gt;
+                            &lt;connection refLocalId=&quot;2&quot;/&gt;
+                        &lt;/connectionPointIn&gt;
+                    &lt;/variable&gt;
+                &lt;/inputVariables&gt;
+                &lt;outputVariables&gt;
+                    &lt;/variable formalParameter=&quot;MyAdd&quot; negated=&quot;false&quot;&gt;
+                &lt;/outputVariables&gt;
+            &lt;/block&gt;
+            &lt;outVariable localId=&quot;4&quot; height=&quot;20&quot; width=&quot;80&quot; executionOrderId=&quot;1&quot; negated=&quot;false&quot; storage=&quot;none&quot;&gt;
+                &lt;position x=&quot;680&quot; y=&quot;160&quot;/&gt;
+                &lt;connectionPointIn&gt;
+                    &lt;connection refLocalId=&quot;3&quot; formalParameter=&quot;MyAdd&quot;/&gt;
+                &lt;/connectionPointIn&gt;
+                &lt;expression&gt;z&lt;/expression&gt;
+            &lt;/outVariable&gt;
+        &lt;/FBD&gt;
+    &lt;/body&gt;
+&lt;/pou&gt;
 </code></pre>
 
                     </main>

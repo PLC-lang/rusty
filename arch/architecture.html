@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html" class="active"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html" class="active"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="../cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,9 +146,10 @@
                     <main>
                         <h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>RuSTy is a Compiler for Structured Text.
-It utilizes the llvm compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> Frontend that translates Structured Text into llvm's language independent intermediate representation (IR).
-The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
+<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC (&quot;FBD&quot;) are supported.
+It utilizes the LLVM compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
+<a href="../cfc/cfc.html">CFC</a> uses a M2M-transformation and reuses most of the ST frontend for compilation.
+The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
 <pre><code class="language-ignore">    ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
     │                  │    │               │    │                │
     │      RuSTy       │    │  LLVM Common  │    │  LLVM Backend  │
@@ -160,9 +161,10 @@ The Further optimization and native code generation is performed by the existing
 <p>So RuSTy consists of the frontend part of the llvm compiler-infrastructure.
 This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
 <h2 id="rusty-frontend-architecture"><a class="header" href="#rusty-frontend-architecture">Rusty Frontend Architecture</a></h2>
-<p>Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
+<p>Ultimately the goal of a compiler frontend is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
 RuSTy treats this task as a compilation step of its own.
 While a fully fledged compiler generates machine code as a last step, RuSTy generates LLVM IR assembly code.</p>
+<h2 id="structured-text"><a class="header" href="#structured-text">Structured Text</a></h2>
 <pre><code class="language-ignore">      ┌────────┐                                                          ┌────────┐
       │ Source │                                                          │  LLVM  │
       │        │                                                          │   IR   │
@@ -177,6 +179,22 @@ While a fully fledged compiler generates machine code as a last step, RuSTy gene
     │            │   │            │   │            │   │            │   │            │
     │            │   │            │   │            │   │            │   │            │
     └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
+</code></pre>
+<h2 id="cfcfbd"><a class="header" href="#cfcfbd">CFC/FBD</a></h2>
+<pre><code class="language-ignore">         ┌────────┐                                                            ┌────────┐
+         │ Source │                                                            │  LLVM  │
+         │        │                                                            │   IR   │
+         │ Files  │                                                            │        │
+         └───┬────┘                                                            └────────┘
+             │                                                                      ▲
+             ▼                                                                      │
+    ┌────────────────┐    ┌────────────┐   ┌────────────┐   ┌────────────┐   ┌──────┴─────┐
+    │                │    │            │   │            │   │            │   │            │
+    │ Model-to-Model │    │            │   │            │   │            │   │            │
+    │ Transformation ├───►│   Indexer  ├──►│   Linker   ├──►│ Validation ├──►│   Codegen  │
+    │                │    │            │   │            │   │            │   │            │
+    │                │    │            │   │            │   │            │   │            │
+    └────────────────┘    └────────────┘   └────────────┘   └────────────┘   └────────────┘
 </code></pre>
 
                     </main>

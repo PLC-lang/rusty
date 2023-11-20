@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html" class="active"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html" class="active"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -148,7 +148,7 @@
 <blockquote>
 <p>The RuSTy compiler binary is called <code>plc</code></p>
 </blockquote>
-<p><code>plc</code> offers a comprehensive help via the -h (--help) option.
+<p><code>plc</code> offers a comprehensive help via the <code>-h</code> (<code>--help</code>) option.
 <code>plc</code> takes one output-format parameter and any number of input-files.
 The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
 <p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
@@ -158,12 +158,13 @@ In the case that no output format switch has been specified, the compiler will s
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
 <p>A minimal invocation looks like this:
-<code>plc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
+<code>plc input.st</code> this will take in the file <code>input.st</code> and compile it into a static object that will be written to a file named <code>input.o</code>.</p>
 <p>More examples:</p>
 <ul>
 <li><code>plc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
-<li><code>plc --ir src/*.st</code> will compile all st files in the src-folder.</li>
-<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
+<li><code>plc --ir file1.cfc file2.st</code> will compile file1.cfc and file2.st.</li>
+<li><code>plc --ir src/*.st</code> will compile all ST files in the src-folder.</li>
+<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all ST-files in the current folder and its subfolders recursively.</li>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
@@ -172,7 +173,7 @@ This example is available under <code>examples/hello_world.st</code> in the main
 <ul>
 <li><code>main</code> is our entry point to the program.</li>
 <li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument.</li>
-<li>On windows, replace this with --linker=clang as cc is usually not available.</li>
+<li>On Windows and MacOS, replace this with <code>--linker=clang</code> as cc is usually not available.</li>
 </ul>
 <pre><code class="language-iecst">{external} 
 FUNCTION puts : DINT
