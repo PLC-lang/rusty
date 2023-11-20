@@ -184,7 +184,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn register_debug_location(&self, statement: &AstNode) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");
-        let line = statement.get_location().get_line();
+        let line = statement.get_location().get_line_plus_one();
         let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &function_context.function, line, column);
     }
@@ -1774,6 +1774,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
             }
+            AstStatement::ParenExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
