@@ -17,4 +17,4 @@ pub(crate) mod model {
     pub mod variables;
 }
 mod reader;
-pub(crate) mod serializer;
+pub mod serializer;

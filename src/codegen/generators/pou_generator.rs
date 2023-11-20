@@ -297,8 +297,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let (line, column) = implementation
             .statements
             .first()
-            .map(|it| (it.get_location().get_line(), it.get_location().get_column()))
-            .or_else(|| Some((implementation.location.get_line(), implementation.location.get_column())))
+            .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
+            .or_else(|| {
+                Some((implementation.location.get_line_plus_one(), implementation.location.get_column()))
+            })
             // .or_else(|| Some(implementation.location.get_start()))
             .unwrap();
         debug.set_debug_location(&self.llvm, &current_function, line, column);
