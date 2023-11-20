@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CompileError"],"fn":["compile","generate_to_string","parse_and_annotate"],"mod":["cli","pipelines","runner"],"struct":["CompileOptions","LinkOptions"]};
+window.SIDEBAR_ITEMS = {"enum":["CompileError"],"fn":["compile","generate_to_string","generate_to_string_debug","parse_and_annotate"],"mod":["cli","pipelines","runner"],"struct":["CompileOptions","LinkOptions"]};

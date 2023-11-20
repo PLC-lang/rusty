@@ -747,6 +747,8 @@
 <a href="#747" id="747">747</a>
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
@@ -1046,8 +1048,10 @@
         <span class="kw">let </span>(line, column) = implementation
             .statements
             .first()
-            .map(|it| (it.get_location().get_line(), it.get_location().get_column()))
-            .or_else(|| <span class="prelude-val">Some</span>((implementation.location.get_line(), implementation.location.get_column())))
+            .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
+            .or_else(|| {
+                <span class="prelude-val">Some</span>((implementation.location.get_line_plus_one(), implementation.location.get_column()))
+            })
             <span class="comment">// .or_else(|| Some(implementation.location.get_start()))
             </span>.unwrap();
         debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>current_function, line, column);

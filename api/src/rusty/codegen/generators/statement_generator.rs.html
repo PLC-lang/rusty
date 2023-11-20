@@ -858,6 +858,11 @@
 <a href="#858" id="858">858</a>
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
@@ -989,8 +994,7 @@
             </span>}
             AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; <span class="kw">match </span>condition {
                 <span class="prelude-val">Some</span>(condition) =&gt; {
-                    <span class="self">self</span>.register_debug_location(statement);
-                    <span class="self">self</span>.generate_conditional_return(condition)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.generate_conditional_return(statement, condition)<span class="question-mark">?</span>;
                 }
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="self">self</span>.register_debug_location(statement);
@@ -1136,7 +1140,7 @@
     }
 
     <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) {
-        <span class="kw">let </span>line = statement.get_location().get_line();
+        <span class="kw">let </span>line = statement.get_location().get_line_plus_one();
         <span class="kw">let </span>column = statement.get_location().get_column();
         <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span><span class="self">self</span>.function_context.function, line, column);
     }
@@ -1672,8 +1676,14 @@
 
     <span class="doccomment">/// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
     /// does nothing otherwise.
-    </span><span class="kw">pub fn </span>generate_conditional_return(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, condition: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_conditional_return(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        statement: <span class="kw-2">&amp;</span>AstNode,
+        condition: <span class="kw-2">&amp;</span>AstNode,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>expression_generator = <span class="self">self</span>.create_expr_generator();
+
+        <span class="self">self</span>.register_debug_location(condition);
         <span class="kw">let </span>condition = expression_generator.generate_expression(condition)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>then_block = <span class="self">self</span>.llvm.context.append_basic_block(<span class="self">self</span>.function_context.function, <span class="string">&quot;then_block&quot;</span>);
@@ -1686,8 +1696,8 @@
         );
 
         <span class="self">self</span>.llvm.builder.position_at_end(then_block);
+        <span class="self">self</span>.register_debug_location(statement);
         <span class="self">self</span>.generate_return_statement()<span class="question-mark">?</span>;
-
         <span class="self">self</span>.llvm.builder.position_at_end(else_block);
 
         <span class="prelude-val">Ok</span>(())

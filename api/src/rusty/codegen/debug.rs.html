@@ -939,11 +939,6 @@
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
@@ -1229,7 +1224,7 @@
                         file.as_debug_info_scope(),
                         member_name,
                         file,
-                        location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
+                        location.get_line_plus_one() <span class="kw">as </span>u32,
                         size.bits().into(),
                         alignment.bits(),
                         running_offset.bits().into(),
@@ -1248,7 +1243,7 @@
             file.as_debug_info_scope(),
             name,
             file,
-            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
+            location.get_line_plus_one() <span class="kw">as </span>u32,
             running_offset.bits().into(),
             struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
@@ -1375,7 +1370,7 @@
             inner_type.into(),
             name,
             file,
-            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
+            location.get_line_plus_one() <span class="kw">as </span>u32,
             file.as_debug_info_scope(),
             inner_dt.get_type_information().get_alignment(index).bits(),
         );
@@ -1430,7 +1425,7 @@
             pou.get_name(),
             <span class="prelude-val">Some</span>(pou.get_name()), <span class="comment">// for generics e.g. NAME__TYPE
             </span>file,
-            location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
+            location.get_line_plus_one() <span class="kw">as </span>u32,
             <span class="comment">// entry for the function
             </span>ditype,
             <span class="bool-val">false</span>, <span class="comment">// TODO: what is this
@@ -1508,7 +1503,7 @@
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
+        <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -1543,13 +1538,8 @@
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
-        <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(
-            <span class="self">self</span>.context,
-            (line + <span class="number">1</span>) <span class="kw">as </span>u32,
-            column <span class="kw">as </span>u32,
-            scope,
-            <span class="prelude-val">None</span>,
-        );
+        <span class="kw">let </span>location =
+            <span class="self">self</span>.debug_info.create_debug_location(<span class="self">self</span>.context, line <span class="kw">as </span>u32, column <span class="kw">as </span>u32, scope, <span class="prelude-val">None</span>);
         llvm.builder.set_current_debug_location(location);
     }
 
@@ -1642,7 +1632,7 @@
                 name,
                 <span class="string">&quot;&quot;</span>,
                 file,
-                location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32,
+                location.get_line_plus_one() <span class="kw">as </span>u32,
                 debug_type.into(),
                 <span class="bool-val">false</span>,
                 <span class="prelude-val">None</span>,
@@ -1668,7 +1658,7 @@
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
+        <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
 
         <span class="kw">let </span>scope = scope
             .get_subprogram()
@@ -1702,7 +1692,7 @@
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
+        <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
         <span class="kw">let </span>scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -1736,7 +1726,7 @@
                 .get_file_name()
                 .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
                 .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-            <span class="kw">let </span>line = pou.get_location().get_line().wrapping_add(<span class="number">1</span>) <span class="kw">as </span>u32;
+            <span class="kw">let </span>line = pou.get_location().get_line_plus_one() <span class="kw">as </span>u32;
             <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_parameter_variable(
                 scope,
                 pou.get_name(),

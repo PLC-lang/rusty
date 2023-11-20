@@ -482,6 +482,19 @@
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
@@ -610,6 +623,14 @@
         }
     }
 
+    <span class="kw">pub fn </span>get_line_plus_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Range(range) =&gt; range.start.line + <span class="number">1</span>,
+            <span class="self">Self</span>::Block { local_id, .. } =&gt; <span class="kw-2">*</span>local_id,
+            <span class="kw">_ </span>=&gt; <span class="number">0</span>,
+        }
+    }
+
     <span class="doccomment">/// Gets the colmumn representation for a source location
     /// If the location does not represent a line, 0 is returned
     </span><span class="kw">pub fn </span>get_column(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -665,9 +686,14 @@
 
     <span class="doccomment">/// Gets the line representation for a source location
     /// If the location does not represent a line, the closest equivalent is returned
-    </span><span class="comment">// That is 0 for None and the ID for id/inner spans
+    /// That is 0 for None and the ID for id/inner spans
     </span><span class="kw">pub fn </span>get_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.span.get_line()
+    }
+
+    <span class="doccomment">/// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
+    </span><span class="kw">pub fn </span>get_line_plus_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.span.get_line_plus_one()
     }
 
     <span class="doccomment">/// Gets the colmumn representation for a source location

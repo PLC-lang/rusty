@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["error","xml_parser"]};
+window.SIDEBAR_ITEMS = {"mod":["error","serializer","xml_parser"]};

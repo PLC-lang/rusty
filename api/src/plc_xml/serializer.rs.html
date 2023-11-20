@@ -363,7 +363,28 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+</pre></div><pre class="rust"><code><span class="attr">#![allow(clippy::new_without_default)]
+
+</span><span class="kw">use </span>std::collections::HashMap;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Node {
@@ -509,7 +530,8 @@
     };
 }
 
-<span class="macro">newtype_impl!</span>(SInVariable, <span class="string">&quot;inVariable&quot;</span>, <span class="bool-val">true</span>);
+<span class="comment">// newtype_impl!(&lt;struct name&gt;, &lt;xml name&gt;, &lt;is negatable&gt;)
+</span><span class="macro">newtype_impl!</span>(SInVariable, <span class="string">&quot;inVariable&quot;</span>, <span class="bool-val">true</span>);
 <span class="macro">newtype_impl!</span>(SOutVariable, <span class="string">&quot;outVariable&quot;</span>, <span class="bool-val">true</span>);
 <span class="macro">newtype_impl!</span>(SInOutVariable, <span class="string">&quot;inOutVariable&quot;</span>, <span class="bool-val">true</span>);
 <span class="macro">newtype_impl!</span>(SInterface, <span class="string">&quot;interface&quot;</span>, <span class="bool-val">false</span>);
@@ -538,6 +560,8 @@
 <span class="macro">newtype_impl!</span>(SContinuation, <span class="string">&quot;continuation&quot;</span>, <span class="bool-val">false</span>);
 <span class="macro">newtype_impl!</span>(SJump, <span class="string">&quot;jump&quot;</span>, <span class="bool-val">false</span>);
 <span class="macro">newtype_impl!</span>(SLabel, <span class="string">&quot;label&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SAction, <span class="string">&quot;action&quot;</span>, <span class="bool-val">false</span>);
+<span class="macro">newtype_impl!</span>(SActions, <span class="string">&quot;actions&quot;</span>, <span class="bool-val">false</span>);
 
 <span class="kw">impl </span>SInVariable {
     <span class="kw">pub fn </span>connect(<span class="kw-2">mut </span><span class="self">self</span>, ref_local_id: i32) -&gt; <span class="self">Self </span>{
@@ -622,6 +646,10 @@
     <span class="doccomment">/// Implicitly wraps the fbd in a block node, i.e. &lt;block&gt;&lt;fbd&gt;...&lt;fbd/&gt;&lt;block/&gt;
     </span><span class="kw">pub fn </span>with_fbd(<span class="self">self</span>, children: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SBody::new().child(<span class="kw-2">&amp;</span>YFbd::new().children(children)))
+    }
+
+    <span class="kw">pub fn </span>with_actions(<span class="self">self</span>, children: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SActions::new().children(children))
     }
 }
 
@@ -726,6 +754,16 @@
         <span class="self">self</span>.child(
             <span class="kw-2">&amp;</span>SAddData::new().child(<span class="kw-2">&amp;</span>SData::new().child(<span class="kw-2">&amp;</span>SNegate::new().attribute(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;true&quot;</span>).close())),
         )
+    }
+}
+
+<span class="kw">impl </span>SAction {
+    <span class="kw">pub fn </span>name(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new().attribute(<span class="string">&quot;name&quot;</span>, name)
+    }
+
+    <span class="kw">pub fn </span>with_fbd(<span class="self">self</span>, children: Vec&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>IntoNode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.child(<span class="kw-2">&amp;</span>SBody::new().child(<span class="kw-2">&amp;</span>YFbd::new().children(children)))
     }
 }
 </code></pre></div></section></main></body></html>
