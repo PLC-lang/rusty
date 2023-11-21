@@ -631,7 +631,7 @@ fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
                 ];
             END_VAR
         END_PROGRAM
-        "#
+        "#,
     );
 
     insta::assert_snapshot!(res);

@@ -1,8 +1,8 @@
+use plc_ast::literals::AstLiteral;
 use plc_ast::{
     ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
 };
-use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -532,7 +532,7 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
             END_VAR
         END_PROGRAM
         ",
-        id_provider.clone()
+        id_provider.clone(),
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
