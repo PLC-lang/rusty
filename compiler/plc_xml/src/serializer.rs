@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default)]
+
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -144,6 +146,7 @@ macro_rules! newtype_impl {
     };
 }
 
+// newtype_impl!(<struct name>, <xml name>, <is negatable>)
 newtype_impl!(SInVariable, "inVariable", true);
 newtype_impl!(SOutVariable, "outVariable", true);
 newtype_impl!(SInOutVariable, "inOutVariable", true);
@@ -173,6 +176,8 @@ newtype_impl!(SConnector, "connector", false);
 newtype_impl!(SContinuation, "continuation", false);
 newtype_impl!(SJump, "jump", false);
 newtype_impl!(SLabel, "label", false);
+newtype_impl!(SAction, "action", false);
+newtype_impl!(SActions, "actions", false);
 
 impl SInVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
@@ -257,6 +262,10 @@ impl SPou {
     /// Implicitly wraps the fbd in a block node, i.e. <block><fbd>...<fbd/><block/>
     pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
         self.child(&SBody::new().child(&YFbd::new().children(children)))
+    }
+
+    pub fn with_actions(self, children: Vec<&dyn IntoNode>) -> Self {
+        self.child(&SActions::new().children(children))
     }
 }
 
@@ -361,5 +370,15 @@ impl SJump {
         self.child(
             &SAddData::new().child(&SData::new().child(&SNegate::new().attribute("value", "true").close())),
         )
+    }
+}
+
+impl SAction {
+    pub fn name(name: &'static str) -> Self {
+        Self::new().attribute("name", name)
+    }
+
+    pub fn with_fbd(self, children: Vec<&dyn IntoNode>) -> Self {
+        self.child(&SBody::new().child(&YFbd::new().children(children)))
     }
 }
