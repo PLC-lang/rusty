@@ -1,0 +1,76 @@
+---
+source: tests/integration/cfc.rs
+expression: output_file_content_without_headers
+---
+%main = type { i32, i32 }
+
+@main_instance = global %main zeroinitializer, !dbg !0
+
+define void @main(%main* %0) !dbg !11 {
+entry:
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !16
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !17
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !17
+  store i32 0, i32* %a, align 4, !dbg !18
+  call void @main.newAction(%main* %0), !dbg !16
+  call void @main.newAction2(%main* %0), !dbg !19
+  ret void, !dbg !19
+}
+
+define void @main.newAction(%main* %0) !dbg !20 {
+entry:
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !22
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !22
+  %load_a = load i32, i32* %a, align 4, !dbg !21
+  %tmpVar = add i32 %load_a, 1, !dbg !21
+  store i32 %tmpVar, i32* %a, align 4, !dbg !21
+  ret void, !dbg !21
+}
+
+define void @main.newAction2(%main* %0) !dbg !23 {
+entry:
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !24
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !25
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !25
+  %load_b = load i32, i32* %b, align 4, !dbg !26
+  %tmpVar = add i32 %load_b, 2, !dbg !26
+  store i32 %tmpVar, i32* %b, align 4, !dbg !26
+  ret void, !dbg !26
+}
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+!llvm.module.flags = !{!8}
+!llvm.dbg.cu = !{!9}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>.cfc", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "main")
+!4 = !{!5, !7}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!8 = !{i32 2, !"Dwarf Version", i32 5}
+!9 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !10, splitDebugInlining: false)
+!10 = !{!0}
+!11 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 1, type: !12, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !14)
+!12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
+!13 = !{null}
+!14 = !{}
+!15 = !DILocalVariable(name: "main", scope: !11, file: !2, line: 1, type: !3)
+!16 = !DILocation(line: 1, scope: !11)
+!17 = !DILocation(line: 0, scope: !11)
+!18 = !DILocation(line: 3, scope: !11)
+!19 = !DILocation(line: 2, scope: !11)
+!20 = distinct !DISubprogram(name: "main.newAction", linkageName: "main.newAction", scope: !2, file: !2, type: !12, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !14)
+!21 = !DILocation(line: 1, scope: !20)
+!22 = !DILocation(line: 0, scope: !20)
+!23 = distinct !DISubprogram(name: "main.newAction2", linkageName: "main.newAction2", scope: !2, file: !2, type: !12, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !14)
+!24 = !DILocation(line: 1, scope: !23)
+!25 = !DILocation(line: 0, scope: !23)
+!26 = !DILocation(line: 2, scope: !23)

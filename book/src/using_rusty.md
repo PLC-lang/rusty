@@ -2,7 +2,7 @@
 
 > The RuSTy compiler binary is called `plc`
 
-`plc` offers a comprehensive help via the -h (--help) option.
+`plc` offers a comprehensive help via the `-h` (`--help`) option.
 `plc` takes one output-format parameter and any number of input-files.
 The input files can also be written as [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)).
 
@@ -16,13 +16,13 @@ the output filename will consist of the first input filename, but with an approp
 file extension depending on the output file format.
 
 A minimal invocation looks like this:
-`plc input.st` ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.
+`plc input.st` this will take in the file `input.st` and compile it into a static object that will be written to a file named `input.o`.
 
 More examples:
-
 - `plc --ir file1.st file2.st` will compile file1.st and file2.st.
-- `plc --ir src/*.st` will compile all st files in the src-folder.
-- `plc --ir "**/*.st"` will compile all st-files in the current folder and its subfolders recursively.
+- `plc --ir file1.cfc file2.st` will compile file1.cfc and file2.st.
+- `plc --ir src/*.st` will compile all ST files in the src-folder.
+- `plc --ir "**/*.st"` will compile all ST-files in the current folder and its subfolders recursively.
 
 ## Example: Building a hello world program
 
@@ -33,7 +33,7 @@ This example is available under `examples/hello_world.st` in the main RuSTy repo
 
 - `main` is our entry point to the program.
 - To link the program, we are going to use the system's linker using the `--linker=cc` argument.
-- On windows, replace this with --linker=clang as cc is usually not available.
+- On Windows and MacOS, replace this with `--linker=clang` as cc is usually not available.
 
 ```iecst
 {external} 

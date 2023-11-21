@@ -19,3 +19,5 @@
   - [Linker](./arch/linker.md)
   - [Validation](./arch/validation.md)
   - [Codegen](./arch/codegen.md)
+- [CFC](./cfc/cfc.md)
+  - [Model-to-Model Conversion](./cfc/m2m.md)
