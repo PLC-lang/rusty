@@ -1641,29 +1641,29 @@ impl<'i> TypeAnnotator<'i> {
         } else {
             vec![]
         };
-        if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
-        {
-            annotation(self, operator, parameters_stmt, ctx.to_owned())
-        } else {
-            //If builtin, skip this
+        let resolve_call = |annotator: &mut TypeAnnotator| {
+            //This is skipped for most builtins, but we need to do it for arithmetic function overloads (date-time)
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
             let mut params = vec![];
             let mut parameters = parameters.into_iter();
 
             // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
             // to annotate them with the correct type hint.
-            let operator_qualifier = self
+            let operator_qualifier = annotator
                 .index
                 .find_implementation_by_name(&operator_qualifier)
                 .map(|it| it.get_type_name())
                 .unwrap_or(operator_qualifier.as_str());
 
-            for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
+            for m in annotator.index.get_declared_parameters(operator_qualifier).into_iter() {
                 if let Some(p) = parameters.next() {
                     let type_name = m.get_type_name();
-                    if let Some((key, candidate)) =
-                        TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
-                    {
+                    if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                        annotator.index,
+                        &annotator.annotation_map,
+                        type_name,
+                        p,
+                    ) {
                         generics_candidates
                             .entry(key.to_string())
                             .or_insert_with(std::vec::Vec::new)
@@ -1673,18 +1673,20 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            //We possibly did not consume all parameters, see if the variadic arguments are derivable
 
-            match self.index.find_pou(operator_qualifier) {
+            //We possibly did not consume all parameters, see if the variadic arguments are derivable
+            match annotator.index.find_pou(operator_qualifier) {
                 Some(pou) if pou.is_variadic() => {
                     //get variadic argument type, if it is generic, update the generic candidates
-                    if let Some(type_name) =
-                        self.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
+                    if let Some(type_name) = annotator
+                        .index
+                        .get_variadic_member(pou.get_name())
+                        .map(VariableIndexEntry::get_type_name)
                     {
                         for parameter in parameters {
                             if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                                self.index,
-                                &self.annotation_map,
+                                annotator.index,
+                                &annotator.annotation_map,
                                 type_name,
                                 parameter,
                             ) {
@@ -1702,13 +1704,13 @@ impl<'i> TypeAnnotator<'i> {
                                 // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
                                 // types, we promote if the type is smaller than double/i32 (except for booleans).
                                 let type_name = if let Some(data_type) =
-                                    self.annotation_map.get_type(parameter, self.index)
+                                    annotator.annotation_map.get_type(parameter, annotator.index)
                                 {
                                     match &data_type.information {
                                         DataTypeInformation::Float { .. } => get_bigger_type(
                                             data_type,
-                                            self.index.get_type_or_panic(LREAL_TYPE),
-                                            self.index,
+                                            annotator.index.get_type_or_panic(LREAL_TYPE),
+                                            annotator.index,
                                         )
                                         .get_name(),
                                         DataTypeInformation::Integer { .. }
@@ -1716,8 +1718,8 @@ impl<'i> TypeAnnotator<'i> {
                                         {
                                             get_bigger_type(
                                                 data_type,
-                                                self.index.get_type_or_panic(DINT_TYPE),
-                                                self.index,
+                                                annotator.index.get_type_or_panic(DINT_TYPE),
+                                                annotator.index,
                                             )
                                             .get_name()
                                         }
@@ -1737,17 +1739,28 @@ impl<'i> TypeAnnotator<'i> {
                 _ => {}
             }
             for (p, name) in params {
-                self.annotate_parameters(p, &name);
+                annotator.annotate_parameters(p, &name);
             }
             //Attempt to resolve the generic signature here
-            self.update_generic_call_statement(
+            annotator.update_generic_call_statement(
                 generics_candidates,
                 operator_qualifier,
                 operator,
                 parameters_stmt,
                 ctx.to_owned(),
             );
-        }
+        };
+
+        if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
+        {
+            let continue_ = annotation(self, operator, parameters_stmt, ctx.to_owned());
+            if continue_ {
+                resolve_call(self);
+            }
+        } else {
+            resolve_call(self);
+        };
+
         if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
             if let Some(return_type) = self
                 .index

@@ -18,15 +18,13 @@ entry:
   store double 0.000000e+00, double* %l1, align 8
   store i32 0, i32* %main, align 4
   %load_x1 = load float, float* %x1, align 4
-  %0 = fpext float %load_x1 to double
   %load_x2 = load float, float* %x2, align 4
-  %1 = fpext float %load_x2 to double
-  %tmpVar = fmul double %0, %1
+  %tmpVar = fmul float %load_x1, %load_x2
   %load_x3 = load float, float* %x3, align 4
-  %2 = fpext float %load_x3 to double
-  %tmpVar1 = fmul double %tmpVar, %2
+  %tmpVar1 = fmul float %tmpVar, %load_x3
+  %0 = fpext float %tmpVar1 to double
   %load_l1 = load double, double* %l1, align 8
-  %tmpVar2 = fmul double %tmpVar1, %load_l1
+  %tmpVar2 = fmul double %0, %load_l1
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }

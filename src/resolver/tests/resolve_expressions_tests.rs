@@ -5371,35 +5371,35 @@ fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
 
 #[test]
 fn builtin_gt_replacement_ast() {
-    generate_comparison_test("GT")
+    insta::assert_debug_snapshot!(generate_comparison_test("GT"));
 }
 #[test]
 fn builtin_ge_replacement_ast() {
-    generate_comparison_test("GE");
+    insta::assert_debug_snapshot!(generate_comparison_test("GE"));
 }
 
 #[test]
 fn builtin_eq_replacement_ast() {
-    generate_comparison_test("EQ");
+    insta::assert_debug_snapshot!(generate_comparison_test("EQ"));
 }
 
 #[test]
 fn builtin_lt_replacement_ast() {
-    generate_comparison_test("LT");
+    insta::assert_debug_snapshot!(generate_comparison_test("LT"));
 }
 
 #[test]
 fn builtin_le_replacement_ast() {
-    generate_comparison_test("LE");
+    insta::assert_debug_snapshot!(generate_comparison_test("LE"));
 }
 
 #[test]
 fn builtin_ne_replacement_ast() {
-    generate_comparison_test("NE");
+    insta::assert_debug_snapshot!(generate_comparison_test("NE"));
 }
 
 // Helper function to generate the comparison test
-fn generate_comparison_test(operator: &str) {
+fn generate_comparison_test(operator: &str) -> StatementAnnotation {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         format!(
@@ -5416,6 +5416,58 @@ fn generate_comparison_test(operator: &str) {
             ",
             operator
         ),
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        unreachable!()
+    };
+    annotations.get(operator).unwrap().clone()
+}
+
+#[test]
+fn builtin_add_replacement_ast() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LINT;
+                d : REAL;
+            END_VAR
+                ADD(a, b, c, d);
+            END_FUNCTION
+            ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        unreachable!()
+    };
+    insta::assert_debug_snapshot!(annotations.get(operator));
+}
+
+#[test]
+fn builtin_add_resolves_generics_when_params_dont_derive_any_num() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LWORD;
+                d : TIME;
+            END_VAR
+                ADD(a, b, c, d);
+            END_FUNCTION
+            ",
         id_provider.clone(),
     );
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
