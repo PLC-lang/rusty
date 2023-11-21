@@ -40,7 +40,7 @@ pub struct ParsedProject(Vec<CompilationUnit>);
 
 impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
-    /// Reprots parsing diagnostics such as Syntax error on the fly
+    /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer>(
         project: &Project<T>,
         encoding: Option<&'static Encoding>,
