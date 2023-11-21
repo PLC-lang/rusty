@@ -2176,7 +2176,6 @@
 <a href="#2176" id="2176">2176</a>
 <a href="#2177" id="2177">2177</a>
 <a href="#2178" id="2178">2178</a>
-<a href="#2179" id="2179">2179</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2509,15 +2508,9 @@
 }
 
 <span class="kw">impl </span>StatementAnnotation {
-    <span class="doccomment">/// constructs a new StatementAnnotation::Value with the given type_name
-    /// this is a convinience method to take a &amp;str and clones it itself
-    </span><span class="kw">pub fn </span>value(type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        StatementAnnotation::new_value(type_name.to_string())
-    }
-
-    <span class="doccomment">/// constructs a new StatementAnnotation::Value with the given type_name
-    </span><span class="kw">pub fn </span>new_value(type_name: String) -&gt; <span class="self">Self </span>{
-        StatementAnnotation::Value { resulting_type: type_name }
+    <span class="doccomment">/// Constructs a new [`StatementAnnotation::Value`] with the given type name
+    </span><span class="kw">pub fn </span>value(type_name: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
     <span class="kw">pub fn </span>is_const(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -3158,8 +3151,8 @@
                     }
 
                     AstStatement::ExpressionList(expressions) =&gt; {
-                        <span class="kw">let </span>name = inner_data_type.get_name().to_string();
-                        <span class="kw">let </span>hint = StatementAnnotation::Value { resulting_type: name };
+                        <span class="kw">let </span>name = inner_data_type.get_name();
+                        <span class="kw">let </span>hint = StatementAnnotation::value(name);
 
                         <span class="kw">for </span>expression <span class="kw">in </span>expressions {
                             <span class="self">self</span>.annotation_map.annotate_type_hint(expression, hint.clone());
@@ -3173,14 +3166,19 @@
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) <span class="kw">if </span>left.is_reference() =&gt; {
-                        <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt()
-                        <span class="kw">else </span>{
-                            <span class="kw">return</span>;
-                        };
-                        <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
+                        <span class="kw">if let </span>AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() {
+                            <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements() <span class="kw">else </span>{ <span class="kw">return </span>};
 
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
-                            <span class="self">self</span>.type_hint_for_array_of_structs(<span class="kw-2">&amp;</span>datatype, elements, <span class="kw-2">&amp;</span>ctx);
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self</span>.annotation_map.get_type(left, <span class="self">self</span>.index).cloned() {
+                                <span class="self">self</span>.type_hint_for_array_of_structs(<span class="kw-2">&amp;</span>datatype, elements, <span class="kw-2">&amp;</span>ctx);
+                            }
+                        }
+
+                        <span class="comment">// https://github.com/PLC-lang/rusty/issues/1019
+                        </span><span class="kw">if </span>inner_data_type.information.is_struct() {
+                            <span class="kw">let </span>name = inner_data_type.get_name();
+                            <span class="kw">let </span>hint = StatementAnnotation::value(name);
+                            <span class="self">self</span>.annotation_map.annotate_type_hint(statement, hint);
                         }
                     }
 
@@ -3368,11 +3366,11 @@
                 <span class="kw">let </span>ctx = VisitorContext { qualifier: <span class="prelude-val">None</span>, ..ctx.clone() };
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>data.index);
                 <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
-                <span class="self">self</span>.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                <span class="self">self</span>.annotate(statement, StatementAnnotation::value(access_type));
             }
             AstStatement::HardwareAccess(data, ..) =&gt; {
                 <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
-                <span class="self">self</span>.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                <span class="self">self</span>.annotate(statement, StatementAnnotation::value(access_type));
             }
             AstStatement::BinaryExpression(data, ..) =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
@@ -3465,7 +3463,7 @@
                 };
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(statement_type) = statement_type {
-                    <span class="self">self</span>.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    <span class="self">self</span>.annotate(statement, StatementAnnotation::value(statement_type));
                 }
             }
             AstStatement::UnaryExpression(data, ..) =&gt; {
@@ -3489,7 +3487,7 @@
                 };
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(statement_type) = statement_type {
-                    <span class="self">self</span>.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    <span class="self">self</span>.annotate(statement, StatementAnnotation::value(statement_type));
                 }
             }
 
@@ -3573,7 +3571,7 @@
                     <span class="macro">vec!</span>[]
                 };
                 <span class="kw">for </span>(stmt, annotation) <span class="kw">in </span>statement_to_annotation {
-                    <span class="self">self</span>.annotate(stmt, StatementAnnotation::new_value(annotation));
+                    <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(annotation));
                 }
             }
             AstStatement::ReferenceExpr(data, ..) =&gt; {
@@ -3693,7 +3691,7 @@
                     .map(|base| <span class="self">self</span>.annotation_map.get_type_or_void(base, <span class="self">self</span>.index).get_name().to_string())
                 {
                     <span class="kw">let </span>ptr_type = add_pointer_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>.annotation_map.new_index, inner_type);
-                    <span class="self">self</span>.annotate(stmt, StatementAnnotation::new_value(ptr_type))
+                    <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
             <span class="kw">_ </span>=&gt; {}
@@ -3995,7 +3993,7 @@
                     AstLiteral::String(StringValue { is_wide, value, .. }) =&gt; {
                         <span class="kw">let </span>string_type_name =
                             register_string_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>.annotation_map.new_index, <span class="kw-2">*</span>is_wide, value.len());
-                        <span class="self">self</span>.annotate(statement, StatementAnnotation::new_value(string_type_name));
+                        <span class="self">self</span>.annotate(statement, StatementAnnotation::value(string_type_name));
 
                         <span class="comment">//collect literals so we can generate global constants later
                         </span><span class="kw">if </span>ctx.is_in_a_body() {
