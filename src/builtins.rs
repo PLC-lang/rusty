@@ -70,10 +70,10 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
-                    let Some(params) = parameters else { return false; };
+                    let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
                     let input = flatten_expression_list(params);
-                    let Some(input) = input.get(0)  else { return false; };
+                    let Some(input) = input.get(0)  else { return; };
                     let input_type = annotator.annotation_map
                         .get_type_or_void(input, annotator.index)
                         .get_type_information()
@@ -90,7 +90,6 @@ lazy_static! {
                             return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                         }
                     );
-                    false
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     let Some(params) = parameters else {
@@ -291,7 +290,6 @@ lazy_static! {
                 END_FUNCTION",
                 annotation: Some(|annotator, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
-                    false
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -315,7 +313,6 @@ lazy_static! {
                 END_FUNCTION",
                 annotation: Some(|annotator, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
-                    false
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -511,7 +508,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::Greater);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -535,7 +531,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::GreaterOrEqual);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -559,7 +554,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::Equal);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -583,7 +577,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::LessOrEqual);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -607,7 +600,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::Less);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -630,7 +622,6 @@ lazy_static! {
                         unreachable!("must have parameters")
                     };
                     annotate_comparison_function(annotator, operator, params, ctx, Operator::NotEqual);
-                    false
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -686,71 +677,28 @@ fn annotate_arithmetic_function(
     parameters: &AstNode,
     ctx: VisitorContext,
     operation: Operator,
-) -> bool {
-    let mut ctx = ctx;
-    let parameters = flatten_expression_list(parameters);
-    if parameters.iter().any(|it| {
+) {
+    let params_flattened = flatten_expression_list(parameters);
+    if params_flattened.iter().any(|it| {
         !annotator
             .annotation_map
             .get_type_or_void(&it, annotator.index)
             .has_nature(TypeNature::Num, annotator.index)
     }) {
-        // let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), .. }) =
-        //     operator.get_stmt()
-        // else {
-        //     return true;
-        // };
-        // let AstStatement::Identifier(ident) = member.get_stmt() else { return true };
-        // let (param1, param2) = (
-        //     parameters.get(0).expect("must have this parameter"),
-        //     parameters.get(1).expect("must have this parameter"),
-        // );
-        // let left = annotator.index.get_effective_type_or_void_by_name(
-        //     annotator.annotation_map.get_type_or_void(&param1, annotator.index).get_name(),
-        // );
-        // let right = annotator.index.get_effective_type_or_void_by_name(
-        //     annotator.annotation_map.get_type_or_void(&param2, annotator.index).get_name(),
-        // );
-        // let name = if left.has_nature(TypeNature::Duration, annotator.index)
-        //     && right.has_nature(TypeNature::Num, annotator.index)
-        // {
-        //     format!("{}_{}", ident, left.get_name())
-        //     // format!("{}_{}", ident, left.get_name())
-        // } else {
-        //     format!("{}__{}__{}", ident, left.get_name(), right.get_name())
-        // };
-        // let callable = AstFactory::create_call_to(
-        //     name.clone(),
-        //     parameters.iter().map(|it| it.clone().clone()).collect::<Vec<_>>(),
-        //     ctx.id_provider.next_id(),
-        //     param1.get_id(),
-        //     &operator.get_location(),
-        // );
-
-        // annotator.visit_statement(&ctx, &callable);
-        // annotator.update_expected_types(annotator.index.get_type_or_panic(left.get_name()), &callable);
-        // // annotator.annotate(
-        // //     &callable,
-        // //     StatementAnnotation::Function {
-        // //         return_type: left.get_name().to_owned(),
-        // //         qualified_name: name,
-        // //         call_name: None,
-        // //     },
-        // // );
-        // // update generics
-        // annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement: callable });
-        // annotator.update_expected_types(annotator.index.get_type_or_panic(left.get_name()), operator);
-        // return;
-        return true;
+        // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
+        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        return;
     }
+
+    let mut ctx = ctx;
     // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
     // mutable and immutable borrow of TypeAnnotator
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
         let mut bigger = annotator
             .annotation_map
-            .get_type_or_void(parameters.get(0).expect("must have this parameter"), &annotator.index);
+            .get_type_or_void(params_flattened.get(0).expect("must have this parameter"), &annotator.index);
 
-        for param in parameters.iter().skip(1) {
+        for param in params_flattened.iter().skip(1) {
             let right_type = annotator.annotation_map.get_type_or_void(param, &annotator.index);
             bigger = get_bigger_type(bigger, right_type, &annotator.index);
         }
@@ -762,8 +710,8 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let mut statement = parameters.get(0).expect("Must exist").clone().clone();
-    parameters.into_iter().skip(1).for_each(|right| {
+    let mut statement = params_flattened.get(0).expect("Must exist").clone().clone();
+    params_flattened.into_iter().skip(1).for_each(|right| {
         statement = AstFactory::create_binary_expression(
             statement.clone(),
             operation,
@@ -775,7 +723,6 @@ fn annotate_arithmetic_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &statement);
     annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
     annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), operator);
-    false
 }
 
 fn validate_arithmetic_function(
@@ -978,7 +925,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext) -> bool;
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
