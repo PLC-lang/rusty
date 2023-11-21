@@ -2029,14 +2029,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
-            // This fucker right here
             let value = self.generate_literal(e)?;
             v.push(value.get_basic_value_enum());
-            // self.generate_literal(e)?;
-            // match self.generate_literal(e) {
-            //     Ok(value) => v.push(value.get_basic_value_enum()),
-            //     Err(why) => panic!("{why:#?}"),
-            // };
         }
 
         if v.len() < expected_len {
