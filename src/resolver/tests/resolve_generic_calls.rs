@@ -1,6 +1,6 @@
 use insta::assert_debug_snapshot;
 use plc_ast::{
-    ast::{flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement},
+    ast::{flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement},
     provider::IdProvider,
 };
 

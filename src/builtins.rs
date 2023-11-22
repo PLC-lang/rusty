@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
-    values::{BasicValue, BasicValueEnum, IntValue},
+    values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
 use plc_ast::{
@@ -344,7 +344,7 @@ lazy_static! {
                 // Some(|validator, operator, parameters, annotations, index| {
                 //     validate_arithmetic_function(validator, operator, parameters, annotations, index);
                 // }),
-                generic_name_resolver: generic_name_resolver,
+                generic_name_resolver,
                 code: |generator, params, _| {
                     // generate_arithmetic_instruction(generator, params, Operator::Plus)
                     generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
@@ -369,7 +369,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Multiplication)
                 }),
                 validation: None,
-                generic_name_resolver: generic_name_resolver,
+                generic_name_resolver,
                 code: |generator, params, _| {
                     generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
                 }
@@ -392,7 +392,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Minus)
                 }),
                 validation: None,
-                generic_name_resolver: generic_name_resolver,
+                generic_name_resolver,
                 code: |generator, params, _| {
                     generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
                 }
@@ -415,85 +415,13 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Division)
                 }),
                 validation: None,
-                generic_name_resolver: generic_name_resolver,
+                generic_name_resolver,
                 code: |generator, params, _| {
                     generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
                 }
             }
         ),
-        // (
-        //     "MOD", // FIXME: should be named "MOD" according to the standard, but then it causes weird "sitofp" casts in IR in unrelated tests. Will be fixed alongside with EXIT keyword...
-        //     BuiltIn {
-        //         decl: "FUNCTION MOD<T1: ANY_INT, T2: ANY_INT> : T1
-        //         VAR_INPUT
-        //             IN1 : T1;
-        //             IN2 : T2;
-        //         END_VAR
-        //         END_FUNCTION
-        //         ",
-        //         annotation: Some(|annotator, operator, parameters, ctx| {
-        //             let Some(params) = parameters else {
-        //                 unreachable!("must have parameters")
-        //             };
-        //             annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Modulo);
-        //         }),
-        //         validation: None,
-        //         generic_name_resolver: no_generic_name_resolver,
-        //         code: |generator, params, _| {
-        //             generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-        //         }
-        //     }
-        // ),
-        // (
-        //     "EXPT",
-        //     BuiltIn {
-        //         decl: "FUNCTION EXPT<T1: ANY_REAL, T2: ANY_NUM> : T1
-        //         VAR_INPUT
-        //             IN1 : T1;
-        //             IN2 : T2;
-        //         END_VAR
-        //         END_FUNCTION
-        //         ",
-        //         annotation: Some(|annotator, _, parameters, _| {
-        //             let Some(params) = parameters else {
-        //                 unreachable!("must have parameters")
-        //             };
-        //             annotate_arithmetic_function(annotator, params);
-        //         }),
-        //         validation: Some(|validator, operator, parameters, annotations, index| {
-        //             validate_arithmetic_function(validator, operator, parameters, annotations, index);
-        //         }),
-        //         generic_name_resolver: no_generic_name_resolver,
-        //         code: |generator, params, _| {
-        //             generate_arithmetic_function(generator, params, Operator::Exponentiation)
-        //         }
-        //     }
-        // ),
-        // Bit-comparison functions
-        // TODO: AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
-        // (
-        //     "AND",
-        //     BuiltIn {
-        //         decl: "FUNCTION AND<T: ANY_BIT> : BOOL
-        //         VAR_INPUT
-        //             IN : T...;
-        //         END_VAR
-        //         END_FUNCTION
-        //         ",
-        //         annotation: Some(|annotator, _, parameters, _| {
-        //             todo!()
-        //         }),
-        //         validation: Some(|validator, operator, parameters, annotations, index| {
-        //             todo!()
-        //         }),
-        //         generic_name_resolver: no_generic_name_resolver,
-        //         code: |generator, params, _| {
-        //             todo!()
-        //         }
-        //     }
-        // ),
-        // comparison functions
-        // TODO: GT, GE, EQ, LE, LT, NE ANY_ELEMENTARY
+        // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
         (
             "GT",
             BuiltIn {
@@ -633,6 +561,8 @@ lazy_static! {
     ]);
 }
 
+// creates nested BinaryExpressions for each parameter, such that
+// GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
 fn annotate_comparison_function(
     annotator: &mut TypeAnnotator,
     operator: &AstNode,
@@ -640,8 +570,6 @@ fn annotate_comparison_function(
     ctx: VisitorContext,
     operation: Operator,
 ) {
-    // create nested AstStatement::BinaryExpression for each parameter, such that
-    // GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
     let mut ctx = ctx;
     let parameters = flatten_expression_list(parameters);
     let comparisons = parameters
@@ -682,7 +610,7 @@ fn annotate_arithmetic_function(
     if params_flattened.iter().any(|it| {
         !annotator
             .annotation_map
-            .get_type_or_void(&it, annotator.index)
+            .get_type_or_void(it, annotator.index)
             .has_nature(TypeNature::Num, annotator.index)
     }) {
         // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
@@ -696,11 +624,11 @@ fn annotate_arithmetic_function(
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
         let mut bigger = annotator
             .annotation_map
-            .get_type_or_void(params_flattened.get(0).expect("must have this parameter"), &annotator.index);
+            .get_type_or_void(params_flattened.get(0).expect("must have this parameter"), annotator.index);
 
         for param in params_flattened.iter().skip(1) {
-            let right_type = annotator.annotation_map.get_type_or_void(param, &annotator.index);
-            bigger = get_bigger_type(bigger, right_type, &annotator.index);
+            let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
+            bigger = get_bigger_type(bigger, right_type, annotator.index);
         }
 
         bigger.get_name().to_owned()
@@ -710,48 +638,15 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let mut statement = params_flattened.get(0).expect("Must exist").clone().clone();
-    params_flattened.into_iter().skip(1).for_each(|right| {
-        statement = AstFactory::create_binary_expression(
-            statement.clone(),
-            operation,
-            right.clone(),
-            ctx.id_provider.next_id(),
-        )
+    let left = (*params_flattened.get(0).expect("Must exist")).clone();
+    let statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+        AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
+
     annotator.visit_statement(&ctx, &statement);
     annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &statement);
     annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
     annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), operator);
-}
-
-fn validate_arithmetic_function(
-    validator: &mut Validator,
-    operator: &AstNode,
-    parameters: Option<&AstNode>,
-    annotations: &dyn AnnotationMap,
-    index: &Index,
-) {
-    // TODO
-}
-
-fn generate_arithmetic_instruction<'ink, 'b>(
-    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-    params: &[&AstNode],
-    operator: Operator,
-) -> Result<ExpressionValue<'ink>, Diagnostic> {
-    // generate the accumulator from the initial parameter and
-    let mut accum = generator.generate_expression(params.get(0).expect("must have this parameter"))?;
-    let generate_binary_expr = match accum {
-        BasicValueEnum::IntValue(_) => ExpressionCodeGenerator::create_llvm_int_binary_expression,
-        BasicValueEnum::FloatValue(_) => ExpressionCodeGenerator::create_llvm_float_binary_expression,
-        BasicValueEnum::PointerValue(_) => todo!(), // pointer arithmetic?
-        _ => unreachable!(),
-    };
-    for param in params.iter().skip(1) {
-        accum = generate_binary_expr(generator, &operator, accum, generator.generate_expression(param)?)
-    }
-    Ok(ExpressionValue::RValue(accum))
 }
 
 fn annotate_variable_length_array_bound_function(

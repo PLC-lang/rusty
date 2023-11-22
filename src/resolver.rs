@@ -290,14 +290,13 @@ impl TypeAnnotator<'_> {
         ctx: &VisitorContext,
     ) {
         let parameters = if let Some(parameters) = parameters_stmt {
-            self.visit_statement(&ctx, parameters);
+            self.visit_statement(ctx, parameters);
             flatten_expression_list(parameters)
         } else {
             vec![]
         };
         let operator_qualifier = &self.get_call_name(operator);
 
-        //This is skipped for most builtins, but we need to do it for arithmetic function overloads (date-time)
         let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
         let mut params = vec![];
         let mut parameters = parameters.into_iter();
@@ -316,10 +315,7 @@ impl TypeAnnotator<'_> {
                 if let Some((key, candidate)) =
                     TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
                 {
-                    generics_candidates
-                        .entry(key.to_string())
-                        .or_insert_with(std::vec::Vec::new)
-                        .push(candidate.to_string())
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
                 } else {
                     params.push((p, type_name.to_string()))
                 }
@@ -342,7 +338,7 @@ impl TypeAnnotator<'_> {
                         ) {
                             generics_candidates
                                 .entry(key.to_string())
-                                .or_insert_with(std::vec::Vec::new)
+                                .or_default()
                                 .push(candidate.to_string())
                         } else {
                             // intrinsic type promotion for variadics in order to be compatible with the C standard.
@@ -1753,20 +1749,16 @@ impl<'i> TypeAnnotator<'i> {
         //Use the context without the is_call =true
         //TODO why do we start a lhs context here???
         let ctx = ctx.with_lhs(operator_qualifier.as_str());
-        let parameters = if let Some(parameters) = parameters_stmt {
+        if let Some(parameters) = parameters_stmt {
             self.visit_statement(&ctx, parameters);
-            flatten_expression_list(parameters)
-        } else {
-            vec![]
         };
 
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
             annotation(self, operator, parameters_stmt, ctx.to_owned());
         } else {
-            //This is skipped for most builtins. The builtins that need it call it themselves
+            //This is skipped for builtins that provide their own annotation-logic
             self.annotate_call_statement(operator, parameters_stmt, &ctx);
-            // fun_name(parameters, self, &operator_qualifier, operator, parameters_stmt, &ctx);
         };
 
         if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
@@ -1896,116 +1888,6 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-fn fun_name(
-    parameters: Vec<&AstNode>,
-    annotator: &mut TypeAnnotator<'_>,
-    operator_qualifier: &String,
-    operator: &AstNode,
-    parameters_stmt: Option<&AstNode>,
-    ctx: &VisitorContext<'_>,
-) {
-    //This is skipped for most builtins, but we need to do it for arithmetic function overloads (date-time)
-    let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
-    let mut params = vec![];
-    let mut parameters = parameters.into_iter();
-
-    // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
-    // to annotate them with the correct type hint.
-    let operator_qualifier = annotator
-        .index
-        .find_implementation_by_name(operator_qualifier)
-        .map(|it| it.get_type_name())
-        .unwrap_or(operator_qualifier.as_str());
-
-    for m in annotator.index.get_declared_parameters(operator_qualifier).into_iter() {
-        if let Some(p) = parameters.next() {
-            let type_name = m.get_type_name();
-            if let Some((key, candidate)) =
-                TypeAnnotator::get_generic_candidate(annotator.index, &annotator.annotation_map, type_name, p)
-            {
-                generics_candidates
-                    .entry(key.to_string())
-                    .or_insert_with(std::vec::Vec::new)
-                    .push(candidate.to_string())
-            } else {
-                params.push((p, type_name.to_string()))
-            }
-        }
-    }
-
-    //We possibly did not consume all parameters, see if the variadic arguments are derivable
-    match annotator.index.find_pou(operator_qualifier) {
-        Some(pou) if pou.is_variadic() => {
-            //get variadic argument type, if it is generic, update the generic candidates
-            if let Some(type_name) =
-                annotator.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
-            {
-                for parameter in parameters {
-                    if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                        annotator.index,
-                        &annotator.annotation_map,
-                        type_name,
-                        parameter,
-                    ) {
-                        generics_candidates
-                            .entry(key.to_string())
-                            .or_insert_with(std::vec::Vec::new)
-                            .push(candidate.to_string())
-                    } else {
-                        // intrinsic type promotion for variadics in order to be compatible with the C standard.
-                        // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
-                        // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
-                        // for more about default argument promotion.
-
-                        // varargs without a type declaration will be annotated "VOID", so in order to check if a
-                        // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
-                        // types, we promote if the type is smaller than double/i32 (except for booleans).
-                        let type_name = if let Some(data_type) =
-                            annotator.annotation_map.get_type(parameter, annotator.index)
-                        {
-                            match &data_type.information {
-                                DataTypeInformation::Float { .. } => get_bigger_type(
-                                    data_type,
-                                    annotator.index.get_type_or_panic(LREAL_TYPE),
-                                    annotator.index,
-                                )
-                                .get_name(),
-                                DataTypeInformation::Integer { .. } if !&data_type.information.is_bool() => {
-                                    get_bigger_type(
-                                        data_type,
-                                        annotator.index.get_type_or_panic(DINT_TYPE),
-                                        annotator.index,
-                                    )
-                                    .get_name()
-                                }
-                                _ => type_name,
-                            }
-                        } else {
-                            // default to original type in case no type could be found
-                            // and let the validator handle situations that might lead here
-                            type_name
-                        };
-
-                        params.push((parameter, type_name.to_string()));
-                    }
-                }
-            }
-        }
-        _ => {}
-    }
-    for (p, name) in params {
-        annotator.annotate_parameters(p, &name);
-    }
-    //Attempt to resolve the generic signature here
-    annotator.update_generic_call_statement(
-        generics_candidates,
-        operator_qualifier,
-        operator,
-        parameters_stmt,
-        ctx.to_owned(),
-    );
-}
-
 fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
     match access {
         DirectAccessType::Bit => BOOL_TYPE,
@@ -2122,7 +2004,7 @@ fn get_int_type_name_for(value: i128) -> &'static str {
 
 fn get_real_type_name_for(value: &str) -> &'static str {
     let parsed = value.parse::<f32>().unwrap_or(f32::INFINITY);
-    if parsed == f32::INFINITY || parsed == f32::NEG_INFINITY {
+    if parsed.is_infinite() {
         return LREAL_TYPE;
     }
 

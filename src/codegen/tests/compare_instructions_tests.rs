@@ -367,7 +367,7 @@ fn compare_instruction_functions_with_different_types() {
             LT(var_lint, a);
             GT(a, var_sint);
             LT(b, var_lint);
-            NE(SINT#5, b);
+            NE(SINT#5, b, 17);
 
             LE(ptr_float, var_usint);
             EQ(a, ptr_float);
@@ -375,6 +375,24 @@ fn compare_instruction_functions_with_different_types() {
             NE(foo(), 40.5);
             LE(var_udint, foo());
             EQ(foo(), var_lint);
+        END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn compare_datetime_types() {
+    let result = codegen(
+        "
+        PROGRAM main
+        VAR
+            var_time: TIME;
+            var_time_of_day: TIME_OF_DAY;
+            var_date: DATE;
+            var_date_and_time: DATE_AND_TIME;
+        END_VAR
+            GT(var_time, var_time_of_day, var_date, var_date_and_time);
         END_PROGRAM
         ",
     );

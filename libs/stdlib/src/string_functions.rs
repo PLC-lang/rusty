@@ -1,7 +1,6 @@
 use std::{
     char::{decode_utf16, DecodeUtf16Error},
     cmp::Ordering,
-    ffi::CStr,
 };
 
 use num::PrimInt;
