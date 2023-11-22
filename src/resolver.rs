@@ -444,15 +444,9 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    /// constructs a new StatementAnnotation::Value with the given type_name
-    /// this is a convinience method to take a &str and clones it itself
-    pub fn value(type_name: &str) -> Self {
-        StatementAnnotation::new_value(type_name.to_string())
-    }
-
-    /// constructs a new StatementAnnotation::Value with the given type_name
-    pub fn new_value(type_name: String) -> Self {
-        StatementAnnotation::Value { resulting_type: type_name }
+    /// Constructs a new [`StatementAnnotation::Value`] with the given type name
+    pub fn value(type_name: impl Into<String>) -> Self {
+        StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
     pub fn is_const(&self) -> bool {
@@ -1093,8 +1087,8 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::ExpressionList(expressions) => {
-                        let name = inner_data_type.get_name().to_string();
-                        let hint = StatementAnnotation::Value { resulting_type: name };
+                        let name = inner_data_type.get_name();
+                        let hint = StatementAnnotation::value(name);
 
                         for expression in expressions {
                             self.annotation_map.annotate_type_hint(expression, hint.clone());
@@ -1108,14 +1102,19 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
-                        let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt()
-                        else {
-                            return;
-                        };
-                        let Some(elements) = array.elements() else { return };
+                        if let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() {
+                            let Some(elements) = array.elements() else { return };
 
-                        if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
-                            self.type_hint_for_array_of_structs(&datatype, elements, &ctx);
+                            if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
+                                self.type_hint_for_array_of_structs(&datatype, elements, &ctx);
+                            }
+                        }
+
+                        // https://github.com/PLC-lang/rusty/issues/1019
+                        if inner_data_type.information.is_struct() {
+                            let name = inner_data_type.get_name();
+                            let hint = StatementAnnotation::value(name);
+                            self.annotation_map.annotate_type_hint(statement, hint);
                         }
                     }
 
@@ -1303,11 +1302,11 @@ impl<'i> TypeAnnotator<'i> {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 visit_all_statements!(self, &ctx, &data.index);
                 let access_type = get_direct_access_type(&data.access);
-                self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                self.annotate(statement, StatementAnnotation::value(access_type));
             }
             AstStatement::HardwareAccess(data, ..) => {
                 let access_type = get_direct_access_type(&data.access);
-                self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                self.annotate(statement, StatementAnnotation::value(access_type));
             }
             AstStatement::BinaryExpression(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);
@@ -1400,7 +1399,7 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 if let Some(statement_type) = statement_type {
-                    self.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    self.annotate(statement, StatementAnnotation::value(statement_type));
                 }
             }
             AstStatement::UnaryExpression(data, ..) => {
@@ -1424,7 +1423,7 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 if let Some(statement_type) = statement_type {
-                    self.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    self.annotate(statement, StatementAnnotation::value(statement_type));
                 }
             }
 
@@ -1508,7 +1507,7 @@ impl<'i> TypeAnnotator<'i> {
                     vec![]
                 };
                 for (stmt, annotation) in statement_to_annotation {
-                    self.annotate(stmt, StatementAnnotation::new_value(annotation));
+                    self.annotate(stmt, StatementAnnotation::value(annotation));
                 }
             }
             AstStatement::ReferenceExpr(data, ..) => {
@@ -1628,7 +1627,7 @@ impl<'i> TypeAnnotator<'i> {
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index).get_name().to_string())
                 {
                     let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type);
-                    self.annotate(stmt, StatementAnnotation::new_value(ptr_type))
+                    self.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
             _ => {}
@@ -1829,7 +1828,7 @@ impl<'i> TypeAnnotator<'i> {
                     AstLiteral::String(StringValue { is_wide, value, .. }) => {
                         let string_type_name =
                             register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
-                        self.annotate(statement, StatementAnnotation::new_value(string_type_name));
+                        self.annotate(statement, StatementAnnotation::value(string_type_name));
 
                         //collect literals so we can generate global constants later
                         if ctx.is_in_a_body() {

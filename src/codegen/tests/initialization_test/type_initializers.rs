@@ -604,5 +604,35 @@ fn enums_with_inline_initializer_are_initialized() {
         END_FUNCTION
         "#,
     );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
+    let res = codegen(
+        r#"
+        TYPE STRUCT1 : STRUCT
+            idx: DINT;
+            arr: ARRAY[1..2] OF STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+            x: DINT;
+            y: DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR
+                var_init1 : ARRAY[1..3] OF STRUCT1 := [
+                    (idx := 0, arr := [(x := 1)]),
+                    (idx := 2, arr := [(x := 1, y := 1)]),
+                    (idx := 1, arr := [(x := 1), (y := 2)])
+                ];
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
     insta::assert_snapshot!(res);
 }
