@@ -31,8 +31,8 @@ pub(super) fn validate_array_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     wrapper: Wrapper,
 ) {
-    let Some(lhs_type) = wrapper.datatype_info_lhs(context) else { return };
-    let Some(rhs_stmt) = wrapper.get_rhs() else { return };
+    let Some(lhs_type) = wrapper.datatype_info_lhs(context) else { return; };
+    let Some(rhs_stmt) = wrapper.get_rhs() else { return; };
 
     if !lhs_type.is_array() {
         return;
@@ -71,16 +71,29 @@ fn validate_array_of_structs<T: AnnotationMap>(
     lhs_type: &DataTypeInformation,
     rhs_stmt: &AstNode,
 ) {
-    let Some(array_type_name) = lhs_type.get_inner_array_type_name() else { return };
-    let Some(dti) = context.index.find_effective_type_by_name(array_type_name) else { return };
+    let Some(array_type_name) = lhs_type.get_inner_array_type_name() else { return; };
+    let Some(dti) = context.index.find_effective_type_by_name(array_type_name) else { return; };
 
-    if dti.is_struct() {
-        let AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() else { return };
-        let Some(AstStatement::ExpressionList(expressions)) = array.elements().map(AstNode::get_stmt) else { return };
+    if !dti.is_struct() {
+        return;
+    }
 
-        for invalid in expressions.iter().filter(|it| !it.is_paren()) {
-            validator.push_diagnostic(Diagnostic::array_struct_assignment(invalid.get_location()));
+    let AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() else { return; };
+    let Some(elements) = array.elements().map(AstNode::get_stmt) else { return; };
+
+    match elements {
+        AstStatement::ExpressionList(expressions) => {
+            for invalid in expressions.iter().filter(|it| !it.is_paren()) {
+                validator.push_diagnostic(Diagnostic::array_struct_assignment(invalid.get_location()));
+            }
         }
+
+        // arr := [foo := 0]
+        AstStatement::Assignment(..) => {
+            validator.push_diagnostic(Diagnostic::array_struct_assignment(rhs_stmt.get_location()));
+        }
+
+        _ => (),
     }
 }
 
@@ -126,7 +139,7 @@ impl<'a> Wrapper<'a> {
     {
         match self {
             Wrapper::Statement(statement) => {
-                let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else { return None };
+                let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else { return None; };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
