@@ -132,39 +132,39 @@
     ( <span class="macro-nonterminal">$st_type</span>:tt, <span class="macro-nonterminal">$t</span>:ty ) =&gt; {
         <span class="macro">paste! </span>{
             <span class="doccomment">/// .
-            /// Converts given integer type from little endian data format to big endian data format
+            /// Converts given integer type from native endian data format to big endian data format
             ///
             </span><span class="attr">#[allow(non_snake_case)]
             #[no_mangle]
             </span><span class="kw">pub fn </span>[&lt;TO_BIG_ENDIAN__ <span class="macro-nonterminal">$st_type</span>&gt;](input: <span class="macro-nonterminal">$t</span>) -&gt; <span class="macro-nonterminal">$t </span>{
-                <span class="kw">return </span>input.to_be();
+                input.to_be()
             }
 
             <span class="doccomment">/// .
-            /// Converts given integer type from big endian data format to little endian data format
+            /// Converts given integer type from native endian data format to little endian data format
             ///
             </span><span class="attr">#[allow(non_snake_case)]
             #[no_mangle]
             </span><span class="kw">pub fn </span>[&lt;TO_LITTLE_ENDIAN__ <span class="macro-nonterminal">$st_type</span>&gt;](input: <span class="macro-nonterminal">$t</span>) -&gt; <span class="macro-nonterminal">$t </span>{
-                <span class="kw">return </span>input.to_le();
+                input.to_le()
             }
 
             <span class="doccomment">/// .
-            /// Converts given integer type from big endian data format to little endian data format
+            /// Converts given integer type from big endian data format to native endian data format
             ///
             </span><span class="attr">#[allow(non_snake_case)]
             #[no_mangle]
             </span><span class="kw">pub fn </span>[&lt;FROM_BIG_ENDIAN__ <span class="macro-nonterminal">$st_type</span>&gt;](input: <span class="macro-nonterminal">$t</span>) -&gt; <span class="macro-nonterminal">$t </span>{
-                <span class="kw">return </span>input.to_le();
+                &lt;<span class="macro-nonterminal">$t</span>&gt;::from_be(input)
             }
 
             <span class="doccomment">/// .
-            /// Converts given integer type from little endian data format to big endian data format
+            /// Converts given integer type from little endian data format to native endian data format
             ///
             </span><span class="attr">#[allow(non_snake_case)]
             #[no_mangle]
             </span><span class="kw">pub fn </span>[&lt;FROM_LITTLE_ENDIAN__ <span class="macro-nonterminal">$st_type</span>&gt;](input: <span class="macro-nonterminal">$t</span>) -&gt; <span class="macro-nonterminal">$t </span>{
-                <span class="kw">return </span>input.to_be();
+                &lt;<span class="macro-nonterminal">$t</span>&gt;::from_le(input)
             }
         }
     };
@@ -186,74 +186,74 @@
 <span class="macro">define_endianness_for_int_types!</span>(DATE_AND_TIME, i64);
 
 <span class="doccomment">/// .
-/// Converts given f32 from little endian data format to big endian data format
+/// Converts given f32 from native endian data format to big endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>TO_BIG_ENDIAN__REAL(input: f32) -&gt; f32 {
-    f32::from_be_bytes(input.to_be_bytes())
+    f32::from_ne_bytes(input.to_be_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f32 from big endian data format to little endian data format
+/// Converts given f32 from native endian data format to little endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>TO_LITTLE_ENDIAN__REAL(input: f32) -&gt; f32 {
-    f32::from_le_bytes(input.to_le_bytes())
+    f32::from_ne_bytes(input.to_le_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f32 from big endian data format to little endian data format
+/// Converts given f32 from big endian data format to native endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>FROM_BIG_ENDIAN__REAL(input: f32) -&gt; f32 {
-    f32::from_le_bytes(input.to_le_bytes())
+    f32::from_be_bytes(input.to_ne_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f32 from little endian data format to big endian data format
+/// Converts given f32 from little endian data format to native endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>FROM_LITTLE_ENDIAN__REAL(input: f32) -&gt; f32 {
-    f32::from_be_bytes(input.to_be_bytes())
+    f32::from_le_bytes(input.to_ne_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f64 from little endian data format to big endian data format
+/// Converts given f64 from native endian data format to big endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>TO_BIG_ENDIAN__LREAL(input: f64) -&gt; f64 {
-    f64::from_be_bytes(input.to_be_bytes())
+    f64::from_ne_bytes(input.to_be_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f64 from big endian data format to little endian data format
+/// Converts given f64 from native endian data format to little endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>TO_LITTLE_ENDIAN__LREAL(input: f64) -&gt; f64 {
-    f64::from_le_bytes(input.to_le_bytes())
+    f64::from_ne_bytes(input.to_le_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f64 from big endian data format to little endian data format
+/// Converts given f64 from big endian data format to native endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>FROM_BIG_ENDIAN__LREAL(input: f64) -&gt; f64 {
-    f64::from_le_bytes(input.to_le_bytes())
+    f64::from_be_bytes(input.to_ne_bytes())
 }
 
 <span class="doccomment">/// .
-/// Converts given f64 from little endian data format to big endian data format
+/// Converts given f64 from little endian data format to native endian data format
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
 </span><span class="kw">pub fn </span>FROM_LITTLE_ENDIAN__LREAL(input: f64) -&gt; f64 {
-    f64::from_be_bytes(input.to_be_bytes())
+    f64::from_le_bytes(input.to_ne_bytes())
 }
 </code></pre></div></section></main></body></html>
