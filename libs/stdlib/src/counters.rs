@@ -17,15 +17,15 @@ impl<T> CTUParams<T>
 where
     T: Integer + Copy,
 {
-    unsafe fn update_q(&mut self) {
+    fn update_q(&mut self) {
         self.q = self.cv >= self.pv
     }
 
-    unsafe fn reset(&mut self) {
+    fn reset(&mut self) {
         self.cv = Zero::zero()
     }
 
-    unsafe fn inc(&mut self) {
+    fn inc(&mut self) {
         self.cv = self.cv + One::one();
     }
 
@@ -34,7 +34,7 @@ where
     }
 }
 
-unsafe fn ctu<T>(params: &mut CTUParams<T>)
+fn ctu<T>(params: &mut CTUParams<T>)
 where
     T: Integer + Copy + Bounded,
 {
@@ -49,72 +49,54 @@ where
 ///.
 /// Counter up for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU(params: &mut CTUParams<i16>) {
+pub extern "C" fn CTU(params: &mut CTUParams<i16>) {
     ctu(params);
 }
 
 ///.
 /// Counter up for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU_INT(params: &mut CTUParams<i16>) {
+pub extern "C" fn CTU_INT(params: &mut CTUParams<i16>) {
     ctu(params);
 }
 
 ///.
 /// Counter up for DINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU_DINT(params: &mut CTUParams<i32>) {
+pub extern "C" fn CTU_DINT(params: &mut CTUParams<i32>) {
     ctu(params);
 }
 
 ///.
 /// Counter up for DINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU_UDINT(params: &mut CTUParams<u32>) {
+pub extern "C" fn CTU_UDINT(params: &mut CTUParams<u32>) {
     ctu(params);
 }
 
 ///.
 /// Counter up for LINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU_LINT(params: &mut CTUParams<i64>) {
+pub extern "C" fn CTU_LINT(params: &mut CTUParams<i64>) {
     ctu(params);
 }
 
 ///.
 /// Counter up for ULINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTU_ULINT(params: &mut CTUParams<u64>) {
+pub extern "C" fn CTU_ULINT(params: &mut CTUParams<u64>) {
     ctu(params);
 }
 
@@ -133,15 +115,15 @@ impl<T> CTDParams<T>
 where
     T: Integer + Copy,
 {
-    unsafe fn update_q(&mut self) {
+    fn update_q(&mut self) {
         self.q = self.cv <= Zero::zero()
     }
 
-    unsafe fn load(&mut self) {
+    fn load(&mut self) {
         self.cv = self.pv
     }
 
-    unsafe fn dec(&mut self) {
+    fn dec(&mut self) {
         self.cv = self.cv - One::one();
     }
 
@@ -150,7 +132,7 @@ where
     }
 }
 
-unsafe fn ctd<T>(params: &mut CTDParams<T>)
+fn ctd<T>(params: &mut CTDParams<T>)
 where
     T: Integer + Copy + Bounded,
 {
@@ -165,72 +147,54 @@ where
 ///.
 /// Counter down for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD(params: &mut CTDParams<i16>) {
+pub extern "C" fn CTD(params: &mut CTDParams<i16>) {
     ctd(params);
 }
 
 ///.
 /// Counter down for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD_INT(params: &mut CTDParams<i16>) {
+pub extern "C" fn CTD_INT(params: &mut CTDParams<i16>) {
     ctd(params);
 }
 
 ///.
 /// Counter down for DINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD_DINT(params: &mut CTDParams<i32>) {
+pub extern "C" fn CTD_DINT(params: &mut CTDParams<i32>) {
     ctd(params);
 }
 
 ///.
 /// Counter down for UDINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD_UDINT(params: &mut CTDParams<u32>) {
+pub extern "C" fn CTD_UDINT(params: &mut CTDParams<u32>) {
     ctd(params);
 }
 
 ///.
 /// Counter down for LINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD_LINT(params: &mut CTDParams<i64>) {
+pub extern "C" fn CTD_LINT(params: &mut CTDParams<i64>) {
     ctd(params);
 }
 
 ///.
 /// Counter down for ULINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTD_ULINT(params: &mut CTDParams<u64>) {
+pub extern "C" fn CTD_ULINT(params: &mut CTDParams<u64>) {
     ctd(params);
 }
 
@@ -253,27 +217,27 @@ impl<T> CTUDParams<T>
 where
     T: Integer + Copy,
 {
-    unsafe fn update_qu(&mut self) {
+    fn update_qu(&mut self) {
         self.qu = self.cv >= self.pv
     }
 
-    unsafe fn update_qd(&mut self) {
+    fn update_qd(&mut self) {
         self.qd = self.cv <= Zero::zero()
     }
 
-    unsafe fn reset(&mut self) {
+    fn reset(&mut self) {
         self.cv = Zero::zero()
     }
 
-    unsafe fn load(&mut self) {
+    fn load(&mut self) {
         self.cv = self.pv
     }
 
-    unsafe fn inc(&mut self) {
+    fn inc(&mut self) {
         self.cv = self.cv + One::one();
     }
 
-    unsafe fn dec(&mut self) {
+    fn dec(&mut self) {
         self.cv = self.cv - One::one();
     }
 
@@ -286,7 +250,7 @@ where
     }
 }
 
-unsafe fn ctud<T>(params: &mut CTUDParams<T>)
+fn ctud<T>(params: &mut CTUDParams<T>)
 where
     T: Integer + Copy + Bounded,
 {
@@ -312,71 +276,53 @@ where
 ///.
 /// Counter up and down for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD(params: &mut CTUDParams<i16>) {
+pub extern "C" fn CTUD(params: &mut CTUDParams<i16>) {
     ctud(params);
 }
 
 ///.
 /// Counter up and down for INT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD_INT(params: &mut CTUDParams<i16>) {
+pub extern "C" fn CTUD_INT(params: &mut CTUDParams<i16>) {
     ctud(params);
 }
 
 ///.
 /// Counter up and down for DINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD_DINT(params: &mut CTUDParams<i32>) {
+pub extern "C" fn CTUD_DINT(params: &mut CTUDParams<i32>) {
     ctud(params);
 }
 
 ///.
 /// Counter up and down for UDINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD_UDINT(params: &mut CTUDParams<u32>) {
+pub extern "C" fn CTUD_UDINT(params: &mut CTUDParams<u32>) {
     ctud(params);
 }
 
 ///.
 /// Counter up and down for LINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD_LINT(params: &mut CTUDParams<i64>) {
+pub extern "C" fn CTUD_LINT(params: &mut CTUDParams<i64>) {
     ctud(params);
 }
 
 ///.
 /// Counter up and down for ULINT
 ///
-/// # Safety
-/// Working with raw pointers
-///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CTUD_ULINT(params: &mut CTUDParams<u64>) {
+pub extern "C" fn CTUD_ULINT(params: &mut CTUDParams<u64>) {
     ctud(params);
 }
