@@ -3,39 +3,39 @@ macro_rules! define_endianness_for_int_types {
     ( $st_type:tt, $t:ty ) => {
         paste! {
             /// .
-            /// Converts given integer type from little endian data format to big endian data format
+            /// Converts given integer type from native endian data format to big endian data format
             ///
             #[allow(non_snake_case)]
             #[no_mangle]
             pub fn [<TO_BIG_ENDIAN__ $st_type>](input: $t) -> $t {
-                return input.to_be();
+                input.to_be()
             }
 
             /// .
-            /// Converts given integer type from big endian data format to little endian data format
+            /// Converts given integer type from native endian data format to little endian data format
             ///
             #[allow(non_snake_case)]
             #[no_mangle]
             pub fn [<TO_LITTLE_ENDIAN__ $st_type>](input: $t) -> $t {
-                return input.to_le();
+                input.to_le()
             }
 
             /// .
-            /// Converts given integer type from big endian data format to little endian data format
+            /// Converts given integer type from big endian data format to native endian data format
             ///
             #[allow(non_snake_case)]
             #[no_mangle]
             pub fn [<FROM_BIG_ENDIAN__ $st_type>](input: $t) -> $t {
-                return input.to_le();
+                <$t>::from_be(input)
             }
 
             /// .
-            /// Converts given integer type from little endian data format to big endian data format
+            /// Converts given integer type from little endian data format to native endian data format
             ///
             #[allow(non_snake_case)]
             #[no_mangle]
             pub fn [<FROM_LITTLE_ENDIAN__ $st_type>](input: $t) -> $t {
-                return input.to_be();
+                <$t>::from_le(input)
             }
         }
     };
@@ -57,73 +57,73 @@ define_endianness_for_int_types!(TIME_OF_DAY, i64);
 define_endianness_for_int_types!(DATE_AND_TIME, i64);
 
 /// .
-/// Converts given f32 from little endian data format to big endian data format
+/// Converts given f32 from native endian data format to big endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn TO_BIG_ENDIAN__REAL(input: f32) -> f32 {
-    f32::from_be_bytes(input.to_be_bytes())
+    f32::from_ne_bytes(input.to_be_bytes())
 }
 
 /// .
-/// Converts given f32 from big endian data format to little endian data format
+/// Converts given f32 from native endian data format to little endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn TO_LITTLE_ENDIAN__REAL(input: f32) -> f32 {
-    f32::from_le_bytes(input.to_le_bytes())
+    f32::from_ne_bytes(input.to_le_bytes())
 }
 
 /// .
-/// Converts given f32 from big endian data format to little endian data format
+/// Converts given f32 from big endian data format to native endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn FROM_BIG_ENDIAN__REAL(input: f32) -> f32 {
-    f32::from_le_bytes(input.to_le_bytes())
+    f32::from_be_bytes(input.to_ne_bytes())
 }
 
 /// .
-/// Converts given f32 from little endian data format to big endian data format
+/// Converts given f32 from little endian data format to native endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn FROM_LITTLE_ENDIAN__REAL(input: f32) -> f32 {
-    f32::from_be_bytes(input.to_be_bytes())
+    f32::from_le_bytes(input.to_ne_bytes())
 }
 
 /// .
-/// Converts given f64 from little endian data format to big endian data format
+/// Converts given f64 from native endian data format to big endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn TO_BIG_ENDIAN__LREAL(input: f64) -> f64 {
-    f64::from_be_bytes(input.to_be_bytes())
+    f64::from_ne_bytes(input.to_be_bytes())
 }
 
 /// .
-/// Converts given f64 from big endian data format to little endian data format
+/// Converts given f64 from native endian data format to little endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn TO_LITTLE_ENDIAN__LREAL(input: f64) -> f64 {
-    f64::from_le_bytes(input.to_le_bytes())
+    f64::from_ne_bytes(input.to_le_bytes())
 }
 
 /// .
-/// Converts given f64 from big endian data format to little endian data format
+/// Converts given f64 from big endian data format to native endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn FROM_BIG_ENDIAN__LREAL(input: f64) -> f64 {
-    f64::from_le_bytes(input.to_le_bytes())
+    f64::from_be_bytes(input.to_ne_bytes())
 }
 
 /// .
-/// Converts given f64 from little endian data format to big endian data format
+/// Converts given f64 from little endian data format to native endian data format
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn FROM_LITTLE_ENDIAN__LREAL(input: f64) -> f64 {
-    f64::from_be_bytes(input.to_be_bytes())
+    f64::from_le_bytes(input.to_ne_bytes())
 }
