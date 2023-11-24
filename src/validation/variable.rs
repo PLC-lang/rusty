@@ -43,7 +43,6 @@ pub fn visit_variable<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     validate_variable(validator, variable, context);
-
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
 }
 
