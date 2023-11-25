@@ -56,7 +56,8 @@ fn ldt_to_dt_conversion() {
             .unwrap()
             .and_hms_opt(22, 33, 14)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -71,7 +72,12 @@ fn ldt_to_date_conversion() {
     let res: i64 = compile_and_run(sources, &mut maintype);
     assert_eq!(
         res,
-        chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -90,7 +96,8 @@ fn ldt_to_ltod_conversion() {
             .unwrap()
             .and_hms_nano_opt(15, 36, 30, 123456000)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -109,7 +116,8 @@ fn ldt_to_tod_conversion() {
             .unwrap()
             .and_hms_milli_opt(20, 15, 11, 543)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -128,7 +136,8 @@ fn dt_to_ldt_conversion() {
             .unwrap()
             .and_hms_opt(22, 33, 14)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -143,7 +152,12 @@ fn dt_to_date_conversion() {
     let res: i64 = compile_and_run(sources, &mut maintype);
     assert_eq!(
         res,
-        chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap().timestamp_nanos()
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -162,7 +176,8 @@ fn dt_to_ltod_conversion() {
             .unwrap()
             .and_hms_milli_opt(15, 36, 30, 123)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -181,7 +196,8 @@ fn dt_to_tod_conversion() {
             .unwrap()
             .and_hms_milli_opt(20, 15, 11, 543)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -200,7 +216,8 @@ fn ltod_to_tod_conversion() {
             .unwrap()
             .and_hms_opt(10, 20, 30)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }
 
@@ -219,6 +236,7 @@ fn tod_to_ltod_conversion() {
             .unwrap()
             .and_hms_opt(10, 20, 30)
             .unwrap()
-            .timestamp_nanos()
+            .timestamp_nanos_opt()
+            .unwrap()
     );
 }

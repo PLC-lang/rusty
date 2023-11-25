@@ -44,9 +44,9 @@ fn add_time() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms(5, 0, 30).timestamp_nanos());
-    assert_eq!(maintype.b, get_time_from_hms(0, 0, 5).timestamp_nanos());
-    let time_20s = get_time_from_hms(0, 0, 20).timestamp_nanos();
+    assert_eq!(maintype.a, get_time_from_hms(5, 0, 30).timestamp_nanos_opt().unwrap());
+    assert_eq!(maintype.b, get_time_from_hms(0, 0, 5).timestamp_nanos_opt().unwrap());
+    let time_20s = get_time_from_hms(0, 0, 20).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.c, -time_20s); // -20 seconds
     assert_eq!(maintype.d, time_20s);
 }
@@ -69,10 +69,10 @@ fn add_tod_time() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    let tod_20h_1s = get_time_from_hms(20, 0, 1).timestamp_nanos();
+    let tod_20h_1s = get_time_from_hms(20, 0, 1).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, tod_20h_1s);
     assert_eq!(maintype.b, tod_20h_1s);
-    let tod_12h12m12s = get_time_from_hms(12, 12, 12).timestamp_nanos();
+    let tod_12h12m12s = get_time_from_hms(12, 12, 12).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.c, tod_12h12m12s);
     assert_eq!(maintype.d, tod_12h12m12s);
 }
@@ -99,7 +99,8 @@ fn add_dt_time() {
         .unwrap()
         .and_hms_milli_opt(12, 12, 12, 123)
         .unwrap()
-        .timestamp_nanos();
+        .timestamp_nanos_opt()
+        .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_2d_12h_12m_12s_123ms);
     assert_eq!(maintype.b, dt_2000y_1m_2d_12h_12m_12s_123ms);
     assert_eq!(maintype.c, dt_2000y_1m_2d_12h_12m_12s_123ms);
@@ -141,8 +142,8 @@ fn sub_time() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms(11, 0, 0).timestamp_nanos());
-    let time_4h_30m = get_time_from_hms(4, 30, 0).timestamp_nanos();
+    assert_eq!(maintype.a, get_time_from_hms(11, 0, 0).timestamp_nanos_opt().unwrap());
+    let time_4h_30m = get_time_from_hms(4, 30, 0).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, time_4h_30m);
     assert_eq!(maintype.c, time_4h_30m);
     assert_eq!(maintype.d, time_4h_30m);
@@ -193,7 +194,7 @@ fn sub_tod_time() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    let tod_20h = get_time_from_hms(20, 0, 0).timestamp_nanos();
+    let tod_20h = get_time_from_hms(20, 0, 0).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, tod_20h);
     assert_eq!(maintype.b, tod_20h);
     assert_eq!(maintype.c, tod_20h);
@@ -218,7 +219,7 @@ fn sub_tod() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    let time_20h = get_time_from_hms(20, 0, 0).timestamp_nanos();
+    let time_20h = get_time_from_hms(20, 0, 0).timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, time_20h);
     assert_eq!(maintype.a, time_20h);
     assert_eq!(maintype.a, time_20h);
@@ -243,8 +244,12 @@ fn sub_dt_time() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    let dt_2000y_1m_1d_20h =
-        chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap().and_hms_opt(20, 0, 0).unwrap().timestamp_nanos();
+    let dt_2000y_1m_1d_20h = chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
+        .unwrap()
+        .and_hms_opt(20, 0, 0)
+        .unwrap()
+        .timestamp_nanos_opt()
+        .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_1d_20h);
     assert_eq!(maintype.b, dt_2000y_1m_1d_20h);
     assert_eq!(maintype.c, dt_2000y_1m_1d_20h);
@@ -272,7 +277,8 @@ fn sub_dt() {
     let time_1d_11h_22m_33s_444ms = get_time_from_hms_milli(11, 22, 33, 444)
         .checked_add_signed(chrono::Duration::days(1))
         .unwrap()
-        .timestamp_nanos();
+        .timestamp_nanos_opt()
+        .unwrap();
     assert_eq!(maintype.a, time_1d_11h_22m_33s_444ms);
     assert_eq!(maintype.b, time_1d_11h_22m_33s_444ms);
     assert_eq!(maintype.c, time_1d_11h_22m_33s_444ms);
@@ -980,7 +986,7 @@ fn date_time_overloaded_add_and_numerical_add_compile_correctly() {
     let sources = add_std!(src, "date_time_numeric_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    let tod_23h_56m = get_time_from_hms(23, 56, 0).timestamp_nanos();
+    let tod_23h_56m = get_time_from_hms(23, 56, 0).timestamp_nanos_opt().unwrap();
 
     assert_eq!(tod_23h_56m, maintype.a);
     assert_eq!(18.0, maintype.b);
