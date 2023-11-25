@@ -27,6 +27,7 @@
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"bungcip.better-toml",
+				"editorconfig.editorconfig",
 				"vadimcn.vscode-lldb",
 				"mutantdino.resourcemonitor",
 				"rust-lang.rust-analyzer"
