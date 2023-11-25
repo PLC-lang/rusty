@@ -1182,7 +1182,7 @@ fn intial_values_diverge_from_type() {
     arr_var := target.arr_var;
     i := target.i;
     END_PROGRAM
-		";
+    ";
     #[allow(dead_code)]
     struct MainType {
         arr: [i32; 4],
@@ -1215,7 +1215,7 @@ fn initial_value_of_function_return_dint() {
     
     i := target();
     END_PROGRAM
-		";
+    ";
     #[allow(dead_code)]
     struct MainType {
         i: i32,
@@ -1246,7 +1246,7 @@ fn initial_value_of_function_return_array() {
     END_VAR
         arr := target();
     END_PROGRAM
-		";
+    ";
 
     #[allow(dead_code)]
     #[repr(C)]
@@ -1294,7 +1294,7 @@ fn initial_value_of_function_return_struct() {
         b := str.b;
         c := str.c;
     END_PROGRAM
-		";
+    ";
 
     #[allow(dead_code)]
     struct MainType {

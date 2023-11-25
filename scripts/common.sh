@@ -20,8 +20,8 @@ function check_env() {
 
 	! getopt --test > /dev/null  
 	if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
-			echo 'Error:  extended getopts needed'
-			exit 1
+		echo 'Error:  extended getopts needed'
+		exit 1
 	fi
 }
 
@@ -54,13 +54,13 @@ function get_container_engine() {
 		container_engine=docker
 	else
 		>&2 log "Docker not found, trying podman"
-	  if command -v podman &> /dev/null 
-	  then
-	  	container_engine=podman
-	  else
-		  echo "Docker or podman not found"
-		  exit 1
-	  fi
+		if command -v podman &> /dev/null 
+		then
+			container_engine=podman
+		else
+			echo "Docker or podman not found"
+			exit 1
+		fi
 	fi
 	log "container engine found : $container_engine"
 	echo $container_engine

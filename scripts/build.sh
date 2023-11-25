@@ -313,18 +313,18 @@ function run_in_container() {
 	fi
 
 	volume_target="/build"
-  unameOut="$(uname -s)"
-  case "${unameOut}" in
-  		Linux*)     
-				volume_target="/build"
-				;;
-  		MINGW* | cygwin*)     
-				volume_target="C:\\\\build"
-				;;
-			*)
-				echo "Unsupported os $unameOut"
-				exit 1
-  esac
+	unameOut="$(uname -s)"
+	case "${unameOut}" in
+		Linux*)     
+			volume_target="/build"
+			;;
+		MINGW* | cygwin*)     
+			volume_target="C:\\\\build"
+			;;
+		*)
+			echo "Unsupported os $unameOut"
+			exit 1
+	esac
 
 	build_location=$(sanitize_path "$project_location")
 	log "Sanitized Project location : $project_location"
@@ -345,74 +345,74 @@ check_env
 # -pass arguments only via   -- "$@"   to separate them correctly
 ! PARSED=$(getopt --options="$OPTIONS" --longoptions="$LONGOPTS" --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-		exit 2
+	exit 2
 fi
 
 # read getopt’s output this way to handle the quoting right:
 eval set -- "$PARSED"
 
 while true; do
-		case "$1" in
-			-s|--sources)
-					vendor=1
-					;;
-			-o|--offline)
-					offline=1
-					;;
-			-r|--release)
-					release=1
-					;;
-			-v|--verbose)
-					debug=1
-					;;
-			-c|--container)
-					container=1
-					;;
-			--container-name)
-					shift;
-					CONTAINER_NAME=$1
-					;;
-			--linux)
-					assume_linux=1
-					;;
-			--check-style)
-				  check_style=1
-					;;
-			--doc)
-					doc=1
-					;;
-			--check)
-				  check=1
-					;;
-			-b|--build)
-				  build=1
-					;;
-			--test)
-				  test=1
-					;;
-			--junit)
-					junit=1
-					;;
-			--coverage)
-					coverage=1
-					;;
-			--package)
-					package=1
-					;;
-			--target)
-					shift
-					target=$1
-					;;
-			--)
-					shift
-					break
-					;;
-			*)
-					echo "Programming error"
-					exit 3
-					;;
-		esac
-		shift
+	case "$1" in
+		-s|--sources)
+			vendor=1
+			;;
+		-o|--offline)
+			offline=1
+			;;
+		-r|--release)
+			release=1
+			;;
+		-v|--verbose)
+			debug=1
+			;;
+		-c|--container)
+			container=1
+			;;
+		--container-name)
+			shift;
+			CONTAINER_NAME=$1
+			;;
+		--linux)
+			assume_linux=1
+			;;
+		--check-style)
+			check_style=1
+			;;
+		--doc)
+			doc=1
+			;;
+		--check)
+			check=1
+			;;
+		-b|--build)
+			build=1
+			;;
+		--test)
+			test=1
+			;;
+		--junit)
+			junit=1
+			;;
+		--coverage)
+			coverage=1
+			;;
+		--package)
+			package=1
+			;;
+		--target)
+			shift
+			target=$1
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Programming error"
+			exit 3
+			;;
+	esac
+	shift
 done
 
 project_location=$(find_project_root)

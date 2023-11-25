@@ -385,14 +385,14 @@ fn reference_call_array() {
             b_result_f : INT := 0;
             b_result_g : INT := 0;
             b_result_h : INT := 0;
-            b_result_i	: INT := 0;
-            b_result_j	: INT := 0;
-            b_result_k	: INT := 0;
-            b_result_l	: INT := 0;
-            b_result_m	: INT := 0;
-            b_result_n	: INT := 0;
-            b_result_o	: INT := 0;
-            b_result_p	: INT := 0;
+            b_result_i : INT := 0;
+            b_result_j : INT := 0;
+            b_result_k : INT := 0;
+            b_result_l : INT := 0;
+            b_result_m : INT := 0;
+            b_result_n : INT := 0;
+            b_result_o : INT := 0;
+            b_result_p : INT := 0;
         END_VAR
 
             ref_a := &a; ref_b := &b;

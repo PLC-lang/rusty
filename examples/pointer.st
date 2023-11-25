@@ -6,12 +6,12 @@ END_FUNCTION
 
 FUNCTION foo : DINT
 VAR
-				x : DINT;
-				s : MyStruct;
-				u,y : REF_TO DINT;
-				z : REF_TO REF_TO DINT;
-
+    x : DINT;
+    s : MyStruct;
+    u,y : REF_TO DINT;
+    z : REF_TO REF_TO DINT;
 END_VAR
+
 u := NULL;
 u := &s.x;
 y := u;

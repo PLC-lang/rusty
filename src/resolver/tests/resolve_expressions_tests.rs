@@ -2414,9 +2414,9 @@ fn struct_member_explicit_initialization_test() {
     let (unit, mut index) = index_with_ids(
         "FUNCTION main : DINT
 		VAR
-			x	 		: myStruct;
+			x : myStruct;
 		END_VAR
-			x	:= (var1 := 1, var2 := 7);
+			x := (var1 := 1, var2 := 7);
 		END_FUNCTION
 		
 		TYPE myStruct : STRUCT

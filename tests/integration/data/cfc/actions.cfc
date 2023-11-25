@@ -59,21 +59,21 @@ END_VAR</content>
     </actions>
     <body>
         <FBD>
-						<outVariable localId="3" height="20" width="80" executionOrderId="0" negated="false" storage="none">
-								<position x="570" y="100"/>
-								<connectionPointIn>
-										<relPosition x="0" y="10"/>
-										<connection refLocalId="4"/>
-								</connectionPointIn>
-								<expression>a</expression>
-						</outVariable>
-						<inVariable localId="4" height="20" width="80" negated="false">
-								<position x="420" y="100"/>
-								<connectionPointOut>
-										<relPosition x="80" y="10"/>
-								</connectionPointOut>
-								<expression>0</expression>
-						</inVariable>
+            <outVariable localId="3" height="20" width="80" executionOrderId="0" negated="false" storage="none">
+                    <position x="570" y="100"/>
+                    <connectionPointIn>
+                            <relPosition x="0" y="10"/>
+                            <connection refLocalId="4"/>
+                    </connectionPointIn>
+                    <expression>a</expression>
+            </outVariable>
+            <inVariable localId="4" height="20" width="80" negated="false">
+                    <position x="420" y="100"/>
+                    <connectionPointOut>
+                            <relPosition x="80" y="10"/>
+                    </connectionPointOut>
+                    <expression>0</expression>
+            </inVariable>
             <block localId="1" width="100" height="40" typeName="newAction" executionOrderId="1">
                 <position x="220" y="170"/>
                 <inputVariables/>

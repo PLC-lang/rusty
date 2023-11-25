@@ -13,7 +13,7 @@ END_VAR
 VAR_TEMP
 	y: DINT;
 END_VAR
-			</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>
