@@ -7287,7 +7287,7 @@ PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAMPROGRAM prg
 		a := b;
 END_PROGRAM
 PROGRAM a
-(* C�mment *)
+(* Comment *)
 END_PROGRAM
 PROGRAM a
     VAR
@@ -7309,7 +7309,7 @@ PROGRAM a
     END_VAR
 END_PROGRAM
 PROGRAM a
-(* Cömment *)
+(* Comment *)
 END_PROGRAM
 FUNCTION myFunc : DINT
 VAR_INPUT
