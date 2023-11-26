@@ -69,6 +69,7 @@ members = [
 	"compiler/plc_util",
 	"compiler/plc_xml",
 	"compiler/plc_derive",
+	"compiler/rustc_llvm",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
