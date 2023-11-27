@@ -1,8 +1,9 @@
-(********************
-*
-* Converts little endian data format to big endian data format
-*
-*********************)
+(******************************************************************************
+Description: Converts data to big endian format from native endian format.
+Input:
+  - in: The input value in native endian format.
+Return: The value converted to big endian format.
+******************************************************************************)
 {external}
 FUNCTION TO_BIG_ENDIAN<T: ANY> : T
 VAR_INPUT
@@ -10,11 +11,12 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
-(********************
-*
-* Converts big endian data format to little endian data format
-*
-*********************)
+(******************************************************************************
+Description: Converts data to little endian format from big endian format.
+Input:
+  - in: The input value in native endian format.
+Return: The value converted to little endian format.
+******************************************************************************)
 {external}
 FUNCTION TO_LITTLE_ENDIAN<T: ANY> : T
 VAR_INPUT
@@ -22,11 +24,12 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
-(********************
-*
-* Converts to little endian data format from big endian data format
-*
-*********************)
+(******************************************************************************
+Description: Converts data from big endian format to native endian format.
+Input:
+  - in: The input value in big endian format.
+Return: The value converted to native endian format.
+******************************************************************************)
 {external}
 FUNCTION FROM_BIG_ENDIAN<T: ANY> : T
 VAR_INPUT
@@ -34,11 +37,12 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
-(********************
-*
-* Converts to big endian data format from little endian data format
-*
-*********************)
+(******************************************************************************
+Description: Converts data from little endian format to native endian format.
+Input:
+  - in: The input value in little endian format.
+Return: The value converted to native endian format.
+******************************************************************************)
 {external}
 FUNCTION FROM_LITTLE_ENDIAN<T: ANY> : T
 VAR_INPUT
