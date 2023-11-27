@@ -1094,11 +1094,8 @@ fn generic_function_sharing_a_datatype_name_resolves() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];
 
-    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }, ..), .. } = statement {
-        assert_debug_snapshot!(annotations.get(operator));
-    } else {
-        unreachable!("This should always be a call statement.")
-    }
+    // comparision function calls are resolved to replacement-AST expressions
+    assert_debug_snapshot!(annotations.get(statement));
 }
 
 #[test]

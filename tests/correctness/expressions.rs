@@ -345,3 +345,39 @@ fn casting_of_floating_point_types_lreal() {
     let _: i32 = compile_and_run(src, &mut main);
     assert_eq!([main.a, main.b, main.c, main.d], [3.0, 3.5, 3.5, 3.5])
 }
+
+#[test]
+fn aliased_ranged_numbers_can_be_compared_with_builtins() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct Main {
+        a: bool,
+        b: bool,
+        c: bool,
+        d: bool,
+        e: bool,
+        f: bool,
+    }
+
+    let mut main = Main::default();
+
+    let src = r#"
+    TYPE MyInt: INT(0..500); END_TYPE
+    PROGRAM main
+    VAR 
+        a, b, c, d, e, f : BOOL;
+    END_VAR      
+    VAR_TEMP
+        x,y : MyInt;
+    END_VAR
+        a := LT(x, y);
+        b := LE(y, 0);
+        c := EQ(x, 3);
+        d := EQ(y, 500);
+        e := GE(x, 0) AND LE(x, 500);
+        f := LT(x, 0) OR GT(x, 500);
+    END_PROGRAM
+    "#;
+    let _: i32 = compile_and_run(src, &mut main);
+    assert_eq!([main.a, main.b, main.c, main.d, main.e, main.f], [false, true, false, false, true, false]);
+}

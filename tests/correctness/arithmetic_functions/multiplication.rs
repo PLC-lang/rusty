@@ -37,3 +37,21 @@ fn mul_with_floats() {
     let res: f64 = compile_and_run(prog.to_string(), &mut main);
     assert!(approx_equal(expected, res, 1));
 }
+
+#[test]
+fn builtin_mul_with_ints_and_floats() {
+    let prog = r#"
+    FUNCTION main : LREAL
+    VAR
+        x1 : ARRAY[0..3] OF DINT := (1, 2, 3, 4);
+        x2 : LREAL := 0.5;
+    END_VAR
+        main := MUL(x1[0], x1[1], x1[2], x1[3], x2);
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType::default();
+
+    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    assert!(approx_equal(12.0, res, 1));
+}

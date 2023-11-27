@@ -83,20 +83,3 @@ fn builtin_div_with_dates() {
     let res: i64 = compile_and_run(prog.to_string(), &mut main);
     assert_eq!(expected, res);
 }
-
-// #[test]
-// #[should_panic]
-// #[ignore = "FIXME: div by const 0 not handled yet"]
-// fn test_div_by_zero() {
-//     let prog = r#"
-//     FUNCTION main : DINT
-//         main := 1/0;
-//         main := DIV(1, 0);
-//     END_FUNCTION
-//     "#;
-
-//     let mut main = MainType::default();
-
-//     let res: i64 = compile_and_run(prog.to_string(), &mut main);
-//     dbg!(res);
-// }

@@ -68,7 +68,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, _| {
+                annotation: Some(|annotator, _, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
@@ -288,7 +288,7 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
+                annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
@@ -311,7 +311,7 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
+                annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
@@ -333,12 +333,12 @@ lazy_static! {
                     END_VAR
                     END_FUNCTION
                 ",
-                annotation:Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
 
-                    annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Plus)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
                 validation: None,
                 // Some(|validator, operator, parameters, annotations, index| {
@@ -361,12 +361,12 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation:Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
 
-                    annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Multiplication)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
                 validation: None,
                 generic_name_resolver,
@@ -385,11 +385,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation:Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Minus)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
                 validation: None,
                 generic_name_resolver,
@@ -408,11 +408,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_arithmetic_function(annotator, operator, params, ctx, Operator::Division)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
                 validation: None,
                 generic_name_resolver,
@@ -431,11 +431,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::Greater);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Greater);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -454,11 +454,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::GreaterOrEqual);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::GreaterOrEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -477,11 +477,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::Equal);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Equal);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -500,11 +500,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::LessOrEqual);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::LessOrEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -523,11 +523,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::Less);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Less);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -545,11 +545,11 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, ctx| {
+                annotation: Some(|annotator, statement, _, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, operator, params, ctx, Operator::NotEqual);
+                    annotate_comparison_function(annotator, statement, params, ctx, Operator::NotEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -565,7 +565,7 @@ lazy_static! {
 // GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
 fn annotate_comparison_function(
     annotator: &mut TypeAnnotator,
-    operator: &AstNode,
+    statement: &AstNode,
     parameters: &AstNode,
     ctx: VisitorContext,
     operation: Operator,
@@ -583,24 +583,25 @@ fn annotate_comparison_function(
             )
         })
         .collect::<Vec<_>>();
-    let mut statement = comparisons.get(0).expect("Must exist").to_owned();
+    let mut new_statement = comparisons.get(0).expect("Must exist").to_owned();
     comparisons.into_iter().skip(1).for_each(|right| {
-        statement = AstFactory::create_binary_expression(
-            statement.clone(),
+        new_statement = AstFactory::create_binary_expression(
+            new_statement.clone(),
             Operator::And,
             right,
             ctx.id_provider.next_id(),
         )
     });
 
-    annotator.visit_statement(&ctx, &statement);
-    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &statement);
-    annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
-    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), operator);
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
 }
 
 fn annotate_arithmetic_function(
     annotator: &mut TypeAnnotator,
+    statement: &AstNode,
     operator: &AstNode,
     parameters: &AstNode,
     ctx: VisitorContext,
@@ -639,14 +640,14 @@ fn annotate_arithmetic_function(
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
     let left = (*params_flattened.get(0).expect("Must exist")).clone();
-    let statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+    let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
 
-    annotator.visit_statement(&ctx, &statement);
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &statement);
-    annotator.annotate(operator, StatementAnnotation::ReplacementAst { statement });
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), operator);
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
 }
 
 fn annotate_variable_length_array_bound_function(
@@ -820,7 +821,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext);
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,

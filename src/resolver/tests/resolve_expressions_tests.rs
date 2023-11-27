@@ -5421,10 +5421,7 @@ fn generate_comparison_test(operator: &str) -> StatementAnnotation {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let stmt = &unit.implementations[0].statements[0];
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
-        unreachable!()
-    };
-    annotations.get(operator).unwrap().clone()
+    annotations.get(stmt).unwrap().clone()
 }
 
 #[test]
@@ -5447,10 +5444,7 @@ fn builtin_add_replacement_ast() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let stmt = &unit.implementations[0].statements[0];
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
-        unreachable!()
-    };
-    insta::assert_debug_snapshot!(annotations.get(operator));
+    insta::assert_debug_snapshot!(annotations.get(stmt));
 }
 
 #[test]
@@ -5473,8 +5467,5 @@ fn builtin_add_resolves_generics_when_params_dont_derive_any_num() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let stmt = &unit.implementations[0].statements[0];
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
-        unreachable!()
-    };
-    insta::assert_debug_snapshot!(annotations.get(operator));
+    insta::assert_debug_snapshot!(annotations.get(stmt));
 }

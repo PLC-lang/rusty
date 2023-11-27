@@ -907,13 +907,13 @@ fn validate_call<T: AnnotationMap>(
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
-        for (i, p) in passed_parameters.iter().enumerate() {
+        for (i, param) in passed_parameters.iter().enumerate() {
             if let Ok((parameter_location_in_parent, right, is_implicit)) =
-                get_implicit_call_parameter(p, &declared_parameters, i)
+                get_implicit_call_parameter(param, &declared_parameters, i)
             {
                 let left = declared_parameters.get(parameter_location_in_parent);
                 if let Some(left) = left {
-                    validate_call_by_ref(validator, left, p);
+                    validate_call_by_ref(validator, left, param);
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
                     variable_location_in_parent.push(left.get_location_in_parent());
@@ -922,7 +922,7 @@ fn validate_call<T: AnnotationMap>(
                 // explicit call parameter assignments will be handled by
                 // `visit_statement()` via `Assignment` and `OutputAssignment`
                 if is_implicit {
-                    validate_assignment(validator, right, None, &p.get_location(), context);
+                    validate_assignment(validator, right, None, &param.get_location(), context);
                 }
 
                 // mixing implicit and explicit parameters is not allowed
@@ -930,11 +930,11 @@ fn validate_call<T: AnnotationMap>(
                 if i == 0 {
                     are_implicit_parameters = is_implicit;
                 } else if are_implicit_parameters != is_implicit {
-                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(p.get_location()));
+                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(param.get_location()));
                 }
             }
 
-            visit_statement(validator, p, context);
+            visit_statement(validator, param, context);
         }
 
         // for PROGRAM/FB we need special inout validation

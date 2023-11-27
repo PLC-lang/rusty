@@ -1754,7 +1754,7 @@ impl<'i> TypeAnnotator<'i> {
 
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(self, operator, parameters_stmt, ctx.to_owned());
+            annotation(self, statement, operator, parameters_stmt, ctx.to_owned());
         } else {
             //This is skipped for builtins that provide their own annotation-logic
             self.annotate_call_statement(operator, parameters_stmt, &ctx);
@@ -1766,6 +1766,11 @@ impl<'i> TypeAnnotator<'i> {
                 .find_effective_type_by_name(return_type)
                 .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
             {
+                if let Some(StatementAnnotation::ReplacementAst { .. }) = self.annotation_map.get(statement) {
+                    // if we have a replacement ast, we do not need to annotate the function return type as it would
+                    // overwrite the replacement ast
+                    return;
+                }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
             }
         }
