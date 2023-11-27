@@ -7,7 +7,7 @@ Description: String character length
 Input:
     - IN:   A character string
 Return: String length
-***************************************************************************** *)
+******************************************************************************)
 {external}
 FUNCTION LEN < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
@@ -21,7 +21,7 @@ Input:
     - IN:   A character string
     - L:    The length of the substring
 Return: A substring consisting of the leftmost L characters of IN
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION LEFT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
@@ -96,7 +96,7 @@ Input:
     - IN:   A character string
     - L:    The length of the substring
 Return: A substring consisting of the rightmost L characters of IN
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION RIGHT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
@@ -174,7 +174,7 @@ Input:
 Return:
     A substring that contains L characters starting
     from position P in a string.
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION MID < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
@@ -257,7 +257,7 @@ Input:
 Return:
     A string combining all given input strings in the same order
     as the given string parameters.
-***************************************************************************** *)
+******************************************************************************)
 {external}
 FUNCTION CONCAT__STRING : STRING[2048]
 VAR_INPUT {ref}
@@ -296,7 +296,7 @@ Input:
     P:      The position at which to insert
 Return:
     A string consisting of IN2 inserted at position P into string IN1
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION INSERT < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN1 : T;
@@ -378,7 +378,7 @@ Input:
     L:  The amount of characters to delete
     P:  The position at which to start deleting
 Return: A new string with L characters deleted from P onwards
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION DELETE < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN : T;
@@ -460,7 +460,7 @@ Input:
     L:      The amount of characters to delete
     P:      The position at which to start deleting
 Return: A new string which has L characters replaced by IN2 from position P onwards
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION REPLACE < T : ANY_STRING > : T
 VAR_INPUT {ref}
 	IN1 : T;
@@ -548,7 +548,7 @@ Input:
     IN1:    The string in which to search in
     IN2:    The substring to search for
 Return: The character index of the first match. 0 if there are no matches.
-***************************************************************************** *)
+******************************************************************************)
 {external}
 FUNCTION FIND < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
@@ -563,7 +563,7 @@ Input:  The strings to compare, in order. ((IN1>IN2) & (IN2>IN3) & .. & (INn-1>I
 Return:
     TRUE if codepoints are in decreasing order (alphabetical order: ZYX > YXW > XWV ..)
     FALSE otherwise
-***************************************************************************** *)
+******************************************************************************)
 // passing strings by ref causes an error/warning. code still compiles and works correctly
 FUNCTION STRING_GREATER : BOOL
 VAR_INPUT
@@ -585,7 +585,7 @@ Input: The strings to compare, in order. ((IN1=IN2) & (IN2=IN3) & .. & (INn-1=IN
 Return:
     TRUE if codepoints are equal to each other
     FALSE otherwise.
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION STRING_EQUAL : BOOL
 VAR_INPUT
     a, b : STRING;
@@ -606,7 +606,7 @@ Input:  The strings to compare, in order. ((IN1<IN2) & (IN2<IN3) & .. & (INn-1<I
 Return:
     TRUE if codepoints are in increasing order (alphabetical order: ABC < BCD < CDE ..)
     FALSE otherwise
-***************************************************************************** *)
+******************************************************************************)
 FUNCTION STRING_LESS : BOOL
 VAR_INPUT
     a, b : STRING;
