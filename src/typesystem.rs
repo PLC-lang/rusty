@@ -701,6 +701,10 @@ impl DataTypeInformation {
         let inner_type_size = inner_type_info.get_size_in_bits(index);
         let arr_size = self.get_size_in_bits(index);
 
+        if inner_type_size == 0 {
+            return None;
+        }
+
         Some((arr_size / inner_type_size) as usize)
     }
 }
