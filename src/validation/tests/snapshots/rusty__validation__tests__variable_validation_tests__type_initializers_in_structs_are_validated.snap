@@ -1,0 +1,17 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: diagnostics
+---
+error: This will overflow for type SINT
+  ┌─ <internal>:3:32
+  │
+3 │             overflow : SINT := 1234567890;
+  │                                ^^^^^^^^^^ This will overflow for type SINT
+
+error: Array assignments must be surrounded with `[]`
+  ┌─ <internal>:4:62
+  │
+4 │             invalid_array_assignment : ARRAY[0..1] OF INT := 0;
+  │                                                              ^ Array assignments must be surrounded with `[]`
+
+
