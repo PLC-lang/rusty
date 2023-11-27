@@ -159,7 +159,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
-    let mut source_map = SourceMap::new();
+    let source_map = SourceMap::static_new();
     for source in project.get_sources() {
         source_map.insert(source);
     }
@@ -167,6 +167,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
 
     // 1 : Parse
     let annotated_project = pipelines::ParsedProject::parse(
+        source_map,
         &project,
         compile_parameters.encoding,
         id_provider.clone(),
@@ -212,9 +213,10 @@ pub fn parse_and_annotate<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let id_provider = IdProvider::default();
     let mut diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+    let source_map = SourceMap::static_new();
+    pipelines::ParsedProject::parse(source_map, &project, None, id_provider.clone(), &mut diagnostician)?
         // Create an index, add builtins
-        .index(todo!(), id_provider.clone())?
+        .index(source_map, id_provider.clone())?
         // Resolve
         .annotate(id_provider, &diagnostician)
 }

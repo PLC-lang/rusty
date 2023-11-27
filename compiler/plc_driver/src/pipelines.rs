@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::{
     env,
@@ -43,6 +44,7 @@ impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer>(
+        source_map: &'static SourceMap,
         project: &Project<T>,
         encoding: Option<&'static Encoding>,
         id_provider: IdProvider,
@@ -56,12 +58,13 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
+                // let loaded_source = it.load_source(encoding).map_err(|err| {
+                //     Diagnostic::io_read_error(
+                //         &it.get_location().expect("Location should not be empty").to_string_lossy(),
+                //         &err,
+                //     )
+                // })?;
 
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
@@ -77,13 +80,14 @@ impl ParsedProject {
             .get_includes()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
+                // let loaded_source = it.load_source(encoding).map_err(|err| {
+                //     Diagnostic::io_read_error(
+                //         &it.get_location().expect("Location should not be empty").to_string_lossy(),
+                //         &err,
+                //     )
+                // })?;
+                Ok(parse_file(&loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
@@ -93,13 +97,14 @@ impl ParsedProject {
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
+                // let loaded_source = it.load_source(encoding).map_err(|err| {
+                //     Diagnostic::io_read_error(
+                //         &it.get_location().expect("Location should not be empty").to_string_lossy(),
+                //         &err,
+                //     )
+                // })?;
+                Ok(parse_file(&loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
@@ -108,7 +113,7 @@ impl ParsedProject {
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, source_map: SourceMap, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
+    pub fn index(self, source_map: &'static SourceMap, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
         let indexed_units = self
             .0
             .into_par_iter()
@@ -123,7 +128,7 @@ impl ParsedProject {
             .collect::<Vec<_>>();
 
         let mut global_index = Index::default();
-        global_index.source_map = Arc::new(source_map);
+        global_index.source_map = Some(source_map);
         let mut units = vec![];
         for (index, unit) in indexed_units {
             units.push(unit);

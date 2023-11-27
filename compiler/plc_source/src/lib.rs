@@ -10,16 +10,41 @@ use encoding_rs_io::DecodeReaderBytesBuilder;
 
 #[derive(Debug, Default)]
 pub struct SourceMap {
-    pub sources: HashMap<String, String>,
+    pub sources: HashMap<String, SourceCode>,
+}
+
+pub struct SourceMap2 {
+    //Leaked sources
+    pub sources: &'static mut HashMap<String, SourceCode>
+}
+
+impl Drop for SourceMap2 {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            Box::from_raw(self.sources)
+        };
+        
+    }
 }
 
 impl SourceMap {
+    //Creates a sourcemap that can be used without referencing in the ast
+    pub fn static_new() -> &'static mut Self {
+        Box::leak(Box::new(Self::new()))
+    }
     pub fn new() -> Self {
         Self { sources: HashMap::new() }
     }
 
     pub fn insert(&mut self, path: &PathBuf) {
-        self.sources.insert(path.to_str().unwrap().to_string(), path.load_source(None).unwrap().source);
+        self.sources.insert(path.to_str().unwrap().to_string(), path.load_source(None).unwrap());
+    }
+
+    //At the end of the program, we could call free to ensure no sources remain
+    pub fn free(&'static mut self) {
+        let _ = unsafe {
+            Box::from_raw(self)
+        };
     }
 }
 

@@ -33,8 +33,9 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
 
     let mut diagnostician = Diagnostician::null_diagnostician();
     let id_provider = IdProvider::default();
+    let source_map : &'static mut SourceMap = Box::leak(Box::new(SourceMap::new()));
     let parsed_project =
-        ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician).unwrap();
+        ParsedProject::parse(source_map, &project, None, id_provider.clone(), &mut diagnostician).unwrap();
     let indexed_project = parsed_project.index(todo!(), id_provider.clone()).unwrap();
     let annotated_project = indexed_project.annotate(id_provider, &diagnostician).unwrap();
     let compile_options = CompileOptions {

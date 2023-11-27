@@ -67,9 +67,10 @@ impl ProjectConfig {
         let content = source.source.as_str();
         let content = resolve_environment_variables(content)?;
         let config: ProjectConfig = serde_json::from_str(&content).map_err(|err| {
-            let err = SerdeError::from(err);
-            err.into_diagnostic(&source)
-        })?;
+            todo!("Fix this without leaking")
+            // let err = SerdeError::from(err);
+            // err.into_diagnostic(&source)
+        }).unwrap();
         config.validate()?;
 
         Ok(config)

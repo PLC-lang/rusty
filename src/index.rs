@@ -1,4 +1,3 @@
-use std::sync::Arc;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     builtins::{self, BuiltIn},
@@ -831,13 +830,12 @@ pub struct Index {
     /// The labels contained in each pou
     labels: IndexMap<String, SymbolMap<String, Label>>,
 
-    pub source_map: Arc<SourceMap>,
+    pub source_map: Option<&'static SourceMap>,
 }
 
 impl Index {
     pub fn slice(&self, node: &AstNode) -> &str {
-        let name = node.location.get_file_name().unwrap();
-        &self.source_map.as_ref().sources.get(name).unwrap()[node.location.to_range().unwrap()]
+        node.location.slice
     }
 
     /// imports all entries from the given index into the current index

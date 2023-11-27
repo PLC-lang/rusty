@@ -830,7 +830,7 @@ impl From<serde_json::Error> for SerdeError {
 }
 
 impl SerdeError {
-    pub fn into_diagnostic(self, src: &BuildDescriptionSource) -> Diagnostic {
+    pub fn into_diagnostic(self, src: &'static BuildDescriptionSource) -> Diagnostic {
         let factory = SourceLocationFactory::for_source(src);
         let range = factory.create_range_to_end_of_line(self.line, self.column);
 

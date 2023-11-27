@@ -68,7 +68,7 @@ pub(crate) fn visit(content: &str) -> Result<Project, Error> {
 }
 
 pub fn parse_file(
-    source: SourceCode,
+    source: &'static SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
@@ -81,7 +81,7 @@ pub fn parse_file(
 }
 
 fn parse(
-    source: &SourceCode,
+    source: &'static SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
