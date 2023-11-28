@@ -1,10 +1,10 @@
 use crate::correctness::math_operators::addition::approx_equal;
-use driver::runner::{compile_and_run, MainType};
+use driver::runner::compile_and_run_no_params;
 
 #[test]
 fn builtin_sub_with_ints() {
     let prog = r#"
-    FUNCTION main : DINT
+    FUNCTION main : LINT
     VAR
         x1 : DINT := 1000;
         l1 : LINT := 333;
@@ -13,10 +13,8 @@ fn builtin_sub_with_ints() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: i32 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 777);
+    let res: i64 = compile_and_run_no_params(prog.to_string());
+    assert_eq!(res, 667);
 }
 
 #[test]
@@ -31,9 +29,7 @@ fn builtin_sub_with_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(-990.0, res, 2));
 }
 
@@ -49,8 +45,6 @@ fn builtin_sub_with_ints_and_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(0.1, res, 1));
 }

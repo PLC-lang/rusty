@@ -429,13 +429,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
-                self.annotations.get(operator)
-            {
-                statement.get_as_list()
-            } else {
-                parameters_list
-            };
+            // let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
+            //     self.annotations.get(operator)
+            // {
+            //     statement.get_as_list()
+            // } else {
+            //     parameters_list
+            // };
 
             return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
@@ -1657,7 +1657,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `left_value` the left side of the binary expression, needs to be a float-value
     /// - `right_value` the right side of the binary expression, needs to be a float-value
     /// - `target_type` the resulting type
-    pub fn create_llvm_float_binary_expression(
+    fn create_llvm_float_binary_expression(
         &self,
         operator: &Operator,
         lvalue: BasicValueEnum<'ink>,
@@ -2520,7 +2520,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Trunc the result to the get only the target size
         let result = self.llvm.builder.build_int_truncate_or_bit_cast(
             shift,
-            self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
+            self.llvm_index.get_associated_type(dbg!(datatype.get_name()))?.into_int_type(),
             "",
         );
         Ok(ExpressionValue::RValue(result.as_basic_value_enum()))

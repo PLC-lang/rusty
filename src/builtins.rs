@@ -341,14 +341,9 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
                 validation: None,
-                // Some(|validator, operator, parameters, annotations, index| {
-                //     validate_arithmetic_function(validator, operator, parameters, annotations, index);
-                // }),
                 generic_name_resolver,
-                code: |generator, params, _| {
-                    // generate_arithmetic_instruction(generator, params, Operator::Plus)
-                    generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-
+                code: |_, _, _| {
+                    unreachable!("ADD is not generated as a function call");
                 }
             }
         ),
@@ -370,8 +365,8 @@ lazy_static! {
                 }),
                 validation: None,
                 generic_name_resolver,
-                code: |generator, params, _| {
-                    generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                code: |_, _, _| {
+                    unreachable!("MUL is not generated as a function call");
                 }
             }
         ),
@@ -393,8 +388,8 @@ lazy_static! {
                 }),
                 validation: None,
                 generic_name_resolver,
-                code: |generator, params, _| {
-                    generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                code: |_, _, _| {
+                    unreachable!("SUB is not generated as a function call");
                 }
             }
         ),
@@ -416,8 +411,8 @@ lazy_static! {
                 }),
                 validation: None,
                 generic_name_resolver,
-                code: |generator, params, _| {
-                    generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                code: |_, _, _| {
+                    unreachable!("DIV is not generated as a function call");
                 }
             }
         ),
@@ -431,17 +426,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Greater);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-
+                code : |_, _, _| {
+                    unreachable!("GT is not generated as a function call");
                 }
             }
         ),
@@ -454,17 +448,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::GreaterOrEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-
+                code : |_, _, _| {
+                    unreachable!("GE is not generated as a function call");
                 }
             }
         ),
@@ -477,17 +470,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Equal);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-
+                code : |_, _, _| {
+                    unreachable!("EQ is not generated as a function call");
                 }
             }
         ),
@@ -500,17 +492,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::LessOrEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
-
+                code : |_, _, _| {
+                    unreachable!("LE is not generated as a function call");
                 }
             }
         ),
@@ -523,16 +514,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::Less);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                code : |_, _, _| {
+                    unreachable!("LT is not generated as a function call");
                 }
             }
         ),
@@ -545,16 +536,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, _, parameters, ctx| {
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         unreachable!("must have parameters")
                     };
-                    annotate_comparison_function(annotator, statement, params, ctx, Operator::NotEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual);
                 }),
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, params, _| {
-                        generator.generate_expression(params.get(0).expect("Expression must exist")).map(ExpressionValue::RValue)
+                code : |_, _, _| {
+                    unreachable!("NE is not generated as a function call");
                 }
             }
         ),
@@ -566,13 +557,25 @@ lazy_static! {
 fn annotate_comparison_function(
     annotator: &mut TypeAnnotator,
     statement: &AstNode,
+    operator: &AstNode,
     parameters: &AstNode,
     ctx: VisitorContext,
     operation: Operator,
 ) {
     let mut ctx = ctx;
-    let parameters = flatten_expression_list(parameters);
-    let comparisons = parameters
+    let params_flattened = flatten_expression_list(parameters);
+    if params_flattened.iter().any(|it| {
+        !annotator
+            .annotation_map
+            .get_type_or_void(it, annotator.index)
+            .has_nature(TypeNature::Elementary, annotator.index)
+    }) {
+        // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
+        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        return;
+    }
+
+    let comparisons = params_flattened
         .windows(2)
         .map(|window| {
             AstFactory::create_binary_expression(

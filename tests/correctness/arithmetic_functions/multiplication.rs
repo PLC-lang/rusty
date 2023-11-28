@@ -1,10 +1,10 @@
 use crate::correctness::math_operators::addition::approx_equal;
-use driver::runner::{compile_and_run, MainType};
+use driver::runner::compile_and_run_no_params;
 
 #[test]
 fn mul_with_ints() {
     let prog = r#"
-    FUNCTION main : DINT
+    FUNCTION main : LINT
     VAR
         x1 : ARRAY[0..3] OF DINT := (1, 2, 3, 4);
         l1 : LINT := 1000;
@@ -14,9 +14,8 @@ fn mul_with_ints() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
     let expected = 1 * 2 * 3 * 4 * 1000 * 5;
-    let res: i32 = compile_and_run(prog.to_string(), &mut main);
+    let res: i64 = compile_and_run_no_params(prog.to_string());
     assert_eq!(expected, res);
 }
 
@@ -32,9 +31,8 @@ fn mul_with_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
     let expected = 1.0 * 2.2 * 3.4 * 4.1 * 1000.9;
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(expected, res, 1));
 }
 
@@ -50,8 +48,6 @@ fn builtin_mul_with_ints_and_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(12.0, res, 1));
 }

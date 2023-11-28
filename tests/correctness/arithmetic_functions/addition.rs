@@ -1,11 +1,11 @@
 use crate::correctness::math_operators::addition::approx_equal;
-use driver::runner::{compile_and_run, MainType};
+use driver::runner::compile_and_run_no_params;
 
 #[test]
 fn builtin_add_with_ints() {
     let prog = r#"
-    FUNCTION main : DINT
-    VAR
+    FUNCTION main : LINT
+    VAR_TEMP
         x1 : ARRAY[0..3] OF DINT := (1, 2, 3, 4);
         l1 : LINT := 1000;
         s1 : SINT := 1;
@@ -14,9 +14,7 @@ fn builtin_add_with_ints() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: i32 = compile_and_run(prog.to_string(), &mut main);
+    let res: i64 = compile_and_run_no_params(prog.to_string());
     assert_eq!(res, 1011);
 }
 
@@ -24,7 +22,7 @@ fn builtin_add_with_ints() {
 fn builtin_add_with_floats() {
     let prog = r#"
     FUNCTION main : LREAL
-    VAR
+    VAR_TEMP
         x1 : ARRAY[0..3] OF REAL := (1.0, 2.2, 3.4, 4.1);
         x2 : LREAL := 1000.9;
     END_VAR
@@ -32,9 +30,7 @@ fn builtin_add_with_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(1011.6, res, 1));
 }
 
@@ -42,7 +38,7 @@ fn builtin_add_with_floats() {
 fn builtin_add_with_ints_and_floats() {
     let prog = r#"
     FUNCTION main : LREAL
-    VAR
+    VAR_TEMP
         x1 : ARRAY[0..3] OF DINT := (1, 2, 3, 4);
         x2 : LREAL := 1000.9;
     END_VAR
@@ -50,8 +46,6 @@ fn builtin_add_with_ints_and_floats() {
     END_FUNCTION
     "#;
 
-    let mut main = MainType::default();
-
-    let res: f64 = compile_and_run(prog.to_string(), &mut main);
+    let res: f64 = compile_and_run_no_params(prog.to_string());
     assert!(approx_equal(1010.9, res, 1));
 }

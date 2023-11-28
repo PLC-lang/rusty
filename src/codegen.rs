@@ -42,7 +42,7 @@ use plc_source::source_location::SourceLocation;
 mod debug;
 pub(crate) mod generators;
 mod llvm_index;
-pub(crate) mod llvm_typesystem;
+mod llvm_typesystem;
 #[cfg(test)]
 mod tests;
 

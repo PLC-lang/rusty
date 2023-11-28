@@ -5343,10 +5343,7 @@ fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
     let AstNode { stmt: expected, .. } = stmt;
 
     let stmt = &unit.implementations[0].statements[1];
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
-        unreachable!()
-    };
-    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(operator) else {
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) else {
         unreachable!()
     };
     let AstNode { stmt: actual, .. } = statement;
@@ -5358,10 +5355,7 @@ fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
     let AstNode { stmt: expected, .. } = stmt;
 
     let stmt = &unit.implementations[0].statements[3];
-    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
-        unreachable!()
-    };
-    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(operator) else {
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) else {
         unreachable!()
     };
     let AstNode { stmt: actual, .. } = statement;
@@ -5448,7 +5442,7 @@ fn builtin_add_replacement_ast() {
 }
 
 #[test]
-fn builtin_add_resolves_generics_when_params_dont_derive_any_num() {
+fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_nature() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
@@ -5467,5 +5461,7 @@ fn builtin_add_resolves_generics_when_params_dont_derive_any_num() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let stmt = &unit.implementations[0].statements[0];
-    insta::assert_debug_snapshot!(annotations.get(stmt));
+    if let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) {
+        panic!("Expected no replacement ast, got {:?}", statement)
+    }
 }
