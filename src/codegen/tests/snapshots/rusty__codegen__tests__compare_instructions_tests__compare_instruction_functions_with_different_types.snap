@@ -87,33 +87,42 @@ entry:
   %22 = zext i1 %tmpVar19 to i8
   %load_b20 = load i32, i32* %b, align 4
   %tmpVar21 = icmp ne i32 5, %load_b20
-  %23 = zext i1 %tmpVar21 to i8
+  br i1 %tmpVar21, label %23, label %24
+
+23:                                               ; preds = %entry
+  %load_b22 = load i32, i32* %b, align 4
+  %tmpVar23 = icmp ne i32 %load_b22, 17
+  br label %24
+
+24:                                               ; preds = %23, %entry
+  %25 = phi i1 [ %tmpVar21, %entry ], [ %tmpVar23, %23 ]
+  %26 = zext i1 %25 to i8
   %load_ptr_float = load float*, float** %ptr_float, align 8
-  %load_var_usint22 = load i8, i8* %var_usint, align 1
-  %24 = zext i8 %load_var_usint22 to i64
-  %25 = ptrtoint float* %load_ptr_float to i64
-  %tmpVar23 = icmp sle i64 %25, %24
-  %26 = zext i1 %tmpVar23 to i8
-  %load_a24 = load i16, i16* %a, align 2
-  %27 = sext i16 %load_a24 to i64
-  %load_ptr_float25 = load float*, float** %ptr_float, align 8
-  %28 = ptrtoint float* %load_ptr_float25 to i64
-  %tmpVar26 = icmp eq i64 %27, %28
-  %29 = zext i1 %tmpVar26 to i8
+  %load_var_usint24 = load i8, i8* %var_usint, align 1
+  %27 = zext i8 %load_var_usint24 to i64
+  %28 = ptrtoint float* %load_ptr_float to i64
+  %tmpVar25 = icmp sle i64 %28, %27
+  %29 = zext i1 %tmpVar25 to i8
+  %load_a26 = load i16, i16* %a, align 2
+  %30 = sext i16 %load_a26 to i64
+  %load_ptr_float27 = load float*, float** %ptr_float, align 8
+  %31 = ptrtoint float* %load_ptr_float27 to i64
+  %tmpVar28 = icmp eq i64 %30, %31
+  %32 = zext i1 %tmpVar28 to i8
   %call = call float @foo()
-  %tmpVar27 = fcmp one float %call, 4.050000e+01
-  %30 = zext i1 %tmpVar27 to i8
-  %load_var_udint28 = load i32, i32* %var_udint, align 4
-  %31 = uitofp i32 %load_var_udint28 to float
-  %call29 = call float @foo()
-  %tmpVar30 = fcmp ole float %31, %call29
-  %32 = zext i1 %tmpVar30 to i8
+  %tmpVar29 = fcmp one float %call, 4.050000e+01
+  %33 = zext i1 %tmpVar29 to i8
+  %load_var_udint30 = load i32, i32* %var_udint, align 4
+  %34 = uitofp i32 %load_var_udint30 to float
   %call31 = call float @foo()
-  %33 = fpext float %call31 to double
-  %load_var_lint32 = load i64, i64* %var_lint, align 4
-  %34 = sitofp i64 %load_var_lint32 to double
-  %tmpVar33 = fcmp oeq double %33, %34
-  %35 = zext i1 %tmpVar33 to i8
+  %tmpVar32 = fcmp ole float %34, %call31
+  %35 = zext i1 %tmpVar32 to i8
+  %call33 = call float @foo()
+  %36 = fpext float %call33 to double
+  %load_var_lint34 = load i64, i64* %var_lint, align 4
+  %37 = sitofp i64 %load_var_lint34 to double
+  %tmpVar35 = fcmp oeq double %36, %37
+  %38 = zext i1 %tmpVar35 to i8
   ret void
 }
 

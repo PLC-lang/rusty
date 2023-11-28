@@ -2520,7 +2520,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Trunc the result to the get only the target size
         let result = self.llvm.builder.build_int_truncate_or_bit_cast(
             shift,
-            self.llvm_index.get_associated_type(dbg!(datatype.get_name()))?.into_int_type(),
+            self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
             "",
         );
         Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
