@@ -19,11 +19,9 @@ condition_check:                                  ; preds = %increment, %entry
   %load_x = load i8, i8* %x, align 1
   %load_x1 = load i8, i8* %x, align 1
   %tmpVar = icmp sle i8 %load_x1, 10
-  %1 = zext i1 %tmpVar to i8
-  %2 = icmp ne i8 %1, 0
-  br i1 %2, label %3, label %6
+  br i1 %tmpVar, label %1, label %2
 
-for_body:                                         ; preds = %13
+for_body:                                         ; preds = %5
   %load_x8 = load i8, i8* %x, align 1
   br label %increment
 
@@ -32,46 +30,34 @@ increment:                                        ; preds = %for_body
   store i8 %tmpVar9, i8* %x, align 1
   br label %condition_check
 
-continue:                                         ; preds = %13
+continue:                                         ; preds = %5
   ret void
 
-3:                                                ; preds = %condition_check
+1:                                                ; preds = %condition_check
   %load_x2 = load i8, i8* %x, align 1
   %tmpVar3 = icmp sge i8 %load_x2, 3
-  %4 = zext i1 %tmpVar3 to i8
-  %5 = icmp ne i8 %4, 0
-  br label %6
+  br label %2
 
-6:                                                ; preds = %3, %condition_check
-  %7 = phi i1 [ %2, %condition_check ], [ %5, %3 ]
-  %8 = zext i1 %7 to i8
-  %9 = icmp ne i8 %8, 0
-  br i1 %9, label %13, label %10
+2:                                                ; preds = %1, %condition_check
+  %3 = phi i1 [ %tmpVar, %condition_check ], [ %tmpVar3, %1 ]
+  br i1 %3, label %5, label %4
 
-10:                                               ; preds = %6
+4:                                                ; preds = %2
   %load_x4 = load i8, i8* %x, align 1
   %tmpVar5 = icmp sge i8 %load_x4, 10
-  %11 = zext i1 %tmpVar5 to i8
-  %12 = icmp ne i8 %11, 0
-  br i1 %12, label %17, label %20
+  br i1 %tmpVar5, label %7, label %8
 
-13:                                               ; preds = %20, %6
-  %14 = phi i1 [ %9, %6 ], [ %23, %20 ]
-  %15 = zext i1 %14 to i8
-  %16 = icmp ne i8 %15, 0
-  br i1 %16, label %for_body, label %continue
+5:                                                ; preds = %8, %2
+  %6 = phi i1 [ %3, %2 ], [ %9, %8 ]
+  br i1 %6, label %for_body, label %continue
 
-17:                                               ; preds = %10
+7:                                                ; preds = %4
   %load_x6 = load i8, i8* %x, align 1
   %tmpVar7 = icmp sle i8 %load_x6, 3
-  %18 = zext i1 %tmpVar7 to i8
-  %19 = icmp ne i8 %18, 0
-  br label %20
+  br label %8
 
-20:                                               ; preds = %17, %10
-  %21 = phi i1 [ %12, %10 ], [ %19, %17 ]
-  %22 = zext i1 %21 to i8
-  %23 = icmp ne i8 %22, 0
-  br label %13
+8:                                                ; preds = %7, %4
+  %9 = phi i1 [ %tmpVar5, %4 ], [ %tmpVar7, %7 ]
+  br label %5
 }
 

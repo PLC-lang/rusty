@@ -7,7 +7,7 @@ source_filename = "main"
 
 %commands = type { i8, i8 }
 
-@__commands__init = unnamed_addr constant %commands { i8 1, i8 0 }
+@__commands__init = unnamed_addr constant %commands { i1 true, i1 false }
 
 define i32 @main() {
 entry:

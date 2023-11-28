@@ -17,11 +17,9 @@ condition_check:                                  ; preds = %increment, %entry
   %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !11
   %load_myFunc1 = load i32, i32* %myFunc, align 4, !dbg !11
   %tmpVar = icmp sle i32 %load_myFunc1, 20, !dbg !11
-  %0 = zext i1 %tmpVar to i8, !dbg !11
-  %1 = icmp ne i8 %0, 0, !dbg !11
-  br i1 %1, label %2, label %5, !dbg !11
+  br i1 %tmpVar, label %0, label %1, !dbg !11
 
-for_body:                                         ; preds = %12
+for_body:                                         ; preds = %4
   store i32 1, i32* %myFunc, align 4, !dbg !12
   br label %increment, !dbg !12
 
@@ -30,48 +28,36 @@ increment:                                        ; preds = %for_body
   store i32 %tmpVar8, i32* %myFunc, align 4, !dbg !13
   br label %condition_check, !dbg !13
 
-continue:                                         ; preds = %12
+continue:                                         ; preds = %4
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
   ret i32 %myFunc_ret, !dbg !13
 
-2:                                                ; preds = %condition_check
+0:                                                ; preds = %condition_check
   %load_myFunc2 = load i32, i32* %myFunc, align 4, !dbg !11
   %tmpVar3 = icmp sge i32 %load_myFunc2, 1, !dbg !11
-  %3 = zext i1 %tmpVar3 to i8, !dbg !11
-  %4 = icmp ne i8 %3, 0, !dbg !11
-  br label %5, !dbg !11
+  br label %1, !dbg !11
 
-5:                                                ; preds = %2, %condition_check
-  %6 = phi i1 [ %1, %condition_check ], [ %4, %2 ], !dbg !11
-  %7 = zext i1 %6 to i8, !dbg !11
-  %8 = icmp ne i8 %7, 0, !dbg !11
-  br i1 %8, label %12, label %9, !dbg !11
+1:                                                ; preds = %0, %condition_check
+  %2 = phi i1 [ %tmpVar, %condition_check ], [ %tmpVar3, %0 ], !dbg !11
+  br i1 %2, label %4, label %3, !dbg !11
 
-9:                                                ; preds = %5
+3:                                                ; preds = %1
   %load_myFunc4 = load i32, i32* %myFunc, align 4, !dbg !11
   %tmpVar5 = icmp sge i32 %load_myFunc4, 20, !dbg !11
-  %10 = zext i1 %tmpVar5 to i8, !dbg !11
-  %11 = icmp ne i8 %10, 0, !dbg !11
-  br i1 %11, label %16, label %19, !dbg !11
+  br i1 %tmpVar5, label %6, label %7, !dbg !11
 
-12:                                               ; preds = %19, %5
-  %13 = phi i1 [ %8, %5 ], [ %22, %19 ], !dbg !11
-  %14 = zext i1 %13 to i8, !dbg !11
-  %15 = icmp ne i8 %14, 0, !dbg !11
-  br i1 %15, label %for_body, label %continue, !dbg !11
+4:                                                ; preds = %7, %1
+  %5 = phi i1 [ %2, %1 ], [ %8, %7 ], !dbg !11
+  br i1 %5, label %for_body, label %continue, !dbg !11
 
-16:                                               ; preds = %9
+6:                                                ; preds = %3
   %load_myFunc6 = load i32, i32* %myFunc, align 4, !dbg !11
   %tmpVar7 = icmp sle i32 %load_myFunc6, 1, !dbg !11
-  %17 = zext i1 %tmpVar7 to i8, !dbg !11
-  %18 = icmp ne i8 %17, 0, !dbg !11
-  br label %19, !dbg !11
+  br label %7, !dbg !11
 
-19:                                               ; preds = %16, %9
-  %20 = phi i1 [ %11, %9 ], [ %18, %16 ], !dbg !11
-  %21 = zext i1 %20 to i8, !dbg !11
-  %22 = icmp ne i8 %21, 0, !dbg !11
-  br label %12, !dbg !11
+7:                                                ; preds = %6, %3
+  %8 = phi i1 [ %tmpVar5, %3 ], [ %tmpVar7, %6 ], !dbg !11
+  br label %4, !dbg !11
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn

@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::values::BasicValue;
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
@@ -33,15 +32,19 @@ use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 /// - `value` the value to (maybe) cast
 macro_rules! cast_if_needed {
     ($generator:expr, $target_type:expr, $value_type:expr, $value:expr, $annotation:expr) => {
-        crate::codegen::llvm_typesystem::cast(
-            $generator.llvm,
-            $generator.index,
-            $generator.llvm_index,
-            $target_type,
-            $value_type,
-            $value,
-            $annotation,
-        )
+        if $value_type == $target_type {
+            $value
+        } else {
+            crate::codegen::llvm_typesystem::cast(
+                $generator.llvm,
+                $generator.index,
+                $generator.llvm_index,
+                $target_type,
+                $value_type,
+                $value,
+                $annotation,
+            )
+        }
     };
 }
 
@@ -185,7 +188,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
             }
-            _ if cast_data.value_type == cast_data.target_type => self.as_basic_value_enum(),
             _ => unreachable!("Cannot cast integer value to {}", cast_data.target_type.get_name()),
         }
     }

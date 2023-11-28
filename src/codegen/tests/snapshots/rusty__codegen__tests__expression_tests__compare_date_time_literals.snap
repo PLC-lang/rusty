@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/expression_tests.rs
-assertion_line: 538
 expression: result
 ---
 ; ModuleID = 'main'
@@ -28,14 +27,14 @@ entry:
   store i8 0, i8* %cmp6, align 1
   store i8 0, i8* %cmp7, align 1
   store i8 0, i8* %cmp8, align 1
-  store i8 0, i8* %cmp1, align 1
-  store i8 1, i8* %cmp2, align 1
-  store i8 0, i8* %cmp3, align 1
-  store i8 1, i8* %cmp4, align 1
-  store i8 0, i8* %cmp5, align 1
-  store i8 1, i8* %cmp6, align 1
-  store i8 0, i8* %cmp7, align 1
-  store i8 1, i8* %cmp8, align 1
+  store i1 false, i8* %cmp1, align 1
+  store i1 true, i8* %cmp2, align 1
+  store i1 false, i8* %cmp3, align 1
+  store i1 true, i8* %cmp4, align 1
+  store i1 false, i8* %cmp5, align 1
+  store i1 true, i8* %cmp6, align 1
+  store i1 false, i8* %cmp7, align 1
+  store i1 true, i8* %cmp8, align 1
   ret void
 }
 

@@ -14,9 +14,9 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  store i8 0, i8* %x, align 1
-  store i8 0, i8* %y, align 1
-  store i8 0, i8* %z, align 1
+  store i32 0, i8* %x, align 4
+  store i32 0, i8* %y, align 4
+  store i32 0, i8* %z, align 4
   store i8 0, i8* %x, align 1
   store i8 0, i8* %y, align 1
   store i8 0, i8* %z, align 1

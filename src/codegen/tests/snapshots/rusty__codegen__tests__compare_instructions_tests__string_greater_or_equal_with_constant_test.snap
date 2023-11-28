@@ -80,8 +80,7 @@ entry:
 
 23:                                               ; preds = %12, %entry
   %24 = phi i1 [ %11, %entry ], [ %22, %12 ]
-  %25 = zext i1 %24 to i8
-  store i8 %25, i8* %result, align 1
+  store i1 %24, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }
