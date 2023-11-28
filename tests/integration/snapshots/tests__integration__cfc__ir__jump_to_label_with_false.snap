@@ -7,10 +7,10 @@ entry:
   %main = alloca i32, align 4
   %x = alloca i8, align 1
   %a = alloca i32, align 4
-  store i1 false, i8* %x, align 1
+  store i8 0, i8* %x, align 1
   store i32 0, i32* %a, align 4
   store i32 0, i32* %main, align 4
-  store i1 false, i8* %x, align 1
+  store i8 0, i8* %x, align 1
   %load_x = load i8, i8* %x, align 1
   br i8 %load_x, label %lbl, label %else_block
 

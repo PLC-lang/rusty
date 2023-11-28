@@ -12,8 +12,8 @@ source_filename = "main"
 define void @prg(%prg* %0) {
 entry:
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i1 true, i8* %y, align 1
-  store i1 false, i8* %y, align 1
+  store i8 1, i8* %y, align 1
+  store i8 0, i8* %y, align 1
   ret void
 }
 

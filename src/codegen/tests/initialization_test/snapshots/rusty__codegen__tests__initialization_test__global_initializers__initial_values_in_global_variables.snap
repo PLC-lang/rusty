@@ -1,11 +1,13 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
+assertion_line: 53
 expression: result
+
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 @x = global i16 7
-@y = global i8 true
+@y = global i8 1
 @z = global float 0x400921CAC0000000
 

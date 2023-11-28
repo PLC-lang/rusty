@@ -25,7 +25,7 @@ entry:
 define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %call = call i32 @foo(i32 2, i1 true)
+  %call = call i32 @foo(i32 2, i8 1)
   store i32 %call, i32* %x, align 4
   ret void
 }

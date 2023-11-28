@@ -44,7 +44,8 @@ entry:
   %call = call i8 @STRING_EQUAL([1025 x i8] %5, [1025 x i8] %9)
   %10 = icmp ne i8 %call, 0
   %tmpVar = xor i1 %10, true
-  store i1 %tmpVar, i8* %result, align 1
+  %11 = zext i1 %tmpVar to i8
+  store i8 %11, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }
