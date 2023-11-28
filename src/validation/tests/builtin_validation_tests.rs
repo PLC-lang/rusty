@@ -44,8 +44,7 @@ fn arithmetic_builtins_called_with_incompatible_types() {
 }
 
 #[test]
-#[ignore = "FIXME: no validation for invalid parameter count"]
-fn arithmetic_builtins_called_with_too_many_parameters() {
+fn arithmetic_builtins_called_with_invalid_param_count() {
     let diagnostics = parse_and_validate(
         "
         FUNCTION main : DINT
@@ -55,7 +54,7 @@ fn arithmetic_builtins_called_with_too_many_parameters() {
         END_VAR
             ADD();
             MUL(x1);
-            DIV(x2, x2, x1, x2);
+            DIV(x2, x2, x1, x2); // DIV and SUB are not extensible
             SUB(x2, x2, x1, x2);
         END_FUNCTION
        ",
@@ -78,6 +77,26 @@ fn comparison_builtins_called_with_incompatible_types() {
             EQ(x1, x1);
             GT(x1, x2);
             NE(x2, x2);
+        END_FUNCTION
+       ",
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn comparison_builtins_called_with_invalid_param_count() {
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION main : DINT
+        VAR
+            x1 : DINT;
+            x2 : REAL;
+        END_VAR
+            EQ();
+            GT(x1);
+            LE(x2, x2, x1, x2); // OK
+            NE(x2, x2, x1, x2); // NE is not extensible
         END_FUNCTION
        ",
     );

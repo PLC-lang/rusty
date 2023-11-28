@@ -335,12 +335,14 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                }),
                 generic_name_resolver,
                 code: |_, _, _| {
                     unreachable!("ADD is not generated as a function call");
@@ -358,12 +360,14 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
+                }),
                 generic_name_resolver,
                 code: |_, _, _| {
                     unreachable!("MUL is not generated as a function call");
@@ -382,11 +386,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
+                }),
                 generic_name_resolver,
                 code: |_, _, _| {
                     unreachable!("SUB is not generated as a function call");
@@ -405,11 +411,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
+                }),
                 generic_name_resolver,
                 code: |_, _, _| {
                     unreachable!("DIV is not generated as a function call");
@@ -428,11 +436,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater);
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Greater)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("GT is not generated as a function call");
@@ -450,11 +460,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual);
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::GreaterOrEqual)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("GE is not generated as a function call");
@@ -472,11 +484,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal);
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Equal)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("EQ is not generated as a function call");
@@ -494,11 +508,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual);
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::LessOrEqual)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("LE is not generated as a function call");
@@ -516,11 +532,13 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less);
                 }),
-                validation: None,
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Less)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("LT is not generated as a function call");
@@ -532,17 +550,20 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
                 VAR_INPUT
-                    IN : {sized} T...;
+                    IN1 : T;
+                    IN2 : T;
                 END_VAR
                 END_FUNCTION
                 ",
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
-                        unreachable!("must have parameters")
+                        return;
                     };
                     annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual);
                 }),
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::NotEqual)
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |_, _, _| {
                     unreachable!("NE is not generated as a function call");
@@ -550,6 +571,41 @@ lazy_static! {
             }
         ),
     ]);
+}
+
+fn validate_builtin_symbol_parameter_count(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
+    operation: Operator,
+) {
+    let Some(params) = parameters else {
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        return;
+    };
+
+    let count = flatten_expression_list(params).len();
+    match operation {
+        // non-extensible operators
+        Operator::Minus | Operator::Division | Operator::NotEqual => {
+            if count != 2 {
+                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                    2,
+                    count,
+                    operator.get_location(),
+                ));
+            }
+        }
+        _ => {
+            if count < 2 {
+                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                    2,
+                    count,
+                    operator.get_location(),
+                ));
+            }
+        }
+    }
 }
 
 // creates nested BinaryExpressions for each parameter, such that
@@ -586,7 +642,11 @@ fn annotate_comparison_function(
             )
         })
         .collect::<Vec<_>>();
-    let mut new_statement = comparisons.get(0).expect("Must exist").to_owned();
+    let Some(new_statement) = comparisons.get(0) else {
+        // no windows => less than 2 parameters, caught during validation
+        return;
+    };
+    let mut new_statement = new_statement.clone();
     comparisons.into_iter().skip(1).for_each(|right| {
         new_statement = AstFactory::create_binary_expression(
             new_statement.clone(),
