@@ -28,6 +28,7 @@ pub fn visit_data_type<T: AnnotationMap>(
 ) {
     validate_data_type(validator, data_type, location);
 
+    let context = &context.with_optional_qualifier(data_type.get_name());
     match data_type {
         DataType::StructType { variables, .. } => {
             variables.iter().for_each(|v| visit_variable(validator, v, context))
