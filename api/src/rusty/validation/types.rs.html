@@ -105,6 +105,7 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -135,6 +136,7 @@
 ) {
     validate_data_type(validator, data_type, location);
 
+    <span class="kw">let </span>context = <span class="kw-2">&amp;</span>context.with_optional_qualifier(data_type.get_name());
     <span class="kw">match </span>data_type {
         DataType::StructType { variables, .. } =&gt; {
             variables.iter().for_each(|v| visit_variable(validator, v, context))

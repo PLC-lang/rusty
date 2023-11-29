@@ -1353,6 +1353,10 @@
 <a href="#1353" id="1353">1353</a>
 <a href="#1354" id="1354">1354</a>
 <a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -2055,6 +2059,10 @@
         <span class="kw">let </span>inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
         <span class="kw">let </span>inner_type_size = inner_type_info.get_size_in_bits(index);
         <span class="kw">let </span>arr_size = <span class="self">self</span>.get_size_in_bits(index);
+
+        <span class="kw">if </span>inner_type_size == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
 
         <span class="prelude-val">Some</span>((arr_size / inner_type_size) <span class="kw">as </span>usize)
     }
