@@ -39,7 +39,6 @@ enum class LLVMRustArchiveKind {
   BSD,
   DARWIN,
   COFF,
-  AIX_BIG,
 };
 
 static Archive::Kind fromRust(LLVMRustArchiveKind Kind) {
@@ -52,8 +51,6 @@ static Archive::Kind fromRust(LLVMRustArchiveKind Kind) {
     return Archive::K_DARWIN;
   case LLVMRustArchiveKind::COFF:
     return Archive::K_COFF;
-  case LLVMRustArchiveKind::AIX_BIG:
-    return Archive::K_AIXBIG;
   default:
     report_fatal_error("Bad ArchiveKind.");
   }
@@ -157,6 +154,19 @@ LLVMRustArchiveChildName(LLVMRustArchiveChildConstRef Child, size_t *Size) {
   return Name.data();
 }
 
+extern "C" const char *LLVMRustArchiveChildData(LLVMRustArchiveChildRef Child,
+                                                size_t *Size) {
+  StringRef Buf;
+  Expected<StringRef> BufOrErr = Child->getBuffer();
+  if (!BufOrErr) {
+    LLVMRustSetLastError(toString(BufOrErr.takeError()).c_str());
+    return nullptr;
+  }
+  Buf = BufOrErr.get();
+  *Size = Buf.size();
+  return Buf.data();
+}
+
 extern "C" LLVMRustArchiveMemberRef
 LLVMRustArchiveMemberNew(char *Filename, char *Name,
                          LLVMRustArchiveChildRef Child) {
@@ -203,12 +213,7 @@ LLVMRustWriteArchive(char *Dst, size_t NumMembers,
     }
   }
 
-#if LLVM_VERSION_LT(18, 0)
   auto Result = writeArchive(Dst, Members, WriteSymbtab, Kind, true, false);
-#else
-  auto SymtabMode = WriteSymbtab ? SymtabWritingMode::NormalSymtab : SymtabWritingMode::NoSymtab;
-  auto Result = writeArchive(Dst, Members, SymtabMode, Kind, true, false);
-#endif
   if (!Result)
     return LLVMRustResult::Success;
   LLVMRustSetLastError(toString(std::move(Result)).c_str());
