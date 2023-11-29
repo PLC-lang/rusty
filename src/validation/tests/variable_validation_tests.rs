@@ -1,4 +1,6 @@
+use crate::test_utils::tests::parse_and_validate_buffered;
 use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use insta::assert_snapshot;
 
 #[test]
 fn uninitialized_constants_fall_back_to_the_default() {
@@ -359,4 +361,22 @@ mod overflows {
 
         assert_validation_snapshot!(diagnostics);
     }
+}
+
+#[test]
+fn type_initializers_in_structs_are_validated() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE foo : STRUCT
+            x : DINT;
+        END_STRUCT END_TYPE
+
+        TYPE MyStruct: STRUCT
+            unknown_reference : foo := (xxx := 1);
+            invalid_array_assignment : ARRAY[0..1] OF INT := 0;
+        END_STRUCT END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
 }

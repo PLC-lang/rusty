@@ -58,6 +58,10 @@ fn validate_array<T: AnnotationMap>(
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
     let len_rhs = statement_to_array_length(stmt_rhs);
 
+    if len_lhs == 0 {
+        return;
+    }
+
     if len_lhs < len_rhs {
         let name = lhs_type.get_name();
         let location = stmt_rhs.get_location();

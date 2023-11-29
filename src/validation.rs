@@ -48,6 +48,15 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
         }
     }
 
+    fn with_optional_qualifier(&self, qualifier: Option<&'s str>) -> Self {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier,
+            is_call: self.is_call,
+        }
+    }
+
     fn find_pou(&self, stmt: &AstNode) -> Option<&PouIndexEntry> {
         self.annotations.get_call_name(stmt).and_then(|pou_name| {
             self.index
