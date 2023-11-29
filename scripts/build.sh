@@ -18,6 +18,9 @@ package=0
 target=""
 
 CONTAINER_NAME='rust-llvm'
+# There may be a better way to set these
+export REAL_LIBRARY_PATH_VAR="/usr/lib/llvm-14/lib"
+export PATH="$PATH:/usr/lib/llvm-14/bin"
 
 source "${BASH_SOURCE%/*}/common.sh"
 
@@ -112,6 +115,25 @@ function run_std_build() {
 		fi
 	fi
 }
+
+# # Builds the LLVM coverage wrapper functions
+# function run_build_llvm_wrappers() {
+# 	CARGO_OPTIONS=$(set_cargo_options)
+
+# 	# Run cargo build with release or debug flags
+# 	echo "Build starting"
+# 	echo "-----------------------------------"
+# 	cmd="cargo build $CARGO_OPTIONS -p " 
+# 	log "Running $cmd" 
+# 	eval "$cmd"
+# 	echo "-----------------------------------"
+# 	if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+# 		echo "Build failed"
+# 		exit 1
+# 	else
+# 		echo "Build done"
+# 	fi
+# }
 
 function run_check() {
 	CARGO_OPTIONS=$(set_cargo_options)
