@@ -367,8 +367,12 @@ mod overflows {
 fn type_initializers_in_structs_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         "
+        TYPE foo : STRUCT
+            x : DINT;
+        END_STRUCT END_TYPE
+
         TYPE MyStruct: STRUCT
-            overflow : SINT := 1234567890;
+            unknown_reference : foo := (xxx := 1);
             invalid_array_assignment : ARRAY[0..1] OF INT := 0;
         END_STRUCT END_TYPE
         ",
