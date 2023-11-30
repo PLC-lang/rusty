@@ -2,8 +2,18 @@
 f = open("gen.txt", "w")
 
 # list of data types
-types = ["LREAL", "REAL", "LINT", "DINT", "INT",
-         "SINT", "ULINT", "UDINT", "UINT", "USINT"]
+types = [
+    "LREAL",
+    "REAL",
+    "LINT",
+    "DINT",
+    "INT",
+    "SINT",
+    "ULINT",
+    "UDINT",
+    "UINT",
+    "USINT",
+]
 
 src = """(********************
 *
