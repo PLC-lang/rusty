@@ -168,6 +168,31 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
             return self.generate_expression(statement);
         }
+
+        // TODO: This seems to be wrong, the `as_r_value()` is called too early, resulting in
+        //       the i32 pointer to be cast to an actual i32 for this specific case:
+        //       ```
+        //       TYPE mytype : ARRAY [0..2] of DWORD; END_TYPE
+        //       FUNCTION main : DINT
+        //           VAR
+        //               arr : mytype;
+        //           END_VAR
+        //       function1(arr);
+        //       END_FUNCTION
+        //       FUNCTION function1 : DINT
+        //          VAR_IN_OUT
+        //              val   : mytype;
+        //          END_VAR
+        //          function2(val);
+        //       END_FUNCTION
+        //       FUNCTION function2 : DINT
+        //          VAR_INPUT
+        //              stat_param_input : mytype;
+        //          END_VAR
+        //       END_FUNCTION
+        //       ```
+        //       For the call we want `%call = call i32 @function1([3 x i32] %load_x)` but get
+        //       something along `//%call = call i32 @function1(i32 %load_x)`
         let v = self
             .generate_expression_value(expression)?
             .as_r_value(self.llvm, self.get_load_name(expression))
@@ -179,6 +204,22 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
         Ok(cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression)))
+
+        // let v = self.generate_expression_value(expression)?;
+        // if let Some(target_ty) = self.annotations.get_type_hint(expression, self.index) {
+        //     let actual_ty = self.annotations.get_type_or_void(expression, self.index);
+        //     let cast = cast_if_needed!(
+        //         self,
+        //         target_ty,
+        //         actual_ty,
+        //         v.get_basic_value_enum(),
+        //         self.annotations.get(expression)
+        //     );
+        //
+        //     return Ok(cast);
+        // }
+        //
+        // Ok(v.as_r_value(self.llvm, self.get_load_name(expression)))
     }
 
     fn register_debug_location(&self, statement: &AstNode) {
