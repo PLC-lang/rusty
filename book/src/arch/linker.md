@@ -321,4 +321,3 @@ The code-generation steps can easily decide when to generate casts, by simply co
 When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
 This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
 This information can then be used during the [codegen](./codegen.md) period to only generated types and variables that are relevant to the unit.
-
