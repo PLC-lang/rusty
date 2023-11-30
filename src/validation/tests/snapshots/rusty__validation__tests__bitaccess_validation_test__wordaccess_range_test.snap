@@ -2,6 +2,6 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Word-Wise access for type DWORD must be in the range 0..1", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 118 }..TextLocation { line: 5, column: 21, offset: 121 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Word-Wise access for type LWORD must be in the range 0..3", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 141 }..TextLocation { line: 6, column: 21, offset: 144 }) }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "Word-Wise access for type DWORD must be in the range 0..1", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 117 }..TextLocation { line: 5, column: 21, offset: 120 }) }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "Word-Wise access for type LWORD must be in the range 0..3", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 140 }..TextLocation { line: 6, column: 21, offset: 143 }) }], err_no: type__incompatible_directaccess_range }
 

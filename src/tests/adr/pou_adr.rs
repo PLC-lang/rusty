@@ -77,11 +77,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 2,
                                     column: 20,
-                                    offset: 43,
+                                    offset: 42,
                                 }..TextLocation {
                                     line: 2,
                                     column: 21,
-                                    offset: 44,
+                                    offset: 43,
                                 },
                             ),
                         },
@@ -104,11 +104,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 3,
                                     column: 20,
-                                    offset: 83,
+                                    offset: 82,
                                 }..TextLocation {
                                     line: 3,
                                     column: 22,
-                                    offset: 85,
+                                    offset: 84,
                                 },
                             ),
                         },
@@ -131,11 +131,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 4,
                                     column: 20,
-                                    offset: 123,
+                                    offset: 122,
                                 }..TextLocation {
                                     line: 4,
                                     column: 21,
-                                    offset: 124,
+                                    offset: 123,
                                 },
                             ),
                         },
@@ -158,11 +158,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 5,
                                     column: 20,
-                                    offset: 163,
+                                    offset: 162,
                                 }..TextLocation {
                                     line: 5,
                                     column: 21,
-                                    offset: 164,
+                                    offset: 163,
                                 },
                             ),
                         },
@@ -185,11 +185,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 6,
                                     column: 20,
-                                    offset: 203,
+                                    offset: 202,
                                 }..TextLocation {
                                     line: 6,
                                     column: 22,
-                                    offset: 205,
+                                    offset: 204,
                                 },
                             ),
                         },
