@@ -2,8 +2,8 @@
 name = "rusty"
 version = "0.2.0"
 authors = [
-	"Ghaith Hachem <ghaith.hachem@gmail.com>",
-	"Mathias Rieder <mathias.rieder@gmail.com>",
+    "Ghaith Hachem <ghaith.hachem@gmail.com>",
+    "Mathias Rieder <mathias.rieder@gmail.com>",
 ]
 edition = "2021"
 readme = "README.md"
@@ -59,16 +59,16 @@ path = "src/lib.rs"
 
 [workspace]
 members = [
-	"xtask",
-	"libs/stdlib",
-	"compiler/plc_driver",
-	"compiler/plc_ast",
-	"compiler/plc_diagnostics",
-	"compiler/plc_project",
-	"compiler/plc_source",
-	"compiler/plc_util",
-	"compiler/plc_xml",
-	"compiler/plc_derive",
+    "xtask",
+    "libs/stdlib",
+    "compiler/plc_driver",
+    "compiler/plc_ast",
+    "compiler/plc_diagnostics",
+    "compiler/plc_project",
+    "compiler/plc_source",
+    "compiler/plc_util",
+    "compiler/plc_xml",
+    "compiler/plc_derive",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 

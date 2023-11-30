@@ -790,18 +790,18 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
         PROGRAM PRG
             VAR
                 a : INT;
-				b : UINT;
+                b : UINT;
             END_VAR
             myFunc(REAL#1.0);
             myFunc(SINT#1);
             myFunc(a);
             myFunc(DINT#1);
-			myFunc(LINT#1);
+            myFunc(LINT#1);
 
-			myFunc(USINT#1);
+            myFunc(USINT#1);
             myFunc(b);
             myFunc(UDINT#1);
-			myFunc(ULINT#1);
+            myFunc(ULINT#1);
         END_PROGRAM",
         id_provider.clone(),
     );

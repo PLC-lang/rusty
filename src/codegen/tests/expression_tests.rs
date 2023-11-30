@@ -207,26 +207,26 @@ fn pointer_arithmetics() {
     // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
     let result = codegen(
         "
-		PROGRAM main
-		VAR
-			x : INT := 10;
-			y : INT := 20;
-			pt : REF_TO INT;
-		END_VAR
-		pt := &(x);
+        PROGRAM main
+        VAR
+            x : INT := 10;
+            y : INT := 20;
+            pt : REF_TO INT;
+        END_VAR
+        pt := &(x);
 
-		(* +/- *)
-		pt := pt + 1;
-		pt := pt + 1 + 1;
-		pt := 1 + pt;
-		pt := pt - y;
-		pt := 1 + pt + 1;
-		pt := pt - y - 1;
-		pt := 1 + 1 + pt ;
-		pt := y + pt - y ;
-		pt := y + y + pt ;
-		END_PROGRAM
-		",
+        (* +/- *)
+        pt := pt + 1;
+        pt := pt + 1 + 1;
+        pt := 1 + pt;
+        pt := pt - y;
+        pt := 1 + pt + 1;
+        pt := pt - y - 1;
+        pt := 1 + 1 + pt ;
+        pt := y + pt - y ;
+        pt := y + y + pt ;
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -239,17 +239,17 @@ fn pointer_arithmetics_function_call() {
         FUNCTION foo : LINT
         END_FUNCTION
 
-		PROGRAM main
-		VAR
-			pt : REF_TO INT;
+        PROGRAM main
+        VAR
+            pt : REF_TO INT;
             x : INT;
-		END_VAR
-		pt := &(x);
+        END_VAR
+        pt := &(x);
 
-		(* +/- *)
-		pt := pt + foo();
-		END_PROGRAM
-		",
+        (* +/- *)
+        pt := pt + foo();
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -265,10 +265,10 @@ fn nested_call_statements() {
         END_VAR
         END_FUNCTION
 
-		PROGRAM main
+        PROGRAM main
             foo(foo(2));
-		END_PROGRAM
-		",
+        END_PROGRAM
+        ",
     );
     // WHEN compiled
     // WE expect a flat sequence of calls, no regions and branching
@@ -280,14 +280,14 @@ fn builtin_function_call_adr() {
     // GIVEN some nested call statements
     let result = codegen(
         "
-		PROGRAM main
+        PROGRAM main
         VAR
             a : REF_TO DINT;
             b : DINT;
         END_VAR
             a := ADR(b);
-		END_PROGRAM
-		",
+        END_PROGRAM
+        ",
     );
     // WHEN compiled
     // We expect a direct conversion to lword and subsequent assignment (no call)
@@ -299,14 +299,14 @@ fn builtin_function_call_ref() {
     // GIVEN some nested call statements
     let result = codegen(
         "
-		PROGRAM main
+        PROGRAM main
         VAR
             a : REF_TO DINT;
             b : DINT;
         END_VAR
             a := REF(b);
-		END_PROGRAM
-		",
+        END_PROGRAM
+        ",
     );
     // WHEN compiled
     // We expect a direct conversion and subsequent assignment to pointer(no call)
@@ -486,17 +486,17 @@ fn compare_date_time_literals() {
     VAR_TEMP
         cmp1, cmp2, cmp3, cmp4, cmp5, cmp6, cmp7, cmp8 : BOOL;
     END_VAR
-		cmp1 := TIME#2d4h6m8s10ms11us300ns < TIME#1d8h43m23s55ms;
-		cmp2 := LTIME#2d4h6m8s10ms11us300ns > LTIME#1d8h43m23s55ms;
+        cmp1 := TIME#2d4h6m8s10ms11us300ns < TIME#1d8h43m23s55ms;
+        cmp2 := LTIME#2d4h6m8s10ms11us300ns > LTIME#1d8h43m23s55ms;
 
-		cmp3 := TOD#23:59:59.999 < TOD#10:32:59;
-		cmp4 := LTOD#23:59:59.999 > LTOD#10:32:59;
+        cmp3 := TOD#23:59:59.999 < TOD#10:32:59;
+        cmp4 := LTOD#23:59:59.999 > LTOD#10:32:59;
 
-		cmp5 := DATE#2022-10-20 < DATE#1999-01-01;
-		cmp6 := LDATE#2022-10-20 > LDATE#1999-01-01;
+        cmp5 := DATE#2022-10-20 < DATE#1999-01-01;
+        cmp6 := LDATE#2022-10-20 > LDATE#1999-01-01;
 
-		cmp7 := DT#2022-10-20-23:59:59.999 < DT#1999-01-01-10:32;
-		cmp8 := LDT#2022-10-20-23:59:59.999 > LDT#1999-01-01-10:32;
+        cmp7 := DT#2022-10-20-23:59:59.999 < DT#1999-01-01-10:32;
+        cmp8 := LDT#2022-10-20-23:59:59.999 > LDT#1999-01-01-10:32;
     END_PROGRAM
     ",
     );

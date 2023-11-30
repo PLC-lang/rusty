@@ -615,9 +615,9 @@ fn struct_assignment_validation() {
     END_TYPE
 
     FUNCTION_BLOCK fb
-	VAR_IN_OUT
-		var_inout_struct1 : STRUCT1;
-	END_VAR
+    VAR_IN_OUT
+        var_inout_struct1 : STRUCT1;
+    END_VAR
     END_FUNCTION_BLOCK
 
     FUNCTION main : DINT

@@ -84,12 +84,12 @@ fn initial_values_in_sub_range_type() {
 fn expression_list_as_array_initilization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[-1..3] OF INT := 1, 2, 3;
-			b_exp : ARRAY[-1..4] OF DINT := 1+3, 2*3, 7-1, 10;
-			str : ARRAY[-1..2] OF STRING := 'first', 'second';
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[-1..3] OF INT := 1, 2, 3;
+            b_exp : ARRAY[-1..4] OF DINT := 1+3, 2*3, 7-1, 10;
+            str : ARRAY[-1..2] OF STRING := 'first', 'second';
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -98,10 +98,10 @@ fn expression_list_as_array_initilization() {
 fn incomplete_array_initialization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[0..5] OF INT := 0, 1, 2;
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..5] OF INT := 0, 1, 2;
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -112,10 +112,10 @@ fn incomplete_array_initialization_with_custom_init_value() {
         "
         TYPE MyInt : INT := 7; END_TYPE
 
-		VAR_GLOBAL
-			arr : ARRAY[0..5] OF MyInt := 0, 1, 2;
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..5] OF MyInt := 0, 1, 2;
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -461,26 +461,26 @@ fn struct_initializer_uses_fallback_to_field_default() {
 #[test]
 fn array_of_struct_initialization() {
     let source = "
-	TYPE myStruct : STRUCT
-			a, b : DINT;
-			c : ARRAY[0..1] OF DINT;
-		END_STRUCT
-	END_TYPE
+    TYPE myStruct : STRUCT
+            a, b : DINT;
+            c : ARRAY[0..1] OF DINT;
+        END_STRUCT
+    END_TYPE
 
-	TYPE AliasMyStruct : myStruct; END_TYPE
+    TYPE AliasMyStruct : myStruct; END_TYPE
 
-	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := [70, 80]);
-		alias_str : AliasMyStruct := (a := 50, b := 60, c := [70, 80]);
-		global_arr : ARRAY[0..1] OF DINT := [30, 40];
-	END_VAR
+    VAR_GLOBAL CONSTANT
+        str : myStruct := (a := 50, b := 60, c := [70, 80]);
+        alias_str : AliasMyStruct := (a := 50, b := 60, c := [70, 80]);
+        global_arr : ARRAY[0..1] OF DINT := [30, 40];
+    END_VAR
 
-	PROGRAM main
-	VAR
-		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
-		alias_arr : ARRAY[0..1] OF AliasMyStruct := [(a := 10, b := 20, c := global_arr), alias_str];
-	END_VAR
-	END_PROGRAM
+    PROGRAM main
+    VAR
+        arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
+        alias_arr : ARRAY[0..1] OF AliasMyStruct := [(a := 10, b := 20, c := global_arr), alias_str];
+    END_VAR
+    END_PROGRAM
     ";
     let result = codegen(source);
 

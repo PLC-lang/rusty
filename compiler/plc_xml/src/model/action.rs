@@ -88,9 +88,9 @@ mod tests {
                     <content>
 PROGRAM program_0
 VAR
-	a : DINT;
+    a : DINT;
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

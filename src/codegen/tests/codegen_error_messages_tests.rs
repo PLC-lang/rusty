@@ -191,7 +191,7 @@ fn invalid_initial_constant_values_in_pou_variables() {
         END_VAR
 
         PROGRAM prg
-      	  VAR_INPUT
+          VAR_INPUT
             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
           END_VAR
         END_PROGRAM
@@ -227,12 +227,12 @@ fn assigning_string_literal_to_int_variable_results_in_casting_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-	END_VAR
-		x := 'A';
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+    END_VAR
+        x := 'A';
+    END_PROGRAM"#,
     );
     // THEN result shoud be a casting error
     if let Err(msg) = result {
@@ -248,12 +248,12 @@ fn assigning_empty_string_literal_to_char_results_in_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : CHAR;
-	END_VAR
-		x := '';
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : CHAR;
+    END_VAR
+        x := '';
+    END_PROGRAM"#,
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
@@ -269,12 +269,12 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : WCHAR;
-	END_VAR
-		x := "";
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : WCHAR;
+    END_VAR
+        x := "";
+    END_PROGRAM"#,
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
@@ -288,14 +288,14 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
 fn pointer_binary_expression_adding_two_pointers() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr + ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr + ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -308,14 +308,14 @@ fn pointer_binary_expression_adding_two_pointers() {
 fn pointer_binary_expression_multiplication() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr * ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr * ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -328,14 +328,14 @@ fn pointer_binary_expression_multiplication() {
 fn pointer_binary_expression_division() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr / ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr / ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -348,14 +348,14 @@ fn pointer_binary_expression_division() {
 fn pointer_binary_expression_modulo() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr MOD ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr MOD ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)

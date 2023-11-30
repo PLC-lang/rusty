@@ -460,9 +460,9 @@ fn calling_a_function() {
         r#"
         PROGRAM prg
         VAR
-			x : INT;
-			z : SINT;
-		END_VAR
+            x : INT;
+            z : SINT;
+        END_VAR
             main_fun(x, z);
         END_FUNCTION
 

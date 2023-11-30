@@ -6,8 +6,8 @@
 {external}
 FUNCTION CONCAT_DATE_TOD : DT
 VAR_INPUT
-	date_input : DATE;
-	tod_input : TOD;
+    date_input : DATE;
+    tod_input : TOD;
 END_VAR
 END_FUNCTION
 
@@ -18,10 +18,10 @@ END_FUNCTION
 ******************** *)
 FUNCTION CONCAT_DATE_LTOD : DT
 VAR_INPUT
-	date_input : DATE;
-	tod_input : LTOD;
+    date_input : DATE;
+    tod_input : LTOD;
 END_VAR
-	CONCAT_DATE_LTOD := CONCAT_DATE_TOD(date_input, tod_input);
+    CONCAT_DATE_LTOD := CONCAT_DATE_TOD(date_input, tod_input);
 END_FUNCTION
 
 (********************
@@ -32,9 +32,9 @@ END_FUNCTION
 {external}
 FUNCTION CONCAT_DATE < T : ANY_INT > : DATE
 VAR_INPUT
-	year : T;
-	month : T;
-	day : T;
+    year : T;
+    month : T;
+    day : T;
 END_VAR
 END_FUNCTION
 
@@ -46,10 +46,10 @@ END_FUNCTION
 {external}
 FUNCTION CONCAT_TOD < T : ANY_INT > : TOD
 VAR_INPUT
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
@@ -60,99 +60,99 @@ END_FUNCTION
 ******************** *)
 FUNCTION CONCAT_LTOD < T : ANY_INT > : LTOD
 VAR_INPUT
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for SINT *)
 FUNCTION CONCAT_LTOD__SINT : LTOD
 VAR_INPUT
-	hour : SINT;
-	minute : SINT;
-	second : SINT;
-	millisecond : SINT;
+    hour : SINT;
+    minute : SINT;
+    second : SINT;
+    millisecond : SINT;
 END_VAR
-	CONCAT_LTOD__SINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__SINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for USINT *)
 FUNCTION CONCAT_LTOD__USINT : LTOD
 VAR_INPUT
-	hour : USINT;
-	minute : USINT;
-	second : USINT;
-	millisecond : USINT;
+    hour : USINT;
+    minute : USINT;
+    second : USINT;
+    millisecond : USINT;
 END_VAR
-	CONCAT_LTOD__USINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__USINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for INT *)
 FUNCTION CONCAT_LTOD__INT : LTOD
 VAR_INPUT
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
-	CONCAT_LTOD__INT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__INT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for UINT *)
 FUNCTION CONCAT_LTOD__UINT : LTOD
 VAR_INPUT
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
-	CONCAT_LTOD__UINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__UINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for DINT *)
 FUNCTION CONCAT_LTOD__DINT : LTOD
 VAR_INPUT
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
-	CONCAT_LTOD__DINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__DINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for UDINT *)
 FUNCTION CONCAT_LTOD__UDINT : LTOD
 VAR_INPUT
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
-	CONCAT_LTOD__UDINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__UDINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for LINT *)
 FUNCTION CONCAT_LTOD__LINT : LTOD
 VAR_INPUT
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
-	CONCAT_LTOD__LINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__LINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for ULINT *)
 FUNCTION CONCAT_LTOD__ULINT : LTOD
 VAR_INPUT
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
-	CONCAT_LTOD__ULINT := CONCAT_TOD(hour, minute, second, millisecond);
+    CONCAT_LTOD__ULINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************
@@ -162,98 +162,98 @@ END_FUNCTION
 ******************** *)
 FUNCTION CONCAT_DT < T : ANY_INT > : DT
 VAR_INPUT
-	year : T;
-	month : T;
-	day : T;
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    year : T;
+    month : T;
+    day : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for INT *)
 FUNCTION CONCAT_DT__INT : DT
 VAR_INPUT
-	year : INT;
-	month : INT;
-	day : INT;
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    year : INT;
+    month : INT;
+    day : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
-	CONCAT_DT__INT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__INT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for UINT *)
 FUNCTION CONCAT_DT__UINT : DT
 VAR_INPUT
-	year : UINT;
-	month : UINT;
-	day : UINT;
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    year : UINT;
+    month : UINT;
+    day : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
-	CONCAT_DT__UINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__UINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for DINT *)
 FUNCTION CONCAT_DT__DINT : DT
 VAR_INPUT
-	year : DINT;
-	month : DINT;
-	day : DINT;
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    year : DINT;
+    month : DINT;
+    day : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
-	CONCAT_DT__DINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__DINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for UDINT *)
 FUNCTION CONCAT_DT__UDINT : DT
 VAR_INPUT
-	year : UDINT;
-	month : UDINT;
-	day : UDINT;
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    year : UDINT;
+    month : UDINT;
+    day : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
-	CONCAT_DT__UDINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__UDINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for LINT *)
 FUNCTION CONCAT_DT__LINT : DT
 VAR_INPUT
-	year : LINT;
-	month : LINT;
-	day : LINT;
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    year : LINT;
+    month : LINT;
+    day : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
-	CONCAT_DT__LINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__LINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_DT for ULINT *)
 FUNCTION CONCAT_DT__ULINT : DT
 VAR_INPUT
-	year : ULINT;
-	month : ULINT;
-	day : ULINT;
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    year : ULINT;
+    month : ULINT;
+    day : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
-	CONCAT_DT__ULINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
+    CONCAT_DT__ULINT := CONCAT_DATE_TOD(CONCAT_DATE(year, month, day), CONCAT_TOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (********************
@@ -263,98 +263,98 @@ END_FUNCTION
 ******************** *)
 FUNCTION CONCAT_LDT < T : ANY_INT > : LDT
 VAR_INPUT
-	year : T;
-	month : T;
-	day : T;
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    year : T;
+    month : T;
+    day : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for INT *)
 FUNCTION CONCAT_LDT__INT : LDT
 VAR_INPUT
-	year : INT;
-	month : INT;
-	day : INT;
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    year : INT;
+    month : INT;
+    day : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
-	CONCAT_LDT__INT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__INT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for UINT *)
 FUNCTION CONCAT_LDT__UINT : LDT
 VAR_INPUT
-	year : UINT;
-	month : UINT;
-	day : UINT;
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    year : UINT;
+    month : UINT;
+    day : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
-	CONCAT_LDT__UINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__UINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for DINT *)
 FUNCTION CONCAT_LDT__DINT : LDT
 VAR_INPUT
-	year : DINT;
-	month : DINT;
-	day : DINT;
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    year : DINT;
+    month : DINT;
+    day : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
-	CONCAT_LDT__DINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__DINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for UDINT *)
 FUNCTION CONCAT_LDT__UDINT : LDT
 VAR_INPUT
-	year : UDINT;
-	month : UDINT;
-	day : UDINT;
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    year : UDINT;
+    month : UDINT;
+    day : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
-	CONCAT_LDT__UDINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__UDINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for LINT *)
 FUNCTION CONCAT_LDT__LINT : LDT
 VAR_INPUT
-	year : LINT;
-	month : LINT;
-	day : LINT;
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    year : LINT;
+    month : LINT;
+    day : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
-	CONCAT_LDT__LINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__LINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for ULINT *)
 FUNCTION CONCAT_LDT__ULINT : LDT
 VAR_INPUT
-	year : ULINT;
-	month : ULINT;
-	day : ULINT;
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    year : ULINT;
+    month : ULINT;
+    day : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
-	CONCAT_LDT__ULINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
+    CONCAT_LDT__ULINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (********************
@@ -364,12 +364,12 @@ END_FUNCTION
 ******************** *)
 FUNCTION SPLIT_DATE < T : ANY_INT > : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : T;
-	month : T;
-	day : T;
+    year : T;
+    month : T;
+    day : T;
 END_VAR
 END_FUNCTION
 
@@ -377,12 +377,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__INT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : INT;
-	month : INT;
-	day : INT;
+    year : INT;
+    month : INT;
+    day : INT;
 END_VAR
 END_FUNCTION
 
@@ -390,12 +390,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__UINT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : UINT;
-	month : UINT;
-	day : UINT;
+    year : UINT;
+    month : UINT;
+    day : UINT;
 END_VAR
 END_FUNCTION
 
@@ -403,12 +403,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__DINT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : DINT;
-	month : DINT;
-	day : DINT;
+    year : DINT;
+    month : DINT;
+    day : DINT;
 END_VAR
 END_FUNCTION
 
@@ -416,12 +416,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__UDINT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : UDINT;
-	month : UDINT;
-	day : UDINT;
+    year : UDINT;
+    month : UDINT;
+    day : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -429,12 +429,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__LINT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : LINT;
-	month : LINT;
-	day : LINT;
+    year : LINT;
+    month : LINT;
+    day : LINT;
 END_VAR
 END_FUNCTION
 
@@ -442,12 +442,12 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DATE__ULINT : INT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 VAR_OUTPUT
-	year : ULINT;
-	month : ULINT;
-	day : ULINT;
+    year : ULINT;
+    month : ULINT;
+    day : ULINT;
 END_VAR
 END_FUNCTION
 
@@ -458,13 +458,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION SPLIT_TOD < T : ANY_INT > : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
@@ -472,13 +472,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__INT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
 END_FUNCTION
 
@@ -486,13 +486,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__UINT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
 END_FUNCTION
 
@@ -500,13 +500,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__DINT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
 END_FUNCTION
 
@@ -514,13 +514,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__UDINT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -528,13 +528,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__LINT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
 END_FUNCTION
 
@@ -542,13 +542,13 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_TOD__ULINT : INT
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
 VAR_OUTPUT
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
 END_FUNCTION
 
@@ -559,98 +559,98 @@ END_FUNCTION
 ******************** *)
 FUNCTION SPLIT_LTOD < T : ANY_INT > : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for INT *)
 FUNCTION SPLIT_LTOD__INT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
-	SPLIT_LTOD__INT := SPLIT_TOD__INT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__INT := SPLIT_TOD__INT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for UINT *)
 FUNCTION SPLIT_LTOD__UINT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
-	SPLIT_LTOD__UINT := SPLIT_TOD__UINT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__UINT := SPLIT_TOD__UINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for DINT *)
 FUNCTION SPLIT_LTOD__DINT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
-	SPLIT_LTOD__DINT := SPLIT_TOD__DINT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__DINT := SPLIT_TOD__DINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for UDINT *)
 FUNCTION SPLIT_LTOD__UDINT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
-	SPLIT_LTOD__UDINT := SPLIT_TOD__UDINT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__UDINT := SPLIT_TOD__UDINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for LINT *)
 FUNCTION SPLIT_LTOD__LINT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
-	SPLIT_LTOD__LINT := SPLIT_TOD__LINT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__LINT := SPLIT_TOD__LINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for ULINT *)
 FUNCTION SPLIT_LTOD__ULINT : INT
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
 VAR_OUTPUT
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
-	SPLIT_LTOD__ULINT := SPLIT_TOD__ULINT(in, hour, minute, second, millisecond);
+    SPLIT_LTOD__ULINT := SPLIT_TOD__ULINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************
@@ -660,16 +660,16 @@ END_FUNCTION
 ******************** *)
 FUNCTION SPLIT_DT < T : ANY_INT > : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : T;
-	month : T;
-	day : T;
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    year : T;
+    month : T;
+    day : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
@@ -677,16 +677,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__INT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : INT;
-	month : INT;
-	day : INT;
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    year : INT;
+    month : INT;
+    day : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
 END_FUNCTION
 
@@ -694,16 +694,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__UINT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : UINT;
-	month : UINT;
-	day : UINT;
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    year : UINT;
+    month : UINT;
+    day : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
 END_FUNCTION
 
@@ -711,16 +711,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__DINT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : DINT;
-	month : DINT;
-	day : DINT;
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    year : DINT;
+    month : DINT;
+    day : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
 END_FUNCTION
 
@@ -728,16 +728,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__UDINT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : UDINT;
-	month : UDINT;
-	day : UDINT;
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    year : UDINT;
+    month : UDINT;
+    day : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -745,16 +745,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__LINT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : LINT;
-	month : LINT;
-	day : LINT;
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    year : LINT;
+    month : LINT;
+    day : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
 END_FUNCTION
 
@@ -762,16 +762,16 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_DT__ULINT : INT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 VAR_OUTPUT
-	year : ULINT;
-	month : ULINT;
-	day : ULINT;
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    year : ULINT;
+    month : ULINT;
+    day : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
 END_FUNCTION
 
@@ -782,16 +782,16 @@ END_FUNCTION
 ******************** *)
 FUNCTION SPLIT_LDT < T : ANY_INT > : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : T;
-	month : T;
-	day : T;
-	hour : T;
-	minute : T;
-	second : T;
-	millisecond : T;
+    year : T;
+    month : T;
+    day : T;
+    hour : T;
+    minute : T;
+    second : T;
+    millisecond : T;
 END_VAR
 END_FUNCTION
 
@@ -799,108 +799,108 @@ END_FUNCTION
 {external}
 FUNCTION SPLIT_LDT__INT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : INT;
-	month : INT;
-	day : INT;
-	hour : INT;
-	minute : INT;
-	second : INT;
-	millisecond : INT;
+    year : INT;
+    month : INT;
+    day : INT;
+    hour : INT;
+    minute : INT;
+    second : INT;
+    millisecond : INT;
 END_VAR
-	SPLIT_LDT__INT := SPLIT_DT__INT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__INT := SPLIT_DT__INT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for UINT *)
 {external}
 FUNCTION SPLIT_LDT__UINT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : UINT;
-	month : UINT;
-	day : UINT;
-	hour : UINT;
-	minute : UINT;
-	second : UINT;
-	millisecond : UINT;
+    year : UINT;
+    month : UINT;
+    day : UINT;
+    hour : UINT;
+    minute : UINT;
+    second : UINT;
+    millisecond : UINT;
 END_VAR
-	SPLIT_LDT__UINT := SPLIT_DT__UINT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__UINT := SPLIT_DT__UINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for DINT *)
 {external}
 FUNCTION SPLIT_LDT__DINT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : DINT;
-	month : DINT;
-	day : DINT;
-	hour : DINT;
-	minute : DINT;
-	second : DINT;
-	millisecond : DINT;
+    year : DINT;
+    month : DINT;
+    day : DINT;
+    hour : DINT;
+    minute : DINT;
+    second : DINT;
+    millisecond : DINT;
 END_VAR
-	SPLIT_LDT__DINT := SPLIT_DT__DINT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__DINT := SPLIT_DT__DINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for UDINT *)
 {external}
 FUNCTION SPLIT_LDT__UDINT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : UDINT;
-	month : UDINT;
-	day : UDINT;
-	hour : UDINT;
-	minute : UDINT;
-	second : UDINT;
-	millisecond : UDINT;
+    year : UDINT;
+    month : UDINT;
+    day : UDINT;
+    hour : UDINT;
+    minute : UDINT;
+    second : UDINT;
+    millisecond : UDINT;
 END_VAR
-	SPLIT_LDT__UDINT := SPLIT_DT__UDINT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__UDINT := SPLIT_DT__UDINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for LINT *)
 {external}
 FUNCTION SPLIT_LDT__LINT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : LINT;
-	month : LINT;
-	day : LINT;
-	hour : LINT;
-	minute : LINT;
-	second : LINT;
-	millisecond : LINT;
+    year : LINT;
+    month : LINT;
+    day : LINT;
+    hour : LINT;
+    minute : LINT;
+    second : LINT;
+    millisecond : LINT;
 END_VAR
-	SPLIT_LDT__LINT := SPLIT_DT__LINT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__LINT := SPLIT_DT__LINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for ULINT *)
 {external}
 FUNCTION SPLIT_LDT__ULINT : INT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
 VAR_OUTPUT
-	year : ULINT;
-	month : ULINT;
-	day : ULINT;
-	hour : ULINT;
-	minute : ULINT;
-	second : ULINT;
-	millisecond : ULINT;
+    year : ULINT;
+    month : ULINT;
+    day : ULINT;
+    hour : ULINT;
+    minute : ULINT;
+    second : ULINT;
+    millisecond : ULINT;
 END_VAR
-	SPLIT_LDT__ULINT := SPLIT_DT__ULINT(in, year, month, day, hour, minute, second, millisecond);
+    SPLIT_LDT__ULINT := SPLIT_DT__ULINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************
@@ -912,7 +912,7 @@ END_FUNCTION
 {external}
 FUNCTION DAY_OF_WEEK : SINT
 VAR_INPUT
-	in : DATE;
+    in : DATE;
 END_VAR
 END_FUNCTION (* *************************
  *
@@ -925,8 +925,8 @@ END_FUNCTION (* *************************
 {external}
 FUNCTION SHL < T : ANY_BIT > : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -944,8 +944,8 @@ END_FUNCTION
 {external}
 FUNCTION SHR < T : ANY_BIT > : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -961,8 +961,8 @@ END_FUNCTION
 {external}
 FUNCTION ROL < T : ANY_BIT > : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -978,8 +978,8 @@ END_FUNCTION
 {external}
 FUNCTION ROR < T : ANY_BIT > : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -990,9 +990,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_DWORD : DWORD
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_DWORD := in;
+    LWORD_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -1002,9 +1002,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_WORD : WORD
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_WORD := in;
+    LWORD_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -1014,9 +1014,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_BYTE := in;
+    LWORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -1026,9 +1026,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_BOOL := in.0;
+    LWORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -1038,9 +1038,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_LWORD : LWORD
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_LWORD := in;
+    DWORD_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -1050,9 +1050,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_WORD : WORD
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_WORD := in;
+    DWORD_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -1062,9 +1062,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_BYTE := in;
+    DWORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -1074,9 +1074,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_BOOL := in.0;
+    DWORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -1086,9 +1086,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_LWORD : LWORD
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_LWORD := in;
+    WORD_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -1098,9 +1098,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_DWORD : DWORD
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_DWORD := in;
+    WORD_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -1110,9 +1110,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_BYTE := in;
+    WORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -1122,9 +1122,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_BOOL := in.0;
+    WORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -1134,9 +1134,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_LWORD : LWORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_LWORD := in;
+    BYTE_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -1146,9 +1146,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_DWORD : DWORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_DWORD := in;
+    BYTE_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -1158,9 +1158,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_WORD : WORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_WORD := in;
+    BYTE_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -1170,9 +1170,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_BOOL : BOOL
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_BOOL := in.0;
+    BYTE_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -1182,13 +1182,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_CHAR : CHAR
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
 VAR
-	ptr : REF_TO CHAR;
+    ptr : REF_TO CHAR;
 END_VAR
-	ptr := &in;
-	BYTE_TO_CHAR := ptr^;
+    ptr := &in;
+    BYTE_TO_CHAR := ptr^;
 END_FUNCTION
 
 (********************
@@ -1198,13 +1198,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_LWORD : LWORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_LWORD := 1;
-	ELSE
-		BOOL_TO_LWORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_LWORD := 1;
+    ELSE
+        BOOL_TO_LWORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -1214,13 +1214,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_DWORD : DWORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_DWORD := 1;
-	ELSE
-		BOOL_TO_DWORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_DWORD := 1;
+    ELSE
+        BOOL_TO_DWORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -1230,13 +1230,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_WORD : WORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_WORD := 1;
-	ELSE
-		BOOL_TO_WORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_WORD := 1;
+    ELSE
+        BOOL_TO_WORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -1246,13 +1246,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_BYTE : BYTE
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_BYTE := 1;
-	ELSE
-		BOOL_TO_BYTE := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_BYTE := 1;
+    ELSE
+        BOOL_TO_BYTE := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -1262,13 +1262,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION CHAR_TO_BYTE : BYTE
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
 VAR
-	ptr : REF_TO BYTE;
+    ptr : REF_TO BYTE;
 END_VAR
-	ptr := &in;
-	CHAR_TO_BYTE := ptr^;
+    ptr := &in;
+    CHAR_TO_BYTE := ptr^;
 END_FUNCTION
 
 (********************
@@ -1278,9 +1278,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION CHAR_TO_WORD : WORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_WORD := CHAR_TO_BYTE(in);
+    CHAR_TO_WORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -1290,9 +1290,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION CHAR_TO_DWORD : DWORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_DWORD := CHAR_TO_BYTE(in);
+    CHAR_TO_DWORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -1302,9 +1302,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION CHAR_TO_LWORD : LWORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_LWORD := CHAR_TO_BYTE(in);
+    CHAR_TO_LWORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -1314,13 +1314,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION WCHAR_TO_WORD : WORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
 VAR
-	ptr : REF_TO WORD;
+    ptr : REF_TO WORD;
 END_VAR
-	ptr := &in;
-	WCHAR_TO_WORD := ptr^;
+    ptr := &in;
+    WCHAR_TO_WORD := ptr^;
 END_FUNCTION
 
 (********************
@@ -1330,9 +1330,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WCHAR_TO_DWORD : DWORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
-	WCHAR_TO_DWORD := WCHAR_TO_WORD(in);
+    WCHAR_TO_DWORD := WCHAR_TO_WORD(in);
 END_FUNCTION
 
 (********************
@@ -1342,9 +1342,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WCHAR_TO_LWORD : LWORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
-	WCHAR_TO_LWORD := WCHAR_TO_WORD(in);
+    WCHAR_TO_LWORD := WCHAR_TO_WORD(in);
 END_FUNCTION (* *****************************************************************************
 Description: Validation function for ANY_REAL
 Input:
@@ -1356,7 +1356,7 @@ Return:
 {external}
 FUNCTION IS_VALID < T : ANY_REAL > : BOOL
 VAR_INPUT
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION
 
@@ -1373,7 +1373,7 @@ Return:
 {external}
 FUNCTION IS_VALID_BCD < T : ANY_BIT > : BOOL
 VAR_INPUT
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION (* *****************************************************************************
 Description: Bistable function, set dominant
@@ -1387,11 +1387,11 @@ Return: Output is used as return
 {external}
 FUNCTION_BLOCK SR
 VAR_INPUT
-	SET1 : BOOL;
-	RESET : BOOL;
+    SET1 : BOOL;
+    RESET : BOOL;
 END_VAR
 VAR_OUTPUT
-	Q1 : BOOL;
+    Q1 : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -1407,11 +1407,11 @@ Return: Output is used as return
 {external}
 FUNCTION_BLOCK RS
 VAR_INPUT
-	SET : 	BOOL;
-	RESET1 : BOOL;
+    SET :   BOOL;
+    RESET1 : BOOL;
 END_VAR
 VAR_OUTPUT
-	Q1 :		BOOL;
+    Q1 :        BOOL;
 END_VAR
 END_FUNCTION_BLOCK (* *******************
 *
@@ -1420,18 +1420,18 @@ END_FUNCTION_BLOCK (* *******************
 ******************** *)
 FUNCTION WSTRING_TO_STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	in : WSTRING[__STRING_LENGTH];
+    in : WSTRING[__STRING_LENGTH];
 END_VAR
-	WSTRING_TO_STRING_EXT(in, WSTRING_TO_STRING);
+    WSTRING_TO_STRING_EXT(in, WSTRING_TO_STRING);
 END_FUNCTION
 
 {external}
 FUNCTION WSTRING_TO_STRING_EXT : DINT
 VAR_INPUT {ref}
-	in : WSTRING[__STRING_LENGTH];
+    in : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_IN_OUT
-	out : STRING[__STRING_LENGTH];
+    out : STRING[__STRING_LENGTH];
 END_VAR
 END_FUNCTION
 
@@ -1442,13 +1442,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION WSTRING_TO_WCHAR : WCHAR
 VAR_INPUT {ref}
-	in : WSTRING;
+    in : WSTRING;
 END_VAR
 VAR
-	ptr : REF_TO WCHAR;
+    ptr : REF_TO WCHAR;
 END_VAR
-	ptr := &in;
-	WSTRING_TO_WCHAR := ptr^;
+    ptr := &in;
+    WSTRING_TO_WCHAR := ptr^;
 END_FUNCTION
 
 (********************
@@ -1459,18 +1459,18 @@ END_FUNCTION
 ******************** *)
 FUNCTION STRING_TO_WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	in : STRING[__STRING_LENGTH];
+    in : STRING[__STRING_LENGTH];
 END_VAR
-	STRING_TO_WSTRING_EXT(in, STRING_TO_WSTRING);
+    STRING_TO_WSTRING_EXT(in, STRING_TO_WSTRING);
 END_FUNCTION
 
 {external}
 FUNCTION STRING_TO_WSTRING_EXT : DINT
 VAR_INPUT {ref}
-	in : STRING[__STRING_LENGTH];
+    in : STRING[__STRING_LENGTH];
 END_VAR
 VAR_IN_OUT
-	out : WSTRING[__STRING_LENGTH];
+    out : WSTRING[__STRING_LENGTH];
 END_VAR
 END_FUNCTION
 
@@ -1481,13 +1481,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION STRING_TO_CHAR : CHAR
 VAR_INPUT {ref}
-	in : STRING;
+    in : STRING;
 END_VAR
 VAR
-	ptr : REF_TO CHAR;
+    ptr : REF_TO CHAR;
 END_VAR
-	ptr := &in;
-	STRING_TO_CHAR := ptr^;
+    ptr := &in;
+    STRING_TO_CHAR := ptr^;
 END_FUNCTION
 
 (********************
@@ -1497,13 +1497,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION WCHAR_TO_WSTRING : WSTRING
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
 VAR
-	ptr : REF_TO WSTRING;
+    ptr : REF_TO WSTRING;
 END_VAR
-	ptr := &in;
-	WCHAR_TO_WSTRING := ptr^;
+    ptr := &in;
+    WCHAR_TO_WSTRING := ptr^;
 END_FUNCTION
 
 (********************
@@ -1514,7 +1514,7 @@ END_FUNCTION
 {external}
 FUNCTION WCHAR_TO_CHAR : CHAR
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
 END_FUNCTION
 
@@ -1525,13 +1525,13 @@ END_FUNCTION
 ******************** *)
 FUNCTION CHAR_TO_STRING : STRING
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
 VAR
-	ptr : REF_TO STRING;
+    ptr : REF_TO STRING;
 END_VAR
-	ptr := &in;
-	CHAR_TO_STRING := ptr^;
+    ptr := &in;
+    CHAR_TO_STRING := ptr^;
 END_FUNCTION
 
 (********************
@@ -1542,7 +1542,7 @@ END_FUNCTION
 {external}
 FUNCTION CHAR_TO_WCHAR : WCHAR
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
 END_FUNCTION (* *************************
  *
@@ -1680,12 +1680,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TON
 VAR_INPUT
-	IN : BOOL;
-	PT : TIME;
+    IN : BOOL;
+    PT : TIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : TIME;
+    Q : BOOL;
+    ET : TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1706,12 +1706,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TON_TIME
 VAR_INPUT
-	IN : BOOL;
-	PT : TIME;
+    IN : BOOL;
+    PT : TIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : TIME;
+    Q : BOOL;
+    ET : TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1732,12 +1732,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TON_LTIME
 VAR_INPUT
-	IN : BOOL;
-	PT : LTIME;
+    IN : BOOL;
+    PT : LTIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : TIME;
+    Q : BOOL;
+    ET : TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1758,12 +1758,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TOF
 VAR_INPUT
-	IN : BOOL;
-	PT : TIME;
+    IN : BOOL;
+    PT : TIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : TIME;
+    Q : BOOL;
+    ET : TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1784,12 +1784,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TOF_TIME
 VAR_INPUT
-	IN : BOOL;
-	PT : TIME;
+    IN : BOOL;
+    PT : TIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : TIME;
+    Q : BOOL;
+    ET : TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1810,12 +1810,12 @@ Return: Output variables are used for return.
 ***************************************************************************** *)
 FUNCTION_BLOCK TOF_LTIME
 VAR_INPUT
-	IN : BOOL;
-	PT : LTIME;
+    IN : BOOL;
+    PT : LTIME;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	ET : LTIME;
+    Q : BOOL;
+    ET : LTIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -1829,7 +1829,7 @@ END_FUNCTION_BLOCK (* *******************
 {external}
 FUNCTION DATE_AND_TIME_TO_DATE : DATE
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 END_FUNCTION
 
@@ -1841,7 +1841,7 @@ END_FUNCTION
 {external}
 FUNCTION DATE_AND_TIME_TO_TIME_OF_DAY : TOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 END_FUNCTION
 
@@ -1852,9 +1852,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LTIME_TO_TIME : TIME
 VAR_INPUT
-	in : LTIME;
+    in : LTIME;
 END_VAR
-	LTIME_TO_TIME := in;
+    LTIME_TO_TIME := in;
 END_FUNCTION
 
 (********************
@@ -1864,9 +1864,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION TIME_TO_LTIME : LTIME
 VAR_INPUT
-	in : TIME;
+    in : TIME;
 END_VAR
-	TIME_TO_LTIME := in;
+    TIME_TO_LTIME := in;
 END_FUNCTION
 
 (********************
@@ -1876,9 +1876,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LDT_TO_DT : DT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_DT := in;
+    LDT_TO_DT := in;
 END_FUNCTION
 
 (********************
@@ -1888,9 +1888,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LDT_TO_DATE : DATE
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
+    LDT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
 END_FUNCTION
 
 (********************
@@ -1900,9 +1900,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LDT_TO_LTOD : LTOD
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    LDT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -1912,9 +1912,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LDT_TO_TOD : TOD
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    LDT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -1924,9 +1924,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DT_TO_LDT : LDT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_LDT := in;
+    DT_TO_LDT := in;
 END_FUNCTION
 
 (********************
@@ -1936,9 +1936,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DT_TO_DATE : DATE
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
+    DT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
 END_FUNCTION
 
 (********************
@@ -1948,9 +1948,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DT_TO_LTOD : LTOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    DT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -1960,9 +1960,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DT_TO_TOD : TOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    DT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -1972,9 +1972,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LTOD_TO_TOD : TOD
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
-	LTOD_TO_TOD := in;
+    LTOD_TO_TOD := in;
 END_FUNCTION
 
 (********************
@@ -1984,9 +1984,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION TOD_TO_LTOD : LTOD
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
-	TOD_TO_LTOD := in;
+    TOD_TO_LTOD := in;
 END_FUNCTION (* *******************
 *
 * This operator returns the value of adding up the operands.
@@ -1994,18 +1994,18 @@ END_FUNCTION (* *******************
 ******************** *)
 FUNCTION ADD < T1 : ANY, T2 : ANY > : T1
 VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
+    IN1 : T1;
+    IN2 : T2;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of ADD for TIME *)
 FUNCTION ADD__TIME__TIME : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : TIME;
+    IN1 : TIME;
+    IN2 : TIME;
 END_VAR
-	ADD__TIME__TIME := ADD_TIME(IN1, IN2);
+    ADD__TIME__TIME := ADD_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2016,8 +2016,8 @@ END_FUNCTION
 {external}
 FUNCTION ADD_TIME : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : TIME;
+    IN1 : TIME;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2028,19 +2028,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION ADD_LTIME : LTIME
 VAR_INPUT
-	IN1 : LTIME;
-	IN2 : LTIME;
+    IN1 : LTIME;
+    IN2 : LTIME;
 END_VAR
-	ADD_LTIME := ADD_TIME(IN1, IN2);
+    ADD_LTIME := ADD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of ADD for TOD *)
 FUNCTION ADD__TIME_OF_DAY__TIME : TOD
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TIME;
+    IN1 : TOD;
+    IN2 : TIME;
 END_VAR
-	ADD__TIME_OF_DAY__TIME := ADD_TOD_TIME(IN1, IN2);
+    ADD__TIME_OF_DAY__TIME := ADD_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2052,8 +2052,8 @@ END_FUNCTION
 {external}
 FUNCTION ADD_TOD_TIME : TOD
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TIME;
+    IN1 : TOD;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2065,19 +2065,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION ADD_LTOD_LTIME : LTOD
 VAR_INPUT
-	IN1 : LTOD;
-	IN2 : LTIME;
+    IN1 : LTOD;
+    IN2 : LTIME;
 END_VAR
-	ADD_LTOD_LTIME := ADD_TOD_TIME(IN1, IN2);
+    ADD_LTOD_LTIME := ADD_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of ADD for DT *)
 FUNCTION ADD__DATE_AND_TIME__TIME : DT
 VAR_INPUT
-	IN1 : DT;
-	IN2 : TIME;
+    IN1 : DT;
+    IN2 : TIME;
 END_VAR
-	ADD__DATE_AND_TIME__TIME := ADD_DT_TIME(IN1, IN2);
+    ADD__DATE_AND_TIME__TIME := ADD_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2089,8 +2089,8 @@ END_FUNCTION
 {external}
 FUNCTION ADD_DT_TIME : DT
 VAR_INPUT
-	IN1 : DT;
-	IN2 : TIME;
+    IN1 : DT;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2102,10 +2102,10 @@ END_FUNCTION
 ******************** *)
 FUNCTION ADD_LDT_LTIME : LDT
 VAR_INPUT
-	IN1 : LDT;
-	IN2 : LTIME;
+    IN1 : LDT;
+    IN2 : LTIME;
 END_VAR
-	ADD_LDT_LTIME := ADD_DT_TIME(IN1, IN2);
+    ADD_LDT_LTIME := ADD_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2115,18 +2115,18 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB < T1 : ANY, T2 : ANY > : T1
 VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
+    IN1 : T1;
+    IN2 : T2;
 END_VAR
 END_FUNCTION
 
 (* Specialized implementation of SUB for TIME *)
 FUNCTION SUB__TIME__TIME : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : TIME;
+    IN1 : TIME;
+    IN2 : TIME;
 END_VAR
-	SUB__TIME__TIME := SUB_TIME(IN1, IN2);
+    SUB__TIME__TIME := SUB_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2137,8 +2137,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_TIME : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : TIME;
+    IN1 : TIME;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2149,19 +2149,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LTIME : LTIME
 VAR_INPUT
-	IN1 : LTIME;
-	IN2 : LTIME;
+    IN1 : LTIME;
+    IN2 : LTIME;
 END_VAR
-	SUB_LTIME := SUB_TIME(IN1, IN2);
+    SUB_LTIME := SUB_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DATE *)
 FUNCTION SUB__DATE__DATE : TIME
 VAR_INPUT
-	IN1 : DATE;
-	IN2 : DATE;
+    IN1 : DATE;
+    IN2 : DATE;
 END_VAR
-	SUB__DATE__DATE := SUB_DATE_DATE(IN1, IN2);
+    SUB__DATE__DATE := SUB_DATE_DATE(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2173,8 +2173,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_DATE_DATE : TIME
 VAR_INPUT
-	IN1 : DATE;
-	IN2 : DATE;
+    IN1 : DATE;
+    IN2 : DATE;
 END_VAR
 END_FUNCTION
 
@@ -2186,19 +2186,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LDATE_LDATE : LTIME
 VAR_INPUT
-	IN1 : LDATE;
-	IN2 : LDATE;
+    IN1 : LDATE;
+    IN2 : LDATE;
 END_VAR
-	SUB_LDATE_LDATE := SUB_DATE_DATE(IN1, IN2);
+    SUB_LDATE_LDATE := SUB_DATE_DATE(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for TOD and TIME *)
 FUNCTION SUB__TIME_OF_DAY__TIME : TOD
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TIME;
+    IN1 : TOD;
+    IN2 : TIME;
 END_VAR
-	SUB__TIME_OF_DAY__TIME := SUB_TOD_TIME(IN1, IN2);
+    SUB__TIME_OF_DAY__TIME := SUB_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2210,8 +2210,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_TOD_TIME : TOD
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TIME;
+    IN1 : TOD;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2223,19 +2223,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LTOD_LTIME : LTOD
 VAR_INPUT
-	IN1 : LTOD;
-	IN2 : LTIME;
+    IN1 : LTOD;
+    IN2 : LTIME;
 END_VAR
-	SUB_LTOD_LTIME := SUB_TOD_TIME(IN1, IN2);
+    SUB_LTOD_LTIME := SUB_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for TOD *)
 FUNCTION SUB__TIME_OF_DAY__TIME_OF_DAY : TIME
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TOD;
+    IN1 : TOD;
+    IN2 : TOD;
 END_VAR
-	SUB__TIME_OF_DAY__TIME_OF_DAY := SUB_TOD_TOD(IN1, IN2);
+    SUB__TIME_OF_DAY__TIME_OF_DAY := SUB_TOD_TOD(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2247,8 +2247,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_TOD_TOD : TIME
 VAR_INPUT
-	IN1 : TOD;
-	IN2 : TOD;
+    IN1 : TOD;
+    IN2 : TOD;
 END_VAR
 END_FUNCTION
 
@@ -2260,19 +2260,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LTOD_LTOD : LTIME
 VAR_INPUT
-	IN1 : LTOD;
-	IN2 : LTOD;
+    IN1 : LTOD;
+    IN2 : LTOD;
 END_VAR
-	SUB_LTOD_LTOD := SUB_TOD_TOD(IN1, IN2);
+    SUB_LTOD_LTOD := SUB_TOD_TOD(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DT and TIME *)
 FUNCTION SUB__DATE_AND_TIME__TIME : DT
 VAR_INPUT
-	IN1 : DT;
-	IN2 : TIME;
+    IN1 : DT;
+    IN2 : TIME;
 END_VAR
-	SUB__DATE_AND_TIME__TIME := SUB_DT_TIME(IN1, IN2);
+    SUB__DATE_AND_TIME__TIME := SUB_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2284,8 +2284,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_DT_TIME : DT
 VAR_INPUT
-	IN1 : DT;
-	IN2 : TIME;
+    IN1 : DT;
+    IN2 : TIME;
 END_VAR
 END_FUNCTION
 
@@ -2297,19 +2297,19 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LDT_LTIME : LDT
 VAR_INPUT
-	IN1 : LDT;
-	IN2 : LTIME;
+    IN1 : LDT;
+    IN2 : LTIME;
 END_VAR
-	SUB_LDT_LTIME := SUB_DT_TIME(IN1, IN2);
+    SUB_LDT_LTIME := SUB_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DT *)
 FUNCTION SUB__DATE_AND_TIME__DATE_AND_TIME : TIME
 VAR_INPUT
-	IN1 : DT;
-	IN2 : DT;
+    IN1 : DT;
+    IN2 : DT;
 END_VAR
-	SUB__DATE_AND_TIME__DATE_AND_TIME := SUB_DT_DT(IN1, IN2);
+    SUB__DATE_AND_TIME__DATE_AND_TIME := SUB_DT_DT(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2321,8 +2321,8 @@ END_FUNCTION
 {external}
 FUNCTION SUB_DT_DT : TIME
 VAR_INPUT
-	IN1 : DT;
-	IN2 : DT;
+    IN1 : DT;
+    IN2 : DT;
 END_VAR
 END_FUNCTION
 
@@ -2334,10 +2334,10 @@ END_FUNCTION
 ******************** *)
 FUNCTION SUB_LDT_LDT : LTIME
 VAR_INPUT
-	IN1 : LDT;
-	IN2 : LDT;
+    IN1 : LDT;
+    IN2 : LDT;
 END_VAR
-	SUB_LDT_LDT := SUB_DT_DT(IN1, IN2);
+    SUB_LDT_LDT := SUB_DT_DT(IN1, IN2);
 END_FUNCTION
 
 (********************
@@ -2347,8 +2347,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION MUL < T1 : ANY, T2 : ANY > : T1
 VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
+    IN1 : T1;
+    IN2 : T2;
 END_VAR
 END_FUNCTION
 
@@ -2359,8 +2359,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION MUL_TIME < T : ANY_NUM > : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : T;
+    IN1 : TIME;
+    IN2 : T;
 END_VAR
 END_FUNCTION
 
@@ -2371,8 +2371,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION MUL_LTIME < T : ANY_NUM > : LTIME
 VAR_INPUT
-	IN1 : LTIME;
-	IN2 : T;
+    IN1 : LTIME;
+    IN2 : T;
 END_VAR
 END_FUNCTION
 
@@ -2383,8 +2383,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION DIV < T1 : ANY, T2 : ANY > : T1
 VAR_INPUT
-	IN1 : T1;
-	IN2 : T2;
+    IN1 : T1;
+    IN2 : T2;
 END_VAR
 END_FUNCTION
 
@@ -2395,8 +2395,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION DIV_TIME < T : ANY_NUM > : TIME
 VAR_INPUT
-	IN1 : TIME;
-	IN2 : T;
+    IN1 : TIME;
+    IN2 : T;
 END_VAR
 END_FUNCTION
 
@@ -2407,8 +2407,8 @@ END_FUNCTION
 ******************** *)
 FUNCTION DIV_LTIME < T : ANY_NUM > : LTIME
 VAR_INPUT
-	IN1 : LTIME;
-	IN2 : T;
+    IN1 : LTIME;
+    IN2 : T;
 END_VAR
 END_FUNCTION (* *******************
 *
@@ -2417,9 +2417,9 @@ END_FUNCTION (* *******************
 ******************** *)
 FUNCTION LREAL_TO_REAL : REAL
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_REAL := in;
+    LREAL_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -2429,9 +2429,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_LINT : LINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_LINT := ROUND(in);
+    LREAL_TO_LINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2441,9 +2441,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_DINT : DINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_DINT := ROUND(in);
+    LREAL_TO_DINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2453,9 +2453,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_INT : INT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_INT := ROUND(in);
+    LREAL_TO_INT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2465,9 +2465,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_SINT : SINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_SINT := ROUND(in);
+    LREAL_TO_SINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2477,9 +2477,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_ULINT : ULINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_ULINT := ROUND(in);
+    LREAL_TO_ULINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2489,9 +2489,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_UDINT : UDINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_UDINT := ROUND(in);
+    LREAL_TO_UDINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2501,9 +2501,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_UINT : UINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_UINT := ROUND(in);
+    LREAL_TO_UINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2513,9 +2513,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LREAL_TO_USINT : USINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_USINT := ROUND(in);
+    LREAL_TO_USINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2525,9 +2525,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_LREAL : LREAL
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_LREAL := in;
+    REAL_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -2537,9 +2537,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_LINT : LINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_LINT := ROUND(in);
+    REAL_TO_LINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2549,9 +2549,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_DINT : DINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_DINT := ROUND(in);
+    REAL_TO_DINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2561,9 +2561,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_INT : INT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_INT := ROUND(in);
+    REAL_TO_INT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2573,9 +2573,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_SINT : SINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_SINT := ROUND(in);
+    REAL_TO_SINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2585,9 +2585,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_ULINT : ULINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_ULINT := ROUND(in);
+    REAL_TO_ULINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2597,9 +2597,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_UDINT : UDINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_UDINT := ROUND(in);
+    REAL_TO_UDINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2609,9 +2609,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_UINT : UINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_UINT := ROUND(in);
+    REAL_TO_UINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2621,9 +2621,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION REAL_TO_USINT : USINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_USINT := ROUND(in);
+    REAL_TO_USINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -2633,9 +2633,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_LREAL := in;
+    LINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -2645,9 +2645,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_REAL : REAL
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_REAL := in;
+    LINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -2657,9 +2657,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_DINT : DINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_DINT := in;
+    LINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -2669,9 +2669,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_INT : INT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_INT := in;
+    LINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -2681,9 +2681,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_SINT : SINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_SINT := in;
+    LINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -2693,9 +2693,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_ULINT := in;
+    LINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -2705,9 +2705,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_UDINT := in;
+    LINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -2717,9 +2717,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_UINT : UINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_UINT := in;
+    LINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -2729,9 +2729,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_USINT : USINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_USINT := in;
+    LINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -2741,9 +2741,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LREAL := in;
+    DINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -2753,9 +2753,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_REAL : REAL
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_REAL := in;
+    DINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -2765,9 +2765,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_LINT : LINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LINT := in;
+    DINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -2777,9 +2777,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_INT : INT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_INT := in;
+    DINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -2789,9 +2789,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_SINT : SINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_SINT := in;
+    DINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -2801,9 +2801,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_ULINT := in;
+    DINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -2813,9 +2813,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_UDINT := in;
+    DINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -2825,9 +2825,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_UINT : UINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_UINT := in;
+    DINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -2837,9 +2837,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_USINT : USINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_USINT := in;
+    DINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -2849,9 +2849,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_LREAL : LREAL
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LREAL := in;
+    INT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -2861,9 +2861,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_REAL : REAL
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_REAL := in;
+    INT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -2873,9 +2873,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_LINT : LINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LINT := in;
+    INT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -2885,9 +2885,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_DINT : DINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_DINT := in;
+    INT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -2897,9 +2897,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_SINT : SINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_SINT := in;
+    INT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -2909,9 +2909,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_ULINT : ULINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_ULINT := in;
+    INT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -2921,9 +2921,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_UDINT : UDINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_UDINT := in;
+    INT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -2933,9 +2933,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_UINT : UINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_UINT := in;
+    INT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -2945,9 +2945,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_USINT : USINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_USINT := in;
+    INT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -2957,9 +2957,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LREAL := in;
+    SINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -2969,9 +2969,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_REAL : REAL
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_REAL := in;
+    SINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -2981,9 +2981,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_LINT : LINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LINT := in;
+    SINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -2993,9 +2993,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_DINT : DINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_DINT := in;
+    SINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -3005,9 +3005,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_INT : INT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_INT := in;
+    SINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -3017,9 +3017,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_ULINT := in;
+    SINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -3029,9 +3029,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_UDINT := in;
+    SINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -3041,9 +3041,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_UINT : UINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_UINT := in;
+    SINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -3053,9 +3053,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_USINT : USINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_USINT := in;
+    SINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -3065,9 +3065,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LREAL := in;
+    ULINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -3077,9 +3077,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_REAL : REAL
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_REAL := in;
+    ULINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -3089,9 +3089,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_LINT : LINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LINT := in;
+    ULINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -3101,9 +3101,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_DINT : DINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_DINT := in;
+    ULINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -3113,9 +3113,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_INT : INT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_INT := in;
+    ULINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -3125,9 +3125,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_SINT : SINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_SINT := in;
+    ULINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -3137,9 +3137,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_UDINT := in;
+    ULINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -3149,9 +3149,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_UINT : UINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_UINT := in;
+    ULINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -3161,9 +3161,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_USINT : USINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_USINT := in;
+    ULINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -3173,9 +3173,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LREAL := in;
+    UDINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -3185,9 +3185,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_REAL : REAL
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_REAL := in;
+    UDINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -3197,9 +3197,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_LINT : LINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LINT := in;
+    UDINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -3209,9 +3209,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_DINT : DINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_DINT := in;
+    UDINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -3221,9 +3221,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_INT : INT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_INT := in;
+    UDINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -3233,9 +3233,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_SINT : SINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_SINT := in;
+    UDINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -3245,9 +3245,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_ULINT := in;
+    UDINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -3257,9 +3257,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_UINT : UINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_UINT := in;
+    UDINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -3269,9 +3269,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_USINT : USINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_USINT := in;
+    UDINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -3281,9 +3281,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LREAL := in;
+    UINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -3293,9 +3293,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_REAL : REAL
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_REAL := in;
+    UINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -3305,9 +3305,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_LINT : LINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LINT := in;
+    UINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -3317,9 +3317,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_DINT : DINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_DINT := in;
+    UINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -3329,9 +3329,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_INT : INT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_INT := in;
+    UINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -3341,9 +3341,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_SINT : SINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_SINT := in;
+    UINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -3353,9 +3353,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_ULINT := in;
+    UINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -3365,9 +3365,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_UDINT := in;
+    UINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -3377,9 +3377,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_USINT : USINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_USINT := in;
+    UINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -3389,9 +3389,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LREAL := in;
+    USINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -3401,9 +3401,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_REAL : REAL
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_REAL := in;
+    USINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -3413,9 +3413,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_LINT : LINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LINT := in;
+    USINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -3425,9 +3425,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_DINT : DINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_DINT := in;
+    USINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -3437,9 +3437,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_INT : INT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_INT := in;
+    USINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -3449,9 +3449,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_SINT : SINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_SINT := in;
+    USINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -3461,9 +3461,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_ULINT := in;
+    USINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -3473,9 +3473,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_UDINT := in;
+    USINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -3485,9 +3485,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_UINT : UINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_UINT := in;
+    USINT_TO_UINT := in;
 END_FUNCTION (* *****************************************************************************
 Description: Rising Edge detection
 Input:
@@ -3499,13 +3499,13 @@ Return: Output variable are used for return.
 {external}
 FUNCTION_BLOCK R_TRIG
 VAR_INPUT
-	CLK : BOOL;
+    CLK : BOOL;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
+    Q : BOOL;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -3520,13 +3520,13 @@ Return: Output variable is used for return.
 {external}
 FUNCTION_BLOCK F_TRIG
 VAR_INPUT
-	CLK : BOOL;
+    CLK : BOOL;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
+    Q : BOOL;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK (* *****************************************************************************
 *
@@ -4639,16 +4639,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : INT;
+    CU : BOOL;
+    R : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4666,16 +4666,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_INT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : INT;
+    CU : BOOL;
+    R : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4693,16 +4693,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_DINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : DINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : DINT;
+    Q : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4720,16 +4720,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_UDINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : UDINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : UDINT;
+    Q : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4747,16 +4747,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_LINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : LINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : LINT;
+    Q : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4774,16 +4774,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_ULINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : ULINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : ULINT;
+    Q : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4801,16 +4801,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4828,16 +4828,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_INT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4855,16 +4855,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_DINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : DINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : DINT;
+    Q : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4882,16 +4882,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_UDINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : UDINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : UDINT;
+    Q : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4909,16 +4909,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_LINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : LINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : LINT;
+    Q : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4936,16 +4936,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_ULINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : ULINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : ULINT;
+    Q : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -4966,20 +4966,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : INT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -5000,20 +5000,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_INT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : INT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -5034,20 +5034,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_DINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : DINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : DINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -5068,20 +5068,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_UDINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : UDINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : UDINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -5102,20 +5102,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_LINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : LINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : LINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -5136,20 +5136,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_ULINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : ULINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : ULINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK (* *******************
 *
@@ -5159,7 +5159,7 @@ END_FUNCTION_BLOCK (* *******************
 {external}
 FUNCTION TO_BIG_ENDIAN < T : ANY > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -5171,7 +5171,7 @@ END_FUNCTION
 {external}
 FUNCTION TO_LITTLE_ENDIAN < T : ANY > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -5183,7 +5183,7 @@ END_FUNCTION
 {external}
 FUNCTION FROM_BIG_ENDIAN < T : ANY > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -5195,7 +5195,7 @@ END_FUNCTION
 {external}
 FUNCTION FROM_LITTLE_ENDIAN < T : ANY > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -5207,7 +5207,7 @@ END_FUNCTION
 {external}
 FUNCTION LWORD_TO_LREAL : LREAL
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
 END_FUNCTION
 
@@ -5218,9 +5218,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_LINT : LINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_LINT := in;
+    LWORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -5230,9 +5230,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_DINT : DINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_DINT := in;
+    LWORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -5242,9 +5242,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_INT : INT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_INT := in;
+    LWORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -5254,9 +5254,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_SINT : SINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_SINT := in;
+    LWORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -5266,9 +5266,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_ULINT := in;
+    LWORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -5278,9 +5278,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_UDINT := in;
+    LWORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -5290,9 +5290,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_UINT : UINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_UINT := in;
+    LWORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -5302,9 +5302,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LWORD_TO_USINT : USINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_USINT := in;
+    LWORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -5315,7 +5315,7 @@ END_FUNCTION
 {external}
 FUNCTION DWORD_TO_REAL : REAL
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
 END_FUNCTION
 
@@ -5326,9 +5326,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_LINT : LINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_LINT := in;
+    DWORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -5338,9 +5338,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_DINT : DINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_DINT := in;
+    DWORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -5350,9 +5350,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_INT : INT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_INT := in;
+    DWORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -5362,9 +5362,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_SINT : SINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_SINT := in;
+    DWORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -5374,9 +5374,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_ULINT := in;
+    DWORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -5386,9 +5386,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_UDINT := in;
+    DWORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -5398,9 +5398,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_UINT : UINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_UINT := in;
+    DWORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -5410,9 +5410,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DWORD_TO_USINT : USINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_USINT := in;
+    DWORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -5422,9 +5422,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_LINT : LINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_LINT := in;
+    WORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -5434,9 +5434,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_DINT : DINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_DINT := in;
+    WORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -5446,9 +5446,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_INT : INT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_INT := in;
+    WORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -5458,9 +5458,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_SINT : SINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_SINT := in;
+    WORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -5470,9 +5470,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_ULINT := in;
+    WORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -5482,9 +5482,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_UDINT := in;
+    WORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -5494,9 +5494,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_UINT : UINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_UINT := in;
+    WORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -5506,9 +5506,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION WORD_TO_USINT : USINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_USINT := in;
+    WORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -5518,9 +5518,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_LINT : LINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_LINT := in;
+    BYTE_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -5530,9 +5530,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_DINT : DINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_DINT := in;
+    BYTE_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -5542,9 +5542,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_INT : INT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_INT := in;
+    BYTE_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -5554,9 +5554,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_SINT : SINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_SINT := in;
+    BYTE_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -5566,9 +5566,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_ULINT : ULINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_ULINT := in;
+    BYTE_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -5578,9 +5578,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_UDINT : UDINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_UDINT := in;
+    BYTE_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -5590,9 +5590,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_UINT : UINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_UINT := in;
+    BYTE_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -5602,9 +5602,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BYTE_TO_USINT : USINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_USINT := in;
+    BYTE_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -5614,9 +5614,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_LINT : LINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_LINT := in;
+    BOOL_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -5626,9 +5626,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_DINT : DINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_DINT := in;
+    BOOL_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -5638,9 +5638,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_INT : INT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_INT := in;
+    BOOL_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -5650,9 +5650,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_SINT : SINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_SINT := in;
+    BOOL_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -5662,9 +5662,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_ULINT : ULINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_ULINT := in;
+    BOOL_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -5674,9 +5674,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_UDINT : UDINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_UDINT := in;
+    BOOL_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -5686,9 +5686,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_UINT : UINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_UINT := in;
+    BOOL_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -5698,9 +5698,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION BOOL_TO_USINT : USINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_USINT := in;
+    BOOL_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -5711,7 +5711,7 @@ END_FUNCTION
 {external}
 FUNCTION LREAL_TO_LWORD : LWORD
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
 END_FUNCTION
 
@@ -5723,7 +5723,7 @@ END_FUNCTION
 {external}
 FUNCTION REAL_TO_DWORD : DWORD
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
 END_FUNCTION
 
@@ -5734,9 +5734,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_LWORD := in;
+    LINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5746,9 +5746,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_DWORD := in;
+    LINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5758,9 +5758,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_WORD : WORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_WORD := in;
+    LINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -5770,9 +5770,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION LINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_BYTE := in;
+    LINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -5782,9 +5782,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LWORD := in;
+    DINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5794,9 +5794,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_DWORD := in;
+    DINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5806,9 +5806,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_WORD : WORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_WORD := in;
+    DINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -5818,9 +5818,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION DINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_BYTE := in;
+    DINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -5830,9 +5830,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_LWORD : LWORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LWORD := in;
+    INT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5842,9 +5842,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_DWORD : DWORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_DWORD := in;
+    INT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5854,9 +5854,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_WORD : WORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_WORD := in;
+    INT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -5866,9 +5866,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION INT_TO_BYTE : BYTE
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_BYTE := in;
+    INT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -5878,9 +5878,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LWORD := in;
+    SINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5890,9 +5890,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_DWORD := in;
+    SINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5902,9 +5902,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_WORD : WORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_WORD := in;
+    SINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -5914,9 +5914,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION SINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_BYTE := in;
+    SINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -5926,9 +5926,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LWORD := in;
+    ULINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5938,9 +5938,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_DWORD := in;
+    ULINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5950,9 +5950,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_WORD : WORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_WORD := in;
+    ULINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -5962,9 +5962,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION ULINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_BYTE := in;
+    ULINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -5974,9 +5974,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LWORD := in;
+    UDINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -5986,9 +5986,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_DWORD := in;
+    UDINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -5998,9 +5998,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_WORD : WORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_WORD := in;
+    UDINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -6010,9 +6010,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UDINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_BYTE := in;
+    UDINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -6022,9 +6022,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LWORD := in;
+    UINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -6034,9 +6034,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_DWORD := in;
+    UINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -6046,9 +6046,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_WORD : WORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_WORD := in;
+    UINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -6058,9 +6058,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION UINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_BYTE := in;
+    UINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -6070,9 +6070,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LWORD := in;
+    USINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -6082,9 +6082,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_DWORD := in;
+    USINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -6094,9 +6094,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_WORD : WORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_WORD := in;
+    USINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -6106,9 +6106,9 @@ END_FUNCTION
 ******************** *)
 FUNCTION USINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_BYTE := in;
+    USINT_TO_BYTE := in;
 END_FUNCTIONVAR_GLOBAL CONSTANT
     __STRING_LENGTH : DINT := 2048;
 END_VAR
@@ -6122,7 +6122,7 @@ Return: String length
 {external}
 FUNCTION LEN < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION
 
@@ -6135,7 +6135,7 @@ Return: A substring consisting of the leftmost L characters of IN
 ***************************************************************************** *)
 FUNCTION LEFT < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6145,7 +6145,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6157,7 +6157,7 @@ END_FUNCTION
 
 FUNCTION LEFT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6167,7 +6167,7 @@ END_FUNCTION
 
 FUNCTION LEFT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6178,7 +6178,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6191,7 +6191,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6210,7 +6210,7 @@ Return: A substring consisting of the rightmost L characters of IN
 ***************************************************************************** *)
 FUNCTION RIGHT < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6220,7 +6220,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6232,7 +6232,7 @@ END_FUNCTION
 
 FUNCTION RIGHT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6242,7 +6242,7 @@ END_FUNCTION
 
 FUNCTION RIGHT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6253,7 +6253,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6266,7 +6266,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6288,7 +6288,7 @@ Return:
 ***************************************************************************** *)
 FUNCTION MID < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6299,7 +6299,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6312,7 +6312,7 @@ END_FUNCTION
 
 FUNCTION MID__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6323,7 +6323,7 @@ END_FUNCTION
 
 FUNCTION MID__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6335,7 +6335,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6349,7 +6349,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6372,20 +6372,20 @@ Return:
 {external}
 FUNCTION CONCAT__STRING : STRING[2048]
 VAR_INPUT {ref}
-	args : {sized} STRING...;
+    args : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION CONCAT__WSTRING : WSTRING[2048]
 VAR_INPUT {ref}
-	args : {sized} WSTRING...;
+    args : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
 FUNCTION CONCAT < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	args : {sized} T...;
+    args : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6410,7 +6410,7 @@ Return:
 ***************************************************************************** *)
 FUNCTION INSERT < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -6421,7 +6421,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -6434,7 +6434,7 @@ END_FUNCTION
 
 FUNCTION INSERT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -6445,7 +6445,7 @@ END_FUNCTION
 
 FUNCTION INSERT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : WSTRING[__STRING_LENGTH];
+    IN1 : WSTRING[__STRING_LENGTH];
     IN2 : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -6457,7 +6457,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -6471,7 +6471,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN1 : WSTRING[__STRING_LENGTH];
+    IN1 : WSTRING[__STRING_LENGTH];
     IN2 : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -6492,7 +6492,7 @@ Return: A new string with L characters deleted from P onwards
 ***************************************************************************** *)
 FUNCTION DELETE < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6503,7 +6503,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6516,7 +6516,7 @@ END_FUNCTION
 
 FUNCTION DELETE__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6527,7 +6527,7 @@ END_FUNCTION
 
 FUNCTION DELETE__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6539,7 +6539,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6553,7 +6553,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -6574,7 +6574,7 @@ Return: A new string which has L characters replaced by IN2 from position P onwa
 ***************************************************************************** *)
 FUNCTION REPLACE < T : ANY_STRING > : T
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -6600,7 +6600,7 @@ END_FUNCTION
 
 FUNCTION REPLACE__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -6663,7 +6663,7 @@ Return: The character index of the first match. 0 if there are no matches.
 {external}
 FUNCTION FIND < T : ANY_STRING > : DINT
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 END_FUNCTION
@@ -6678,7 +6678,7 @@ Return:
 {external}
 FUNCTION GT < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6706,7 +6706,7 @@ Return:
 {external}
 FUNCTION GE < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6720,7 +6720,7 @@ Return:
 {external}
 FUNCTION EQ < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6748,7 +6748,7 @@ Return:
 {external}
 FUNCTION LE < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6762,7 +6762,7 @@ Return:
 {external}
 FUNCTION LT < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -6790,28 +6790,28 @@ Return:
 {external}
 FUNCTION NE < T : ANY_STRING > : BOOL
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 END_FUNCTION (* Definitions of arithmetic functions defined by the IEC61131-3 standard *)
 
 {external}
 VAR_GLOBAL
-	PI_REAL : REAL;
-	PI_LREAL : LREAL;
-	FRAC_PI_2_REAL : REAL;
-	FRAC_PI_2_LREAL : LREAL;
-	FRAC_PI_4_REAL : REAL;
-	FRAC_PI_4_LREAL : LREAL;
-	E_REAL : REAL;
-	E_LREAL : LREAL;
+    PI_REAL : REAL;
+    PI_LREAL : LREAL;
+    FRAC_PI_2_REAL : REAL;
+    FRAC_PI_2_LREAL : LREAL;
+    FRAC_PI_4_REAL : REAL;
+    FRAC_PI_4_LREAL : LREAL;
+    E_REAL : REAL;
+    E_LREAL : LREAL;
 END_VAR
 
 (* Calculates the square root of a given value *)
 {external}
 FUNCTION SQRT < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6822,7 +6822,7 @@ END_FUNCTION
 {external}
 FUNCTION LN < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6831,7 +6831,7 @@ END_FUNCTION
 {external}
 FUNCTION LOG < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6839,7 +6839,7 @@ END_FUNCTION
 {external}
 FUNCTION EXP < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6850,7 +6850,7 @@ END_FUNCTION
 {external}
 FUNCTION SIN < T : ANY_REAL > : T
 VAR_INPUT
-	rad : T;
+    rad : T;
 END_VAR
 END_FUNCTION
 
@@ -6858,7 +6858,7 @@ END_FUNCTION
 {external}
 FUNCTION COS < T : ANY_REAL > : T
 VAR_INPUT
-	rad : T;
+    rad : T;
 END_VAR
 END_FUNCTION
 
@@ -6866,7 +6866,7 @@ END_FUNCTION
 {external}
 FUNCTION TAN < T : ANY_REAL > : T
 VAR_INPUT
-	rad : T;
+    rad : T;
 END_VAR
 END_FUNCTION
 
@@ -6874,7 +6874,7 @@ END_FUNCTION
 {external}
 FUNCTION ASIN < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6882,7 +6882,7 @@ END_FUNCTION
 {external}
 FUNCTION ACOS < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6890,7 +6890,7 @@ END_FUNCTION
 {external}
 FUNCTION ATAN < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -6898,32 +6898,32 @@ END_FUNCTION
 {external}
 FUNCTION ATAN2 < T : ANY_REAL > : T
 VAR_INPUT
-	y : T;
-	x : T;
+    y : T;
+    x : T;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT < T : ANY_REAL, U : ANY_NUM > : T
 VAR_INPUT
-	in1 : T;
-	in2 : U;
+    in1 : T;
+    in2 : U;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT__REAL__DINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : DINT;
+    in1 : REAL;
+    in2 : DINT;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT__REAL__REAL : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : REAL;
+    in1 : REAL;
+    in2 : REAL;
 END_VAR
 END_FUNCTION
 
@@ -6933,143 +6933,143 @@ END_FUNCTION
 {external}
 FUNCTION EXPT__REAL__LREAL : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : LREAL;
+    in1 : REAL;
+    in2 : LREAL;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT__LREAL__DINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : DINT;
+    in1 : LREAL;
+    in2 : DINT;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT__LREAL__REAL : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : REAL;
+    in1 : LREAL;
+    in2 : REAL;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EXPT__LREAL__LREAL : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : LREAL;
+    in1 : LREAL;
+    in2 : LREAL;
 END_VAR
 END_FUNCTION
 
 FUNCTION EXPT__REAL__USINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : USINT;
+    in1 : REAL;
+    in2 : USINT;
 END_VAR
     EXPT__REAL__USINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__UINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : UINT;
+    in1 : REAL;
+    in2 : UINT;
 END_VAR
     EXPT__REAL__UINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__UDINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : UDINT;
+    in1 : REAL;
+    in2 : UDINT;
 END_VAR
     EXPT__REAL__UDINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__ULINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : ULINT;
+    in1 : REAL;
+    in2 : ULINT;
 END_VAR
     EXPT__REAL__ULINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__SINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : SINT;
+    in1 : REAL;
+    in2 : SINT;
 END_VAR
     EXPT__REAL__SINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__INT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : INT;
+    in1 : REAL;
+    in2 : INT;
 END_VAR
     EXPT__REAL__INT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__REAL__LINT : REAL
 VAR_INPUT
-	in1 : REAL;
-	in2 : LINT;
+    in1 : REAL;
+    in2 : LINT;
 END_VAR
     EXPT__REAL__LINT := EXPT__REAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__USINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : USINT;
+    in1 : LREAL;
+    in2 : USINT;
 END_VAR
     EXPT__LREAL__USINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__UINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : UINT;
+    in1 : LREAL;
+    in2 : UINT;
 END_VAR
     EXPT__LREAL__UINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__UDINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : UDINT;
+    in1 : LREAL;
+    in2 : UDINT;
 END_VAR
     EXPT__LREAL__UDINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__ULINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : ULINT;
+    in1 : LREAL;
+    in2 : ULINT;
 END_VAR
     EXPT__LREAL__ULINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__SINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : SINT;
+    in1 : LREAL;
+    in2 : SINT;
 END_VAR
     EXPT__LREAL__SINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__INT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : INT;
+    in1 : LREAL;
+    in2 : INT;
 END_VAR
     EXPT__LREAL__INT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
 
 FUNCTION EXPT__LREAL__LINT : LREAL
 VAR_INPUT
-	in1 : LREAL;
-	in2 : LINT;
+    in1 : LREAL;
+    in2 : LINT;
 END_VAR
     EXPT__LREAL__LINT := EXPT__LREAL__DINT(in1, in2);
 END_FUNCTION
@@ -7080,7 +7080,7 @@ END_FUNCTION
 ************************ *)
 FUNCTION ABS < T : ANY_NUM > : T
 VAR_INPUT
-	IN : T;
+    IN : T;
 END_VAR
 
 END_FUNCTION
@@ -7089,58 +7089,58 @@ END_FUNCTION
 /* FUNCTION ABS__DINT : DINT */
 FUNCTION ABS__DINT : DINT
 VAR_INPUT
-	IN : DINT;
+    IN : DINT;
 END_VAR
-	ABS__DINT := IN;
-	IF ABS__DINT < 0 THEN
-		ABS__DINT := - 1 * ABS__DINT;
-	END_IF
+    ABS__DINT := IN;
+    IF ABS__DINT < 0 THEN
+        ABS__DINT := - 1 * ABS__DINT;
+    END_IF
 END_FUNCTION
 
 (* Specialized implementation of ABS for SINT *)
 FUNCTION ABS__SINT : SINT
 VAR_INPUT
-	IN : SINT;
+    IN : SINT;
 END_VAR
-	ABS__SINT := ABS__DINT(IN);
+    ABS__SINT := ABS__DINT(IN);
 END_FUNCTION
 
 (* Specialized implementation of ABS for INT *)
 FUNCTION ABS__INT : INT
 VAR_INPUT
-	IN : INT;
+    IN : INT;
 END_VAR
-	ABS__INT := ABS__DINT(IN);
+    ABS__INT := ABS__DINT(IN);
 END_FUNCTION
 
 (* Specialized implementation of ABS for LINT *)
 FUNCTION ABS__LINT : LINT
 VAR_INPUT
-	IN : LINT;
+    IN : LINT;
 END_VAR
-	ABS__LINT := IN;
-	IF ABS__LINT < 0 THEN
-		ABS__LINT := - 1 * ABS__LINT;
-	END_IF
+    ABS__LINT := IN;
+    IF ABS__LINT < 0 THEN
+        ABS__LINT := - 1 * ABS__LINT;
+    END_IF
 END_FUNCTION
 
 (* Specialized implementation of ABS for REAL *)
 FUNCTION ABS__REAL : REAL
 VAR_INPUT
-	IN : REAL;
+    IN : REAL;
 END_VAR
-	ABS__REAL := ABS__LREAL(IN);
+    ABS__REAL := ABS__LREAL(IN);
 END_FUNCTION
 
 (* Specialized implementation of ABS for LREAL *)
 FUNCTION ABS__LREAL : LREAL
 VAR_INPUT
-	IN : LREAL;
+    IN : LREAL;
 END_VAR
-	ABS__LREAL := IN;
-	IF ABS__LREAL < 0 THEN
-		ABS__LREAL := - 1.0 * ABS__LREAL;
-	END_IF
+    ABS__LREAL := IN;
+    IF ABS__LREAL < 0 THEN
+        ABS__LREAL := - 1.0 * ABS__LREAL;
+    END_IF
 END_FUNCTION
 
 (**************************
@@ -7152,7 +7152,7 @@ END_FUNCTION
 {external}
 FUNCTION ROUND < T : ANY_REAL > : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 CLASS MyClass
@@ -7170,15 +7170,15 @@ END_CLASSPROGRAM name
 (1 + 2) * (3 + 4);
 END_PROGRAM
 FUNCTION smaller_than_ten : BOOL
-	VAR_INPUT
-		n : INT;
-	END_VAR
+    VAR_INPUT
+        n : INT;
+    END_VAR
 
-	IF n < 10 THEN
-		smaller_than_ten := TRUE;
-		RETURN;
-	END_IF;
-	smaller_than_ten := FALSE;
+    IF n < 10 THEN
+        smaller_than_ten := TRUE;
+        RETURN;
+    END_IF;
+    smaller_than_ten := FALSE;
 END_FUNCTION
 PROGRAM hello
 VAR
@@ -7200,7 +7200,7 @@ FUNCTION a : DINT END_FUNCTION
             y^.1 := 3;
             z^[0] := 4;
             z^[1].1 := 5;
-						a() := 5;
+                        a() := 5;
         END_PROGRAM
 @EXTERNAL FUNCTION LOG : DINT
 VAR_INPUT
@@ -7217,7 +7217,7 @@ END_FUNCTION
 
 
 FUNCTION main : DINT
-	main := LOG(100);
+    main := LOG(100);
   PRINTF('Log value %d\n', main);
 END_FUNCTION
 FUNCTION main : DINT
@@ -7231,15 +7231,15 @@ END_FUNCTION
 TYPE MyStruct : STRUCT  x : DINT; y : DINT; END_STRUCT END_TYPE
 
 FUNCTION main : DINT
-	main := foo();
+    main := foo();
 END_FUNCTION
 
 FUNCTION foo : DINT
 VAR
-				x : DINT;
-				s : MyStruct;
-				u, y : REF_TO DINT;
-				z : REF_TO REF_TO DINT;
+                x : DINT;
+                s : MyStruct;
+                u, y : REF_TO DINT;
+                z : REF_TO REF_TO DINT;
 
 END_VAR
 u := NULL;
@@ -7260,7 +7260,7 @@ END_VAR
 END_FUNCTION
 
 FUNCTION main : DINT
-	puts('hello, world!$N');
+    puts('hello, world!$N');
 END_FUNCTION
 PROGRAM hello
 VAR
@@ -7280,11 +7280,11 @@ END_IF;
 END_PROGRAM
 PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAMPROGRAM prg
     VAR
-			a : INT;
-			b : REAL;
+            a : INT;
+            b : REAL;
     END_VAR
-		b := 1.5;
-		a := b;
+        b := 1.5;
+        a := b;
 END_PROGRAM
 PROGRAM a
 (* Comment *)
@@ -7313,7 +7313,7 @@ PROGRAM a
 END_PROGRAM
 FUNCTION myFunc : DINT
 VAR_INPUT
-	 a, b, c : DINT;
+     a, b, c : DINT;
 END_VAR
 END_FUNCTION
 FUNCTION foo2 : LINT
@@ -7321,9 +7321,9 @@ FUNCTION foo2 : LINT
 END_FUNCTION{external}
 FUNCTION CONCAT_DATE < T : ANY_INT > : DATE
 VAR_INPUT
-	year : T;
-	month : T;
-	day : T;
+    year : T;
+    month : T;
+    day : T;
 END_VAR
 END_FUNCTION
 
@@ -7341,47 +7341,47 @@ main := mainProg.a;
 END_FUNCTION
 PROGRAM mainProg
 VAR
-	a : DINT := 0;
+    a : DINT := 0;
 END_VAR
 a := 42;
 END_PROGRAM
 FUNCTION foo1 : LINT
     foo1 := CONCAT_DATE(INT#1, SINT#2, SINT#3);
 END_FUNCTIONVAR_GLOBAL CONSTANT
-	myValue : BOOL := TRUE;
+    myValue : BOOL := TRUE;
 END_VAR
 
 FUNCTION_BLOCK myFb2
-	VAR
-		fb : myFb;
-	END_VAR
+    VAR
+        fb : myFb;
+    END_VAR
 END_FUNCTION_BLOCK
 VAR_GLOBAL CONSTANT
-	myValue2 : BOOL := TRUE;
+    myValue2 : BOOL := TRUE;
 END_VAR
 
 VAR_GLOBAL CONSTANT
-	myValue : BOOL := TRUE;
+    myValue : BOOL := TRUE;
 END_VAR
 
 FUNCTION_BLOCK myFB
-	VAR
-		myS : myStruct := (a := 2);
-	END_VAR
+    VAR
+        myS : myStruct := (a := 2);
+    END_VAR
 END_FUNCTION_BLOCK
 {external}
 FUNCTION func1 : DINT
 END_FUNCTION
 
 FUNCTION func2 : DINT
-	func1();
+    func1();
 END_FUNCTION
 
 FUNCTION relative : DINT
 END_FUNCTION
 TYPE myStruct : STRUCT
-	a : INT := 5;
-	b : DINT := 6;
+    a : INT := 5;
+    b : DINT := 6;
 END_STRUCT
 END_TYPE
 {external}
@@ -7389,7 +7389,7 @@ FUNCTION func2 : DINT
 END_FUNCTION
 
 FUNCTION func1 : DINT
-	func2();
+    func2();
 END_FUNCTION
 
 PROGRAM name
@@ -7406,11 +7406,11 @@ END_VAR
 END_PROGRAM
 PROGRAM prg
     VAR
-			a : INT;
-			b : REAL;
+            a : INT;
+            b : REAL;
     END_VAR
-		b := 1.5;
-		a := b;
+        b := 1.5;
+        a := b;
 END_PROGRAM
 VAR_GLOBAL
     flags : ARRAY[1..500_000_000] OF BOOL;

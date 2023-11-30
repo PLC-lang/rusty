@@ -70,17 +70,17 @@ struct U8Type {
 #[test]
 fn lword_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; max : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; max : LREAL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_LREAL(LWORD#0);
-		// bit transfer for conversion 4611686018427387904 should be the first bit from the exponent resulting in decimal 2
-		ret.max := LWORD_TO_LREAL(LWORD#4611686018427387904);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_LREAL(LWORD#0);
+        // bit transfer for conversion 4611686018427387904 should be the first bit from the exponent resulting in decimal 2
+        ret.max := LWORD_TO_LREAL(LWORD#4611686018427387904);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -93,16 +93,16 @@ fn lword_to_lreal_conversion() {
 #[test]
 fn lword_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; max : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; max : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_LINT(LWORD#0);
-		ret.max := LWORD_TO_LINT(LWORD#9223372036854775807);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_LINT(LWORD#0);
+        ret.max := LWORD_TO_LINT(LWORD#9223372036854775807);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -115,16 +115,16 @@ fn lword_to_lint_conversion() {
 #[test]
 fn lword_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; max : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; max : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_DINT(LWORD#0);
-		ret.max := LWORD_TO_DINT(LWORD#2147483647);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_DINT(LWORD#0);
+        ret.max := LWORD_TO_DINT(LWORD#2147483647);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -137,16 +137,16 @@ fn lword_to_dint_conversion() {
 #[test]
 fn lword_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; max : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; max : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_INT(LWORD#0);
-		ret.max := LWORD_TO_INT(LWORD#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_INT(LWORD#0);
+        ret.max := LWORD_TO_INT(LWORD#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -159,16 +159,16 @@ fn lword_to_int_conversion() {
 #[test]
 fn lword_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; max : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; max : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_SINT(LWORD#0);
-		ret.max := LWORD_TO_SINT(LWORD#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_SINT(LWORD#0);
+        ret.max := LWORD_TO_SINT(LWORD#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -181,16 +181,16 @@ fn lword_to_sint_conversion() {
 #[test]
 fn lword_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; max : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; max : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_ULINT(LWORD#0);
-		ret.max := LWORD_TO_ULINT(LWORD#18446744073709551615);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_ULINT(LWORD#0);
+        ret.max := LWORD_TO_ULINT(LWORD#18446744073709551615);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -203,16 +203,16 @@ fn lword_to_ulint_conversion() {
 #[test]
 fn lword_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; max : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; max : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_UDINT(LWORD#0);
-		ret.max := LWORD_TO_UDINT(LWORD#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_UDINT(LWORD#0);
+        ret.max := LWORD_TO_UDINT(LWORD#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -225,16 +225,16 @@ fn lword_to_udint_conversion() {
 #[test]
 fn lword_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; max : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; max : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_UINT(LWORD#0);
-		ret.max := LWORD_TO_UINT(LWORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_UINT(LWORD#0);
+        ret.max := LWORD_TO_UINT(LWORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -247,16 +247,16 @@ fn lword_to_uint_conversion() {
 #[test]
 fn lword_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; max : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; max : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_USINT(LWORD#0);
-		ret.max := LWORD_TO_USINT(LWORD#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_USINT(LWORD#0);
+        ret.max := LWORD_TO_USINT(LWORD#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -269,17 +269,17 @@ fn lword_to_usint_conversion() {
 #[test]
 fn dword_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; max : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; max : REAL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_REAL(DWORD#0);
-		// bit transfer for conversion 1073741824 should be the first bit from the exponent resulting in decimal 2
-		ret.max := DWORD_TO_REAL(DWORD#1073741824);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_REAL(DWORD#0);
+        // bit transfer for conversion 1073741824 should be the first bit from the exponent resulting in decimal 2
+        ret.max := DWORD_TO_REAL(DWORD#1073741824);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -292,16 +292,16 @@ fn dword_to_real_conversion() {
 #[test]
 fn dword_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; max : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; max : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_LINT(DWORD#0);
-		ret.max := DWORD_TO_LINT(DWORD#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_LINT(DWORD#0);
+        ret.max := DWORD_TO_LINT(DWORD#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -314,18 +314,18 @@ fn dword_to_lint_conversion() {
 #[test]
 fn dword_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; max : DINT; max_overflow : DINT; negative : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; max : DINT; max_overflow : DINT; negative : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_DINT(DWORD#0);
-		ret.max := DWORD_TO_DINT(DWORD#2147483647);
-		ret.max_overflow := DWORD_TO_DINT(DWORD#4294967295);
-		ret.negative := DWORD_TO_DINT(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_DINT(DWORD#0);
+        ret.max := DWORD_TO_DINT(DWORD#2147483647);
+        ret.max_overflow := DWORD_TO_DINT(DWORD#4294967295);
+        ret.negative := DWORD_TO_DINT(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -340,16 +340,16 @@ fn dword_to_dint_conversion() {
 #[test]
 fn dword_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; max : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; max : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_INT(DWORD#0);
-		ret.max := DWORD_TO_INT(DWORD#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_INT(DWORD#0);
+        ret.max := DWORD_TO_INT(DWORD#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -362,16 +362,16 @@ fn dword_to_int_conversion() {
 #[test]
 fn dword_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; max : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; max : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_SINT(DWORD#0);
-		ret.max := DWORD_TO_SINT(DWORD#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_SINT(DWORD#0);
+        ret.max := DWORD_TO_SINT(DWORD#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -384,16 +384,16 @@ fn dword_to_sint_conversion() {
 #[test]
 fn dword_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; max : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; max : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_ULINT(DWORD#0);
-		ret.max := DWORD_TO_ULINT(DWORD#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_ULINT(DWORD#0);
+        ret.max := DWORD_TO_ULINT(DWORD#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -406,16 +406,16 @@ fn dword_to_ulint_conversion() {
 #[test]
 fn dword_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; max : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; max : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_UDINT(DWORD#0);
-		ret.max := DWORD_TO_UDINT(DWORD#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_UDINT(DWORD#0);
+        ret.max := DWORD_TO_UDINT(DWORD#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -428,16 +428,16 @@ fn dword_to_udint_conversion() {
 #[test]
 fn dword_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; max : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; max : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_UINT(DWORD#0);
-		ret.max := DWORD_TO_UINT(DWORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_UINT(DWORD#0);
+        ret.max := DWORD_TO_UINT(DWORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -450,16 +450,16 @@ fn dword_to_uint_conversion() {
 #[test]
 fn dword_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; max : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; max : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_USINT(DWORD#0);
-		ret.max := DWORD_TO_USINT(DWORD#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_USINT(DWORD#0);
+        ret.max := DWORD_TO_USINT(DWORD#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -472,16 +472,16 @@ fn dword_to_usint_conversion() {
 #[test]
 fn word_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; max : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; max : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_LINT(WORD#0);
-		ret.max := WORD_TO_LINT(WORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_LINT(WORD#0);
+        ret.max := WORD_TO_LINT(WORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -494,16 +494,16 @@ fn word_to_lint_conversion() {
 #[test]
 fn word_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; max : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; max : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_DINT(WORD#0);
-		ret.max := WORD_TO_DINT(WORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_DINT(WORD#0);
+        ret.max := WORD_TO_DINT(WORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -516,16 +516,16 @@ fn word_to_dint_conversion() {
 #[test]
 fn word_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; max : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; max : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_INT(WORD#0);
-		ret.max := WORD_TO_INT(WORD#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_INT(WORD#0);
+        ret.max := WORD_TO_INT(WORD#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -538,16 +538,16 @@ fn word_to_int_conversion() {
 #[test]
 fn word_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; max : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; max : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_SINT(WORD#0);
-		ret.max := WORD_TO_SINT(WORD#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_SINT(WORD#0);
+        ret.max := WORD_TO_SINT(WORD#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -560,16 +560,16 @@ fn word_to_sint_conversion() {
 #[test]
 fn word_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; max : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; max : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_ULINT(WORD#0);
-		ret.max := WORD_TO_ULINT(WORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_ULINT(WORD#0);
+        ret.max := WORD_TO_ULINT(WORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -582,16 +582,16 @@ fn word_to_ulint_conversion() {
 #[test]
 fn word_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; max : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; max : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_UDINT(WORD#0);
-		ret.max := WORD_TO_UDINT(WORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_UDINT(WORD#0);
+        ret.max := WORD_TO_UDINT(WORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -604,16 +604,16 @@ fn word_to_udint_conversion() {
 #[test]
 fn word_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; max : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; max : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_UINT(WORD#0);
-		ret.max := WORD_TO_UINT(WORD#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_UINT(WORD#0);
+        ret.max := WORD_TO_UINT(WORD#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -626,16 +626,16 @@ fn word_to_uint_conversion() {
 #[test]
 fn word_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; max : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; max : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_USINT(WORD#0);
-		ret.max := WORD_TO_USINT(WORD#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_USINT(WORD#0);
+        ret.max := WORD_TO_USINT(WORD#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -648,16 +648,16 @@ fn word_to_usint_conversion() {
 #[test]
 fn byte_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; max : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; max : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_LINT(BYTE#0);
-		ret.max := BYTE_TO_LINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_LINT(BYTE#0);
+        ret.max := BYTE_TO_LINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -670,16 +670,16 @@ fn byte_to_lint_conversion() {
 #[test]
 fn byte_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; max : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; max : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_DINT(BYTE#0);
-		ret.max := BYTE_TO_DINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_DINT(BYTE#0);
+        ret.max := BYTE_TO_DINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -692,16 +692,16 @@ fn byte_to_dint_conversion() {
 #[test]
 fn byte_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; max : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; max : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_INT(BYTE#0);
-		ret.max := BYTE_TO_INT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_INT(BYTE#0);
+        ret.max := BYTE_TO_INT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -714,16 +714,16 @@ fn byte_to_int_conversion() {
 #[test]
 fn byte_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; max : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; max : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_SINT(BYTE#0);
-		ret.max := BYTE_TO_SINT(BYTE#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_SINT(BYTE#0);
+        ret.max := BYTE_TO_SINT(BYTE#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -736,16 +736,16 @@ fn byte_to_sint_conversion() {
 #[test]
 fn byte_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; max : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; max : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_ULINT(BYTE#0);
-		ret.max := BYTE_TO_ULINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_ULINT(BYTE#0);
+        ret.max := BYTE_TO_ULINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -758,16 +758,16 @@ fn byte_to_ulint_conversion() {
 #[test]
 fn byte_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; max : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; max : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_UDINT(BYTE#0);
-		ret.max := BYTE_TO_UDINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_UDINT(BYTE#0);
+        ret.max := BYTE_TO_UDINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -780,16 +780,16 @@ fn byte_to_udint_conversion() {
 #[test]
 fn byte_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; max : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; max : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_UINT(BYTE#0);
-		ret.max := BYTE_TO_UINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_UINT(BYTE#0);
+        ret.max := BYTE_TO_UINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -802,16 +802,16 @@ fn byte_to_uint_conversion() {
 #[test]
 fn byte_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; max : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; max : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_USINT(BYTE#0);
-		ret.max := BYTE_TO_USINT(BYTE#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_USINT(BYTE#0);
+        ret.max := BYTE_TO_USINT(BYTE#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -824,16 +824,16 @@ fn byte_to_usint_conversion() {
 #[test]
 fn bool_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; max : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; max : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_LINT(BOOL#0);
-		ret.max := BOOL_TO_LINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_LINT(BOOL#0);
+        ret.max := BOOL_TO_LINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -846,16 +846,16 @@ fn bool_to_lint_conversion() {
 #[test]
 fn bool_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; max : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; max : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_DINT(BOOL#0);
-		ret.max := BOOL_TO_DINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_DINT(BOOL#0);
+        ret.max := BOOL_TO_DINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -868,16 +868,16 @@ fn bool_to_dint_conversion() {
 #[test]
 fn bool_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; max : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; max : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_INT(BOOL#0);
-		ret.max := BOOL_TO_INT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_INT(BOOL#0);
+        ret.max := BOOL_TO_INT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -890,16 +890,16 @@ fn bool_to_int_conversion() {
 #[test]
 fn bool_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; max : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; max : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_SINT(BOOL#0);
-		ret.max := BOOL_TO_SINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_SINT(BOOL#0);
+        ret.max := BOOL_TO_SINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -912,16 +912,16 @@ fn bool_to_sint_conversion() {
 #[test]
 fn bool_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; max : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; max : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_ULINT(BOOL#0);
-		ret.max := BOOL_TO_ULINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_ULINT(BOOL#0);
+        ret.max := BOOL_TO_ULINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -934,16 +934,16 @@ fn bool_to_ulint_conversion() {
 #[test]
 fn bool_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; max : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; max : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_UDINT(BOOL#0);
-		ret.max := BOOL_TO_UDINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_UDINT(BOOL#0);
+        ret.max := BOOL_TO_UDINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -956,16 +956,16 @@ fn bool_to_udint_conversion() {
 #[test]
 fn bool_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; max : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; max : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_UINT(BOOL#0);
-		ret.max := BOOL_TO_UINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_UINT(BOOL#0);
+        ret.max := BOOL_TO_UINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -978,16 +978,16 @@ fn bool_to_uint_conversion() {
 #[test]
 fn bool_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; max : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; max : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_USINT(BOOL#0);
-		ret.max := BOOL_TO_USINT(BOOL#1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_USINT(BOOL#0);
+        ret.max := BOOL_TO_USINT(BOOL#1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1000,18 +1000,18 @@ fn bool_to_usint_conversion() {
 #[test]
 fn lreal_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_TO_LWORD(LREAL#0);
-		// counter test LWORD_TO_LREAL
-		// 2 in LREAL is the first bit from exponent 2^62 = 4611686018427387904
-		ret.max := LREAL_TO_LWORD(LREAL#2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_TO_LWORD(LREAL#0);
+        // counter test LWORD_TO_LREAL
+        // 2 in LREAL is the first bit from exponent 2^62 = 4611686018427387904
+        ret.max := LREAL_TO_LWORD(LREAL#2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1024,18 +1024,18 @@ fn lreal_to_lword_conversion() {
 #[test]
 fn real_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_TO_DWORD(REAL#0);
-		// counter test DWORD_TO_REAL
-		// 2 in REAL is the first bit from exponent 30 = 1073741824
-		ret.max := REAL_TO_DWORD(REAL#2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_TO_DWORD(REAL#0);
+        // counter test DWORD_TO_REAL
+        // 2 in REAL is the first bit from exponent 30 = 1073741824
+        ret.max := REAL_TO_DWORD(REAL#2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1048,16 +1048,16 @@ fn real_to_dword_conversion() {
 #[test]
 fn lint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_TO_LWORD(LINT#0);
-		ret.max := LINT_TO_LWORD(LINT#9223372036854775807);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_TO_LWORD(LINT#0);
+        ret.max := LINT_TO_LWORD(LINT#9223372036854775807);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1070,16 +1070,16 @@ fn lint_to_lword_conversion() {
 #[test]
 fn lint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_TO_DWORD(LINT#0);
-		ret.max := LINT_TO_DWORD(LINT#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_TO_DWORD(LINT#0);
+        ret.max := LINT_TO_DWORD(LINT#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1092,16 +1092,16 @@ fn lint_to_dword_conversion() {
 #[test]
 fn lint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_TO_WORD(LINT#0);
-		ret.max := LINT_TO_WORD(LINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_TO_WORD(LINT#0);
+        ret.max := LINT_TO_WORD(LINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1114,16 +1114,16 @@ fn lint_to_word_conversion() {
 #[test]
 fn lint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_TO_BYTE(LINT#0);
-		ret.max := LINT_TO_BYTE(LINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_TO_BYTE(LINT#0);
+        ret.max := LINT_TO_BYTE(LINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1136,16 +1136,16 @@ fn lint_to_byte_conversion() {
 #[test]
 fn dint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_TO_LWORD(DINT#0);
-		ret.max := DINT_TO_LWORD(DINT#2147483647);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_TO_LWORD(DINT#0);
+        ret.max := DINT_TO_LWORD(DINT#2147483647);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1158,16 +1158,16 @@ fn dint_to_lword_conversion() {
 #[test]
 fn dint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_TO_DWORD(DINT#0);
-		ret.max := DINT_TO_DWORD(DINT#2147483647);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_TO_DWORD(DINT#0);
+        ret.max := DINT_TO_DWORD(DINT#2147483647);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1180,16 +1180,16 @@ fn dint_to_dword_conversion() {
 #[test]
 fn dint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_TO_WORD(DINT#0);
-		ret.max := DINT_TO_WORD(DINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_TO_WORD(DINT#0);
+        ret.max := DINT_TO_WORD(DINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1202,16 +1202,16 @@ fn dint_to_word_conversion() {
 #[test]
 fn dint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_TO_BYTE(DINT#0);
-		ret.max := DINT_TO_BYTE(DINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_TO_BYTE(DINT#0);
+        ret.max := DINT_TO_BYTE(DINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1224,16 +1224,16 @@ fn dint_to_byte_conversion() {
 #[test]
 fn int_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_TO_LWORD(INT#0);
-		ret.max := INT_TO_LWORD(INT#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_TO_LWORD(INT#0);
+        ret.max := INT_TO_LWORD(INT#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1246,16 +1246,16 @@ fn int_to_lword_conversion() {
 #[test]
 fn int_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_TO_DWORD(INT#0);
-		ret.max := INT_TO_DWORD(INT#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_TO_DWORD(INT#0);
+        ret.max := INT_TO_DWORD(INT#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1268,16 +1268,16 @@ fn int_to_dword_conversion() {
 #[test]
 fn int_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_TO_WORD(INT#0);
-		ret.max := INT_TO_WORD(INT#32767);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_TO_WORD(INT#0);
+        ret.max := INT_TO_WORD(INT#32767);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1290,16 +1290,16 @@ fn int_to_word_conversion() {
 #[test]
 fn int_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_TO_BYTE(INT#0);
-		ret.max := INT_TO_BYTE(INT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_TO_BYTE(INT#0);
+        ret.max := INT_TO_BYTE(INT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1312,16 +1312,16 @@ fn int_to_byte_conversion() {
 #[test]
 fn sint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_TO_LWORD(SINT#0);
-		ret.max := SINT_TO_LWORD(SINT#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_TO_LWORD(SINT#0);
+        ret.max := SINT_TO_LWORD(SINT#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1334,16 +1334,16 @@ fn sint_to_lword_conversion() {
 #[test]
 fn sint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max :DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max :DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_TO_DWORD(SINT#0);
-		ret.max := SINT_TO_DWORD(SINT#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_TO_DWORD(SINT#0);
+        ret.max := SINT_TO_DWORD(SINT#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1356,16 +1356,16 @@ fn sint_to_dword_conversion() {
 #[test]
 fn sint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_TO_WORD(SINT#0);
-		ret.max := SINT_TO_WORD(SINT#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_TO_WORD(SINT#0);
+        ret.max := SINT_TO_WORD(SINT#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1378,16 +1378,16 @@ fn sint_to_word_conversion() {
 #[test]
 fn sint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_TO_BYTE(SINT#0);
-		ret.max := SINT_TO_BYTE(SINT#127);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_TO_BYTE(SINT#0);
+        ret.max := SINT_TO_BYTE(SINT#127);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1400,16 +1400,16 @@ fn sint_to_byte_conversion() {
 #[test]
 fn ulint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_TO_LWORD(ULINT#0);
-		ret.max := ULINT_TO_LWORD(ULINT#18446744073709551615);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_TO_LWORD(ULINT#0);
+        ret.max := ULINT_TO_LWORD(ULINT#18446744073709551615);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1422,16 +1422,16 @@ fn ulint_to_lword_conversion() {
 #[test]
 fn ulint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_TO_DWORD(ULINT#0);
-		ret.max := ULINT_TO_DWORD(ULINT#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_TO_DWORD(ULINT#0);
+        ret.max := ULINT_TO_DWORD(ULINT#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1444,16 +1444,16 @@ fn ulint_to_dword_conversion() {
 #[test]
 fn ulint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_TO_WORD(ULINT#0);
-		ret.max := ULINT_TO_WORD(ULINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_TO_WORD(ULINT#0);
+        ret.max := ULINT_TO_WORD(ULINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1466,16 +1466,16 @@ fn ulint_to_word_conversion() {
 #[test]
 fn ulint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_TO_BYTE(ULINT#0);
-		ret.max := ULINT_TO_BYTE(ULINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_TO_BYTE(ULINT#0);
+        ret.max := ULINT_TO_BYTE(ULINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1488,16 +1488,16 @@ fn ulint_to_byte_conversion() {
 #[test]
 fn udint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_TO_LWORD(UDINT#0);
-		ret.max := UDINT_TO_LWORD(UDINT#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_TO_LWORD(UDINT#0);
+        ret.max := UDINT_TO_LWORD(UDINT#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1510,16 +1510,16 @@ fn udint_to_lword_conversion() {
 #[test]
 fn udint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_TO_DWORD(UDINT#0);
-		ret.max := UDINT_TO_DWORD(UDINT#4294967295);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_TO_DWORD(UDINT#0);
+        ret.max := UDINT_TO_DWORD(UDINT#4294967295);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1532,16 +1532,16 @@ fn udint_to_dword_conversion() {
 #[test]
 fn udint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_TO_WORD(UDINT#0);
-		ret.max := UDINT_TO_WORD(UDINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_TO_WORD(UDINT#0);
+        ret.max := UDINT_TO_WORD(UDINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1554,16 +1554,16 @@ fn udint_to_word_conversion() {
 #[test]
 fn udint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_TO_BYTE(UDINT#0);
-		ret.max := UDINT_TO_BYTE(UDINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_TO_BYTE(UDINT#0);
+        ret.max := UDINT_TO_BYTE(UDINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1576,16 +1576,16 @@ fn udint_to_byte_conversion() {
 #[test]
 fn uint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_TO_LWORD(UINT#0);
-		ret.max := UINT_TO_LWORD(UINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_TO_LWORD(UINT#0);
+        ret.max := UINT_TO_LWORD(UINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1598,16 +1598,16 @@ fn uint_to_lword_conversion() {
 #[test]
 fn uint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_TO_DWORD(UINT#0);
-		ret.max := UINT_TO_DWORD(UINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_TO_DWORD(UINT#0);
+        ret.max := UINT_TO_DWORD(UINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1620,16 +1620,16 @@ fn uint_to_dword_conversion() {
 #[test]
 fn uint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_TO_WORD(UINT#0);
-		ret.max := UINT_TO_WORD(UINT#65535);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_TO_WORD(UINT#0);
+        ret.max := UINT_TO_WORD(UINT#65535);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1642,16 +1642,16 @@ fn uint_to_word_conversion() {
 #[test]
 fn uint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_TO_BYTE(UINT#0);
-		ret.max := UINT_TO_BYTE(UINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_TO_BYTE(UINT#0);
+        ret.max := UINT_TO_BYTE(UINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1664,16 +1664,16 @@ fn uint_to_byte_conversion() {
 #[test]
 fn usint_to_lword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; max : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; max : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_TO_LWORD(USINT#0);
-		ret.max := USINT_TO_LWORD(USINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_TO_LWORD(USINT#0);
+        ret.max := USINT_TO_LWORD(USINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1686,16 +1686,16 @@ fn usint_to_lword_conversion() {
 #[test]
 fn usint_to_dword_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; max : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; max : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_TO_DWORD(USINT#0);
-		ret.max := USINT_TO_DWORD(USINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_TO_DWORD(USINT#0);
+        ret.max := USINT_TO_DWORD(USINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1708,16 +1708,16 @@ fn usint_to_dword_conversion() {
 #[test]
 fn usint_to_word_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; max : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; max : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_TO_WORD(USINT#0);
-		ret.max := USINT_TO_WORD(USINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_TO_WORD(USINT#0);
+        ret.max := USINT_TO_WORD(USINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");
@@ -1730,16 +1730,16 @@ fn usint_to_word_conversion() {
 #[test]
 fn usint_to_byte_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; max : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; max : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_TO_BYTE(USINT#0);
-		ret.max := USINT_TO_BYTE(USINT#255);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_TO_BYTE(USINT#0);
+        ret.max := USINT_TO_BYTE(USINT#255);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_num_conversion.st");

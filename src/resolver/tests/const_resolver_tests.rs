@@ -1193,8 +1193,8 @@ fn contants_in_case_statements_resolved() {
                 SIXTY : DINT := 60;
             END_VAR
             CASE DAYS_IN_MONTH OF
-              32..SIXTY	:	DAYS_IN_MONTH := 29;
-              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+              32..SIXTY :   DAYS_IN_MONTH := 29;
+              (SIXTY    + 2)..70 :  DAYS_IN_MONTH := 30;
             ELSE
               DAYS_IN_MONTH := 31;
             END_CASE;

@@ -739,7 +739,7 @@ fn initialization_of_function_variables() {
             a   : DINT;
             b   : DINT := 10;
             c   : ARRAY[0..2] OF DINT := [10,20];
-			d   : ARRAY[0..2] OF DINT;
+            d   : ARRAY[0..2] OF DINT;
         END_VAR
         VAR_INPUT
             index : INT;
@@ -750,8 +750,8 @@ fn initialization_of_function_variables() {
             ELSIF index = 1 THEN
                 other := b;
             ELSIF index = 2 THEN
-				other := c[1];
-			ELSE
+                other := c[1];
+            ELSE
                 other := d[0];
             END_IF
         END_FUNCTION
@@ -761,12 +761,12 @@ fn initialization_of_function_variables() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := other(index := 0);
             b := other(index := 1);
             c := other(index := 2);
-			d := other(index := 3);
+            d := other(index := 3);
         END_PROGRAM
         ";
 
@@ -800,7 +800,7 @@ fn initialization_of_struct_in_fb() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := fb.a.a;
             b := fb.a.b;
@@ -835,7 +835,7 @@ fn initialization_of_struct_in_prg() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := other.a.a;
             b := other.a.b;
@@ -878,8 +878,8 @@ fn initialization_of_struct_ref_in_fb_in_function() {
             ELSIF index = 1 THEN
                 other := x.a.b;
             ELSIF index = 2 THEN
-				other := x.a.c;
-			ELSE
+                other := x.a.c;
+            ELSE
                 other := x.a.d;
             END_IF
         END_FUNCTION
@@ -889,12 +889,12 @@ fn initialization_of_struct_ref_in_fb_in_function() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := other(index := 0);
             b := other(index := 1);
             c := other(index := 2);
-			d := other(index := 3);
+            d := other(index := 3);
         END_PROGRAM
         ";
 
@@ -926,8 +926,8 @@ fn initialization_of_struct_ref_in_function() {
             ELSIF index = 1 THEN
                 other := a.b;
             ELSIF index = 2 THEN
-				other := a.c;
-			ELSE
+                other := a.c;
+            ELSE
                 other := a.d;
             END_IF
         END_FUNCTION
@@ -937,12 +937,12 @@ fn initialization_of_struct_ref_in_function() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := other(index := 0);
             b := other(index := 1);
             c := other(index := 2);
-			d := other(index := 3);
+            d := other(index := 3);
         END_PROGRAM
         ";
 
@@ -961,7 +961,7 @@ fn initialization_of_struct_in_function() {
     let function = r"
         FUNCTION other : DINT
         VAR
-			a : STRUCT a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; END_STRUCT
+            a : STRUCT a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; END_STRUCT
         END_VAR
         VAR_INPUT
             index : INT;
@@ -972,8 +972,8 @@ fn initialization_of_struct_in_function() {
             ELSIF index = 1 THEN
                 other := a.b;
             ELSIF index = 2 THEN
-				other := a.c;
-			ELSE
+                other := a.c;
+            ELSE
                 other := a.d;
             END_IF
         END_FUNCTION
@@ -983,12 +983,12 @@ fn initialization_of_struct_in_function() {
             a : DINT;
             b : DINT;
             c : DINT;
-			d : DINT;
+            d : DINT;
         END_VAR
             a := other(index := 0);
             b := other(index := 1);
             c := other(index := 2);
-			d := other(index := 3);
+            d := other(index := 3);
         END_PROGRAM
         ";
 
@@ -1005,12 +1005,12 @@ fn initialization_of_struct_in_function() {
 #[test]
 fn initialized_array_in_function() {
     let function = "
-		FUNCTION foo : ARRAY[-1..2] OF DINT
-		VAR
-			arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
-		END_VAR
+        FUNCTION foo : ARRAY[-1..2] OF DINT
+        VAR
+            arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
+        END_VAR
             foo := arr_var;
-		END_FUNCTION
+        END_FUNCTION
 
         PROGRAM main
             VAR_INPUT
@@ -1040,10 +1040,10 @@ fn array_test() {
             u,v,w,x : ULINT;
         END_VAR
 
-		FUNCTION foo : ARRAY[-1..2] OF DINT
-		VAR_INPUT
-			arr_var : ARRAY[-1..2] OF DINT;
-		END_VAR
+        FUNCTION foo : ARRAY[-1..2] OF DINT
+        VAR_INPUT
+            arr_var : ARRAY[-1..2] OF DINT;
+        END_VAR
             //main := arr_var;
             //main[-1] := 1;
 
@@ -1053,14 +1053,14 @@ fn array_test() {
             x := &(arr_var[3]));
 
             main.a := 99;
-		END_FUNCTION
+        END_FUNCTION
 
         PROGRAM main
             VAR_INPUT
                 a,b,c,d : ULINT;
             END_VAR
             VAR_TEMP
-			    arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
+                arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
             END_VAR
             a := 1; b:=2; c:=3; d:=4;
 
@@ -1097,7 +1097,7 @@ fn initialized_array_type_in_function() {
         END_VAR
             main := arr_var;
         END_PROGRAM
-		";
+        ";
     #[allow(dead_code)]
     struct MainType {
         arr: [i32; 4],
@@ -1110,19 +1110,19 @@ fn initialized_array_type_in_function() {
 #[test]
 fn initialized_array_in_program() {
     let function = "
-		PROGRAM target
-		VAR
-			arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
-		END_VAR
-		END_PROGRAM
+        PROGRAM target
+        VAR
+            arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
+        END_VAR
+        END_PROGRAM
 
         PROGRAM main
         VAR
-			arr_var : ARRAY[-1..2] OF DINT;
-		END_VAR
+            arr_var : ARRAY[-1..2] OF DINT;
+        END_VAR
             arr_var := target.arr_var;
         END_PROGRAM
-		";
+        ";
 
     #[allow(dead_code)]
     struct MainType {
@@ -1138,11 +1138,11 @@ fn initialized_array_type_in_program() {
     let function = "
         TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
 
-		PROGRAM target
-		VAR
-			arr_var : arr;
-		END_VAR
-		END_PROGRAM
+        PROGRAM target
+        VAR
+            arr_var : arr;
+        END_VAR
+        END_PROGRAM
 
         PROGRAM main
             VAR
@@ -1151,7 +1151,7 @@ fn initialized_array_type_in_program() {
 
            arr_var := target.arr_var;
         END_PROGRAM
-		";
+        ";
     #[allow(dead_code)]
     struct MainType {
         arr: [i32; 4],
@@ -1169,7 +1169,7 @@ fn intial_values_diverge_from_type() {
 
     PROGRAM target
     VAR
-		arr_var : arr := [5,6,7,8];
+        arr_var : arr := [5,6,7,8];
         i : myInt := 5;
     END_VAR
     END_PROGRAM
@@ -1351,35 +1351,35 @@ fn initial_value_of_enums() {
 #[test]
 fn initial_value_in_array_of_struct() {
     let function = "
-	TYPE myStruct : STRUCT
-			a, b : DINT;
-			c : ARRAY[0..1] OF DINT;
-		END_STRUCT
-	END_TYPE
+    TYPE myStruct : STRUCT
+            a, b : DINT;
+            c : ARRAY[0..1] OF DINT;
+        END_STRUCT
+    END_TYPE
 
-	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := [70, 80]);
-	END_VAR
+    VAR_GLOBAL CONSTANT
+        str : myStruct := (a := 50, b := 60, c := [70, 80]);
+    END_VAR
 
-	PROGRAM main
-	VAR_TEMP
-		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
-	END_VAR
-	VAR
-		a, b, c, d : DINT;
-		e, f, g, h : DINT;
-	END_VAR
-		a := arr[0].a;
-		b := arr[0].b;
-		c := arr[0].c[0];
-		d := arr[0].c[1];
+    PROGRAM main
+    VAR_TEMP
+        arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
+    END_VAR
+    VAR
+        a, b, c, d : DINT;
+        e, f, g, h : DINT;
+    END_VAR
+        a := arr[0].a;
+        b := arr[0].b;
+        c := arr[0].c[0];
+        d := arr[0].c[1];
 
-		e := arr[1].a;
-		f := arr[1].b;
-		g := arr[1].c[0];
-		h := arr[1].c[1];
-	END_PROGRAM
-	";
+        e := arr[1].a;
+        f := arr[1].b;
+        g := arr[1].c[0];
+        h := arr[1].c[1];
+    END_PROGRAM
+    ";
 
     #[allow(dead_code)]
     #[derive(Default)]

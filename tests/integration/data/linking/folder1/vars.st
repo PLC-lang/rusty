@@ -1,3 +1,3 @@
 VAR_GLOBAL CONSTANT
-	myValue : BOOL := TRUE;
+    myValue : BOOL := TRUE;
 END_VAR

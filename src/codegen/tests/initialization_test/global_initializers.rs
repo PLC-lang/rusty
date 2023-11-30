@@ -99,14 +99,14 @@ fn global_constant_without_initializer_gets_default_initializer() {
         "
   FUNCTION main : DINT
      VAR CONSTANT
-     	cmd1 : commands;
-     	myStr1 : STRING;
-     	myArr1 : MyArr;
+        cmd1 : commands;
+        myStr1 : STRING;
+        myArr1 : MyArr;
      END_VAR
      VAR_TEMP CONSTANT
-     	cmd2 : commands;
-     	//myStr2 : MyStr;
-     	myArr2 : MyArr;
+        cmd2 : commands;
+        //myStr2 : MyStr;
+        myArr2 : MyArr;
      END_VAR
   END_FUNCTION
 
@@ -132,11 +132,11 @@ fn global_constant_without_initializer_gets_declared_initializer() {
         "
   FUNCTION main : DINT
      VAR CONSTANT
-     	cmd1 : commands;
+        cmd1 : commands;
       var1 : INT;
      END_VAR
      VAR CONSTANT
-     	cmd2 : commands;
+        cmd2 : commands;
       var2 : INT;
      END_VAR
   END_FUNCTION

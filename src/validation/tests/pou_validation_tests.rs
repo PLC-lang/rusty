@@ -196,16 +196,16 @@ fn in_out_variable_out_of_order() {
 
     FUNCTION_BLOCK fb_t
     VAR
-        myVar	: BOOL;
+        myVar   : BOOL;
     END_VAR
     VAR_INPUT
-        myInput	: USINT;
+        myInput : USINT;
     END_VAR
     VAR_IN_OUT
-        myInOut	: BOOL;
+        myInOut : BOOL;
     END_VAR
     VAR_OUTPUT
-        myOut	: BOOL;
+        myOut   : BOOL;
     END_VAR
     VAR_IN_OUT
         myOtherInOut : BOOL;

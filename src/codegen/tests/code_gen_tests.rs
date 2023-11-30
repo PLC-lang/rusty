@@ -1301,9 +1301,9 @@ fn case_with_constant_expressions_in_case_selectors() {
     let result = codegen(
         r##"
 VAR_GLOBAL CONSTANT
-	FORWARD     : DINT := 7;
-	UP          : DINT := FORWARD + 1;
-	DOWN        : DINT := FORWARD + UP;
+    FORWARD     : DINT := 7;
+    UP          : DINT := FORWARD + 1;
+    DOWN        : DINT := FORWARD + UP;
 END_VAR
 
 FUNCTION drive : DINT
@@ -1312,17 +1312,17 @@ FUNCTION drive : DINT
         horiz, depth : DINT;
     END_VAR
 
-	CASE input OF
-		FORWARD :
-			horiz := horiz + 1;
+    CASE input OF
+        FORWARD :
+            horiz := horiz + 1;
         FORWARD*2:
             horiz := horiz + 2;
-		UP :
-			depth := depth - 1;
-		DOWN :
-			depth := depth + 1;
+        UP :
+            depth := depth - 1;
+        DOWN :
+            depth := depth + 1;
 
-	END_CASE
+    END_CASE
 
 END_FUNCTION
 "##,
@@ -1353,17 +1353,17 @@ FUNCTION drive : DINT
         horiz, depth : DINT;
     END_VAR
 
-	CASE input OF
-		FORWARD :
+    CASE input OF
+        FORWARD :
         horiz := horiz + 1;
     FORWARD*2:
             horiz := horiz + 2;
     UP :
         depth := depth - 1;
     DOWN :
-			depth := depth + 1;
+            depth := depth + 1;
 
-	END_CASE
+    END_CASE
 
 END_FUNCTION
 "##,
@@ -2805,20 +2805,20 @@ fn inlined_array_size_from_local_scoped_constants() {
 fn program_with_chars() {
     let result = codegen(
         r#"
-		PROGRAM mainPROG
-		VAR
-			x : CHAR;
-			y : WCHAR;
-		END_VAR
-			x := 'a';
-			x := ' ';
+        PROGRAM mainPROG
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := 'a';
+            x := ' ';
 
-			y := "A";
-			y := " ";
-			y := "'";
-			y := "$"";
-		END_PROGRAM
-		"#,
+            y := "A";
+            y := " ";
+            y := "'";
+            y := "$"";
+        END_PROGRAM
+        "#,
     );
     insta::assert_snapshot!(result);
 }
@@ -2827,15 +2827,15 @@ fn program_with_chars() {
 fn program_with_casted_chars_assignment() {
     let result = codegen(
         r#"
-		PROGRAM mainPROG
-		VAR
-			x : CHAR;
-			y : WCHAR;
-		END_VAR
-			x := CHAR#"A";
-			y := WCHAR#'B';
-		END_PROGRAM
-		"#,
+        PROGRAM mainPROG
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := CHAR#"A";
+            y := WCHAR#'B';
+        END_PROGRAM
+        "#,
     );
     insta::assert_snapshot!(result);
 }
@@ -2844,15 +2844,15 @@ fn program_with_casted_chars_assignment() {
 fn function_call_with_same_name_as_return_type() {
     let result = codegen(
         "
-		FUNCTION TIME : TIME
-		END_FUNCTION
+        FUNCTION TIME : TIME
+        END_FUNCTION
 
-		PROGRAM prg
-		VAR
-		END_VAR
-			TIME();
-		END_PROGRAM
-		",
+        PROGRAM prg
+        VAR
+        END_VAR
+            TIME();
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2861,18 +2861,18 @@ fn function_call_with_same_name_as_return_type() {
 fn variable_with_same_name_as_data_type() {
     let result = codegen(
         "
-		FUNCTION func : TIME
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_FUNCTION
+        FUNCTION func : TIME
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM prog
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM prog
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2886,12 +2886,12 @@ fn variable_with_same_name_as_data_type() {
 fn variable_with_same_name_as_function() {
     let result = codegen(
         "
-		FUNCTION TIME : TIME
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION TIME : TIME
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2900,12 +2900,12 @@ fn variable_with_same_name_as_function() {
 fn expression_list_as_array_initilization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[0..3] OF INT := 1, 2, 3;
-			b_exp : ARRAY[0..4] OF DINT := 1+3, 2*3, 7-1, 10;
-			str : ARRAY[0..2] OF STRING := 'first', 'second';
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..3] OF INT := 1, 2, 3;
+            b_exp : ARRAY[0..4] OF DINT := 1+3, 2*3, 7-1, 10;
+            str : ARRAY[0..2] OF STRING := 'first', 'second';
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2914,15 +2914,15 @@ fn expression_list_as_array_initilization() {
 fn default_values_for_not_initialized_function_vars() {
     let result = codegen(
         "
-		FUNCTION func : INT
-		VAR
-			int_var : INT;
-			arr_var : ARRAY[0..2] OF DINT;
-			ptr_var	: REF_TO DINT;
-			float_var	: REAL;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            int_var : INT;
+            arr_var : ARRAY[0..2] OF DINT;
+            ptr_var : REF_TO DINT;
+            float_var   : REAL;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2932,15 +2932,15 @@ fn order_var_and_var_temp_block() {
     // GIVEN a program with defined VAR_TEMP before VAR block
     let result = codegen(
         "
-		PROGRAM main
-		VAR_TEMP
-			temp : INT;
-		END_VAR
-		VAR
-			var1 : INT;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR_TEMP
+            temp : INT;
+        END_VAR
+        VAR
+            var1 : INT;
+        END_VAR
+        END_PROGRAM
+        ",
     );
     // codegen should be successful
     insta::assert_snapshot!(result);
@@ -3102,8 +3102,8 @@ fn contants_in_case_statements_resolved() {
                 SIXTY : DINT := 60;
             END_VAR
             CASE DAYS_IN_MONTH OF
-              32..SIXTY	:	DAYS_IN_MONTH := 29;
-              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+              32..SIXTY :   DAYS_IN_MONTH := 29;
+              (SIXTY    + 2)..70 :  DAYS_IN_MONTH := 30;
             ELSE
               DAYS_IN_MONTH := 31;
             END_CASE;
@@ -3121,43 +3121,43 @@ fn sub_range_check_functions() {
     // GIVEN
     let result = codegen(
         "
-	FUNCTION CheckRangeSigned : DINT
-		VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
-		CheckRangeSigned := -7;
-	END_FUNCTION
+    FUNCTION CheckRangeSigned : DINT
+        VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
+        CheckRangeSigned := -7;
+    END_FUNCTION
 
-	FUNCTION CheckRangeUnsigned : UDINT
-		VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
-		CheckRangeUnsigned := 7;
-	END_FUNCTION
+    FUNCTION CheckRangeUnsigned : UDINT
+        VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
+        CheckRangeUnsigned := 7;
+    END_FUNCTION
 
-	FUNCTION CheckLRangeSigned : LINT
-		VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
-		CheckLRangeSigned := -77;
-	END_FUNCTION
+    FUNCTION CheckLRangeSigned : LINT
+        VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
+        CheckLRangeSigned := -77;
+    END_FUNCTION
 
-	FUNCTION CheckLRangeUnsigned : ULINT
-		VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
-		CheckLRangeUnsigned := 77;
-	END_FUNCTION
+    FUNCTION CheckLRangeUnsigned : ULINT
+        VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
+        CheckLRangeUnsigned := 77;
+    END_FUNCTION
 
-	PROGRAM main
-	VAR
-		a   : BYTE(0 .. 100);
-		b   : SINT(-100 .. 100);
-		c   : USINT(0 .. 100);
-		d   : WORD(0 .. 100);
-		e   : INT(-100 .. 100);
-		f   : UINT(0 .. 100);
-		g   : DINT(-100 .. 100);
-		h   : UDINT(0 .. 100);
-		i   : LINT(-100 .. 100);
-		j   : ULINT(0 .. 100);
-	END_VAR
-	a := 1; b := 1; c := 1; d := 1; e := 1;
-	f := 1; g := 1; h := 1; i := 1; j := 1;
-	END_PROGRAM
-	",
+    PROGRAM main
+    VAR
+        a   : BYTE(0 .. 100);
+        b   : SINT(-100 .. 100);
+        c   : USINT(0 .. 100);
+        d   : WORD(0 .. 100);
+        e   : INT(-100 .. 100);
+        f   : UINT(0 .. 100);
+        g   : DINT(-100 .. 100);
+        h   : UDINT(0 .. 100);
+        i   : LINT(-100 .. 100);
+        j   : ULINT(0 .. 100);
+    END_VAR
+    a := 1; b := 1; c := 1; d := 1; e := 1;
+    f := 1; g := 1; h := 1; i := 1; j := 1;
+    END_PROGRAM
+    ",
     );
 
     // THEN for every assignment a check function should be called

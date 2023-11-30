@@ -9,12 +9,12 @@
 FUNCTION_BLOCK select
 
 VAR_INPUT
-	a, b : DINT;
+    a, b : DINT;
 END_VAR
 VAR
-	selected: DINT;
+    selected: DINT;
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

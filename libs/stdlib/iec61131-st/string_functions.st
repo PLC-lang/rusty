@@ -11,7 +11,7 @@ Return: String length
 {external}
 FUNCTION LEN <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION
 
@@ -24,7 +24,7 @@ Return: A substring consisting of the leftmost L characters of IN
 ******************************************************************************)
 FUNCTION LEFT <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -34,7 +34,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -46,7 +46,7 @@ END_FUNCTION
 
 FUNCTION LEFT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -56,7 +56,7 @@ END_FUNCTION
 
 FUNCTION LEFT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -67,7 +67,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -80,7 +80,7 @@ END_FUNCTION
 {external}
 FUNCTION LEFT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -99,7 +99,7 @@ Return: A substring consisting of the rightmost L characters of IN
 ******************************************************************************)
 FUNCTION RIGHT <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -109,7 +109,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -121,7 +121,7 @@ END_FUNCTION
 
 FUNCTION RIGHT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -131,7 +131,7 @@ END_FUNCTION
 
 FUNCTION RIGHT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -142,7 +142,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -155,7 +155,7 @@ END_FUNCTION
 {external}
 FUNCTION RIGHT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -177,7 +177,7 @@ Return:
 ******************************************************************************)
 FUNCTION MID <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -188,7 +188,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -201,7 +201,7 @@ END_FUNCTION
 
 FUNCTION MID__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -212,7 +212,7 @@ END_FUNCTION
 
 FUNCTION MID__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -224,7 +224,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -238,7 +238,7 @@ END_FUNCTION
 {external}
 FUNCTION MID_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -261,20 +261,20 @@ Return:
 {external}
 FUNCTION CONCAT__STRING : STRING[2048]
 VAR_INPUT {ref}
-	args : {sized} STRING...;
+    args : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION CONCAT__WSTRING : WSTRING[2048]
 VAR_INPUT {ref}
-	args : {sized} WSTRING...;
+    args : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
 FUNCTION CONCAT <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	args : {sized} T...;
+    args : {sized} T...;
 END_VAR
 END_FUNCTION
 
@@ -299,7 +299,7 @@ Return:
 ******************************************************************************)
 FUNCTION INSERT <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -310,7 +310,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -323,7 +323,7 @@ END_FUNCTION
 
 FUNCTION INSERT__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -334,7 +334,7 @@ END_FUNCTION
 
 FUNCTION INSERT__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : WSTRING[__STRING_LENGTH];
+    IN1 : WSTRING[__STRING_LENGTH];
     IN2 : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -346,7 +346,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -360,7 +360,7 @@ END_FUNCTION
 {external}
 FUNCTION INSERT_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN1 : WSTRING[__STRING_LENGTH];
+    IN1 : WSTRING[__STRING_LENGTH];
     IN2 : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -381,7 +381,7 @@ Return: A new string with L characters deleted from P onwards
 ******************************************************************************)
 FUNCTION DELETE <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -392,7 +392,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN : T;
+    IN : T;
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -405,7 +405,7 @@ END_FUNCTION
 
 FUNCTION DELETE__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -416,7 +416,7 @@ END_FUNCTION
 
 FUNCTION DELETE__WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -428,7 +428,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT__STRING : DINT
 VAR_INPUT {ref}
-	IN : STRING[__STRING_LENGTH];
+    IN : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -442,7 +442,7 @@ END_FUNCTION
 {external}
 FUNCTION DELETE_EXT__WSTRING : DINT
 VAR_INPUT {ref}
-	IN : WSTRING[__STRING_LENGTH];
+    IN : WSTRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
     L  : DINT;
@@ -463,7 +463,7 @@ Return: A new string which has L characters replaced by IN2 from position P onwa
 ******************************************************************************)
 FUNCTION REPLACE <T: ANY_STRING> : T
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 VAR_INPUT
@@ -489,7 +489,7 @@ END_FUNCTION
 
 FUNCTION REPLACE__STRING : STRING[__STRING_LENGTH]
 VAR_INPUT {ref}
-	IN1 : STRING[__STRING_LENGTH];
+    IN1 : STRING[__STRING_LENGTH];
     IN2 : STRING[__STRING_LENGTH];
 END_VAR
 VAR_INPUT
@@ -552,7 +552,7 @@ Return: The character index of the first match. 0 if there are no matches.
 {external}
 FUNCTION FIND <T: ANY_STRING> : DINT
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 END_FUNCTION
@@ -567,21 +567,21 @@ Return:
 {external}
 FUNCTION GT <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION GT__STRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
+    IN1 : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION GT__WSTRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
+    IN1 : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
@@ -610,21 +610,21 @@ Return:
 {external}
 FUNCTION GE <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION GE__STRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
+    IN1 : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION GE__WSTRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
+    IN1 : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
@@ -638,21 +638,21 @@ Return:
 {external}
 FUNCTION EQ <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EQ__STRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
+    IN1 : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION EQ__WSTRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
+    IN1 : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
@@ -680,21 +680,21 @@ Return:
 {external}
 FUNCTION LE <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION LE__STRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
+    IN1 : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION LE__WSTRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
+    IN1 : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
@@ -708,21 +708,21 @@ Return:
 {external}
 FUNCTION LT <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} T...;
+    IN1 : {sized} T...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION LT__STRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} STRING...;
+    IN1 : {sized} STRING...;
 END_VAR
 END_FUNCTION
 
 {external}
 FUNCTION LT__WSTRING : BOOL
 VAR_INPUT {ref}
-	IN1 : {sized} WSTRING...;
+    IN1 : {sized} WSTRING...;
 END_VAR
 END_FUNCTION
 
@@ -750,7 +750,7 @@ Return:
 {external}
 FUNCTION NE <T: ANY_STRING> : BOOL
 VAR_INPUT {ref}
-	IN1 : T;
+    IN1 : T;
     IN2 : T;
 END_VAR
 END_FUNCTION

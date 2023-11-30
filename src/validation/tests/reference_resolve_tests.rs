@@ -276,7 +276,7 @@ fn program_vars_are_allowed_in_their_actions() {
 fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
     let diagnostics = parse_and_validate(
         "
-		PROGRAM main
+        PROGRAM main
         VAR
             FileOpen : REF_TO file;
         END_VAR
@@ -303,7 +303,7 @@ fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
 fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
     let diagnostics = parse_and_validate(
         "
-		PROGRAM mainProg
+        PROGRAM mainProg
         VAR
             var_str1 : STRUCT1 := (myArr := [(x1 := FALSE, x2 := TRUE)]);
         END_VAR

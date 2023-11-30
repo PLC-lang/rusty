@@ -7,7 +7,7 @@
                 <textDeclaration>
                     <content>PROGRAM main
 VAR
-	a,b : DINT;
+    a,b : DINT;
 END_VAR</content>
                 </textDeclaration>
             </data>

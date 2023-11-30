@@ -368,10 +368,10 @@ fn string_as_function_parameters_internal() {
     END_FUNCTION
 
     PROGRAM main
-	VAR
-		res : STRING;
-	END_VAR
-		res := func('hello');
+    VAR
+        res : STRING;
+    END_VAR
+        res := func('hello');
     END_PROGRAM
     ";
 
@@ -396,10 +396,10 @@ fn string_as_function_parameters() {
     END_FUNCTION
 
     PROGRAM main
-	VAR
-		res : STRING;
-	END_VAR
-		res := func('hello');
+    VAR
+        res : STRING;
+    END_VAR
+        res := func('hello');
     END_PROGRAM
     ";
 
@@ -427,10 +427,10 @@ fn wstring_as_function_parameters() {
     END_FUNCTION
 
     PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := func("hello");
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := func("hello");
     END_PROGRAM
     "#;
 
@@ -465,10 +465,10 @@ fn string_as_function_parameters_cast() {
     END_FUNCTION
 
     PROGRAM main
-	VAR
-		res : STRING;
-	END_VAR
-		res := func(STRING#'hello');
+    VAR
+        res : STRING;
+    END_VAR
+        res := func(STRING#'hello');
     END_PROGRAM
     ";
 
@@ -501,10 +501,10 @@ fn wstring_as_function_parameters_cast() {
     END_FUNCTION
 
     PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := func(WSTRING#"hello");
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := func(WSTRING#"hello");
     END_PROGRAM
     "#;
 
@@ -765,21 +765,21 @@ fn when_function_returns_value_from_function_call_string_does_not_truncate() {
 #[test]
 fn program_string_output() {
     let src = r#"
-		PROGRAM prog
-		VAR_OUTPUT
-			output1 : STRING;
-			output2 : WSTRING;
-		END_VAR
-			output1 := 'string';
-			output2 := "wstring";
-		END_PROGRAM
+        PROGRAM prog
+        VAR_OUTPUT
+            output1 : STRING;
+            output2 : WSTRING;
+        END_VAR
+            output1 := 'string';
+            output2 := "wstring";
+        END_PROGRAM
 
         PROGRAM main
-		VAR
-			x : STRING[6];
-			y : WSTRING[7];
-		END_VAR
-			prog(x, y);
+        VAR
+            x : STRING[6];
+            y : WSTRING[7];
+        END_VAR
+            prog(x, y);
         END_PROGRAM
     "#;
 
@@ -799,7 +799,7 @@ fn program_string_output() {
 #[test]
 fn assigning_global_strings_in_function_by_passing_references() {
     let src = r#"
-		FUNCTION foo : DINT
+        FUNCTION foo : DINT
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -857,7 +857,7 @@ fn assigning_global_strings_in_function_by_passing_references() {
 #[test]
 fn assigning_global_strings_in_function_by_passing_sized_strings() {
     let src = r#"
-		FUNCTION foo : DINT
+        FUNCTION foo : DINT
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -915,7 +915,7 @@ fn assigning_global_strings_in_function_by_passing_sized_strings() {
 #[test]
 fn assigning_global_strings_in_function_by_passing_literals() {
     let src = r#"
-		FUNCTION foo : DINT
+        FUNCTION foo : DINT
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -959,7 +959,7 @@ fn assigning_global_strings_in_function_by_passing_literals() {
 #[test]
 fn assigning_by_ref_string_parameters_in_function() {
     let src = r#"
-		FUNCTION foo : DINT
+        FUNCTION foo : DINT
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -1011,7 +1011,7 @@ fn assigning_by_ref_string_parameters_in_function() {
 #[test]
 fn reassign_strings_after_function_call() {
     let src = r#"
-		FUNCTION foo : DINT
+        FUNCTION foo : DINT
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -1063,7 +1063,7 @@ fn reassign_strings_after_function_call() {
 #[test]
 fn assigning_global_strings_in_program_by_passing_references() {
     let src = r#"
-		PROGRAM prog
+        PROGRAM prog
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -1123,7 +1123,7 @@ fn assigning_global_strings_in_program_by_passing_references() {
 #[test]
 fn assigning_global_strings_in_program_by_passing_sized_strigs() {
     let src = r#"
-		PROGRAM prog
+        PROGRAM prog
         VAR_INPUT
             in : STRING;
         END_VAR
@@ -1182,7 +1182,7 @@ fn assigning_global_strings_in_program_by_passing_sized_strigs() {
 #[test]
 fn assigning_global_strings_in_program_by_passing_literals() {
     let src = r#"
-		PROGRAM prog
+        PROGRAM prog
         VAR_INPUT
             in : STRING;
         END_VAR

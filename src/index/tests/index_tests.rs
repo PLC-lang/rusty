@@ -1196,8 +1196,8 @@ fn function_name_equals_return_type() {
     // WHEN the function is indexed
     let (_, index) = index(
         "
-		FUNCTION TIME : TIME
-		END_FUNCTION",
+        FUNCTION TIME : TIME
+        END_FUNCTION",
     );
 
     // THEN there should be a indexed pou_type
@@ -1214,12 +1214,12 @@ fn global_vars_for_structs() {
     // WHEN the program is indexed
     let (_, index) = index(
         "
-		PROGRAM main
-		VAR
-			x : STRUCT var1 : INT; END_STRUCT
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR
+            x : STRUCT var1 : INT; END_STRUCT
+        END_VAR
+        END_PROGRAM
+        ",
     );
 
     // THEN there should be a global variable for the struct
@@ -1233,15 +1233,15 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
     // WHEN the program is indexed
     let (_, index) = index(
         "
-		PROGRAM main
-		VAR_INPUT
-			x : REF_TO INT;
-		END_VAR
+        PROGRAM main
+        VAR_INPUT
+            x : REF_TO INT;
+        END_VAR
         VAR_IN_OUT
             y : INT;
         END_VAR
-		END_PROGRAM
-		",
+        END_PROGRAM
+        ",
     );
 
     // THEN x and y whould be different pointer types
@@ -1277,17 +1277,17 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     let id_provider = IdProvider::default();
     let (result, mut index) = index_with_ids(
         "
-		PROGRAM main
-		VAR_INPUT
-			x : REF_TO INT;
-		END_VAR
+        PROGRAM main
+        VAR_INPUT
+            x : REF_TO INT;
+        END_VAR
         VAR_IN_OUT
             y : INT;
         END_VAR
 
         &y; //this will add another pointer_to_int type to the index (autoderef = false)
-		END_PROGRAM
-		",
+        END_PROGRAM
+        ",
         id_provider.clone(),
     );
 
@@ -1422,18 +1422,18 @@ fn program_parameters_variable_type() {
     // WHEN the PROGRAM is indexed
     let (_, index) = index(
         "
-		PROGRAM main
-		VAR_INPUT
-			input1 : INT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : INT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : INT;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR_INPUT
+            input1 : INT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : INT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : INT;
+        END_VAR
+        END_PROGRAM
+        ",
     );
 
     // THEN the parameters should have the correct VariableType
@@ -1452,18 +1452,18 @@ fn fb_parameters_variable_type() {
     // WHEN the FB is indexed
     let (_, index) = index(
         "
-		FUNCTION_BLOCK fb
-		VAR_INPUT
-			input1 : INT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : INT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : INT;
-		END_VAR
-		END_FUNCTION_BLOCK
-		",
+        FUNCTION_BLOCK fb
+        VAR_INPUT
+            input1 : INT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : INT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        ",
     );
 
     // THEN the parameters should have the correct VariableType
@@ -1482,18 +1482,18 @@ fn function_parameters_variable_type() {
     // WHEN the FUNCTION is indexed
     let (_, index) = index(
         "
-		FUNCTION foo : INT
-		VAR_INPUT
-			input1 : INT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : INT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : INT;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION foo : INT
+        VAR_INPUT
+            input1 : INT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : INT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : INT;
+        END_VAR
+        END_FUNCTION
+        ",
     );
 
     // THEN the parameters should have the correct VariableType
@@ -1513,18 +1513,18 @@ fn pou_duplicates_are_indexed() {
     // WHEN the code is indexed
     let (_, index) = index(
         "
-		PROGRAM foo
-		VAR_INPUT
-			input1 : INT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM foo
+        VAR_INPUT
+            input1 : INT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM foo
-		VAR_INPUT
-			input2 : INT;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM foo
+        VAR_INPUT
+            input2 : INT;
+        END_VAR
+        END_PROGRAM
+        ",
     );
 
     //THEN I expect both PouIndexEntries
@@ -1543,19 +1543,19 @@ fn type_duplicates_are_indexed() {
     // WHEN the code is indexed
     let (_, index) = index(
         "
-		TYPE MyStruct:
+        TYPE MyStruct:
         STRUCT
           field1 : INT;
         END_STRUCT
         END_TYPE
 
-		TYPE MyStruct:
+        TYPE MyStruct:
         STRUCT
           field2 : INT;
         END_STRUCT
         END_TYPE
 
-		TYPE MyStruct:
+        TYPE MyStruct:
         STRUCT
           field3 : INT;
         END_STRUCT

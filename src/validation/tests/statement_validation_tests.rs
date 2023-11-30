@@ -139,40 +139,40 @@ fn invalid_char_assignments() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM mainProg
-		VAR
-			c : CHAR;
-			c2 : CHAR;
-			wc : WCHAR;
-			wc2 : WCHAR;
-			i : INT;
-			s : STRING;
-		END_VAR
-			c := 'AJK%&/231'; // invalid
-			wc := "898JKAN"; // invalid
+        PROGRAM mainProg
+        VAR
+            c : CHAR;
+            c2 : CHAR;
+            wc : WCHAR;
+            wc2 : WCHAR;
+            i : INT;
+            s : STRING;
+        END_VAR
+            c := 'AJK%&/231'; // invalid
+            wc := "898JKAN"; // invalid
 
-			c := wc; // invalid
-			wc := c; // invalid
+            c := wc; // invalid
+            wc := c; // invalid
 
-			i := 54;
-			c := i; // invalid
-			c := 42; // invalid
+            i := 54;
+            c := i; // invalid
+            c := 42; // invalid
 
-			s := 'ABC';
-			c := s; // invalid
-			wc := s; // invalid
+            s := 'ABC';
+            c := s; // invalid
+            wc := s; // invalid
 
-			i := c; // invalid
-			s := c; // invalid
+            i := c; // invalid
+            s := c; // invalid
 
-			c := 'A';
-			c2 := 'B';
-			c := c2;
+            c := 'A';
+            c2 := 'B';
+            c := c2;
 
-			wc := "A";
-			wc2 := "B";
-			wc := wc2;
-		END_PROGRAM"#,
+            wc := "A";
+            wc2 := "B";
+            wc := wc2;
+        END_PROGRAM"#,
     );
 
     // THEN every assignment should be reported
@@ -295,32 +295,32 @@ fn switch_case() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 1;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 1;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				BASE:
-					res := 1;
-				MYTYPE_A:
-					res := 2;
-				MYTYPE_A+1:
-					res := 3;
-				4:
-					res := 4;
-				2*2+1:
-					res := 5;
+            CASE input OF
+                BASE:
+                    res := 1;
+                MYTYPE_A:
+                    res := 2;
+                MYTYPE_A+1:
+                    res := 3;
+                4:
+                    res := 4;
+                2*2+1:
+                    res := 5;
         (BASE*5)..(BASE*10):
-					res := 6;
-			END_CASE
-		END_PROGRAM
+                    res := 6;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -334,30 +334,30 @@ fn switch_case_duplicate_integer_non_const_var_reference() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			CONST : DINT := 8;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            CONST : DINT := 8;
+        END_VAR
 
         PROGRAM prog
-		VAR
-			input, res, x, y : DINT;
-		END_VAR
-			x := 2;
-			y := x;
+        VAR
+            input, res, x, y : DINT;
+        END_VAR
+            x := 2;
+            y := x;
 
-			CASE input OF
-				x: // x is no constant => error
-					res := 1;
-				y: // y is no constant => error
-					res := 2;
-				2+x: // x is no constant => error
-					res := 3;
-				CONST:
-					res := 4;
-				CONST+x: // x is no constant => error
-					res := 5;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                x: // x is no constant => error
+                    res := 1;
+                y: // y is no constant => error
+                    res := 2;
+                2+x: // x is no constant => error
+                    res := 3;
+                CONST:
+                    res := 4;
+                CONST+x: // x is no constant => error
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -371,30 +371,30 @@ fn switch_case_duplicate_integer() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 2;
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 2;
+            GLOB : DINT := 2;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				4:
-					res := 1;
-				BASE*2:
-					res := 2;
-				BASE+GLOB:
-					res := 3;
-				MYTYPE_A:
-					res := 4;
-				2+2:
-					res := 5;
-			END_CASE
-		END_PROGRAM
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                4:
+                    res := 1;
+                BASE*2:
+                    res := 2;
+                BASE+GLOB:
+                    res := 3;
+                MYTYPE_A:
+                    res := 4;
+                2+2:
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -408,21 +408,21 @@ fn switch_case_invalid_case_conditions() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		FUNCTION foo : DINT
-		END_FUNCTION
+        FUNCTION foo : DINT
+        END_FUNCTION
 
         PROGRAM main
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				foo():
-					res := 1;
-				res := 2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                foo():
+                    res := 1;
+                res := 2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -436,14 +436,14 @@ fn case_condition_used_outside_case_statement() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM main
-		VAR
-			var1 : TOD;
-		END_VAR
-			var1 := TOD#20:15:30:123;
-			23:
-			var1 := TOD#20:15:30;
-		END_PROGRAM
+        PROGRAM main
+        VAR
+            var1 : TOD;
+        END_VAR
+            var1 := TOD#20:15:30:123;
+            23:
+            var1 := TOD#20:15:30;
+        END_PROGRAM
       "#,
     );
 
@@ -539,28 +539,28 @@ fn program_missing_inout_assignment() {
     // GIVEN
     let diagnostics = parse_and_validate(
         "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := var1, output1 => var2);
-			prog(var1, var2);
-			prog(var1);
-			prog();
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR
+            var1, var2, var3 : DINT;
+        END_VAR
+            prog(input1 := var1, output1 => var2);
+            prog(var1, var2);
+            prog(var1);
+            prog();
+        END_PROGRAM
+        ",
     );
     // THEN
     assert_validation_snapshot!(&diagnostics);
@@ -572,34 +572,34 @@ fn function_call_parameter_validation() {
     // WHEN
     let diagnostics = parse_and_validate(
         r#"
-		FUNCTION foo : DINT
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_FUNCTION
+        FUNCTION foo : DINT
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                  ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			foo(var2, var3, var4); // invalid types assigned
+            foo(var2, var3, var4); // invalid types assigned
             //              ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 
@@ -613,34 +613,34 @@ fn program_call_parameter_validation() {
     // WHEN
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            prog(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                   ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			prog(var2, var3, var4); // invalid types assigned
+            prog(var2, var3, var4); // invalid types assigned
             //               ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 

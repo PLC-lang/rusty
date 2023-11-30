@@ -89,12 +89,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TON
 VAR_INPUT
-	IN: BOOL;
-	PT: TIME;
+    IN: BOOL;
+    PT: TIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: TIME;
+    Q: BOOL;
+    ET: TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -115,12 +115,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TON_TIME
 VAR_INPUT
-	IN: BOOL;
-	PT: TIME;
+    IN: BOOL;
+    PT: TIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: TIME;
+    Q: BOOL;
+    ET: TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -141,12 +141,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TON_LTIME
 VAR_INPUT
-	IN: BOOL;
-	PT: LTIME;
+    IN: BOOL;
+    PT: LTIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: TIME;
+    Q: BOOL;
+    ET: TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -167,12 +167,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TOF
 VAR_INPUT
-	IN: BOOL;
-	PT:TIME;
+    IN: BOOL;
+    PT:TIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: TIME;
+    Q: BOOL;
+    ET: TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -193,12 +193,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TOF_TIME
 VAR_INPUT
-	IN: BOOL;
-	PT:TIME;
+    IN: BOOL;
+    PT:TIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: TIME;
+    Q: BOOL;
+    ET: TIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
@@ -219,12 +219,12 @@ Return: Output variables are used for return.
 ******************************************************************************)
 FUNCTION_BLOCK TOF_LTIME
 VAR_INPUT
-	IN: BOOL;
-	PT:LTIME;
+    IN: BOOL;
+    PT:LTIME;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
-	ET: LTIME;
+    Q: BOOL;
+    ET: LTIME;
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)

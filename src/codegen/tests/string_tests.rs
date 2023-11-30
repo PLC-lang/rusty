@@ -236,19 +236,19 @@ fn nested_struct_initialization_of_multi_dim_string_arrays() {
             (* Language Setup *)
             DEFAULT : INT := 1; (* 1=english, 2=german 3=french *)
             LMAX : INT := 3;
-            WEEKDAYS : ARRAY[1..3, 1..7] OF STRING[10] :=	['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+            WEEKDAYS : ARRAY[1..3, 1..7] OF STRING[10] :=   ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
                                                             'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag',
                                                             'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-            WEEKDAYS2 : ARRAY[1..3, 1..7] OF STRING[2] :=	['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su',
+            WEEKDAYS2 : ARRAY[1..3, 1..7] OF STRING[2] :=   ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su',
                                                             'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So',
                                                             'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
-            MONTHS : ARRAY[1..3, 1..12] OF STRING[10] :=	['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
+            MONTHS : ARRAY[1..3, 1..12] OF STRING[10] :=    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
                                                             'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
                                                             'Janvier', 'Février', 'mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Decembre'];
-            MONTHS3 : ARRAY[1..3, 1..12] OF STRING[3] :=	['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+            MONTHS3 : ARRAY[1..3, 1..12] OF STRING[3] :=    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
                                                             'Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez',
                                                             'Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
-            DIRS : ARRAY[1..3,0..15] OF STRING[3] :=		['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+            DIRS : ARRAY[1..3,0..15] OF STRING[3] :=        ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
                                                             'N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
                                                             'N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
         END_STRUCT
@@ -296,21 +296,21 @@ fn program_string_output() {
     // GIVEN PROGRAM returning strings
     let result = codegen(
         r#"
-		PROGRAM prog
-		VAR_OUTPUT
-			output1 : STRING;
-			output2 : WSTRING;
-		END_VAR
-			output1 := 'string';
-			output2 := "wstring";
-		END_PROGRAM
+        PROGRAM prog
+        VAR_OUTPUT
+            output1 : STRING;
+            output2 : WSTRING;
+        END_VAR
+            output1 := 'string';
+            output2 := "wstring";
+        END_PROGRAM
 
         PROGRAM main
-		VAR
-			x : STRING[6];
-			y : WSTRING[7];
-		END_VAR
-			prog(x, y);
+        VAR
+            x : STRING[6];
+            y : WSTRING[7];
+        END_VAR
+            prog(x, y);
         END_PROGRAM
     "#,
     );

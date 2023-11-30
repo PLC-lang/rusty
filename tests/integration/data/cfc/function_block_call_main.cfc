@@ -10,7 +10,7 @@ PROGRAM main
 VAR
 fb0 : myFb;
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

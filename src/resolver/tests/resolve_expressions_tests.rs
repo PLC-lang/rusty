@@ -2413,17 +2413,17 @@ fn struct_member_explicit_initialization_test() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "FUNCTION main : DINT
-		VAR
-			x : myStruct;
-		END_VAR
-			x := (var1 := 1, var2 := 7);
-		END_FUNCTION
+        VAR
+            x : myStruct;
+        END_VAR
+            x := (var1 := 1, var2 := 7);
+        END_FUNCTION
 
-		TYPE myStruct : STRUCT
-				var1 : DINT;
-				var2 : BYTE;
-			END_STRUCT
-		END_TYPE",
+        TYPE myStruct : STRUCT
+                var1 : DINT;
+                var2 : BYTE;
+            END_STRUCT
+        END_TYPE",
         id_provider.clone(),
     );
 
@@ -2475,7 +2475,7 @@ fn program_members_initializers_type_hint_test() {
     let (unit, mut index) = index_with_ids(
         "
         PROGRAM prg
-      	  VAR_INPUT
+          VAR_INPUT
             i : INT := 7;
             si : SINT := 7;
             b : BOOL := 1;
@@ -3433,9 +3433,9 @@ fn call_explicit_parameter_name_is_resolved() {
         END_FUNCTION_BLOCK
 
         PROGRAM PRG
-		VAR
-			f : fb;
-		END_VAR
+        VAR
+            f : fb;
+        END_VAR
             f(b:= 1, a:= 3);
         END_PROGRAM
         ",
@@ -3495,9 +3495,9 @@ fn call_on_function_block_array() {
         END_FUNCTION_BLOCK
 
         PROGRAM PRG
-		VAR
-			fbs : ARRAY[1..2] OF fb;
-		END_VAR
+        VAR
+            fbs : ARRAY[1..2] OF fb;
+        END_VAR
             fbs[1]();
         END_PROGRAM
         ",
@@ -3531,9 +3531,9 @@ fn and_statement_of_bools_results_in_bool() {
     let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
-		VAR
+        VAR
             a,b : BOOL;
-		END_VAR
+        END_VAR
 
             a AND b;
         END_PROGRAM
@@ -3555,10 +3555,10 @@ fn and_statement_of_dints_results_in_dint() {
     let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
-		VAR
+        VAR
             a,b : DINT;
             c,d : INT;
-		END_VAR
+        END_VAR
 
             a AND b;
             c AND d;
@@ -3582,21 +3582,21 @@ fn resolve_recursive_function_call() {
     let (unit, index) = index_with_ids(
         "
         FUNCTION foo : DINT
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			foo(input1 := var1, inout1 := var2, output1 => var3, );
-			foo := var1;
-		END_FUNCTION
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        VAR
+            var1, var2, var3 : DINT;
+        END_VAR
+            foo(input1 := var1, inout1 := var2, output1 => var3, );
+            foo := var1;
+        END_FUNCTION
         ",
         id_provider.clone(),
     );
@@ -3630,20 +3630,20 @@ fn resolve_recursive_program_call() {
     let (unit, index) = index_with_ids(
         "
         PROGRAM mainProg
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			mainProg(input1 := var1, inout1 := var2, output1 => var3, );
-		END_PROGRAM
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        VAR
+            var1, var2, var3 : DINT;
+        END_VAR
+            mainProg(input1 := var1, inout1 := var2, output1 => var3, );
+        END_PROGRAM
         ",
         id_provider.clone(),
     );
@@ -4098,17 +4098,17 @@ fn array_of_struct_with_initial_values_annotated_correctly() {
     // GIVEN
     let (unit, mut index) = index_with_ids(
         "
-		TYPE myStruct : STRUCT
-				a, b : DINT;
-				c : ARRAY[0..1] OF DINT;
-			END_STRUCT
-		END_TYPE
+        TYPE myStruct : STRUCT
+                a, b : DINT;
+                c : ARRAY[0..1] OF DINT;
+            END_STRUCT
+        END_TYPE
 
-		PROGRAM main
-		VAR
-			arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), (a := 50, b := 60, c := [70, 80])];
-		END_VAR
-		END_PROGRAM",
+        PROGRAM main
+        VAR
+            arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), (a := 50, b := 60, c := [70, 80])];
+        END_VAR
+        END_PROGRAM",
         id_provider.clone(),
     );
 
@@ -4239,18 +4239,18 @@ fn mux_generic_with_strings_is_annotated_correctly() {
     // GIVEN
     let (unit, mut index) = index_with_ids(
         "
-	PROGRAM main
-	VAR
-		str1 : STRING;
-	END_VAR
-	VAR_TEMP
-		str2 : STRING := 'str2 ';
-		str3 : STRING := 'str3 ';
-		str4 : STRING := 'str4 ';
-	END_VAR
-		MUX(2, str2, str3, str4);
+    PROGRAM main
+    VAR
+        str1 : STRING;
+    END_VAR
+    VAR_TEMP
+        str2 : STRING := 'str2 ';
+        str3 : STRING := 'str3 ';
+        str4 : STRING := 'str4 ';
+    END_VAR
+        MUX(2, str2, str3, str4);
         str2;
-	END_PROGRAM
+    END_PROGRAM
         ",
         id_provider.clone(),
     );

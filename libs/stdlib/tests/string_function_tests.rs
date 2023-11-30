@@ -23,12 +23,12 @@ fn string_from_utf16(src: &[u16]) -> Result<String, FromUtf16Error> {
 #[test]
 fn len_string() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
     VAR
         variable: STRING;
     END_VAR
         variable := '     this is   a  very   long          sentence   with plenty  of    characters.';
-		main := LEN(variable);
+        main := LEN(variable);
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -39,8 +39,8 @@ fn len_string() {
 #[test]
 fn len_string_long_string() {
     let src = r#"
-	FUNCTION main : DINT
-		main := LEN('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.');
+    FUNCTION main : DINT
+        main := LEN('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.');
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -51,7 +51,7 @@ fn len_string_long_string() {
 #[test]
 fn len_string_no_variable() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
         main := LEN(STRING#'hello');
     END_FUNCTION
         "#;
@@ -63,12 +63,12 @@ fn len_string_no_variable() {
 #[test]
 fn len_string_empty() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
     VAR_TEMP
         in : STRING[1024];
     END_VAR
         in := '';
-		main := LEN(in);
+        main := LEN(in);
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -79,12 +79,12 @@ fn len_string_empty() {
 #[test]
 fn left_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
     END_VAR
         in := 'hello';
-		main := LEFT(in, DINT#3);
+        main := LEFT(in, DINT#3);
     END_FUNCTION
         "#;
 
@@ -101,12 +101,12 @@ fn left_string() {
 #[test]
 fn left_string_long_string() {
     let src = r#"
-	FUNCTION main : STRING[2048]
+    FUNCTION main : STRING[2048]
     VAR_TEMP
         in : STRING[100];
     END_VAR
         in := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
-		main := LEFT(in, DINT#85);
+        main := LEFT(in, DINT#85);
     END_FUNCTION
         "#;
 
@@ -126,14 +126,14 @@ fn left_string_long_string() {
 #[test]
 fn left_string_lint() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         l : LINT;
     END_VAR
         in := 'lets see if long int is handled correctly';
         l := 31;
-		main := LEFT(in, l);
+        main := LEFT(in, l);
     END_FUNCTION
         "#;
 
@@ -150,7 +150,7 @@ fn left_string_lint() {
 #[test]
 fn left_ext_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         out : STRING;
@@ -159,7 +159,7 @@ fn left_ext_string() {
         in := 'extended';
         l := 6;
         LEFT_EXT(in, l, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -176,12 +176,12 @@ fn left_ext_string() {
 #[test]
 fn right_string_usint() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
     END_VAR
         in := 'sample text';
-		main := RIGHT(in, USINT#7);
+        main := RIGHT(in, USINT#7);
     END_FUNCTION
         "#;
 
@@ -201,12 +201,12 @@ fn right_string_usint() {
 #[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_string_substring_too_long() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
     END_VAR
         in := 'sample text';
-		main := RIGHT(in, 12);
+        main := RIGHT(in, 12);
     END_FUNCTION
         "#;
 
@@ -217,14 +217,14 @@ fn right_string_substring_too_long() {
 #[test]
 fn right_ext_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         out : STRING;
     END_VAR
         in := 'extended';
         RIGHT_EXT(in, 3, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -241,7 +241,7 @@ fn right_ext_string() {
 #[test]
 fn right_string_long_string() {
     let src = r#"
-	FUNCTION main : STRING[2048]
+    FUNCTION main : STRING[2048]
     VAR_TEMP
         in : STRING[100];
         l : DINT;
@@ -268,7 +268,7 @@ fn right_string_long_string() {
 #[test]
 fn right_ext_string_long_string() {
     let src = r#"
-	FUNCTION main : STRING[2048]
+    FUNCTION main : STRING[2048]
     VAR_TEMP
         in : STRING[128];
         out : STRING[128];
@@ -277,7 +277,7 @@ fn right_ext_string_long_string() {
         in := '7gAN5pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW';
         l := 99;
         RIGHT_EXT(in, l, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -297,7 +297,7 @@ fn right_ext_string_long_string() {
 #[test]
 fn mid_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         l : DINT;
@@ -306,7 +306,7 @@ fn mid_string() {
         in := 'sample text';
         l := 7;
         p := 2;
-		main := MID(in, l, p);
+        main := MID(in, l, p);
     END_FUNCTION
         "#;
 
@@ -323,14 +323,14 @@ fn mid_string() {
 #[test]
 fn mid_string_long_literal() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         l : DINT;
         p : DINT;
     END_VAR
         l := 4;
         p := 6;
-		main := MID(
+        main := MID(
             '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.the                same           is   true                    for             this                     string.',
             l,
             p
@@ -351,7 +351,7 @@ fn mid_string_long_literal() {
 #[test]
 fn mid_ext_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         out : STRING;
@@ -362,7 +362,7 @@ fn mid_ext_string() {
         l := 7;
         p := 2;
         MID_EXT(in, l, p, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -379,7 +379,7 @@ fn mid_ext_string() {
 #[test]
 fn mid_string_long_string() {
     let src = r#"
-	FUNCTION main : STRING[2048]
+    FUNCTION main : STRING[2048]
     VAR_TEMP
         in : STRING[128];
         l : DINT;
@@ -388,7 +388,7 @@ fn mid_string_long_string() {
         in := '7gAN5pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW';
         l := 99;
         p := 10;
-		main := MID(in, l, p);
+        main := MID(in, l, p);
     END_FUNCTION
         "#;
 
@@ -408,7 +408,7 @@ fn mid_string_long_string() {
 #[test]
 fn mid_ext_string_long_string() {
     let src = r#"
-	FUNCTION main : STRING[2048]
+    FUNCTION main : STRING[2048]
     VAR_TEMP
         in : STRING[128];
         out : STRING[128];
@@ -438,7 +438,7 @@ fn mid_ext_string_long_string() {
 #[test]
 fn insert_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in1 : STRING;
         in2 : STRING;
@@ -447,7 +447,7 @@ fn insert_string() {
         in1 := 'stuck with you';
         in2 := 'in the middle ';
         p := 6;
-		main := INSERT(in1, in2, p);
+        main := INSERT(in1, in2, p);
     END_FUNCTION
         "#;
 
@@ -464,7 +464,7 @@ fn insert_string() {
 #[test]
 fn insert_ext_string_at_start_and_end() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in1 : STRING;
         in2 : STRING;
@@ -472,10 +472,10 @@ fn insert_ext_string_at_start_and_end() {
     END_VAR
         in1 := '2';
         in2 := '1';
-		INSERT_EXT(in1, in2, 0, out);
+        INSERT_EXT(in1, in2, 0, out);
         in1 := out;
         in2 := '3';
-		INSERT_EXT(in1, in2, 2, out);
+        INSERT_EXT(in1, in2, 2, out);
         main := out;
     END_FUNCTION
         "#;
@@ -493,7 +493,7 @@ fn insert_ext_string_at_start_and_end() {
 #[test]
 fn delete_string_with_escape_sequence() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         l : UINT;
@@ -502,7 +502,7 @@ fn delete_string_with_escape_sequence() {
         in := 'the$$e are escape sequences $'𝄞$'';
         l := 21;
         p := 6;
-		main := DELETE(in, l, p);
+        main := DELETE(in, l, p);
     END_FUNCTION
         "#;
 
@@ -516,7 +516,7 @@ fn delete_string_with_escape_sequence() {
 #[test]
 fn delete_ext_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         out : STRING;
@@ -526,7 +526,7 @@ fn delete_ext_string() {
         in := '𝄞typoasdf';
         l := 4;
         p := 6;
-		DELETE_EXT(in, l, p, out);
+        DELETE_EXT(in, l, p, out);
         main := out;
     END_FUNCTION
         "#;
@@ -544,7 +544,7 @@ fn delete_ext_string() {
 #[test]
 fn delete_ext_string_with_escape_sequence() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in : STRING;
         out : STRING;
@@ -554,7 +554,7 @@ fn delete_ext_string_with_escape_sequence() {
         in := 'the$$e are escape sequences $'𝄞$'';
         l := 21;
         p := 6;
-		DELETE_EXT(in, l, p, out);
+        DELETE_EXT(in, l, p, out);
         main := out;
     END_FUNCTION
         "#;
@@ -569,7 +569,7 @@ fn delete_ext_string_with_escape_sequence() {
 #[test]
 fn replace_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in1 : STRING;
         in2 : STRING;
@@ -580,7 +580,7 @@ fn replace_string() {
         in2 := 'gret𝄞';
         l := 8;
         p := 3;
-		main := REPLACE(in1, in2, l, p);
+        main := REPLACE(in1, in2, l, p);
     END_FUNCTION
         "#;
 
@@ -597,7 +597,7 @@ fn replace_string() {
 #[test]
 fn replace_ext_string() {
     let src = r#"
-	FUNCTION main : STRING
+    FUNCTION main : STRING
     VAR_TEMP
         in1 : STRING;
         in2 : STRING;
@@ -609,7 +609,7 @@ fn replace_ext_string() {
         in2 := 'st𝄞red';
         l := 8;
         p := 3;
-		REPLACE_EXT(in1, in2, l, p, out);
+        REPLACE_EXT(in1, in2, l, p, out);
         main := out;
     END_FUNCTION
         "#;
@@ -766,12 +766,12 @@ the                same           is   true                    for             t
 #[test]
 fn len_wstring() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
     VAR_TEMP
         in : WSTRING;
     END_VAR
         in := "Hèßlo😀𝄞";
-		main := LEN(in);
+        main := LEN(in);
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -782,7 +782,7 @@ fn len_wstring() {
 #[test]
 fn len_wstring_no_variable() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
         main := LEN(WSTRING#'Hèßlo😀𝄞');
     END_FUNCTION
         "#;
@@ -794,12 +794,12 @@ fn len_wstring_no_variable() {
 #[test]
 fn len_wstring_empty() {
     let src = r#"
-	FUNCTION main : DINT
+    FUNCTION main : DINT
     VAR_TEMP
         in : WSTRING[1024];
     END_VAR
         in := "";
-		main := LEN(in);
+        main := LEN(in);
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -810,12 +810,12 @@ fn len_wstring_empty() {
 #[test]
 fn left_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
     END_VAR
         in := "𝄞music";
-		main := LEFT(in, DINT#2);
+        main := LEFT(in, DINT#2);
     END_FUNCTION
         "#;
 
@@ -832,14 +832,14 @@ fn left_wstring() {
 #[test]
 fn left_wstring_lint() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         l : LINT;
     END_VAR
         in := "lets see 𝄞f long 𝄞nt is handled correctly";
         l := 31;
-		main := LEFT(in, l);
+        main := LEFT(in, l);
     END_FUNCTION
         "#;
 
@@ -856,7 +856,7 @@ fn left_wstring_lint() {
 #[test]
 fn left_ext_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         out : WSTRING;
@@ -865,7 +865,7 @@ fn left_ext_wstring() {
         in := "e𝄞tended";
         l := 6;
         LEFT_EXT(in, l, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -882,12 +882,12 @@ fn left_ext_wstring() {
 #[test]
 fn right_wstring_usint() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
     END_VAR
         in := "samp𝄞e text";
-		main := RIGHT(in, USINT#7);
+        main := RIGHT(in, USINT#7);
     END_FUNCTION
         "#;
 
@@ -907,12 +907,12 @@ fn right_wstring_usint() {
 #[should_panic(expected = "Requested substring length exceeds string length.")]
 fn right_wstring_substring_too_long() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
     END_VAR
         in := "sa𝄞ple text";
-		main := RIGHT(in, 12);
+        main := RIGHT(in, 12);
     END_FUNCTION
         "#;
 
@@ -923,14 +923,14 @@ fn right_wstring_substring_too_long() {
 #[test]
 fn right_ext_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         out : WSTRING;
     END_VAR
         in := "exten𝄞ed𝄞";
         RIGHT_EXT(in, 4, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -947,7 +947,7 @@ fn right_ext_wstring() {
 #[test]
 fn right_string_long_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING[128]
+    FUNCTION main : WSTRING[128]
     VAR_TEMP
         in : WSTRING[128];
         l : DINT;
@@ -971,7 +971,7 @@ fn right_string_long_wstring() {
 #[test]
 fn right_ext_string_long_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING[128]
+    FUNCTION main : WSTRING[128]
     VAR_TEMP
         in : WSTRING[128];
         out : WSTRING[128];
@@ -996,7 +996,7 @@ fn right_ext_string_long_wstring() {
 #[test]
 fn mid_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         l : DINT;
@@ -1005,7 +1005,7 @@ fn mid_wstring() {
         in := "sample 𝄞muϗ😀 text";
         l := 7;
         p := 2;
-		main := MID(in, l, p);
+        main := MID(in, l, p);
     END_FUNCTION
         "#;
 
@@ -1022,7 +1022,7 @@ fn mid_wstring() {
 #[test]
 fn mid_ext_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         out : WSTRING;
@@ -1033,7 +1033,7 @@ fn mid_ext_wstring() {
         l := 7;
         p := 2;
         MID_EXT(in, l, p, out);
-		main := out;
+        main := out;
     END_FUNCTION
         "#;
 
@@ -1050,7 +1050,7 @@ fn mid_ext_wstring() {
 #[test]
 fn mid_string_long_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING[128]
+    FUNCTION main : WSTRING[128]
     VAR_TEMP
         in : WSTRING[128];
         l : DINT;
@@ -1059,7 +1059,7 @@ fn mid_string_long_wstring() {
         in := "𝄞muϗ😀pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW";
         l := 99;
         p := 10;
-		main := MID(in, l, p);
+        main := MID(in, l, p);
     END_FUNCTION
         "#;
 
@@ -1076,7 +1076,7 @@ fn mid_string_long_wstring() {
 #[test]
 fn mid_ext_string_long_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING[128]
+    FUNCTION main : WSTRING[128]
     VAR_TEMP
         in : WSTRING[128];
         l : DINT;
@@ -1102,7 +1102,7 @@ fn mid_ext_string_long_wstring() {
 #[test]
 fn insert_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in1 : WSTRING;
         in2 : WSTRING;
@@ -1111,7 +1111,7 @@ fn insert_wstring() {
         in1 := "stuck with you";
         in2 := "in the middle ";
         p := 6;
-		main := INSERT(in1, in2, p);
+        main := INSERT(in1, in2, p);
     END_FUNCTION
         "#;
 
@@ -1131,7 +1131,7 @@ fn insert_wstring() {
 #[test]
 fn insert_ext_wstring_at_start_and_end() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in1 : WSTRING;
         in2 : WSTRING;
@@ -1139,10 +1139,10 @@ fn insert_ext_wstring_at_start_and_end() {
     END_VAR
         in1 := "2";
         in2 := "1";
-		INSERT_EXT(in1, in2, 0, out);
+        INSERT_EXT(in1, in2, 0, out);
         in1 := out;
         in2 := "3";
-		INSERT_EXT(in1, in2, 2, out);
+        INSERT_EXT(in1, in2, 2, out);
         main := out;
     END_FUNCTION
         "#;
@@ -1160,7 +1160,7 @@ fn insert_ext_wstring_at_start_and_end() {
 #[test]
 fn delete_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         l : UINT;
@@ -1169,7 +1169,7 @@ fn delete_wstring() {
         in := "this will be deleted";
         l := 13;
         p := 1;
-		main := DELETE(in, l, p);
+        main := DELETE(in, l, p);
     END_FUNCTION
         "#;
 
@@ -1186,7 +1186,7 @@ fn delete_wstring() {
 #[test]
 fn delete_ext_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         out : WSTRING;
@@ -1196,7 +1196,7 @@ fn delete_ext_wstring() {
         in := "typoasdf";
         l := 4;
         p := 5;
-		DELETE_EXT(in, l, p, out);
+        DELETE_EXT(in, l, p, out);
         main := out;
     END_FUNCTION
         "#;
@@ -1215,7 +1215,7 @@ fn delete_ext_wstring() {
 #[test]
 fn replace_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in1 : WSTRING;
         in2 : WSTRING;
@@ -1226,7 +1226,7 @@ fn replace_wstring() {
         in2 := "gret";
         l := 8;
         p := 3;
-		main := REPLACE(in1, in2, l, p);
+        main := REPLACE(in1, in2, l, p);
     END_FUNCTION
         "#;
 
@@ -1243,7 +1243,7 @@ fn replace_wstring() {
 #[test]
 fn replace_ext_wstring() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in1 : WSTRING;
         in2 : WSTRING;
@@ -1255,7 +1255,7 @@ fn replace_ext_wstring() {
         in2 := "stored";
         l := 8;
         p := 3;
-		REPLACE_EXT(in1, in2, l, p, out);
+        REPLACE_EXT(in1, in2, l, p, out);
         main := out;
     END_FUNCTION
         "#;
@@ -1292,7 +1292,7 @@ fn find_wstring() {
 #[test]
 fn delete_wstring_with_escape_sequence() {
     let src = r#"
-	FUNCTION main : WSTRING
+    FUNCTION main : WSTRING
     VAR_TEMP
         in : WSTRING;
         l : UINT;
@@ -1301,7 +1301,7 @@ fn delete_wstring_with_escape_sequence() {
         in := "the$$e are escape sequences $"𝄞$"";
         l := 21;
         p := 6;
-		main := DELETE(in, l, p);
+        main := DELETE(in, l, p);
     END_FUNCTION
         "#;
 

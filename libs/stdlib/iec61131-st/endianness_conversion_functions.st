@@ -7,7 +7,7 @@ Return: The value converted to big endian format.
 {external}
 FUNCTION TO_BIG_ENDIAN<T: ANY> : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -20,7 +20,7 @@ Return: The value converted to little endian format.
 {external}
 FUNCTION TO_LITTLE_ENDIAN<T: ANY> : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -33,7 +33,7 @@ Return: The value converted to native endian format.
 {external}
 FUNCTION FROM_BIG_ENDIAN<T: ANY> : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION
 
@@ -46,6 +46,6 @@ Return: The value converted to native endian format.
 {external}
 FUNCTION FROM_LITTLE_ENDIAN<T: ANY> : T
 VAR_INPUT
-	in : T;
+    in : T;
 END_VAR
 END_FUNCTION

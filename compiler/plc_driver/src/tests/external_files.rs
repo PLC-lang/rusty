@@ -10,7 +10,7 @@ fn external_file_function_call() {
     let prog = SourceCode::new(
         "
     FUNCTION main : INT
-    	external();
+        external();
     END_FUNCTION
     ",
         "main.st",
@@ -19,7 +19,7 @@ fn external_file_function_call() {
     let ext = SourceCode::new(
         "
     FUNCTION external : INT
-	END_FUNCTION
+    END_FUNCTION
     ",
         "external.st",
     );
@@ -37,7 +37,7 @@ fn external_file_global_var() {
     FUNCTION main : INT
         x := 2;
         y := 2;
-    	external();
+        external();
     END_FUNCTION
     ",
         "main.st",
@@ -49,7 +49,7 @@ fn external_file_global_var() {
         x : INT;
     END_VAR
     FUNCTION external : INT
-	END_FUNCTION
+    END_FUNCTION
     VAR_GLOBAL
         y : INT;
     END_VAR
@@ -68,7 +68,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     let prog = SourceCode::new(
         "
     FUNCTION main : INT
-    	external();
+        external();
     END_FUNCTION
     ",
         "external_file.st",

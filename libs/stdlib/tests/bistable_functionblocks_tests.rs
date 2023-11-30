@@ -25,26 +25,26 @@ struct MainType {
 fn sr() {
     let prog = r#"
         PROGRAM main
-		VAR
-			sr_inst : SR;
-			t_t_t  : BOOL;
-			t_t_f  : BOOL;
-			t_f_t  : BOOL;
-			t_f_f  : BOOL;
-			f_t_t  : BOOL;
-			f_t_f  : BOOL;
-			f_f_t  : BOOL;
-			f_f_f  : BOOL;
-		END_VAR
-			sr_inst(SET1 := TRUE, RESET := TRUE, Q1 => t_t_f); (* Q is in default state, S and R are asserted -> Q goes high *)
-			sr_inst(SET1 := FALSE, RESET := TRUE, Q1 => f_t_t); (* Q is high, R is asserted -> Q goes low *)
-			sr_inst(SET1 := FALSE, RESET := FALSE, Q1 => f_f_f); (* Q is low, neither S nor R are asserted -> Q stays low*)
-			sr_inst(SET1 := TRUE, RESET := FALSE, Q1 => t_f_f); (* Q is low, S is asserted -> Q goes high *)
-			sr_inst(SET1 := TRUE, RESET := TRUE, Q1 => t_t_t); (* Q is high, S and R are asserted -> Q stays high *)
-			sr_inst(SET1 := TRUE, RESET := FALSE, Q1 => t_f_t); (* Q is high, S is asserted -> Q stays high *)
-			sr_inst(SET1 := FALSE, RESET := FALSE, Q1 => f_f_t); (* Q is high, neither S nor R are asserted -> Q stays high *)
+        VAR
+            sr_inst : SR;
+            t_t_t  : BOOL;
+            t_t_f  : BOOL;
+            t_f_t  : BOOL;
+            t_f_f  : BOOL;
+            f_t_t  : BOOL;
+            f_t_f  : BOOL;
+            f_f_t  : BOOL;
+            f_f_f  : BOOL;
+        END_VAR
+            sr_inst(SET1 := TRUE, RESET := TRUE, Q1 => t_t_f); (* Q is in default state, S and R are asserted -> Q goes high *)
+            sr_inst(SET1 := FALSE, RESET := TRUE, Q1 => f_t_t); (* Q is high, R is asserted -> Q goes low *)
+            sr_inst(SET1 := FALSE, RESET := FALSE, Q1 => f_f_f); (* Q is low, neither S nor R are asserted -> Q stays low*)
+            sr_inst(SET1 := TRUE, RESET := FALSE, Q1 => t_f_f); (* Q is low, S is asserted -> Q goes high *)
+            sr_inst(SET1 := TRUE, RESET := TRUE, Q1 => t_t_t); (* Q is high, S and R are asserted -> Q stays high *)
+            sr_inst(SET1 := TRUE, RESET := FALSE, Q1 => t_f_t); (* Q is high, S is asserted -> Q stays high *)
+            sr_inst(SET1 := FALSE, RESET := FALSE, Q1 => f_f_t); (* Q is high, neither S nor R are asserted -> Q stays high *)
             sr_inst(SET1 := FALSE, RESET := TRUE, Q1 => f_t_f); (* reset *)
-			sr_inst(SET1 := FALSE, RESET := TRUE, Q1 => f_t_f); (* Q is low, R is asserted -> Q stays low *)
+            sr_inst(SET1 := FALSE, RESET := TRUE, Q1 => f_t_f); (* Q is low, R is asserted -> Q stays low *)
         END_PROGRAM
     "#;
 
@@ -67,17 +67,17 @@ fn sr() {
 fn rs() {
     let prog = r#"
         PROGRAM main
-		VAR
-			rs_inst : RS;
-			t_t_t  : BOOL;
-			t_t_f  : BOOL;
-			t_f_t  : BOOL;
-			t_f_f  : BOOL;
-			f_t_t  : BOOL;
-			f_t_f  : BOOL;
-			f_f_t  : BOOL;
-			f_f_f  : BOOL;
-		END_VAR
+        VAR
+            rs_inst : RS;
+            t_t_t  : BOOL;
+            t_t_f  : BOOL;
+            t_f_t  : BOOL;
+            t_f_f  : BOOL;
+            f_t_t  : BOOL;
+            f_t_f  : BOOL;
+            f_f_t  : BOOL;
+            f_f_f  : BOOL;
+        END_VAR
             rs_inst(SET := TRUE, RESET1 := TRUE, Q1 => t_t_f); (* Q is in default state, S and R are asserted -> Q stays low *)
             rs_inst(SET := FALSE, RESET1 := FALSE, Q1 => f_f_f); (* Q is low, neither S nor R are asserted -> Q stays low*)
             rs_inst(SET := TRUE, RESET1 := FALSE, Q1 => t_f_f); (* Q is low, S is asserted -> Q goes high *)

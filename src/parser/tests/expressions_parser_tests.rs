@@ -517,7 +517,7 @@ fn literal_time_of_day_test() {
             TIME_OF_DAY#04:16:22;
             TIME_OF_DAY#04:16:22.1;
             TIME_OF_DAY#04:16:22.001002003;
-			TIME_OF_DAY#04:16;
+            TIME_OF_DAY#04:16;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -610,7 +610,7 @@ fn literal_date_and_time_test() {
             DATE_AND_TIME#1984-10-01-16:40:22;
             DT#2021-04-20-22:33:14;
             DT#2021-04-20-22:33:14.999999999;
-			DATE_AND_TIME#2000-01-01-20:15;
+            DATE_AND_TIME#2000-01-01-20:15;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -776,8 +776,8 @@ fn literal_cast_parse_test() {
             BOOL#FALSE;
             STRING#"abc";
             WSTRING#'xyz';
-			CHAR#"A";
-			WCHAR#'B';
+            CHAR#"A";
+            WCHAR#'B';
         END_PROGRAM
         "#;
     let result = parse(src).0;

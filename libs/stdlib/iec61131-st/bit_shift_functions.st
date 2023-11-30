@@ -9,8 +9,8 @@
 {external}
 FUNCTION SHL<T: ANY_BIT> : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -28,8 +28,8 @@ END_FUNCTION
 {external}
 FUNCTION SHR<T: ANY_BIT> : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -45,8 +45,8 @@ END_FUNCTION
 {external}
 FUNCTION ROL<T : ANY_BIT> : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION
 
@@ -62,7 +62,7 @@ END_FUNCTION
 {external}
 FUNCTION ROR<T: ANY_BIT> : T
 VAR_INPUT
-	IN : T;
-	n : UDINT;
+    IN : T;
+    n : UDINT;
 END_VAR
 END_FUNCTION

@@ -319,7 +319,7 @@ fn date_literals_test() {
 fn long_date_literals_test() {
     let mut lexer = lex(r#"
         LDATE#1984-10-01 LDATE#1-1-1
-		LD#1-1-1
+        LD#1-1-1
         INT#1
         "#);
     for _ in 1..=3 {
@@ -347,7 +347,7 @@ fn date_and_time_literals_test() {
 #[test]
 fn long_date_and_time_literals_test() {
     let mut lexer = lex("
-	LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1 LDT#1984-10-01-20:15 LDT#1984-10-01-20:15:12.123");
+    LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1 LDT#1984-10-01-20:15 LDT#1984-10-01-20:15:12.123");
     for _ in 1..=4 {
         assert_eq!(lexer.token, LiteralDateAndTime);
         lexer.advance();
@@ -395,8 +395,8 @@ fn time_literals_test() {
 fn ltime_literals_test() {
     let mut lexer = lex(r#"
     LTIME#12d
-	LTIME#10M4S
-	LT#10d
+    LTIME#10M4S
+    LT#10d
     DINT#10
     "#);
     for _ in 1..=3 {

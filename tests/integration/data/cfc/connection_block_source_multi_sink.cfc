@@ -8,10 +8,10 @@
                     <content>
 FUNCTION myConnection : DINT
 VAR_INPUT
-	x: DINT;
+    x: DINT;
 END_VAR
 VAR_TEMP
-	y: DINT;
+    y: DINT;
 END_VAR
                     </content>
                 </textDeclaration>

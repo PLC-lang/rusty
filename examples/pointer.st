@@ -1,7 +1,7 @@
 TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
 
 FUNCTION main : DINT
-	main := foo();
+    main := foo();
 END_FUNCTION
 
 FUNCTION foo : DINT

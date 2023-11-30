@@ -159,8 +159,8 @@ fn char_cast_validate() {
             CHAR#"A";
             WCHAR#'B';
 
-			CHAR#"XY";
-			WCHAR#'YZ';
+            CHAR#"XY";
+            WCHAR#'YZ';
 
         END_PROGRAM
        "#,
