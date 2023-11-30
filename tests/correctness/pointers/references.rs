@@ -45,7 +45,7 @@ fn new() -> MainType {
 #[test]
 fn reference_call() {
     let function = r"
- 
+
     FUNCTION_BLOCK fbTest
         VAR_INPUT
             reference : REF_TO BOOL;  (* REF_TO *)
@@ -84,7 +84,7 @@ fn reference_call() {
         in_out2^ := TRUE;
 
     END_FUNCTION
-    
+
     PROGRAM main
     VAR
         test: fbTest;
@@ -123,7 +123,7 @@ fn reference_call() {
         r_a^ := FALSE; r_b^:= FALSE; p_c^ := FALSE; p_d^:= FALSE;
         test(reference := r_a, p := p_c, in_out1 := r_b, in_out2 := p_d);
         b_result_d := r_a^; b_result_e := r_b^; b_result_f := p_c^; b_result_g := p_d^;
-        
+
         r_a^ := FALSE; r_b^:= FALSE; p_c^ := FALSE; p_d^:= FALSE;
         other(reference := r_a, p := p_c, in_out1 := r_b, in_out2 := p_d);
         b_result_h := r_a^; b_result_i := r_b^; b_result_j := p_c^; b_result_k := p_d^;
@@ -241,7 +241,7 @@ fn reference_call_struct() {
         ref_a : REF_TO MyStruct; (* REF_TO *)
         ref_b : REF_TO MyStruct;     (* REF_TO *)
         p_a : POINTER TO MyStruct;
-        p_b : POINTER TO MyStruct; 
+        p_b : POINTER TO MyStruct;
         b_result_a : BOOL := FALSE;
         b_result_b : INT := 0;
         b_result_c : BOOL := FALSE;
@@ -253,22 +253,22 @@ fn reference_call_struct() {
     END_VAR
         a.field1 := FALSE; a.field2 := 0;
         b.field1 := FALSE; b.field2 := 0;
-        
+
         ref_a := &a; ref_b := &b;
         p_a := &a; p_b := &b;
         other(reference := ref_a, p:= p_a, in_out1 := ref_b, in_out2 := p_b);
-        b_result_a := a.field1; 
+        b_result_a := a.field1;
         b_result_b := a.field2;
-        b_result_c := b.field1; 
+        b_result_c := b.field1;
         b_result_d := b.field2;
 
         a.field1 := FALSE; a.field2 := 0;
         b.field1 := FALSE; b.field2 := 0;
 
         test(reference := ref_a, p := ref_a, in_out1 := ref_b, in_out2 := ref_b);
-        b_result_e := a.field1; 
+        b_result_e := a.field1;
         b_result_f := a.field2;
-        b_result_g := b.field1; 
+        b_result_g := b.field1;
         b_result_h := b.field2;
 
 END_PROGRAM
@@ -375,8 +375,8 @@ fn reference_call_array() {
             ref_a : REF_TO ARRAY[1..2] OF INT;    (* REF_TO *)
             ref_b : REF_TO ARRAY[1..2] OF INT;    (* REF_TO *)
             p_c : POINTER TO ARRAY[1..2] OF INT;
-            
-            p_d : POINTER TO ARRAY[1..2] OF INT; 
+
+            p_d : POINTER TO ARRAY[1..2] OF INT;
             b_result_a : INT := 0;
             b_result_b : INT := 0;
             b_result_c : INT := 0;
@@ -397,16 +397,16 @@ fn reference_call_array() {
 
             ref_a := &a; ref_b := &b;
             p_c := &c; p_d := &d;
-            
+
             a[1] := 0; a[2] := 0;
             b[1] := 0; b[2] := 0;
             c[1] := 0; c[2] := 0;
             d[1] := 0; d[2] := 0;
-            
+
             other(reference := ref_a, p:= p_c, in_out1 := ref_b, in_out2 := p_d);
             b_result_a := a[1];
             b_result_b := a[2];
-            b_result_c := b[1]; 
+            b_result_c := b[1];
             b_result_d := b[2];
             b_result_e := c[1];
             b_result_f := c[2];
@@ -417,11 +417,11 @@ fn reference_call_array() {
             b[1] := 0; b[2] := 0;
             c[1] := 0; c[2] := 0;
             d[1] := 0; d[2] := 0;
-            
+
             test(reference := ref_a, p := p_c, in_out1 := ref_b, in_out2 := p_d);
             b_result_i := a[1];
             b_result_j := a[2];
-            b_result_k := b[1]; 
+            b_result_k := b[1];
             b_result_l := b[2];
             b_result_m := c[1];
             b_result_n := c[2];
@@ -467,7 +467,7 @@ fn multiple_pointer_dereference() {
         END_VAR
         VAR_TEMP
             c: REF_TO BYTE;
-            d: REF_TO REF_TO BYTE;            
+            d: REF_TO REF_TO BYTE;
             e: BYTE;
         END_VAR
             c := &a;

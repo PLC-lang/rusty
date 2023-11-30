@@ -3,13 +3,13 @@
 The linker's task is to decide where all references in the source code point to.
 There are different references in Structured Text:
 
-- variable references  
-`x := 4` where *x* is a reference to the variable x.  
-- type references  
+- variable references
+`x := 4` where *x* is a reference to the variable x.
+- type references
 `i : MyFunctionBlock` where *MyFunctionBlock* is a reference to the declared FunctionBlock.
-- Program references  
+- Program references
 `PLC_PRG.x := 4` where *PLC_PRG* is a reference to a Program-POU called *PLC_PRG*.
-- Function references  
+- Function references
 `max(a, b)` where *max* is a reference to a Function-POU called *max*.
 
 So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name:
@@ -20,7 +20,7 @@ So the linker decides where a reference points to. A reference has a correspondi
 
         ┌──────► x : INT;
         │
-        │    END_VAR      
+        │    END_VAR
         │
         └────┐
              │
@@ -58,7 +58,7 @@ So the expression `a + 3` now looks like this:
                       │  ID: 1          │
                       └──────┬──┬───────┘
                              │  │
-                   left      │  │     right 
+                   left      │  │     right
                  ┌───────────┘  └──────────┐
                  │                         │
                  │                         │
@@ -73,7 +73,7 @@ So the expression `a + 3` now looks like this:
 
 The AnnotationMap stores 5 different types of annotation:
 
-- `Value`  
+- `Value`
 The Value-annotation indicates that this AST-Element resolves to a value with the given resulting datatype.
 So for Example the LiteralInteger(3) node gets a Value-Annotation with a resulting type of `DINT`.
 

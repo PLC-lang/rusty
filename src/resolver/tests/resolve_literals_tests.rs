@@ -115,11 +115,11 @@ fn date_literals_are_annotated() {
                 TOD#00:00:12;
                 TIME_OF_DAY#04:16:22;
 				TIME_OF_DAY#04:16;
-                DATE_AND_TIME#1984-10-01-16:40:22; 
-                DT#2021-04-20-22:33:14; 
+                DATE_AND_TIME#1984-10-01-16:40:22;
+                DT#2021-04-20-22:33:14;
 				DATE_AND_TIME#2000-01-01-20:15;
-                DATE#1984-10-01; 
-                D#2021-04-20; 
+                DATE#1984-10-01;
+                D#2021-04-20;
             END_PROGRAM",
         id_provider.clone(),
     );
@@ -222,10 +222,10 @@ fn enum_literals_are_annotated() {
             TYPE Color: (Green, Yellow, Red); END_TYPE
             TYPE Animal: (Dog, Cat, Horse); END_TYPE
 
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 Cat : BOOL;
             END_VAR
-        
+
             PROGRAM PRG
                 VAR Yellow: BYTE; END_VAR
 

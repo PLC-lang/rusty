@@ -25,7 +25,7 @@ fn index_not_case_sensitive() {
 
         VAR_GLOBAL
             a: INT;
-            x : ST; 
+            x : ST;
         END_VAR
         FUNCTION foo : INT
         END_FUNCTION
@@ -246,13 +246,13 @@ fn pous_are_indexed() {
         r#"
         PROGRAM myProgram
         END_PROGRAM
-        
+
         FUNCTION myFunction : INT
         END_FUNCTION
-        
+
         FUNCTION_BLOCK myFunctionBlock : INT
         END_FUNCTION_BLOCK
-        
+
         CLASS myClass
         END_CLASS
 
@@ -411,7 +411,7 @@ fn index_can_be_retrieved_from_qualified_name() {
         fb2_inst : fb2;
     END_VAR
     END_FUNCTION_BLOCK
-    
+
     FUNCTION_BLOCK fb2
     VAR_INPUT
         fb3_inst : fb3;
@@ -448,7 +448,7 @@ fn callable_instances_can_be_retreived() {
         fb2_inst : fb2;
     END_VAR
     END_FUNCTION_BLOCK
-    
+
     FUNCTION_BLOCK fb2
     VAR_INPUT
         fb3_inst : fb3;
@@ -779,11 +779,11 @@ fn pre_processing_generates_array_of_array_type() {
 fn pre_processing_nested_array_in_struct() {
     let src = r#"
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
           field1 : ARRAY[0..4] OF INT;
         END_STRUCT
         END_TYPE
-        
+
         PROGRAM Main
         VAR
           m : MyStruct;
@@ -916,8 +916,8 @@ fn pre_processing_generates_nested_generic_types() {
 fn sub_range_boundaries_are_registered_at_the_index() {
     // GIVEN a Subrange INT from 7 to 1000
     let src = "
-        TYPE MyInt: INT(7..1000); END_TYPE 
-        TYPE MyAliasInt: MyInt; END_TYPE 
+        TYPE MyInt: INT(7..1000); END_TYPE
+        TYPE MyAliasInt: MyInt; END_TYPE
         ";
     // WHEN the program is indexed
     let (_, index) = index(src);
@@ -1544,19 +1544,19 @@ fn type_duplicates_are_indexed() {
     let (_, index) = index(
         "
 		TYPE MyStruct:
-        STRUCT 
+        STRUCT
           field1 : INT;
         END_STRUCT
         END_TYPE
-        
+
 		TYPE MyStruct:
-        STRUCT 
+        STRUCT
           field2 : INT;
         END_STRUCT
         END_TYPE
 
 		TYPE MyStruct:
-        STRUCT 
+        STRUCT
           field3 : INT;
         END_STRUCT
         END_TYPE

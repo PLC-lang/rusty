@@ -64,8 +64,8 @@ function run_build() {
 	# Run cargo build with release or debug flags
 	echo "Build starting"
 	echo "-----------------------------------"
-	cmd="cargo build $CARGO_OPTIONS " 
-	log "Running $cmd" 
+	cmd="cargo build $CARGO_OPTIONS "
+	log "Running $cmd"
 	eval "$cmd"
 	echo "-----------------------------------"
 	if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
@@ -85,12 +85,12 @@ function run_std_build() {
 	# Run cargo build with release or debug flags
 	echo "Build starting"
 	echo "-----------------------------------"
-	cmd="cargo build $CARGO_OPTIONS -p iec61131std" 
+	cmd="cargo build $CARGO_OPTIONS -p iec61131std"
 	if [[ ! -z $target ]]; then
 		for val in ${target//,/ }
 		do
-			new_cmd="$cmd --target=$val" 
-			log "Running $new_cmd" 
+			new_cmd="$cmd --target=$val"
+			log "Running $new_cmd"
 			eval "$new_cmd"
 			echo "-----------------------------------"
 			if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
@@ -101,7 +101,7 @@ function run_std_build() {
 			fi
 		done
 	else
-		log "Running $cmd" 
+		log "Running $cmd"
 		eval "$cmd"
 		echo "-----------------------------------"
 		if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
@@ -123,7 +123,7 @@ function run_check() {
 function run_doc() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo doc --workspace $CARGO_OPTIONS"
-	cargo doc --workspace $CARGO_OPTIONS 
+	cargo doc --workspace $CARGO_OPTIONS
 	log "Building book"
 	cd book && mdbook build && mdbook test
 }
@@ -203,7 +203,7 @@ function run_package_std() {
 	log "Removing previous output folder"
 	rm -rf $OUTPUT_DIR
 	target_dir="$project_location/target"
-	include_dir=$OUTPUT_DIR/include 
+	include_dir=$OUTPUT_DIR/include
 	make_dir $include_dir
 	#Copy the iec61131-st folder
 	cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
@@ -216,14 +216,14 @@ function run_package_std() {
 			rel_dir="$target_dir/$val"
 			if [[ $release -ne 0 ]]; then
 				rel_dir="$rel_dir/release"
-			else 
+			else
 				rel_dir="$rel_dir/debug"
 			fi
 			if [[ ! -d "$rel_dir" ]]; then
 				echo "Compilation directory $rel_dir not found"
 				exit 1
 			fi
-			cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files" 
+			cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files"
 			# Create an SO file from the copied a file
 			log "Creating a shared library from the compiled static library"
 			log "Running : $cc --shared -L$lib_dir \
@@ -238,7 +238,7 @@ function run_package_std() {
 				-lm \
 				-fuse-ld=lld \
 				--target="$val"
-			
+
 			mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
 		done
 	else
@@ -246,7 +246,7 @@ function run_package_std() {
 		make_dir $lib_dir
 		if [[ $release -ne 0 ]]; then
 			rel_dir="$target_dir/release"
-		else 
+		else
 			rel_dir="$target_dir/debug"
 		fi
 		cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
@@ -261,10 +261,10 @@ function run_package_std() {
 			-Wl,--whole-archive -liec61131std \
 			-o "$lib_dir/out.so" -Wl,--no-whole-archive \
 			-lm \
-			-fuse-ld=lld 
+			-fuse-ld=lld
 		mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
 	fi
-	
+
 	log "Enabling read/write on the output folder"
 	chmod a+rw $OUTPUT_DIR -R
 
@@ -315,10 +315,10 @@ function run_in_container() {
 	volume_target="/build"
 	unameOut="$(uname -s)"
 	case "${unameOut}" in
-		Linux*)     
+		Linux*)
 			volume_target="/build"
 			;;
-		MINGW* | cygwin*)     
+		MINGW* | cygwin*)
 			volume_target="C:\\\\build"
 			;;
 		*)
@@ -340,7 +340,7 @@ set -o errexit -o pipefail -o noclobber -o nounset
 OPTIONS=sorbvc
 LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
-check_env 
+check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
 # -pass arguments only via   -- "$@"   to separate them correctly
 ! PARSED=$(getopt --options="$OPTIONS" --longoptions="$LONGOPTS" --name "$0" -- "$@")

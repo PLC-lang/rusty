@@ -7,7 +7,7 @@ fn initial_values_in_global_constant_variables() {
         VAR_GLOBAL CONSTANT
           c_INT : INT := 7;
           c_3c : INT := 3 * c_INT;
-          
+
           c_BOOL : BOOL := TRUE;
           c_not : BOOL := NOT c_BOOL;
           c_str : STRING[10] := 'Hello';
@@ -60,17 +60,17 @@ fn initial_values_in_global_variables_out_of_order() {
         VAR_GLOBAL
         x : MyFB;
         END_VAR
-        
+
         PROGRAM prg
         VAR
-        x : MyFB;            
+        x : MyFB;
         END_VAR
         END_PROGRAM
 
         //if this fb is moved to the top, the initializer works
         FUNCTION_BLOCK MyFB
           VAR
-            x : INT := 77;            
+            x : INT := 77;
           END_VAR
         END_FUNCTION_BLOCK
         ",
@@ -83,8 +83,8 @@ fn initial_values_in_global_variables_out_of_order() {
 fn uninitialized_global_array() {
     let result = codegen(
         "
-         VAR_GLOBAL 
-           a : ARRAY[0..1] OF BYTE; 
+         VAR_GLOBAL
+           a : ARRAY[0..1] OF BYTE;
          END_VAR
          ",
     );
@@ -111,7 +111,7 @@ fn global_constant_without_initializer_gets_default_initializer() {
   END_FUNCTION
 
   TYPE MyArr: ARRAY[0..3] OF INT; END_TYPE
- 
+
   TYPE commands :
   STRUCT
     ReInit : BOOL;

@@ -449,7 +449,7 @@ fn assigning_global_arrays_in_function_by_passing_references() {
         FUNCTION foo : DINT
         VAR_INPUT
             in : ARRAY[0..3] OF INT;
-        END_VAR 
+        END_VAR
         VAR_INPUT {ref}
             in_ref : ARRAY[0..3] OF INT;
         END_VAR
@@ -460,7 +460,7 @@ fn assigning_global_arrays_in_function_by_passing_references() {
             glob_arr_in_ref := in_ref;
             glob_arr_inout  := inout;
         END_FUNCTION
-        
+
         PROGRAM main
         VAR
             arr_in      : ARRAY[0..3] OF INT;
@@ -473,12 +473,12 @@ fn assigning_global_arrays_in_function_by_passing_references() {
             c : ARRAY[0..3] OF INT := (9, 10, 11, 12);
         END_VAR
             foo(a, b, c);
-        
+
             arr_in      := glob_arr_in;
             arr_in_ref  := glob_arr_in_ref;
             arr_inout   := glob_arr_inout;
         END_PROGRAM
-        
+
         VAR_GLOBAL
             glob_arr_in     : ARRAY[0..3] OF INT;
             glob_arr_in_ref : ARRAY[0..3] OF INT;
@@ -505,7 +505,7 @@ fn assigning_global_arrays_in_program_by_passing_references() {
         PROGRAM prog
         VAR_INPUT
             in : ARRAY[0..3] OF INT;
-        END_VAR 
+        END_VAR
         VAR_INPUT {ref}
             in_ref : ARRAY[0..3] OF INT;
         END_VAR
@@ -516,7 +516,7 @@ fn assigning_global_arrays_in_program_by_passing_references() {
             glob_arr_in_ref := in_ref;
             glob_arr_inout  := inout;
         END_PROGRAM
-        
+
         PROGRAM main
         VAR
             arr_in      : ARRAY[0..3] OF INT;
@@ -529,12 +529,12 @@ fn assigning_global_arrays_in_program_by_passing_references() {
             c : ARRAY[0..3] OF INT := (9, 10, 11, 12);
         END_VAR
             prog(a, b, c);
-        
+
             arr_in      := glob_arr_in;
             arr_in_ref  := glob_arr_in_ref;
             arr_inout   := glob_arr_inout;
         END_PROGRAM
-        
+
         VAR_GLOBAL
             glob_arr_in     : ARRAY[0..3] OF INT;
             glob_arr_in_ref : ARRAY[0..3] OF INT;
@@ -572,7 +572,7 @@ fn access_arrays_by_ref() {
 			glob_b0 := inout[0];
 			glob_b1 := inout[1];
         END_FUNCTION
-        
+
         PROGRAM main
         VAR
 			a0, a1, b0, b1 : INT;
@@ -582,13 +582,13 @@ fn access_arrays_by_ref() {
             b : ARRAY[0..1] OF INT := (5, 6);
         END_VAR
             foo(a, b);
-        
+
 			a0 := glob_a0;
 			a1 := glob_a1;
 			b0 := glob_b0;
 			b1 := glob_b1;
         END_PROGRAM
-        
+
         VAR_GLOBAL
 			glob_a0, glob_a1, glob_b0, glob_b1 : INT;
         END_VAR

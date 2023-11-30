@@ -24,7 +24,7 @@ fn references_to_variables_are_annotated() {
     // parse and index
     let (statements, annotations, ..) = annotate!(
         r#"
-    PROGRAM prg 
+    PROGRAM prg
         VAR
             a : SINT;
             b : SINT;
@@ -74,9 +74,9 @@ fn different_types_of_annotations() {
     // parse and annotate the following program
     let (statements, annotations, ..) = annotate!(
         r#"
-        PROGRAM prg 
+        PROGRAM prg
             VAR p : POINT END_VAR
- 
+
             p.x;            // to a variable (POINT.x)
             foo();          // resolves to a call
             p.y + foo();    // resolves to a value
@@ -85,7 +85,7 @@ fn different_types_of_annotations() {
 
         FUNCTION foo : DINT END_FUNCTION
 
-        PROGRAM Main 
+        PROGRAM Main
             VAR_INPUT in : INT; END_VAR
         END_FUNCTION
 
@@ -182,13 +182,13 @@ fn different_types_of_annotations() {
 fn type_annotations_reflect_the_evaluation_result() {
     let (statements, annotations, idx) = annotate!(
         r#"
-        PROGRAM prg 
-            VAR 
-                i : INT; 
+        PROGRAM prg
+            VAR
+                i : INT;
                 d : DINT;
                 l : LINT;
             END_VAR
-        
+
             i + d;
             i + 3;
             l - d;
@@ -220,12 +220,12 @@ fn type_annotations_reflect_the_evaluation_result() {
 fn type_annotations_indicates_necessary_casts() {
     let (statements, annotations, _) = annotate!(
         r#"
-        PROGRAM prg 
-            VAR 
-                i : INT; 
+        PROGRAM prg
+            VAR
+                i : INT;
                 d : DINT;
             END_VAR
-        
+
             i := d;
             d := i;
             foo(3);
@@ -270,13 +270,13 @@ fn type_annotations_indicates_necessary_casts() {
 fn type_annotations_for_binary_expression() {
     let (statements, annotations, _) = annotate!(
         r#"
-        PROGRAM prg 
-            VAR 
-                i : INT; 
+        PROGRAM prg
+            VAR
+                i : INT;
                 d : DINT;
                 r : LREAL;
             END_VAR
-        
+
             i + d;
             r / d;
         END_PROGRAM
@@ -309,12 +309,12 @@ fn type_annotations_for_binary_expression() {
 fn useful_type_annotation_method() {
     let (statements, annotations, idx) = annotate!(
         r#"
-        PROGRAM prg 
-            VAR 
-                i : INT; 
+        PROGRAM prg
+            VAR
+                i : INT;
                 d : DINT;
             END_VAR
-        
+
             i + d;
         END_PROGRAM
     "#

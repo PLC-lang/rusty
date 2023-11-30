@@ -1,6 +1,6 @@
 PROGRAM a
     VAR
-        binvar      AT %IX7.8 : BOOL;   
+        binvar      AT %IX7.8 : BOOL;
         sinvar      AT %IB4.8 : BYTE;
         winvar      AT %IW3.1 : WORD;
         dinvar      AT %ID1.7 : DWORD;

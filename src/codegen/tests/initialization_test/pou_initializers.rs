@@ -9,14 +9,14 @@ fn initial_constant_values_in_pou_variables() {
         MIN_LEN : INT := 10;
         LEN : INT := MIN_LEN + 10;
         END_VAR
- 
+
         PROGRAM prg
       	  VAR_INPUT
             my_len: INT := LEN + 4;
             my_size: INT := MAX_LEN - MIN_LEN;
           END_VAR
         END_PROGRAM
- 
+
         "#,
     );
 
@@ -72,8 +72,8 @@ fn initial_values_in_function_block_pou() {
 fn initial_values_in_array_of_array_variable() {
     let result = codegen(
         "
-         VAR_GLOBAL 
-           a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+         VAR_GLOBAL
+           a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]];
          END_VAR
          ",
     );

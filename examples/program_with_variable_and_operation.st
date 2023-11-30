@@ -7,9 +7,9 @@ END_VAR
 
 
 IF Condition THEN
-   
-ELSIF 
-   
+
+ELSIF
+
 END_IF;
 
 1 + 2 + 3 + 4;

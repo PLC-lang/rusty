@@ -13,7 +13,7 @@ PROGRAM prg
       y : STRING[15];
       z : STRING[30] := 'xyz';
    END_VAR
-   
+
    y := z;
    z := y;
 END_PROGRAM
@@ -58,7 +58,7 @@ PROGRAM prg
       y : STRING[15];
       z : STRING[30] := 'xyz';
    END_VAR
-   
+
 END_PROGRAM
     ",
     );
@@ -90,9 +90,9 @@ VAR
 END_VAR
 
 // cast a WSTRING to a STRING
-y := STRING#"im a genius"; 
+y := STRING#"im a genius";
 // cast a STRING to a WSTRING
-z := WSTRING#'im a utf16 genius'; 
+z := WSTRING#'im a utf16 genius';
 END_PROGRAM
 "#,
     );
@@ -106,7 +106,7 @@ fn generate_with_invalid_casted_string_assignment() {
 VAR
   y : INT;
 END_VAR
-y := INT#"seven"; 
+y := INT#"seven";
 END_PROGRAM
 "#,
     )
@@ -206,10 +206,10 @@ fn variable_length_strings_using_constants_can_be_created() {
     let result = codegen(
         r#"
         VAR_GLOBAL CONSTANT
-          LONG_STRING : INT := 15; 
-          SHORT_STRING : INT := 3; 
+          LONG_STRING : INT := 15;
+          SHORT_STRING : INT := 3;
         END_VAR
-        
+
         PROGRAM prg
           VAR
           y : STRING[LONG_STRING];
@@ -268,7 +268,7 @@ fn string_function_parameters() {
             VAR_INPUT
                 s : STRING;
             END_VAR
-        
+
             RETURN 0;
         END_PROGRAM
 
@@ -306,9 +306,9 @@ fn program_string_output() {
 		END_PROGRAM
 
         PROGRAM main
-		VAR 
-			x : STRING[6]; 
-			y : WSTRING[7]; 
+		VAR
+			x : STRING[6];
+			y : WSTRING[7];
 		END_VAR
 			prog(x, y);
         END_PROGRAM

@@ -1248,7 +1248,7 @@ impl Index {
         self.get_const_expressions().maybe_get_constant_statement(id)
     }
 
-    /// returns type aliased by Alias or SubRange    
+    /// returns type aliased by Alias or SubRange
     fn get_aliased_target_type(&self, dt: &DataTypeInformation) -> Option<&DataType> {
         match dt {
             DataTypeInformation::SubRange { referenced_type, .. }

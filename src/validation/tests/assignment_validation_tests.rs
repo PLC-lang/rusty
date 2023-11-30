@@ -8,7 +8,7 @@ fn constant_assignment_validation() {
     VAR_GLOBAL CONSTANT
         v_global : BOOL;
     END_VAR
-    
+
     FUNCTION main : DINT
     // CONSTANT assignment
     v_global := TRUE; // INVALID
@@ -27,26 +27,26 @@ fn real_assignment_validation() {
     VAR
         v_real : REAL;
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // REAL
@@ -85,29 +85,29 @@ fn int_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
         v_ulint : ULINT;
-    
+
         v_dint : DINT;
         v_lint : LINT;
-    
+
         v_time : TIME;
         v_ltime : LTIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // UNSIGNED
@@ -132,7 +132,7 @@ fn int_assignment_validation() {
     v_udint := v_ptr_string^; // INVALID
     v_udint := v_arr_int_3[0]; // valid
     v_udint := v_arr_string_3[0]; // INVALID
-    
+
     // SIGNED
     v_dint := v_lreal; // valid
     v_dint := REAL#2.0; // valid
@@ -169,25 +169,25 @@ fn duration_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
         v_ltime : LTIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
 
         v_arr_string_3 : ARRAY[0..3] OF STRING;
@@ -228,25 +228,25 @@ fn bit_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_byte : BYTE;
         v_word : WORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
 
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
 
         v_arr_string_3 : ARRAY[0..3] OF STRING;
@@ -287,29 +287,29 @@ fn string_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
         v_str : STRING;
         v_string1 : STRING[1];
         v_wstring : WSTRING;
-    
+
         v_char : CHAR;
-    
+
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // STRING
@@ -351,30 +351,30 @@ fn char_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
         v_str : STRING;
         v_string1 : STRING[1];
         v_wstring : WSTRING;
-    
+
         v_char : CHAR;
         v_wchar : WCHAR;
-    
+
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // CHAR
@@ -419,27 +419,27 @@ fn date_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_lreal : LREAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_word : WORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_date : DATE;
         v_tod : TOD;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
 
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // DATE
@@ -478,26 +478,26 @@ fn pointer_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_real : REAL;
-    
+
         v_udint : UDINT;
-    
+
         v_dint : DINT;
-    
+
         v_time : TIME;
-    
+
         v_word : WORD;
         v_lword : LWORD;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_date : DATE;
 
         v_ptr_int : REF_TO INT;
-    
+
         v_arr_int_3 : ARRAY[0..3] OF INT;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
     END_VAR
     // POINTER
@@ -536,27 +536,27 @@ fn array_assignment_validation() {
     FUNCTION main : DINT
     VAR
         v_real : REAL;
-    
+
         v_dint : DINT;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
-    
+
         v_arr_int_2 : ARRAY[0..2] OF INT;
         v_arr_int_3 : ARRAY[0..3] OF INT;
         v_arr_int_4 : ARRAY[0..4] OF INT;
-    
+
         v_arr_real_3 : ARRAY[0..3] OF REAL;
-    
+
         v_arr_string_3 : ARRAY[0..3] OF STRING;
         v_arr_sized_string : ARRAY[0..3] OF STRING[256];
         v_arr_sized_string1 : ARRAY[0..3] OF STRING[256];
         v_arr_sized_string2 : ARRAY[0..8] OF STRING[1256];
-    
+
         v_arr_char_3 : ARRAY[0..3] OF CHAR;
     END_VAR
     // ARRAY
@@ -619,15 +619,15 @@ fn struct_assignment_validation() {
 		var_inout_struct1 : STRUCT1;
 	END_VAR
     END_FUNCTION_BLOCK
-    
+
     FUNCTION main : DINT
     VAR
         v_real : REAL;
-    
+
         v_string : STRING;
-    
+
         v_char : CHAR;
-    
+
         v_struct1 : STRUCT1;
         v_struct1_2 : STRUCT1;
         v_ref_to_struct1 : REF_TO STRUCT1;
@@ -655,15 +655,15 @@ fn struct_assignment_validation() {
     v_ref_to_struct1 := REF(v_struct1); // valid
     v_ref_to_struct1 := ADR(v_struct1); // valid
     v_ref_to_struct1 := &(v_struct1); // valid
-    
+
     v_ref_to_struct1 := ADR(v_real); // valid
     v_ref_to_struct1 := ADR(v_string); // valid
     v_ref_to_struct1 := ADR(v_char); // valid
-    
+
     v_ref_to_struct1 := REF(v_real); // INVALID
     v_ref_to_struct1 := REF(v_string); // INVALID
     v_ref_to_struct1 := REF(v_char); // INVALID
-    
+
     v_ref_to_struct1 := &(v_real); // INVALID
     v_ref_to_struct1 := &(v_string); // INVALID
     v_ref_to_struct1 := &(v_char); // INVALID
@@ -706,13 +706,13 @@ fn invalid_action_call_assignments_are_validated() {
             in2 : STRING;
         END_VAR
         VAR_IN_OUT
-            auto : WSTRING; 
+            auto : WSTRING;
         END_VAR
         VAR_OUTPUT
             out : ARRAY[0..10] OF WSTRING;
         END_VAR
         END_FUNCTION_BLOCK
-        
+
         ACTIONS fb_t
         ACTION foo
         END_ACTION
@@ -741,13 +741,13 @@ fn implicit_invalid_action_call_assignments_are_validated() {
         VAR
             var1 : ARRAY[0..10] OF WSTRING;
             var2 : ARRAY[0..10] OF WSTRING;
-        END_VAR       
+        END_VAR
         VAR_INPUT
             in1 : DINT;
             in2 : STRING;
-        END_VAR 
+        END_VAR
         END_FUNCTION_BLOCK
-        
+
         ACTIONS fb_t
         ACTION foo
         END_ACTION
@@ -775,10 +775,10 @@ fn invalid_method_call_assignments_are_validated() {
         VAR
             x : INT := 10;
         END_VAR
-        
+
         METHOD foo : DINT
-        VAR_INPUT 
-            a : DINT; 
+        VAR_INPUT
+            a : DINT;
             b : STRING;
         END_VAR
             foo := a + x;
@@ -809,7 +809,7 @@ fn invalid_function_block_instantiation_is_validated() {
         arr_32 : ARRAY[0..1] OF DINT;
         END_VAR
         END_FUNCTION_BLOCK
-    
+
         PROGRAM prog
         VAR
             s : STRING := 'HELLO';
@@ -832,14 +832,14 @@ fn implicit_action_downcasts_are_validated() {
         VAR
             var1 : ARRAY[0..10] OF WSTRING;
             var2 : ARRAY[0..10] OF WSTRING;
-        END_VAR       
+        END_VAR
         VAR_INPUT
             in1 : DINT;
             in2 : DWORD;
             in3 : BYTE;
-        END_VAR 
+        END_VAR
         END_FUNCTION_BLOCK
-        
+
         ACTIONS fb_t
         ACTION foo
         END_ACTION
@@ -905,7 +905,7 @@ fn enum_variants_mismatch() {
     let diagnostics = parse_and_validate(
         "
         TYPE Animal: (Dog, Cat, Horse); END_TYPE
-        
+
         PROGRAM main
         VAR
             color: (red, green, blue);

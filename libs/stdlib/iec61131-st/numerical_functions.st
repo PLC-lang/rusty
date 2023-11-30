@@ -1,9 +1,9 @@
 (**************************
- * 
+ *
  *This operator returns the absolute value of a number.
- * 
+ *
 *************************)
-FUNCTION ABS<T : ANY_NUM> : T 
+FUNCTION ABS<T : ANY_NUM> : T
 VAR_INPUT
 	IN : T;
 END_VAR
@@ -69,13 +69,13 @@ END_VAR
 END_FUNCTION
 
 (**************************
- * 
+ *
  * Rounds a given ANY_REAL to the nearest integer
  * Rounds half values away from zero
- * 
+ *
 *************************)
 {external}
-FUNCTION ROUND<T : ANY_REAL> : T 
+FUNCTION ROUND<T : ANY_REAL> : T
 VAR_INPUT
 	in : T;
 END_VAR

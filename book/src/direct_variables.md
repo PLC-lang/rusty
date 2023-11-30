@@ -22,8 +22,8 @@ To access a bit sequence in a variable, a direct access instruction `%<Type><Val
 
 ```st
 FUNCTION main : DINT
-VAR 
-    variable    : LWORD; 
+VAR
+    variable    : LWORD;
     bitTarget   : BOOL;
     bitTarget2  : BOOL;
     byteTarget  : BYTE;
@@ -55,8 +55,8 @@ The provided varibale has to be a direct Reference variable (non Qualified).
 
 ```st
 FUNCTION main : DINT
-VAR 
-    variable    : LWORD; 
+VAR
+    variable    : LWORD;
     access_var  : INT;
     bitTarget   : BOOL;
     bitTarget2  : BOOL;

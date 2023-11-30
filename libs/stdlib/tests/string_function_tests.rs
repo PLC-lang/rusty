@@ -52,7 +52,7 @@ fn len_string_long_string() {
 fn len_string_no_variable() {
     let src = r#"
 	FUNCTION main : DINT
-        main := LEN(STRING#'hello'); 
+        main := LEN(STRING#'hello');
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -273,7 +273,7 @@ fn right_ext_string_long_string() {
         in : STRING[128];
         out : STRING[128];
         l : DINT;
-    END_VAR 
+    END_VAR
         in := '7gAN5pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW';
         l := 99;
         RIGHT_EXT(in, l, out);
@@ -332,7 +332,7 @@ fn mid_string_long_literal() {
         p := 6;
 		main := MID(
             '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.the                same           is   true                    for             this                     string.',
-            l, 
+            l,
             p
         );
     END_FUNCTION
@@ -414,7 +414,7 @@ fn mid_ext_string_long_string() {
         out : STRING[128];
         l : DINT;
         p : DINT;
-    END_VAR 
+    END_VAR
         in := '7gAN5pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW';
         l := 99;
         p := 10;
@@ -634,7 +634,7 @@ fn find_string() {
     END_VAR
         in1 := 'Where is Waldo?';
         in2 := 'Waldo';
-        main := FIND(in1, in2);        
+        main := FIND(in1, in2);
     END_FUNCTION
     "#;
 
@@ -654,7 +654,7 @@ fn test_double_quotes_on_strings() {
     END_VAR
         in1 := "Where is Waldo?";
         in2 := "Waldo";
-        main := FIND(in1, in2);        
+        main := FIND(in1, in2);
     END_FUNCTION
     "#;
 
@@ -671,7 +671,7 @@ fn test_concat_string() {
         b : STRING := ', ';
         c : STRING := 'World';
         d : STRING := '!';
-    END_VAR    
+    END_VAR
         main := CONCAT(a, b, c, d);
     END_FUNCTION
     "#;
@@ -696,7 +696,7 @@ fn test_concat_ext_string() {
         b : STRING := ', ';
         c : STRING := 'World';
         d : STRING := '!';
-    END_VAR    
+    END_VAR
         CONCAT_EXT(main, a, b, c, d);
     END_FUNCTION
     "#;
@@ -783,7 +783,7 @@ fn len_wstring() {
 fn len_wstring_no_variable() {
     let src = r#"
 	FUNCTION main : DINT
-        main := LEN(WSTRING#'Hèßlo😀𝄞'); 
+        main := LEN(WSTRING#'Hèßlo😀𝄞');
     END_FUNCTION
         "#;
     let sources = add_std!(src, "string_functions.st");
@@ -976,7 +976,7 @@ fn right_ext_string_long_wstring() {
         in : WSTRING[128];
         out : WSTRING[128];
         l : DINT;
-    END_VAR 
+    END_VAR
         in := "7gAN5pmmSXqHJ3zZCXnBwi𝄞𝄞9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW";
         l := 99;
         RIGHT_EXT(in, l, main);
@@ -1081,7 +1081,7 @@ fn mid_ext_string_long_wstring() {
         in : WSTRING[128];
         l : DINT;
         p : DINT;
-    END_VAR 
+    END_VAR
         in := "𝄞muϗ😀pmmSXqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW";
         l := 99;
         p := 10;
@@ -1122,7 +1122,7 @@ fn insert_wstring() {
         assert_eq!(res, "stuck in the middle with you");
     } else {
         panic!(
-            "Given string is not 
+            "Given string is not
         -encoded"
         )
     }
@@ -1280,7 +1280,7 @@ fn find_wstring() {
     END_VAR
         in1 := "Where is Waldo?";
         in2 := "Waldo";
-        main := FIND(in1, in2);        
+        main := FIND(in1, in2);
     END_FUNCTION
     "#;
 
@@ -1324,7 +1324,7 @@ fn test_concat_wstring() {
         b : WSTRING := ", ";
         c : WSTRING := "World";
         d : WSTRING := "!";
-    END_VAR    
+    END_VAR
         main := CONCAT(a, b, c, d);
     END_FUNCTION
     "#;
@@ -1348,7 +1348,7 @@ fn test_concat_ext_wstring() {
         b : WSTRING := ", ";
         c : WSTRING := "World";
         d : WSTRING := "!";
-    END_VAR    
+    END_VAR
         CONCAT_EXT(main, a, b, c, d);
     END_FUNCTION
     "#;
@@ -1372,7 +1372,7 @@ fn test_gt_string() {
         a : STRING := 'z';
         b : STRING := 'y ';
         c : STRING := 'x';
-    END_VAR    
+    END_VAR
         main := GT(a, b, c);
     END_FUNCTION
     "#;
@@ -1391,7 +1391,7 @@ fn test_ge_string() {
         b : STRING := 'z';
         c : STRING := 'y';
         d : STRING := 'x';
-    END_VAR    
+    END_VAR
         main := GE(a, b, c, d);
     END_FUNCTION
     "#;
@@ -1409,7 +1409,7 @@ fn test_eq_string() {
         a : STRING := 'same';
         b : STRING := 'same';
         c : STRING := 'same';
-    END_VAR    
+    END_VAR
         main := EQ(a, b, c);
     END_FUNCTION
     "#;
@@ -1428,7 +1428,7 @@ fn test_lt_string() {
         b : STRING := 'z';
         c : STRING := 'y';
         d : STRING := 'x';
-    END_VAR    
+    END_VAR
         main := LT(d, c, b, a);
     END_FUNCTION
     "#;
@@ -1447,7 +1447,7 @@ fn test_le_string() {
         b : STRING := 'z';
         c : STRING := 'y';
         d : STRING := 'x';
-    END_VAR    
+    END_VAR
         main := LE(d, c, b, a);
     END_FUNCTION
     "#;
@@ -1464,7 +1464,7 @@ fn test_ne_string() {
     VAR_TEMP
         a : STRING := 'z';
         b : STRING := 'y';
-    END_VAR    
+    END_VAR
         main := NE(a, b);
     END_FUNCTION
     "#;
@@ -1482,7 +1482,7 @@ fn test_gt_wstring() {
         a : WSTRING := "z";
         b : WSTRING := "y";
         c : WSTRING := "x";
-    END_VAR    
+    END_VAR
         main := GT(a, b, c);
     END_FUNCTION
     "#;
@@ -1501,7 +1501,7 @@ fn test_ge_wstring() {
         b : WSTRING := "z";
         c : WSTRING := "y";
         d : WSTRING := "x";
-    END_VAR    
+    END_VAR
         main := GE(a, b, c, d);
     END_FUNCTION
     "#;
@@ -1519,7 +1519,7 @@ fn test_eq_wstring() {
         a : WSTRING := "same";
         b : WSTRING := "same";
         c : WSTRING := "same";
-    END_VAR    
+    END_VAR
         main := EQ(a, b, c);
     END_FUNCTION
     "#;
@@ -1538,7 +1538,7 @@ fn test_lt_wstring() {
         b : WSTRING := "z";
         c : WSTRING := "y";
         d : WSTRING := "x";
-    END_VAR   
+    END_VAR
         main := LT(d, c, b, a);
     END_FUNCTION
     "#;
@@ -1557,7 +1557,7 @@ fn test_le_wstring() {
         b : WSTRING := "z";
         c : WSTRING := "y";
         d : WSTRING := "x";
-    END_VAR    
+    END_VAR
         main := LE(d, c, b, a);
     END_FUNCTION
     "#;
@@ -1589,7 +1589,7 @@ fn test_string_greater_operator_works_if_result_is_true() {
     VAR_TEMP
         a : STRING := 'zyx';
         b : STRING := 'yx';
-    END_VAR    
+    END_VAR
         main := a > b;
     END_FUNCTION
     "#;
@@ -1621,7 +1621,7 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
         b : STRING := 'abc';
         c : STRING := 'bcd';
         d : STRING := 'cba';
-    END_VAR    
+    END_VAR
         lt := a < c AND b < c AND c < d;
         le := a <= b AND a <= c;
         eq := a = b;
@@ -1650,7 +1650,7 @@ fn test_wstring_binary_operator_wrapper_functions_work() {
         b : WSTRING := "abc";
         c : WSTRING := "bcd";
         d : WSTRING := "cba";
-    END_VAR    
+    END_VAR
         lt := a < c AND b < c AND c < d;
         le := a <= b AND a <= c;
         eq := a = b;
@@ -1679,7 +1679,7 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
         b : STRING := 'abc';
         c : STRING := 'bcd';
         d : STRING := 'cba';
-    END_VAR    
+    END_VAR
         lt := c < a OR c < b OR d < c;
         le := c <= a OR d <= c;
         eq := a = d OR a = c OR c = d;
@@ -1703,7 +1703,7 @@ fn test_string_equality_operator_works_for_long_strings() {
     VAR_TEMP
         a : STRING := 'this very long unimaginative sentence consists of the same characters in the same sequence twice';
         b : STRING := 'this very long unimaginative sentence consists of the same characters in the same sequence twice';
-    END_VAR    
+    END_VAR
         main := a = b;
     END_FUNCTION
     "#;
@@ -1720,7 +1720,7 @@ fn test_string_not_equal_operator_works_for_long_strings() {
     VAR_TEMP
         a : STRING := 'this very long unimaginative sentence consists of the same characters in the same sequence twice';
         b : STRING := 'this very long unimaginative sentence claims the previous string is dishonest';
-    END_VAR    
+    END_VAR
         main := a <> b;
     END_FUNCTION
     "#;

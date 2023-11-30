@@ -120,7 +120,7 @@ mod structs {
                 a : A;
                 e : e;
             END_STRUCT END_TYPE
-            
+
             TYPE E : STRUCT
                 a_int: INT;
             END_STRUCT END_TYPE
@@ -182,11 +182,11 @@ mod structs {
             TYPE A : STRUCT
                 b : B;
             END_STRUCT END_TYPE
-            
+
             TYPE B : STRUCT
                 c : C;
             END_STRUCT END_TYPE
-            
+
             TYPE C : STRUCT
                 b : B;
             END_STRUCT END_TYPE
@@ -200,13 +200,13 @@ mod structs {
     fn one_cycle_with_multiple_identical_members_aba() {
         let diagnostics = parse_and_validate(
             "
-            TYPE A : STRUCT 
+            TYPE A : STRUCT
                 b1 : B;
                 b2 : B;
                 b3 : B;
             END_STRUCT END_TYPE
 
-            TYPE B : STRUCT 
+            TYPE B : STRUCT
                 a : A;
             END_STRUCT END_TYPE
             ",
@@ -223,7 +223,7 @@ mod structs {
                 a : A;
                 b : B;
             END_STRUCT END_TYPE
-            
+
             TYPE B : STRUCT
                 a : A;
             END_STRUCT END_TYPE
@@ -240,16 +240,16 @@ mod structs {
             TYPE A : STRUCT
                 b : B;
             END_STRUCT END_TYPE
-            
+
             TYPE B : STRUCT
                 c : C;
             END_STRUCT END_TYPE
-            
+
             TYPE C : STRUCT
                 c : C;
                 e : E;
             END_STRUCT END_TYPE
-            
+
             TYPE E : STRUCT
                 c : C;
             END_STRUCT END_TYPE
@@ -314,7 +314,7 @@ mod arrays {
                 a : ARRAY[0..1] OF A;
                 b : ARRAY[0..1] OF B;
             END_STRUCT END_TYPE
-            
+
             TYPE B : STRUCT
                 a : A;
             END_STRUCT END_TYPE
@@ -331,11 +331,11 @@ mod arrays {
             TYPE A : STRUCT
                 b : ARRAY[0..1] OF B;
             END_STRUCT END_TYPE
-            
+
             TYPE B : STRUCT
                 c : ARRAY[0..1] OF C;
             END_STRUCT END_TYPE
-            
+
             TYPE C : STRUCT
                 b : ARRAY[0..1] OF B;
             END_STRUCT END_TYPE
@@ -349,13 +349,13 @@ mod arrays {
     fn one_cycle_with_multiple_identical_members_aba() {
         let diagnostics = parse_and_validate(
             "
-            TYPE A : STRUCT 
+            TYPE A : STRUCT
                 b1 : ARRAY[0..1] OF B;
                 b2 : ARRAY[0..1] OF B;
                 b3 : ARRAY[0..1] OF B;
             END_STRUCT END_TYPE
 
-            TYPE B : STRUCT 
+            TYPE B : STRUCT
                 a : A;
             END_STRUCT END_TYPE
             ",
@@ -425,18 +425,18 @@ mod arrays {
             TYPE E : STRUCT
                 f : ARRAY [0..1] OF F;
             END_STRUCT END_TYPE
-            
+
             FUNCTION_BLOCK F
                 VAR_INPUT
                     g : G;
                     b : B;
                 END_VAR
             END_FUNCTION_BLOCK
-            
+
             TYPE G : STRUCT
                 h : H;
             END_STRUCT END_TYPE
-            
+
             FUNCTION_BLOCK H
                 VAR_INPUT
                     i : I;
@@ -572,20 +572,20 @@ mod functionblocks {
                     f : F;
                 END_VAR
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK F
                 VAR_INPUT
                     g : G;
                     b : B;
                 END_VAR
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK G
                 VAR_INPUT
                     h : H;
                 END_VAR
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK H
                 VAR_INPUT
                     i : I;
@@ -669,18 +669,18 @@ mod mixed_structs_and_functionblocks {
             TYPE E : STRUCT
                 f : F;
             END_STRUCT END_TYPE
-            
+
             FUNCTION_BLOCK F
                 VAR_INPUT
                     g : G;
                     b : B;
                 END_VAR
             END_FUNCTION_BLOCK
-            
+
             TYPE G : STRUCT
                 h : H;
             END_STRUCT END_TYPE
-            
+
             FUNCTION_BLOCK H
                 VAR_INPUT
                     i : I;

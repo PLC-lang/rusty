@@ -15,15 +15,15 @@ fn max_function() {
 
     let function = r#"
 
-    FUNCTION MAX : INT 
-    VAR_INPUT 
+    FUNCTION MAX : INT
+    VAR_INPUT
         a : INT;
         b : INT;
     END_VAR
 
     IF a > b THEN
         MAX := a;
-    ELSE 
+    ELSE
         MAX := b;
     END_IF
     END_FUNCTION
@@ -99,8 +99,8 @@ fn test_or_sideeffects() {
         res_or : INT;
     END_VAR
 
-    FUNCTION OR_BRANCH : BOOL 
-    VAR_INPUT 
+    FUNCTION OR_BRANCH : BOOL
+    VAR_INPUT
         a : BOOL;
         b : INT;
     END_VAR
@@ -144,8 +144,8 @@ fn test_and_sideeffects() {
         res_and : INT;
     END_VAR
 
-    FUNCTION AND_BRANCH : BOOL 
-        VAR_INPUT 
+    FUNCTION AND_BRANCH : BOOL
+        VAR_INPUT
             a : BOOL;
             b : INT;
         END_VAR
@@ -189,8 +189,8 @@ fn test_amp_as_and_sideeffects() {
         res_and : INT;
     END_VAR
 
-    FUNCTION AND_BRANCH : BOOL 
-        VAR_INPUT 
+    FUNCTION AND_BRANCH : BOOL
+        VAR_INPUT
             a : BOOL;
             b : INT;
         END_VAR
@@ -242,10 +242,10 @@ fn function_block_instances_save_state_per_instance() {
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : foo;
         j : foo;
-    END_VAR 
+    END_VAR
     f();
     f();
     j(4);
@@ -344,9 +344,9 @@ fn functions_can_be_called_out_of_order() {
     END_FUNCTION
 
     PROGRAM main
-        VAR 
+        VAR
             r : INT;
-        END_VAR 
+        END_VAR
         r:= foo();
     END_PROGRAM
     "#;
@@ -377,7 +377,7 @@ fn function_block_instances_save_state_per_instance_2() {
         j: FooType,
     }
     let function = r#"
-    FUNCTION_BLOCK Baz 
+    FUNCTION_BLOCK Baz
     VAR_INPUT
         i : INT;
     END_VAR
@@ -387,16 +387,16 @@ fn function_block_instances_save_state_per_instance_2() {
     FUNCTION_BLOCK foo
     VAR_INPUT
         i : INT;
-        baz: Baz; 
+        baz: Baz;
     END_VAR
-    
+
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : foo;
         j : foo;
-    END_VAR 
+    END_VAR
     f.baz.i := f.baz.i + 1;
     f.baz.i := f.baz.i + 1;
 
@@ -434,7 +434,7 @@ fn function_call_inout_variable() {
             param := param * factor;
         END_PROGRAM
 
-        PROGRAM foo 
+        PROGRAM foo
             VAR_IN_OUT
             inout : DINT;
             END_VAR
@@ -466,7 +466,7 @@ fn inouts_behave_like_pointers() {
         p3: i32,
     }
     let function = r#"
-        VAR_GLOBAL 
+        VAR_GLOBAL
             snap1 : DINT;
             snap2 : DINT;
             snap3 : DINT;
@@ -514,7 +514,7 @@ fn var_output_assignment() {
     }
 
     let function = r#"
-		PROGRAM foo 
+		PROGRAM foo
             VAR_INPUT
                 input1 : DINT;
                 input2 : DINT;
@@ -590,7 +590,7 @@ fn var_output_assignment_in_functions() {
             	output1 : DINT;
 				output2 : DINT;
             END_VAR
-			output1 := input1 + 2; 
+			output1 := input1 + 2;
 			output2 := input2 + 3;
         END_PROGRAM
 
@@ -617,7 +617,7 @@ fn optional_output_assignment_in_functions() {
     }
 
     let function = r#"
-		FUNCTION foo : INT 
+		FUNCTION foo : INT
             VAR_OUTPUT
             	output1 : DINT;
 				output2 : DINT;
@@ -671,7 +671,7 @@ fn direct_call_on_function_block_array_access() {
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : ARRAY[1..2] OF foo;
 		x : INT;
 		y : INT;
@@ -699,15 +699,15 @@ fn nested_calls_in_call_statement() {
     }
 
     let function = r#"
-		FUNCTION seven : DINT 
+		FUNCTION seven : DINT
 			seven := 7;
         END_FUNCTION
 
-        FUNCTION eight : DINT 
+        FUNCTION eight : DINT
 			eight := 8;
         END_FUNCTION
 
-        FUNCTION nine : DINT 
+        FUNCTION nine : DINT
 			nine := 9;
         END_FUNCTION
 
@@ -752,7 +752,7 @@ fn nested_calls_passing_aggregate_types() {
 
         FUNCTION inc : Arr
 			VAR_INPUT
-                a: Arr; 
+                a: Arr;
                 index: DINT;
             END_VAR
 
@@ -806,7 +806,7 @@ fn mux_test() {
             num,b : DINT := 2;
         END_VAR
             b := num;
-            main := MUX(num,b,5,6,7,8); //Result is 6 
+            main := MUX(num,b,5,6,7,8); //Result is 6
         END_FUNCTION
         "#;
 
@@ -977,7 +977,7 @@ fn sel_test_false() {
 fn sel_test_true() {
     let function = r#"
         FUNCTION main : DINT
-            main := SEL(TRUE,4,5); //Result is 5 
+            main := SEL(TRUE,4,5); //Result is 5
         END_FUNCTION
         "#;
 
@@ -994,7 +994,7 @@ fn sel_test_true_vars() {
         VAR a,b : DINT; END_VAR
             a := 4;
             b := 5;
-            main := SEL(TRUE,a,b); //Result is 5 
+            main := SEL(TRUE,a,b); //Result is 5
         END_FUNCTION
         "#;
 
@@ -1174,13 +1174,13 @@ fn sizeof_test() {
         TYPE MyStruct : STRUCT
             a : BYTE; //8bit - offset 0 -> 1 byte
             b : DWORD; //32bit - offset 32 -> 8 bytes
-            c : WORD; //16bit - offset 64 -> 10 bytes 
+            c : WORD; //16bit - offset 64 -> 10 bytes
             d : LWORD; //64bit - offset 128 -> 24 bytes
         END_STRUCT
         END_TYPE
         PROGRAM main
-        VAR 
-            s1 : SINT; 
+        VAR
+            s1 : SINT;
             s2 : INT;
             s3 : DINT;
             s4 : LINT;

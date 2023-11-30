@@ -50,7 +50,7 @@ fn calling_strings_in_function_return() {
        FUNCTION func : STRING
             func := 'hello';
        END_FUNCTION
-       
+
        PROGRAM main
             VAR
                 x : STRING;
@@ -102,9 +102,9 @@ fn cast_pointer_to_lword() {
     let result = codegen(
         r#"
         FUNCTION baz : INT
-            VAR 
-                ptr_x : POINTER TO INT; 
-                y : LWORD; 
+            VAR
+                ptr_x : POINTER TO INT;
+                y : LWORD;
             END_VAR;
 
             y := ptr_x;
@@ -121,8 +121,8 @@ fn cast_lword_to_pointer() {
     let result = codegen(
         r#"
         FUNCTION baz : INT
-            VAR 
-                ptr_x : POINTER TO INT; 
+            VAR
+                ptr_x : POINTER TO INT;
                 y : LWORD;
             END_VAR;
 
@@ -140,8 +140,8 @@ fn cast_between_pointer_types() {
     let result = codegen(
         r#"
         PROGRAM baz
-            VAR 
-                ptr_x : POINTER TO BYTE; 
+            VAR
+                ptr_x : POINTER TO BYTE;
                 y : WORD;
             END_VAR;
 
@@ -159,10 +159,10 @@ fn unnecessary_casts_between_pointer_types() {
     let result = codegen(
         r#"
         TYPE MyByte : BYTE; END_TYPE
-        
+
         PROGRAM baz
-            VAR 
-                ptr : POINTER TO BYTE; 
+            VAR
+                ptr : POINTER TO BYTE;
                 b : BYTE;
                 si : SINT;
                 mb : MyByte;
@@ -184,11 +184,11 @@ fn access_string_via_byte_array() {
     let result = codegen(
         r#"
         TYPE MyByte : BYTE; END_TYPE
-        
+
         PROGRAM baz
-            VAR 
+            VAR
                 str: STRING[10];
-                ptr : POINTER TO BYTE; 
+                ptr : POINTER TO BYTE;
                 bytes : POINTER TO ARRAY[0..9] OF BYTE;
             END_VAR;
 
@@ -394,7 +394,7 @@ fn builtin_function_call_lower_bound() {
         END_VAR
             b := foo(a);
         END_PROGRAM
-        
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
@@ -418,7 +418,7 @@ fn builtin_function_call_upper_bound() {
         END_VAR
             b := foo(a);
         END_PROGRAM
-        
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
@@ -446,13 +446,13 @@ fn builtin_function_call_upper_bound_expr() {
         END_VAR
             b := foo(a);
         END_PROGRAM
-        
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
         END_VAR
             // upper bound of 4th dimension => 8th element in dimension array
-            foo := UPPER_BOUND(vla, MY_CONST - (2 * 3)); 
+            foo := UPPER_BOUND(vla, MY_CONST - (2 * 3));
         END_VAR
         END_FUNCTION
         ",
@@ -469,7 +469,7 @@ fn test_max_int() {
     FUNCTION MAX<U : ANY> : U
     VAR_INPUT in : {sized} U...; END_VAR
     END_FUNCTION
-    
+
     FUNCTION main : INT
     main := MAX(INT#5,INT#2,INT#1,INT#3,INT#4,INT#7,INT#-1);
     END_FUNCTION",

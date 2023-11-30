@@ -283,7 +283,7 @@ fn compare_instructions_with_different_types() {
             var_int  : INT;
 			var_dint : DINT;
 			var_lint : LINT;
-			
+
 			var_usint : USINT;
             var_uint  : UINT;
 			var_udint : UDINT;

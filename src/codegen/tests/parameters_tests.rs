@@ -658,13 +658,13 @@ fn var_in_out_params_can_be_out_of_order() {
         fb.foo(myOtherInOut := out2, myInOut := out1);
         fb.foo(myInOut := out2, myOtherInOut := out1);
     END_PROGRAM
-    
+
     FUNCTION_BLOCK fb_t
     VAR
         myVar	: BOOL;
     END_VAR
     VAR_INPUT
-        myInput	: USINT;    
+        myInput	: USINT;
     END_VAR
     VAR_IN_OUT
         myInOut	: BOOL;

@@ -1,4 +1,4 @@
-{external} 
+{external}
 FUNCTION puts : DINT
 VAR_INPUT {ref}
     text : STRING;

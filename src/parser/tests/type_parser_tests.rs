@@ -31,7 +31,7 @@ fn simple_struct_type_can_be_parsed() {
                 Two:INT;
                 Three:INT;
             END_STRUCT
-        END_TYPE 
+        END_TYPE
         "#,
     );
 
@@ -88,7 +88,7 @@ fn simple_enum_type_can_be_parsed() {
     let (result, ..) = parse(
         r#"
         TYPE SampleEnum : (red, yellow, green);
-        END_TYPE 
+        END_TYPE
         "#,
     );
     insta::assert_debug_snapshot!(result.user_types[0]);
@@ -99,7 +99,7 @@ fn simple_enum_with_numeric_type_can_be_parsed() {
     let (result, ..) = parse(
         r#"
         TYPE SampleEnum : INT (red, yellow, green);
-        END_TYPE 
+        END_TYPE
         "#,
     );
     insta::assert_debug_snapshot!(result.user_types[0]);
@@ -110,7 +110,7 @@ fn simple_enum_with_one_element_numeric_type_can_be_parsed() {
     let (result, ..) = parse(
         r#"
         TYPE SampleEnum : INT (red);
-        END_TYPE 
+        END_TYPE
         "#,
     );
     insta::assert_debug_snapshot!(result.user_types[0]);
@@ -121,7 +121,7 @@ fn typed_enum_with_initial_values_can_be_parsed() {
     let (result, ..) = parse(
         r#"
         TYPE SampleEnum : INT (red := 1, yellow := 2, green := 4);
-        END_TYPE 
+        END_TYPE
         "#,
     );
     insta::assert_debug_snapshot!(result.user_types[0]);
@@ -135,7 +135,7 @@ fn typed_inline_enum_with_initial_values_can_be_parsed() {
         VAR
             x : INT (red := 1, yellow := 2, green := 4);
         END_VAR
-        END_PROGRAM 
+        END_PROGRAM
         "#,
     );
     insta::assert_debug_snapshot!(result.units[0]);
@@ -145,7 +145,7 @@ fn typed_inline_enum_with_initial_values_can_be_parsed() {
 fn type_alias_can_be_parsed() {
     let (result, ..) = parse(
         r#"
-        TYPE 
+        TYPE
             MyInt : INT;
         END_TYPE
         "#,
@@ -226,7 +226,7 @@ fn struct_with_inline_array_can_be_parsed() {
             STRUCT
                 One: ARRAY[0..1] OF INT;
             END_STRUCT
-        END_TYPE 
+        END_TYPE
         "#,
     );
 
@@ -239,7 +239,7 @@ fn pointer_type_test() {
         r#"
         TYPE SamplePointer :
             POINTER TO INT;
-        END_TYPE 
+        END_TYPE
         "#,
     );
     assert_debug_snapshot!(result.user_types[0]);
@@ -251,7 +251,7 @@ fn ref_type_test() {
         r#"
         TYPE SampleReference :
             REF_TO INT;
-        END_TYPE 
+        END_TYPE
         "#,
     );
     assert_debug_snapshot!(result.user_types[0]);
@@ -262,10 +262,10 @@ fn ref_type_test() {
 fn global_pointer_declaration() {
     let (result, diagnostics) = parse_buffered(
         r#"
-        VAR_GLOBAL 
+        VAR_GLOBAL
             SampleReference : REF_TO INT;
             SamplePointer : POINTER TO INT;
-        END_VAR 
+        END_VAR
         "#,
     );
     let reference_type = &result.global_vars[0].variables[0];

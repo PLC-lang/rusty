@@ -659,7 +659,7 @@ fn lint_to_real_conversion() {
 #[test]
 fn lint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT 
+	TYPE myType : STRUCT
 		zero : DINT; negative : DINT; positive : DINT;
 		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
 	END_STRUCT END_TYPE
@@ -668,7 +668,7 @@ fn lint_to_dint_conversion() {
 		MAX : LINT := 2147483647;
 		MIN : LINT := -2147483648;
 	END_VAR
-	
+
 	PROGRAM main
 	VAR
 		ret : myType;

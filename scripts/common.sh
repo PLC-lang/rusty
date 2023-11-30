@@ -18,7 +18,7 @@ function check_env() {
 	# -allow a command to fail with !’s side effect on errexit
 	# -use return value from ${PIPESTATUS[0]}, because ! hosed $?
 
-	! getopt --test > /dev/null  
+	! getopt --test > /dev/null
 	if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 		echo 'Error:  extended getopts needed'
 		exit 1
@@ -38,7 +38,7 @@ function get_compiler() {
 		then
 			log "Found clang, using as default"
 			res=clang-14
-		else 
+		else
 			echo 'Error : clang / clang-14 not found'
 			exit 1
 		fi
@@ -48,13 +48,13 @@ function get_compiler() {
 }
 
 function get_container_engine() {
-	log "Trying docker" 
-	if command -v docker &> /dev/null 
+	log "Trying docker"
+	if command -v docker &> /dev/null
 	then
 		container_engine=docker
 	else
 		>&2 log "Docker not found, trying podman"
-		if command -v podman &> /dev/null 
+		if command -v podman &> /dev/null
 		then
 			container_engine=podman
 		else
@@ -69,7 +69,7 @@ function get_container_engine() {
 
 function find_project_root() {
 	log "Locating project root"
-	if command -v cargo &> /dev/null 
+	if command -v cargo &> /dev/null
 	then
 		log "Using cargo"
 		project_location=$(cargo locate-project --message-format plain)

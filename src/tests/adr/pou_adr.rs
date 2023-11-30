@@ -28,7 +28,7 @@ use crate::test_utils::tests::{annotate_with_ids, codegen, index_with_ids};
 /// global variable withe the program's name. When calling a program all parameters, except IN_OUT parameters, are optional.
 
 const DEFAULT_PRG: &str = r#"
-    PROGRAM main_prg 
+    PROGRAM main_prg
         VAR_INPUT   i   : INT   END_VAR
         VAR_IN_OUT  io  : INT   END_VAR
         VAR_OUTPUT  o   : INT;  END_VAR
@@ -259,7 +259,7 @@ fn calling_a_program() {
         r#"
         FUNCTION foo : INT
             VAR x, y : INT; END_VAR
-            main_prg(i := 1, io := y, o => x); 
+            main_prg(i := 1, io := y, o => x);
         END_FUNCTION
 
         {DEFAULT_PRG}
@@ -361,8 +361,8 @@ fn calling_a_function_block() {
         PROGRAM foo
             VAR x, y    : INT;      END_VAR
             VAR fb      : main_fb;  END_VAR
-            
-            fb(i := 1, io := y, o => x); 
+
+            fb(i := 1, io := y, o => x);
         END_PROGRAM
 
         {DEFAULT_FB}
@@ -463,7 +463,7 @@ fn calling_a_function() {
 			x : INT;
 			z : SINT;
 		END_VAR
-            main_fun(x, z); 
+            main_fun(x, z);
         END_FUNCTION
 
         {DEFAULT_FUNC}
@@ -526,9 +526,9 @@ fn return_a_complex_type_from_function() {
 
         PROGRAM prg
             VAR
-                s : STRING; 
+                s : STRING;
             END_VAR
-            s := foo(); 
+            s := foo();
         END_FUNCTION
     "#;
     insta::assert_snapshot!(codegen(returning_string), @r###"
@@ -594,8 +594,8 @@ fn passing_by_ref_to_functions() {
             // ...
         END_FUNCTION
         PROGRAM main
-            VAR 
-                str1, str2 : STRING; 
+            VAR
+                str1, str2 : STRING;
             END_VAR
             StrEqual(str1, str2); //looks like pass by-val
         END_PROGRAM

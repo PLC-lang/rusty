@@ -326,15 +326,15 @@ struct ArrayProgram {
 #[test]
 fn initial_values_in_single_dimension_array_variable() {
     let function = r"
-        VAR_GLOBAL 
-          a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
-          b : ARRAY[0..2] OF INT  := [4, 5, 6]; 
-          c : ARRAY[0..2] OF DINT  := [7, 8, 9]; 
-          d : ARRAY[0..2] OF LINT  := [10, 11, 12]; 
-          _e : ARRAY[0..2] OF USINT  := [13, 14, 15]; 
-          f : ARRAY[0..2] OF UINT  := [16, 17, 18]; 
-          g : ARRAY[0..2] OF ULINT := [19, 20, 21]; 
-          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, FALSE]; 
+        VAR_GLOBAL
+          a : ARRAY[0..2] OF SINT  := [1, 2, 3];
+          b : ARRAY[0..2] OF INT  := [4, 5, 6];
+          c : ARRAY[0..2] OF DINT  := [7, 8, 9];
+          d : ARRAY[0..2] OF LINT  := [10, 11, 12];
+          _e : ARRAY[0..2] OF USINT  := [13, 14, 15];
+          f : ARRAY[0..2] OF UINT  := [16, 17, 18];
+          g : ARRAY[0..2] OF ULINT := [19, 20, 21];
+          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, FALSE];
         END_VAR
 
         PROGRAM main
@@ -416,8 +416,8 @@ struct MultiDimArrayProgram {
 #[test]
 fn initial_values_in_multi_dimension_array_variable() {
     let function = r"
-        VAR_GLOBAL 
-          a : ARRAY[0..1, 3..4] OF SINT  := [1, 2, 3, 4]; 
+        VAR_GLOBAL
+          a : ARRAY[0..1, 3..4] OF SINT  := [1, 2, 3, 4];
         END_VAR
 
         PROGRAM main
@@ -426,8 +426,8 @@ fn initial_values_in_multi_dimension_array_variable() {
                 a1 : SINT;
                 a2 : SINT;
                 a3 : SINT;
-            END_VAR 
-            
+            END_VAR
+
             a0 := a[0,3];
             a1 := a[0,4];
             a2 := a[1,3];
@@ -459,8 +459,8 @@ struct ArrayOfArrayProgram {
 #[test]
 fn initial_values_in_array_of_array_variable() {
     let function = r"
-        VAR_GLOBAL 
-          a : ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF SINT  := [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]; 
+        VAR_GLOBAL
+          a : ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF SINT  := [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
         END_VAR
 
         PROGRAM main
@@ -473,8 +473,8 @@ fn initial_values_in_array_of_array_variable() {
                 a6 : SINT;
                 a7 : SINT;
                 a8 : SINT;
-            END_VAR 
-            
+            END_VAR
+
             a1 := a[0][0][0];
             a2 := a[0][0][1];
             a3 := a[0][1][0];
@@ -511,7 +511,7 @@ struct RealsAndFloats {
 #[test]
 fn real_initial_values_in_array_variable() {
     let function = r"
-        VAR_GLOBAL 
+        VAR_GLOBAL
             f : ARRAY[0..1] OF REAL := [9.1415, 0.001];
             r : ARRAY[0..1] OF LREAL := [9.141592653589, 0.000000001];
         END_VAR
@@ -522,8 +522,8 @@ fn real_initial_values_in_array_variable() {
                 f2 : REAL;
                 r1 : LREAL;
                 r2 : LREAL;
-            END_VAR 
-            
+            END_VAR
+
             f1 := f[0];
             f2 := f[1];
             r1 := r[0];
@@ -557,7 +557,7 @@ fn initialization_of_complex_struct_instance() {
           y: DINT;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
           point: MyPoint;
           my_array: ARRAY[0..3] OF INT;
@@ -565,12 +565,12 @@ fn initialization_of_complex_struct_instance() {
         END_STRUCT
         END_TYPE
 
-        VAR_GLOBAL 
+        VAR_GLOBAL
           a : MyStruct  := (
               point := (x := 1, y:= 2),
               my_array := [0,1,2,3],
               f := 7.89
-            ); 
+            );
         END_VAR
 
         PROGRAM main
@@ -580,7 +580,7 @@ fn initialization_of_complex_struct_instance() {
                 arr1 : INT;
                 arr3 : INT;
                 f : REAL;
-            END_VAR 
+            END_VAR
 
             x := a.point.x;
             y := a.point.y;
@@ -611,7 +611,7 @@ fn initialization_of_complex_struct_instance_using_defaults() {
           y: DINT := 7;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
           point: MyPoint;
           my_array: ARRAY[0..3] OF INT;
@@ -619,11 +619,11 @@ fn initialization_of_complex_struct_instance_using_defaults() {
         END_STRUCT
         END_TYPE
 
-        VAR_GLOBAL 
+        VAR_GLOBAL
           a : MyStruct  := (
               point := (x := 1),
               my_array := [0,1,2,3]
-            ); 
+            );
         END_VAR
 
         PROGRAM main
@@ -633,7 +633,7 @@ fn initialization_of_complex_struct_instance_using_defaults() {
                 arr1 : INT;
                 arr3 : INT;
                 f : REAL;
-            END_VAR 
+            END_VAR
 
             x := a.point.x;
             y := a.point.y;
@@ -679,15 +679,15 @@ fn initialization_of_string_variables() {
         END_TYPE
 
         VAR_GLOBAL g : StringStruct; END_VAR
- 
+
         PROGRAM main
             VAR
-                mystring: MyString := 'xxx'; 
+                mystring: MyString := 'xxx';
                 mystring2: MyString;
                 string1 : STRING := 'xxx';
                 string2 : STRING := 'xxx';
                 string3 : STRING[20];
-            END_VAR 
+            END_VAR
 
             mystring := g.mystring;
             mystring2 := g.mystring2;
@@ -783,13 +783,13 @@ fn initialization_of_function_variables() {
 #[test]
 fn initialization_of_struct_in_fb() {
     let function = r"
-        TYPE str : STRUCT 
-            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        TYPE str : STRUCT
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT;
         END_STRUCT END_TYPE
         VAR_GLOBAL
             fb : other;
         END_VAR
-        FUNCTION_BLOCK other 
+        FUNCTION_BLOCK other
         VAR
           a : str;
         END_VAR
@@ -821,10 +821,10 @@ fn initialization_of_struct_in_fb() {
 #[test]
 fn initialization_of_struct_in_prg() {
     let function = r"
-        TYPE str : STRUCT 
-            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        TYPE str : STRUCT
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT;
         END_STRUCT END_TYPE
-        PROGRAM other 
+        PROGRAM other
         VAR
           a : str;
         END_VAR
@@ -857,8 +857,8 @@ fn initialization_of_struct_in_prg() {
 #[test]
 fn initialization_of_struct_ref_in_fb_in_function() {
     let function = r"
-        TYPE str : STRUCT 
-            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        TYPE str : STRUCT
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT;
         END_STRUCT END_TYPE
         FUNCTION_BLOCK fb
         VAR
@@ -910,8 +910,8 @@ fn initialization_of_struct_ref_in_fb_in_function() {
 #[test]
 fn initialization_of_struct_ref_in_function() {
     let function = r"
-        TYPE str : STRUCT 
-            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        TYPE str : STRUCT
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT;
         END_STRUCT END_TYPE
         FUNCTION other : DINT
         VAR
@@ -1069,7 +1069,7 @@ fn array_test() {
             a := u;
             b := v;
             c := w;
-            d := x; 
+            d := x;
         END_PROGRAM
         ";
 
@@ -1148,7 +1148,7 @@ fn initialized_array_type_in_program() {
             VAR
                 arr_var : ARRAY[-1..2] OF DINT;
             END_VAR
-           
+
            arr_var := target.arr_var;
         END_PROGRAM
 		";
@@ -1168,7 +1168,7 @@ fn intial_values_diverge_from_type() {
     TYPE myInt : DINT := 4; END_TYPE
 
     PROGRAM target
-    VAR 
+    VAR
 		arr_var : arr := [5,6,7,8];
         i : myInt := 5;
     END_VAR
@@ -1201,7 +1201,7 @@ fn initial_value_of_function_return_dint() {
 
     // WHEN I only increment the function's return before returning it
     let function = "
-    
+
     TYPE myInt : DINT := 4; END_TYPE
 
     FUNCTION target : myInt
@@ -1212,7 +1212,7 @@ fn initial_value_of_function_return_dint() {
     VAR
         i : DINT;
     END_VAR
-    
+
     i := target();
     END_PROGRAM
     ";
@@ -1269,11 +1269,11 @@ fn initial_value_of_function_return_struct() {
 
     // WHEN I only increment a by 1, b by 2 and c by 3 before returning it
     let function = "
-    
-    TYPE myStruct : STRUCT 
-            a : DINT := 10; 
-            b : DINT := 20; 
-            c : DINT := 30; 
+
+    TYPE myStruct : STRUCT
+            a : DINT := 10;
+            b : DINT := 20;
+            c : DINT := 30;
         END_STRUCT
     END_TYPE
 
@@ -1288,7 +1288,7 @@ fn initial_value_of_function_return_struct() {
             a,b,c : DINT;
             str : myStruct;
         END_VAR
-        
+
         str := target();
         a := str.a;
         b := str.b;

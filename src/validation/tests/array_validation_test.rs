@@ -68,7 +68,7 @@ fn array_initialization_validation() {
 			x	:= (var1 := 1, var2 := 3, 4); 														// Missing `[`
 			x	:= (var1 := 1, var2 := arr_init); // valid
 		END_FUNCTION
-		
+
 		TYPE myStruct : STRUCT
 				var1 : DINT;
 				var2 : ARRAY[1..2] OF DINT;
@@ -152,7 +152,7 @@ fn assignment_2d() {
 			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-			
+
 			arr_nested		:= [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10] ]; // Valid
 			arr_nested		:= [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
 			arr_nested		:= ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
@@ -182,7 +182,7 @@ fn assignment_3d() {
 			arr := (1, 2, 3, 4, 5, 6, 7, 8);
 			arr := (1, 2, 3, 4, 5, 6, 7, 8, 9);
 			arr := [1, 2, 3, 4, 5, 6, 7, 8, 9];
-			
+
 			arr_nested := [ [[1, 2], [3, 4]], [[5, 6], [7, 8]] ]; // Valid
 			arr_nested := [ [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] ];
 			arr_nested := ( [[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]] );
@@ -240,7 +240,7 @@ fn exceeding_size_structs() {
 		FUNCTION main : DINT
 			VAR
 				arr_a : Foo := (
-					idx := 1, 
+					idx := 1,
 					arr := [(arr := [1, 2]), (arr := [3, 4]), (arr := [5, 6])] 			// Invalid, because the outter `arr` can only store 2 elements
 				);
 

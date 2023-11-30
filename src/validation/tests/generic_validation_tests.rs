@@ -1011,7 +1011,7 @@ fn any_bit_allows_bits() {
 		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
 		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
         // binary expressions
-        FUNCTION func6  : INT 
+        FUNCTION func6  : INT
         VAR
         a : BOOL;
         b : BYTE;

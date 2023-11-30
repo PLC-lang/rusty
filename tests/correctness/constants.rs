@@ -205,8 +205,8 @@ fn global_constant_string_assignment() {
 		END_VAR
 
         PROGRAM main
-		VAR 
-			str : STRING[5]; 
+		VAR
+			str : STRING[5];
 		END_VAR
 			str := const_string;
         END_PROGRAM
@@ -231,8 +231,8 @@ fn global_constant_array_assignment() {
 		END_VAR
 
         PROGRAM main
-		VAR 
-			arr : ARRAY[0..3] OF INT; 
+		VAR
+			arr : ARRAY[0..3] OF INT;
 		END_VAR
 			arr := const_arr;
         END_PROGRAM

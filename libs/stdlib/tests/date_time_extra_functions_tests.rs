@@ -1015,7 +1015,7 @@ fn day_of_week() {
 		b : SINT;
 		c : SINT;
 	END_VAR
-		a := DAY_OF_WEEK(DATE#2022-06-14); // tuesday = 2 
+		a := DAY_OF_WEEK(DATE#2022-06-14); // tuesday = 2
 		b := DAY_OF_WEEK(DATE#2022-06-12); // sunday = 0
 		c := DAY_OF_WEEK(DATE#2022-06-18); // saturday = 6
 	END_PROGRAM";

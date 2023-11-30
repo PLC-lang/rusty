@@ -5,7 +5,7 @@ fn bitaccess_only_on_bit_types() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : BOOL;
             invalid2 : STRING;
             valid : BYTE;
@@ -31,7 +31,7 @@ fn byteaccess_only_on_bigger_sizes() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : BYTE;
             invalid2 : SINT;
             invalid3 : USINT;
@@ -54,7 +54,7 @@ fn wordaccess_only_on_bigger_sizes() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : WORD;
             invalid2 : INT;
             invalid3 : UINT;
@@ -77,7 +77,7 @@ fn dwordaccess_only_on_bigger_sizes() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : DWORD;
             invalid2 : DINT;
             invalid3 : UDINT;
@@ -100,7 +100,7 @@ fn bitaccess_range_test() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 a : BYTE; b : WORD; c : DWORD; d : LWORD;
             END_VAR
                 a.8;
@@ -119,7 +119,7 @@ fn byteaccess_range_test() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 b : WORD; c : DWORD; d : LWORD;
             END_VAR
                 b.%B2;
@@ -137,7 +137,7 @@ fn wordaccess_range_test() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 c : DWORD; d : LWORD;
             END_VAR
                 c.%W2;
@@ -154,7 +154,7 @@ fn dwordaccess_range_test() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 d : LWORD;
             END_VAR
                 d.%D2;
@@ -170,7 +170,7 @@ fn reference_direct_access_only_with_ints() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 c : DWORD; d : INT; e : LREAL; f : REAL;
             END_VAR
                 c.%Xd;

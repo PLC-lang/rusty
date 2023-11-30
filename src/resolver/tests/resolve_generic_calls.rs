@@ -512,7 +512,7 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 fn builtin_adr_ref_return_annotated() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
-        "PROGRAM main 
+        "PROGRAM main
         VAR_INPUT
             input1 : REF_TO DINT;
             param1 : DINT;
@@ -573,7 +573,7 @@ fn resolve_variadic_generics() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-    FUNCTION ex<U: ANY> : U 
+    FUNCTION ex<U: ANY> : U
     VAR_INPUT
         ar : {sized}U...;
     END_VAR
@@ -613,14 +613,14 @@ fn generic_call_gets_cast_to_biggest_type() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         r"
- 
+
     {external}
     FUNCTION MAX<T : ANY> : T
         VAR_INPUT
             args : {sized} T...;
         END_VAR
     END_FUNCTION
- 
+
     FUNCTION main : LREAL
         MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
     END_FUNCTION",
@@ -694,13 +694,13 @@ fn auto_pointer_of_generic_resolved() {
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT_EXT<T : ANY> : DINT
         VAR_IN_OUT
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT__DINT : DINT
         VAR_INPUT
             IN : DINT;
@@ -731,14 +731,14 @@ fn string_ref_as_generic_resolved() {
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
         VAR_INPUT {ref}
             IN : T;
         END_VAR
         END_FUNCTION
-    
-        FUNCTION LEFT__STRING : STRING 
+
+        FUNCTION LEFT__STRING : STRING
         VAR_INPUT
             IN : STRING;
         END_VAR
@@ -832,7 +832,7 @@ fn generic_string_functions_are_annotated_correctly() {
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR        
+        END_VAR
         END_FUNCTION
 
         FUNCTION foo__STRING : STRING
@@ -878,7 +878,7 @@ fn generic_string_functions_are_annotated_correctly() {
 fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-        r#"         
+        r#"
         FUNCTION LEN <T: ANY_STRING> : DINT
         VAR_INPUT {ref}
             IN : T;
@@ -943,7 +943,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR      
+        END_VAR
         VAR_OUTPUT {ref}
             out : T;
         END_VAR

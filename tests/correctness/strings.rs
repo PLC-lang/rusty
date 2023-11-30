@@ -13,9 +13,9 @@ use std::ffi::CStr;
 fn string_assignment_from_smaller_literal() {
     let src = r#"
         PROGRAM main
-            VAR 
-                x : STRING[6]; 
-                y : WSTRING[6]; 
+            VAR
+                x : STRING[6];
+                y : WSTRING[6];
             END_VAR
             x := 'hello';
             y := "hello";
@@ -39,7 +39,7 @@ fn string_assignment_from_smaller_literal() {
 fn string_assignment_from_bigger_literal() {
     let src = r#"
         PROGRAM main
-            VAR 
+            VAR
                 x : STRING[4];
                 y : WSTRING[4];
             END_VAR
@@ -64,10 +64,10 @@ fn string_assignment_from_bigger_literal() {
 #[test]
 fn string_assignment_from_smaller_string() {
     let src = r#"
-        PROGRAM main 
-            VAR 
-                x : STRING[6]; y : STRING[5]; 
-                u : WSTRING[6]; v : WSTRING[5]; 
+        PROGRAM main
+            VAR
+                x : STRING[6]; y : STRING[5];
+                u : WSTRING[6]; v : WSTRING[5];
             END_VAR
             y := 'hello';
             x := y;
@@ -95,9 +95,9 @@ fn string_assignment_from_smaller_string() {
 fn string_assignment_from_bigger_string() {
     let src = r#"
         PROGRAM main
-            VAR 
+            VAR
                 x : STRING[4]; y : STRING[5];
-                u : WSTRING[4]; v : WSTRING[5]; 
+                u : WSTRING[4]; v : WSTRING[5];
             END_VAR
             y := 'hello';
             x := y;
@@ -295,11 +295,11 @@ fn initialization_of_string_arrays() {
 
         PROGRAM main
             VAR x,y,z : STRING[10]; END_VAR
-        
+
             x := texts[0];
             y := texts[1];
             z := texts[2];
-        
+
         END_PROGRAM
     ";
 
@@ -531,14 +531,14 @@ fn wstring_as_function_parameters_cast() {
 fn string_as_function_return_type_does_not_truncate() {
     let src = "
         FUNCTION foo : STRING[100]
-        VAR_INPUT 
+        VAR_INPUT
             str_param : STRING[100];
         END_VAR
             foo := str_param;
         END_FUNCTION
 
         PROGRAM main
-        VAR 
+        VAR
             x : STRING[100]
         END_VAR
             x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
@@ -564,7 +564,7 @@ fn string_as_function_return_type_does_not_truncate() {
 fn string_ref_returned_from_wrapper_function_does_not_truncate() {
     let src = "
         FUNCTION foo : STRING[100]
-        VAR_INPUT 
+        VAR_INPUT
             str_param : STRING[100];
         END_VAR
             bar(str_param, foo);
@@ -581,7 +581,7 @@ fn string_ref_returned_from_wrapper_function_does_not_truncate() {
         END_FUNCTION
 
         PROGRAM main
-        VAR 
+        VAR
             x : STRING[100]
         END_VAR
             x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
@@ -609,7 +609,7 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR        
+        END_VAR
         END_FUNCTION
 
         FUNCTION foo__STRING : STRING[100]
@@ -629,8 +629,8 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
             out := in;
         END_FUNCTION
 
-        PROGRAM main 
-        VAR 
+        PROGRAM main
+        VAR
             param : STRING[100];
             x : STRING[100];
         END_VAR
@@ -657,7 +657,7 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
 fn string_returned_from_main_does_not_truncate() {
     let src = "
         FUNCTION main : STRING[100]
-        VAR 
+        VAR
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
@@ -668,9 +668,9 @@ fn string_returned_from_main_does_not_truncate() {
     let _: u32 = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{res:?}"), 
+        format!("{res:?}"),
         format!(
-            "{:?}", 
+            "{:?}",
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
         )
     )
@@ -682,7 +682,7 @@ fn when_function_returns_value_from_generic_function_call_then_string_does_not_t
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR        
+        END_VAR
         END_FUNCTION
 
         FUNCTION foo__STRING : STRING[100]
@@ -703,20 +703,20 @@ fn when_function_returns_value_from_generic_function_call_then_string_does_not_t
         END_FUNCTION
 
         FUNCTION main : STRING[100]
-        VAR 
+        VAR
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
-            main := foo(param);           
+            main := foo(param);
         END_FUNCTION
     ";
     let mut res: [u8; 101] = [0; 101];
     let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{res:?}"), 
+        format!("{res:?}"),
         format!(
-            "{:?}", 
+            "{:?}",
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
         )
     )
@@ -743,20 +743,20 @@ fn when_function_returns_value_from_function_call_string_does_not_truncate() {
         END_FUNCTION
 
         FUNCTION main : STRING[100]
-        VAR 
+        VAR
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
-            main := foo(param);            
+            main := foo(param);
         END_FUNCTION
     ";
     let mut res: [u8; 101] = [0; 101];
     let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{res:?}"), 
+        format!("{res:?}"),
         format!(
-            "{:?}", 
+            "{:?}",
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
         )
     )
@@ -775,9 +775,9 @@ fn program_string_output() {
 		END_PROGRAM
 
         PROGRAM main
-		VAR 
-			x : STRING[6]; 
-			y : WSTRING[7]; 
+		VAR
+			x : STRING[6];
+			y : WSTRING[7];
 		END_VAR
 			prog(x, y);
         END_PROGRAM

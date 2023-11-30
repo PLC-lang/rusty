@@ -6,7 +6,7 @@ use insta::assert_snapshot;
 fn unknown_reference_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -25,7 +25,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
 fn exit_not_in_loop() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -44,7 +44,7 @@ fn exit_not_in_loop() {
 fn continue_not_in_loop() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -65,13 +65,13 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
             a : INT;
             b : INT;
         END_STRUCT
         END_TYPE
 
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : MyStruct;
             END_VAR
@@ -92,7 +92,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
 fn invalid_array_access_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -114,13 +114,13 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
             a : INT;
             b : INT;
         END_STRUCT
         END_TYPE
 
-       PROGRAM prg 
+       PROGRAM prg
             VAR
                 x : MyStruct;
             END_VAR
@@ -139,7 +139,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
 #[test]
 fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     let src = "
-       PROGRAM prg 
+       PROGRAM prg
             VAR
                 x : ARRAY[0..1] OF INT;
             END_VAR
@@ -160,7 +160,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
 #[test]
 fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     let src = "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..1] OF INT;
                 y : INT;
@@ -189,13 +189,13 @@ fn invalid_initial_constant_values_in_pou_variables() {
         VAR_GLOBAL
             LEN : DINT := MAX_LEN - 2;
         END_VAR
- 
+
         PROGRAM prg
       	  VAR_INPUT
             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
           END_VAR
         END_PROGRAM
- 
+
         "#,
         crate::DebugLevel::None,
     )
@@ -373,7 +373,7 @@ fn assigning_to_rvalue() {
             x : INT;
         END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
             func(1 := 1);
         END_PROGRAM
