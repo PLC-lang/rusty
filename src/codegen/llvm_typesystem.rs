@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::values::BasicValue;
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
@@ -185,7 +184,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
             }
-            _ if cast_data.value_type == cast_data.target_type => self.as_basic_value_enum(),
             _ => unreachable!("Cannot cast integer value to {}", cast_data.target_type.get_name()),
         }
     }
