@@ -36,7 +36,7 @@ fn test_external_function_called() {
     //Test the function's result is executed
 }
 
-extern "C" fn add(size: i32, ptr: *const i32) -> i32 {
+extern "C" fn add_local(size: i32, ptr: *const i32) -> i32 {
     let mut result = 0;
     let mut ptr = ptr;
     for _ in 0..size {
@@ -64,14 +64,14 @@ extern "C" fn add_ref(size: i32, ptr: *const *const i32) -> i32 {
 fn sized_variadic_call() {
     let src = "
         {external}
-        FUNCTION add : DINT
+        FUNCTION add_local : DINT
         VAR_INPUT
             args : {sized} DINT...;
         END_VAR
         END_FUNCTION
 
         FUNCTION main : DINT
-            main := add(1, 2, 3);
+            main := add_local(1, 2, 3);
         END_FUNCTION
         ";
 
@@ -79,7 +79,7 @@ fn sized_variadic_call() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("add", add as usize);
+    module.add_global_function_mapping("add_local", add_local as usize);
 
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)

@@ -272,8 +272,7 @@ fn adds_array_basic() {
 }
 
 //--------------------------
-
-fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {
+pub fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {
     let factor: T = NumCast::from(10.0.powi(decimal_places as i32)).unwrap();
     let a = (a * factor).round();
     let b = (b * factor).round();

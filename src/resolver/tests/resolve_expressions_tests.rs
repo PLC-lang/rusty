@@ -5313,3 +5313,155 @@ fn annotate_method_in_super() {
         );
     }
 }
+
+// these test checks if builtin calls to GT, LT, GE, LE, EQ, NE are annotated correctly
+#[test]
+fn comparison_function_replacement_ast_is_identical_to_using_symbols() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION foo: DINT
+        VAR
+            a: DINT;
+            b: DINT;
+            c: REAL;
+            d: DATE;
+        END_VAR
+            a > b AND b > c AND c > d;
+            GT(a, b, c, d);
+            a <= b AND b <= c AND c <= d;
+            LE(a, b, c, d);
+        END_FUNCTION
+    ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // check if a > b AND b > c AND c < d produces the same AST to GT(a, b, c, d)
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode { stmt: expected, .. } = stmt;
+
+    let stmt = &unit.implementations[0].statements[1];
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) else {
+        unreachable!()
+    };
+    let AstNode { stmt: actual, .. } = statement;
+
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", actual));
+
+    // check if a <= b AND b <= c AND c <= d produces the same AST to LE(a, b, c, d)
+    let stmt = &unit.implementations[0].statements[2];
+    let AstNode { stmt: expected, .. } = stmt;
+
+    let stmt = &unit.implementations[0].statements[3];
+    let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) else {
+        unreachable!()
+    };
+    let AstNode { stmt: actual, .. } = statement;
+
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", actual))
+}
+
+#[test]
+fn builtin_gt_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("GT"));
+}
+#[test]
+fn builtin_ge_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("GE"));
+}
+
+#[test]
+fn builtin_eq_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("EQ"));
+}
+
+#[test]
+fn builtin_lt_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("LT"));
+}
+
+#[test]
+fn builtin_le_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("LE"));
+}
+
+#[test]
+fn builtin_ne_replacement_ast() {
+    insta::assert_debug_snapshot!(generate_comparison_test("NE"));
+}
+
+// Helper function to generate the comparison test
+fn generate_comparison_test(operator: &str) -> StatementAnnotation {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        format!(
+            "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LINT;
+                d : LWORD;
+            END_VAR
+                {}(a, b, c, d);
+            END_FUNCTION
+            ",
+            operator
+        ),
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    annotations.get(stmt).unwrap().clone()
+}
+
+#[test]
+fn builtin_add_replacement_ast() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LINT;
+                d : REAL;
+            END_VAR
+                ADD(a, b, c, d);
+            END_FUNCTION
+            ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    insta::assert_debug_snapshot!(annotations.get(stmt));
+}
+
+#[test]
+fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_nature() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            FUNCTION main : DINT
+            VAR
+                a : DINT;
+                b : INT;
+                c : LWORD;
+                d : TIME;
+            END_VAR
+                ADD(a, b, c, d);
+            END_FUNCTION
+            ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0];
+    if let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) {
+        panic!("Expected no replacement ast, got {:?}", statement)
+    }
+}

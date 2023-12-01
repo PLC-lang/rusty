@@ -933,3 +933,55 @@ fn div_ltime() {
         chrono::Utc.timestamp_millis_opt(2_700).unwrap() // 2_700ms => 2s 700ms
     );
 }
+
+#[test]
+#[should_panic]
+fn date_time_overloaded_add_function_called_with_too_many_params() {
+    let src = "
+        FUNCTION main : LINT
+        VAR
+            x1 : ARRAY[0..3] OF DATE;
+            x2 : DATE;
+        END_VAR
+            main := ADD(x1[0], x1[1], x1[2], x1[3], x2);
+        END_FUNCTION
+    ";
+
+    let sources = add_std!(src, "date_time_numeric_functions.st");
+    let mut maintype = MainType::default();
+    let _: i64 = compile_and_run(sources, &mut maintype);
+}
+
+#[test]
+fn date_time_overloaded_add_and_numerical_add_compile_correctly() {
+    let src = "
+        PROGRAM main
+        VAR
+            a: LINT;
+            b: REAL;
+        END_VAR
+        VAR_TEMP
+            var_tod : TOD := TOD#23:00:01;
+            var_time : TIME := TIME#55m59s;
+            var_real : REAL := 1.0;
+            var_dint : DINT := 10;
+        END_VAR
+            a := ADD(var_tod, var_time);
+            b := ADD(var_real, var_dint, 3, 4);
+        END_PROGRAM
+    ";
+
+    #[derive(Default)]
+    struct MainType {
+        a: i64,
+        b: f32,
+    }
+
+    let sources = add_std!(src, "date_time_numeric_functions.st");
+    let mut maintype = MainType::default();
+    let _: i64 = compile_and_run(sources, &mut maintype);
+    let tod_23h_56m = get_time_from_hms(23, 56, 0).timestamp_nanos();
+
+    assert_eq!(tod_23h_56m, maintype.a);
+    assert_eq!(18.0, maintype.b);
+}

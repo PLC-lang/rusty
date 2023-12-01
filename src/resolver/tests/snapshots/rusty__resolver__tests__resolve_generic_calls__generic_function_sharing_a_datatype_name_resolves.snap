@@ -1,0 +1,19 @@
+---
+source: src/resolver/tests/resolve_generic_calls.rs
+expression: annotations.get(operator)
+---
+Some(
+    ReplacementAst {
+        statement: BinaryExpression {
+            operator: Less,
+            left: LiteralString {
+                value: "hello",
+                is_wide: false,
+            },
+            right: LiteralString {
+                value: "world",
+                is_wide: false,
+            },
+        },
+    },
+)

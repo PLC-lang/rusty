@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/builtin_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 116 }..TextLocation { line: 6, column: 14, offset: 118 }) }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 134 }..TextLocation { line: 7, column: 14, offset: 136 }) }], err_no: call__invalid_parameter_count }
+SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 12, offset: 192 }..TextLocation { line: 9, column: 14, offset: 194 }) }], err_no: call__invalid_parameter_count }
+

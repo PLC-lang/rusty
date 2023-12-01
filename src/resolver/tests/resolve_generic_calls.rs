@@ -1,3 +1,4 @@
+use insta::assert_debug_snapshot;
 use plc_ast::{
     ast::{flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement},
     provider::IdProvider,
@@ -1093,18 +1094,8 @@ fn generic_function_sharing_a_datatype_name_resolves() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];
 
-    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }, ..), .. } = statement {
-        assert_eq!(
-            annotations.get(operator).unwrap(),
-            &StatementAnnotation::Function {
-                return_type: "BOOL".to_string(),
-                qualified_name: "LT".to_string(),
-                call_name: Some("LT__STRING".to_string()),
-            }
-        );
-    } else {
-        unreachable!("This should always be a call statement.")
-    }
+    // comparision function calls are resolved to replacement-AST expressions
+    assert_debug_snapshot!(annotations.get(statement));
 }
 
 #[test]
