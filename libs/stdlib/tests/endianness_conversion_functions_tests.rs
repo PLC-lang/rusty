@@ -12,7 +12,7 @@ const DURATION_NANOS: i64 = DURATION_MILLIS * 1000000;
 fn test_to_big_endian_int() {
     let src = r#"FUNCTION main : INT
         main := TO_BIG_ENDIAN(INT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -24,7 +24,7 @@ fn test_to_big_endian_int() {
 fn test_to_little_endian_int() {
     let src = r#"FUNCTION main : INT
         main := TO_LITTLE_ENDIAN(INT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -36,7 +36,7 @@ fn test_to_little_endian_int() {
 fn test_from_big_endian_int() {
     let src = r#"FUNCTION main : INT
         main := FROM_BIG_ENDIAN(INT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -48,7 +48,7 @@ fn test_from_big_endian_int() {
 fn test_from_little_endian_int() {
     let src = r#"FUNCTION main : INT
         main := FROM_LITTLE_ENDIAN(INT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -61,7 +61,7 @@ fn test_from_little_endian_int() {
 fn test_to_big_endian_dint() {
     let src = r#"FUNCTION main : DINT
         main := TO_BIG_ENDIAN(DINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -73,7 +73,7 @@ fn test_to_big_endian_dint() {
 fn test_to_little_endian_dint() {
     let src = r#"FUNCTION main : DINT
         main := TO_LITTLE_ENDIAN(DINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -85,7 +85,7 @@ fn test_to_little_endian_dint() {
 fn test_from_big_endian_dint() {
     let src = r#"FUNCTION main : DINT
         main := FROM_BIG_ENDIAN(DINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -97,7 +97,7 @@ fn test_from_big_endian_dint() {
 fn test_from_little_endian_dint() {
     let src = r#"FUNCTION main : DINT
         main := FROM_LITTLE_ENDIAN(DINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -110,7 +110,7 @@ fn test_from_little_endian_dint() {
 fn test_to_big_endian_lint() {
     let src = r#"FUNCTION main : LINT
         main := TO_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -122,7 +122,7 @@ fn test_to_big_endian_lint() {
 fn test_to_little_endian_lint() {
     let src = r#"FUNCTION main : LINT
         main := TO_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -134,7 +134,7 @@ fn test_to_little_endian_lint() {
 fn test_from_big_endian_lint() {
     let src = r#"FUNCTION main : LINT
         main := FROM_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -146,7 +146,7 @@ fn test_from_big_endian_lint() {
 fn test_from_little_endian_lint() {
     let src = r#"FUNCTION main : LINT
         main := FROM_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -159,7 +159,7 @@ fn test_from_little_endian_lint() {
 fn test_to_big_endian_uint() {
     let src = r#"FUNCTION main : UINT
         main := TO_BIG_ENDIAN(UINT#16#ABBA);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -171,7 +171,7 @@ fn test_to_big_endian_uint() {
 fn test_to_little_endian_uint() {
     let src = r#"FUNCTION main : UINT
         main := TO_LITTLE_ENDIAN(UINT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -183,7 +183,7 @@ fn test_to_little_endian_uint() {
 fn test_from_big_endian_uint() {
     let src = r#"FUNCTION main : UINT
         main := FROM_BIG_ENDIAN(UINT#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -195,7 +195,7 @@ fn test_from_big_endian_uint() {
 fn test_from_little_endian_uint() {
     let src = r#"FUNCTION main : UINT
         main := FROM_LITTLE_ENDIAN(UINT#16#ABBA);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -208,7 +208,7 @@ fn test_from_little_endian_uint() {
 fn test_to_big_endian_udint() {
     let src = r#"FUNCTION main : UDINT
         main := TO_BIG_ENDIAN(UDINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -220,7 +220,7 @@ fn test_to_big_endian_udint() {
 fn test_to_little_endian_udint() {
     let src = r#"FUNCTION main : UDINT
         main := TO_LITTLE_ENDIAN(UDINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -232,7 +232,7 @@ fn test_to_little_endian_udint() {
 fn test_from_big_endian_udint() {
     let src = r#"FUNCTION main : UDINT
         main := FROM_BIG_ENDIAN(UDINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -244,7 +244,7 @@ fn test_from_big_endian_udint() {
 fn test_from_little_endian_udint() {
     let src = r#"FUNCTION main : UDINT
         main := FROM_LITTLE_ENDIAN(UDINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -257,7 +257,7 @@ fn test_from_little_endian_udint() {
 fn test_to_big_endian_ulint() {
     let src = r#"FUNCTION main : ULINT
         main := TO_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -269,7 +269,7 @@ fn test_to_big_endian_ulint() {
 fn test_to_little_endian_ulint() {
     let src = r#"FUNCTION main : ULINT
         main := TO_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -281,7 +281,7 @@ fn test_to_little_endian_ulint() {
 fn test_from_big_endian_ulint() {
     let src = r#"FUNCTION main : ULINT
         main := FROM_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -293,7 +293,7 @@ fn test_from_big_endian_ulint() {
 fn test_from_little_endian_ulint() {
     let src = r#"FUNCTION main : ULINT
         main := FROM_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -306,7 +306,7 @@ fn test_from_little_endian_ulint() {
 fn test_to_big_endian_f32() {
     let src = r#"FUNCTION main : REAL
         main := TO_BIG_ENDIAN(REAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -318,7 +318,7 @@ fn test_to_big_endian_f32() {
 fn test_to_little_endian_f32() {
     let src = r#"FUNCTION main : REAL
         main := TO_LITTLE_ENDIAN(REAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -330,7 +330,7 @@ fn test_to_little_endian_f32() {
 fn test_from_big_endian_f32() {
     let src = r#"FUNCTION main : REAL
         main := FROM_BIG_ENDIAN(REAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -342,7 +342,7 @@ fn test_from_big_endian_f32() {
 fn test_from_little_endian_f32() {
     let src = r#"FUNCTION main : REAL
         main := FROM_LITTLE_ENDIAN(REAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -355,7 +355,7 @@ fn test_from_little_endian_f32() {
 fn test_to_big_endian_f64() {
     let src = r#"FUNCTION main : LREAL
         main := TO_BIG_ENDIAN(LREAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -367,7 +367,7 @@ fn test_to_big_endian_f64() {
 fn test_to_little_endian_f64() {
     let src = r#"FUNCTION main : LREAL
         main := TO_LITTLE_ENDIAN(LREAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -379,7 +379,7 @@ fn test_to_little_endian_f64() {
 fn test_from_big_endian_f64() {
     let src = r#"FUNCTION main : LREAL
         main := FROM_BIG_ENDIAN(LREAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -391,7 +391,7 @@ fn test_from_big_endian_f64() {
 fn test_from_little_endian_f64() {
     let src = r#"FUNCTION main : LREAL
         main := FROM_LITTLE_ENDIAN(LREAL#12.5);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -404,7 +404,7 @@ fn test_from_little_endian_f64() {
 fn test_to_big_endian_word() {
     let src = r#"FUNCTION main : WORD
         main := TO_BIG_ENDIAN(WORD#16#ABBA);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -416,7 +416,7 @@ fn test_to_big_endian_word() {
 fn test_to_little_endian_word() {
     let src = r#"FUNCTION main : WORD
         main := TO_LITTLE_ENDIAN(WORD#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -428,7 +428,7 @@ fn test_to_little_endian_word() {
 fn test_from_big_endian_word() {
     let src = r#"FUNCTION main : WORD
         main := FROM_BIG_ENDIAN(WORD#16#1001);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -440,7 +440,7 @@ fn test_from_big_endian_word() {
 fn test_from_little_endian_word() {
     let src = r#"FUNCTION main : WORD
         main := FROM_LITTLE_ENDIAN(WORD#16#ABBA);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -453,7 +453,7 @@ fn test_from_little_endian_word() {
 fn test_to_big_endian_dword() {
     let src = r#"FUNCTION main : UDINT
         main := TO_BIG_ENDIAN(UDINT#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -465,7 +465,7 @@ fn test_to_big_endian_dword() {
 fn test_to_little_endian_dword() {
     let src = r#"FUNCTION main : DWORD
         main := TO_LITTLE_ENDIAN(DWORD#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -477,7 +477,7 @@ fn test_to_little_endian_dword() {
 fn test_from_big_endian_dword() {
     let src = r#"FUNCTION main : DWORD
         main := FROM_BIG_ENDIAN(DWORD#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -489,7 +489,7 @@ fn test_from_big_endian_dword() {
 fn test_from_little_endian_dword() {
     let src = r#"FUNCTION main : DWORD
         main := FROM_LITTLE_ENDIAN(DWORD#16#10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -502,7 +502,7 @@ fn test_from_little_endian_dword() {
 fn test_to_big_endian_lword() {
     let src = r#"FUNCTION main : LWORD
         main := TO_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -514,7 +514,7 @@ fn test_to_big_endian_lword() {
 fn test_to_little_endian_lword() {
     let src = r#"FUNCTION main : LWORD
         main := TO_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -526,7 +526,7 @@ fn test_to_little_endian_lword() {
 fn test_from_big_endian_lword() {
     let src = r#"FUNCTION main : LWORD
         main := FROM_BIG_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -538,7 +538,7 @@ fn test_from_big_endian_lword() {
 fn test_from_little_endian_lword() {
     let src = r#"FUNCTION main : LWORD
         main := FROM_LITTLE_ENDIAN(LINT#16#10010A0B10010A0B);
-        END_FUNCTION    
+        END_FUNCTION
     "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -551,7 +551,7 @@ fn test_from_little_endian_lword() {
 fn test_to_big_endian_wchar() {
     let src = r#"FUNCTION main : WCHAR
     main := TO_BIG_ENDIAN(WCHAR#'C');
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -563,7 +563,7 @@ fn test_to_big_endian_wchar() {
 fn test_to_little_endian_wchar() {
     let src = r#"FUNCTION main : WCHAR
     main := TO_LITTLE_ENDIAN(WCHAR#'C');
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -575,7 +575,7 @@ fn test_to_little_endian_wchar() {
 fn test_from_big_endian_wchar() {
     let src = r#"FUNCTION main : WCHAR
     main := FROM_BIG_ENDIAN(WCHAR#'C');
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -587,7 +587,7 @@ fn test_from_big_endian_wchar() {
 fn test_from_little_endian_wchar() {
     let src = r#"FUNCTION main : WCHAR
     main := FROM_LITTLE_ENDIAN(WCHAR#'C');
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -600,7 +600,7 @@ fn test_from_little_endian_wchar() {
 fn test_to_big_endian_date() {
     let src = r#"FUNCTION main : DATE
     main := TO_BIG_ENDIAN(DATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
     let src = add_std!(src, "endianness_conversion_functions.st");
     let res: i64 = compile_and_run_no_params(src);
@@ -614,7 +614,7 @@ fn test_to_big_endian_date() {
 fn test_to_little_endian_date() {
     let src = r#"FUNCTION main : DATE
     main := TO_LITTLE_ENDIAN(DATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
     let src = add_std!(src, "endianness_conversion_functions.st");
     let res: i64 = compile_and_run_no_params(src);
@@ -628,7 +628,7 @@ fn test_to_little_endian_date() {
 fn test_from_big_endian_date() {
     let src = r#"FUNCTION main : DATE
     main := FROM_BIG_ENDIAN(DATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
     let src = add_std!(src, "endianness_conversion_functions.st");
     let res: i64 = compile_and_run_no_params(src);
@@ -644,7 +644,7 @@ fn test_from_big_endian_date() {
 fn test_from_little_endian_date() {
     let src = r#"FUNCTION main : DATE
     main := FROM_LITTLE_ENDIAN(DATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
     let src = add_std!(src, "endianness_conversion_functions.st");
     let res: i64 = compile_and_run_no_params(src);
@@ -661,7 +661,7 @@ fn test_from_little_endian_date() {
 fn test_to_big_endian_tod() {
     let src = r#"FUNCTION main : TIME_OF_DAY
     main := TO_BIG_ENDIAN(TIME_OF_DAY#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -673,7 +673,7 @@ fn test_to_big_endian_tod() {
 fn test_to_little_endian_tod() {
     let src = r#"FUNCTION main : TIME_OF_DAY
     main := TO_LITTLE_ENDIAN(TIME_OF_DAY#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -685,7 +685,7 @@ fn test_to_little_endian_tod() {
 fn test_from_big_endian_tod() {
     let src = r#"FUNCTION main : TIME_OF_DAY
     main := FROM_BIG_ENDIAN(TIME_OF_DAY#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -697,7 +697,7 @@ fn test_from_big_endian_tod() {
 fn test_from_little_endian_tod() {
     let src = r#"FUNCTION main : TIME_OF_DAY
     main := FROM_LITTLE_ENDIAN(TIME_OF_DAY#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -710,7 +710,7 @@ fn test_from_little_endian_tod() {
 fn test_to_big_endian_dt() {
     let src = r#"FUNCTION main : DATE_AND_TIME
     main := TO_BIG_ENDIAN(DATE_AND_TIME#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -725,7 +725,7 @@ fn test_to_big_endian_dt() {
 fn test_to_little_endian_dt() {
     let src = r#"FUNCTION main : DATE_AND_TIME
     main := TO_LITTLE_ENDIAN(DATE_AND_TIME#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -740,7 +740,7 @@ fn test_to_little_endian_dt() {
 fn test_from_big_endian_dt() {
     let src = r#"FUNCTION main : DATE_AND_TIME
     main := FROM_BIG_ENDIAN(DATE_AND_TIME#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -757,7 +757,7 @@ fn test_from_big_endian_dt() {
 fn test_from_little_endian_dt() {
     let src = r#"FUNCTION main : DATE_AND_TIME
     main := FROM_LITTLE_ENDIAN(DATE_AND_TIME#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -776,7 +776,7 @@ fn test_from_little_endian_dt() {
 fn test_to_big_endian_ldate_nanos() {
     let src = r#"FUNCTION main : LDATE
     main := TO_BIG_ENDIAN(LDATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -791,7 +791,7 @@ fn test_to_big_endian_ldate_nanos() {
 fn test_to_little_endian_ldate_nanos() {
     let src = r#"FUNCTION main : LDATE
     main := TO_LITTLE_ENDIAN(LDATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -806,7 +806,7 @@ fn test_to_little_endian_ldate_nanos() {
 fn test_from_big_endian_ldate_nanos() {
     let src = r#"FUNCTION main : LDATE
     main := FROM_BIG_ENDIAN(LDATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -823,7 +823,7 @@ fn test_from_big_endian_ldate_nanos() {
 fn test_from_little_endian_ldate_nanos() {
     let src = r#"FUNCTION main : LDATE
     main := FROM_LITTLE_ENDIAN(LDATE#1984-06-25);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -841,7 +841,7 @@ fn test_from_little_endian_ldate_nanos() {
 fn test_to_big_endian_ldt_nanos() {
     let src = r#"FUNCTION main : LDT
     main := TO_BIG_ENDIAN(LDT#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -862,7 +862,7 @@ fn test_to_big_endian_ldt_nanos() {
 fn test_to_little_endian_ldt_nanos() {
     let src = r#"FUNCTION main : LDT
     main := TO_LITTLE_ENDIAN(LDT#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -877,7 +877,7 @@ fn test_to_little_endian_ldt_nanos() {
 fn test_from_big_endian_nanos() {
     let src = r#"FUNCTION main : LDT
     main := FROM_BIG_ENDIAN(LDT#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -894,7 +894,7 @@ fn test_from_big_endian_nanos() {
 fn test_from_little_endian_nanos() {
     let src = r#"FUNCTION main : LDT
     main := FROM_LITTLE_ENDIAN(LDT#1984-06-25-00:00:00);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -912,7 +912,7 @@ fn test_from_little_endian_nanos() {
 fn test_to_big_endian_ltod_nanos() {
     let src = r#"FUNCTION main : LTOD
     main := TO_BIG_ENDIAN(LTOD#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -924,7 +924,7 @@ fn test_to_big_endian_ltod_nanos() {
 fn test_to_little_endian_ltod_nanos() {
     let src = r#"FUNCTION main : LTOD
     main := TO_LITTLE_ENDIAN(LTOD#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -936,7 +936,7 @@ fn test_to_little_endian_ltod_nanos() {
 fn test_from_big_endian_ltod_nanos() {
     let src = r#"FUNCTION main : LTOD
     main := FROM_BIG_ENDIAN(LTOD#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");
@@ -948,7 +948,7 @@ fn test_from_big_endian_ltod_nanos() {
 fn test_from_little_endian_ltod_nanos() {
     let src = r#"FUNCTION main : LTOD
     main := FROM_LITTLE_ENDIAN(LTOD#22:22:22);
-    END_FUNCTION    
+    END_FUNCTION
 "#;
 
     let src = add_std!(src, "endianness_conversion_functions.st");

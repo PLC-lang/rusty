@@ -28,7 +28,7 @@ fn builtin_le_with_ints() {
         i1, i2, i3 : DINT;
     END_VAR
         i1 := 3;
-        i2 := 2; 
+        i2 := 2;
         i3 := 3; // not less or equal to i2, should return false
         main := LE(i1, i2, i3);
     END_FUNCTION
@@ -68,7 +68,7 @@ fn builtin_le_with_floats() {
         r1, r2, r3 : REAL;
     END_VAR
         r1 := 3.0;
-        r2 := 2.9; 
+        r2 := 2.9;
         r3 := 3.2; // not less or equal to r3, should return false
         main := LE(r1, r2, r3);
     END_FUNCTION

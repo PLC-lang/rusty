@@ -15,15 +15,15 @@ fn max_function() {
 
     let function = r#"
 
-    FUNCTION MAX : INT 
-    VAR_INPUT 
+    FUNCTION MAX : INT
+    VAR_INPUT
         a : INT;
         b : INT;
     END_VAR
 
     IF a > b THEN
         MAX := a;
-    ELSE 
+    ELSE
         MAX := b;
     END_IF
     END_FUNCTION
@@ -99,8 +99,8 @@ fn test_or_sideeffects() {
         res_or : INT;
     END_VAR
 
-    FUNCTION OR_BRANCH : BOOL 
-    VAR_INPUT 
+    FUNCTION OR_BRANCH : BOOL
+    VAR_INPUT
         a : BOOL;
         b : INT;
     END_VAR
@@ -144,8 +144,8 @@ fn test_and_sideeffects() {
         res_and : INT;
     END_VAR
 
-    FUNCTION AND_BRANCH : BOOL 
-        VAR_INPUT 
+    FUNCTION AND_BRANCH : BOOL
+        VAR_INPUT
             a : BOOL;
             b : INT;
         END_VAR
@@ -189,8 +189,8 @@ fn test_amp_as_and_sideeffects() {
         res_and : INT;
     END_VAR
 
-    FUNCTION AND_BRANCH : BOOL 
-        VAR_INPUT 
+    FUNCTION AND_BRANCH : BOOL
+        VAR_INPUT
             a : BOOL;
             b : INT;
         END_VAR
@@ -242,10 +242,10 @@ fn function_block_instances_save_state_per_instance() {
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : foo;
         j : foo;
-    END_VAR 
+    END_VAR
     f();
     f();
     j(4);
@@ -344,9 +344,9 @@ fn functions_can_be_called_out_of_order() {
     END_FUNCTION
 
     PROGRAM main
-        VAR 
+        VAR
             r : INT;
-        END_VAR 
+        END_VAR
         r:= foo();
     END_PROGRAM
     "#;
@@ -377,7 +377,7 @@ fn function_block_instances_save_state_per_instance_2() {
         j: FooType,
     }
     let function = r#"
-    FUNCTION_BLOCK Baz 
+    FUNCTION_BLOCK Baz
     VAR_INPUT
         i : INT;
     END_VAR
@@ -387,16 +387,16 @@ fn function_block_instances_save_state_per_instance_2() {
     FUNCTION_BLOCK foo
     VAR_INPUT
         i : INT;
-        baz: Baz; 
+        baz: Baz;
     END_VAR
-    
+
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : foo;
         j : foo;
-    END_VAR 
+    END_VAR
     f.baz.i := f.baz.i + 1;
     f.baz.i := f.baz.i + 1;
 
@@ -434,7 +434,7 @@ fn function_call_inout_variable() {
             param := param * factor;
         END_PROGRAM
 
-        PROGRAM foo 
+        PROGRAM foo
             VAR_IN_OUT
             inout : DINT;
             END_VAR
@@ -466,7 +466,7 @@ fn inouts_behave_like_pointers() {
         p3: i32,
     }
     let function = r#"
-        VAR_GLOBAL 
+        VAR_GLOBAL
             snap1 : DINT;
             snap2 : DINT;
             snap3 : DINT;
@@ -514,23 +514,23 @@ fn var_output_assignment() {
     }
 
     let function = r#"
-		PROGRAM foo 
+        PROGRAM foo
             VAR_INPUT
                 input1 : DINT;
                 input2 : DINT;
             END_VAR
             VAR_OUTPUT
-            	output1 : DINT;
-				output2 : DINT;
+                output1 : DINT;
+                output2 : DINT;
             END_VAR
-			output1 := input1;
-			output2 := input2;
+            output1 := input1;
+            output2 := input2;
         END_PROGRAM
 
         PROGRAM main
             VAR
                 var1 : DINT;
-				var2 : DINT;
+                var2 : DINT;
             END_VAR
             foo(7, 8, output1 => var1, output2 => var2);
         END_PROGRAM
@@ -581,23 +581,23 @@ fn var_output_assignment_in_functions() {
     }
 
     let function = r#"
-		FUNCTION foo : INT
+        FUNCTION foo : INT
             VAR_INPUT
                 input1 : DINT;
                 input2 : DINT;
             END_VAR
             VAR_OUTPUT
-            	output1 : DINT;
-				output2 : DINT;
+                output1 : DINT;
+                output2 : DINT;
             END_VAR
-			output1 := input1 + 2; 
-			output2 := input2 + 3;
+            output1 := input1 + 2;
+            output2 := input2 + 3;
         END_PROGRAM
 
         PROGRAM main
             VAR
                 var1 : DINT;
-				var2 : DINT;
+                var2 : DINT;
             END_VAR
             foo(7, 8, output1 => var1, output2 => var2);
         END_PROGRAM
@@ -617,19 +617,19 @@ fn optional_output_assignment_in_functions() {
     }
 
     let function = r#"
-		FUNCTION foo : INT 
+        FUNCTION foo : INT
             VAR_OUTPUT
-            	output1 : DINT;
-				output2 : DINT;
+                output1 : DINT;
+                output2 : DINT;
             END_VAR
-			output1 := 1;
-			output2 := 2;
+            output1 := 1;
+            output2 := 2;
         END_FUNCTION
 
         PROGRAM main
             VAR
                 var1 : DINT;
-				var2 : DINT;
+                var2 : DINT;
             END_VAR
             foo(output1 =>, output2 => var2);
         END_PROGRAM
@@ -665,22 +665,22 @@ fn direct_call_on_function_block_array_access() {
         i : INT;
     END_VAR
     VAR
-		x : INT;
-	END_VAR
-		x := i;
+        x : INT;
+    END_VAR
+        x := i;
     END_FUNCTION_BLOCK
 
     PROGRAM main
-    VAR 
+    VAR
         f : ARRAY[1..2] OF foo;
-		x : INT;
-		y : INT;
+        x : INT;
+        y : INT;
     END_VAR
-	f[1](i := 10);
-	x := f[1].x;
+    f[1](i := 10);
+    x := f[1].x;
 
-	f[2](i := 20);
-	y := f[2].x;
+    f[2](i := 20);
+    y := f[2].x;
     END_PROGRAM
     "#;
 
@@ -699,16 +699,16 @@ fn nested_calls_in_call_statement() {
     }
 
     let function = r#"
-		FUNCTION seven : DINT 
-			seven := 7;
+        FUNCTION seven : DINT
+            seven := 7;
         END_FUNCTION
 
-        FUNCTION eight : DINT 
-			eight := 8;
+        FUNCTION eight : DINT
+            eight := 8;
         END_FUNCTION
 
-        FUNCTION nine : DINT 
-			nine := 9;
+        FUNCTION nine : DINT
+            nine := 9;
         END_FUNCTION
 
         FUNCTION sum : DINT
@@ -719,7 +719,7 @@ fn nested_calls_in_call_statement() {
         PROGRAM main
             VAR
                 var1 : DINT;
-				var2 : DINT;
+                var2 : DINT;
             END_VAR
 
             var1 := sum(seven(), eight(), nine());
@@ -745,14 +745,14 @@ fn nested_calls_passing_aggregate_types() {
 
     let function = r#"
         TYPE Arr : ARRAY[0..1] OF DINT := [1, 1]; END_TYPE
-		FUNCTION getArr : Arr
-			getArr[0] := 3;
-			getArr[1] := 4;
+        FUNCTION getArr : Arr
+            getArr[0] := 3;
+            getArr[1] := 4;
         END_FUNCTION
 
         FUNCTION inc : Arr
-			VAR_INPUT
-                a: Arr; 
+            VAR_INPUT
+                a: Arr;
                 index: DINT;
             END_VAR
 
@@ -806,7 +806,7 @@ fn mux_test() {
             num,b : DINT := 2;
         END_VAR
             b := num;
-            main := MUX(num,b,5,6,7,8); //Result is 6 
+            main := MUX(num,b,5,6,7,8); //Result is 6
         END_FUNCTION
         "#;
 
@@ -848,19 +848,19 @@ fn mux_array_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		arr1 : ARRAY[0..2] OF DINT;
-	END_VAR
-	VAR_TEMP
-		arr2 : ARRAY[0..2] OF DINT := (0, 1, 2);
-		arr3 : ARRAY[0..2] OF DINT := (3, 4, 5);
-		arr4 : ARRAY[0..2] OF DINT := (6, 7, 8);
-		arr5 : ARRAY[0..2] OF DINT := (9, 9, 9);
-	END_VAR
-		arr1 := MUX(2, arr2, arr3, arr4, arr5); // arr4
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        arr1 : ARRAY[0..2] OF DINT;
+    END_VAR
+    VAR_TEMP
+        arr2 : ARRAY[0..2] OF DINT := (0, 1, 2);
+        arr3 : ARRAY[0..2] OF DINT := (3, 4, 5);
+        arr4 : ARRAY[0..2] OF DINT := (6, 7, 8);
+        arr5 : ARRAY[0..2] OF DINT := (9, 9, 9);
+    END_VAR
+        arr1 := MUX(2, arr2, arr3, arr4, arr5); // arr4
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -883,25 +883,25 @@ fn mux_struct_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		struct1 : myStruct;
-	END_VAR
-	VAR_TEMP
-		struct2 : myStruct := (a := FALSE, b := FALSE);
-		struct3 : myStruct := (a := FALSE, b := TRUE);
-		struct4 : myStruct := (a := TRUE, b := FALSE);
-		struct5 : myStruct := (a := TRUE, b := TRUE);
-	END_VAR
-		struct1 := MUX(2, struct2, struct3, struct4, struct5); // struct4
-	END_PROGRAM
+    PROGRAM main
+    VAR
+        struct1 : myStruct;
+    END_VAR
+    VAR_TEMP
+        struct2 : myStruct := (a := FALSE, b := FALSE);
+        struct3 : myStruct := (a := FALSE, b := TRUE);
+        struct4 : myStruct := (a := TRUE, b := FALSE);
+        struct5 : myStruct := (a := TRUE, b := TRUE);
+    END_VAR
+        struct1 := MUX(2, struct2, struct3, struct4, struct5); // struct4
+    END_PROGRAM
 
-	TYPE myStruct : STRUCT
-		a : BOOL;
-		b : BOOL;
-	END_STRUCT
-	END_TYPE
-	"#;
+    TYPE myStruct : STRUCT
+        a : BOOL;
+        b : BOOL;
+    END_STRUCT
+    END_TYPE
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -917,20 +917,20 @@ fn mux_string_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		str1 : STRING;
-	END_VAR
-	VAR_TEMP
-		str2 : STRING := 'str2 ';
-		str3 : STRING := 'str3 ';
-		str4 : STRING := 'str4 ';
-		str5 : STRING := 'str5 ';
-		str6 : STRING := 'str6 ';
-	END_VAR
-		str1 := MUX(3, str2, str3, str4, str5, str6); // str5
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        str1 : STRING;
+    END_VAR
+    VAR_TEMP
+        str2 : STRING := 'str2 ';
+        str3 : STRING := 'str3 ';
+        str4 : STRING := 'str4 ';
+        str5 : STRING := 'str5 ';
+        str6 : STRING := 'str6 ';
+    END_VAR
+        str1 := MUX(3, str2, str3, str4, str5, str6); // str5
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -946,13 +946,13 @@ fn mux_string_literal() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		str1 : STRING;
-	END_VAR
-		str1 := MUX(3, 'hello', 'world', 'foo', 'baz'); // baz
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        str1 : STRING;
+    END_VAR
+        str1 := MUX(3, 'hello', 'world', 'foo', 'baz'); // baz
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -977,7 +977,7 @@ fn sel_test_false() {
 fn sel_test_true() {
     let function = r#"
         FUNCTION main : DINT
-            main := SEL(TRUE,4,5); //Result is 5 
+            main := SEL(TRUE,4,5); //Result is 5
         END_FUNCTION
         "#;
 
@@ -994,7 +994,7 @@ fn sel_test_true_vars() {
         VAR a,b : DINT; END_VAR
             a := 4;
             b := 5;
-            main := SEL(TRUE,a,b); //Result is 5 
+            main := SEL(TRUE,a,b); //Result is 5
         END_FUNCTION
         "#;
 
@@ -1037,23 +1037,23 @@ fn sel_struct_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		struct1 : myStruct;
-	END_VAR
-	VAR_TEMP
-		struct2 : myStruct := (a := TRUE, b := FALSE);
-		struct3 : myStruct := (a := FALSE, b := TRUE);
-	END_VAR
-		struct1 := SEL(TRUE, struct2, struct3); // struct3
-	END_PROGRAM
+    PROGRAM main
+    VAR
+        struct1 : myStruct;
+    END_VAR
+    VAR_TEMP
+        struct2 : myStruct := (a := TRUE, b := FALSE);
+        struct3 : myStruct := (a := FALSE, b := TRUE);
+    END_VAR
+        struct1 := SEL(TRUE, struct2, struct3); // struct3
+    END_PROGRAM
 
-	TYPE myStruct : STRUCT
-		a : BOOL;
-		b : BOOL;
-	END_STRUCT
-	END_TYPE
-	"#;
+    TYPE myStruct : STRUCT
+        a : BOOL;
+        b : BOOL;
+    END_STRUCT
+    END_TYPE
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -1070,17 +1070,17 @@ fn sel_array_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		arr1 : ARRAY[0..2] OF DINT;
-	END_VAR
-	VAR_TEMP
-		arr2 : ARRAY[0..2] OF DINT := (0, 1, 2);
-		arr3 : ARRAY[0..2] OF DINT := (3, 4, 5);
-	END_VAR
-		arr1 := SEL(TRUE, arr2, arr3); // arr3
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        arr1 : ARRAY[0..2] OF DINT;
+    END_VAR
+    VAR_TEMP
+        arr2 : ARRAY[0..2] OF DINT := (0, 1, 2);
+        arr3 : ARRAY[0..2] OF DINT := (3, 4, 5);
+    END_VAR
+        arr1 := SEL(TRUE, arr2, arr3); // arr3
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -1096,17 +1096,17 @@ fn sel_string_ref() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		str1 : STRING;
-	END_VAR
-	VAR_TEMP
-		str2 : STRING := 'hello';
-		str3 : STRING := 'world';
-	END_VAR
-		str1 := SEL(TRUE, str2, str3); // str3
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        str1 : STRING;
+    END_VAR
+    VAR_TEMP
+        str2 : STRING := 'hello';
+        str3 : STRING := 'world';
+    END_VAR
+        str1 := SEL(TRUE, str2, str3); // str3
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -1122,13 +1122,13 @@ fn sel_string_literal() {
     }
 
     let function = r#"
-	PROGRAM main
-	VAR
-		str1 : STRING;
-	END_VAR
-		str1 := SEL(TRUE, 'hello', 'world'); // world
-	END_PROGRAM
-	"#;
+    PROGRAM main
+    VAR
+        str1 : STRING;
+    END_VAR
+        str1 := SEL(TRUE, 'hello', 'world'); // world
+    END_PROGRAM
+    "#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
@@ -1174,13 +1174,13 @@ fn sizeof_test() {
         TYPE MyStruct : STRUCT
             a : BYTE; //8bit - offset 0 -> 1 byte
             b : DWORD; //32bit - offset 32 -> 8 bytes
-            c : WORD; //16bit - offset 64 -> 10 bytes 
+            c : WORD; //16bit - offset 64 -> 10 bytes
             d : LWORD; //64bit - offset 128 -> 24 bytes
         END_STRUCT
         END_TYPE
         PROGRAM main
-        VAR 
-            s1 : SINT; 
+        VAR
+            s1 : SINT;
             s2 : INT;
             s3 : DINT;
             s4 : LINT;

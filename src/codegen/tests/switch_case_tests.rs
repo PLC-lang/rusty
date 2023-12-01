@@ -25,18 +25,18 @@ For non const variable references we need our own validation tests -> statement_
 fn switch_case_duplicate_integer_literal_integer() {
     let result = codegen_without_unwrap(
         r#"
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				2:
-					res := 1;
-				2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                2:
+                    res := 1;
+                2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -55,22 +55,22 @@ fn switch_case_duplicate_integer_literal_integer() {
 fn switch_case_duplicate_integer_literal_integer_and_const() {
     let result = codegen_without_unwrap(
         r#"
-		VAR_GLOBAL CONSTANT
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            GLOB : DINT := 2;
+        END_VAR
 
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				2:
-					res := 1;
-				GLOB:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                2:
+                    res := 1;
+                GLOB:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -89,18 +89,18 @@ fn switch_case_duplicate_integer_literal_integer_and_const() {
 fn switch_case_duplicate_integer_literal_integer_and_binary_expression() {
     let result = codegen_without_unwrap(
         r#"
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				2:
-					res := 1;
-				1*2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                2:
+                    res := 1;
+                1*2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -119,24 +119,24 @@ fn switch_case_duplicate_integer_literal_integer_and_binary_expression() {
 fn switch_case_duplicate_integer_const() {
     let result = codegen_without_unwrap(
         r#"
-		VAR_GLOBAL CONSTANT
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            GLOB : DINT := 2;
+        END_VAR
 
-		TYPE myType: ( BASE := GLOB ); END_TYPE
+        TYPE myType: ( BASE := GLOB ); END_TYPE
 
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				GLOB:
-					res := 1;
-				BASE:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                GLOB:
+                    res := 1;
+                BASE:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -155,22 +155,22 @@ fn switch_case_duplicate_integer_const() {
 fn switch_case_duplicate_integer_const_and_binary_expression() {
     let result = codegen_without_unwrap(
         r#"
-		VAR_GLOBAL CONSTANT
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            GLOB : DINT := 2;
+        END_VAR
 
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				GLOB:
-					res := 1;
-				1*2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                GLOB:
+                    res := 1;
+                1*2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -189,18 +189,18 @@ fn switch_case_duplicate_integer_const_and_binary_expression() {
 fn switch_case_duplicate_integer_binary_expression() {
     let result = codegen_without_unwrap(
         r#"
-		PROGRAM mainProg
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				1*2:
-					res := 1;
-				1+1:
-					res := 2;
-			END_CASE
-		END_PROGRAM
-		"#,
+        PROGRAM mainProg
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                1*2:
+                    res := 1;
+                1+1:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
+        "#,
     );
     if let Err(msg) = result {
         assert_eq!(

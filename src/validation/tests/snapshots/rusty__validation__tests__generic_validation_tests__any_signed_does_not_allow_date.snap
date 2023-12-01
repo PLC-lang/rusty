@@ -3,8 +3,8 @@ source: src/validation/tests/generic_validation_tests.rs
 expression: res
 ---
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 55, offset: 138 }..TextLocation { line: 2, column: 56, offset: 139 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 50, offset: 205 }..TextLocation { line: 3, column: 51, offset: 206 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 273 }..TextLocation { line: 4, column: 52, offset: 274 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 50, offset: 340 }..TextLocation { line: 5, column: 51, offset: 341 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 51, offset: 408 }..TextLocation { line: 6, column: 52, offset: 409 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 56, offset: 211 }..TextLocation { line: 3, column: 57, offset: 212 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 285 }..TextLocation { line: 4, column: 58, offset: 286 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 56, offset: 358 }..TextLocation { line: 5, column: 57, offset: 359 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 57, offset: 432 }..TextLocation { line: 6, column: 58, offset: 433 }) }], err_no: type__invalid_nature }
 

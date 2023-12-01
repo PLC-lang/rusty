@@ -29,7 +29,7 @@ fn builtin_ge_with_ints() {
     END_VAR
         i1 := 3;
         i2 := 2; // not greater or equal to i3, should return false
-        i3 := 3; 
+        i3 := 3;
         main := GE(i1, i2, i3);
     END_FUNCTION
     "#;
@@ -69,7 +69,7 @@ fn builtin_ge_with_floats() {
     END_VAR
         r1 := 3.0;
         r2 := 2.9; // not greater or equal to r3, should return false
-        r3 := 3.2; 
+        r3 := 3.2;
         main := GE(r1, r2, r3);
     END_FUNCTION
     "#;

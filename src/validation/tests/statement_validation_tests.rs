@@ -15,8 +15,8 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
                 ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             address := ptr;         //should throw error as address is too small to store full pointer
         END_PROGRAM
         ",
@@ -37,8 +37,8 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
                 ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             ptr := address;         //should throw error as address is too small to store full pointer
         END_PROGRAM
         ",
@@ -59,8 +59,8 @@ fn assign_pointer_to_lword() {
                 ptr : REF_TO INT;
                 address : LWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             address := ptr;
         END_PROGRAM
         ",
@@ -113,12 +113,12 @@ fn assignment_to_enum_literals_results_in_error() {
         "
         TYPE Color: (red, yellow, green); END_TYPE
 
-        VAR_GLOBAL 
+        VAR_GLOBAL
             g_enum: (A, B, C);
         END_VAR
 
         PROGRAM prg
-            VAR 
+            VAR
                 state: (OPEN, CLOSED);
             END_VAR
 
@@ -139,40 +139,40 @@ fn invalid_char_assignments() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM mainProg
-		VAR
-			c : CHAR;
-			c2 : CHAR;
-			wc : WCHAR;
-			wc2 : WCHAR;
-			i : INT;
-			s : STRING;
-		END_VAR
-			c := 'AJK%&/231'; // invalid
-			wc := "898JKAN"; // invalid
+        PROGRAM mainProg
+        VAR
+            c : CHAR;
+            c2 : CHAR;
+            wc : WCHAR;
+            wc2 : WCHAR;
+            i : INT;
+            s : STRING;
+        END_VAR
+            c := 'AJK%&/231'; // invalid
+            wc := "898JKAN"; // invalid
 
-			c := wc; // invalid
-			wc := c; // invalid
+            c := wc; // invalid
+            wc := c; // invalid
 
-			i := 54;
-			c := i; // invalid
-			c := 42; // invalid
+            i := 54;
+            c := i; // invalid
+            c := 42; // invalid
 
-			s := 'ABC';
-			c := s; // invalid
-			wc := s; // invalid
+            s := 'ABC';
+            c := s; // invalid
+            wc := s; // invalid
 
-			i := c; // invalid
-			s := c; // invalid
+            i := c; // invalid
+            s := c; // invalid
 
-			c := 'A';
-			c2 := 'B';
-			c := c2;
+            c := 'A';
+            c2 := 'B';
+            c := c2;
 
-			wc := "A";
-			wc2 := "B";
-			wc := wc2;
-		END_PROGRAM"#,
+            wc := "A";
+            wc2 := "B";
+            wc := wc2;
+        END_PROGRAM"#,
     );
 
     // THEN every assignment should be reported
@@ -295,32 +295,32 @@ fn switch_case() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 1;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 1;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				BASE:
-					res := 1;
-				MYTYPE_A:
-					res := 2;
-				MYTYPE_A+1:
-					res := 3;
-				4:
-					res := 4;
-				2*2+1:
-					res := 5;
+            CASE input OF
+                BASE:
+                    res := 1;
+                MYTYPE_A:
+                    res := 2;
+                MYTYPE_A+1:
+                    res := 3;
+                4:
+                    res := 4;
+                2*2+1:
+                    res := 5;
         (BASE*5)..(BASE*10):
-					res := 6;
-			END_CASE
-		END_PROGRAM
+                    res := 6;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -334,30 +334,30 @@ fn switch_case_duplicate_integer_non_const_var_reference() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			CONST : DINT := 8;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            CONST : DINT := 8;
+        END_VAR
 
         PROGRAM prog
-		VAR
-			input, res, x, y : DINT;
-		END_VAR
-			x := 2;
-			y := x;
+        VAR
+            input, res, x, y : DINT;
+        END_VAR
+            x := 2;
+            y := x;
 
-			CASE input OF
-				x: // x is no constant => error
-					res := 1;
-				y: // y is no constant => error
-					res := 2;
-				2+x: // x is no constant => error
-					res := 3;
-				CONST:
-					res := 4;
-				CONST+x: // x is no constant => error
-					res := 5;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                x: // x is no constant => error
+                    res := 1;
+                y: // y is no constant => error
+                    res := 2;
+                2+x: // x is no constant => error
+                    res := 3;
+                CONST:
+                    res := 4;
+                CONST+x: // x is no constant => error
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -371,30 +371,30 @@ fn switch_case_duplicate_integer() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 2;
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 2;
+            GLOB : DINT := 2;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				4:
-					res := 1;
-				BASE*2:
-					res := 2;
-				BASE+GLOB:
-					res := 3;
-				MYTYPE_A:
-					res := 4;
-				2+2:
-					res := 5;
-			END_CASE
-		END_PROGRAM
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                4:
+                    res := 1;
+                BASE*2:
+                    res := 2;
+                BASE+GLOB:
+                    res := 3;
+                MYTYPE_A:
+                    res := 4;
+                2+2:
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -408,21 +408,21 @@ fn switch_case_invalid_case_conditions() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		FUNCTION foo : DINT
-		END_FUNCTION
+        FUNCTION foo : DINT
+        END_FUNCTION
 
         PROGRAM main
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				foo():
-					res := 1;
-				res := 2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                foo():
+                    res := 1;
+                res := 2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
@@ -436,14 +436,14 @@ fn case_condition_used_outside_case_statement() {
     // WHEN it is validated
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM main
-		VAR
-			var1 : TOD;
-		END_VAR
-			var1 := TOD#20:15:30:123;
-			23:
-			var1 := TOD#20:15:30;
-		END_PROGRAM
+        PROGRAM main
+        VAR
+            var1 : TOD;
+        END_VAR
+            var1 := TOD#20:15:30:123;
+            23:
+            var1 := TOD#20:15:30;
+        END_PROGRAM
       "#,
     );
 
@@ -458,9 +458,9 @@ fn subrange_compare_function_causes_no_error() {
     let diagnostics = parse_and_validate(
         r#"
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : INT(0..500);
         END_VAR
@@ -486,9 +486,9 @@ fn aliased_subrange_compare_function_causes_no_error() {
         r#"
         TYPE MyInt: INT(0..500); END_TYPE
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : MyInt;
         END_VAR
@@ -514,9 +514,9 @@ fn aliased_int_compare_function_causes_no_error() {
         r#"
         TYPE MyInt: INT; END_TYPE
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : MyInt;
         END_VAR
@@ -539,28 +539,28 @@ fn program_missing_inout_assignment() {
     // GIVEN
     let diagnostics = parse_and_validate(
         "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := var1, output1 => var2);
-			prog(var1, var2);
-			prog(var1);
-			prog();
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR
+            var1, var2, var3 : DINT;
+        END_VAR
+            prog(input1 := var1, output1 => var2);
+            prog(var1, var2);
+            prog(var1);
+            prog();
+        END_PROGRAM
+        ",
     );
     // THEN
     assert_validation_snapshot!(&diagnostics);
@@ -572,34 +572,34 @@ fn function_call_parameter_validation() {
     // WHEN
     let diagnostics = parse_and_validate(
         r#"
-		FUNCTION foo : DINT
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_FUNCTION
+        FUNCTION foo : DINT
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                  ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			foo(var2, var3, var4); // invalid types assigned
+            foo(var2, var3, var4); // invalid types assigned
             //              ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 
@@ -613,34 +613,34 @@ fn program_call_parameter_validation() {
     // WHEN
     let diagnostics = parse_and_validate(
         r#"
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            prog(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                   ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			prog(var2, var3, var4); // invalid types assigned
+            prog(var2, var3, var4); // invalid types assigned
             //               ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 
@@ -701,7 +701,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input2 := REF(global5),
             input3 := REF(global6),
         );
-        
+
         prog(
             // NONE of these should be valid because &(...) returns type information and we
             // explicitly check if pointer assignments are of the same type
@@ -725,7 +725,7 @@ fn ref_builtin_function_reports_invalid_param_count() {
             x: ARRAY[0..1] OF INT;
         END_VAR
             REF(x); // valid
-            REF(); 
+            REF();
             REF(x, 1, 2, 'abc');
         END_FUNCTION
     ",
@@ -779,21 +779,21 @@ fn validate_call_by_ref() {
             VAR_INPUT
                 byValInput : INT;
             END_VAR
-        
+
             VAR_IN_OUT
                 byRefInOut : INT;
             END_VAR
-        
+
             VAR_OUTPUT
                 byRefOutput : INT;
             END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
             VAR
                 x : INT := 1;
             END_VAR
-        
+
             // The second and third arguments are expected to be references, as such
             // any call to `func` where these two arguments are literals will fail
             func(1, 2, 3);
@@ -833,12 +833,12 @@ fn validate_call_by_ref_explicit() {
             VAR
                 x : INT := 1;
             END_VAR
-            
+
             // The second and third arguments are expected to be references, as such
             // any call to `func` where these two arguments are literals will fail
             func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
             func(byValInput := 1, byRefInOut := x, byRefOutput =>  ); // Valid (Output assignments are optional)
-            func(byValInput := 1, byRefInOut := 2, byRefOutput => 3); 
+            func(byValInput := 1, byRefInOut := 2, byRefOutput => 3);
             func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
             func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
             func(byValInput := 1, byRefInOut := x, byRefOutput => x); // Valid
@@ -919,7 +919,7 @@ fn function_block_implicit_downcast() {
             );
         END_PROGRAM
 
-        FUNCTION_BLOCK fb_t        
+        FUNCTION_BLOCK fb_t
         VAR_INPUT {ref}
             in_ref_int      : INT;
             in_ref_dword    : DWORD;
@@ -965,7 +965,7 @@ fn program_implicit_downcast() {
             );
         END_PROGRAM
 
-        PROGRAM prog        
+        PROGRAM prog
         VAR_INPUT {ref}
             in_ref_int      : INT;
             in_ref_dword    : DWORD;
@@ -1009,7 +1009,7 @@ fn action_implicit_downcast() {
             in2 : STRING;
         END_VAR
         END_FUNCTION_BLOCK
-        
+
         ACTIONS fb_t
         ACTION foo
         END_ACTION
@@ -1051,13 +1051,13 @@ fn method_implicit_downcast() {
     END_VAR
 
     METHOD testMethod
-    VAR_INPUT 
-        val : INT; 
+    VAR_INPUT
+        val : INT;
         arr : ARRAY[1..3] OF SINT;
         ref : REF_TO ARRAY[1..3] OF DINT;
     END_VAR
     END_METHOD
-    END_CLASS    
+    END_CLASS
     "#,
     );
 
@@ -1084,8 +1084,8 @@ fn validate_array_elements_passed_to_functions_by_ref() {
             END_VAR
 
             func(x, x);                                    // Invalid because we pass a whole array
-            func(x[0], x[1]);                              // Valid because we pass a variable by array access 
-            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access 
+            func(x[0], x[1]);                              // Valid because we pass a variable by array access
+            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access
         END_PROGRAM
         ",
     );
@@ -1112,11 +1112,11 @@ fn validate_arrays_passed_to_functions() {
                 arr_real   : ARRAY[0..1] OF   REAL;
                 arr_lreal  : ARRAY[0..1] OF  LREAL;
 
-                arr_dint_1_2            : ARRAY[1..2]       OF DINT; 
+                arr_dint_1_2            : ARRAY[1..2]       OF DINT;
                 arr_dint_3_4            : ARRAY[3..4]       OF DINT;
                 arr_dint_1_10           : ARRAY[1..10]      OF DINT;
                 arr_dint_10_100         : ARRAY[10..100]    OF DINT;
-                
+
                 arr_dint_2d : ARRAY[0..1] OF ARRAY[0..1] OF DINT;
             END_VAR
 
@@ -1152,7 +1152,7 @@ fn assigning_to_rvalue() {
             x : INT;
         END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
         VAR
             i : INT;
@@ -1171,12 +1171,12 @@ fn assigning_to_rvalue() {
 fn assigning_to_qualified_references_allowed() {
     let diagnostics = parse_and_validate(
         r#"
-        PROGRAM prg 
+        PROGRAM prg
         VAR_INPUT
             x : INT;
         END_VAR
         END_PROGRAM
-    
+
         PROGRAM main
             prg.x := 1;
         END_PROGRAM
@@ -1290,20 +1290,20 @@ fn bit_access_with_incorrect_operator_causes_warning() {
             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
         END_PROGRAM
-        
+
         TYPE STRUCT1 :
         STRUCT
             var1 : DWORD;
         END_STRUCT
         END_TYPE
-        
+
         TYPE ENUM1 :
         (
             n1 := 1,
             n2 := 2
         );
         END_TYPE
-        
+
         TYPE STRUCT2 :
         STRUCT
             var1 : BOOL;
@@ -1327,7 +1327,7 @@ fn invalid_cast_statement_causes_error() {
                 i := INT#i;      // ok
                 i := INT#4;      // ok
         END_PROGRAM
-        
+
         TYPE STRUCT1 :
         STRUCT
             var1 : DWORD;

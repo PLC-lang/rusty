@@ -2,8 +2,8 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 4, offset: 227 }..TextLocation { line: 15, column: 10, offset: 233 }) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 4, offset: 254 }..TextLocation { line: 17, column: 13, offset: 263 }) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 4, offset: 284 }..TextLocation { line: 19, column: 12, offset: 292 }) }], err_no: case__duplicate_condition }
-SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 4, offset: 313 }..TextLocation { line: 21, column: 7, offset: 316 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 16, offset: 332 }..TextLocation { line: 15, column: 22, offset: 338 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 16, offset: 386 }..TextLocation { line: 17, column: 25, offset: 395 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 16, offset: 443 }..TextLocation { line: 19, column: 24, offset: 451 }) }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 16, offset: 499 }..TextLocation { line: 21, column: 19, offset: 502 }) }], err_no: case__duplicate_condition }
 

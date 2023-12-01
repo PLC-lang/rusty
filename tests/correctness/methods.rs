@@ -6,7 +6,7 @@ use crate::{compile_and_run, MainType};
 #[ignore = "class/method support postponed"]
 fn fb_vars_can_be_accessed_from_method() {
     let src = "
-FUNCTION main : DINT 
+FUNCTION main : DINT
     prg();
     main := prg.y;
 END_FUNCTION
@@ -38,7 +38,7 @@ END_FUNCTION_BLOCK
 #[ignore = "class support postponed"]
 fn class_vars_can_be_accessed() {
     let src = "
-FUNCTION main : DINT 
+FUNCTION main : DINT
     prg();
     main := prg.y;
 END_FUNCTION
@@ -73,8 +73,8 @@ fn method_can_resolve_non_class_functions() {
     FUNCTION foo : DINT
         foo := 42;
     END_FUNCTION
-    
-    CLASS baz 
+
+    CLASS baz
     METHOD test : DINT
         test := foo();
     END_METHOD
@@ -86,7 +86,7 @@ fn method_can_resolve_non_class_functions() {
         y := x.test();
     END_PROGRAM
 
-    FUNCTION main : DINT 
+    FUNCTION main : DINT
         prg();
         main := prg.y;
     END_FUNCTION

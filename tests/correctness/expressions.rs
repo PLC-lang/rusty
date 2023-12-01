@@ -47,7 +47,7 @@ fn equal_comparison_with_arbitrary_datatypes() {
                 STRING_EQUAL := TRUE;
             END_FUNCTION
 
-            PROGRAM main 
+            PROGRAM main
             VAR
                 result1 : DINT;
                 result2 : DINT;
@@ -193,7 +193,7 @@ fn enums_can_be_compared() {
     let function = "
         TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
 
-        PROGRAM main 
+        PROGRAM main
             VAR a,b,c : BOOL; END_VAR
 
             VAR_TEMP
@@ -209,11 +209,11 @@ fn enums_can_be_compared() {
             IF y = 7 THEN
                 b := TRUE;
             END_IF
-            
+
             IF z = 8 THEN
                 c := TRUE;
             END_IF
-        END_PROGRAM 
+        END_PROGRAM
     ";
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([true, true, true], [main.a, main.b, main.c]);
@@ -239,7 +239,7 @@ fn amp_as_and_correctness_test() {
             a := TRUE;
             b := TRUE;
             c := FALSE;
-            
+
             IF a & b THEN
                 d := TRUE;
             END_IF
@@ -272,9 +272,9 @@ fn aliased_ranged_numbers_can_be_compared() {
     let src = r#"
     TYPE MyInt: INT(0..500); END_TYPE
     PROGRAM main
-    VAR 
+    VAR
         a, b, c, d, e, f : BOOL;
-    END_VAR      
+    END_VAR
     VAR_TEMP
         x,y : MyInt;
     END_VAR
@@ -364,9 +364,9 @@ fn aliased_ranged_numbers_can_be_compared_with_builtins() {
     let src = r#"
     TYPE MyInt: INT(0..500); END_TYPE
     PROGRAM main
-    VAR 
+    VAR
         a, b, c, d, e, f : BOOL;
-    END_VAR      
+    END_VAR
     VAR_TEMP
         x,y : MyInt;
     END_VAR

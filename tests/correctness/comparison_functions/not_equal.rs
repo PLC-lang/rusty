@@ -28,8 +28,8 @@ fn builtin_ne_with_ints() {
         i1, i2, i3 : DINT;
     END_VAR
         i1 := 3;
-        i2 := 2; 
-        i3 := 3; 
+        i2 := 2;
+        i3 := 3;
         main := NE(i1, i2);
     END_FUNCTION
     "#;
@@ -69,7 +69,7 @@ fn builtin_ne_with_floats() {
     END_VAR
         r1 := 3.0;
         r2 := 2.9;
-        r3 := 3.2; 
+        r3 := 3.2;
         main := NE(r1, r2);
     END_FUNCTION
     "#;

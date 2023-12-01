@@ -21,7 +21,7 @@ A library is defined by:
  > PROGRAM example
  > VAR_INPUT
  >  a,b,c : DINT
- > END_VAR 
+ > END_VAR
  > (* End of interface *)
  >
  > (* Implementation *)

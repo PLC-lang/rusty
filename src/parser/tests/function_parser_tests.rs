@@ -412,7 +412,7 @@ fn function_bool_return_supported() {
 fn function_type_enum_return_supported() {
     // GIVEN FUNCTION returning a type ENUM
     let function = "TYPE MyEnum: (green, yellow, red); END_TYPE
-	FUNCTION foo : MyEnum VAR_INPUT END_VAR END_FUNCTION";
+    FUNCTION foo : MyEnum VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
     let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
@@ -423,7 +423,7 @@ fn function_type_enum_return_supported() {
 fn function_type_struct_return_supported() {
     // GIVEN FUNCTION returning a type STRUCT
     let function = "TYPE MyStruct: STRUCT x : INT; y : INT; END_STRUCT END_TYPE
-	FUNCTION foo : MyStruct VAR_INPUT END_VAR END_FUNCTION";
+    FUNCTION foo : MyStruct VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
     let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type

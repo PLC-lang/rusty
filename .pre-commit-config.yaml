@@ -1,0 +1,75 @@
+# Pre-commit is currently in testing phase for this repo. It is not yet forced
+# in CI or mandatory to use. Pre-commit will run various checks and mostly fix
+# those when you do commiting. You can use it locally by installing it with
+#
+#  pip install pre-commit
+#
+# and running
+#
+#  pre-commit install
+#
+# in the root of the repository. This will install git hook which will run
+# checks before every commit. If you want to run checks manually for whole repo,
+# you can run
+#
+#  pre-commit run --all-files
+#
+# You can always commit without running checks by adding --no-verify flag to git
+# commit command.
+
+exclude: target/|\.git/|.*\.snap
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: c4a0b883114b00d8d76b479c820ce7950211c99b # v4.5.0
+    hooks:
+      - id: check-merge-conflict
+        args: [--assume-in-merge]
+      # Editorconfig-checker does not care if file contains multiple newlines.
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-case-conflict
+      - id: trailing-whitespace
+      - id: fix-byte-order-marker
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: 762c66ea96843b54b936fc680162ea67f85ec2d7 # v1.5.4
+    hooks:
+      - id: remove-tabs
+        name: Remove tabs (4 spaces)
+        args: ['--whitespaces-count', '4']
+        exclude: \.(yaml|yml)$
+      - id: remove-tabs
+        name: Remove tabs (2 spaces)
+        args: ['--whitespaces-count', '2']
+        files: \.(yaml|yml)$
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316 # v1.10.0
+    hooks:
+      - id: text-unicode-replacement-char
+        exclude: ".*test_fdx_utf8.cpp$"
+
+  # Formatting Python code. We have not so many files so no example flake8 yet.
+  - repo: https://github.com/psf/black
+    rev: 2a1c67e0b2f81df602ec1f6e7aeb030b9709dc7c #23.11.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: eeee35a89e69d5772bdee97db1a6a898467b686e #v1.0
+    hooks:
+    - id: fmt
+    - id: cargo-check
+    - id: clippy
+      args: ["--", "-D", "warnings"]
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 2b74735540f79457a50369e5c17a2c35d52c3298 # 2.7.3
+    hooks:
+      - id: editorconfig-checker
+        args: [
+            # Saddly we have to disable this, but it just won't work. Maybe some day.
+            -disable-indent-size,
+          ]

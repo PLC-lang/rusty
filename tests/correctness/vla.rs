@@ -76,7 +76,7 @@ fn variable_length_array_multi_dimension_access() {
         a := arr[0, 0];
         b := arr[0, 1];
         c := arr[1, 0];
-        d := arr[1, 1];   
+        d := arr[1, 1];
     END_PROGRAM
 
     FUNCTION foo : DINT
@@ -87,7 +87,7 @@ fn variable_length_array_multi_dimension_access() {
         vla[0, 0] := 0;
         vla[0, 1] := 2;
         vla[1, 0] := 4;
-        vla[1, 1] := 8;  
+        vla[1, 1] := 8;
     END_FUNCTION
     "#;
 
@@ -128,9 +128,9 @@ fn variable_length_array_multi_dimension_read_write() {
             vla : ARRAY[ *, *, *, *] OF LINT;
         END_VAR
 
-        vla[1, 2, 1, 8] := -7; 
-        vla[2, 1, 1, 6] := 72; 
-        vla[3, 1, 1, 4] := 11; 
+        vla[1, 2, 1, 8] := -7;
+        vla[2, 1, 1, 6] := 72;
+        vla[3, 1, 1, 4] := 11;
     END_FUNCTION
     "#;
 
@@ -168,7 +168,7 @@ fn variable_length_array_multi_dimension_read_write_with_offsets() {
 END_PROGRAM
 
 FUNCTION foo : DINT
-    VAR_INPUT 
+    VAR_INPUT
         vla : ARRAY[ *, *, *, * ] OF LINT;
     END_VAR
 
@@ -226,7 +226,7 @@ fn consecutive_calls_with_differently_sized_arrays() {
     END_PROGRAM
 
     FUNCTION foo : DINT
-        VAR_INPUT 
+        VAR_INPUT
             vla : ARRAY[ *, * ] OF LINT;
         END_VAR
 
@@ -378,7 +378,7 @@ fn variable_length_array_by_ref_param_access() {
         e := arr[4];
     END_PROGRAM
 
-    FUNCTION foo : DINT    
+    FUNCTION foo : DINT
         VAR_IN_OUT
             vla : ARRAY[ * ] OF DINT;
         END_VAR
@@ -429,7 +429,7 @@ fn variable_length_array_output_param_access() {
         e := arr[4];
     END_PROGRAM
 
-    FUNCTION foo : DINT    
+    FUNCTION foo : DINT
         VAR_OUTPUT
             vla : ARRAY[ * ] OF DINT;
         END_VAR
@@ -507,7 +507,7 @@ fn variable_length_array_multi_dimension_with_strings() {
         a := arr[0, 0];
         b := arr[0, 1];
         c := arr[1, 0];
-        d := arr[1, 1];   
+        d := arr[1, 1];
     END_PROGRAM
 
     FUNCTION foo : DINT
@@ -518,7 +518,7 @@ fn variable_length_array_multi_dimension_with_strings() {
         vla[0, 0] := 'brave ';
         vla[0, 1] := 'new ';
         vla[1, 0] := 'world ';
-        vla[1, 1] := '📖';  
+        vla[1, 1] := '📖';
     END_FUNCTION
     "#;
 
@@ -563,12 +563,12 @@ fn variable_length_array_of_array() {
         a := arr[0, 0][0];
         b := arr[0, 0][1];
         c := arr[0, 1][0];
-        d := arr[0, 1][1];   
-        e := arr[1, 0][0];   
-        f := arr[1, 0][1];   
-        g := arr[1, 1][0];   
-        h := arr[1, 1][1];   
-        
+        d := arr[0, 1][1];
+        e := arr[1, 0][0];
+        f := arr[1, 0][1];
+        g := arr[1, 1][0];
+        h := arr[1, 1][1];
+
     END_PROGRAM
 
     FUNCTION foo : DINT
@@ -580,10 +580,10 @@ fn variable_length_array_of_array() {
         vla[0, 0][1] := 1;
         vla[0, 1][0] := 2;
         vla[0, 1][1] := 3;
-        vla[1, 0][0] := 4; 
-        vla[1, 0][1] := 5; 
-        vla[1, 1][0] := 6; 
-        vla[1, 1][1] := 7; 
+        vla[1, 0][0] := 4;
+        vla[1, 0][1] := 5;
+        vla[1, 1][0] := 6;
+        vla[1, 1][1] := 7;
     END_FUNCTION
     "#;
 
@@ -617,7 +617,7 @@ mod builtins {
             VAR_INPUT {ref}
                 array_1d : ARRAY[*] OF DINT;
             END_VAR
-            
+
             foo[0] := LOWER_BOUND(array_1d, 1);
             foo[1] := UPPER_BOUND(array_1d, 1);
         END_FUNCTION
@@ -632,8 +632,8 @@ mod builtins {
                 array_1d : ARRAY[-5..5] OF DINT;
             END_VAR
 
-            res := foo(array_1d); 
-            
+            res := foo(array_1d);
+
             lower_1d := res[0];
             upper_1d := res[1];
         END_PROGRAM
@@ -662,7 +662,7 @@ mod builtins {
             VAR_TEMP
                 i : DINT := 1;
             END_VAR
-            
+
             foo[0] := LOWER_BOUND(array_1d, i);
             foo[1] := UPPER_BOUND(array_1d, i);
         END_FUNCTION
@@ -677,8 +677,8 @@ mod builtins {
                 array_1d : ARRAY[-5..5] OF DINT;
             END_VAR
 
-            res := foo(array_1d); 
-            
+            res := foo(array_1d);
+
             lower_1d := res[0];
             upper_1d := res[1];
         END_PROGRAM
@@ -705,7 +705,7 @@ mod builtins {
             VAR_INPUT {ref}
                 arr : ARRAY[*, *] OF DINT;
             END_VAR
-            
+
             foo[0] := LOWER_BOUND(arr, 1);
             foo[1] := UPPER_BOUND(arr, 1);
             foo[2] := LOWER_BOUND(arr, 2);
@@ -723,8 +723,8 @@ mod builtins {
                 array_2d : ARRAY[-5..5, -10..10] OF DINT;
             END_VAR
 
-            res := foo(array_2d); 
-            
+            res := foo(array_2d);
+
             lower_2d_1 := res[0];
             upper_2d_1 := res[1];
             lower_2d_2 := res[2];
@@ -760,7 +760,7 @@ mod builtins {
                 i : DINT := 1;
                 j : DINT := 2;
             END_VAR
-            
+
             foo[0] := LOWER_BOUND(arr, i);
             foo[1] := UPPER_BOUND(arr, i);
             foo[2] := LOWER_BOUND(arr, j);
@@ -778,8 +778,8 @@ mod builtins {
                 array_2d : ARRAY[-5..5, -10..10] OF DINT;
             END_VAR
 
-            res := foo(array_2d); 
-            
+            res := foo(array_2d);
+
             lower_2d_1 := res[0];
             upper_2d_1 := res[1];
             lower_2d_2 := res[2];
@@ -912,30 +912,30 @@ mod builtins {
            A1 : ARRAY [1..10]          OF INT := [10(1)];
            A2 : ARRAY [1..20, -2..2]   OF INT := [20(5(1))];
         END_VAR
-        
+
         FUNCTION sum : DINT
            VAR_IN_OUT
                A: ARRAY [*] OF INT;
            END_VAR
-        
+
            VAR
                i, sum2 : DINT;
            END_VAR
-        
+
            sum2 := 0;
            FOR i:= LOWER_BOUND(A, 1) TO UPPER_BOUND(A, 1) DO
                sum2 := sum2 + A[i];
            END_FOR
-        
+
            sum := sum2;
         END_FUNCTION
-        
+
         PROGRAM main
            VAR
                sum_a1 : DINT;
                sum_a2 : DINT;
            END_VAR
-        
+
            sum_a1 := sum(A1);
         //    sum_a2 := SUM(A2[2]);
         END_PROGRAM
@@ -959,7 +959,7 @@ mod builtins {
             MY_CONST : DINT := 10;
         END_VAR
 
-        PROGRAM main        
+        PROGRAM main
         VAR
             a, b: DINT;
         END_VAR
@@ -970,14 +970,14 @@ mod builtins {
             b := upper(x);
         END_FUNCTION
 
-        FUNCTION lower : DINT        
+        FUNCTION lower : DINT
         VAR_INPUT
             vla : ARRAY[*] OF DINT;
         END_VAR
             lower := LOWER_BOUND(vla, MY_CONST - 9);
         END_FUNCTION
 
-        FUNCTION upper : DINT        
+        FUNCTION upper : DINT
         VAR_INPUT
             vla : ARRAY[*] OF DINT;
         END_VAR

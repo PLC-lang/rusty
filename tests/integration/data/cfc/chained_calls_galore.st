@@ -11,7 +11,7 @@ END_PROGRAM
 
 FUNCTION myAdd : DINT
 VAR_INPUT
-	a, b : DINT;
+    a, b : DINT;
 END_VAR
     myAdd := a + b;
 END_FUNCTION

@@ -120,7 +120,7 @@ fn for_continue_test() {
     FOR main := 1 TO 10 BY 1 DO
         main := 10;
         CONTINUE;
-        main := 200; 
+        main := 200;
     END_FOR
     END_FUNCTION
     "#;
@@ -164,7 +164,7 @@ fn for_loop_exit_test() {
     FUNCTION main : DINT
     FOR main := 100 TO 1000 BY 7 DO
         EXIT;
-        main := 200; 
+        main := 200;
     END_FOR
     "#;
 
@@ -206,7 +206,7 @@ fn loop_exit_test() {
     FUNCTION main : DINT
     FOR main := 100 TO 1000 BY 7 DO
         EXIT;
-        main := 200; 
+        main := 200;
     END_FOR
     WHILE main > 50 DO
         EXIT;
@@ -284,7 +284,7 @@ fn for_loop_and_increment_10_times_change_vars() {
         i, : INT := 0;
     END_VAR
     VAR_TEMP
-        start, end : INT; 
+        start, end : INT;
     END_VAR
     main := 100;
     start := 1;
@@ -310,7 +310,7 @@ fn for_loop_overflow() {
     }
 
     let function = r#"
-    PROGRAM main 
+    PROGRAM main
     VAR
         i : INT;
         ret : DINT;
@@ -537,7 +537,7 @@ fn exit_in_for_loop_in_while_loop() {
         main := main+1;
         FOR i := 0 TO 10 BY 1 DO
             EXIT;
-        END_FOR 
+        END_FOR
     END_WHILE
     main := i + main;
     END_FUNCTION
@@ -560,7 +560,7 @@ fn continue_in_for_loop_in_while_loop() {
         FOR i := 0 TO 10 BY 1 DO
             CONTINUE;
             main := 200;
-        END_FOR 
+        END_FOR
     END_WHILE
     main := i + main;
     END_FUNCTION
@@ -582,7 +582,7 @@ fn repeat_loop_no_entry() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i > 0 
+    UNTIL i > 0
     END_REPEAT
     main := main + (i * 1000);
     END_FUNCTION
@@ -675,7 +675,7 @@ fn case_statement() {
         ret : INT;
     END_VAR
     ret := 1;
-    
+
     CASE i OF
         1,2,3,4,5,6,7,8,9: ret := 101;
         10,11,12..19: ret := 201;

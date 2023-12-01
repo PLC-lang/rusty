@@ -2,11 +2,11 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 816 }..TextLocation { line: 38, column: 22, offset: 834 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 851 }..TextLocation { line: 39, column: 29, offset: 876 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 893 }..TextLocation { line: 40, column: 22, offset: 911 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 928 }..TextLocation { line: 41, column: 20, offset: 944 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 961 }..TextLocation { line: 42, column: 22, offset: 979 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1098 }..TextLocation { line: 46, column: 27, offset: 1121 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1177 }..TextLocation { line: 48, column: 31, offset: 1204 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 780 }..TextLocation { line: 38, column: 22, offset: 798 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 815 }..TextLocation { line: 39, column: 29, offset: 840 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 857 }..TextLocation { line: 40, column: 22, offset: 875 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 892 }..TextLocation { line: 41, column: 20, offset: 908 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 925 }..TextLocation { line: 42, column: 22, offset: 943 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1062 }..TextLocation { line: 46, column: 27, offset: 1085 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1141 }..TextLocation { line: 48, column: 31, offset: 1168 }) }], err_no: var__invalid_assignment }
 

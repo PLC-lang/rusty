@@ -8,12 +8,12 @@ fn any_allows_all_natures() {
         FUNCTION func1   : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
         FUNCTION func2   : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
         FUNCTION func3   : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4   : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func4   : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
         FUNCTION func5   : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
         FUNCTION func6   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
         FUNCTION func7   : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
-		FUNCTION func8   : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func9   : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func8   : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func9   : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
         FUNCTION func10  : INT VAR x : str; END_VAR test(x); END_FUNCTION
     ";
 
@@ -81,7 +81,7 @@ fn any_magnitude_allows_ints() {
         FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
         FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
@@ -109,9 +109,9 @@ fn any_magnitude_does_not_allow_bits() {
         FUNCTION test<T : ANY_MAGNITUDE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -148,9 +148,9 @@ fn any_magnitude_does_not_allow_date() {
         FUNCTION test<T : ANY_MAGNITUDE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -206,7 +206,7 @@ fn any_num_allows_ints() {
         FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
         FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
@@ -234,9 +234,9 @@ fn any_num_does_not_allow_bits() {
         FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -273,9 +273,9 @@ fn any_num_does_not_allow_date() {
         FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -330,13 +330,13 @@ fn any_real_allows_ints() {
 
         FUNCTION func1 : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -348,7 +348,7 @@ fn any_real_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -360,10 +360,10 @@ fn any_real_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -375,7 +375,7 @@ fn any_real_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -399,10 +399,10 @@ fn any_real_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -456,13 +456,13 @@ fn any_int_allows_ints() {
 
         FUNCTION func1 : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -474,7 +474,7 @@ fn any_int_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_INT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -486,10 +486,10 @@ fn any_int_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_INT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -501,7 +501,7 @@ fn any_int_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_INT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -525,10 +525,10 @@ fn any_int_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_INT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -581,8 +581,8 @@ fn any_unsigned_allows_unsigned_ints() {
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1 : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -593,10 +593,10 @@ fn any_unsigned_allows_unsigned_ints() {
 fn any_unsigned_does_not_allow_signed_ints() {
     let src = r"
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
-		FUNCTION func1  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -608,7 +608,7 @@ fn any_unsigned_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -620,10 +620,10 @@ fn any_unsigned_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -635,7 +635,7 @@ fn any_unsigned_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -659,10 +659,10 @@ fn any_unsigned_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_UNSIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -715,8 +715,8 @@ fn any_signed_allows_signed_ints() {
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1 : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -727,10 +727,10 @@ fn any_signed_allows_signed_ints() {
 fn any_signed_does_not_allow_unsigned_ints() {
     let src = r"
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -742,7 +742,7 @@ fn any_signed_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -754,10 +754,10 @@ fn any_signed_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -769,7 +769,7 @@ fn any_signed_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -793,10 +793,10 @@ fn any_signed_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_SIGNED> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -848,15 +848,15 @@ fn any_duration_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_DURATION> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -868,7 +868,7 @@ fn any_duration_allows_time() {
     let src = r"
         FUNCTION test<T : ANY_DURATION> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -880,10 +880,10 @@ fn any_duration_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_DURATION> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -895,7 +895,7 @@ fn any_duration_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_DURATION> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -919,10 +919,10 @@ fn any_duration_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_DURATION> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -974,15 +974,15 @@ fn any_bit_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_BIT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -994,7 +994,7 @@ fn any_bit_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_BIT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1006,12 +1006,12 @@ fn any_bit_allows_bits() {
     let src = r"
         FUNCTION test<T : ANY_BIT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
         // binary expressions
-        FUNCTION func6  : INT 
+        FUNCTION func6  : INT
         VAR
         a : BOOL;
         b : BYTE;
@@ -1035,7 +1035,7 @@ fn any_bit_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_BIT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1059,10 +1059,10 @@ fn any_bit_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_BIT> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1114,15 +1114,15 @@ fn any_chars_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_CHARS> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1134,7 +1134,7 @@ fn any_chars_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_CHARS> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1146,10 +1146,10 @@ fn any_chars_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_CHARS> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1161,7 +1161,7 @@ fn any_chars_allows_chars() {
     let src = r"
         FUNCTION test<T : ANY_CHARS> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1185,10 +1185,10 @@ fn any_chars_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_CHARS> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1240,15 +1240,15 @@ fn any_string_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1260,7 +1260,7 @@ fn any_string_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1272,10 +1272,10 @@ fn any_string_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1287,7 +1287,7 @@ fn any_string_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1311,10 +1311,10 @@ fn any_string_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1366,15 +1366,15 @@ fn any_char_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_CHAR> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1386,7 +1386,7 @@ fn any_char_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_CHAR> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1398,10 +1398,10 @@ fn any_char_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_CHAR> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1413,7 +1413,7 @@ fn any_char_allows_chars() {
     let src = r"
         FUNCTION test<T : ANY_CHAR> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1437,10 +1437,10 @@ fn any_char_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_CHAR> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1492,15 +1492,15 @@ fn any_date_does_not_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_DATE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
 
-		FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
 
-		FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-		FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-		FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1512,7 +1512,7 @@ fn any_date_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_DATE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1524,10 +1524,10 @@ fn any_date_does_not_allow_bits() {
     let src = r"
         FUNCTION test<T : ANY_DATE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1539,7 +1539,7 @@ fn any_date_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_DATE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -1563,10 +1563,10 @@ fn any_date_allows_date() {
     let src = r"
         FUNCTION test<T : ANY_DATE> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
-		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
-		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
-		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+        FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+        FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+        FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
