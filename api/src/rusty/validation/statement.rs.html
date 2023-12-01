@@ -2142,7 +2142,7 @@
             <span class="comment">// check if type_hint and actual_type is compatible
             // should be handled by assignment validation
             </span><span class="kw">if </span>!(actual_type.has_nature(<span class="kw-2">*</span>generic_nature, context.index)
-				<span class="comment">// INT parameter for REAL is allowed
+                <span class="comment">// INT parameter for REAL is allowed
                 </span>| (type_hint.is_real() &amp; actual_type.is_numerical()))
             {
                 validator.push_diagnostic(Diagnostic::invalid_type_nature(

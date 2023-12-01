@@ -860,7 +860,7 @@
                                 .find_effective_type_by_name(current.get_name())
                                 .map(|t| {
                                     t.has_nature(<span class="kw-2">*</span>nature, <span class="self">self</span>.index)
-										<span class="comment">// INT parameter for REAL is allowed
+                                        <span class="comment">// INT parameter for REAL is allowed
                                             </span>| (nature.is_real() &amp; t.is_numerical())
                                 })
                                 .unwrap_or_default()

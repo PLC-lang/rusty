@@ -148,13 +148,13 @@
 <p>The linker's task is to decide where all references in the source code point to.
 There are different references in Structured Text:</p>
 <ul>
-<li>variable references<br />
+<li>variable references
 <code>x := 4</code> where <em>x</em> is a reference to the variable x.</li>
-<li>type references<br />
+<li>type references
 <code>i : MyFunctionBlock</code> where <em>MyFunctionBlock</em> is a reference to the declared FunctionBlock.</li>
-<li>Program references<br />
+<li>Program references
 <code>PLC_PRG.x := 4</code> where <em>PLC_PRG</em> is a reference to a Program-POU called <em>PLC_PRG</em>.</li>
-<li>Function references<br />
+<li>Function references
 <code>max(a, b)</code> where <em>max</em> is a reference to a Function-POU called <em>max</em>.</li>
 </ul>
 <p>So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name:</p>
@@ -163,7 +163,7 @@ There are different references in Structured Text:</p>
 
         ┌──────► x : INT;
         │
-        │    END_VAR      
+        │    END_VAR
         │
         └────┐
              │
@@ -192,7 +192,7 @@ The parser assigns a unique ID to every Statement-Tree-Node (Note that we only a
                       │  ID: 1          │
                       └──────┬──┬───────┘
                              │  │
-                   left      │  │     right 
+                   left      │  │     right
                  ┌───────────┘  └──────────┐
                  │                         │
                  │                         │
@@ -206,7 +206,7 @@ The parser assigns a unique ID to every Statement-Tree-Node (Note that we only a
 </code></pre>
 <p>The AnnotationMap stores 5 different types of annotation:</p>
 <ul>
-<li><code>Value</code><br />
+<li><code>Value</code>
 The Value-annotation indicates that this AST-Element resolves to a value with the given resulting datatype.
 So for Example the LiteralInteger(3) node gets a Value-Annotation with a resulting type of <code>DINT</code>.</li>
 </ul>

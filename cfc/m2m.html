@@ -167,7 +167,7 @@
                                        local_id: 2
 </code></pre>
 <p>The initial phase of the transformation process involves streaming the entire input file.
-During the streaming process, whenever important keywords such as <code>block</code> are encountered, they are directly mapped into a corresponding model structure. 
+During the streaming process, whenever important keywords such as <code>block</code> are encountered, they are directly mapped into a corresponding model structure.
 For example, when reaching the line <code>&lt;block localId=&quot;3&quot; ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
 <pre><code class="language-rust ignore">struct Block {
     localId: 2,
@@ -183,19 +183,19 @@ For example, when reaching the line <code>&lt;block localId=&quot;3&quot; ...&gt
 <p>This process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model">model</a> folder.</p>
 <p>Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
 with the sequencing of block execution and inter-block links represented through corresponding <code>localId</code>, <code>refLocalId</code> and <code>excutionOrderId</code>,
-we have to order each element by their execution ID before proceeding to the next phase. 
+we have to order each element by their execution ID before proceeding to the next phase.
 Otherwise the generated AST statements would be out of order and hence semantically incorrect.</p>
 <h2 id="data-model-to-ast"><a class="header" href="#data-model-to-ast">Data-Model to AST</a></h2>
 <p>The final part of the model-to-model transformation takes the input from the previous step and transforms it into an AST which the compiler pipeline understands and can generate code from.
 Consider the previous <code>block</code> example - the transformer first encounters the element with the <code>executionOrderId</code> of 0, which is a call to <code>myAdd</code>.
 We then check and transform each parameter, input <code>a</code> and <code>b</code> corresponding to the variables <code>x</code> and <code>y</code> respectively. The result of this transformation looks as follows:</p>
-<pre><code class="language-rust ignore">CallStatement { 
-    operator: myAdd, 
-    parameters: [x, y] 
+<pre><code class="language-rust ignore">CallStatement {
+    operator: myAdd,
+    parameters: [x, y]
 }</code></pre>
 <p>Next, we process the element with an <code>executionOrderId</code> of 1, which corresponds to an assignment of the previous call's result to z. This update modifies the generated AST as follows:</p>
 <pre><code class="language-rust ignore">AssignmentStatement {
-    left: z, 
+    left: z,
     right: CallStatement {
         operator: myAdd,
         parameters: [x, y]

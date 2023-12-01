@@ -918,8 +918,8 @@
             .map(|(i, p)| <span class="kw">match </span>declared_parameters.get(i) {
                 <span class="prelude-val">Some</span>(v)
                     <span class="kw">if </span>v.is_in_parameter_by_ref() &amp;&amp;
-					<span class="comment">// parameters by ref will always be a pointer
-					</span>p.into_pointer_type().get_element_type().is_array_type() =&gt;
+                    <span class="comment">// parameters by ref will always be a pointer
+                    </span>p.into_pointer_type().get_element_type().is_array_type() =&gt;
                 {
                     <span class="comment">// for array types we will generate a pointer to the arrays element type
                     // not a pointer to array

@@ -146,7 +146,7 @@
                     <main>
                         <h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
 <p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>.
-By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively 
+By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively
 however, you will need some additional dependencies namely:</p>
 <ul>
 <li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
@@ -157,7 +157,7 @@ however, you will need some additional dependencies namely:</p>
 </ul>
 <p>The next sections cover how to install these dependencies on different platforms, if you already have them
 however, RuSTy can be build using the <code>cargo</code> command. For debug builds this can be accomplished by executing
-<code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The 
+<code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The
 resulting binaries can be found at <code>target/debug/plc</code> and <code>target/release/plc</code> respectively.</p>
 <h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
 <p>The specified dependencies can be installed with the following command on Ubuntu:</p>
@@ -165,7 +165,7 @@ resulting binaries can be found at <code>target/debug/plc</code> and <code>targe
     build-essential             \
     llvm-14-dev liblld-14-dev   \
     libz-dev                    \
-    libclang-common-14-dev 
+    libclang-common-14-dev
 </code></pre>
 <p>Additionally you <em>might</em> need <code>libffi7</code>, which can be installed with <code>sudo apt install libffi7</code>.</p>
 <h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
