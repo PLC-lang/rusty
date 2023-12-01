@@ -2684,6 +2684,14 @@
 <a href="#2684" id="2684">2684</a>
 <a href="#2685" id="2685">2685</a>
 <a href="#2686" id="2686">2686</a>
+<a href="#2687" id="2687">2687</a>
+<a href="#2688" id="2688">2688</a>
+<a href="#2689" id="2689">2689</a>
+<a href="#2690" id="2690">2690</a>
+<a href="#2691" id="2691">2691</a>
+<a href="#2692" id="2692">2692</a>
+<a href="#2693" id="2693">2693</a>
+<a href="#2694" id="2694">2694</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -3115,6 +3123,14 @@
         <span class="comment">// if the function is builtin, generate a basic value enum for it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(builtin) = <span class="self">self</span>.index.get_builtin_function(implementation_name) {
             <span class="comment">// adr, ref, etc.
+            // let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
+            //     self.annotations.get(operator)
+            // {
+            //     statement.get_as_list()
+            // } else {
+            //     parameters_list
+            // };
+
             </span><span class="kw">return </span>builtin.codegen(<span class="self">self</span>, parameters_list.as_slice(), operator.get_location());
         }
 

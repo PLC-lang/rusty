@@ -2176,6 +2176,24 @@
 <a href="#2176" id="2176">2176</a>
 <a href="#2177" id="2177">2177</a>
 <a href="#2178" id="2178">2178</a>
+<a href="#2179" id="2179">2179</a>
+<a href="#2180" id="2180">2180</a>
+<a href="#2181" id="2181">2181</a>
+<a href="#2182" id="2182">2182</a>
+<a href="#2183" id="2183">2183</a>
+<a href="#2184" id="2184">2184</a>
+<a href="#2185" id="2185">2185</a>
+<a href="#2186" id="2186">2186</a>
+<a href="#2187" id="2187">2187</a>
+<a href="#2188" id="2188">2188</a>
+<a href="#2189" id="2189">2189</a>
+<a href="#2190" id="2190">2190</a>
+<a href="#2191" id="2191">2191</a>
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2256,7 +2274,7 @@
     <span class="doccomment">/// true the visitor entered a body (so no declarations)
     </span>in_body: bool,
 
-    id_provider: IdProvider,
+    <span class="kw">pub </span>id_provider: IdProvider,
 
     <span class="comment">// what&#39;s the current strategy for resolving
     </span>resolve_strategy: Vec&lt;ResolvingScope&gt;,
@@ -2459,6 +2477,120 @@
                 statement.get_location(),
                 ctx.id_provider.next_id(),
             ))
+    }
+
+    <span class="kw">pub fn </span>annotate_call_statement(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        operator: <span class="kw-2">&amp;</span>AstNode,
+        parameters_stmt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+        ctx: <span class="kw-2">&amp;</span>VisitorContext,
+    ) {
+        <span class="kw">let </span>parameters = <span class="kw">if let </span><span class="prelude-val">Some</span>(parameters) = parameters_stmt {
+            <span class="self">self</span>.visit_statement(ctx, parameters);
+            flatten_expression_list(parameters)
+        } <span class="kw">else </span>{
+            <span class="macro">vec!</span>[]
+        };
+        <span class="kw">let </span>operator_qualifier = <span class="kw-2">&amp;</span><span class="self">self</span>.get_call_name(operator);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt; = HashMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.into_iter();
+
+        <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
+        // to annotate them with the correct type hint.
+        </span><span class="kw">let </span>operator_qualifier = <span class="self">self
+            </span>.index
+            .find_implementation_by_name(operator_qualifier)
+            .map(|it| it.get_type_name())
+            .unwrap_or(operator_qualifier);
+
+        <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(operator_qualifier).into_iter() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = parameters.next() {
+                <span class="kw">let </span>type_name = m.get_type_name();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) =
+                    TypeAnnotator::get_generic_candidate(<span class="self">self</span>.index, <span class="kw-2">&amp;</span><span class="self">self</span>.annotation_map, type_name, p)
+                {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
+                } <span class="kw">else </span>{
+                    params.push((p, type_name.to_string()))
+                }
+            }
+        }
+
+        <span class="comment">//We possibly did not consume all parameters, see if the variadic arguments are derivable
+        </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(operator_qualifier) {
+            <span class="prelude-val">Some</span>(pou) <span class="kw">if </span>pou.is_variadic() =&gt; {
+                <span class="comment">//get variadic argument type, if it is generic, update the generic candidates
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) =
+                    <span class="self">self</span>.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
+                {
+                    <span class="kw">for </span>parameter <span class="kw">in </span>parameters {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                            <span class="self">self</span>.index,
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.annotation_map,
+                            type_name,
+                            parameter,
+                        ) {
+                            generics_candidates
+                                .entry(key.to_string())
+                                .or_default()
+                                .push(candidate.to_string())
+                        } <span class="kw">else </span>{
+                            <span class="comment">// intrinsic type promotion for variadics in order to be compatible with the C standard.
+                            // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+                            // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+                            // for more about default argument promotion.
+
+                            // varargs without a type declaration will be annotated &quot;VOID&quot;, so in order to check if a
+                            // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+                            // types, we promote if the type is smaller than double/i32 (except for booleans).
+                            </span><span class="kw">let </span>type_name = <span class="kw">if let </span><span class="prelude-val">Some</span>(data_type) =
+                                <span class="self">self</span>.annotation_map.get_type(parameter, <span class="self">self</span>.index)
+                            {
+                                <span class="kw">match </span><span class="kw-2">&amp;</span>data_type.information {
+                                    DataTypeInformation::Float { .. } =&gt; get_bigger_type(
+                                        data_type,
+                                        <span class="self">self</span>.index.get_type_or_panic(LREAL_TYPE),
+                                        <span class="self">self</span>.index,
+                                    )
+                                    .get_name(),
+                                    DataTypeInformation::Integer { .. }
+                                        <span class="kw">if </span>!<span class="kw-2">&amp;</span>data_type.information.is_bool() =&gt;
+                                    {
+                                        get_bigger_type(
+                                            data_type,
+                                            <span class="self">self</span>.index.get_type_or_panic(DINT_TYPE),
+                                            <span class="self">self</span>.index,
+                                        )
+                                        .get_name()
+                                    }
+                                    <span class="kw">_ </span>=&gt; type_name,
+                                }
+                            } <span class="kw">else </span>{
+                                <span class="comment">// default to original type in case no type could be found
+                                // and let the validator handle situations that might lead here
+                                </span>type_name
+                            };
+
+                            params.push((parameter, type_name.to_string()));
+                        }
+                    }
+                }
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
+        <span class="kw">for </span>(p, name) <span class="kw">in </span>params {
+            <span class="self">self</span>.annotate_parameters(p, <span class="kw-2">&amp;</span>name);
+        }
+        <span class="comment">//Attempt to resolve the generic signature here
+        </span><span class="self">self</span>.update_generic_call_statement(
+            generics_candidates,
+            operator_qualifier,
+            operator,
+            parameters_stmt,
+            ctx.to_owned(),
+        );
     }
 }
 
@@ -2969,7 +3101,7 @@
 
     <span class="doccomment">/// updates the expected types of statements on the right side of an assignment
     /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
-    </span><span class="kw">fn </span>update_expected_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, statement: <span class="kw-2">&amp;</span>AstNode) {
+    </span><span class="kw">pub fn </span>update_expected_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_type: <span class="kw-2">&amp;</span>typesystem::DataType, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="comment">//see if we need to dive into it
         </span><span class="kw">match </span>statement.get_stmt() {
             AstStatement::Literal(AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements) }), ..) =&gt; {
@@ -3812,125 +3944,29 @@
         <span class="comment">//Use the context without the is_call =true
         //TODO why do we start a lhs context here???
         </span><span class="kw">let </span>ctx = ctx.with_lhs(operator_qualifier.as_str());
-        <span class="kw">let </span>parameters = <span class="kw">if let </span><span class="prelude-val">Some</span>(parameters) = parameters_stmt {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(parameters) = parameters_stmt {
             <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx, parameters);
-            flatten_expression_list(parameters)
-        } <span class="kw">else </span>{
-            <span class="macro">vec!</span>[]
         };
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = builtins::get_builtin(<span class="kw-2">&amp;</span>operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(<span class="self">self</span>, operator, parameters_stmt, ctx.to_owned())
+            annotation(<span class="self">self</span>, statement, operator, parameters_stmt, ctx.to_owned());
         } <span class="kw">else </span>{
-            <span class="comment">//If builtin, skip this
-            </span><span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt; = HashMap::new();
-            <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
-            <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.into_iter();
+            <span class="comment">//This is skipped for builtins that provide their own annotation-logic
+            </span><span class="self">self</span>.annotate_call_statement(operator, parameters_stmt, <span class="kw-2">&amp;</span>ctx);
+        };
 
-            <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
-            // to annotate them with the correct type hint.
-            </span><span class="kw">let </span>operator_qualifier = <span class="self">self
-                </span>.index
-                .find_implementation_by_name(<span class="kw-2">&amp;</span>operator_qualifier)
-                .map(|it| it.get_type_name())
-                .unwrap_or(operator_qualifier.as_str());
-
-            <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(operator_qualifier).into_iter() {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = parameters.next() {
-                    <span class="kw">let </span>type_name = m.get_type_name();
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) =
-                        TypeAnnotator::get_generic_candidate(<span class="self">self</span>.index, <span class="kw-2">&amp;</span><span class="self">self</span>.annotation_map, type_name, p)
-                    {
-                        generics_candidates
-                            .entry(key.to_string())
-                            .or_insert_with(std::vec::Vec::new)
-                            .push(candidate.to_string())
-                    } <span class="kw">else </span>{
-                        params.push((p, type_name.to_string()))
-                    }
-                }
-            }
-            <span class="comment">//We possibly did not consume all parameters, see if the variadic arguments are derivable
-
-            </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(operator_qualifier) {
-                <span class="prelude-val">Some</span>(pou) <span class="kw">if </span>pou.is_variadic() =&gt; {
-                    <span class="comment">//get variadic argument type, if it is generic, update the generic candidates
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) =
-                        <span class="self">self</span>.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
-                    {
-                        <span class="kw">for </span>parameter <span class="kw">in </span>parameters {
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                                <span class="self">self</span>.index,
-                                <span class="kw-2">&amp;</span><span class="self">self</span>.annotation_map,
-                                type_name,
-                                parameter,
-                            ) {
-                                generics_candidates
-                                    .entry(key.to_string())
-                                    .or_insert_with(std::vec::Vec::new)
-                                    .push(candidate.to_string())
-                            } <span class="kw">else </span>{
-                                <span class="comment">// intrinsic type promotion for variadics in order to be compatible with the C standard.
-                                // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
-                                // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
-                                // for more about default argument promotion.
-
-                                // varargs without a type declaration will be annotated &quot;VOID&quot;, so in order to check if a
-                                // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
-                                // types, we promote if the type is smaller than double/i32 (except for booleans).
-                                </span><span class="kw">let </span>type_name = <span class="kw">if let </span><span class="prelude-val">Some</span>(data_type) =
-                                    <span class="self">self</span>.annotation_map.get_type(parameter, <span class="self">self</span>.index)
-                                {
-                                    <span class="kw">match </span><span class="kw-2">&amp;</span>data_type.information {
-                                        DataTypeInformation::Float { .. } =&gt; get_bigger_type(
-                                            data_type,
-                                            <span class="self">self</span>.index.get_type_or_panic(LREAL_TYPE),
-                                            <span class="self">self</span>.index,
-                                        )
-                                        .get_name(),
-                                        DataTypeInformation::Integer { .. }
-                                            <span class="kw">if </span>!<span class="kw-2">&amp;</span>data_type.information.is_bool() =&gt;
-                                        {
-                                            get_bigger_type(
-                                                data_type,
-                                                <span class="self">self</span>.index.get_type_or_panic(DINT_TYPE),
-                                                <span class="self">self</span>.index,
-                                            )
-                                            .get_name()
-                                        }
-                                        <span class="kw">_ </span>=&gt; type_name,
-                                    }
-                                } <span class="kw">else </span>{
-                                    <span class="comment">// default to original type in case no type could be found
-                                    // and let the validator handle situations that might lead here
-                                    </span>type_name
-                                };
-
-                                params.push((parameter, type_name.to_string()));
-                            }
-                        }
-                    }
-                }
-                <span class="kw">_ </span>=&gt; {}
-            }
-            <span class="kw">for </span>(p, name) <span class="kw">in </span>params {
-                <span class="self">self</span>.annotate_parameters(p, <span class="kw-2">&amp;</span>name);
-            }
-            <span class="comment">//Attempt to resolve the generic signature here
-            </span><span class="self">self</span>.update_generic_call_statement(
-                generics_candidates,
-                operator_qualifier,
-                operator,
-                parameters_stmt,
-                ctx.to_owned(),
-            );
-        }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Function { return_type, .. }) = <span class="self">self</span>.annotation_map.get(operator) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="self">self
                 </span>.index
                 .find_effective_type_by_name(return_type)
                 .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_effective_type_by_name(return_type))
             {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { .. }) = <span class="self">self</span>.annotation_map.get(statement) {
+                    <span class="comment">// if we have a replacement ast, we do not need to annotate the function return type as it would
+                    // overwrite the replacement ast
+                    </span><span class="kw">return</span>;
+                }
                 <span class="self">self</span>.annotate(statement, StatementAnnotation::value(return_type.get_name()));
             }
         }
@@ -4168,7 +4204,7 @@
 
 <span class="kw">fn </span>get_real_type_name_for(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
     <span class="kw">let </span>parsed = value.parse::&lt;f32&gt;().unwrap_or(f32::INFINITY);
-    <span class="kw">if </span>parsed == f32::INFINITY || parsed == f32::NEG_INFINITY {
+    <span class="kw">if </span>parsed.is_infinite() {
         <span class="kw">return </span>LREAL_TYPE;
     }
 

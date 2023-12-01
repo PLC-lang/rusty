@@ -2010,13 +2010,13 @@
         <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
 
         <span class="comment">// validate parameters
-        </span><span class="kw">for </span>(i, p) <span class="kw">in </span>passed_parameters.iter().enumerate() {
+        </span><span class="kw">for </span>(i, param) <span class="kw">in </span>passed_parameters.iter().enumerate() {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>((parameter_location_in_parent, right, is_implicit)) =
-                get_implicit_call_parameter(p, <span class="kw-2">&amp;</span>declared_parameters, i)
+                get_implicit_call_parameter(param, <span class="kw-2">&amp;</span>declared_parameters, i)
             {
                 <span class="kw">let </span>left = declared_parameters.get(parameter_location_in_parent);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
-                    validate_call_by_ref(validator, left, p);
+                    validate_call_by_ref(validator, left, param);
                     <span class="comment">// &#39;parameter location in parent&#39; and &#39;variable location in parent&#39; are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
                     </span>variable_location_in_parent.push(left.get_location_in_parent());
@@ -2025,7 +2025,7 @@
                 <span class="comment">// explicit call parameter assignments will be handled by
                 // `visit_statement()` via `Assignment` and `OutputAssignment`
                 </span><span class="kw">if </span>is_implicit {
-                    validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>p.get_location(), context);
+                    validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>param.get_location(), context);
                 }
 
                 <span class="comment">// mixing implicit and explicit parameters is not allowed
@@ -2033,11 +2033,11 @@
                 </span><span class="kw">if </span>i == <span class="number">0 </span>{
                     are_implicit_parameters = is_implicit;
                 } <span class="kw">else if </span>are_implicit_parameters != is_implicit {
-                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(p.get_location()));
+                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(param.get_location()));
                 }
             }
 
-            visit_statement(validator, p, context);
+            visit_statement(validator, param, context);
         }
 
         <span class="comment">// for PROGRAM/FB we need special inout validation

@@ -50,6 +50,17 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
 
 <span class="kw">use </span>ast::provider::IdProvider;
@@ -101,5 +112,16 @@
     <span class="kw">let </span>module = compile(<span class="kw-2">&amp;</span>context, source);
     module.print_to_stderr();
     module.run::&lt;T, U&gt;(<span class="string">&quot;main&quot;</span>, params)
+}
+
+<span class="doccomment">///
+/// A Convenience method to compile and then run the given source
+/// without external parameters
+///
+</span><span class="kw">pub fn </span>compile_and_run_no_params&lt;U, S: Compilable&gt;(source: S) -&gt; U {
+    <span class="kw">let </span>context: CodegenContext = CodegenContext::create();
+    <span class="kw">let </span>module = compile(<span class="kw-2">&amp;</span>context, source);
+    module.print_to_stderr();
+    module.run_no_param::&lt;U&gt;(<span class="string">&quot;main&quot;</span>)
 }
 </code></pre></div></section></main></body></html>
