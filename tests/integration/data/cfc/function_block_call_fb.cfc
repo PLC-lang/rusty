@@ -21,7 +21,7 @@ END_VAR
 VAR
 
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

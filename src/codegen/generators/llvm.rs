@@ -67,7 +67,7 @@ impl<'a> Llvm<'a> {
     /// - `module` the compilation module to add the variable
     /// - `name` the name of the global variable
     /// - `data_type` the variable's datatype
-    /// - `initial_value` an optional initial value of the global variable    
+    /// - `initial_value` an optional initial value of the global variable
     pub fn create_global_variable(
         &self,
         module: &Module<'a>,

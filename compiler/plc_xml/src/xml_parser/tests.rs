@@ -518,7 +518,7 @@ mod content {
                 <textDeclaration>
                     <content>PROGRAM program_0
 VAR
-	a,b : DINT;
+    a,b : DINT;
 END_VAR</content>
                 </textDeclaration>
             </data>

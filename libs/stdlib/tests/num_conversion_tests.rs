@@ -119,17 +119,17 @@ struct F64Type {
 #[test]
 fn lreal_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_REAL(LREAL#0.0);
-		ret.negative := LREAL_to_REAL(LREAL#-1.7e+10);
-		ret.positive := LREAL_to_REAL(LREAL#1.7e+10);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_REAL(LREAL#0.0);
+        ret.negative := LREAL_to_REAL(LREAL#-1.7e+10);
+        ret.positive := LREAL_to_REAL(LREAL#1.7e+10);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -143,17 +143,17 @@ fn lreal_to_real_conversion() {
 #[test]
 fn lreal_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_LINT(LREAL#0.0);
-		ret.negative := LREAL_to_LINT(LREAL#-9.2233714871e+18);
-		ret.positive := LREAL_to_LINT(LREAL#9.2233714871e+18);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_LINT(LREAL#0.0);
+        ret.negative := LREAL_to_LINT(LREAL#-9.2233714871e+18);
+        ret.positive := LREAL_to_LINT(LREAL#9.2233714871e+18);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -167,17 +167,17 @@ fn lreal_to_lint_conversion() {
 #[test]
 fn lreal_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_DINT(LREAL#0.4);
-		ret.negative := LREAL_to_DINT(LREAL#-2.147483520e+9);
-		ret.positive := LREAL_to_DINT(LREAL#2.147483520e+9);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_DINT(LREAL#0.4);
+        ret.negative := LREAL_to_DINT(LREAL#-2.147483520e+9);
+        ret.positive := LREAL_to_DINT(LREAL#2.147483520e+9);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -191,17 +191,17 @@ fn lreal_to_dint_conversion() {
 #[test]
 fn lreal_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_INT(LREAL#-0.3);
-		ret.negative := LREAL_to_INT(LREAL#-3.2767e+4);
-		ret.positive := LREAL_to_INT(LREAL#3.2767e+4);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_INT(LREAL#-0.3);
+        ret.negative := LREAL_to_INT(LREAL#-3.2767e+4);
+        ret.positive := LREAL_to_INT(LREAL#3.2767e+4);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -215,17 +215,17 @@ fn lreal_to_int_conversion() {
 #[test]
 fn lreal_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_SINT(LREAL#0.4);
-		ret.negative := LREAL_to_SINT(LREAL#-1.27e+2);
-		ret.positive := LREAL_to_SINT(LREAL#1.27e+2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_SINT(LREAL#0.4);
+        ret.negative := LREAL_to_SINT(LREAL#-1.27e+2);
+        ret.positive := LREAL_to_SINT(LREAL#1.27e+2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -245,16 +245,16 @@ fn lreal_to_ulint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; positive : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; positive : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_ULINT(LREAL#0.2);
-		ret.positive := LREAL_to_ULINT(LREAL#1.84467429742e+19);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_ULINT(LREAL#0.2);
+        ret.positive := LREAL_to_ULINT(LREAL#1.84467429742e+19);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -273,16 +273,16 @@ fn lreal_to_udint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; positive : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; positive : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_UDINT(LREAL#0.4);
-		ret.positive := LREAL_to_UDINT(LREAL#4.294967040e+9);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_UDINT(LREAL#0.4);
+        ret.positive := LREAL_to_UDINT(LREAL#4.294967040e+9);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -301,16 +301,16 @@ fn lreal_to_uint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; positive : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; positive : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_UINT(LREAL#0.4);
-		ret.positive := LREAL_to_UINT(LREAL#6.5535e+4);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_UINT(LREAL#0.4);
+        ret.positive := LREAL_to_UINT(LREAL#6.5535e+4);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -329,16 +329,16 @@ fn lreal_to_usint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; positive : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; positive : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LREAL_to_USINT(LREAL#0.3);
-		ret.positive := LREAL_to_USINT(LREAL#2.25e+2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LREAL_to_USINT(LREAL#0.3);
+        ret.positive := LREAL_to_USINT(LREAL#2.25e+2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -351,17 +351,17 @@ fn lreal_to_usint_conversion() {
 #[test]
 fn real_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_LREAL(REAL#0.0);
-		ret.negative := REAL_to_LREAL(REAL#-2.2e+5);
-		ret.positive := REAL_to_LREAL(REAL#2.2e+5);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_LREAL(REAL#0.0);
+        ret.negative := REAL_to_LREAL(REAL#-2.2e+5);
+        ret.positive := REAL_to_LREAL(REAL#2.2e+5);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -375,17 +375,17 @@ fn real_to_lreal_conversion() {
 #[test]
 fn real_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_LINT(REAL#0.2);
-		ret.negative := REAL_to_LINT(REAL#-9.2233714871e+18);
-		ret.positive := REAL_to_LINT(REAL#9.2233714871e+18);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_LINT(REAL#0.2);
+        ret.negative := REAL_to_LINT(REAL#-9.2233714871e+18);
+        ret.positive := REAL_to_LINT(REAL#9.2233714871e+18);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -399,17 +399,17 @@ fn real_to_lint_conversion() {
 #[test]
 fn real_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_DINT(REAL#0.2);
-		ret.negative := REAL_to_DINT(REAL#-2.147483520e+9);
-		ret.positive := REAL_to_DINT(REAL#2.147483520e+9);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_DINT(REAL#0.2);
+        ret.negative := REAL_to_DINT(REAL#-2.147483520e+9);
+        ret.positive := REAL_to_DINT(REAL#2.147483520e+9);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -423,17 +423,17 @@ fn real_to_dint_conversion() {
 #[test]
 fn real_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_INT(REAL#0.3);
-		ret.negative := REAL_to_INT(REAL#-3.2767e+4);
-		ret.positive := REAL_to_INT(REAL#3.2767e+4);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_INT(REAL#0.3);
+        ret.negative := REAL_to_INT(REAL#-3.2767e+4);
+        ret.positive := REAL_to_INT(REAL#3.2767e+4);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -447,17 +447,17 @@ fn real_to_int_conversion() {
 #[test]
 fn real_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_SINT(REAL#0.2);
-		ret.negative := REAL_to_SINT(REAL#-1.27e+2);
-		ret.positive := REAL_to_SINT(REAL#1.27e+2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_SINT(REAL#0.2);
+        ret.negative := REAL_to_SINT(REAL#-1.27e+2);
+        ret.positive := REAL_to_SINT(REAL#1.27e+2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -477,16 +477,16 @@ fn real_to_ulint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; positive : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; positive : ULINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_ULINT(REAL#0.1);
-		ret.positive := REAL_to_ULINT(REAL#1.84467429742e+19);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_ULINT(REAL#0.1);
+        ret.positive := REAL_to_ULINT(REAL#1.84467429742e+19);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -505,16 +505,16 @@ fn real_to_udint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; positive : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; positive : UDINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_UDINT(REAL#0.2);
-		ret.positive := REAL_to_UDINT(REAL#4.294967040e+9);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_UDINT(REAL#0.2);
+        ret.positive := REAL_to_UDINT(REAL#4.294967040e+9);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -533,16 +533,16 @@ fn real_to_uint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; positive : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; positive : UINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_UINT(REAL#0.4);
-		ret.positive := REAL_to_UINT(REAL#6.5535e+4);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_UINT(REAL#0.4);
+        ret.positive := REAL_to_UINT(REAL#6.5535e+4);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -561,16 +561,16 @@ fn real_to_usint_conversion() {
     }
 
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; positive : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; positive : USINT;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := REAL_to_USINT(REAL#0.2);
-		ret.positive := REAL_to_USINT(REAL#2.25e+2);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := REAL_to_USINT(REAL#0.2);
+        ret.positive := REAL_to_USINT(REAL#2.25e+2);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -583,27 +583,27 @@ fn real_to_usint_conversion() {
 #[test]
 fn lint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 9223372036854775807;
-		MIN : LINT := -9223372036854775808;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 9223372036854775807;
+        MIN : LINT := -9223372036854775808;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_LREAL(LINT#0);
-		ret.negative := LINT_to_LREAL(LINT#-11);
-		ret.positive := LINT_to_LREAL(LINT#22);
-		ret.max_minus_one := LINT_to_LREAL(MAX-1);
-		ret.min_plus_one := LINT_to_LREAL(MIN+1);
-		ret.max_overflow := LINT_to_LREAL(MAX+1);
-		ret.min_overflow := LINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_LREAL(LINT#0);
+        ret.negative := LINT_to_LREAL(LINT#-11);
+        ret.positive := LINT_to_LREAL(LINT#22);
+        ret.max_minus_one := LINT_to_LREAL(MAX-1);
+        ret.min_plus_one := LINT_to_LREAL(MIN+1);
+        ret.max_overflow := LINT_to_LREAL(MAX+1);
+        ret.min_overflow := LINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -621,27 +621,27 @@ fn lint_to_lreal_conversion() {
 #[test]
 fn lint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 9223372036854775807;
-		MIN : LINT := -9223372036854775808;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 9223372036854775807;
+        MIN : LINT := -9223372036854775808;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_REAL(LINT#0);
-		ret.negative := LINT_to_REAL(LINT#-11);
-		ret.positive := LINT_to_REAL(LINT#22);
-		ret.max_minus_one := LINT_to_REAL(MAX-1);
-		ret.min_plus_one := LINT_to_REAL(MIN+1);
-		ret.max_overflow := LINT_to_REAL(MAX+1);
-		ret.min_overflow := LINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_REAL(LINT#0);
+        ret.negative := LINT_to_REAL(LINT#-11);
+        ret.positive := LINT_to_REAL(LINT#22);
+        ret.max_minus_one := LINT_to_REAL(MAX-1);
+        ret.min_plus_one := LINT_to_REAL(MIN+1);
+        ret.max_overflow := LINT_to_REAL(MAX+1);
+        ret.min_overflow := LINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -659,27 +659,27 @@ fn lint_to_real_conversion() {
 #[test]
 fn lint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT 
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 2147483647;
-		MIN : LINT := -2147483648;
-	END_VAR
-	
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_DINT(LINT#0);
-		ret.negative := LINT_to_DINT(LINT#-11);
-		ret.positive := LINT_to_DINT(LINT#22);
-		ret.max_minus_one := LINT_to_DINT(MAX-1);
-		ret.min_plus_one := LINT_to_DINT(MIN+1);
-		ret.max_overflow := LINT_to_DINT(MAX+1);
-		ret.min_overflow := LINT_to_DINT(MIN-1);
+    VAR_GLOBAL
+        MAX : LINT := 2147483647;
+        MIN : LINT := -2147483648;
+    END_VAR
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_DINT(LINT#0);
+        ret.negative := LINT_to_DINT(LINT#-11);
+        ret.positive := LINT_to_DINT(LINT#22);
+        ret.max_minus_one := LINT_to_DINT(MAX-1);
+        ret.min_plus_one := LINT_to_DINT(MIN+1);
+        ret.max_overflow := LINT_to_DINT(MAX+1);
+        ret.min_overflow := LINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -697,27 +697,27 @@ fn lint_to_dint_conversion() {
 #[test]
 fn lint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 32767;
-		MIN : LINT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 32767;
+        MIN : LINT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_INT(LINT#0);
-		ret.negative := LINT_to_INT(LINT#-11);
-		ret.positive := LINT_to_INT(LINT#22);
-		ret.max_minus_one := LINT_to_INT(MAX-1);
-		ret.min_plus_one := LINT_to_INT(MIN+1);
-		ret.max_overflow := LINT_to_INT(MAX+1);
-		ret.min_overflow := LINT_to_INT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_INT(LINT#0);
+        ret.negative := LINT_to_INT(LINT#-11);
+        ret.positive := LINT_to_INT(LINT#22);
+        ret.max_minus_one := LINT_to_INT(MAX-1);
+        ret.min_plus_one := LINT_to_INT(MIN+1);
+        ret.max_overflow := LINT_to_INT(MAX+1);
+        ret.min_overflow := LINT_to_INT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -735,27 +735,27 @@ fn lint_to_int_conversion() {
 #[test]
 fn lint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 127;
-		MIN : LINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 127;
+        MIN : LINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_SINT(LINT#0);
-		ret.negative := LINT_to_SINT(LINT#-11);
-		ret.positive := LINT_to_SINT(LINT#22);
-		ret.max_minus_one := LINT_to_SINT(MAX-1);
-		ret.min_plus_one := LINT_to_SINT(MIN+1);
-		ret.max_overflow := LINT_to_SINT(MAX+1);
-		ret.min_overflow := LINT_to_SINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_SINT(LINT#0);
+        ret.negative := LINT_to_SINT(LINT#-11);
+        ret.positive := LINT_to_SINT(LINT#22);
+        ret.max_minus_one := LINT_to_SINT(MAX-1);
+        ret.min_plus_one := LINT_to_SINT(MIN+1);
+        ret.max_overflow := LINT_to_SINT(MAX+1);
+        ret.min_overflow := LINT_to_SINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -773,27 +773,27 @@ fn lint_to_sint_conversion() {
 #[test]
 fn lint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 9223372036854775807;
-		MIN : LINT := -9223372036854775808;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 9223372036854775807;
+        MIN : LINT := -9223372036854775808;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_ULINT(LINT#0);
-		ret.negative := LINT_to_ULINT(LINT#-1);
-		ret.positive := LINT_to_ULINT(LINT#22);
-		ret.max_minus_one := LINT_to_ULINT(MAX-1);
-		ret.min_plus_one := LINT_to_ULINT(MIN+1);
-		ret.max_overflow := LINT_to_ULINT(MAX+1);
-		ret.min_overflow := LINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_ULINT(LINT#0);
+        ret.negative := LINT_to_ULINT(LINT#-1);
+        ret.positive := LINT_to_ULINT(LINT#22);
+        ret.max_minus_one := LINT_to_ULINT(MAX-1);
+        ret.min_plus_one := LINT_to_ULINT(MIN+1);
+        ret.max_overflow := LINT_to_ULINT(MAX+1);
+        ret.min_overflow := LINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -811,27 +811,27 @@ fn lint_to_ulint_conversion() {
 #[test]
 fn lint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 4294967295;
-		MIN : LINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 4294967295;
+        MIN : LINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_UDINT(LINT#0);
-		ret.negative := LINT_to_UDINT(LINT#-1);
-		ret.positive := LINT_to_UDINT(LINT#22);
-		ret.max_minus_one := LINT_to_UDINT(MAX-1);
-		ret.min_plus_one := LINT_to_UDINT(MIN+1);
-		ret.max_overflow := LINT_to_UDINT(MAX+1);
-		ret.min_overflow := LINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_UDINT(LINT#0);
+        ret.negative := LINT_to_UDINT(LINT#-1);
+        ret.positive := LINT_to_UDINT(LINT#22);
+        ret.max_minus_one := LINT_to_UDINT(MAX-1);
+        ret.min_plus_one := LINT_to_UDINT(MIN+1);
+        ret.max_overflow := LINT_to_UDINT(MAX+1);
+        ret.min_overflow := LINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -849,27 +849,27 @@ fn lint_to_udint_conversion() {
 #[test]
 fn lint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 65535;
-		MIN : LINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 65535;
+        MIN : LINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_UINT(LINT#0);
-		ret.negative := LINT_to_UINT(LINT#-1);
-		ret.positive := LINT_to_UINT(LINT#22);
-		ret.max_minus_one := LINT_to_UINT(MAX-1);
-		ret.min_plus_one := LINT_to_UINT(MIN+1);
-		ret.max_overflow := LINT_to_UINT(MAX+1);
-		ret.min_overflow := LINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_UINT(LINT#0);
+        ret.negative := LINT_to_UINT(LINT#-1);
+        ret.positive := LINT_to_UINT(LINT#22);
+        ret.max_minus_one := LINT_to_UINT(MAX-1);
+        ret.min_plus_one := LINT_to_UINT(MIN+1);
+        ret.max_overflow := LINT_to_UINT(MAX+1);
+        ret.min_overflow := LINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -887,27 +887,27 @@ fn lint_to_uint_conversion() {
 #[test]
 fn lint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : LINT := 255;
-		MIN : LINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : LINT := 255;
+        MIN : LINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LINT_to_USINT(LINT#0);
-		ret.negative := LINT_to_USINT(LINT#-1);
-		ret.positive := LINT_to_USINT(LINT#22);
-		ret.max_minus_one := LINT_to_USINT(MAX-1);
-		ret.min_plus_one := LINT_to_USINT(MIN+1);
-		ret.max_overflow := LINT_to_USINT(MAX+1);
-		ret.min_overflow := LINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LINT_to_USINT(LINT#0);
+        ret.negative := LINT_to_USINT(LINT#-1);
+        ret.positive := LINT_to_USINT(LINT#22);
+        ret.max_minus_one := LINT_to_USINT(MAX-1);
+        ret.min_plus_one := LINT_to_USINT(MIN+1);
+        ret.max_overflow := LINT_to_USINT(MAX+1);
+        ret.min_overflow := LINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -925,27 +925,27 @@ fn lint_to_usint_conversion() {
 #[test]
 fn dint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 2147483647;
-		MIN : DINT := -2147483648;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 2147483647;
+        MIN : DINT := -2147483648;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_LREAL(DINT#0);
-		ret.negative := DINT_to_LREAL(DINT#-11);
-		ret.positive := DINT_to_LREAL(DINT#22);
-		ret.max_minus_one := DINT_to_LREAL(MAX-1);
-		ret.min_plus_one := DINT_to_LREAL(MIN+1);
-		ret.max_overflow := DINT_to_LREAL(MAX+1);
-		ret.min_overflow := DINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_LREAL(DINT#0);
+        ret.negative := DINT_to_LREAL(DINT#-11);
+        ret.positive := DINT_to_LREAL(DINT#22);
+        ret.max_minus_one := DINT_to_LREAL(MAX-1);
+        ret.min_plus_one := DINT_to_LREAL(MIN+1);
+        ret.max_overflow := DINT_to_LREAL(MAX+1);
+        ret.min_overflow := DINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -963,27 +963,27 @@ fn dint_to_lreal_conversion() {
 #[test]
 fn dint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 2147483647;
-		MIN : DINT := -2147483648;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 2147483647;
+        MIN : DINT := -2147483648;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_REAL(DINT#0);
-		ret.negative := DINT_to_REAL(DINT#-11);
-		ret.positive := DINT_to_REAL(DINT#22);
-		ret.max_minus_one := DINT_to_REAL(MAX-1);
-		ret.min_plus_one := DINT_to_REAL(MIN+1);
-		ret.max_overflow := DINT_to_REAL(MAX+1);
-		ret.min_overflow := DINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_REAL(DINT#0);
+        ret.negative := DINT_to_REAL(DINT#-11);
+        ret.positive := DINT_to_REAL(DINT#22);
+        ret.max_minus_one := DINT_to_REAL(MAX-1);
+        ret.min_plus_one := DINT_to_REAL(MIN+1);
+        ret.max_overflow := DINT_to_REAL(MAX+1);
+        ret.min_overflow := DINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1001,27 +1001,27 @@ fn dint_to_real_conversion() {
 #[test]
 fn dint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 2147483647;
-		MIN : DINT := -2147483648;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 2147483647;
+        MIN : DINT := -2147483648;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_LINT(DINT#0);
-		ret.negative := DINT_to_LINT(DINT#-11);
-		ret.positive := DINT_to_LINT(DINT#22);
-		ret.max_minus_one := DINT_to_LINT(MAX-1);
-		ret.min_plus_one := DINT_to_LINT(MIN+1);
-		ret.max_overflow := DINT_to_LINT(MAX+1);
-		ret.min_overflow := DINT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_LINT(DINT#0);
+        ret.negative := DINT_to_LINT(DINT#-11);
+        ret.positive := DINT_to_LINT(DINT#22);
+        ret.max_minus_one := DINT_to_LINT(MAX-1);
+        ret.min_plus_one := DINT_to_LINT(MIN+1);
+        ret.max_overflow := DINT_to_LINT(MAX+1);
+        ret.min_overflow := DINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1039,27 +1039,27 @@ fn dint_to_lint_conversion() {
 #[test]
 fn dint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 32767;
-		MIN : DINT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 32767;
+        MIN : DINT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_INT(DINT#0);
-		ret.negative := DINT_to_INT(DINT#-11);
-		ret.positive := DINT_to_INT(DINT#22);
-		ret.max_minus_one := DINT_to_INT(MAX-1);
-		ret.min_plus_one := DINT_to_INT(MIN+1);
-		ret.max_overflow := DINT_to_INT(MAX+1);
-		ret.min_overflow := DINT_to_INT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_INT(DINT#0);
+        ret.negative := DINT_to_INT(DINT#-11);
+        ret.positive := DINT_to_INT(DINT#22);
+        ret.max_minus_one := DINT_to_INT(MAX-1);
+        ret.min_plus_one := DINT_to_INT(MIN+1);
+        ret.max_overflow := DINT_to_INT(MAX+1);
+        ret.min_overflow := DINT_to_INT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1077,27 +1077,27 @@ fn dint_to_int_conversion() {
 #[test]
 fn dint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 127;
-		MIN : DINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 127;
+        MIN : DINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_SINT(DINT#0);
-		ret.negative := DINT_to_SINT(DINT#-11);
-		ret.positive := DINT_to_SINT(DINT#22);
-		ret.max_minus_one := DINT_to_SINT(MAX-1);
-		ret.min_plus_one := DINT_to_SINT(MIN+1);
-		ret.max_overflow := DINT_to_SINT(MAX+1);
-		ret.min_overflow := DINT_to_SINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_SINT(DINT#0);
+        ret.negative := DINT_to_SINT(DINT#-11);
+        ret.positive := DINT_to_SINT(DINT#22);
+        ret.max_minus_one := DINT_to_SINT(MAX-1);
+        ret.min_plus_one := DINT_to_SINT(MIN+1);
+        ret.max_overflow := DINT_to_SINT(MAX+1);
+        ret.min_overflow := DINT_to_SINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1115,27 +1115,27 @@ fn dint_to_sint_conversion() {
 #[test]
 fn dint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 2147483647;
-		MIN : DINT := -2147483648;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 2147483647;
+        MIN : DINT := -2147483648;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_ULINT(DINT#0);
-		ret.negative := DINT_to_ULINT(DINT#-1);
-		ret.positive := DINT_to_ULINT(DINT#22);
-		ret.max_minus_one := DINT_to_ULINT(MAX-1);
-		ret.min_plus_one := DINT_to_ULINT(MIN+1);
-		ret.max_overflow := DINT_to_ULINT(MAX+1);
-		ret.min_overflow := DINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_ULINT(DINT#0);
+        ret.negative := DINT_to_ULINT(DINT#-1);
+        ret.positive := DINT_to_ULINT(DINT#22);
+        ret.max_minus_one := DINT_to_ULINT(MAX-1);
+        ret.min_plus_one := DINT_to_ULINT(MIN+1);
+        ret.max_overflow := DINT_to_ULINT(MAX+1);
+        ret.min_overflow := DINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1153,27 +1153,27 @@ fn dint_to_ulint_conversion() {
 #[test]
 fn dint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 2147483647;
-		MIN : DINT := -2147483648;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 2147483647;
+        MIN : DINT := -2147483648;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_UDINT(DINT#0);
-		ret.negative := DINT_to_UDINT(DINT#-1);
-		ret.positive := DINT_to_UDINT(DINT#22);
-		ret.max_minus_one := DINT_to_UDINT(MAX-1);
-		ret.min_plus_one := DINT_to_UDINT(MIN+1);
-		ret.max_overflow := DINT_to_UDINT(MAX+1);
-		ret.min_overflow := DINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_UDINT(DINT#0);
+        ret.negative := DINT_to_UDINT(DINT#-1);
+        ret.positive := DINT_to_UDINT(DINT#22);
+        ret.max_minus_one := DINT_to_UDINT(MAX-1);
+        ret.min_plus_one := DINT_to_UDINT(MIN+1);
+        ret.max_overflow := DINT_to_UDINT(MAX+1);
+        ret.min_overflow := DINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1191,27 +1191,27 @@ fn dint_to_udint_conversion() {
 #[test]
 fn dint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 65535;
-		MIN : DINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 65535;
+        MIN : DINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_UINT(DINT#0);
-		ret.negative := DINT_to_UINT(DINT#-1);
-		ret.positive := DINT_to_UINT(DINT#22);
-		ret.max_minus_one := DINT_to_UINT(MAX-1);
-		ret.min_plus_one := DINT_to_UINT(MIN+1);
-		ret.max_overflow := DINT_to_UINT(MAX+1);
-		ret.min_overflow := DINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_UINT(DINT#0);
+        ret.negative := DINT_to_UINT(DINT#-1);
+        ret.positive := DINT_to_UINT(DINT#22);
+        ret.max_minus_one := DINT_to_UINT(MAX-1);
+        ret.min_plus_one := DINT_to_UINT(MIN+1);
+        ret.max_overflow := DINT_to_UINT(MAX+1);
+        ret.min_overflow := DINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1229,27 +1229,27 @@ fn dint_to_uint_conversion() {
 #[test]
 fn dint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : DINT := 255;
-		MIN : DINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : DINT := 255;
+        MIN : DINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DINT_to_USINT(DINT#0);
-		ret.negative := DINT_to_USINT(DINT#-1);
-		ret.positive := DINT_to_USINT(DINT#22);
-		ret.max_minus_one := DINT_to_USINT(MAX-1);
-		ret.min_plus_one := DINT_to_USINT(MIN+1);
-		ret.max_overflow := DINT_to_USINT(MAX+1);
-		ret.min_overflow := DINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DINT_to_USINT(DINT#0);
+        ret.negative := DINT_to_USINT(DINT#-1);
+        ret.positive := DINT_to_USINT(DINT#22);
+        ret.max_minus_one := DINT_to_USINT(MAX-1);
+        ret.min_plus_one := DINT_to_USINT(MIN+1);
+        ret.max_overflow := DINT_to_USINT(MAX+1);
+        ret.min_overflow := DINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1267,27 +1267,27 @@ fn dint_to_usint_conversion() {
 #[test]
 fn int_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_LREAL(INT#0);
-		ret.negative := INT_to_LREAL(INT#-11);
-		ret.positive := INT_to_LREAL(INT#22);
-		ret.max_minus_one := INT_to_LREAL(MAX-1);
-		ret.min_plus_one := INT_to_LREAL(MIN+1);
-		ret.max_overflow := INT_to_LREAL(MAX+1);
-		ret.min_overflow := INT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_LREAL(INT#0);
+        ret.negative := INT_to_LREAL(INT#-11);
+        ret.positive := INT_to_LREAL(INT#22);
+        ret.max_minus_one := INT_to_LREAL(MAX-1);
+        ret.min_plus_one := INT_to_LREAL(MIN+1);
+        ret.max_overflow := INT_to_LREAL(MAX+1);
+        ret.min_overflow := INT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1305,27 +1305,27 @@ fn int_to_lreal_conversion() {
 #[test]
 fn int_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_REAL(INT#0);
-		ret.negative := INT_to_REAL(INT#-11);
-		ret.positive := INT_to_REAL(INT#22);
-		ret.max_minus_one := INT_to_REAL(MAX-1);
-		ret.min_plus_one := INT_to_REAL(MIN+1);
-		ret.max_overflow := INT_to_REAL(MAX+1);
-		ret.min_overflow := INT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_REAL(INT#0);
+        ret.negative := INT_to_REAL(INT#-11);
+        ret.positive := INT_to_REAL(INT#22);
+        ret.max_minus_one := INT_to_REAL(MAX-1);
+        ret.min_plus_one := INT_to_REAL(MIN+1);
+        ret.max_overflow := INT_to_REAL(MAX+1);
+        ret.min_overflow := INT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1343,27 +1343,27 @@ fn int_to_real_conversion() {
 #[test]
 fn int_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_LINT(INT#0);
-		ret.negative := INT_to_LINT(INT#-11);
-		ret.positive := INT_to_LINT(INT#22);
-		ret.max_minus_one := INT_to_LINT(MAX-1);
-		ret.min_plus_one := INT_to_LINT(MIN+1);
-		ret.max_overflow := INT_to_LINT(MAX+1);
-		ret.min_overflow := INT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_LINT(INT#0);
+        ret.negative := INT_to_LINT(INT#-11);
+        ret.positive := INT_to_LINT(INT#22);
+        ret.max_minus_one := INT_to_LINT(MAX-1);
+        ret.min_plus_one := INT_to_LINT(MIN+1);
+        ret.max_overflow := INT_to_LINT(MAX+1);
+        ret.min_overflow := INT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1381,27 +1381,27 @@ fn int_to_lint_conversion() {
 #[test]
 fn int_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_DINT(INT#0);
-		ret.negative := INT_to_DINT(INT#-11);
-		ret.positive := INT_to_DINT(INT#22);
-		ret.max_minus_one := INT_to_DINT(MAX-1);
-		ret.min_plus_one := INT_to_DINT(MIN+1);
-		ret.max_overflow := INT_to_DINT(MAX+1);
-		ret.min_overflow := INT_to_DINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_DINT(INT#0);
+        ret.negative := INT_to_DINT(INT#-11);
+        ret.positive := INT_to_DINT(INT#22);
+        ret.max_minus_one := INT_to_DINT(MAX-1);
+        ret.min_plus_one := INT_to_DINT(MIN+1);
+        ret.max_overflow := INT_to_DINT(MAX+1);
+        ret.min_overflow := INT_to_DINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1419,27 +1419,27 @@ fn int_to_dint_conversion() {
 #[test]
 fn int_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 127;
-		MIN : INT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 127;
+        MIN : INT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_SINT(INT#0);
-		ret.negative := INT_to_SINT(INT#-11);
-		ret.positive := INT_to_SINT(INT#22);
-		ret.max_minus_one := INT_to_SINT(MAX-1);
-		ret.min_plus_one := INT_to_SINT(MIN+1);
-		ret.max_overflow := INT_to_SINT(MAX+1);
-		ret.min_overflow := INT_to_SINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_SINT(INT#0);
+        ret.negative := INT_to_SINT(INT#-11);
+        ret.positive := INT_to_SINT(INT#22);
+        ret.max_minus_one := INT_to_SINT(MAX-1);
+        ret.min_plus_one := INT_to_SINT(MIN+1);
+        ret.max_overflow := INT_to_SINT(MAX+1);
+        ret.min_overflow := INT_to_SINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1457,27 +1457,27 @@ fn int_to_sint_conversion() {
 #[test]
 fn int_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_ULINT(INT#0);
-		ret.negative := INT_to_ULINT(INT#-1);
-		ret.positive := INT_to_ULINT(INT#22);
-		ret.max_minus_one := INT_to_ULINT(MAX-1);
-		ret.min_plus_one := INT_to_ULINT(MIN+1);
-		ret.max_overflow := INT_to_ULINT(MAX+1);
-		ret.min_overflow := INT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_ULINT(INT#0);
+        ret.negative := INT_to_ULINT(INT#-1);
+        ret.positive := INT_to_ULINT(INT#22);
+        ret.max_minus_one := INT_to_ULINT(MAX-1);
+        ret.min_plus_one := INT_to_ULINT(MIN+1);
+        ret.max_overflow := INT_to_ULINT(MAX+1);
+        ret.min_overflow := INT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1495,27 +1495,27 @@ fn int_to_ulint_conversion() {
 #[test]
 fn int_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_UDINT(INT#0);
-		ret.negative := INT_to_UDINT(INT#-1);
-		ret.positive := INT_to_UDINT(INT#22);
-		ret.max_minus_one := INT_to_UDINT(MAX-1);
-		ret.min_plus_one := INT_to_UDINT(MIN+1);
-		ret.max_overflow := INT_to_UDINT(MAX+1);
-		ret.min_overflow := INT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_UDINT(INT#0);
+        ret.negative := INT_to_UDINT(INT#-1);
+        ret.positive := INT_to_UDINT(INT#22);
+        ret.max_minus_one := INT_to_UDINT(MAX-1);
+        ret.min_plus_one := INT_to_UDINT(MIN+1);
+        ret.max_overflow := INT_to_UDINT(MAX+1);
+        ret.min_overflow := INT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1533,27 +1533,27 @@ fn int_to_udint_conversion() {
 #[test]
 fn int_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 32767;
-		MIN : INT := -32768;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 32767;
+        MIN : INT := -32768;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_UINT(INT#0);
-		ret.negative := INT_to_UINT(INT#-1);
-		ret.positive := INT_to_UINT(INT#22);
-		ret.max_minus_one := INT_to_UINT(MAX-1);
-		ret.min_plus_one := INT_to_UINT(MIN+1);
-		ret.max_overflow := INT_to_UINT(MAX+1);
-		ret.min_overflow := INT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_UINT(INT#0);
+        ret.negative := INT_to_UINT(INT#-1);
+        ret.positive := INT_to_UINT(INT#22);
+        ret.max_minus_one := INT_to_UINT(MAX-1);
+        ret.min_plus_one := INT_to_UINT(MIN+1);
+        ret.max_overflow := INT_to_UINT(MAX+1);
+        ret.min_overflow := INT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1571,27 +1571,27 @@ fn int_to_uint_conversion() {
 #[test]
 fn int_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : INT := 255;
-		MIN : INT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : INT := 255;
+        MIN : INT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := INT_to_USINT(INT#0);
-		ret.negative := INT_to_USINT(INT#-1);
-		ret.positive := INT_to_USINT(INT#22);
-		ret.max_minus_one := INT_to_USINT(MAX-1);
-		ret.min_plus_one := INT_to_USINT(MIN+1);
-		ret.max_overflow := INT_to_USINT(MAX+1);
-		ret.min_overflow := INT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := INT_to_USINT(INT#0);
+        ret.negative := INT_to_USINT(INT#-1);
+        ret.positive := INT_to_USINT(INT#22);
+        ret.max_minus_one := INT_to_USINT(MAX-1);
+        ret.min_plus_one := INT_to_USINT(MIN+1);
+        ret.max_overflow := INT_to_USINT(MAX+1);
+        ret.min_overflow := INT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1609,27 +1609,27 @@ fn int_to_usint_conversion() {
 #[test]
 fn sint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_LREAL(SINT#0);
-		ret.negative := SINT_to_LREAL(SINT#-11);
-		ret.positive := SINT_to_LREAL(SINT#22);
-		ret.max_minus_one := SINT_to_LREAL(MAX-1);
-		ret.min_plus_one := SINT_to_LREAL(MIN+1);
-		ret.max_overflow := SINT_to_LREAL(MAX+1);
-		ret.min_overflow := SINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_LREAL(SINT#0);
+        ret.negative := SINT_to_LREAL(SINT#-11);
+        ret.positive := SINT_to_LREAL(SINT#22);
+        ret.max_minus_one := SINT_to_LREAL(MAX-1);
+        ret.min_plus_one := SINT_to_LREAL(MIN+1);
+        ret.max_overflow := SINT_to_LREAL(MAX+1);
+        ret.min_overflow := SINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1647,27 +1647,27 @@ fn sint_to_lreal_conversion() {
 #[test]
 fn sint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_REAL(SINT#0);
-		ret.negative := SINT_to_REAL(SINT#-11);
-		ret.positive := SINT_to_REAL(SINT#22);
-		ret.max_minus_one := SINT_to_REAL(MAX-1);
-		ret.min_plus_one := SINT_to_REAL(MIN+1);
-		ret.max_overflow := SINT_to_REAL(MAX+1);
-		ret.min_overflow := SINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_REAL(SINT#0);
+        ret.negative := SINT_to_REAL(SINT#-11);
+        ret.positive := SINT_to_REAL(SINT#22);
+        ret.max_minus_one := SINT_to_REAL(MAX-1);
+        ret.min_plus_one := SINT_to_REAL(MIN+1);
+        ret.max_overflow := SINT_to_REAL(MAX+1);
+        ret.min_overflow := SINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1685,27 +1685,27 @@ fn sint_to_real_conversion() {
 #[test]
 fn sint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_LINT(SINT#0);
-		ret.negative := SINT_to_LINT(SINT#-11);
-		ret.positive := SINT_to_LINT(SINT#22);
-		ret.max_minus_one := SINT_to_LINT(MAX-1);
-		ret.min_plus_one := SINT_to_LINT(MIN+1);
-		ret.max_overflow := SINT_to_LINT(MAX+1);
-		ret.min_overflow := SINT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_LINT(SINT#0);
+        ret.negative := SINT_to_LINT(SINT#-11);
+        ret.positive := SINT_to_LINT(SINT#22);
+        ret.max_minus_one := SINT_to_LINT(MAX-1);
+        ret.min_plus_one := SINT_to_LINT(MIN+1);
+        ret.max_overflow := SINT_to_LINT(MAX+1);
+        ret.min_overflow := SINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1723,27 +1723,27 @@ fn sint_to_lint_conversion() {
 #[test]
 fn sint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_DINT(SINT#0);
-		ret.negative := SINT_to_DINT(SINT#-11);
-		ret.positive := SINT_to_DINT(SINT#22);
-		ret.max_minus_one := SINT_to_DINT(MAX-1);
-		ret.min_plus_one := SINT_to_DINT(MIN+1);
-		ret.max_overflow := SINT_to_DINT(MAX+1);
-		ret.min_overflow := SINT_to_DINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_DINT(SINT#0);
+        ret.negative := SINT_to_DINT(SINT#-11);
+        ret.positive := SINT_to_DINT(SINT#22);
+        ret.max_minus_one := SINT_to_DINT(MAX-1);
+        ret.min_plus_one := SINT_to_DINT(MIN+1);
+        ret.max_overflow := SINT_to_DINT(MAX+1);
+        ret.min_overflow := SINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1761,27 +1761,27 @@ fn sint_to_dint_conversion() {
 #[test]
 fn sint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_INT(SINT#0);
-		ret.negative := SINT_to_INT(SINT#-11);
-		ret.positive := SINT_to_INT(SINT#22);
-		ret.max_minus_one := SINT_to_INT(MAX-1);
-		ret.min_plus_one := SINT_to_INT(MIN+1);
-		ret.max_overflow := SINT_to_INT(MAX+1);
-		ret.min_overflow := SINT_to_INT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_INT(SINT#0);
+        ret.negative := SINT_to_INT(SINT#-11);
+        ret.positive := SINT_to_INT(SINT#22);
+        ret.max_minus_one := SINT_to_INT(MAX-1);
+        ret.min_plus_one := SINT_to_INT(MIN+1);
+        ret.max_overflow := SINT_to_INT(MAX+1);
+        ret.min_overflow := SINT_to_INT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1799,27 +1799,27 @@ fn sint_to_int_conversion() {
 #[test]
 fn sint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_ULINT(SINT#0);
-		ret.negative := SINT_to_ULINT(SINT#-1);
-		ret.positive := SINT_to_ULINT(SINT#22);
-		ret.max_minus_one := SINT_to_ULINT(MAX-1);
-		ret.min_plus_one := SINT_to_ULINT(MIN+1);
-		ret.max_overflow := SINT_to_ULINT(MAX+1);
-		ret.min_overflow := SINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_ULINT(SINT#0);
+        ret.negative := SINT_to_ULINT(SINT#-1);
+        ret.positive := SINT_to_ULINT(SINT#22);
+        ret.max_minus_one := SINT_to_ULINT(MAX-1);
+        ret.min_plus_one := SINT_to_ULINT(MIN+1);
+        ret.max_overflow := SINT_to_ULINT(MAX+1);
+        ret.min_overflow := SINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1837,27 +1837,27 @@ fn sint_to_ulint_conversion() {
 #[test]
 fn sint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_UDINT(SINT#0);
-		ret.negative := SINT_to_UDINT(SINT#-1);
-		ret.positive := SINT_to_UDINT(SINT#22);
-		ret.max_minus_one := SINT_to_UDINT(MAX-1);
-		ret.min_plus_one := SINT_to_UDINT(MIN+1);
-		ret.max_overflow := SINT_to_UDINT(MAX+1);
-		ret.min_overflow := SINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_UDINT(SINT#0);
+        ret.negative := SINT_to_UDINT(SINT#-1);
+        ret.positive := SINT_to_UDINT(SINT#22);
+        ret.max_minus_one := SINT_to_UDINT(MAX-1);
+        ret.min_plus_one := SINT_to_UDINT(MIN+1);
+        ret.max_overflow := SINT_to_UDINT(MAX+1);
+        ret.min_overflow := SINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1875,27 +1875,27 @@ fn sint_to_udint_conversion() {
 #[test]
 fn sint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_UINT(SINT#0);
-		ret.negative := SINT_to_UINT(SINT#-1);
-		ret.positive := SINT_to_UINT(SINT#22);
-		ret.max_minus_one := SINT_to_UINT(MAX-1);
-		ret.min_plus_one := SINT_to_UINT(MIN+1);
-		ret.max_overflow := SINT_to_UINT(MAX+1);
-		ret.min_overflow := SINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_UINT(SINT#0);
+        ret.negative := SINT_to_UINT(SINT#-1);
+        ret.positive := SINT_to_UINT(SINT#22);
+        ret.max_minus_one := SINT_to_UINT(MAX-1);
+        ret.min_plus_one := SINT_to_UINT(MIN+1);
+        ret.max_overflow := SINT_to_UINT(MAX+1);
+        ret.min_overflow := SINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1913,27 +1913,27 @@ fn sint_to_uint_conversion() {
 #[test]
 fn sint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : SINT := 127;
-		MIN : SINT := -128;
-	END_VAR
+    VAR_GLOBAL
+        MAX : SINT := 127;
+        MIN : SINT := -128;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := SINT_to_USINT(SINT#0);
-		ret.negative := SINT_to_USINT(SINT#-1);
-		ret.positive := SINT_to_USINT(SINT#22);
-		ret.max_minus_one := SINT_to_USINT(MAX-1);
-		ret.min_plus_one := SINT_to_USINT(MIN+1);
-		ret.max_overflow := SINT_to_USINT(MAX+1);
-		ret.min_overflow := SINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := SINT_to_USINT(SINT#0);
+        ret.negative := SINT_to_USINT(SINT#-1);
+        ret.positive := SINT_to_USINT(SINT#22);
+        ret.max_minus_one := SINT_to_USINT(MAX-1);
+        ret.min_plus_one := SINT_to_USINT(MIN+1);
+        ret.max_overflow := SINT_to_USINT(MAX+1);
+        ret.min_overflow := SINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1951,27 +1951,27 @@ fn sint_to_usint_conversion() {
 #[test]
 fn ulint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 18446744073709551615;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 18446744073709551615;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_LREAL(ULINT#0);
-		ret.negative := ULINT_to_LREAL(-2);
-		ret.positive := ULINT_to_LREAL(ULINT#22);
-		ret.max_minus_one := ULINT_to_LREAL(MAX-1);
-		ret.min_plus_one := ULINT_to_LREAL(MIN+1);
-		ret.max_overflow := ULINT_to_LREAL(MAX+1);
-		ret.min_overflow := ULINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_LREAL(ULINT#0);
+        ret.negative := ULINT_to_LREAL(-2);
+        ret.positive := ULINT_to_LREAL(ULINT#22);
+        ret.max_minus_one := ULINT_to_LREAL(MAX-1);
+        ret.min_plus_one := ULINT_to_LREAL(MIN+1);
+        ret.max_overflow := ULINT_to_LREAL(MAX+1);
+        ret.min_overflow := ULINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -1989,27 +1989,27 @@ fn ulint_to_lreal_conversion() {
 #[test]
 fn ulint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 18446744073709551615;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 18446744073709551615;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_REAL(ULINT#0);
-		ret.negative := ULINT_to_REAL(-2);
-		ret.positive := ULINT_to_REAL(ULINT#22);
-		ret.max_minus_one := ULINT_to_REAL(MAX-1);
-		ret.min_plus_one := ULINT_to_REAL(MIN+1);
-		ret.max_overflow := ULINT_to_REAL(MAX+1);
-		ret.min_overflow := ULINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_REAL(ULINT#0);
+        ret.negative := ULINT_to_REAL(-2);
+        ret.positive := ULINT_to_REAL(ULINT#22);
+        ret.max_minus_one := ULINT_to_REAL(MAX-1);
+        ret.min_plus_one := ULINT_to_REAL(MIN+1);
+        ret.max_overflow := ULINT_to_REAL(MAX+1);
+        ret.min_overflow := ULINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2027,25 +2027,25 @@ fn ulint_to_real_conversion() {
 #[test]
 fn ulint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 9223372036854775807;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 9223372036854775807;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_LINT(ULINT#0);
-		ret.positive := ULINT_to_LINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_LINT(MAX-1);
-		ret.min_plus_one := ULINT_to_LINT(MIN+1);
-		ret.max_overflow := ULINT_to_LINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_LINT(ULINT#0);
+        ret.positive := ULINT_to_LINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_LINT(MAX-1);
+        ret.min_plus_one := ULINT_to_LINT(MIN+1);
+        ret.max_overflow := ULINT_to_LINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2061,25 +2061,25 @@ fn ulint_to_lint_conversion() {
 #[test]
 fn ulint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 2147483647;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 2147483647;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_DINT(ULINT#0);
-		ret.positive := ULINT_to_DINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_DINT(MAX-1);
-		ret.min_plus_one := ULINT_to_DINT(MIN+1);
-		ret.max_overflow := ULINT_to_DINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_DINT(ULINT#0);
+        ret.positive := ULINT_to_DINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_DINT(MAX-1);
+        ret.min_plus_one := ULINT_to_DINT(MIN+1);
+        ret.max_overflow := ULINT_to_DINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2095,25 +2095,25 @@ fn ulint_to_dint_conversion() {
 #[test]
 fn ulint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 32767;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 32767;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_INT(ULINT#0);
-		ret.positive := ULINT_to_INT(ULINT#22);
-		ret.max_minus_one := ULINT_to_INT(MAX-1);
-		ret.min_plus_one := ULINT_to_INT(MIN+1);
-		ret.max_overflow := ULINT_to_INT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_INT(ULINT#0);
+        ret.positive := ULINT_to_INT(ULINT#22);
+        ret.max_minus_one := ULINT_to_INT(MAX-1);
+        ret.min_plus_one := ULINT_to_INT(MIN+1);
+        ret.max_overflow := ULINT_to_INT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2129,25 +2129,25 @@ fn ulint_to_int_conversion() {
 #[test]
 fn ulint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 127;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 127;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_SINT(ULINT#0);
-		ret.positive := ULINT_to_SINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_SINT(MAX-1);
-		ret.min_plus_one := ULINT_to_SINT(MIN+1);
-		ret.max_overflow := ULINT_to_SINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_SINT(ULINT#0);
+        ret.positive := ULINT_to_SINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_SINT(MAX-1);
+        ret.min_plus_one := ULINT_to_SINT(MIN+1);
+        ret.max_overflow := ULINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2163,27 +2163,27 @@ fn ulint_to_sint_conversion() {
 #[test]
 fn ulint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 4294967295;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 4294967295;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_UDINT(ULINT#0);
-		ret.negative := ULINT_to_UDINT(-1);
-		ret.positive := ULINT_to_UDINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_UDINT(MAX-1);
-		ret.min_plus_one := ULINT_to_UDINT(MIN+1);
-		ret.max_overflow := ULINT_to_UDINT(MAX+1);
-		ret.min_overflow := ULINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_UDINT(ULINT#0);
+        ret.negative := ULINT_to_UDINT(-1);
+        ret.positive := ULINT_to_UDINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_UDINT(MAX-1);
+        ret.min_plus_one := ULINT_to_UDINT(MIN+1);
+        ret.max_overflow := ULINT_to_UDINT(MAX+1);
+        ret.min_overflow := ULINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2201,27 +2201,27 @@ fn ulint_to_udint_conversion() {
 #[test]
 fn ulint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 65535;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 65535;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_UINT(ULINT#0);
-		ret.negative := ULINT_to_UINT(-1);
-		ret.positive := ULINT_to_UINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_UINT(MAX-1);
-		ret.min_plus_one := ULINT_to_UINT(MIN+1);
-		ret.max_overflow := ULINT_to_UINT(MAX+1);
-		ret.min_overflow := ULINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_UINT(ULINT#0);
+        ret.negative := ULINT_to_UINT(-1);
+        ret.positive := ULINT_to_UINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_UINT(MAX-1);
+        ret.min_plus_one := ULINT_to_UINT(MIN+1);
+        ret.max_overflow := ULINT_to_UINT(MAX+1);
+        ret.min_overflow := ULINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2239,27 +2239,27 @@ fn ulint_to_uint_conversion() {
 #[test]
 fn ulint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : ULINT := 255;
-		MIN : ULINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : ULINT := 255;
+        MIN : ULINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := ULINT_to_USINT(ULINT#0);
-		ret.negative := ULINT_to_USINT(-1);
-		ret.positive := ULINT_to_USINT(ULINT#22);
-		ret.max_minus_one := ULINT_to_USINT(MAX-1);
-		ret.min_plus_one := ULINT_to_USINT(MIN+1);
-		ret.max_overflow := ULINT_to_USINT(MAX+1);
-		ret.min_overflow := ULINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := ULINT_to_USINT(ULINT#0);
+        ret.negative := ULINT_to_USINT(-1);
+        ret.positive := ULINT_to_USINT(ULINT#22);
+        ret.max_minus_one := ULINT_to_USINT(MAX-1);
+        ret.min_plus_one := ULINT_to_USINT(MIN+1);
+        ret.max_overflow := ULINT_to_USINT(MAX+1);
+        ret.min_overflow := ULINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2277,27 +2277,27 @@ fn ulint_to_usint_conversion() {
 #[test]
 fn udint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 4294967295;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 4294967295;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_LREAL(UDINT#0);
-		ret.negative := UDINT_to_LREAL(-2);
-		ret.positive := UDINT_to_LREAL(UDINT#22);
-		ret.max_minus_one := UDINT_to_LREAL(MAX-1);
-		ret.min_plus_one := UDINT_to_LREAL(MIN+1);
-		ret.max_overflow := UDINT_to_LREAL(MAX+1);
-		ret.min_overflow := UDINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_LREAL(UDINT#0);
+        ret.negative := UDINT_to_LREAL(-2);
+        ret.positive := UDINT_to_LREAL(UDINT#22);
+        ret.max_minus_one := UDINT_to_LREAL(MAX-1);
+        ret.min_plus_one := UDINT_to_LREAL(MIN+1);
+        ret.max_overflow := UDINT_to_LREAL(MAX+1);
+        ret.min_overflow := UDINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2315,27 +2315,27 @@ fn udint_to_lreal_conversion() {
 #[test]
 fn udint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 4294967295;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 4294967295;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_REAL(UDINT#0);
-		ret.negative := UDINT_to_REAL(-2);
-		ret.positive := UDINT_to_REAL(UDINT#22);
-		ret.max_minus_one := UDINT_to_REAL(MAX-1);
-		ret.min_plus_one := UDINT_to_REAL(MIN+1);
-		ret.max_overflow := UDINT_to_REAL(MAX+1);
-		ret.min_overflow := UDINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_REAL(UDINT#0);
+        ret.negative := UDINT_to_REAL(-2);
+        ret.positive := UDINT_to_REAL(UDINT#22);
+        ret.max_minus_one := UDINT_to_REAL(MAX-1);
+        ret.min_plus_one := UDINT_to_REAL(MIN+1);
+        ret.max_overflow := UDINT_to_REAL(MAX+1);
+        ret.min_overflow := UDINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2353,27 +2353,27 @@ fn udint_to_real_conversion() {
 #[test]
 fn udint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 4294967295;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 4294967295;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_LINT(UDINT#0);
-		ret.negative := UDINT_to_LINT(-1);
-		ret.positive := UDINT_to_LINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_LINT(MAX-1);
-		ret.min_plus_one := UDINT_to_LINT(MIN+1);
-		ret.max_overflow := UDINT_to_LINT(MAX+1);
-		ret.min_overflow := UDINT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_LINT(UDINT#0);
+        ret.negative := UDINT_to_LINT(-1);
+        ret.positive := UDINT_to_LINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_LINT(MAX-1);
+        ret.min_plus_one := UDINT_to_LINT(MIN+1);
+        ret.max_overflow := UDINT_to_LINT(MAX+1);
+        ret.min_overflow := UDINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2391,25 +2391,25 @@ fn udint_to_lint_conversion() {
 #[test]
 fn udint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 2147483647;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 2147483647;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_DINT(UDINT#0);
-		ret.positive := UDINT_to_DINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_DINT(MAX-1);
-		ret.min_plus_one := UDINT_to_DINT(MIN+1);
-		ret.max_overflow := UDINT_to_DINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_DINT(UDINT#0);
+        ret.positive := UDINT_to_DINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_DINT(MAX-1);
+        ret.min_plus_one := UDINT_to_DINT(MIN+1);
+        ret.max_overflow := UDINT_to_DINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2425,25 +2425,25 @@ fn udint_to_dint_conversion() {
 #[test]
 fn udint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 32767;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 32767;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_INT(UDINT#0);
-		ret.positive := UDINT_to_INT(UDINT#22);
-		ret.max_minus_one := UDINT_to_INT(MAX-1);
-		ret.min_plus_one := UDINT_to_INT(MIN+1);
-		ret.max_overflow := UDINT_to_INT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_INT(UDINT#0);
+        ret.positive := UDINT_to_INT(UDINT#22);
+        ret.max_minus_one := UDINT_to_INT(MAX-1);
+        ret.min_plus_one := UDINT_to_INT(MIN+1);
+        ret.max_overflow := UDINT_to_INT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2459,25 +2459,25 @@ fn udint_to_int_conversion() {
 #[test]
 fn udint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 127;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 127;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_SINT(UDINT#0);
-		ret.positive := UDINT_to_SINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_SINT(MAX-1);
-		ret.min_plus_one := UDINT_to_SINT(MIN+1);
-		ret.max_overflow := UDINT_to_SINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_SINT(UDINT#0);
+        ret.positive := UDINT_to_SINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_SINT(MAX-1);
+        ret.min_plus_one := UDINT_to_SINT(MIN+1);
+        ret.max_overflow := UDINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2493,27 +2493,27 @@ fn udint_to_sint_conversion() {
 #[test]
 fn udint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 4294967295;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 4294967295;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_ULINT(UDINT#0);
-		ret.negative := UDINT_to_ULINT(-1);
-		ret.positive := UDINT_to_ULINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_ULINT(MAX-1);
-		ret.min_plus_one := UDINT_to_ULINT(MIN+1);
-		ret.max_overflow := UDINT_to_ULINT(MAX+1);
-		ret.min_overflow := UDINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_ULINT(UDINT#0);
+        ret.negative := UDINT_to_ULINT(-1);
+        ret.positive := UDINT_to_ULINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_ULINT(MAX-1);
+        ret.min_plus_one := UDINT_to_ULINT(MIN+1);
+        ret.max_overflow := UDINT_to_ULINT(MAX+1);
+        ret.min_overflow := UDINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2531,27 +2531,27 @@ fn udint_to_ulint_conversion() {
 #[test]
 fn udint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 65535;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 65535;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_UINT(UDINT#0);
-		ret.negative := UDINT_to_UINT(-1);
-		ret.positive := UDINT_to_UINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_UINT(MAX-1);
-		ret.min_plus_one := UDINT_to_UINT(MIN+1);
-		ret.max_overflow := UDINT_to_UINT(MAX+1);
-		ret.min_overflow := UDINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_UINT(UDINT#0);
+        ret.negative := UDINT_to_UINT(-1);
+        ret.positive := UDINT_to_UINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_UINT(MAX-1);
+        ret.min_plus_one := UDINT_to_UINT(MIN+1);
+        ret.max_overflow := UDINT_to_UINT(MAX+1);
+        ret.min_overflow := UDINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2569,27 +2569,27 @@ fn udint_to_uint_conversion() {
 #[test]
 fn udint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UDINT := 255;
-		MIN : UDINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UDINT := 255;
+        MIN : UDINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UDINT_to_USINT(UDINT#0);
-		ret.negative := UDINT_to_USINT(-1);
-		ret.positive := UDINT_to_USINT(UDINT#22);
-		ret.max_minus_one := UDINT_to_USINT(MAX-1);
-		ret.min_plus_one := UDINT_to_USINT(MIN+1);
-		ret.max_overflow := UDINT_to_USINT(MAX+1);
-		ret.min_overflow := UDINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UDINT_to_USINT(UDINT#0);
+        ret.negative := UDINT_to_USINT(-1);
+        ret.positive := UDINT_to_USINT(UDINT#22);
+        ret.max_minus_one := UDINT_to_USINT(MAX-1);
+        ret.min_plus_one := UDINT_to_USINT(MIN+1);
+        ret.max_overflow := UDINT_to_USINT(MAX+1);
+        ret.min_overflow := UDINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2607,27 +2607,27 @@ fn udint_to_usint_conversion() {
 #[test]
 fn uint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_LREAL(UINT#0);
-		ret.negative := UINT_to_LREAL(-2);
-		ret.positive := UINT_to_LREAL(UINT#22);
-		ret.max_minus_one := UINT_to_LREAL(MAX-1);
-		ret.min_plus_one := UINT_to_LREAL(MIN+1);
-		ret.max_overflow := UINT_to_LREAL(MAX+1);
-		ret.min_overflow := UINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_LREAL(UINT#0);
+        ret.negative := UINT_to_LREAL(-2);
+        ret.positive := UINT_to_LREAL(UINT#22);
+        ret.max_minus_one := UINT_to_LREAL(MAX-1);
+        ret.min_plus_one := UINT_to_LREAL(MIN+1);
+        ret.max_overflow := UINT_to_LREAL(MAX+1);
+        ret.min_overflow := UINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2645,27 +2645,27 @@ fn uint_to_lreal_conversion() {
 #[test]
 fn uint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_REAL(UINT#0);
-		ret.negative := UINT_to_REAL(-2);
-		ret.positive := UINT_to_REAL(UINT#22);
-		ret.max_minus_one := UINT_to_REAL(MAX-1);
-		ret.min_plus_one := UINT_to_REAL(MIN+1);
-		ret.max_overflow := UINT_to_REAL(MAX+1);
-		ret.min_overflow := UINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_REAL(UINT#0);
+        ret.negative := UINT_to_REAL(-2);
+        ret.positive := UINT_to_REAL(UINT#22);
+        ret.max_minus_one := UINT_to_REAL(MAX-1);
+        ret.min_plus_one := UINT_to_REAL(MIN+1);
+        ret.max_overflow := UINT_to_REAL(MAX+1);
+        ret.min_overflow := UINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2683,27 +2683,27 @@ fn uint_to_real_conversion() {
 #[test]
 fn uint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_LINT(UINT#0);
-		ret.negative := UINT_to_LINT(-1);
-		ret.positive := UINT_to_LINT(UINT#22);
-		ret.max_minus_one := UINT_to_LINT(MAX-1);
-		ret.min_plus_one := UINT_to_LINT(MIN+1);
-		ret.max_overflow := UINT_to_LINT(MAX+1);
-		ret.min_overflow := UINT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_LINT(UINT#0);
+        ret.negative := UINT_to_LINT(-1);
+        ret.positive := UINT_to_LINT(UINT#22);
+        ret.max_minus_one := UINT_to_LINT(MAX-1);
+        ret.min_plus_one := UINT_to_LINT(MIN+1);
+        ret.max_overflow := UINT_to_LINT(MAX+1);
+        ret.min_overflow := UINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2721,27 +2721,27 @@ fn uint_to_lint_conversion() {
 #[test]
 fn uint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_DINT(UINT#0);
-		ret.negative := UINT_to_DINT(-1);
-		ret.positive := UINT_to_DINT(UINT#22);
-		ret.max_minus_one := UINT_to_DINT(MAX-1);
-		ret.min_plus_one := UINT_to_DINT(MIN+1);
-		ret.max_overflow := UINT_to_DINT(MAX+1);
-		ret.min_overflow := UINT_to_DINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_DINT(UINT#0);
+        ret.negative := UINT_to_DINT(-1);
+        ret.positive := UINT_to_DINT(UINT#22);
+        ret.max_minus_one := UINT_to_DINT(MAX-1);
+        ret.min_plus_one := UINT_to_DINT(MIN+1);
+        ret.max_overflow := UINT_to_DINT(MAX+1);
+        ret.min_overflow := UINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2759,25 +2759,25 @@ fn uint_to_dint_conversion() {
 #[test]
 fn uint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 32767;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 32767;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_INT(UINT#0);
-		ret.positive := UINT_to_INT(UINT#22);
-		ret.max_minus_one := UINT_to_INT(MAX-1);
-		ret.min_plus_one := UINT_to_INT(MIN+1);
-		ret.max_overflow := UINT_to_INT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_INT(UINT#0);
+        ret.positive := UINT_to_INT(UINT#22);
+        ret.max_minus_one := UINT_to_INT(MAX-1);
+        ret.min_plus_one := UINT_to_INT(MIN+1);
+        ret.max_overflow := UINT_to_INT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2793,25 +2793,25 @@ fn uint_to_int_conversion() {
 #[test]
 fn uint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 127;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 127;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_SINT(UINT#0);
-		ret.positive := UINT_to_SINT(UINT#22);
-		ret.max_minus_one := UINT_to_SINT(MAX-1);
-		ret.min_plus_one := UINT_to_SINT(MIN+1);
-		ret.max_overflow := UINT_to_SINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_SINT(UINT#0);
+        ret.positive := UINT_to_SINT(UINT#22);
+        ret.max_minus_one := UINT_to_SINT(MAX-1);
+        ret.min_plus_one := UINT_to_SINT(MIN+1);
+        ret.max_overflow := UINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2827,27 +2827,27 @@ fn uint_to_sint_conversion() {
 #[test]
 fn uint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_ULINT(UINT#0);
-		ret.negative := UINT_to_ULINT(-1);
-		ret.positive := UINT_to_ULINT(UINT#22);
-		ret.max_minus_one := UINT_to_ULINT(MAX-1);
-		ret.min_plus_one := UINT_to_ULINT(MIN+1);
-		ret.max_overflow := UINT_to_ULINT(MAX+1);
-		ret.min_overflow := UINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_ULINT(UINT#0);
+        ret.negative := UINT_to_ULINT(-1);
+        ret.positive := UINT_to_ULINT(UINT#22);
+        ret.max_minus_one := UINT_to_ULINT(MAX-1);
+        ret.min_plus_one := UINT_to_ULINT(MIN+1);
+        ret.max_overflow := UINT_to_ULINT(MAX+1);
+        ret.min_overflow := UINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2865,27 +2865,27 @@ fn uint_to_ulint_conversion() {
 #[test]
 fn uint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 65535;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 65535;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_UDINT(UINT#0);
-		ret.negative := UINT_to_UDINT(-1);
-		ret.positive := UINT_to_UDINT(UINT#22);
-		ret.max_minus_one := UINT_to_UDINT(MAX-1);
-		ret.min_plus_one := UINT_to_UDINT(MIN+1);
-		ret.max_overflow := UINT_to_UDINT(MAX+1);
-		ret.min_overflow := UINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_UDINT(UINT#0);
+        ret.negative := UINT_to_UDINT(-1);
+        ret.positive := UINT_to_UDINT(UINT#22);
+        ret.max_minus_one := UINT_to_UDINT(MAX-1);
+        ret.min_plus_one := UINT_to_UDINT(MIN+1);
+        ret.max_overflow := UINT_to_UDINT(MAX+1);
+        ret.min_overflow := UINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2903,27 +2903,27 @@ fn uint_to_udint_conversion() {
 #[test]
 fn uint_to_usint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : USINT; negative : USINT; positive : USINT;
-		max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : USINT; negative : USINT; positive : USINT;
+        max_minus_one : USINT; min_plus_one : USINT; max_overflow : USINT; min_overflow : USINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : UINT := 255;
-		MIN : UINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : UINT := 255;
+        MIN : UINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := UINT_to_USINT(UINT#0);
-		ret.negative := UINT_to_USINT(-1);
-		ret.positive := UINT_to_USINT(UINT#22);
-		ret.max_minus_one := UINT_to_USINT(MAX-1);
-		ret.min_plus_one := UINT_to_USINT(MIN+1);
-		ret.max_overflow := UINT_to_USINT(MAX+1);
-		ret.min_overflow := UINT_to_USINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := UINT_to_USINT(UINT#0);
+        ret.negative := UINT_to_USINT(-1);
+        ret.positive := UINT_to_USINT(UINT#22);
+        ret.max_minus_one := UINT_to_USINT(MAX-1);
+        ret.min_plus_one := UINT_to_USINT(MIN+1);
+        ret.max_overflow := UINT_to_USINT(MAX+1);
+        ret.min_overflow := UINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2941,27 +2941,27 @@ fn uint_to_usint_conversion() {
 #[test]
 fn usint_to_lreal_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LREAL; negative : LREAL; positive : LREAL;
-		max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LREAL; negative : LREAL; positive : LREAL;
+        max_minus_one : LREAL; min_plus_one : LREAL; max_overflow : LREAL; min_overflow : LREAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_LREAL(USINT#0);
-		ret.negative := USINT_to_LREAL(-2);
-		ret.positive := USINT_to_LREAL(USINT#22);
-		ret.max_minus_one := USINT_to_LREAL(MAX-1);
-		ret.min_plus_one := USINT_to_LREAL(MIN+1);
-		ret.max_overflow := USINT_to_LREAL(MAX+1);
-		ret.min_overflow := USINT_to_LREAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_LREAL(USINT#0);
+        ret.negative := USINT_to_LREAL(-2);
+        ret.positive := USINT_to_LREAL(USINT#22);
+        ret.max_minus_one := USINT_to_LREAL(MAX-1);
+        ret.min_plus_one := USINT_to_LREAL(MIN+1);
+        ret.max_overflow := USINT_to_LREAL(MAX+1);
+        ret.min_overflow := USINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -2979,27 +2979,27 @@ fn usint_to_lreal_conversion() {
 #[test]
 fn usint_to_real_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : REAL; negative : REAL; positive : REAL;
-		max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : REAL; negative : REAL; positive : REAL;
+        max_minus_one : REAL; min_plus_one : REAL; max_overflow : REAL; min_overflow : REAL;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_REAL(USINT#0);
-		ret.negative := USINT_to_REAL(-2);
-		ret.positive := USINT_to_REAL(USINT#22);
-		ret.max_minus_one := USINT_to_REAL(MAX-1);
-		ret.min_plus_one := USINT_to_REAL(MIN+1);
-		ret.max_overflow := USINT_to_REAL(MAX+1);
-		ret.min_overflow := USINT_to_REAL(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_REAL(USINT#0);
+        ret.negative := USINT_to_REAL(-2);
+        ret.positive := USINT_to_REAL(USINT#22);
+        ret.max_minus_one := USINT_to_REAL(MAX-1);
+        ret.min_plus_one := USINT_to_REAL(MIN+1);
+        ret.max_overflow := USINT_to_REAL(MAX+1);
+        ret.min_overflow := USINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3017,27 +3017,27 @@ fn usint_to_real_conversion() {
 #[test]
 fn usint_to_lint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LINT; negative : LINT; positive : LINT;
-		max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LINT; negative : LINT; positive : LINT;
+        max_minus_one : LINT; min_plus_one : LINT; max_overflow : LINT; min_overflow : LINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_LINT(USINT#0);
-		ret.negative := USINT_to_LINT(-1);
-		ret.positive := USINT_to_LINT(USINT#22);
-		ret.max_minus_one := USINT_to_LINT(MAX-1);
-		ret.min_plus_one := USINT_to_LINT(MIN+1);
-		ret.max_overflow := USINT_to_LINT(MAX+1);
-		ret.min_overflow := USINT_to_LINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_LINT(USINT#0);
+        ret.negative := USINT_to_LINT(-1);
+        ret.positive := USINT_to_LINT(USINT#22);
+        ret.max_minus_one := USINT_to_LINT(MAX-1);
+        ret.min_plus_one := USINT_to_LINT(MIN+1);
+        ret.max_overflow := USINT_to_LINT(MAX+1);
+        ret.min_overflow := USINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3055,27 +3055,27 @@ fn usint_to_lint_conversion() {
 #[test]
 fn usint_to_dint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DINT; negative : DINT; positive : DINT;
-		max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DINT; negative : DINT; positive : DINT;
+        max_minus_one : DINT; min_plus_one : DINT; max_overflow : DINT; min_overflow : DINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_DINT(USINT#0);
-		ret.negative := USINT_to_DINT(-1);
-		ret.positive := USINT_to_DINT(USINT#22);
-		ret.max_minus_one := USINT_to_DINT(MAX-1);
-		ret.min_plus_one := USINT_to_DINT(MIN+1);
-		ret.max_overflow := USINT_to_DINT(MAX+1);
-		ret.min_overflow := USINT_to_DINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_DINT(USINT#0);
+        ret.negative := USINT_to_DINT(-1);
+        ret.positive := USINT_to_DINT(USINT#22);
+        ret.max_minus_one := USINT_to_DINT(MAX-1);
+        ret.min_plus_one := USINT_to_DINT(MIN+1);
+        ret.max_overflow := USINT_to_DINT(MAX+1);
+        ret.min_overflow := USINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3093,27 +3093,27 @@ fn usint_to_dint_conversion() {
 #[test]
 fn usint_to_int_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : INT; negative : INT; positive : INT;
-		max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : INT; negative : INT; positive : INT;
+        max_minus_one : INT; min_plus_one : INT; max_overflow : INT; min_overflow : INT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_INT(USINT#0);
-		ret.negative := USINT_to_INT(-1);
-		ret.positive := USINT_to_INT(USINT#22);
-		ret.max_minus_one := USINT_to_INT(MAX-1);
-		ret.min_plus_one := USINT_to_INT(MIN+1);
-		ret.max_overflow := USINT_to_INT(MAX+1);
-		ret.min_overflow := USINT_to_INT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_INT(USINT#0);
+        ret.negative := USINT_to_INT(-1);
+        ret.positive := USINT_to_INT(USINT#22);
+        ret.max_minus_one := USINT_to_INT(MAX-1);
+        ret.min_plus_one := USINT_to_INT(MIN+1);
+        ret.max_overflow := USINT_to_INT(MAX+1);
+        ret.min_overflow := USINT_to_INT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3131,25 +3131,25 @@ fn usint_to_int_conversion() {
 #[test]
 fn usint_to_sint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : SINT; negative : SINT; positive : SINT;
-		max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : SINT; negative : SINT; positive : SINT;
+        max_minus_one : SINT; min_plus_one : SINT; max_overflow : SINT; min_overflow : SINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 127;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 127;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_SINT(USINT#0);
-		ret.positive := USINT_to_SINT(USINT#22);
-		ret.max_minus_one := USINT_to_SINT(MAX-1);
-		ret.min_plus_one := USINT_to_SINT(MIN+1);
-		ret.max_overflow := USINT_to_SINT(MAX+1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_SINT(USINT#0);
+        ret.positive := USINT_to_SINT(USINT#22);
+        ret.max_minus_one := USINT_to_SINT(MAX-1);
+        ret.min_plus_one := USINT_to_SINT(MIN+1);
+        ret.max_overflow := USINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3165,27 +3165,27 @@ fn usint_to_sint_conversion() {
 #[test]
 fn usint_to_ulint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : ULINT; negative : ULINT; positive : ULINT;
-		max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : ULINT; negative : ULINT; positive : ULINT;
+        max_minus_one : ULINT; min_plus_one : ULINT; max_overflow : ULINT; min_overflow : ULINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_ULINT(USINT#0);
-		ret.negative := USINT_to_ULINT(-1);
-		ret.positive := USINT_to_ULINT(USINT#22);
-		ret.max_minus_one := USINT_to_ULINT(MAX-1);
-		ret.min_plus_one := USINT_to_ULINT(MIN+1);
-		ret.max_overflow := USINT_to_ULINT(MAX+1);
-		ret.min_overflow := USINT_to_ULINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_ULINT(USINT#0);
+        ret.negative := USINT_to_ULINT(-1);
+        ret.positive := USINT_to_ULINT(USINT#22);
+        ret.max_minus_one := USINT_to_ULINT(MAX-1);
+        ret.min_plus_one := USINT_to_ULINT(MIN+1);
+        ret.max_overflow := USINT_to_ULINT(MAX+1);
+        ret.min_overflow := USINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3203,27 +3203,27 @@ fn usint_to_ulint_conversion() {
 #[test]
 fn usint_to_udint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UDINT; negative : UDINT; positive : UDINT;
-		max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UDINT; negative : UDINT; positive : UDINT;
+        max_minus_one : UDINT; min_plus_one : UDINT; max_overflow : UDINT; min_overflow : UDINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_UDINT(USINT#0);
-		ret.negative := USINT_to_UDINT(-1);
-		ret.positive := USINT_to_UDINT(USINT#22);
-		ret.max_minus_one := USINT_to_UDINT(MAX-1);
-		ret.min_plus_one := USINT_to_UDINT(MIN+1);
-		ret.max_overflow := USINT_to_UDINT(MAX+1);
-		ret.min_overflow := USINT_to_UDINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_UDINT(USINT#0);
+        ret.negative := USINT_to_UDINT(-1);
+        ret.positive := USINT_to_UDINT(USINT#22);
+        ret.max_minus_one := USINT_to_UDINT(MAX-1);
+        ret.min_plus_one := USINT_to_UDINT(MIN+1);
+        ret.max_overflow := USINT_to_UDINT(MAX+1);
+        ret.min_overflow := USINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
@@ -3241,27 +3241,27 @@ fn usint_to_udint_conversion() {
 #[test]
 fn usint_to_uint_conversion() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : UINT; negative : UINT; positive : UINT;
-		max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : UINT; negative : UINT; positive : UINT;
+        max_minus_one : UINT; min_plus_one : UINT; max_overflow : UINT; min_overflow : UINT;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		MAX : USINT := 255;
-		MIN : USINT := 0;
-	END_VAR
+    VAR_GLOBAL
+        MAX : USINT := 255;
+        MIN : USINT := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := USINT_to_UINT(USINT#0);
-		ret.negative := USINT_to_UINT(-1);
-		ret.positive := USINT_to_UINT(USINT#22);
-		ret.max_minus_one := USINT_to_UINT(MAX-1);
-		ret.min_plus_one := USINT_to_UINT(MIN+1);
-		ret.max_overflow := USINT_to_UINT(MAX+1);
-		ret.min_overflow := USINT_to_UINT(MIN-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := USINT_to_UINT(USINT#0);
+        ret.negative := USINT_to_UINT(-1);
+        ret.positive := USINT_to_UINT(USINT#22);
+        ret.max_minus_one := USINT_to_UINT(MAX-1);
+        ret.min_plus_one := USINT_to_UINT(MIN+1);
+        ret.max_overflow := USINT_to_UINT(MAX+1);
+        ret.min_overflow := USINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");

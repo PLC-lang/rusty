@@ -211,7 +211,7 @@ mod naming {
         VAR_GLOBAL
             vla : ARRAY[*, *] OF DINT;
         END_VAR
-        
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             arr : ARRAY[*, *] OF DINT;
@@ -255,7 +255,7 @@ mod builtins {
     #[test]
     fn builtins_called_with_invalid_index() {
         let diagnostics = parse_and_validate(
-            "        
+            "
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;
@@ -291,7 +291,7 @@ mod builtins {
     #[test]
     fn builtins_called_with_aliased_type() {
         let diagnostics = parse_and_validate(
-            "        
+            "
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;

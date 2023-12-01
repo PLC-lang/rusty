@@ -2,7 +2,7 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "Byte-Wise access for type WORD must be in the range 0..1", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 128 }..TextLocation { line: 5, column: 21, offset: 131 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Byte-Wise access for type DWORD must be in the range 0..3", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 151 }..TextLocation { line: 6, column: 21, offset: 154 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Byte-Wise access for type LWORD must be in the range 0..7", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 18, offset: 174 }..TextLocation { line: 7, column: 21, offset: 177 }) }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "Byte-Wise access for type WORD must be in the range 0..1", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 127 }..TextLocation { line: 5, column: 21, offset: 130 }) }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "Byte-Wise access for type DWORD must be in the range 0..3", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 150 }..TextLocation { line: 6, column: 21, offset: 153 }) }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "Byte-Wise access for type LWORD must be in the range 0..7", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 18, offset: 173 }..TextLocation { line: 7, column: 21, offset: 176 }) }], err_no: type__incompatible_directaccess_range }
 

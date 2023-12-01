@@ -36,7 +36,7 @@ This example is available under `examples/hello_world.st` in the main RuSTy repo
 - On Windows and MacOS, replace this with `--linker=clang` as cc is usually not available.
 
 ```iecst
-{external} 
+{external}
 FUNCTION puts : DINT
 VAR_INPUT {ref}
     text : STRING;

@@ -200,15 +200,15 @@ fn constant_expressions_used_in_array_declaration() {
 #[test]
 fn global_constant_string_assignment() {
     let src = r#"
-		VAR_GLOBAL CONSTANT
-			const_string : STRING := 'hello';
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_string : STRING := 'hello';
+        END_VAR
 
         PROGRAM main
-		VAR 
-			str : STRING[5]; 
-		END_VAR
-			str := const_string;
+        VAR
+            str : STRING[5];
+        END_VAR
+            str := const_string;
         END_PROGRAM
     "#;
 
@@ -226,15 +226,15 @@ fn global_constant_string_assignment() {
 #[test]
 fn global_constant_array_assignment() {
     let src = r#"
-		VAR_GLOBAL CONSTANT
-			const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
+        END_VAR
 
         PROGRAM main
-		VAR 
-			arr : ARRAY[0..3] OF INT; 
-		END_VAR
-			arr := const_arr;
+        VAR
+            arr : ARRAY[0..3] OF INT;
+        END_VAR
+            arr := const_arr;
         END_PROGRAM
     "#;
 
@@ -252,26 +252,26 @@ fn global_constant_array_assignment() {
 #[test]
 fn global_constant_struct_assignment() {
     let src = r#"
-		TYPE Point :
-			STRUCT
-				x,y : INT;
-			END_STRUCT
-		END_TYPE
+        TYPE Point :
+            STRUCT
+                x,y : INT;
+            END_STRUCT
+        END_TYPE
 
-		VAR_GLOBAL CONSTANT
-			const_strct : Point := (x := 1, y := 2);
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_strct : Point := (x := 1, y := 2);
+        END_VAR
 
         PROGRAM main
-		VAR_TEMP
-			strct : Point;
-		END_VAR
-		VAR
-			x,y : INT;
-		END_VAR
-			strct := const_strct;
-			x := strct.x;
-			y := strct.y;
+        VAR_TEMP
+            strct : Point;
+        END_VAR
+        VAR
+            x,y : INT;
+        END_VAR
+            strct := const_strct;
+            x := strct.x;
+            y := strct.y;
         END_PROGRAM
     "#;
 

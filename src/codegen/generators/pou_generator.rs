@@ -167,8 +167,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|(i, p)| match declared_parameters.get(i) {
                 Some(v)
                     if v.is_in_parameter_by_ref() &&
-					// parameters by ref will always be a pointer
-					p.into_pointer_type().get_element_type().is_array_type() =>
+                    // parameters by ref will always be a pointer
+                    p.into_pointer_type().get_element_type().is_array_type() =>
                 {
                     // for array types we will generate a pointer to the arrays element type
                     // not a pointer to array

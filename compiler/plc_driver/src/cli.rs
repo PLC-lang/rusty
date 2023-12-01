@@ -90,7 +90,7 @@ pub struct CompileParameters {
         name = "hardware-conf",
         long,
         global = true,
-        help = "Generate Hardware configuration files to the given location. 
+        help = "Generate Hardware configuration files to the given location.
     Format is detected by extenstion.
     Supported formats : json, toml",
     parse(try_from_str = validate_config)

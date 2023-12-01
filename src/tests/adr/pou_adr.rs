@@ -28,7 +28,7 @@ use crate::test_utils::tests::{annotate_with_ids, codegen, index_with_ids};
 /// global variable withe the program's name. When calling a program all parameters, except IN_OUT parameters, are optional.
 
 const DEFAULT_PRG: &str = r#"
-    PROGRAM main_prg 
+    PROGRAM main_prg
         VAR_INPUT   i   : INT   END_VAR
         VAR_IN_OUT  io  : INT   END_VAR
         VAR_OUTPUT  o   : INT;  END_VAR
@@ -77,11 +77,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 2,
                                     column: 20,
-                                    offset: 43,
+                                    offset: 42,
                                 }..TextLocation {
                                     line: 2,
                                     column: 21,
-                                    offset: 44,
+                                    offset: 43,
                                 },
                             ),
                         },
@@ -104,11 +104,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 3,
                                     column: 20,
-                                    offset: 83,
+                                    offset: 82,
                                 }..TextLocation {
                                     line: 3,
                                     column: 22,
-                                    offset: 85,
+                                    offset: 84,
                                 },
                             ),
                         },
@@ -131,11 +131,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 4,
                                     column: 20,
-                                    offset: 123,
+                                    offset: 122,
                                 }..TextLocation {
                                     line: 4,
                                     column: 21,
-                                    offset: 124,
+                                    offset: 123,
                                 },
                             ),
                         },
@@ -158,11 +158,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 5,
                                     column: 20,
-                                    offset: 163,
+                                    offset: 162,
                                 }..TextLocation {
                                     line: 5,
                                     column: 21,
-                                    offset: 164,
+                                    offset: 163,
                                 },
                             ),
                         },
@@ -185,11 +185,11 @@ fn programs_state_is_stored_in_a_struct() {
                                 TextLocation {
                                     line: 6,
                                     column: 20,
-                                    offset: 203,
+                                    offset: 202,
                                 }..TextLocation {
                                     line: 6,
                                     column: 22,
-                                    offset: 205,
+                                    offset: 204,
                                 },
                             ),
                         },
@@ -259,7 +259,7 @@ fn calling_a_program() {
         r#"
         FUNCTION foo : INT
             VAR x, y : INT; END_VAR
-            main_prg(i := 1, io := y, o => x); 
+            main_prg(i := 1, io := y, o => x);
         END_FUNCTION
 
         {DEFAULT_PRG}
@@ -361,8 +361,8 @@ fn calling_a_function_block() {
         PROGRAM foo
             VAR x, y    : INT;      END_VAR
             VAR fb      : main_fb;  END_VAR
-            
-            fb(i := 1, io := y, o => x); 
+
+            fb(i := 1, io := y, o => x);
         END_PROGRAM
 
         {DEFAULT_FB}
@@ -460,10 +460,10 @@ fn calling_a_function() {
         r#"
         PROGRAM prg
         VAR
-			x : INT;
-			z : SINT;
-		END_VAR
-            main_fun(x, z); 
+            x : INT;
+            z : SINT;
+        END_VAR
+            main_fun(x, z);
         END_FUNCTION
 
         {DEFAULT_FUNC}
@@ -526,9 +526,9 @@ fn return_a_complex_type_from_function() {
 
         PROGRAM prg
             VAR
-                s : STRING; 
+                s : STRING;
             END_VAR
-            s := foo(); 
+            s := foo();
         END_FUNCTION
     "#;
     insta::assert_snapshot!(codegen(returning_string), @r###"
@@ -594,8 +594,8 @@ fn passing_by_ref_to_functions() {
             // ...
         END_FUNCTION
         PROGRAM main
-            VAR 
-                str1, str2 : STRING; 
+            VAR
+                str1, str2 : STRING;
             END_VAR
             StrEqual(str1, str2); //looks like pass by-val
         END_PROGRAM

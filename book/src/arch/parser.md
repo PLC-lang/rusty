@@ -95,7 +95,7 @@ As the parser reads the token stream `Reference`, `KeywordEquals`, `Number`, `Se
                       ┌─────────────────┐
                       │   Assignment    │
                       └──────┬──┬───────┘
-                   left      │  │     right 
+                   left      │  │     right
                  ┌───────────┘  └──────────┐
                  ▼                         ▼
         ┌──────────────────┐     ┌──────────────────┐

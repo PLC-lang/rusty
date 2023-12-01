@@ -19,7 +19,7 @@ fn adds_in_result_dint_type() {
         foo := 10 + 50;
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
     VAR i1, i2: DINT; END_VAR
 
     i1 := 22 + 18;

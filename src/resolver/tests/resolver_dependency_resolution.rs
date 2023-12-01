@@ -336,19 +336,19 @@ fn function_params_dependency_resolution() {
         "
         FUNCTION foo : BYTE
         VAR_INPUT
-           a : DINT; 
+           a : DINT;
         END_VAR
         VAR_INPUT {ref}
-           b : INT; 
+           b : INT;
         END_VAR
         VAR_IN_OUT
-           c : REAL; 
+           c : REAL;
         END_VAR
         VAR_OUTPUT
             d : LREAL;
         END_VAR
         VAR
-           e : WORD; 
+           e : WORD;
         END_VAR
         END_FUNCTION
         ",
@@ -385,18 +385,18 @@ fn function_params_dependency_resolution() {
 fn program_params_dependency_resolution() {
     let units = [
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_INPUT
-           a : DINT; 
+           a : DINT;
         END_VAR
         VAR_IN_OUT
-           c : REAL; 
+           c : REAL;
         END_VAR
         VAR_OUTPUT
             d : LREAL;
         END_VAR
         VAR
-           e : WORD; 
+           e : WORD;
         END_VAR
         END_PROGRAM
         ",
@@ -429,21 +429,21 @@ fn program_params_dependency_resolution() {
 fn function_block_params_dependency_resolution() {
     let units = [
         "
-        FUNCTION_BLOCK fb 
+        FUNCTION_BLOCK fb
         VAR_INPUT
-           a : DINT; 
+           a : DINT;
         END_VAR
         VAR_INPUT {ref}
-           b : INT; 
+           b : INT;
         END_VAR
         VAR_IN_OUT
-           c : REAL; 
+           c : REAL;
         END_VAR
         VAR_OUTPUT
             d : LREAL;
         END_VAR
         VAR
-           e : WORD; 
+           e : WORD;
         END_VAR
         END_FUNCTION_BLOCK
         ",

@@ -227,7 +227,7 @@ fn if_conditions_location_marked() {
                 myFunc := 1;
             ELSIF FALSE THEN
                 myFunc := 1;
-            ELSE 
+            ELSE
                 myFunc := 1;
             END_IF
             myFunc := 1;
@@ -249,7 +249,7 @@ fn case_conditions_location_marked() {
                 myFunc := 1;
             2:
                 myFunc := 1;
-            ELSE 
+            ELSE
                 myFunc := 1;
             END_CASE
             myFunc := 1;

@@ -11,7 +11,7 @@ use pretty_assertions::*;
 #[test]
 fn if_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         IF TRUE THEN
         END_IF
         END_PROGRAM
@@ -69,7 +69,7 @@ fn test_exit_statement() {
 #[test]
 fn if_else_statement_with_expressions() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         IF TRUE THEN
             x;
         ELSE
@@ -87,7 +87,7 @@ fn if_else_statement_with_expressions() {
 #[test]
 fn if_elsif_elsif_else_statement_with_expressions() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         IF TRUE THEN
             x;
         ELSIF y THEN
@@ -109,7 +109,7 @@ fn if_elsif_elsif_else_statement_with_expressions() {
 #[test]
 fn for_with_literals_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         FOR y := x TO 10 DO
         END_FOR
         END_PROGRAM
@@ -124,8 +124,8 @@ fn for_with_literals_statement() {
 #[test]
 fn for_with_step_statement() {
     let src = "
-        PROGRAM exp 
-        FOR x := 1 TO 10 BY 7 DO 
+        PROGRAM exp
+        FOR x := 1 TO 10 BY 7 DO
         END_FOR
         END_PROGRAM
         ";
@@ -139,7 +139,7 @@ fn for_with_step_statement() {
 #[test]
 fn for_with_reference_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         FOR z := x TO y DO
         END_FOR
         END_PROGRAM
@@ -154,7 +154,7 @@ fn for_with_reference_statement() {
 #[test]
 fn for_with_body_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         FOR z := x TO y DO
             x;
             y;
@@ -172,7 +172,7 @@ fn for_with_body_statement() {
 #[test]
 fn while_with_literal() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         WHILE TRUE DO
         END_WHILE
         END_PROGRAM
@@ -195,8 +195,8 @@ fn while_with_literal() {
 #[test]
 fn while_with_expression() {
     let src = "
-        PROGRAM exp 
-        WHILE x < 7 DO 
+        PROGRAM exp
+        WHILE x < 7 DO
         END_WHILE
         END_PROGRAM
         ";
@@ -210,7 +210,7 @@ fn while_with_expression() {
 #[test]
 fn while_with_body_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         WHILE TRUE DO
             x;
             y;
@@ -227,7 +227,7 @@ fn while_with_body_statement() {
 #[test]
 fn repeat_with_literal() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         REPEAT
         UNTIL TRUE
         END_REPEAT
@@ -251,7 +251,7 @@ fn repeat_with_literal() {
 #[test]
 fn repeat_with_expression() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         REPEAT
         UNTIL x > 7
         END_REPEAT
@@ -267,7 +267,7 @@ fn repeat_with_expression() {
 #[test]
 fn repeat_with_body_statement() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         REPEAT
             x;
             y;
@@ -286,7 +286,7 @@ fn repeat_with_body_statement() {
 #[test]
 fn case_statement_with_one_condition() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         1: x;
         END_CASE
@@ -303,7 +303,7 @@ fn case_statement_with_one_condition() {
 #[test]
 fn case_statement_with_one_condition_with_trailling_comma() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         1,: x;
         END_CASE
@@ -321,7 +321,7 @@ fn case_statement_with_one_condition_with_trailling_comma() {
 #[test]
 fn case_statement_with_else_and_no_condition() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         ELSE
         END_CASE
@@ -337,7 +337,7 @@ fn case_statement_with_else_and_no_condition() {
 #[test]
 fn case_statement_with_no_conditions() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         END_CASE
         END_PROGRAM
@@ -352,7 +352,7 @@ fn case_statement_with_no_conditions() {
 #[test]
 fn case_statement_with_one_condition_and_an_else() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         1: x;
         ELSE
@@ -371,7 +371,7 @@ fn case_statement_with_one_condition_and_an_else() {
 #[test]
 fn case_statement_with_one_empty_condition_and_an_else() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
         1:
         ELSE
@@ -390,7 +390,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
 #[test]
 fn case_statement_with_multiple_conditions() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
             1: x;
             2: y; yy; yyy;
@@ -409,7 +409,7 @@ fn case_statement_with_multiple_conditions() {
 #[test]
 fn case_statement_with_multiple_expressions_per_condition() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine OF
             1,2,3: x;
             4..5, 6: y;
@@ -426,7 +426,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
 #[test]
 fn if_stmnt_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
     IF a > 4 THEN
         a + b;
     ELSIF x < 2 THEN
@@ -462,7 +462,7 @@ fn if_stmnt_location_test() {
 #[test]
 fn for_stmnt_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
     FOR x := 3 TO 9 BY 2 DO
         a + b;
     END_FOR
@@ -504,7 +504,7 @@ fn for_stmnt_location_test() {
 #[test]
 fn while_stmnt_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
     WHILE a < 2 DO
         a := a - 1;
     END_WHILE
@@ -526,7 +526,7 @@ fn while_stmnt_location_test() {
 #[test]
 fn case_stmnt_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
     CASE a OF
     1:
         a := a - 1;
@@ -554,7 +554,7 @@ fn case_stmnt_location_test() {
 #[test]
 fn call_stmnt_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
     foo(a:=3, b:=4);
     END_PROGRAM";
 

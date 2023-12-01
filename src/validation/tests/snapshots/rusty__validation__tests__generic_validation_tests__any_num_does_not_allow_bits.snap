@@ -4,7 +4,7 @@ expression: res
 ---
 SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 57, offset: 211 }..TextLocation { line: 3, column: 58, offset: 212 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. WORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 51, offset: 279 }..TextLocation { line: 4, column: 52, offset: 280 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 354 }..TextLocation { line: 5, column: 59, offset: 355 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 52, offset: 423 }..TextLocation { line: 6, column: 53, offset: 424 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. WORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 285 }..TextLocation { line: 4, column: 58, offset: 286 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 360 }..TextLocation { line: 5, column: 59, offset: 361 }) }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Num.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 58, offset: 435 }..TextLocation { line: 6, column: 59, offset: 436 }) }], err_no: type__invalid_nature }
 

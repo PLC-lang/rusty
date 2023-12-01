@@ -1039,7 +1039,7 @@ fn validate_type_nature<T: AnnotationMap>(
             // check if type_hint and actual_type is compatible
             // should be handled by assignment validation
             if !(actual_type.has_nature(*generic_nature, context.index)
-				// INT parameter for REAL is allowed
+                // INT parameter for REAL is allowed
                 | (type_hint.is_real() & actual_type.is_numerical()))
             {
                 validator.push_diagnostic(Diagnostic::invalid_type_nature(

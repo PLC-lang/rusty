@@ -126,7 +126,7 @@ Struct types translate direclty to llvm struct datatypes.
 We generate a new datatype with the user-type's name for the struct.
 
 ```iecst
-TYPE MyStruct: 
+TYPE MyStruct:
   STRUCT
     a: DINT;
     b: INT;
@@ -162,7 +162,7 @@ For every enum's element we generate a global variable with the element's value.
 Array types are generated as fixed sized llvm vector types - note that Array types must be fixed sized in *ST* :
 
 ```iecst
-TYPE MyArray: ARRAY[0..9] OF INT; 
+TYPE MyArray: ARRAY[0..9] OF INT;
 END_TYPE
 
 VAR_GLOBAL
@@ -208,9 +208,9 @@ This means that such a multidimensional array must be initialized like a single-
 
 ```iecst
 VAR_GLOBAL
-  wrong_array : ARRAY[1..2, 0..3] OF INT := [ [10, 11, 12], 
-                                              [20, 21, 22], 
-                                              [30, 31, 32]]; 
+  wrong_array : ARRAY[1..2, 0..3] OF INT := [ [10, 11, 12],
+                                              [20, 21, 22],
+                                              [30, 31, 32]];
 END_VAR
 ```
 
@@ -218,9 +218,9 @@ END_VAR
 
 ```iecst
 VAR_GLOBAL
-  correct_array : ARRAY[1..2, 0..3] OF INT := [ 10, 11, 12, 
-                                                20, 21, 22, 
-                                                30, 31, 32]; 
+  correct_array : ARRAY[1..2, 0..3] OF INT := [ 10, 11, 12,
+                                                20, 21, 22,
+                                                30, 31, 32];
 END_VAR
 ```
 

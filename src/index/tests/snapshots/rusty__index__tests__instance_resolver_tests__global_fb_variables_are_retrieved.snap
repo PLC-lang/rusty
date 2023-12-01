@@ -28,11 +28,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 7,
                         column: 8,
-                        offset: 110,
+                        offset: 109,
                     }..TextLocation {
                         line: 7,
                         column: 11,
-                        offset: 113,
+                        offset: 112,
                     },
                 ),
             },
@@ -67,11 +67,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 8,
-                        offset: 40,
+                        offset: 39,
                     }..TextLocation {
                         line: 3,
                         column: 9,
-                        offset: 41,
+                        offset: 40,
                     },
                 ),
             },
@@ -106,11 +106,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 10,
-                        offset: 42,
+                        offset: 41,
                     }..TextLocation {
                         line: 3,
                         column: 11,
-                        offset: 43,
+                        offset: 42,
                     },
                 ),
             },
@@ -142,11 +142,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 9,
                         column: 12,
-                        offset: 144,
+                        offset: 143,
                     }..TextLocation {
                         line: 9,
                         column: 20,
-                        offset: 152,
+                        offset: 151,
                     },
                 ),
             },
@@ -181,11 +181,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 11,
                         column: 8,
-                        offset: 169,
+                        offset: 168,
                     }..TextLocation {
                         line: 11,
                         column: 11,
-                        offset: 172,
+                        offset: 171,
                     },
                 ),
             },
@@ -223,11 +223,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 8,
-                        offset: 40,
+                        offset: 39,
                     }..TextLocation {
                         line: 3,
                         column: 9,
-                        offset: 41,
+                        offset: 40,
                     },
                 ),
             },
@@ -265,11 +265,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 10,
-                        offset: 42,
+                        offset: 41,
                     }..TextLocation {
                         line: 3,
                         column: 11,
-                        offset: 43,
+                        offset: 42,
                     },
                 ),
             },

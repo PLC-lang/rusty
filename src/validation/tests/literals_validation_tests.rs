@@ -49,7 +49,7 @@ fn string_literal_casts_are_validated() {
     let diagnostics = parse_and_validate(
         r#"
         PROGRAM prg
-            
+
             STRING#"TRUE";
             WSTRING#'TRUE';
 
@@ -75,7 +75,7 @@ fn real_literal_casts_are_validated() {
     let diagnostics = parse_and_validate(
         r#"
         PROGRAM prg
-            
+
             REAL#3.14;
             LREAL#3.15;
             REAL#10;
@@ -84,7 +84,7 @@ fn real_literal_casts_are_validated() {
             REAL#TRUE;
             REAL#1;
             REAL#'3.14';
- 
+
             LREAL#TRUE;
             LREAL#1;
             LREAL#"3.14";
@@ -98,10 +98,10 @@ fn real_literal_casts_are_validated() {
 #[test]
 fn literal_cast_with_non_literal() {
     let diagnostics = parse_and_validate(
-        "PROGRAM exp 
-            INT#[x]; 
+        "PROGRAM exp
+            INT#[x];
         END_PROGRAM
-        
+
         VAR_GLOBAL x : INT; END_VAR",
     );
     assert_validation_snapshot!(&diagnostics);
@@ -113,10 +113,10 @@ fn literal_enum_elements_validate_without_errors() {
         "
         TYPE Animal: (Dog, Cat, Horse); END_TYPE
         TYPE Color: (Red, Yellow, Green); END_TYPE
-        
-        PROGRAM exp 
-            Animal#Dog; 
-            Color#Yellow; 
+
+        PROGRAM exp
+            Animal#Dog;
+            Color#Yellow;
         END_PROGRAM",
     );
 
@@ -155,12 +155,12 @@ fn char_cast_validate() {
     let diagnostics = parse_and_validate(
         r#"
         PROGRAM prg
-            
+
             CHAR#"A";
             WCHAR#'B';
 
-			CHAR#"XY";
-			WCHAR#'YZ';
+            CHAR#"XY";
+            WCHAR#'YZ';
 
         END_PROGRAM
        "#,

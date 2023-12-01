@@ -74,7 +74,7 @@ fn duplicate_global_variables() {
         VAR_GLOBAL
             a: BOOL;
         END_VAR
-    
+
         "#,
     );
     // THEN there should be 0 duplication diagnostics
@@ -190,7 +190,7 @@ fn duplicate_action_should_be_a_problem() {
                 END_VAR
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
             ACTION foo
                 x := 2;
             END_ACTION
@@ -220,14 +220,14 @@ fn duplicate_actions_in_different_pous_are_no_issue() {
             PROGRAM prg
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
                 ACTION foo END_ACTION
             END_ACTIONS
 
             PROGRAM prg2
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
                 ACTION foo END_ACTION
             END_ACTIONS
         "#,
