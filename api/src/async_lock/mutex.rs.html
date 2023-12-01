@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-2.8.0/src/mutex.rs`."><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.1.2/src/mutex.rs`."><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -692,26 +692,95 @@
 <a href="#692" id="692">692</a>
 <a href="#693" id="693">693</a>
 <a href="#694" id="694">694</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
-<span class="kw">use </span>std::cell::UnsafeCell;
-<span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::mem;
-<span class="kw">use </span>std::ops::{Deref, DerefMut};
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::process;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::task::{Context, Poll};
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>core::borrow::Borrow;
+<span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>core::ops::{Deref, DerefMut};
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>core::task::Poll;
+<span class="kw">use </span>core::usize;
 
-<span class="comment">// Note: we cannot use `target_family = &quot;wasm&quot;` here because it requires Rust 1.54.
-</span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
+<span class="kw">use </span>alloc::sync::Arc;
+
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
 </span><span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="kw">use </span>std::usize;
-
 <span class="kw">use </span>event_listener::{Event, EventListener};
+<span class="kw">use </span>event_listener_strategy::{easy_wrapper, EventListenerFuture};
 
 <span class="doccomment">/// An async mutex.
 ///
@@ -803,10 +872,38 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        Lock {
+        Lock::_new(LockInner {
             mutex: <span class="self">self</span>,
             acquire_slow: <span class="prelude-val">None</span>,
-        }
+        })
+    }
+
+    <span class="doccomment">/// Acquires the mutex using the blocking strategy.
+    ///
+    /// Returns a guard that releases the mutex when dropped.
+    ///
+    /// # Blocking
+    ///
+    /// Rather than using asynchronous waiting, like the [`lock`][Mutex::lock] method,
+    /// this method will block the current thread until the lock is acquired.
+    ///
+    /// This method should not be used in an asynchronous context. It is intended to be
+    /// used in a way that a mutex can be used in both asynchronous and synchronous contexts.
+    /// Calling this method in an asynchronous context may result in a deadlock.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_lock::Mutex;
+    ///
+    /// let mutex = Mutex::new(10);
+    /// let guard = mutex.lock_blocking();
+    /// assert_eq!(*guard, 10);
+    /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    #[inline]
+    </span><span class="kw">pub fn </span>lock_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="self">self</span>.lock().wait()
     }
 
     <span class="doccomment">/// Attempts to acquire the mutex.
@@ -891,7 +988,38 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>lock_arc(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; LockArc&lt;T&gt; {
-        LockArc(LockArcInnards::Unpolled(<span class="self">self</span>.clone()))
+        LockArc::_new(LockArcInnards::Unpolled {
+            mutex: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
+        })
+    }
+
+    <span class="doccomment">/// Acquires the mutex and clones a reference to it using the blocking strategy.
+    ///
+    /// Returns an owned guard that releases the mutex when dropped.
+    ///
+    /// # Blocking
+    ///
+    /// Rather than using asynchronous waiting, like the [`lock_arc`][Mutex::lock_arc] method,
+    /// this method will block the current thread until the lock is acquired.
+    ///
+    /// This method should not be used in an asynchronous context. It is intended to be
+    /// used in a way that a mutex can be used in both asynchronous and synchronous contexts.
+    /// Calling this method in an asynchronous context may result in a deadlock.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_lock::Mutex;
+    /// use std::sync::Arc;
+    ///
+    /// let mutex = Arc::new(Mutex::new(10));
+    /// let guard = mutex.lock_arc_blocking();
+    /// assert_eq!(*guard, 10);
+    /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    #[inline]
+    </span><span class="kw">pub fn </span>lock_arc_blocking(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; MutexGuardArc&lt;T&gt; {
+        <span class="self">self</span>.lock_arc().wait()
     }
 
     <span class="doccomment">/// Attempts to acquire the mutex and clone a reference to it.
@@ -953,158 +1081,189 @@
     }
 }
 
-<span class="doccomment">/// The future returned by [`Mutex::lock`].
-</span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// Reference to the mutex.
-    </span>mutex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;,
+<span class="macro">easy_wrapper! </span>{
+    <span class="doccomment">/// The future returned by [`Mutex::lock`].
+    </span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(LockInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
+}
 
-    <span class="doccomment">/// The future that waits for the mutex to become available.
-    </span>acquire_slow: <span class="prelude-ty">Option</span>&lt;AcquireSlow&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;, T&gt;&gt;,
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="doccomment">/// Inner future for acquiring the mutex.
+    </span><span class="kw">struct </span>LockInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Reference to the mutex.
+        </span>mutex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;,
+
+        <span class="comment">// The future that waits for the mutex to become available.
+        </span><span class="attr">#[pin]
+        </span>acquire_slow: <span class="prelude-ty">Option</span>&lt;AcquireSlow&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;, T&gt;&gt;,
+    }
 }
 
 <span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>LockInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.write_str(<span class="string">&quot;Lock { .. }&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>LockInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Output = MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span>S,
+        context: <span class="kw-2">&amp;mut </span>S::Context,
+    ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <span class="kw">loop </span>{
-            <span class="kw">match </span>this.acquire_slow.as_mut() {
+        <span class="comment">// This may seem weird, but the borrow checker complains otherwise.
+        </span><span class="kw">if </span>this.acquire_slow.is_none() {
+            <span class="kw">match </span>this.mutex.try_lock() {
+                <span class="prelude-val">Some</span>(guard) =&gt; <span class="kw">return </span>Poll::Ready(guard),
                 <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// Try the fast path before trying to register slowly.
-                    </span><span class="kw">match </span>this.mutex.try_lock() {
-                        <span class="prelude-val">Some</span>(guard) =&gt; <span class="kw">return </span>Poll::Ready(guard),
-                        <span class="prelude-val">None </span>=&gt; {
-                            this.acquire_slow = <span class="prelude-val">Some</span>(AcquireSlow::new(this.mutex));
-                        }
-                    }
-                }
-
-                <span class="prelude-val">Some</span>(acquire_slow) =&gt; {
-                    <span class="comment">// Continue registering slowly.
-                    </span><span class="kw">let </span>value = <span class="macro">ready!</span>(Pin::new(acquire_slow).poll(cx));
-                    <span class="kw">return </span>Poll::Ready(MutexGuard(value));
+                    this.acquire_slow.set(<span class="prelude-val">Some</span>(AcquireSlow::new(this.mutex)));
                 }
             }
         }
+
+        <span class="macro">ready!</span>(this
+            .acquire_slow
+            .as_pin_mut()
+            .unwrap()
+            .poll_with_strategy(strategy, context));
+        Poll::Ready(MutexGuard(this.mutex))
     }
 }
 
-<span class="doccomment">/// The future returned by [`Mutex::lock_arc`].
-</span><span class="kw">pub struct </span>LockArc&lt;T: <span class="question-mark">?</span>Sized&gt;(LockArcInnards&lt;T&gt;);
+<span class="macro">easy_wrapper! </span>{
+    <span class="doccomment">/// The future returned by [`Mutex::lock_arc`].
+    </span><span class="kw">pub struct </span>LockArc&lt;T: <span class="question-mark">?</span>Sized&gt;(LockArcInnards&lt;T&gt; =&gt; MutexGuardArc&lt;T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
+}
 
-<span class="kw">enum </span>LockArcInnards&lt;T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// We have not tried to poll the fast path yet.
-    </span>Unpolled(Arc&lt;Mutex&lt;T&gt;&gt;),
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="attr">#[project = LockArcInnardsProj]
+    </span><span class="kw">enum </span>LockArcInnards&lt;T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="doccomment">/// We have not tried to poll the fast path yet.
+        </span>Unpolled { mutex: <span class="prelude-ty">Option</span>&lt;Arc&lt;Mutex&lt;T&gt;&gt;&gt; },
 
-    <span class="doccomment">/// We are acquiring the mutex through the slow path.
-    </span>AcquireSlow(AcquireSlow&lt;Arc&lt;Mutex&lt;T&gt;&gt;, T&gt;),
-
-    <span class="doccomment">/// Empty hole to make taking easier.
-    </span>Empty,
+        <span class="doccomment">/// We are acquiring the mutex through the slow path.
+        </span>AcquireSlow {
+            <span class="attr">#[pin]
+            </span>inner: AcquireSlow&lt;Arc&lt;Mutex&lt;T&gt;&gt;, T&gt;
+        },
+    }
 }
 
 <span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>LockArc&lt;T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>LockArc&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>LockArc&lt;T&gt; {}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>LockArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>LockArcInnards&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.write_str(<span class="string">&quot;LockArc { .. }&quot;</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>LockArc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>LockArcInnards&lt;T&gt; {
     <span class="kw">type </span>Output = MutexGuardArc&lt;T&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+    <span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span>S,
+        context: <span class="kw-2">&amp;mut </span>S::Context,
+    ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="comment">// Set the inner future if needed.
+        </span><span class="kw">if let </span>LockArcInnardsProj::Unpolled { mutex } = <span class="self">self</span>.as_mut().project() {
+            <span class="kw">let </span>mutex = mutex.take().expect(<span class="string">&quot;mutex taken more than once&quot;</span>);
 
-        <span class="kw">loop </span>{
-            <span class="kw">match </span>mem::replace(<span class="kw-2">&amp;mut </span>this.<span class="number">0</span>, LockArcInnards::Empty) {
-                LockArcInnards::Unpolled(mutex) =&gt; {
-                    <span class="comment">// Try the fast path before trying to register slowly.
-                    </span><span class="kw">match </span>mutex.try_lock_arc() {
-                        <span class="prelude-val">Some</span>(guard) =&gt; <span class="kw">return </span>Poll::Ready(guard),
-                        <span class="prelude-val">None </span>=&gt; {
-                            <span class="kw-2">*</span>this = LockArc(LockArcInnards::AcquireSlow(AcquireSlow::new(
-                                mutex.clone(),
-                            )));
-                        }
-                    }
-                }
-
-                LockArcInnards::AcquireSlow(<span class="kw-2">mut </span>acquire_slow) =&gt; {
-                    <span class="comment">// Continue registering slowly.
-                    </span><span class="kw">let </span>value = <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span>acquire_slow).poll(cx) {
-                        Poll::Pending =&gt; {
-                            <span class="kw-2">*</span>this = LockArc(LockArcInnards::AcquireSlow(acquire_slow));
-                            <span class="kw">return </span>Poll::Pending;
-                        }
-                        Poll::Ready(value) =&gt; value,
-                    };
-                    <span class="kw">return </span>Poll::Ready(MutexGuardArc(value));
-                }
-
-                LockArcInnards::Empty =&gt; <span class="macro">panic!</span>(<span class="string">&quot;future polled after completion&quot;</span>),
+            <span class="comment">// Try the fast path before trying to register slowly.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(guard) = mutex.try_lock_arc() {
+                <span class="kw">return </span>Poll::Ready(guard);
             }
+
+            <span class="comment">// Set the inner future to the slow acquire path.
+            </span><span class="self">self</span>.as_mut().set(LockArcInnards::AcquireSlow {
+                inner: AcquireSlow::new(mutex),
+            });
+        }
+
+        <span class="comment">// Poll the inner future.
+        </span><span class="kw">let </span>value = <span class="kw">match </span><span class="self">self</span>.project() {
+            LockArcInnardsProj::AcquireSlow { inner } =&gt; {
+                <span class="macro">ready!</span>(inner.poll_with_strategy(strategy, context))
+            }
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        };
+
+        Poll::Ready(MutexGuardArc(value))
+    }
+}
+
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="doccomment">/// Future for acquiring the mutex slowly.
+    </span><span class="kw">struct </span>AcquireSlow&lt;B: Borrow&lt;Mutex&lt;T&gt;&gt;, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Reference to the mutex.
+        </span>mutex: <span class="prelude-ty">Option</span>&lt;B&gt;,
+
+        <span class="comment">// The event listener waiting on the mutex.
+        </span><span class="attr">#[pin]
+        </span>listener: EventListener,
+
+        <span class="comment">// The point at which the mutex lock was started.
+        </span>start: Start,
+
+        <span class="comment">// This lock operation is starving.
+        </span>starved: bool,
+
+        <span class="comment">// Capture the `T` lifetime.
+        </span><span class="attr">#[pin]
+        </span>_marker: PhantomData&lt;T&gt;,
+    }
+
+    <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Borrow&lt;Mutex&lt;T&gt;&gt;&gt; PinnedDrop <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {
+        <span class="kw">fn </span>drop(this: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
+            <span class="comment">// Make sure the starvation counter is decremented.
+            </span>this.take_mutex();
         }
     }
 }
 
-<span class="doccomment">/// Future for acquiring the mutex slowly.
-</span><span class="kw">struct </span>AcquireSlow&lt;B: Borrow&lt;Mutex&lt;T&gt;&gt;, T: <span class="question-mark">?</span>Sized&gt; {
-    <span class="doccomment">/// Reference to the mutex.
-    </span>mutex: <span class="prelude-ty">Option</span>&lt;B&gt;,
-
-    <span class="doccomment">/// The event listener waiting on the mutex.
-    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
-
-    <span class="doccomment">/// The point at which the mutex lock was started.
-    </span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
+<span class="doccomment">/// `pin_project_lite` doesn&#39;t support `#[cfg]` yet, so we have to do this manually.
+</span><span class="kw">struct </span>Start {
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span>start: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
-
-    <span class="doccomment">/// This lock operation is starving.
-    </span>starved: bool,
-
-    <span class="doccomment">/// Capture the `T` lifetime.
-    </span>_marker: PhantomData&lt;T&gt;,
 }
-
-<span class="kw">impl</span>&lt;B: Borrow&lt;Mutex&lt;T&gt;&gt; + Unpin, T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {}
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Borrow&lt;Mutex&lt;T&gt;&gt;&gt; AcquireSlow&lt;B, T&gt; {
     <span class="doccomment">/// Create a new `AcquireSlow` future.
     </span><span class="attr">#[cold]
     </span><span class="kw">fn </span>new(mutex: B) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Create a new instance of the listener.
+        </span><span class="kw">let </span>listener = { EventListener::new() };
+
         AcquireSlow {
             mutex: <span class="prelude-val">Some</span>(mutex),
-            listener: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
-            </span>start: <span class="prelude-val">None</span>,
+            listener,
+            start: Start {
+                <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+                </span>start: <span class="prelude-val">None</span>,
+            },
             starved: <span class="bool-val">false</span>,
             _marker: PhantomData,
         }
     }
 
     <span class="doccomment">/// Take the mutex reference out, decrementing the counter if necessary.
-    </span><span class="kw">fn </span>take_mutex(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt; {
-        <span class="kw">let </span>mutex = <span class="self">self</span>.mutex.take();
+    </span><span class="kw">fn </span>take_mutex(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>mutex = this.mutex.take();
 
-        <span class="kw">if </span><span class="self">self</span>.starved {
+        <span class="kw">if </span><span class="kw-2">*</span>this.starved {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(mutex) = mutex.as_ref() {
                 <span class="comment">// Decrement this counter before we exit.
                 </span>mutex.borrow().state.fetch_sub(<span class="number">2</span>, Ordering::Release);
@@ -1115,77 +1274,73 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Unpin + Borrow&lt;Mutex&lt;T&gt;&gt;&gt; Future <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Unpin + Borrow&lt;Mutex&lt;T&gt;&gt;&gt; EventListenerFuture <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {
     <span class="kw">type </span>Output = B;
 
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
-        <span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
-        </span><span class="kw">let </span>start = <span class="kw-2">*</span>this.start.get_or_insert_with(Instant::now);
-        <span class="kw">let </span>mutex = this
-            .mutex
-            .as_ref()
-            .expect(<span class="string">&quot;future polled after completion&quot;</span>)
-            .borrow();
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span>S,
+        context: <span class="kw-2">&amp;mut </span>S::Context,
+    ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut().project();
+        <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+        </span><span class="kw">let </span>start = <span class="kw-2">*</span>this.start.start.get_or_insert_with(Instant::now);
+        <span class="kw">let </span>mutex = Borrow::&lt;Mutex&lt;T&gt;&gt;::borrow(
+            this.mutex.as_ref().expect(<span class="string">&quot;future polled after completion&quot;</span>),
+        );
 
         <span class="comment">// Only use this hot loop if we aren&#39;t currently starved.
-        </span><span class="kw">if </span>!this.starved {
+        </span><span class="kw">if </span>!<span class="kw-2">*</span>this.starved {
             <span class="kw">loop </span>{
                 <span class="comment">// Start listening for events.
-                </span><span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
-                    <span class="prelude-val">None </span>=&gt; {
-                        <span class="comment">// Start listening for events.
-                        </span>this.listener = <span class="prelude-val">Some</span>(mutex.lock_ops.listen());
+                </span><span class="kw">if </span>!this.listener.is_listening() {
+                    this.listener.as_mut().listen(<span class="kw-2">&amp;</span>mutex.lock_ops);
 
-                        <span class="comment">// Try locking if nobody is being starved.
-                        </span><span class="kw">match </span>mutex
-                            .state
-                            .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
-                            .unwrap_or_else(|x| x)
-                        {
-                            <span class="comment">// Lock acquired!
-                            </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(this.take_mutex().unwrap()),
+                    <span class="comment">// Try locking if nobody is being starved.
+                    </span><span class="kw">match </span>mutex
+                        .state
+                        .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
+                        .unwrap_or_else(|x| x)
+                    {
+                        <span class="comment">// Lock acquired!
+                        </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.take_mutex().unwrap()),
 
-                            <span class="comment">// Lock is held and nobody is starved.
-                            </span><span class="number">1 </span>=&gt; {}
+                        <span class="comment">// Lock is held and nobody is starved.
+                        </span><span class="number">1 </span>=&gt; {}
 
-                            <span class="comment">// Somebody is starved.
-                            </span><span class="kw">_ </span>=&gt; <span class="kw">break</span>,
-                        }
+                        <span class="comment">// Somebody is starved.
+                        </span><span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                     }
-                    <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
-                        <span class="comment">// Wait for a notification.
-                        </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
-                        this.listener = <span class="prelude-val">None</span>;
+                } <span class="kw">else </span>{
+                    <span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), context));
 
-                        <span class="comment">// Try locking if nobody is being starved.
-                        </span><span class="kw">match </span>mutex
-                            .state
-                            .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
-                            .unwrap_or_else(|x| x)
-                        {
-                            <span class="comment">// Lock acquired!
-                            </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(this.take_mutex().unwrap()),
+                    <span class="comment">// Try locking if nobody is being starved.
+                    </span><span class="kw">match </span>mutex
+                        .state
+                        .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
+                        .unwrap_or_else(|x| x)
+                    {
+                        <span class="comment">// Lock acquired!
+                        </span><span class="number">0 </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.take_mutex().unwrap()),
 
-                            <span class="comment">// Lock is held and nobody is starved.
-                            </span><span class="number">1 </span>=&gt; {}
+                        <span class="comment">// Lock is held and nobody is starved.
+                        </span><span class="number">1 </span>=&gt; {}
 
-                            <span class="comment">// Somebody is starved.
-                            </span><span class="kw">_ </span>=&gt; {
-                                <span class="comment">// Notify the first listener in line because we probably received a
-                                // notification that was meant for a starved task.
-                                </span>mutex.lock_ops.notify(<span class="number">1</span>);
-                                <span class="kw">break</span>;
-                            }
-                        }
-
-                        <span class="comment">// If waiting for too long, fall back to a fairer locking strategy that will prevent
-                        // newer lock operations from starving us forever.
-                        </span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;wasm32&quot;</span>, target_arch = <span class="string">&quot;wasm64&quot;</span>)))]
-                        </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
+                        <span class="comment">// Somebody is starved.
+                        </span><span class="kw">_ </span>=&gt; {
+                            <span class="comment">// Notify the first listener in line because we probably received a
+                            // notification that was meant for a starved task.
+                            </span>mutex.lock_ops.notify(<span class="number">1</span>);
                             <span class="kw">break</span>;
                         }
+                    }
+
+                    <span class="comment">// If waiting for too long, fall back to a fairer locking strategy that will prevent
+                    // newer lock operations from starving us forever.
+                    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+                    </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
+                        <span class="kw">break</span>;
                     }
                 }
             }
@@ -1193,58 +1348,47 @@
             <span class="comment">// Increment the number of starved lock operations.
             </span><span class="kw">if </span>mutex.state.fetch_add(<span class="number">2</span>, Ordering::Release) &gt; usize::MAX / <span class="number">2 </span>{
                 <span class="comment">// In case of potential overflow, abort.
-                </span>process::abort();
+                </span><span class="kw">crate</span>::abort();
             }
 
             <span class="comment">// Indicate that we are now starving and will use a fairer locking strategy.
-            </span>this.starved = <span class="bool-val">true</span>;
+            </span><span class="kw-2">*</span>this.starved = <span class="bool-val">true</span>;
         }
 
         <span class="comment">// Fairer locking loop.
         </span><span class="kw">loop </span>{
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// Start listening for events.
-                    </span>this.listener = <span class="prelude-val">Some</span>(mutex.lock_ops.listen());
+            <span class="kw">if </span>!this.listener.is_listening() {
+                <span class="comment">// Start listening for events.
+                </span>this.listener.as_mut().listen(<span class="kw-2">&amp;</span>mutex.lock_ops);
 
-                    <span class="comment">// Try locking if nobody else is being starved.
-                    </span><span class="kw">match </span>mutex
-                        .state
-                        .compare_exchange(<span class="number">2</span>, <span class="number">2 </span>| <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
-                        .unwrap_or_else(|x| x)
-                    {
-                        <span class="comment">// Lock acquired!
-                        </span><span class="number">2 </span>=&gt; <span class="kw">return </span>Poll::Ready(this.take_mutex().unwrap()),
+                <span class="comment">// Try locking if nobody else is being starved.
+                </span><span class="kw">match </span>mutex
+                    .state
+                    .compare_exchange(<span class="number">2</span>, <span class="number">2 </span>| <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
+                    .unwrap_or_else(|x| x)
+                {
+                    <span class="comment">// Lock acquired!
+                    </span><span class="number">2 </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.take_mutex().unwrap()),
 
-                        <span class="comment">// Lock is held by someone.
-                        </span>s <span class="kw">if </span>s % <span class="number">2 </span>== <span class="number">1 </span>=&gt; {}
+                    <span class="comment">// Lock is held by someone.
+                    </span>s <span class="kw">if </span>s % <span class="number">2 </span>== <span class="number">1 </span>=&gt; {}
 
-                        <span class="comment">// Lock is available.
-                        </span><span class="kw">_ </span>=&gt; {
-                            <span class="comment">// Be fair: notify the first listener and then go wait in line.
-                            </span>mutex.lock_ops.notify(<span class="number">1</span>);
-                        }
+                    <span class="comment">// Lock is available.
+                    </span><span class="kw">_ </span>=&gt; {
+                        <span class="comment">// Be fair: notify the first listener and then go wait in line.
+                        </span>mutex.lock_ops.notify(<span class="number">1</span>);
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
-                    <span class="comment">// Wait for a notification.
-                    </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
-                    this.listener = <span class="prelude-val">None</span>;
+            } <span class="kw">else </span>{
+                <span class="comment">// Wait for a notification.
+                </span><span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), context));
 
-                    <span class="comment">// Try acquiring the lock without waiting for others.
-                    </span><span class="kw">if </span>mutex.state.fetch_or(<span class="number">1</span>, Ordering::Acquire) % <span class="number">2 </span>== <span class="number">0 </span>{
-                        <span class="kw">return </span>Poll::Ready(this.take_mutex().unwrap());
-                    }
+                <span class="comment">// Try acquiring the lock without waiting for others.
+                </span><span class="kw">if </span>mutex.state.fetch_or(<span class="number">1</span>, Ordering::Acquire) % <span class="number">2 </span>== <span class="number">0 </span>{
+                    <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.take_mutex().unwrap());
                 }
             }
         }
-    }
-}
-
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Borrow&lt;Mutex&lt;T&gt;&gt;&gt; Drop <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Make sure the starvation counter is decremented.
-        </span><span class="self">self</span>.take_mutex();
     }
 }
 

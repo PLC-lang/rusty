@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-1.13.0/src/reactor.rs`."><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.2.1/src/reactor.rs`."><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -636,6 +636,43 @@
 <a href="#636" id="636">636</a>
 <a href="#637" id="637">637</a>
 <a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::fmt;
@@ -643,10 +680,6 @@
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::mem;
-<span class="attr">#[cfg(unix)]
-</span><span class="kw">use </span>std::os::unix::io::RawFd;
-<span class="attr">#[cfg(windows)]
-</span><span class="kw">use </span>std::os::windows::io::RawSocket;
 <span class="kw">use </span>std::panic;
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
@@ -657,8 +690,41 @@
 <span class="kw">use </span>async_lock::OnceCell;
 <span class="kw">use </span>concurrent_queue::ConcurrentQueue;
 <span class="kw">use </span>futures_lite::ready;
-<span class="kw">use </span>polling::{Event, Poller};
+<span class="kw">use </span>polling::{Event, Events, Poller};
 <span class="kw">use </span>slab::Slab;
+
+<span class="comment">// Choose the proper implementation of `Registration` based on the target platform.
+</span><span class="macro">cfg_if::cfg_if! </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(windows)] </span>{
+        <span class="kw">mod </span>windows;
+        <span class="kw">pub use </span>windows::Registration;
+    } <span class="kw">else if </span><span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;tvos&quot;</span>,
+        target_os = <span class="string">&quot;watchos&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    ))] </span>{
+        <span class="kw">mod </span>kqueue;
+        <span class="kw">pub use </span>kqueue::Registration;
+    } <span class="kw">else if </span><span class="attr">#[cfg(unix)] </span>{
+        <span class="kw">mod </span>unix;
+        <span class="kw">pub use </span>unix::Registration;
+    } <span class="kw">else </span>{
+        <span class="macro">compile_error!</span>(<span class="string">&quot;unsupported platform&quot;</span>);
+    }
+}
+
+<span class="attr">#[cfg(not(target_os = <span class="string">&quot;espidf&quot;</span>))]
+</span><span class="kw">const </span>TIMER_QUEUE_SIZE: usize = <span class="number">1000</span>;
+
+<span class="doccomment">/// ESP-IDF - being an embedded OS - does not need so many timers
+/// and this saves ~ 20K RAM which is a lot for an MCU with RAM &lt; 400K
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;espidf&quot;</span>)]
+</span><span class="kw">const </span>TIMER_QUEUE_SIZE: usize = <span class="number">100</span>;
 
 <span class="kw">const </span>READ: usize = <span class="number">0</span>;
 <span class="kw">const </span>WRITE: usize = <span class="number">1</span>;
@@ -670,7 +736,7 @@
     <span class="doccomment">/// Portable bindings to epoll/kqueue/event ports/IOCP.
     ///
     /// This is where I/O is polled, producing I/O events.
-    </span>poller: Poller,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) poller: Poller,
 
     <span class="doccomment">/// Ticker bumped before polling.
     ///
@@ -686,7 +752,7 @@
     <span class="doccomment">/// Temporary storage for I/O events when polling the reactor.
     ///
     /// Holding a lock on this event list implies the exclusive right to poll I/O.
-    </span>events: Mutex&lt;Vec&lt;Event&gt;&gt;,
+    </span>events: Mutex&lt;Events&gt;,
 
     <span class="doccomment">/// An ordered map of registered timers.
     ///
@@ -713,9 +779,9 @@
                 poller: Poller::new().expect(<span class="string">&quot;cannot initialize I/O event notification&quot;</span>),
                 ticker: AtomicUsize::new(<span class="number">0</span>),
                 sources: Mutex::new(Slab::new()),
-                events: Mutex::new(Vec::new()),
+                events: Mutex::new(Events::new()),
                 timers: Mutex::new(BTreeMap::new()),
-                timer_ops: ConcurrentQueue::bounded(<span class="number">1000</span>),
+                timer_ops: ConcurrentQueue::bounded(TIMER_QUEUE_SIZE),
             }
         })
     }
@@ -726,17 +792,13 @@
     }
 
     <span class="doccomment">/// Registers an I/O source in the reactor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_io(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="attr">#[cfg(unix)] </span>raw: RawFd,
-        <span class="attr">#[cfg(windows)] </span>raw: RawSocket,
-    ) -&gt; io::Result&lt;Arc&lt;Source&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_io(<span class="kw-2">&amp;</span><span class="self">self</span>, raw: Registration) -&gt; io::Result&lt;Arc&lt;Source&gt;&gt; {
         <span class="comment">// Create an I/O source for this file descriptor.
         </span><span class="kw">let </span>source = {
             <span class="kw">let </span><span class="kw-2">mut </span>sources = <span class="self">self</span>.sources.lock().unwrap();
             <span class="kw">let </span>key = sources.vacant_entry().key();
             <span class="kw">let </span>source = Arc::new(Source {
-                raw,
+                registration: raw,
                 key,
                 state: Default::default(),
             });
@@ -745,7 +807,7 @@
         };
 
         <span class="comment">// Register the file descriptor.
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.poller.add(raw, Event::none(source.key)) {
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = source.registration.add(<span class="kw-2">&amp;</span><span class="self">self</span>.poller, source.key) {
             <span class="kw">let </span><span class="kw-2">mut </span>sources = <span class="self">self</span>.sources.lock().unwrap();
             sources.remove(source.key);
             <span class="kw">return </span><span class="prelude-val">Err</span>(err);
@@ -758,7 +820,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_io(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;</span>Source) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>sources = <span class="self">self</span>.sources.lock().unwrap();
         sources.remove(source.key);
-        <span class="self">self</span>.poller.delete(source.raw)
+        source.registration.delete(<span class="kw-2">&amp;</span><span class="self">self</span>.poller)
     }
 
     <span class="doccomment">/// Registers a timer in the reactor.
@@ -820,6 +882,9 @@
     ///
     /// Returns the duration until the next timer before this method was called.
     </span><span class="kw">fn </span>process_timers(<span class="kw-2">&amp;</span><span class="self">self</span>, wakers: <span class="kw-2">&amp;mut </span>Vec&lt;Waker&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;process_timers&quot;</span>);
+        <span class="kw">let </span>_enter = span.enter();
+
         <span class="kw">let </span><span class="kw-2">mut </span>timers = <span class="self">self</span>.timers.lock().unwrap();
         <span class="self">self</span>.process_timer_ops(<span class="kw-2">&amp;mut </span>timers);
 
@@ -848,7 +913,8 @@
         </span>drop(timers);
 
         <span class="comment">// Add wakers to the list.
-        </span><span class="macro">log::trace!</span>(<span class="string">&quot;process_timers: {} ready wakers&quot;</span>, ready.len());
+        </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;{} ready wakers&quot;</span>, ready.len());
+
         <span class="kw">for </span>(<span class="kw">_</span>, waker) <span class="kw">in </span>ready {
             wakers.push(waker);
         }
@@ -860,29 +926,32 @@
     </span><span class="kw">fn </span>process_timer_ops(<span class="kw-2">&amp;</span><span class="self">self</span>, timers: <span class="kw-2">&amp;mut </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, BTreeMap&lt;(Instant, usize), Waker&gt;&gt;) {
         <span class="comment">// Process only as much as fits into the queue, or else this loop could in theory run
         // forever.
-        </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="self">self</span>.timer_ops.capacity().unwrap() {
-            <span class="kw">match </span><span class="self">self</span>.timer_ops.pop() {
-                <span class="prelude-val">Ok</span>(TimerOp::Insert(when, id, waker)) =&gt; {
+        </span><span class="self">self</span>.timer_ops
+            .try_iter()
+            .take(<span class="self">self</span>.timer_ops.capacity().unwrap())
+            .for_each(|op| <span class="kw">match </span>op {
+                TimerOp::Insert(when, id, waker) =&gt; {
                     timers.insert((when, id), waker);
                 }
-                <span class="prelude-val">Ok</span>(TimerOp::Remove(when, id)) =&gt; {
+                TimerOp::Remove(when, id) =&gt; {
                     timers.remove(<span class="kw-2">&amp;</span>(when, id));
                 }
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-            }
-        }
+            });
     }
 }
 
 <span class="doccomment">/// A lock on the reactor.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReactorLock&lt;<span class="lifetime">&#39;a</span>&gt; {
     reactor: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Reactor,
-    events: MutexGuard&lt;<span class="lifetime">&#39;a</span>, Vec&lt;Event&gt;&gt;,
+    events: MutexGuard&lt;<span class="lifetime">&#39;a</span>, Events&gt;,
 }
 
 <span class="kw">impl </span>ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Processes new events, blocking until the first event or the timeout.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>react(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;react&quot;</span>);
+        <span class="kw">let </span>_enter = span.enter();
+
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = Vec::new();
 
         <span class="comment">// Process ready timers.
@@ -933,18 +1002,20 @@
                             }
                         }
 
-                        <span class="comment">// Re-register if there are still writers or readers. The can happen if
+                        <span class="comment">// Re-register if there are still writers or readers. This can happen if
                         // e.g. we were previously interested in both readability and writability,
                         // but only one of them was emitted.
                         </span><span class="kw">if </span>!state[READ].is_empty() || !state[WRITE].is_empty() {
-                            <span class="self">self</span>.reactor.poller.modify(
-                                source.raw,
-                                Event {
-                                    key: source.key,
-                                    readable: !state[READ].is_empty(),
-                                    writable: !state[WRITE].is_empty(),
-                                },
-                            )<span class="question-mark">?</span>;
+                            <span class="comment">// Create the event that we are interested in.
+                            </span><span class="kw">let </span>event = {
+                                <span class="kw">let </span><span class="kw-2">mut </span>event = Event::none(source.key);
+                                event.readable = !state[READ].is_empty();
+                                event.writable = !state[WRITE].is_empty();
+                                event
+                            };
+
+                            <span class="comment">// Register interest in this event.
+                            </span>source.registration.modify(<span class="kw-2">&amp;</span><span class="self">self</span>.reactor.poller, event)<span class="question-mark">?</span>;
                         }
                     }
                 }
@@ -960,7 +1031,7 @@
         };
 
         <span class="comment">// Wake up ready tasks.
-        </span><span class="macro">log::trace!</span>(<span class="string">&quot;react: {} ready wakers&quot;</span>, wakers.len());
+        </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;{} ready wakers&quot;</span>, wakers.len());
         <span class="kw">for </span>waker <span class="kw">in </span>wakers {
             <span class="comment">// Don&#39;t let a panicking waker blow everything up.
             </span>panic::catch_unwind(|| waker.wake()).ok();
@@ -979,13 +1050,8 @@
 <span class="doccomment">/// A registered source of I/O events.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Source {
-    <span class="doccomment">/// Raw file descriptor on Unix platforms.
-    </span><span class="attr">#[cfg(unix)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) raw: RawFd,
-
-    <span class="doccomment">/// Raw socket handle on Windows.
-    </span><span class="attr">#[cfg(windows)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) raw: RawSocket,
+    <span class="doccomment">/// This source&#39;s registration into the reactor.
+    </span>registration: Registration,
 
     <span class="doccomment">/// The key of this source obtained during registration.
     </span>key: usize,
@@ -1074,14 +1140,16 @@
 
         <span class="comment">// Update interest in this I/O handle.
         </span><span class="kw">if </span>was_empty {
-            Reactor::get().poller.modify(
-                <span class="self">self</span>.raw,
-                Event {
-                    key: <span class="self">self</span>.key,
-                    readable: !state[READ].is_empty(),
-                    writable: !state[WRITE].is_empty(),
-                },
-            )<span class="question-mark">?</span>;
+            <span class="comment">// Create the event that we are interested in.
+            </span><span class="kw">let </span>event = {
+                <span class="kw">let </span><span class="kw-2">mut </span>event = Event::none(<span class="self">self</span>.key);
+                event.readable = !state[READ].is_empty();
+                event.writable = !state[WRITE].is_empty();
+                event
+            };
+
+            <span class="comment">// Register interest in it.
+            </span><span class="self">self</span>.registration.modify(<span class="kw-2">&amp;</span>Reactor::get().poller, event)<span class="question-mark">?</span>;
         }
 
         Poll::Pending
@@ -1128,7 +1196,7 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;readable: fd={}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.handle.source.raw);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;readable&quot;</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -1148,7 +1216,7 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;readable_owned: fd={}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.handle.source.raw);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;readable_owned&quot;</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -1168,7 +1236,7 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;writable: fd={}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.handle.source.raw);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;writable&quot;</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -1188,7 +1256,7 @@
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;writable_owned: fd={}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.handle.source.raw);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;writable_owned&quot;</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -1248,14 +1316,20 @@
 
         <span class="comment">// Update interest in this I/O handle.
         </span><span class="kw">if </span>was_empty {
-            Reactor::get().poller.modify(
-                handle.borrow().source.raw,
-                Event {
-                    key: handle.borrow().source.key,
-                    readable: !state[READ].is_empty(),
-                    writable: !state[WRITE].is_empty(),
-                },
-            )<span class="question-mark">?</span>;
+            <span class="comment">// Create the event that we are interested in.
+            </span><span class="kw">let </span>event = {
+                <span class="kw">let </span><span class="kw-2">mut </span>event = Event::none(handle.borrow().source.key);
+                event.readable = !state[READ].is_empty();
+                event.writable = !state[WRITE].is_empty();
+                event
+            };
+
+            <span class="comment">// Indicate that we are interested in this event.
+            </span>handle
+                .borrow()
+                .source
+                .registration
+                .modify(<span class="kw-2">&amp;</span>Reactor::get().poller, event)<span class="question-mark">?</span>;
         }
 
         Poll::Pending

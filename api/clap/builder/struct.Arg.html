@@ -205,7 +205,7 @@ may be defined as having a variable number of arguments (i.e. with the highest i
 <h5 id="panics"><a href="#panics">Panics</a></h5>
 <p><a href="../struct.Command.html" title="struct clap::Command"><code>Command</code></a> will <a href="https://doc.rust-lang.org/1.70.0/std/macro.panic.html" title="macro std::panic"><code>panic!</code></a> if indexes are skipped (such as defining <code>index(1)</code> and <code>index(3)</code>
 but not <code>index(2)</code>, or a positional argument is defined as multiple and is not the highest
-index</p>
+index (debug builds)</p>
 <h5 id="examples-12"><a href="#examples-12">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code>Arg::new(<span class="string">&quot;config&quot;</span>)
     .index(<span class="number">1</span>)</code></pre></div>
@@ -860,7 +860,7 @@ they should all be captured. For example:</p>
 <div class="example-wrap"><pre class="language-text"><code>--foo something -- -v -v -v -b -b -b --baz -q -u -x
 </code></pre></div>
 <p>Will result in everything after <code>--</code> to be considered one raw argument. This behavior
-may not be exactly what you are expecting and using <a href="../struct.Command.html#method.trailing_var_arg" title="method clap::Command::trailing_var_arg"><code>crate::Command::trailing_var_arg</code></a>
+may not be exactly what you are expecting and using <a href="../struct.Arg.html#method.trailing_var_arg" title="method clap::Arg::trailing_var_arg"><code>Arg::trailing_var_arg</code></a>
 may be more appropriate.</p>
 <p><strong>NOTE:</strong> Implicitly sets <a href="../struct.Arg.html#method.action" title="method clap::Arg::action"><code>Arg::action(ArgAction::Set)</code></a> <a href="../struct.Arg.html#method.num_args" title="method clap::Arg::num_args"><code>Arg::num_args(1..)</code></a>,
 <a href="../struct.Arg.html#method.allow_hyphen_values" title="method clap::Arg::allow_hyphen_values"><code>Arg::allow_hyphen_values(true)</code></a>, and <a href="../struct.Arg.html#method.last" title="method clap::Arg::last"><code>Arg::last(true)</code></a> when set to <code>true</code>.</p>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-2.8.0/src/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-3.3.1/src/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -320,16 +320,161 @@
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Bindings to epoll (Linux, Android).
 
-</span><span class="kw">use </span>std::convert::TryInto;
-<span class="kw">use </span>std::io;
-<span class="kw">use </span>std::os::unix::io::{AsRawFd, RawFd};
-<span class="kw">use </span>std::ptr;
+</span><span class="kw">use </span>std::io;
+<span class="kw">use </span>std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, RawFd};
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[cfg(not(polling_no_io_safety))]
-</span><span class="kw">use </span>std::os::unix::io::{AsFd, BorrowedFd};
+<span class="kw">use </span>rustix::event::{epoll, eventfd, EventfdFlags};
+<span class="kw">use </span>rustix::fd::OwnedFd;
+<span class="kw">use </span>rustix::fs::{fcntl_getfl, fcntl_setfl, OFlags};
+<span class="kw">use </span>rustix::io::{fcntl_getfd, fcntl_setfd, read, write, FdFlags};
+<span class="kw">use </span>rustix::pipe::{pipe, pipe_with, PipeFlags};
+<span class="kw">use </span>rustix::time::{
+    timerfd_create, timerfd_settime, Itimerspec, TimerfdClockId, TimerfdFlags, TimerfdTimerFlags,
+    Timespec,
+};
 
 <span class="kw">use crate</span>::{Event, PollMode};
 
@@ -337,11 +482,13 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Poller {
     <span class="doccomment">/// File descriptor for the epoll instance.
-    </span>epoll_fd: RawFd,
-    <span class="doccomment">/// File descriptor for the eventfd that produces notifications.
-    </span>event_fd: RawFd,
+    </span>epoll_fd: OwnedFd,
+
+    <span class="doccomment">/// Notifier used to wake up epoll.
+    </span>notifier: Notifier,
+
     <span class="doccomment">/// File descriptor for the timerfd that produces timeouts.
-    </span>timer_fd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
+    </span>timer_fd: <span class="prelude-ty">Option</span>&lt;OwnedFd&gt;,
 }
 
 <span class="kw">impl </span>Poller {
@@ -350,63 +497,43 @@
         <span class="comment">// Create an epoll instance.
         //
         // Use `epoll_create1` with `EPOLL_CLOEXEC`.
-        </span><span class="kw">let </span>epoll_fd = <span class="macro">syscall!</span>(syscall(
-            libc::SYS_epoll_create1,
-            libc::EPOLL_CLOEXEC <span class="kw">as </span>libc::c_int
-        ))
-        .map(|fd| fd <span class="kw">as </span>libc::c_int)
-        .or_else(|e| {
-            <span class="kw">match </span>e.raw_os_error() {
-                <span class="prelude-val">Some</span>(libc::ENOSYS) =&gt; {
-                    <span class="comment">// If `epoll_create1` is not implemented, use `epoll_create`
-                    // and manually set `FD_CLOEXEC`.
-                    </span><span class="kw">let </span>fd = <span class="macro">syscall!</span>(epoll_create(<span class="number">1024</span>))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>epoll_fd = epoll::create(epoll::CreateFlags::CLOEXEC)<span class="question-mark">?</span>;
 
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(flags) = <span class="macro">syscall!</span>(fcntl(fd, libc::F_GETFD)) {
-                        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(fcntl(fd, libc::F_SETFD, flags | libc::FD_CLOEXEC));
-                    }
-
-                    <span class="prelude-val">Ok</span>(fd)
-                }
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(e),
-            }
-        })<span class="question-mark">?</span>;
-
-        <span class="comment">// Set up eventfd and timerfd.
-        </span><span class="kw">let </span>event_fd = <span class="macro">syscall!</span>(eventfd(<span class="number">0</span>, libc::EFD_CLOEXEC | libc::EFD_NONBLOCK))<span class="question-mark">?</span>;
-        <span class="kw">let </span>timer_fd = <span class="macro">syscall!</span>(syscall(
-            libc::SYS_timerfd_create,
-            libc::CLOCK_MONOTONIC <span class="kw">as </span>libc::c_int,
-            (libc::TFD_CLOEXEC | libc::TFD_NONBLOCK) <span class="kw">as </span>libc::c_int,
-        ))
-        .map(|fd| fd <span class="kw">as </span>libc::c_int)
+        <span class="comment">// Set up notifier and timerfd.
+        </span><span class="kw">let </span>notifier = Notifier::new()<span class="question-mark">?</span>;
+        <span class="kw">let </span>timer_fd = timerfd_create(
+            TimerfdClockId::Monotonic,
+            TimerfdFlags::CLOEXEC | TimerfdFlags::NONBLOCK,
+        )
         .ok();
 
         <span class="kw">let </span>poller = Poller {
             epoll_fd,
-            event_fd,
+            notifier,
             timer_fd,
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = timer_fd {
-            poller.add(timer_fd, Event::none(<span class="kw">crate</span>::NOTIFY_KEY), PollMode::Oneshot)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>timer_fd) = poller.timer_fd {
+                poller.add(
+                    timer_fd.as_raw_fd(),
+                    Event::none(<span class="kw">crate</span>::NOTIFY_KEY),
+                    PollMode::Oneshot,
+                )<span class="question-mark">?</span>;
+            }
+
+            poller.add(
+                poller.notifier.as_fd().as_raw_fd(),
+                Event::readable(<span class="kw">crate</span>::NOTIFY_KEY),
+                PollMode::Oneshot,
+            )<span class="question-mark">?</span>;
         }
 
-        poller.add(
-            event_fd,
-            Event {
-                key: <span class="kw">crate</span>::NOTIFY_KEY,
-                readable: <span class="bool-val">true</span>,
-                writable: <span class="bool-val">false</span>,
-            },
-            PollMode::Oneshot,
-        )<span class="question-mark">?</span>;
-
-        <span class="macro">log::trace!</span>(
-            <span class="string">&quot;new: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
-            epoll_fd,
-            event_fd,
-            timer_fd
+        <span class="macro">tracing::trace!</span>(
+            epoll_fd = <span class="question-mark">?</span>poller.epoll_fd.as_raw_fd(),
+            notifier = <span class="question-mark">?</span>poller.notifier,
+            timer_fd = <span class="question-mark">?</span>poller.timer_fd,
+            <span class="string">&quot;new&quot;</span>,
         );
         <span class="prelude-val">Ok</span>(poller)
     }
@@ -422,63 +549,102 @@
     </span>}
 
     <span class="doccomment">/// Adds a new file descriptor.
-    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;add: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
-        <span class="self">self</span>.ctl(libc::EPOLL_CTL_ADD, fd, <span class="prelude-val">Some</span>((ev, mode)))
+    ///
+    /// # Safety
+    ///
+    /// The `fd` must be a valid file descriptor. The usual condition of remaining registered in
+    /// the `Poller` doesn&#39;t apply to `epoll`.
+    </span><span class="kw">pub unsafe fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;add&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            <span class="question-mark">?</span>fd,
+            <span class="question-mark">?</span>ev,
+        );
+        <span class="kw">let </span>_enter = span.enter();
+
+        epoll::add(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.epoll_fd,
+            <span class="kw">unsafe </span>{ rustix::fd::BorrowedFd::borrow_raw(fd) },
+            epoll::EventData::new_u64(ev.key <span class="kw">as </span>u64),
+            epoll_flags(<span class="kw-2">&amp;</span>ev, mode) | ev.extra.flags,
+        )<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Modifies an existing file descriptor.
-    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;modify: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, fd, ev);
-        <span class="self">self</span>.ctl(libc::EPOLL_CTL_MOD, fd, <span class="prelude-val">Some</span>((ev, mode)))
+    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;modify&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            <span class="question-mark">?</span>fd,
+            <span class="question-mark">?</span>ev,
+        );
+        <span class="kw">let </span>_enter = span.enter();
+
+        epoll::modify(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.epoll_fd,
+            fd,
+            epoll::EventData::new_u64(ev.key <span class="kw">as </span>u64),
+            epoll_flags(<span class="kw-2">&amp;</span>ev, mode) | ev.extra.flags,
+        )<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Deletes a file descriptor.
-    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd) -&gt; io::Result&lt;()&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;remove: epoll_fd={}, fd={}&quot;</span>, <span class="self">self</span>.epoll_fd, fd);
-        <span class="self">self</span>.ctl(libc::EPOLL_CTL_DEL, fd, <span class="prelude-val">None</span>)
+    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;delete&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            <span class="question-mark">?</span>fd,
+        );
+        <span class="kw">let </span>_enter = span.enter();
+
+        epoll::delete(<span class="kw-2">&amp;</span><span class="self">self</span>.epoll_fd, fd)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Waits for I/O events with an optional timeout.
+    </span><span class="attr">#[allow(clippy::needless_update)]
     </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span>Events, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;wait: epoll_fd={}, timeout={:?}&quot;</span>, <span class="self">self</span>.epoll_fd, timeout);
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;wait&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            <span class="question-mark">?</span>timeout,
+        );
+        <span class="kw">let </span>_enter = span.enter();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>timer_fd) = <span class="self">self</span>.timer_fd {
             <span class="comment">// Configure the timeout using timerfd.
-            </span><span class="kw">let </span>new_val = libc::itimerspec {
+            </span><span class="kw">let </span>new_val = Itimerspec {
                 it_interval: TS_ZERO,
                 it_value: <span class="kw">match </span>timeout {
                     <span class="prelude-val">None </span>=&gt; TS_ZERO,
                     <span class="prelude-val">Some</span>(t) =&gt; {
                         <span class="kw">let </span><span class="kw-2">mut </span>ts = TS_ZERO;
-                        ts.tv_sec = t.as_secs() <span class="kw">as </span>libc::time_t;
-                        ts.tv_nsec = (t.subsec_nanos() <span class="kw">as </span>libc::c_long).into();
+                        ts.tv_sec = t.as_secs() <span class="kw">as _</span>;
+                        ts.tv_nsec = t.subsec_nanos() <span class="kw">as _</span>;
                         ts
                     }
                 },
+                ..<span class="kw">unsafe </span>{ std::mem::zeroed() }
             };
 
-            <span class="macro">syscall!</span>(timerfd_settime(
-                timer_fd <span class="kw">as </span>libc::c_int,
-                <span class="number">0 </span><span class="kw">as </span>libc::c_int,
-                <span class="kw-2">&amp;</span>new_val <span class="kw">as </span><span class="kw-2">*const </span>libc::itimerspec,
-                ptr::null_mut() <span class="kw">as </span><span class="kw-2">*mut </span>libc::itimerspec
-            ))<span class="question-mark">?</span>;
+            timerfd_settime(timer_fd, TimerfdTimerFlags::empty(), <span class="kw-2">&amp;</span>new_val)<span class="question-mark">?</span>;
 
             <span class="comment">// Set interest in timerfd.
             </span><span class="self">self</span>.modify(
-                timer_fd,
-                Event {
-                    key: <span class="kw">crate</span>::NOTIFY_KEY,
-                    readable: <span class="bool-val">true</span>,
-                    writable: <span class="bool-val">false</span>,
-                },
+                timer_fd.as_fd(),
+                Event::readable(<span class="kw">crate</span>::NOTIFY_KEY),
                 PollMode::Oneshot,
             )<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Timeout in milliseconds for epoll.
-        </span><span class="kw">let </span>timeout_ms = <span class="kw">match </span>(<span class="self">self</span>.timer_fd, timeout) {
+        </span><span class="kw">let </span>timeout_ms = <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.timer_fd, timeout) {
             (<span class="kw">_</span>, <span class="prelude-val">Some</span>(t)) <span class="kw">if </span>t == Duration::from_secs(<span class="number">0</span>) =&gt; <span class="number">0</span>,
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(t)) =&gt; {
                 <span class="comment">// Round up to a whole millisecond.
@@ -492,29 +658,18 @@
         };
 
         <span class="comment">// Wait for I/O events.
-        </span><span class="kw">let </span>res = <span class="macro">syscall!</span>(epoll_wait(
-            <span class="self">self</span>.epoll_fd,
-            events.list.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::epoll_event,
-            events.list.len() <span class="kw">as </span>libc::c_int,
-            timeout_ms <span class="kw">as </span>libc::c_int,
-        ))<span class="question-mark">?</span>;
-        events.len = res <span class="kw">as </span>usize;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;new events: epoll_fd={}, res={}&quot;</span>, <span class="self">self</span>.epoll_fd, res);
+        </span>epoll::wait(<span class="kw-2">&amp;</span><span class="self">self</span>.epoll_fd, <span class="kw-2">&amp;mut </span>events.list, timeout_ms)<span class="question-mark">?</span>;
+        <span class="macro">tracing::trace!</span>(
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            res = <span class="question-mark">?</span>events.list.len(),
+            <span class="string">&quot;new events&quot;</span>,
+        );
 
         <span class="comment">// Clear the notification (if received) and re-register interest in it.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">8</span>];
-        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(read(
-            <span class="self">self</span>.event_fd,
-            buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
-            buf.len()
-        ));
+        </span><span class="self">self</span>.notifier.clear();
         <span class="self">self</span>.modify(
-            <span class="self">self</span>.event_fd,
-            Event {
-                key: <span class="kw">crate</span>::NOTIFY_KEY,
-                readable: <span class="bool-val">true</span>,
-                writable: <span class="bool-val">false</span>,
-            },
+            <span class="self">self</span>.notifier.as_fd(),
+            Event::readable(<span class="kw">crate</span>::NOTIFY_KEY),
             PollMode::Oneshot,
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -522,124 +677,249 @@
 
     <span class="doccomment">/// Sends a notification to wake up the current or next `wait()` call.
     </span><span class="kw">pub fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="macro">log::trace!</span>(
-            <span class="string">&quot;notify: epoll_fd={}, event_fd={}&quot;</span>,
-            <span class="self">self</span>.epoll_fd,
-            <span class="self">self</span>.event_fd
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;notify&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            notifier = <span class="question-mark">?</span><span class="self">self</span>.notifier,
         );
+        <span class="kw">let </span>_enter = span.enter();
 
-        <span class="kw">let </span>buf: [u8; <span class="number">8</span>] = <span class="number">1u64</span>.to_ne_bytes();
-        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(write(
-            <span class="self">self</span>.event_fd,
-            buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
-            buf.len()
-        ));
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Passes arguments to `epoll_ctl`.
-    </span><span class="kw">fn </span>ctl(<span class="kw-2">&amp;</span><span class="self">self</span>, op: libc::c_int, fd: RawFd, ev: <span class="prelude-ty">Option</span>&lt;(Event, PollMode)&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ev = ev.map(|(ev, mode)| {
-            <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="kw">match </span>mode {
-                PollMode::Oneshot =&gt; libc::EPOLLONESHOT,
-                PollMode::Level =&gt; <span class="number">0</span>,
-                PollMode::Edge =&gt; libc::EPOLLET,
-                PollMode::EdgeOneshot =&gt; libc::EPOLLONESHOT | libc::EPOLLET,
-            };
-            <span class="kw">if </span>ev.readable {
-                flags |= read_flags();
-            }
-            <span class="kw">if </span>ev.writable {
-                flags |= write_flags();
-            }
-            libc::epoll_event {
-                events: flags <span class="kw">as _</span>,
-                u64: ev.key <span class="kw">as </span>u64,
-            }
-        });
-        <span class="macro">syscall!</span>(epoll_ctl(
-            <span class="self">self</span>.epoll_fd,
-            op,
-            fd,
-            ev.as_mut()
-                .map(|ev| ev <span class="kw">as </span><span class="kw-2">*mut </span>libc::epoll_event)
-                .unwrap_or(ptr::null_mut()),
-        ))<span class="question-mark">?</span>;
+        <span class="self">self</span>.notifier.notify();
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="kw">impl </span>AsRawFd <span class="kw">for </span>Poller {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
-        <span class="self">self</span>.epoll_fd
+        <span class="self">self</span>.epoll_fd.as_raw_fd()
     }
 }
 
-<span class="attr">#[cfg(not(polling_no_io_safety))]
-</span><span class="kw">impl </span>AsFd <span class="kw">for </span>Poller {
+<span class="kw">impl </span>AsFd <span class="kw">for </span>Poller {
     <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="comment">// SAFETY: lifetime is bound by &quot;self&quot;
-        </span><span class="kw">unsafe </span>{ BorrowedFd::borrow_raw(<span class="self">self</span>.as_raw_fd()) }
+        <span class="self">self</span>.epoll_fd.as_fd()
     }
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>Poller {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">log::trace!</span>(
-            <span class="string">&quot;drop: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
-            <span class="self">self</span>.epoll_fd,
-            <span class="self">self</span>.event_fd,
-            <span class="self">self</span>.timer_fd
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;drop&quot;</span>,
+            epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
+            notifier = <span class="question-mark">?</span><span class="self">self</span>.notifier,
+            timer_fd = <span class="question-mark">?</span><span class="self">self</span>.timer_fd
         );
+        <span class="kw">let </span>_enter = span.enter();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd {
-            <span class="kw">let _ </span>= <span class="self">self</span>.delete(timer_fd);
-            <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(timer_fd));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd.take() {
+            <span class="kw">let _ </span>= <span class="self">self</span>.delete(timer_fd.as_fd());
         }
-        <span class="kw">let _ </span>= <span class="self">self</span>.delete(<span class="self">self</span>.event_fd);
-        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(<span class="self">self</span>.event_fd));
-        <span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(<span class="self">self</span>.epoll_fd));
+        <span class="kw">let _ </span>= <span class="self">self</span>.delete(<span class="self">self</span>.notifier.as_fd());
     }
 }
 
 <span class="doccomment">/// `timespec` value that equals zero.
-</span><span class="kw">const </span>TS_ZERO: libc::timespec =
-    <span class="kw">unsafe </span>{ std::mem::transmute([<span class="number">0u8</span>; std::mem::size_of::&lt;libc::timespec&gt;()]) };
+</span><span class="kw">const </span>TS_ZERO: Timespec = <span class="kw">unsafe </span>{ std::mem::transmute([<span class="number">0u8</span>; std::mem::size_of::&lt;Timespec&gt;()]) };
+
+<span class="doccomment">/// Get the EPOLL flags for the interest.
+</span><span class="kw">fn </span>epoll_flags(interest: <span class="kw-2">&amp;</span>Event, mode: PollMode) -&gt; epoll::EventFlags {
+    <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="kw">match </span>mode {
+        PollMode::Oneshot =&gt; epoll::EventFlags::ONESHOT,
+        PollMode::Level =&gt; epoll::EventFlags::empty(),
+        PollMode::Edge =&gt; epoll::EventFlags::ET,
+        PollMode::EdgeOneshot =&gt; epoll::EventFlags::ET | epoll::EventFlags::ONESHOT,
+    };
+    <span class="kw">if </span>interest.readable {
+        flags |= read_flags();
+    }
+    <span class="kw">if </span>interest.writable {
+        flags |= write_flags();
+    }
+    flags
+}
 
 <span class="doccomment">/// Epoll flags for all possible readability events.
-</span><span class="kw">fn </span>read_flags() -&gt; libc::c_int {
-    libc::EPOLLIN | libc::EPOLLRDHUP | libc::EPOLLHUP | libc::EPOLLERR | libc::EPOLLPRI
+</span><span class="kw">fn </span>read_flags() -&gt; epoll::EventFlags {
+    <span class="kw">use </span>epoll::EventFlags <span class="kw">as </span>Epoll;
+    Epoll::IN | Epoll::HUP | Epoll::ERR | Epoll::PRI
 }
 
 <span class="doccomment">/// Epoll flags for all possible writability events.
-</span><span class="kw">fn </span>write_flags() -&gt; libc::c_int {
-    libc::EPOLLOUT | libc::EPOLLHUP | libc::EPOLLERR
+</span><span class="kw">fn </span>write_flags() -&gt; epoll::EventFlags {
+    <span class="kw">use </span>epoll::EventFlags <span class="kw">as </span>Epoll;
+    Epoll::OUT | Epoll::HUP | Epoll::ERR
 }
 
 <span class="doccomment">/// A list of reported I/O events.
 </span><span class="kw">pub struct </span>Events {
-    list: Box&lt;[libc::epoll_event; <span class="number">1024</span>]&gt;,
-    len: usize,
+    list: epoll::EventVec,
 }
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>Events {}
 
 <span class="kw">impl </span>Events {
     <span class="doccomment">/// Creates an empty list.
-    </span><span class="kw">pub fn </span>new() -&gt; Events {
-        <span class="kw">let </span>ev = libc::epoll_event { events: <span class="number">0</span>, u64: <span class="number">0 </span>};
-        <span class="kw">let </span>list = Box::new([ev; <span class="number">1024</span>]);
-        <span class="kw">let </span>len = <span class="number">0</span>;
-        Events { list, len }
+    </span><span class="kw">pub fn </span>with_capacity(cap: usize) -&gt; Events {
+        Events {
+            list: epoll::EventVec::with_capacity(cap),
+        }
     }
 
     <span class="doccomment">/// Iterates over I/O events.
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">&#39;_ </span>{
-        <span class="self">self</span>.list[..<span class="self">self</span>.len].iter().map(|ev| Event {
-            key: ev.u64 <span class="kw">as </span>usize,
-            readable: (ev.events <span class="kw">as </span>libc::c_int &amp; read_flags()) != <span class="number">0</span>,
-            writable: (ev.events <span class="kw">as </span>libc::c_int &amp; write_flags()) != <span class="number">0</span>,
+        <span class="self">self</span>.list.iter().map(|ev| {
+            <span class="kw">let </span>flags = ev.flags;
+            Event {
+                key: ev.data.u64() <span class="kw">as </span>usize,
+                readable: flags.intersects(read_flags()),
+                writable: flags.intersects(write_flags()),
+                extra: EventExtra { flags },
+            }
         })
+    }
+
+    <span class="doccomment">/// Clear the list.
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.list.clear();
+    }
+
+    <span class="doccomment">/// Get the capacity of the list.
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.list.capacity()
+    }
+}
+
+<span class="doccomment">/// Extra information about this event.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>EventExtra {
+    flags: epoll::EventFlags,
+}
+
+<span class="kw">impl </span>EventExtra {
+    <span class="doccomment">/// Create an empty version of the data.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>empty() -&gt; EventExtra {
+        EventExtra {
+            flags: epoll::EventFlags::empty(),
+        }
+    }
+
+    <span class="doccomment">/// Add the interrupt flag to this event.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>set_hup(<span class="kw-2">&amp;mut </span><span class="self">self</span>, active: bool) {
+        <span class="self">self</span>.flags.set(epoll::EventFlags::HUP, active);
+    }
+
+    <span class="doccomment">/// Add the priority flag to this event.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>set_pri(<span class="kw-2">&amp;mut </span><span class="self">self</span>, active: bool) {
+        <span class="self">self</span>.flags.set(epoll::EventFlags::PRI, active);
+    }
+
+    <span class="doccomment">/// Tell if the interrupt flag is set.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_hup(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(epoll::EventFlags::HUP)
+    }
+
+    <span class="doccomment">/// Tell if the priority flag is set.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_pri(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(epoll::EventFlags::PRI)
+    }
+}
+
+<span class="doccomment">/// The notifier for Linux.
+///
+/// Certain container runtimes do not expose eventfd to the client, as it relies on the host and
+/// can be used to &quot;escape&quot; the container under certain conditions. Gramine is the prime example,
+/// see [here](gramine). In this case, fall back to using a pipe.
+///
+/// [gramine]: https://gramine.readthedocs.io/en/stable/manifest-syntax.html#allowing-eventfd
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">enum </span>Notifier {
+    <span class="doccomment">/// The primary notifier, using eventfd.
+    </span>EventFd(OwnedFd),
+
+    <span class="doccomment">/// The fallback notifier, using a pipe.
+    </span>Pipe {
+        <span class="doccomment">/// The read end of the pipe.
+        </span>read_pipe: OwnedFd,
+
+        <span class="doccomment">/// The write end of the pipe.
+        </span>write_pipe: OwnedFd,
+    },
+}
+
+<span class="kw">impl </span>Notifier {
+    <span class="doccomment">/// Create a new notifier.
+    </span><span class="kw">fn </span>new() -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// Skip eventfd for testing if necessary.
+        </span><span class="kw">if </span>!<span class="macro">cfg!</span>(polling_test_epoll_pipe) {
+            <span class="comment">// Try to create an eventfd.
+            </span><span class="kw">match </span>eventfd(<span class="number">0</span>, EventfdFlags::CLOEXEC | EventfdFlags::NONBLOCK) {
+                <span class="prelude-val">Ok</span>(fd) =&gt; {
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;created eventfd for notifier&quot;</span>);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Notifier::EventFd(fd));
+                }
+
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    <span class="macro">tracing::warn!</span>(
+                        <span class="string">&quot;eventfd() failed with error ({}), falling back to pipe&quot;</span>,
+                        err
+                    );
+                }
+            }
+        }
+
+        <span class="kw">let </span>(read, write) = pipe_with(PipeFlags::CLOEXEC).or_else(|<span class="kw">_</span>| {
+            <span class="kw">let </span>(read, write) = pipe()<span class="question-mark">?</span>;
+            fcntl_setfd(<span class="kw-2">&amp;</span>read, fcntl_getfd(<span class="kw-2">&amp;</span>read)<span class="question-mark">? </span>| FdFlags::CLOEXEC)<span class="question-mark">?</span>;
+            fcntl_setfd(<span class="kw-2">&amp;</span>write, fcntl_getfd(<span class="kw-2">&amp;</span>write)<span class="question-mark">? </span>| FdFlags::CLOEXEC)<span class="question-mark">?</span>;
+            io::Result::Ok((read, write))
+        })<span class="question-mark">?</span>;
+
+        fcntl_setfl(<span class="kw-2">&amp;</span>read, fcntl_getfl(<span class="kw-2">&amp;</span>read)<span class="question-mark">? </span>| OFlags::NONBLOCK)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Notifier::Pipe {
+            read_pipe: read,
+            write_pipe: write,
+        })
+    }
+
+    <span class="doccomment">/// The file descriptor to register in the poller.
+    </span><span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Notifier::EventFd(fd) =&gt; fd.as_fd(),
+            Notifier::Pipe {
+                read_pipe: read, ..
+            } =&gt; read.as_fd(),
+        }
+    }
+
+    <span class="doccomment">/// Notify the poller.
+    </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::EventFd(fd) =&gt; {
+                <span class="kw">let </span>buf: [u8; <span class="number">8</span>] = <span class="number">1u64</span>.to_ne_bytes();
+                <span class="kw">let _ </span>= write(fd, <span class="kw-2">&amp;</span>buf);
+            }
+
+            <span class="self">Self</span>::Pipe { write_pipe, .. } =&gt; {
+                write(write_pipe, <span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">1</span>]).ok();
+            }
+        }
+    }
+
+    <span class="doccomment">/// Clear the notification.
+    </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::EventFd(fd) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">8</span>];
+                <span class="kw">let _ </span>= read(fd, <span class="kw-2">&amp;mut </span>buf);
+            }
+
+            <span class="self">Self</span>::Pipe { read_pipe, .. } =&gt; <span class="kw">while </span>read(read_pipe, <span class="kw-2">&amp;mut </span>[<span class="number">0u8</span>; <span class="number">1024</span>]).is_ok() {},
+        }
     }
 }
 </code></pre></div></section></main></body></html>

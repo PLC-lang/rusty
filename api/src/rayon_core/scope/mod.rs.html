@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.11.0/src/scope/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rayon_core/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.0/src/scope/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rayon_core/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -767,102 +767,6 @@
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Methods for custom fork-join scopes, created by the [`scope()`]
 //! and [`in_place_scope()`] functions. These are a more flexible alternative to [`join()`].
 //!
@@ -872,7 +776,7 @@
 
 </span><span class="kw">use </span><span class="kw">crate</span>::broadcast::BroadcastContext;
 <span class="kw">use </span><span class="kw">crate</span>::job::{ArcJob, HeapJob, JobFifo, JobRef};
-<span class="kw">use </span><span class="kw">crate</span>::latch::{CountLatch, CountLockLatch, Latch};
+<span class="kw">use </span><span class="kw">crate</span>::latch::{CountLatch, Latch};
 <span class="kw">use </span><span class="kw">crate</span>::registry::{global_registry, in_worker, Registry, WorkerThread};
 <span class="kw">use </span><span class="kw">crate</span>::unwind;
 <span class="kw">use </span>std::any::Any;
@@ -904,26 +808,6 @@
     fifos: Vec&lt;JobFifo&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>ScopeLatch {
-    <span class="doccomment">/// A latch for scopes created on a rayon thread which will participate in work-
-    /// stealing while it waits for completion. This thread is not necessarily part
-    /// of the same registry as the scope itself!
-    </span>Stealing {
-        latch: CountLatch,
-        <span class="doccomment">/// If a worker thread in registry A calls `in_place_scope` on a ThreadPool
-        /// with registry B, when a job completes in a thread of registry B, we may
-        /// need to call `latch.set_and_tickle_one()` to wake the thread in registry A.
-        /// That means we need a reference to registry A (since at that point we will
-        /// only have a reference to registry B), so we stash it here.
-        </span>registry: Arc&lt;Registry&gt;,
-        <span class="doccomment">/// The index of the worker to wake in `registry`
-        </span>worker_index: usize,
-    },
-
-    <span class="doccomment">/// A latch for scopes created on a non-rayon thread which will block to wait.
-    </span>Blocking { latch: CountLockLatch },
-}
-
 <span class="kw">struct </span>ScopeBase&lt;<span class="lifetime">&#39;scope</span>&gt; {
     <span class="doccomment">/// thread registry where `scope()` was executed or where `in_place_scope()`
     /// should spawn jobs.
@@ -934,7 +818,7 @@
     </span>panic: AtomicPtr&lt;Box&lt;<span class="kw">dyn </span>Any + Send + <span class="lifetime">&#39;static</span>&gt;&gt;,
 
     <span class="doccomment">/// latch to track job counts
-    </span>job_completed_latch: ScopeLatch,
+    </span>job_completed_latch: CountLatch,
 
     <span class="doccomment">/// You can think of a scope as containing a list of closures to execute,
     /// all of which outlive `&#39;scope`.  They&#39;re not actually required to be
@@ -1515,13 +1399,9 @@
         ScopeBase {
             registry: Arc::clone(registry),
             panic: AtomicPtr::new(ptr::null_mut()),
-            job_completed_latch: ScopeLatch::new(owner),
+            job_completed_latch: CountLatch::new(owner),
             marker: PhantomData,
         }
-    }
-
-    <span class="kw">fn </span>increment(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.job_completed_latch.increment();
     }
 
     <span class="kw">fn </span>heap_job_ref&lt;FUNC&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, job: Box&lt;HeapJob&lt;FUNC&gt;&gt;) -&gt; JobRef
@@ -1529,7 +1409,7 @@
         </span>FUNC: FnOnce() + Send + <span class="lifetime">&#39;scope</span>,
     {
         <span class="kw">unsafe </span>{
-            <span class="self">self</span>.increment();
+            <span class="self">self</span>.job_completed_latch.increment();
             job.into_job_ref()
         }
     }
@@ -1540,7 +1420,7 @@
     {
         <span class="kw">let </span>n_threads = <span class="self">self</span>.registry.num_threads();
         <span class="kw">let </span>job_refs = (<span class="number">0</span>..n_threads).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{
-            <span class="self">self</span>.increment();
+            <span class="self">self</span>.job_completed_latch.increment();
             ArcJob::as_job_ref(<span class="kw-2">&amp;</span>job)
         });
 
@@ -1575,17 +1455,15 @@
     <span class="kw">where
         </span>FUNC: FnOnce() -&gt; R,
     {
-        <span class="kw">match </span>unwind::halt_unwinding(func) {
-            <span class="prelude-val">Ok</span>(r) =&gt; {
-                Latch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).job_completed_latch);
-                <span class="prelude-val">Some</span>(r)
-            }
+        <span class="kw">let </span>result = <span class="kw">match </span>unwind::halt_unwinding(func) {
+            <span class="prelude-val">Ok</span>(r) =&gt; <span class="prelude-val">Some</span>(r),
             <span class="prelude-val">Err</span>(err) =&gt; {
                 (<span class="kw-2">*</span>this).job_panicked(err);
-                Latch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).job_completed_latch);
                 <span class="prelude-val">None
             </span>}
-        }
+        };
+        Latch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).job_completed_latch);
+        result
     }
 
     <span class="kw">fn </span>job_panicked(<span class="kw-2">&amp;</span><span class="self">self</span>, err: Box&lt;<span class="kw">dyn </span>Any + Send + <span class="lifetime">&#39;static</span>&gt;) {
@@ -1619,61 +1497,6 @@
     }
 }
 
-<span class="kw">impl </span>ScopeLatch {
-    <span class="kw">fn </span>new(owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_count(<span class="number">1</span>, owner)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_count(count: usize, owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span>owner {
-            <span class="prelude-val">Some</span>(owner) =&gt; ScopeLatch::Stealing {
-                latch: CountLatch::with_count(count),
-                registry: Arc::clone(owner.registry()),
-                worker_index: owner.index(),
-            },
-            <span class="prelude-val">None </span>=&gt; ScopeLatch::Blocking {
-                latch: CountLockLatch::with_count(count),
-            },
-        }
-    }
-
-    <span class="kw">fn </span>increment(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">match </span><span class="self">self </span>{
-            ScopeLatch::Stealing { latch, .. } =&gt; latch.increment(),
-            ScopeLatch::Blocking { latch } =&gt; latch.increment(),
-        }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) {
-        <span class="kw">match </span><span class="self">self </span>{
-            ScopeLatch::Stealing {
-                latch,
-                registry,
-                worker_index,
-            } =&gt; <span class="kw">unsafe </span>{
-                <span class="kw">let </span>owner = owner.expect(<span class="string">&quot;owner thread&quot;</span>);
-                <span class="macro">debug_assert_eq!</span>(registry.id(), owner.registry().id());
-                <span class="macro">debug_assert_eq!</span>(<span class="kw-2">*</span>worker_index, owner.index());
-                owner.wait_until(latch);
-            },
-            ScopeLatch::Blocking { latch } =&gt; latch.wait(),
-        }
-    }
-}
-
-<span class="kw">impl </span>Latch <span class="kw">for </span>ScopeLatch {
-    <span class="kw">unsafe fn </span>set(this: <span class="kw-2">*const </span><span class="self">Self</span>) {
-        <span class="kw">match </span><span class="kw-2">&amp;*</span>this {
-            ScopeLatch::Stealing {
-                latch,
-                registry,
-                worker_index,
-            } =&gt; CountLatch::set_and_tickle_one(latch, registry, <span class="kw-2">*</span>worker_index),
-            ScopeLatch::Blocking { latch } =&gt; Latch::set(latch),
-        }
-    }
-}
-
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;scope</span>&gt; fmt::Debug <span class="kw">for </span>Scope&lt;<span class="lifetime">&#39;scope</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         fmt.debug_struct(<span class="string">&quot;Scope&quot;</span>)
@@ -1692,21 +1515,6 @@
             .field(<span class="string">&quot;panic&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.base.panic)
             .field(<span class="string">&quot;job_completed_latch&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.base.job_completed_latch)
             .finish()
-    }
-}
-
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ScopeLatch {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="kw">match </span><span class="self">self </span>{
-            ScopeLatch::Stealing { latch, .. } =&gt; fmt
-                .debug_tuple(<span class="string">&quot;ScopeLatch::Stealing&quot;</span>)
-                .field(latch)
-                .finish(),
-            ScopeLatch::Blocking { latch } =&gt; fmt
-                .debug_tuple(<span class="string">&quot;ScopeLatch::Blocking&quot;</span>)
-                .field(latch)
-                .finish(),
-        }
     }
 }
 

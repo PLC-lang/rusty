@@ -31,6 +31,7 @@
 <a href="#31" id="31">31</a>
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>chrono::{TimeZone, Timelike};
 
 <span class="doccomment">/// .
@@ -43,7 +44,8 @@
 
     <span class="kw">let </span>new_date_time =
         date_time.date_naive().and_hms_opt(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>).expect(<span class="string">&quot;Cannot create date time from date&quot;</span>);
-    new_date_time.timestamp_nanos()
+
+    new_date_time.timestamp_nanos_opt().expect(<span class="string">&quot;Out of range, cannot create DATE&quot;</span>)
 }
 
 <span class="doccomment">/// .
@@ -62,6 +64,6 @@
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
         .expect(<span class="string">&quot;Cannot create date time from given parameters&quot;</span>);
 
-    new_date_time.timestamp_nanos()
+    new_date_time.timestamp_nanos_opt().expect(<span class="string">&quot;Out of range, cannot create TOD&quot;</span>)
 }
 </code></pre></div></section></main></body></html>

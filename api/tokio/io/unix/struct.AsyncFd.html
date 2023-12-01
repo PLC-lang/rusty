@@ -3,14 +3,14 @@ reactor, allowing for readiness to be polled. The file descriptor must be of
 a type that can be used with the OS polling facilities (ie, <code>poll</code>, <code>epoll</code>,
 <code>kqueue</code>, etc), such as a network socket or pipe, and the file descriptor
 must have the nonblocking mode set to true.</p>
-<p>Creating an AsyncFd registers the file descriptor with the current tokio
+<p>Creating an <a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> registers the file descriptor with the current tokio
 Reactor, allowing you to directly await the file descriptor being readable
 or writable. Once registered, the file descriptor remains registered until
-the AsyncFd is dropped.</p>
-<p>The AsyncFd takes ownership of an arbitrary object to represent the IO
+the <a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> is dropped.</p>
+<p>The <a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> takes ownership of an arbitrary object to represent the IO
 object. It is intended that this object will handle closing the file
 descriptor when it is dropped, avoiding resource leaks and ensuring that the
-AsyncFd can clean up the registration before closing the file descriptor.
+<a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> can clean up the registration before closing the file descriptor.
 The <a href="struct.AsyncFd.html#method.into_inner" title="method tokio::io::unix::AsyncFd::into_inner"><code>AsyncFd::into_inner</code></a> function can be used to extract the inner object
 to retake control from the tokio IO reactor.</p>
 <p>The inner object is required to implement <a href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd"><code>AsRawFd</code></a>. This file descriptor
@@ -147,7 +147,7 @@ and using the IO traits <a href="../trait.AsyncRead.html" title="trait tokio::io
     }
 }</code></pre></div>
 </div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-AsyncFd%3CT%3E" class="impl"><a class="srclink rightside" href="../../../src/tokio/io/async_fd.rs.html#206-789">source</a><a href="#impl-AsyncFd%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd">AsRawFd</a>&gt; <a class="struct" href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd">AsyncFd</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.new" class="method"><a class="srclink rightside" href="../../../src/tokio/io/async_fd.rs.html#222-227">source</a><h4 class="code-header">pub fn <a href="#method.new" class="fn">new</a>(inner: T) -&gt; <a class="type" href="https://doc.rust-lang.org/1.70.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;Self&gt;<span class="where fmt-newline">where
-    T: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd">AsRawFd</a>,</span></h4></section></summary><div class="docblock"><p>Creates an AsyncFd backed by (and taking ownership of) an object
+    T: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd">AsRawFd</a>,</span></h4></section></summary><div class="docblock"><p>Creates an <a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> backed by (and taking ownership of) an object
 implementing <a href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd"><code>AsRawFd</code></a>. The backing file descriptor is cached at the
 time of creation.</p>
 <p>Only configures the <a href="../struct.Interest.html#associatedconstant.READABLE" title="associated constant tokio::io::Interest::READABLE"><code>Interest::READABLE</code></a> and <a href="../struct.Interest.html#associatedconstant.WRITABLE" title="associated constant tokio::io::Interest::WRITABLE"><code>Interest::WRITABLE</code></a> interests. For more
@@ -157,7 +157,7 @@ control, use <a href="struct.AsyncFd.html#method.with_interest" title="associate
 <p>This function panics if there is no current reactor set, or if the <code>rt</code>
 feature flag is not enabled.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.with_interest" class="method"><a class="srclink rightside" href="../../../src/tokio/io/async_fd.rs.html#239-244">source</a><h4 class="code-header">pub fn <a href="#method.with_interest" class="fn">with_interest</a>(inner: T, interest: <a class="struct" href="../struct.Interest.html" title="struct tokio::io::Interest">Interest</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/1.70.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;Self&gt;<span class="where fmt-newline">where
-    T: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd">AsRawFd</a>,</span></h4></section></summary><div class="docblock"><p>Creates an AsyncFd backed by (and taking ownership of) an object
+    T: <a class="trait" href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd">AsRawFd</a>,</span></h4></section></summary><div class="docblock"><p>Creates an <a href="struct.AsyncFd.html" title="struct tokio::io::unix::AsyncFd"><code>AsyncFd</code></a> backed by (and taking ownership of) an object
 implementing <a href="https://doc.rust-lang.org/1.70.0/std/os/fd/raw/trait.AsRawFd.html" title="trait std::os::fd::raw::AsRawFd"><code>AsRawFd</code></a>, with a specific <a href="../struct.Interest.html" title="struct tokio::io::Interest"><code>Interest</code></a>. The backing
 file descriptor is cached at the time of creation.</p>
 <h5 id="panics-1"><a href="#panics-1">Panics</a></h5>

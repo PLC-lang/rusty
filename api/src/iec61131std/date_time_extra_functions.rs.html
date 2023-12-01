@@ -559,6 +559,11 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, NaiveDate, TimeZone, Timelike};
 
 <span class="doccomment">/// .
@@ -574,7 +579,10 @@
     <span class="kw">let </span>sec = tod.second();
     <span class="kw">let </span>nano = tod.timestamp_subsec_nanos();
 
-    date.and_hms_nano_opt(hour, min, sec, nano).expect(<span class="string">&quot;Invalid input&quot;</span>).timestamp_nanos()
+    date.and_hms_nano_opt(hour, min, sec, nano)
+        .expect(<span class="string">&quot;Invalid input&quot;</span>)
+        .timestamp_nanos_opt()
+        .expect(<span class="string">&quot;Out of range, cannot create Date&quot;</span>)
 }
 
 <span class="doccomment">/// .
@@ -640,7 +648,8 @@
     <span class="kw">let </span>dt = NaiveDate::from_ymd_opt(in1, in2, in3)
         .and_then(|date| date.and_hms_opt(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
         .expect(<span class="string">&quot;Invalid parameters, cannot create date&quot;</span>);
-    dt.timestamp_nanos()
+
+    dt.timestamp_nanos_opt().expect(<span class="string">&quot;Out of range, cannot create date&quot;</span>)
 }
 
 <span class="doccomment">/// .
@@ -724,7 +733,8 @@
     <span class="kw">let </span>dt = NaiveDate::from_ymd_opt(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>)
         .and_then(|date| date.and_hms_milli_opt(in1, in2, in3, in4))
         .expect(<span class="string">&quot;Invalid parameters, cannot create TOD&quot;</span>);
-    dt.timestamp_nanos()
+
+    dt.timestamp_nanos_opt().expect(<span class="string">&quot;Out of range, cannot create TOD&quot;</span>)
 }
 
 <span class="doccomment">/// .

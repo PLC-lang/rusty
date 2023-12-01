@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.14.0/src/set.rs`."><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.14.3/src/set.rs`."><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2901,6 +2901,72 @@
 <a href="#2901" id="2901">2901</a>
 <a href="#2902" id="2902">2902</a>
 <a href="#2903" id="2903">2903</a>
+<a href="#2904" id="2904">2904</a>
+<a href="#2905" id="2905">2905</a>
+<a href="#2906" id="2906">2906</a>
+<a href="#2907" id="2907">2907</a>
+<a href="#2908" id="2908">2908</a>
+<a href="#2909" id="2909">2909</a>
+<a href="#2910" id="2910">2910</a>
+<a href="#2911" id="2911">2911</a>
+<a href="#2912" id="2912">2912</a>
+<a href="#2913" id="2913">2913</a>
+<a href="#2914" id="2914">2914</a>
+<a href="#2915" id="2915">2915</a>
+<a href="#2916" id="2916">2916</a>
+<a href="#2917" id="2917">2917</a>
+<a href="#2918" id="2918">2918</a>
+<a href="#2919" id="2919">2919</a>
+<a href="#2920" id="2920">2920</a>
+<a href="#2921" id="2921">2921</a>
+<a href="#2922" id="2922">2922</a>
+<a href="#2923" id="2923">2923</a>
+<a href="#2924" id="2924">2924</a>
+<a href="#2925" id="2925">2925</a>
+<a href="#2926" id="2926">2926</a>
+<a href="#2927" id="2927">2927</a>
+<a href="#2928" id="2928">2928</a>
+<a href="#2929" id="2929">2929</a>
+<a href="#2930" id="2930">2930</a>
+<a href="#2931" id="2931">2931</a>
+<a href="#2932" id="2932">2932</a>
+<a href="#2933" id="2933">2933</a>
+<a href="#2934" id="2934">2934</a>
+<a href="#2935" id="2935">2935</a>
+<a href="#2936" id="2936">2936</a>
+<a href="#2937" id="2937">2937</a>
+<a href="#2938" id="2938">2938</a>
+<a href="#2939" id="2939">2939</a>
+<a href="#2940" id="2940">2940</a>
+<a href="#2941" id="2941">2941</a>
+<a href="#2942" id="2942">2942</a>
+<a href="#2943" id="2943">2943</a>
+<a href="#2944" id="2944">2944</a>
+<a href="#2945" id="2945">2945</a>
+<a href="#2946" id="2946">2946</a>
+<a href="#2947" id="2947">2947</a>
+<a href="#2948" id="2948">2948</a>
+<a href="#2949" id="2949">2949</a>
+<a href="#2950" id="2950">2950</a>
+<a href="#2951" id="2951">2951</a>
+<a href="#2952" id="2952">2952</a>
+<a href="#2953" id="2953">2953</a>
+<a href="#2954" id="2954">2954</a>
+<a href="#2955" id="2955">2955</a>
+<a href="#2956" id="2956">2956</a>
+<a href="#2957" id="2957">2957</a>
+<a href="#2958" id="2958">2958</a>
+<a href="#2959" id="2959">2959</a>
+<a href="#2960" id="2960">2960</a>
+<a href="#2961" id="2961">2961</a>
+<a href="#2962" id="2962">2962</a>
+<a href="#2963" id="2963">2963</a>
+<a href="#2964" id="2964">2964</a>
+<a href="#2965" id="2965">2965</a>
+<a href="#2966" id="2966">2966</a>
+<a href="#2967" id="2967">2967</a>
+<a href="#2968" id="2968">2968</a>
+<a href="#2969" id="2969">2969</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;raw&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::raw::RawTable;
 <span class="kw">use crate</span>::{Equivalent, TryReserveError};
@@ -2910,8 +2976,8 @@
 <span class="kw">use </span>core::iter::{Chain, FromIterator, FusedIterator};
 <span class="kw">use </span>core::ops::{BitAnd, BitOr, BitXor, Sub};
 
-<span class="kw">use </span><span class="kw">super</span>::map::{<span class="self">self</span>, DefaultHashBuilder, ExtractIfInner, HashMap, Keys};
-<span class="kw">use </span><span class="kw">crate</span>::raw::{Allocator, Global};
+<span class="kw">use </span><span class="kw">super</span>::map::{<span class="self">self</span>, DefaultHashBuilder, HashMap, Keys};
+<span class="kw">use </span><span class="kw">crate</span>::raw::{Allocator, Global, RawExtractIf};
 
 <span class="comment">// Future Optimization (FIXME!)
 // =============================
@@ -3015,7 +3081,7 @@
 /// [`HashMap`]: struct.HashMap.html
 /// [`PartialEq`]: https://doc.rust-lang.org/std/cmp/trait.PartialEq.html
 /// [`RefCell`]: https://doc.rust-lang.org/std/cell/struct.RefCell.html
-</span><span class="kw">pub struct </span>HashSet&lt;T, S = DefaultHashBuilder, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>HashSet&lt;T, S = DefaultHashBuilder, A: Allocator = Global&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) map: HashMap&lt;T, (), S, A&gt;,
 }
 
@@ -3096,7 +3162,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;ahash&quot;</span>)]
-</span><span class="kw">impl</span>&lt;T: Hash + Eq, A: Allocator + Clone&gt; HashSet&lt;T, DefaultHashBuilder, A&gt; {
+</span><span class="kw">impl</span>&lt;T: Hash + Eq, A: Allocator&gt; HashSet&lt;T, DefaultHashBuilder, A&gt; {
     <span class="doccomment">/// Creates an empty `HashSet`.
     ///
     /// The hash set is initially created with a capacity of 0, so it will not allocate until it
@@ -3159,7 +3225,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; HashSet&lt;T, S, A&gt; {
     <span class="doccomment">/// Returns the number of elements the set can hold without reallocating.
     ///
     /// # Examples
@@ -3286,6 +3352,8 @@
     /// or the iteration short-circuits, then the remaining elements will be retained.
     /// Use [`retain()`] with a negated predicate if you do not need the returned iterator.
     ///
+    /// [`retain()`]: HashSet::retain
+    ///
     /// # Examples
     ///
     /// ```
@@ -3309,7 +3377,7 @@
     {
         ExtractIf {
             f,
-            inner: ExtractIfInner {
+            inner: RawExtractIf {
                 iter: <span class="kw">unsafe </span>{ <span class="self">self</span>.map.table.iter() },
                 table: <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.table,
             },
@@ -3414,7 +3482,7 @@
 
 <span class="kw">impl</span>&lt;T, S, A&gt; HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>A: Allocator + Clone,
+    </span>A: Allocator,
 {
     <span class="doccomment">/// Returns a reference to the underlying allocator.
     </span><span class="attr">#[inline]
@@ -3522,7 +3590,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="doccomment">/// Reserves capacity for at least `additional` more elements to be inserted
     /// in the `HashSet`. The collection may reserve more space to avoid
@@ -4126,7 +4194,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; HashSet&lt;T, S, A&gt; {
     <span class="doccomment">/// Returns a reference to the [`RawTable`] used underneath [`HashSet`].
     /// This function is only available if the `raw` feature of the crate is enabled.
     ///
@@ -4172,7 +4240,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.len() != other.len() {
@@ -4187,14 +4255,14 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
     </span>T: fmt::Debug,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_set().entries(<span class="self">self</span>.iter()).finish()
@@ -4203,7 +4271,7 @@
 
 <span class="kw">impl</span>&lt;T, S, A&gt; From&lt;HashMap&lt;T, (), S, A&gt;&gt; <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
-    </span>A: Allocator + Clone,
+    </span>A: Allocator,
 {
     <span class="kw">fn </span>from(map: HashMap&lt;T, (), S, A&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ map }
@@ -4214,7 +4282,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher + Default,
-    A: Default + Allocator + Clone,
+    A: Default + Allocator,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = T&gt;&gt;(iter: I) -&gt; <span class="self">Self </span>{
@@ -4229,7 +4297,7 @@
 </span><span class="kw">impl</span>&lt;T, A, <span class="kw">const </span>N: usize&gt; From&lt;[T; N]&gt; <span class="kw">for </span>HashSet&lt;T, DefaultHashBuilder, A&gt;
 <span class="kw">where
     </span>T: Eq + Hash,
-    A: Default + Allocator + Clone,
+    A: Default + Allocator,
 {
     <span class="doccomment">/// # Examples
     ///
@@ -4249,7 +4317,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
@@ -4273,7 +4341,7 @@
 <span class="kw">where
     </span>T: <span class="lifetime">&#39;a </span>+ Eq + Hash + Copy,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
@@ -4296,7 +4364,7 @@
 <span class="kw">impl</span>&lt;T, S, A&gt; Default <span class="kw">for </span>HashSet&lt;T, S, A&gt;
 <span class="kw">where
     </span>S: Default,
-    A: Default + Allocator + Clone,
+    A: Default + Allocator,
 {
     <span class="doccomment">/// Creates an empty `HashSet&lt;T, S&gt;` with the `Default` value for the hasher.
     </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
@@ -4311,7 +4379,7 @@
 <span class="kw">where
     </span>T: Eq + Hash + Clone,
     S: BuildHasher + Default,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4344,7 +4412,7 @@
 <span class="kw">where
     </span>T: Eq + Hash + Clone,
     S: BuildHasher + Default,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Output = HashSet&lt;T, S&gt;;
 
@@ -4455,7 +4523,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`into_iter`]: struct.HashSet.html#method.into_iter
-</span><span class="kw">pub struct </span>IntoIter&lt;K, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>IntoIter&lt;K, A: Allocator = Global&gt; {
     iter: map::IntoIter&lt;K, (), A&gt;,
 }
 
@@ -4466,7 +4534,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`drain`]: struct.HashSet.html#method.drain
-</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, K, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, K, A: Allocator = Global&gt; {
     iter: map::Drain&lt;<span class="lifetime">&#39;a</span>, K, (), A&gt;,
 }
 
@@ -4478,12 +4546,12 @@
 /// [`extract_if`]: struct.HashSet.html#method.extract_if
 /// [`HashSet`]: struct.HashSet.html
 </span><span class="attr">#[must_use = <span class="string">&quot;Iterators are lazy unless consumed&quot;</span>]
-</span><span class="kw">pub struct </span>ExtractIf&lt;<span class="lifetime">&#39;a</span>, K, F, A: Allocator + Clone = Global&gt;
+</span><span class="kw">pub struct </span>ExtractIf&lt;<span class="lifetime">&#39;a</span>, K, F, A: Allocator = Global&gt;
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
 {
     f: F,
-    inner: ExtractIfInner&lt;<span class="lifetime">&#39;a</span>, K, (), A&gt;,
+    inner: RawExtractIf&lt;<span class="lifetime">&#39;a</span>, (K, ()), A&gt;,
 }
 
 <span class="doccomment">/// A lazy iterator producing elements in the intersection of `HashSet`s.
@@ -4493,7 +4561,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`intersection`]: struct.HashSet.html#method.intersection
-</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     <span class="comment">// iterator of the first set
     </span>iter: Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     <span class="comment">// the second set
@@ -4507,7 +4575,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`difference`]: struct.HashSet.html#method.difference
-</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     <span class="comment">// iterator of the first set
     </span>iter: Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     <span class="comment">// the second set
@@ -4521,7 +4589,7 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`symmetric_difference`]: struct.HashSet.html#method.symmetric_difference
-</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     iter: Chain&lt;Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;&gt;,
 }
 
@@ -4532,11 +4600,11 @@
 ///
 /// [`HashSet`]: struct.HashSet.html
 /// [`union`]: struct.HashSet.html#method.union
-</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     iter: Chain&lt;Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;, Difference&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashSet&lt;T, S, A&gt; {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
@@ -4546,7 +4614,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; IntoIterator <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; IntoIterator <span class="kw">for </span>HashSet&lt;T, S, A&gt; {
     <span class="kw">type </span>Item = T;
     <span class="kw">type </span>IntoIter = IntoIter&lt;T, A&gt;;
 
@@ -4597,6 +4665,14 @@
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, f)
+    }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
@@ -4612,7 +4688,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; Iterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
     <span class="kw">type </span>Item = K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
@@ -4627,23 +4703,31 @@
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, |acc, (k, ())| f(acc, k))
+    }
 }
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; ExactSizeIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.iter.len()
     }
 }
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {}
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;K, A&gt; {}
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>IntoIter&lt;K, A&gt; {
+<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator&gt; fmt::Debug <span class="kw">for </span>IntoIter&lt;K, A&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>entries_iter = <span class="self">self</span>.iter.iter().map(|(k, <span class="kw">_</span>)| k);
         f.debug_list().entries(entries_iter).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
     <span class="kw">type </span>Item = K;
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
@@ -4658,23 +4742,31 @@
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, |acc, (k, ())| f(acc, k))
+    }
 }
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.iter.len()
     }
 }
-<span class="kw">impl</span>&lt;K, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {}
+<span class="kw">impl</span>&lt;K, A: Allocator&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {}
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
+<span class="kw">impl</span>&lt;K: fmt::Debug, A: Allocator&gt; fmt::Debug <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, K, A&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>entries_iter = <span class="self">self</span>.iter.iter().map(|(k, <span class="kw">_</span>)| k);
         f.debug_list().entries(entries_iter).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;K, F, A: Allocator + Clone&gt; Iterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt;
+<span class="kw">impl</span>&lt;K, F, A: Allocator&gt; Iterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt;
 <span class="kw">where
     </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool,
 {
@@ -4682,9 +4774,9 @@
 
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">let </span>f = <span class="kw-2">&amp;mut </span><span class="self">self</span>.f;
-        <span class="kw">let </span>(k, <span class="kw">_</span>) = <span class="self">self</span>.inner.next(<span class="kw-2">&amp;mut </span>|k, <span class="kw">_</span>| f(k))<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(k)
+        <span class="self">self</span>.inner
+            .next(|<span class="kw-2">&amp;mut </span>(<span class="kw-2">ref </span>k, ())| (<span class="self">self</span>.f)(k))
+            .map(|(k, ())| k)
     }
 
     <span class="attr">#[inline]
@@ -4693,9 +4785,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K, F, A: Allocator + Clone&gt; FusedIterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt; <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool {}
+<span class="kw">impl</span>&lt;K, F, A: Allocator&gt; FusedIterator <span class="kw">for </span>ExtractIf&lt;<span class="lifetime">&#39;_</span>, K, F, A&gt; <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K) -&gt; bool {}
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; Clone <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Intersection {
@@ -4709,7 +4801,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4728,13 +4820,27 @@
         <span class="kw">let </span>(<span class="kw">_</span>, upper) = <span class="self">self</span>.iter.size_hint();
         (<span class="number">0</span>, upper)
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, |acc, elt| {
+            <span class="kw">if </span><span class="self">self</span>.other.contains(elt) {
+                f(acc, elt)
+            } <span class="kw">else </span>{
+                acc
+            }
+        })
+    }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; fmt::Debug <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
     </span>T: fmt::Debug + Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_list().entries(<span class="self">self</span>.clone()).finish()
@@ -4745,11 +4851,11 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; Clone <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Difference {
@@ -4763,7 +4869,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4782,13 +4888,27 @@
         <span class="kw">let </span>(<span class="kw">_</span>, upper) = <span class="self">self</span>.iter.size_hint();
         (<span class="number">0</span>, upper)
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, |acc, elt| {
+            <span class="kw">if </span><span class="self">self</span>.other.contains(elt) {
+                acc
+            } <span class="kw">else </span>{
+                f(acc, elt)
+            }
+        })
+    }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
 }
 
@@ -4796,14 +4916,14 @@
 <span class="kw">where
     </span>T: fmt::Debug + Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; Clone <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         SymmetricDifference {
@@ -4816,7 +4936,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4828,13 +4948,21 @@
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
     }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, f)
+    }
 }
 
 <span class="kw">impl</span>&lt;T, S, A&gt; FusedIterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt;
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
 }
 
@@ -4842,14 +4970,14 @@
 <span class="kw">where
     </span>T: fmt::Debug + Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_list().entries(<span class="self">self</span>.clone()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; Clone <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; Clone <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Union {
@@ -4862,7 +4990,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
 }
 
@@ -4870,7 +4998,7 @@
 <span class="kw">where
     </span>T: fmt::Debug + Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_list().entries(<span class="self">self</span>.clone()).finish()
@@ -4881,7 +5009,7 @@
 <span class="kw">where
     </span>T: Eq + Hash,
     S: BuildHasher,
-    A: Allocator + Clone,
+    A: Allocator,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
@@ -4892,6 +5020,14 @@
     <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
+    }
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;inline-more&quot;</span>, inline)]
+    </span><span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.iter.fold(init, f)
     }
 }
 
@@ -4933,7 +5069,7 @@
 /// ```
 </span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A = Global&gt;
 <span class="kw">where
-    </span>A: Allocator + Clone,
+    </span>A: Allocator,
 {
     <span class="doccomment">/// An occupied entry.
     ///
@@ -4966,7 +5102,7 @@
     </span>Vacant(VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt;),
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator&gt; fmt::Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             Entry::Vacant(<span class="kw-2">ref </span>v) =&gt; f.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(v).finish(),
@@ -5011,11 +5147,11 @@
 /// assert_eq!(set.get(&amp;&quot;c&quot;), None);
 /// assert_eq!(set.len(), 2);
 /// ```
-</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     inner: map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, T, (), S, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator&gt; fmt::Debug <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;OccupiedEntry&quot;</span>)
             .field(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.get())
@@ -5049,17 +5185,17 @@
 /// }
 /// assert!(set.contains(&quot;b&quot;) &amp;&amp; set.len() == 2);
 /// ```
-</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone = Global&gt; {
+</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator = Global&gt; {
     inner: map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, (), S, A&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator + Clone&gt; fmt::Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T: fmt::Debug, S, A: Allocator&gt; fmt::Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_tuple(<span class="string">&quot;VacantEntry&quot;</span>).field(<span class="self">self</span>.get()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator&gt; Entry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
     <span class="doccomment">/// Sets the value of the entry, and returns an OccupiedEntry.
     ///
     /// # Examples
@@ -5136,7 +5272,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, S, A: Allocator + Clone&gt; OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;T, S, A: Allocator&gt; OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, T, S, A&gt; {
     <span class="doccomment">/// Gets a reference to the value in the entry.
     ///
     /// # Examples
@@ -5223,7 +5359,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator + Clone&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, S, A: Allocator&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, T, S, A&gt; {
     <span class="doccomment">/// Gets a reference to the value that would be used when inserting
     /// through the `VacantEntry`.
     ///
@@ -5303,34 +5439,30 @@
     <span class="kw">fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>&gt;(v: Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str&gt; {
         v
     }
-    <span class="kw">fn </span>into_iter&lt;<span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
-        v: IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;,
-    ) -&gt; IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
+    <span class="kw">fn </span>into_iter&lt;<span class="lifetime">&#39;new</span>, A: Allocator&gt;(v: IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;) -&gt; IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
         v
     }
-    <span class="kw">fn </span>difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+    <span class="kw">fn </span>difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator&gt;(
         v: Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
     ) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
         v
     }
-    <span class="kw">fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+    <span class="kw">fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator&gt;(
         v: SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
     ) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
         v
     }
-    <span class="kw">fn </span>intersection&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+    <span class="kw">fn </span>intersection&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator&gt;(
         v: Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
     ) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
         v
     }
-    <span class="kw">fn </span>union&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
+    <span class="kw">fn </span>union&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;new</span>, A: Allocator&gt;(
         v: Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DefaultHashBuilder, A&gt;,
     ) -&gt; Union&lt;<span class="lifetime">&#39;a</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, DefaultHashBuilder, A&gt; {
         v
     }
-    <span class="kw">fn </span>drain&lt;<span class="lifetime">&#39;new</span>, A: Allocator + Clone&gt;(
-        d: Drain&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;,
-    ) -&gt; Drain&lt;<span class="lifetime">&#39;new</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
+    <span class="kw">fn </span>drain&lt;<span class="lifetime">&#39;new</span>, A: Allocator&gt;(d: Drain&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, A&gt;) -&gt; Drain&lt;<span class="lifetime">&#39;new</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>str, A&gt; {
         d
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.11.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rayon_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rayon_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -839,6 +839,34 @@
 <a href="#839" id="839">839</a>
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Rayon-core houses the core stable APIs of Rayon.
 //!
 //! These APIs have been mirrored in the Rayon crate and it is recommended to use these from there.
@@ -914,9 +942,8 @@
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::str::FromStr;
+<span class="kw">use </span>std::thread;
 
-<span class="attr">#[macro_use]
-</span><span class="kw">mod </span>log;
 <span class="attr">#[macro_use]
 </span><span class="kw">mod </span>private;
 
@@ -989,6 +1016,7 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>ErrorKind {
     GlobalPoolAlreadyInitialized,
+    CurrentThreadAlreadyInPool,
     IOError(io::Error),
 }
 
@@ -1015,6 +1043,9 @@
     /// If zero will use the RAYON_NUM_THREADS environment variable.
     /// If RAYON_NUM_THREADS is invalid or zero will use the default.
     </span>num_threads: usize,
+
+    <span class="doccomment">/// The thread we&#39;re building *from* will also be part of the pool.
+    </span>use_current_thread: bool,
 
     <span class="doccomment">/// Custom closure, if any, to handle a panic that we cannot propagate
     /// anywhere else.
@@ -1069,6 +1100,7 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         ThreadPoolBuilder {
             num_threads: <span class="number">0</span>,
+            use_current_thread: <span class="bool-val">false</span>,
             panic_handler: <span class="prelude-val">None</span>,
             get_thread_name: <span class="prelude-val">None</span>,
             stack_size: <span class="prelude-val">None</span>,
@@ -1125,12 +1157,12 @@
 <span class="kw">impl </span>ThreadPoolBuilder {
     <span class="doccomment">/// Creates a scoped `ThreadPool` initialized using this configuration.
     ///
-    /// This is a convenience function for building a pool using [`crossbeam::scope`]
+    /// This is a convenience function for building a pool using [`std::thread::scope`]
     /// to spawn threads in a [`spawn_handler`](#method.spawn_handler).
     /// The threads in this pool will start by calling `wrapper`, which should
     /// do initialization and continue by calling `ThreadBuilder::run()`.
     ///
-    /// [`crossbeam::scope`]: https://docs.rs/crossbeam/0.8/crossbeam/fn.scope.html
+    /// [`std::thread::scope`]: https://doc.rust-lang.org/std/thread/fn.scope.html
     ///
     /// # Examples
     ///
@@ -1165,28 +1197,22 @@
         </span>W: Fn(ThreadBuilder) + Sync, <span class="comment">// expected to call `run()`
         </span>F: FnOnce(<span class="kw-2">&amp;</span>ThreadPool) -&gt; R,
     {
-        <span class="kw">let </span>result = crossbeam_utils::thread::scope(|scope| {
-            <span class="kw">let </span>wrapper = <span class="kw-2">&amp;</span>wrapper;
+        std::thread::scope(|scope| {
             <span class="kw">let </span>pool = <span class="self">self
                 </span>.spawn_handler(|thread| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>builder = scope.builder();
+                    <span class="kw">let </span><span class="kw-2">mut </span>builder = std::thread::Builder::new();
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = thread.name() {
                         builder = builder.name(name.to_string());
                     }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = thread.stack_size() {
                         builder = builder.stack_size(size);
                     }
-                    builder.spawn(<span class="kw">move </span>|<span class="kw">_</span>| wrapper(thread))<span class="question-mark">?</span>;
+                    builder.spawn_scoped(scope, || wrapper(thread))<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(())
                 })
                 .build()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(with_pool(<span class="kw-2">&amp;</span>pool))
-        });
-
-        <span class="kw">match </span>result {
-            <span class="prelude-val">Ok</span>(result) =&gt; result,
-            <span class="prelude-val">Err</span>(err) =&gt; unwind::resume_unwinding(err),
-        }
+        })
     }
 }
 
@@ -1195,12 +1221,10 @@
     ///
     /// Note that the threads will not exit until after the pool is dropped. It
     /// is up to the caller to wait for thread termination if that is important
-    /// for any invariants. For instance, threads created in [`crossbeam::scope`]
+    /// for any invariants. For instance, threads created in [`std::thread::scope`]
     /// will be joined before that scope returns, and this will block indefinitely
     /// if the pool is leaked. Furthermore, the global thread pool doesn&#39;t terminate
     /// until the entire process exits!
-    ///
-    /// [`crossbeam::scope`]: https://docs.rs/crossbeam/0.8/crossbeam/fn.scope.html
     ///
     /// # Examples
     ///
@@ -1250,6 +1274,7 @@
     /// or [`std::thread::scope`] introduced in Rust 1.63, which is encapsulated in
     /// [`build_scoped`](#method.build_scoped).
     ///
+    /// [`crossbeam::scope`]: https://docs.rs/crossbeam/0.8/crossbeam/fn.scope.html
     /// [`std::thread::scope`]: https://doc.rust-lang.org/std/thread/fn.scope.html
     ///
     /// ```
@@ -1286,6 +1311,7 @@
             spawn_handler: CustomSpawn::new(spawn),
             <span class="comment">// ..self
             </span>num_threads: <span class="self">self</span>.num_threads,
+            use_current_thread: <span class="self">self</span>.use_current_thread,
             panic_handler: <span class="self">self</span>.panic_handler,
             get_thread_name: <span class="self">self</span>.get_thread_name,
             stack_size: <span class="self">self</span>.stack_size,
@@ -1306,12 +1332,18 @@
         <span class="kw">if </span><span class="self">self</span>.num_threads &gt; <span class="number">0 </span>{
             <span class="self">self</span>.num_threads
         } <span class="kw">else </span>{
+            <span class="kw">let </span>default = || {
+                thread::available_parallelism()
+                    .map(|n| n.get())
+                    .unwrap_or(<span class="number">1</span>)
+            };
+
             <span class="kw">match </span>env::var(<span class="string">&quot;RAYON_NUM_THREADS&quot;</span>)
                 .ok()
                 .and_then(|s| usize::from_str(<span class="kw-2">&amp;</span>s).ok())
             {
-                <span class="prelude-val">Some</span>(x) <span class="kw">if </span>x &gt; <span class="number">0 </span>=&gt; <span class="kw">return </span>x,
-                <span class="prelude-val">Some</span>(x) <span class="kw">if </span>x == <span class="number">0 </span>=&gt; <span class="kw">return </span>num_cpus::get(),
+                <span class="prelude-val">Some</span>(x @ <span class="number">1</span>..) =&gt; <span class="kw">return </span>x,
+                <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="kw">return </span>default(),
                 <span class="kw">_ </span>=&gt; {}
             }
 
@@ -1320,8 +1352,8 @@
                 .ok()
                 .and_then(|s| usize::from_str(<span class="kw-2">&amp;</span>s).ok())
             {
-                <span class="prelude-val">Some</span>(x) <span class="kw">if </span>x &gt; <span class="number">0 </span>=&gt; x,
-                <span class="kw">_ </span>=&gt; num_cpus::get(),
+                <span class="prelude-val">Some</span>(x @ <span class="number">1</span>..) =&gt; x,
+                <span class="kw">_ </span>=&gt; default(),
             }
         }
     }
@@ -1360,9 +1392,8 @@
     /// may change in the future, if you wish to rely on a fixed
     /// number of threads, you should use this function to specify
     /// that number. To reproduce the current default behavior, you
-    /// may wish to use the [`num_cpus`
-    /// crate](https://crates.io/crates/num_cpus) to query the number
-    /// of CPUs dynamically.
+    /// may wish to use [`std::thread::available_parallelism`]
+    /// to query the number of CPUs dynamically.
     ///
     /// **Old environment variable:** `RAYON_NUM_THREADS` is a one-to-one
     /// replacement of the now deprecated `RAYON_RS_NUM_CPUS` environment
@@ -1370,6 +1401,24 @@
     /// be preferred.
     </span><span class="kw">pub fn </span>num_threads(<span class="kw-2">mut </span><span class="self">self</span>, num_threads: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.num_threads = num_threads;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Use the current thread as one of the threads in the pool.
+    ///
+    /// The current thread is guaranteed to be at index 0, and since the thread is not managed by
+    /// rayon, the spawn and exit handlers do not run for that thread.
+    ///
+    /// Note that the current thread won&#39;t run the main work-stealing loop, so jobs spawned into
+    /// the thread-pool will generally not be picked up automatically by this thread unless you
+    /// yield to rayon in some way, like via [`yield_now()`], [`yield_local()`], or [`scope()`].
+    ///
+    /// # Local thread-pools
+    ///
+    /// Using this in a local thread-pool means the registry will be leaked. In future versions
+    /// there might be a way of cleaning up the current-thread state.
+    </span><span class="kw">pub fn </span>use_current_thread(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.use_current_thread = <span class="bool-val">true</span>;
         <span class="self">self
     </span>}
 
@@ -1575,18 +1624,22 @@
 <span class="kw">const </span>GLOBAL_POOL_ALREADY_INITIALIZED: <span class="kw-2">&amp;</span>str =
     <span class="string">&quot;The global thread pool has already been initialized.&quot;</span>;
 
+<span class="kw">const </span>CURRENT_THREAD_ALREADY_IN_POOL: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;The current thread is already part of another thread pool.&quot;</span>;
+
 <span class="kw">impl </span>Error <span class="kw">for </span>ThreadPoolBuildError {
     <span class="attr">#[allow(deprecated)]
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self</span>.kind {
             ErrorKind::GlobalPoolAlreadyInitialized =&gt; GLOBAL_POOL_ALREADY_INITIALIZED,
+            ErrorKind::CurrentThreadAlreadyInPool =&gt; CURRENT_THREAD_ALREADY_IN_POOL,
             ErrorKind::IOError(<span class="kw-2">ref </span>e) =&gt; e.description(),
         }
     }
 
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            ErrorKind::GlobalPoolAlreadyInitialized =&gt; <span class="prelude-val">None</span>,
+            ErrorKind::GlobalPoolAlreadyInitialized | ErrorKind::CurrentThreadAlreadyInPool =&gt; <span class="prelude-val">None</span>,
             ErrorKind::IOError(e) =&gt; <span class="prelude-val">Some</span>(e),
         }
     }
@@ -1595,6 +1648,7 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ThreadPoolBuildError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ErrorKind::CurrentThreadAlreadyInPool =&gt; CURRENT_THREAD_ALREADY_IN_POOL.fmt(f),
             ErrorKind::GlobalPoolAlreadyInitialized =&gt; GLOBAL_POOL_ALREADY_INITIALIZED.fmt(f),
             ErrorKind::IOError(e) =&gt; e.fmt(f),
         }
@@ -1612,6 +1666,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>ThreadPoolBuilder {
             <span class="kw-2">ref </span>num_threads,
+            <span class="kw-2">ref </span>use_current_thread,
             <span class="kw-2">ref </span>get_thread_name,
             <span class="kw-2">ref </span>panic_handler,
             <span class="kw-2">ref </span>stack_size,
@@ -1636,6 +1691,7 @@
 
         f.debug_struct(<span class="string">&quot;ThreadPoolBuilder&quot;</span>)
             .field(<span class="string">&quot;num_threads&quot;</span>, num_threads)
+            .field(<span class="string">&quot;use_current_thread&quot;</span>, use_current_thread)
             .field(<span class="string">&quot;get_thread_name&quot;</span>, <span class="kw-2">&amp;</span>get_thread_name)
             .field(<span class="string">&quot;panic_handler&quot;</span>, <span class="kw-2">&amp;</span>panic_handler)
             .field(<span class="string">&quot;stack_size&quot;</span>, <span class="kw-2">&amp;</span>stack_size)

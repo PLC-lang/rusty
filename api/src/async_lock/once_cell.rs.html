@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-2.8.0/src/once_cell.rs`."><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.1.2/src/once_cell.rs`."><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -795,24 +795,19 @@
 <a href="#795" id="795">795</a>
 <a href="#796" id="796">796</a>
 <a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
-<span class="kw">use </span>std::convert::Infallible;
-<span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::mem::{forget, MaybeUninit};
-<span class="kw">use </span>std::ptr;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
-<span class="kw">use </span>std::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
+</pre></div><pre class="rust"><code><span class="kw">use </span>core::cell::UnsafeCell;
+<span class="kw">use </span>core::convert::Infallible;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::future::Future;
+<span class="kw">use </span>core::mem::{forget, MaybeUninit};
+<span class="kw">use </span>core::ptr;
+<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+</span><span class="kw">use </span>core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 <span class="kw">use </span>event_listener::{Event, EventListener};
+<span class="kw">use </span>event_listener_strategy::{NonBlocking, Strategy};
 
 <span class="doccomment">/// The current state of the `OnceCell`.
 </span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq)]
@@ -889,12 +884,15 @@
     ///
     /// These are the users of get_or_init() and similar functions.
     </span>active_initializers: Event,
+
     <span class="doccomment">/// Listeners waiting for the cell to be initialized.
     ///
     /// These are the users of wait().
     </span>passive_waiters: Event,
+
     <span class="doccomment">/// State associated with the cell.
     </span>state: AtomicUsize,
+
     <span class="doccomment">/// The value of the cell.
     </span>value: UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;,
 }
@@ -1073,7 +1071,9 @@
         }
 
         <span class="comment">// Slow path: wait for the value to be initialized.
-        </span><span class="kw">let </span>listener = <span class="self">self</span>.passive_waiters.listen();
+        </span><span class="kw">let </span>listener = EventListener::new();
+        <span class="macro">pin!</span>(listener);
+        listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.passive_waiters);
 
         <span class="comment">// Try again.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1118,6 +1118,7 @@
     ///
     /// assert_eq!(cell.wait_blocking(), &amp;1);
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>wait_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="comment">// Fast path: see if the value is already initialized.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1125,7 +1126,9 @@
         }
 
         <span class="comment">// Slow path: wait for the value to be initialized.
-        </span><span class="kw">let </span>listener = <span class="self">self</span>.passive_waiters.listen();
+        </span><span class="kw">let </span>listener = EventListener::new();
+        <span class="macro">pin!</span>(listener);
+        listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.passive_waiters);
 
         <span class="comment">// Try again.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1177,7 +1180,8 @@
         }
 
         <span class="comment">// Slow path: initialize the value.
-        </span><span class="self">self</span>.initialize_or_wait(closure, <span class="kw-2">&amp;mut </span>NonBlocking).<span class="kw">await</span><span class="question-mark">?</span>;
+        </span><span class="self">self</span>.initialize_or_wait(closure, <span class="kw-2">&amp;mut </span>NonBlocking::default())
+            .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_initialized());
 
         <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
@@ -1219,6 +1223,7 @@
     ///
     /// assert_eq!(result.unwrap(), &amp;1);
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>get_or_try_init_blocking&lt;E&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         closure: <span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
@@ -1230,9 +1235,10 @@
 
         <span class="comment">// Slow path: initialize the value.
         // The futures provided should never block, so we can use `now_or_never`.
-        </span>now_or_never(
-            <span class="self">self</span>.initialize_or_wait(<span class="kw">move </span>|| std::future::ready(closure()), <span class="kw-2">&amp;mut </span>Blocking),
-        )<span class="question-mark">?</span>;
+        </span>now_or_never(<span class="self">self</span>.initialize_or_wait(
+            <span class="kw">move </span>|| core::future::ready(closure()),
+            <span class="kw-2">&amp;mut </span>event_listener_strategy::Blocking::default(),
+        ))<span class="question-mark">?</span>;
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_initialized());
 
         <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
@@ -1292,6 +1298,7 @@
     /// assert_eq!(cell.get_or_init_blocking(|| 1), &amp;1);
     /// assert_eq!(cell.get_or_init_blocking(|| 2), &amp;1);
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>get_or_init_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, closure: <span class="kw">impl </span>FnOnce() -&gt; T + Unpin) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw">match </span><span class="self">self</span>.get_or_try_init_blocking(<span class="kw">move </span>|| {
             <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;T, Infallible&gt; = <span class="prelude-val">Ok</span>(closure());
@@ -1358,6 +1365,7 @@
     /// assert_eq!(cell.get(), Some(&amp;1));
     /// assert_eq!(cell.set_blocking(2), Err(2));
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>set_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="prelude-val">Some</span>(value);
         <span class="self">self</span>.get_or_init_blocking(|| value.take().unwrap());
@@ -1377,10 +1385,11 @@
     </span><span class="kw">async fn </span>initialize_or_wait&lt;E, Fut: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;, F: FnOnce() -&gt; Fut&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         closure: F,
-        strategy: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Strategy,
+        strategy: <span class="kw-2">&amp;mut </span><span class="kw">impl for</span>&lt;<span class="lifetime">&#39;a</span>&gt; Strategy&lt;<span class="lifetime">&#39;a</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
         <span class="comment">// The event listener we&#39;re currently waiting on.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>event_listener = <span class="prelude-val">None</span>;
+        </span><span class="kw">let </span>event_listener = EventListener::new();
+        <span class="macro">pin!</span>(event_listener);
 
         <span class="kw">let </span><span class="kw-2">mut </span>closure = <span class="prelude-val">Some</span>(closure);
 
@@ -1399,12 +1408,10 @@
                     // but we do not have the ability to initialize it.
                     //
                     // We need to wait the initialization to complete.
-                    </span><span class="kw">match </span>event_listener.take() {
-                        <span class="prelude-val">None </span>=&gt; {
-                            event_listener = <span class="prelude-val">Some</span>(<span class="self">self</span>.active_initializers.listen());
-                        }
-
-                        <span class="prelude-val">Some</span>(evl) =&gt; strategy.poll(evl).<span class="kw">await</span>,
+                    </span><span class="kw">if </span>event_listener.is_listening() {
+                        strategy.wait(event_listener.as_mut()).<span class="kw">await</span>;
+                    } <span class="kw">else </span>{
+                        event_listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.active_initializers);
                     }
                 }
                 State::Uninitialized =&gt; {
@@ -1439,8 +1446,8 @@
                                 .store(State::Initialized.into(), Ordering::Release);
 
                             <span class="comment">// Notify the listeners that the value is initialized.
-                            </span><span class="self">self</span>.active_initializers.notify_additional(std::usize::MAX);
-                            <span class="self">self</span>.passive_waiters.notify_additional(std::usize::MAX);
+                            </span><span class="self">self</span>.active_initializers.notify_additional(core::usize::MAX);
+                            <span class="self">self</span>.passive_waiters.notify_additional(core::usize::MAX);
 
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                         }
@@ -1553,7 +1560,16 @@
     }
 }
 
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>OnceCell&lt;T&gt; {
+    <span class="comment">// Calls `OnceCell::new`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
 <span class="doccomment">/// Either return the result of a future now, or panic.
+</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
 </span><span class="kw">fn </span>now_or_never&lt;T&gt;(f: <span class="kw">impl </span>Future&lt;Output = T&gt;) -&gt; T {
     <span class="kw">const </span>NOOP_WAKER: RawWakerVTable = RawWakerVTable::new(clone, wake, wake_by_ref, drop);
 
@@ -1574,38 +1590,6 @@
     <span class="kw">match </span>f.poll(<span class="kw-2">&amp;mut </span>cx) {
         Poll::Ready(value) =&gt; value,
         Poll::Pending =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;future not ready&quot;</span>),
-    }
-}
-
-<span class="doccomment">/// The strategy for polling an `event_listener::EventListener`.
-</span><span class="kw">trait </span>Strategy {
-    <span class="doccomment">/// The future that can be polled to wait on the listener.
-    </span><span class="kw">type </span>Fut: Future&lt;Output = ()&gt;;
-
-    <span class="doccomment">/// Poll the event listener.
-    </span><span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Fut;
-}
-
-<span class="doccomment">/// The strategy for blocking the current thread on an `EventListener`.
-</span><span class="kw">struct </span>Blocking;
-
-<span class="kw">impl </span>Strategy <span class="kw">for </span>Blocking {
-    <span class="kw">type </span>Fut = std::future::Ready&lt;()&gt;;
-
-    <span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Fut {
-        evl.wait();
-        std::future::ready(())
-    }
-}
-
-<span class="doccomment">/// The strategy for polling an `EventListener` in an async context.
-</span><span class="kw">struct </span>NonBlocking;
-
-<span class="kw">impl </span>Strategy <span class="kw">for </span>NonBlocking {
-    <span class="kw">type </span>Fut = EventListener;
-
-    <span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Fut {
-        evl
     }
 }
 </code></pre></div></section></main></body></html>

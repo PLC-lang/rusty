@@ -927,7 +927,7 @@ On success, returns the number of bytes read and the address from whence
 the data came.</p>
 <h5 id="notes-6"><a href="#notes-6">Notes</a></h5>
 <p>On Windows, if the data is larger than the buffer specified, the buffer
-is filled with the first part of the data, and peek_from returns the error
+is filled with the first part of the data, and <code>peek_from</code> returns the error
 WSAEMSGSIZE(10040). The excess data is lost.
 Make sure to always use a sufficiently large buffer to hold the
 maximum UDP packet size, which can be up to 65536 bytes in size.</p>

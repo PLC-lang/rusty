@@ -829,6 +829,8 @@
 <a href="#829" id="829">829</a>
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>chrono::TimeZone;
 
 <span class="doccomment">/// .
@@ -870,7 +872,8 @@
         .timestamp_nanos(in1)
         .checked_add_signed(chrono::Duration::nanoseconds(in2))
         .unwrap()
-        .timestamp_nanos()
+        .timestamp_nanos_opt()
+        .unwrap()
 }
 
 <span class="doccomment">/// .
@@ -940,7 +943,8 @@
         .timestamp_nanos(in1)
         .checked_sub_signed(chrono::Duration::nanoseconds(in2))
         .unwrap()
-        .timestamp_nanos()
+        .timestamp_nanos_opt()
+        .unwrap()
 }
 
 <span class="doccomment">/// .

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.2/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.9/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4775,6 +4775,106 @@
 <a href="#4775" id="4775">4775</a>
 <a href="#4776" id="4776">4776</a>
 <a href="#4777" id="4777">4777</a>
+<a href="#4778" id="4778">4778</a>
+<a href="#4779" id="4779">4779</a>
+<a href="#4780" id="4780">4780</a>
+<a href="#4781" id="4781">4781</a>
+<a href="#4782" id="4782">4782</a>
+<a href="#4783" id="4783">4783</a>
+<a href="#4784" id="4784">4784</a>
+<a href="#4785" id="4785">4785</a>
+<a href="#4786" id="4786">4786</a>
+<a href="#4787" id="4787">4787</a>
+<a href="#4788" id="4788">4788</a>
+<a href="#4789" id="4789">4789</a>
+<a href="#4790" id="4790">4790</a>
+<a href="#4791" id="4791">4791</a>
+<a href="#4792" id="4792">4792</a>
+<a href="#4793" id="4793">4793</a>
+<a href="#4794" id="4794">4794</a>
+<a href="#4795" id="4795">4795</a>
+<a href="#4796" id="4796">4796</a>
+<a href="#4797" id="4797">4797</a>
+<a href="#4798" id="4798">4798</a>
+<a href="#4799" id="4799">4799</a>
+<a href="#4800" id="4800">4800</a>
+<a href="#4801" id="4801">4801</a>
+<a href="#4802" id="4802">4802</a>
+<a href="#4803" id="4803">4803</a>
+<a href="#4804" id="4804">4804</a>
+<a href="#4805" id="4805">4805</a>
+<a href="#4806" id="4806">4806</a>
+<a href="#4807" id="4807">4807</a>
+<a href="#4808" id="4808">4808</a>
+<a href="#4809" id="4809">4809</a>
+<a href="#4810" id="4810">4810</a>
+<a href="#4811" id="4811">4811</a>
+<a href="#4812" id="4812">4812</a>
+<a href="#4813" id="4813">4813</a>
+<a href="#4814" id="4814">4814</a>
+<a href="#4815" id="4815">4815</a>
+<a href="#4816" id="4816">4816</a>
+<a href="#4817" id="4817">4817</a>
+<a href="#4818" id="4818">4818</a>
+<a href="#4819" id="4819">4819</a>
+<a href="#4820" id="4820">4820</a>
+<a href="#4821" id="4821">4821</a>
+<a href="#4822" id="4822">4822</a>
+<a href="#4823" id="4823">4823</a>
+<a href="#4824" id="4824">4824</a>
+<a href="#4825" id="4825">4825</a>
+<a href="#4826" id="4826">4826</a>
+<a href="#4827" id="4827">4827</a>
+<a href="#4828" id="4828">4828</a>
+<a href="#4829" id="4829">4829</a>
+<a href="#4830" id="4830">4830</a>
+<a href="#4831" id="4831">4831</a>
+<a href="#4832" id="4832">4832</a>
+<a href="#4833" id="4833">4833</a>
+<a href="#4834" id="4834">4834</a>
+<a href="#4835" id="4835">4835</a>
+<a href="#4836" id="4836">4836</a>
+<a href="#4837" id="4837">4837</a>
+<a href="#4838" id="4838">4838</a>
+<a href="#4839" id="4839">4839</a>
+<a href="#4840" id="4840">4840</a>
+<a href="#4841" id="4841">4841</a>
+<a href="#4842" id="4842">4842</a>
+<a href="#4843" id="4843">4843</a>
+<a href="#4844" id="4844">4844</a>
+<a href="#4845" id="4845">4845</a>
+<a href="#4846" id="4846">4846</a>
+<a href="#4847" id="4847">4847</a>
+<a href="#4848" id="4848">4848</a>
+<a href="#4849" id="4849">4849</a>
+<a href="#4850" id="4850">4850</a>
+<a href="#4851" id="4851">4851</a>
+<a href="#4852" id="4852">4852</a>
+<a href="#4853" id="4853">4853</a>
+<a href="#4854" id="4854">4854</a>
+<a href="#4855" id="4855">4855</a>
+<a href="#4856" id="4856">4856</a>
+<a href="#4857" id="4857">4857</a>
+<a href="#4858" id="4858">4858</a>
+<a href="#4859" id="4859">4859</a>
+<a href="#4860" id="4860">4860</a>
+<a href="#4861" id="4861">4861</a>
+<a href="#4862" id="4862">4862</a>
+<a href="#4863" id="4863">4863</a>
+<a href="#4864" id="4864">4864</a>
+<a href="#4865" id="4865">4865</a>
+<a href="#4866" id="4866">4866</a>
+<a href="#4867" id="4867">4867</a>
+<a href="#4868" id="4868">4868</a>
+<a href="#4869" id="4869">4869</a>
+<a href="#4870" id="4870">4870</a>
+<a href="#4871" id="4871">4871</a>
+<a href="#4872" id="4872">4872</a>
+<a href="#4873" id="4873">4873</a>
+<a href="#4874" id="4874">4874</a>
+<a href="#4875" id="4875">4875</a>
+<a href="#4876" id="4876">4876</a>
+<a href="#4877" id="4877">4877</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;usage&quot;</span>), allow(unused_mut))]
 
 </span><span class="comment">// Std
@@ -5330,7 +5430,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5354,7 +5454,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5382,7 +5482,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5415,7 +5515,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5454,7 +5554,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5500,7 +5600,7 @@
     ///
     /// # Panics
     ///
-    /// If contradictory arguments or settings exist.
+    /// If contradictory arguments or settings exist (debug builds).
     ///
     /// # Examples
     ///
@@ -5523,7 +5623,7 @@
         </span>I: IntoIterator&lt;Item = T&gt;,
         T: Into&lt;OsString&gt; + Clone,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>raw_args = clap_lex::RawArgs::new(itr.into_iter());
+        <span class="kw">let </span><span class="kw-2">mut </span>raw_args = clap_lex::RawArgs::new(itr);
         <span class="kw">let </span><span class="kw-2">mut </span>cursor = raw_args.cursor();
 
         <span class="kw">if </span><span class="self">self</span>.settings.is_set(AppSettings::Multicall) {
@@ -5847,7 +5947,7 @@
     <span class="doccomment">/// Replace prior occurrences of arguments rather than error
     ///
     /// For any argument that would conflict with itself by default (e.g.
-    /// [`ArgAction::Set`][ArgAction::Set], it will now override itself.
+    /// [`ArgAction::Set`], it will now override itself.
     ///
     /// This is the equivalent to saying the `foo` arg using [`Arg::overrides_with(&quot;foo&quot;)`] for all
     /// defined arguments.
@@ -6021,12 +6121,41 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
     /// let res = Command::new(&quot;myprog&quot;)
+    ///     .version(&quot;1.0.0&quot;)
     ///     .disable_version_flag(true)
     ///     .try_get_matches_from(vec![
+    ///         &quot;myprog&quot;, &quot;--version&quot;
+    ///     ]);
+    /// assert!(res.is_err());
+    /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
+    /// ```
+    ///
+    /// You can create a custom version flag with [`ArgAction::Version`]
+    /// ```rust
+    /// # use clap_builder as clap;
+    /// # use clap::{Command, Arg, ArgAction, error::ErrorKind};
+    /// let mut cmd = Command::new(&quot;myprog&quot;)
+    ///     .version(&quot;1.0.0&quot;)
+    ///     // Remove the `-V` short flag
+    ///     .disable_version_flag(true)
+    ///     .arg(
+    ///         Arg::new(&quot;version&quot;)
+    ///             .long(&quot;version&quot;)
+    ///             .action(ArgAction::Version)
+    ///             .help(&quot;Print version&quot;)
+    ///     );
+    ///
+    /// let res = cmd.try_get_matches_from_mut(vec![
     ///         &quot;myprog&quot;, &quot;-V&quot;
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
+    ///
+    /// let res = cmd.try_get_matches_from_mut(vec![
+    ///         &quot;myprog&quot;, &quot;--version&quot;
+    ///     ]);
+    /// assert!(res.is_err());
+    /// assert_eq!(res.unwrap_err().kind(), ErrorKind::DisplayVersion);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_version_flag(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
@@ -6105,6 +6234,35 @@
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
+    /// ```
+    ///
+    /// You can create a custom help flag with [`ArgAction::Help`], [`ArgAction::HelpShort`], or
+    /// [`ArgAction::HelpLong`]
+    /// ```rust
+    /// # use clap_builder as clap;
+    /// # use clap::{Command, Arg, ArgAction, error::ErrorKind};
+    /// let mut cmd = Command::new(&quot;myprog&quot;)
+    ///     // Change help short flag to `?`
+    ///     .disable_help_flag(true)
+    ///     .arg(
+    ///         Arg::new(&quot;help&quot;)
+    ///             .short(&#39;?&#39;)
+    ///             .long(&quot;help&quot;)
+    ///             .action(ArgAction::Help)
+    ///             .help(&quot;Print help&quot;)
+    ///     );
+    ///
+    /// let res = cmd.try_get_matches_from_mut(vec![
+    ///         &quot;myprog&quot;, &quot;-h&quot;
+    ///     ]);
+    /// assert!(res.is_err());
+    /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
+    ///
+    /// let res = cmd.try_get_matches_from_mut(vec![
+    ///         &quot;myprog&quot;, &quot;-?&quot;
+    ///     ]);
+    /// assert!(res.is_err());
+    /// assert_eq!(res.unwrap_err().kind(), ErrorKind::DisplayHelp);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_help_flag(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
@@ -6191,6 +6349,7 @@
     ///
     /// # Panics
     ///
+    /// On debug builds:
     /// ```rust,no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
@@ -6766,6 +6925,21 @@
         <span class="self">self</span>.g_settings.unset(setting);
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Flatten subcommand help into the current command&#39;s help
+    ///
+    /// This shows a summary of subcommands within the usage and help for the current command, similar to
+    /// `git stash --help` showing information on `push`, `pop`, etc.
+    /// To see more information, a user can still pass `--help` to the individual subcommands.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>flatten_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>yes {
+            <span class="self">self</span>.setting(AppSettings::FlattenHelp)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.unset_setting(AppSettings::FlattenHelp)
+        }
+    }
 
     <span class="doccomment">/// Set the default section heading for future args.
     ///
@@ -8053,6 +8227,20 @@
         <span class="self">self</span>.usage_name.as_deref()
     }
 
+    <span class="attr">#[inline]
+    #[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.get_usage_name()
+            .unwrap_or_else(|| <span class="self">self</span>.get_bin_name_fallback())
+    }
+
+    <span class="attr">#[inline]
+    #[cfg(not(feature = <span class="string">&quot;usage&quot;</span>))]
+    #[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.get_bin_name_fallback()
+    }
+
     <span class="doccomment">/// Get the name of the binary.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_display_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
@@ -8063,6 +8251,12 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_bin_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.bin_name.as_deref()
+    }
+
+    <span class="doccomment">/// Get the name of the binary.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_bin_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.bin_name.as_deref().unwrap_or_else(|| <span class="self">self</span>.get_name())
     }
 
     <span class="doccomment">/// Set binary name. Uses `&amp;mut self` instead of `self`.
@@ -8126,6 +8320,12 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_long_about(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StyledStr&gt; {
         <span class="self">self</span>.long_about.as_ref()
+    }
+
+    <span class="doccomment">/// Get the custom section heading specified via [`Command::flatten_help`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_flatten_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(AppSettings::FlattenHelp)
     }
 
     <span class="doccomment">/// Get the custom section heading specified via [`Command::next_help_heading`].

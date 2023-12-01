@@ -306,6 +306,10 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{Debug, Formatter};
 
 <span class="kw">use </span>chrono::NaiveDate;
@@ -408,8 +412,12 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i64, String&gt; {
     NaiveDate::from_ymd_opt(year, month, day)
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .map(|date_time| date_time.timestamp_nanos())
         .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
+        .and_then(|date_time| {
+            date_time
+                .timestamp_nanos_opt()
+                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
+        })
 }
 
 <span class="kw">impl </span>DateAndTime {

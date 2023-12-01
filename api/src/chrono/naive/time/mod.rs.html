@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.30/src/naive/time/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../chrono/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.31/src/naive/time/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../chrono/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1521,6 +1521,25 @@
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
 <a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
 </pre></div><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -1694,22 +1713,33 @@
 /// assert_eq!(format!(&quot;{:?}&quot;, dt), &quot;2015-06-30T23:59:60Z&quot;);
 /// ```
 ///
-/// There are hypothetical leap seconds not on the minute boundary
-/// nevertheless supported by Chrono.
-/// They are allowed for the sake of completeness and consistency;
-/// there were several &quot;exotic&quot; time zone offsets with fractional minutes prior to UTC after all.
-/// For such cases the human-readable representation is ambiguous
-/// and would be read back to the next non-leap second.
+/// There are hypothetical leap seconds not on the minute boundary nevertheless supported by Chrono.
+/// They are allowed for the sake of completeness and consistency; there were several &quot;exotic&quot; time
+/// zone offsets with fractional minutes prior to UTC after all.
+/// For such cases the human-readable representation is ambiguous and would be read back to the next
+/// non-leap second.
+///
+/// A `NaiveTime` with a leap second that is not on a minute boundary can only be created from a
+/// [`DateTime`](crate::DateTime) with fractional minutes as offset, or using
+/// [`Timelike::with_nanosecond()`].
 ///
 /// ```
-/// use chrono::{DateTime, Utc, TimeZone, NaiveDate};
+/// use chrono::{FixedOffset, NaiveDate, TimeZone};
 ///
-/// let dt = NaiveDate::from_ymd_opt(2015, 6, 30).unwrap().and_hms_milli_opt(23, 56, 4, 1_000).unwrap().and_local_timezone(Utc).unwrap();
-/// assert_eq!(format!(&quot;{:?}&quot;, dt), &quot;2015-06-30T23:56:05Z&quot;);
+/// let paramaribo_pre1945 = FixedOffset::east_opt(-13236).unwrap(); // -03:40:36
+/// let leap_sec_2015 =
+///     NaiveDate::from_ymd_opt(2015, 6, 30).unwrap().and_hms_milli_opt(23, 59, 59, 1_000).unwrap();
+/// let dt1 = paramaribo_pre1945.from_utc_datetime(&amp;leap_sec_2015);
+/// assert_eq!(format!(&quot;{:?}&quot;, dt1), &quot;2015-06-30T20:19:24-03:40:36&quot;);
+/// assert_eq!(format!(&quot;{:?}&quot;, dt1.time()), &quot;20:19:24&quot;);
 ///
-/// let dt = Utc.with_ymd_and_hms(2015, 6, 30, 23, 56, 5).unwrap();
-/// assert_eq!(format!(&quot;{:?}&quot;, dt), &quot;2015-06-30T23:56:05Z&quot;);
-/// assert_eq!(DateTime::parse_from_rfc3339(&quot;2015-06-30T23:56:05Z&quot;).unwrap(), dt);
+/// let next_sec = NaiveDate::from_ymd_opt(2015, 7, 1).unwrap().and_hms_opt(0, 0, 0).unwrap();
+/// let dt2 = paramaribo_pre1945.from_utc_datetime(&amp;next_sec);
+/// assert_eq!(format!(&quot;{:?}&quot;, dt2), &quot;2015-06-30T20:19:24-03:40:36&quot;);
+/// assert_eq!(format!(&quot;{:?}&quot;, dt2.time()), &quot;20:19:24&quot;);
+///
+/// assert!(dt1.time() != dt2.time());
+/// assert!(dt1.time().to_string() == dt2.time().to_string());
 /// ```
 ///
 /// Since Chrono alone cannot determine any existence of leap seconds,
@@ -1724,9 +1754,14 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary&quot;</span>)]
 </span><span class="kw">impl </span>arbitrary::Arbitrary&lt;<span class="lifetime">&#39;_</span>&gt; <span class="kw">for </span>NaiveTime {
     <span class="kw">fn </span>arbitrary(u: <span class="kw-2">&amp;mut </span>arbitrary::Unstructured) -&gt; arbitrary::Result&lt;NaiveTime&gt; {
-        <span class="kw">let </span>secs = u.int_in_range(<span class="number">0</span>..=<span class="number">86_399</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>nano = u.int_in_range(<span class="number">0</span>..=<span class="number">1_999_999_999</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>time = NaiveTime::from_num_seconds_from_midnight_opt(secs, nano)
+        <span class="kw">let </span>mins = u.int_in_range(<span class="number">0</span>..=<span class="number">1439</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>secs = u.int_in_range(<span class="number">0</span>..=<span class="number">60</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>nano = u.int_in_range(<span class="number">0</span>..=<span class="number">999_999_999</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>secs == <span class="number">60 </span>{
+            secs = <span class="number">59</span>;
+            nano += <span class="number">1_000_000_000</span>;
+        }
+        <span class="kw">let </span>time = NaiveTime::from_num_seconds_from_midnight_opt(mins * <span class="number">60 </span>+ secs, nano)
             .expect(<span class="string">&quot;Could not generate a valid chrono::NaiveTime. It looks like implementation of Arbitrary for NaiveTime is erroneous.&quot;</span>);
         <span class="prelude-val">Ok</span>(time)
     }
@@ -1750,8 +1785,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute and second.
     ///
-    /// No [leap second](#leap-second-handling) is allowed here;
-    /// use `NaiveTime::from_hms_*_opt` methods with a subsecond parameter instead.
+    /// The millisecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Errors
     ///
@@ -1793,8 +1828,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute, second and millisecond.
     ///
-    /// The millisecond part can exceed 1,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The millisecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Errors
     ///
@@ -1829,8 +1864,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute, second and microsecond.
     ///
-    /// The microsecond part can exceed 1,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The microsecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Panics
     ///
@@ -1844,8 +1879,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute, second and microsecond.
     ///
-    /// The microsecond part can exceed 1,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The microsecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Errors
     ///
@@ -1880,8 +1915,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute, second and nanosecond.
     ///
-    /// The nanosecond part can exceed 1,000,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The nanosecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Panics
     ///
@@ -1895,8 +1930,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from hour, minute, second and nanosecond.
     ///
-    /// The nanosecond part can exceed 1,000,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The nanosecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `sec == 59`.
     ///
     /// # Errors
     ///
@@ -1920,7 +1955,10 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>from_hms_nano_opt(hour: u32, min: u32, sec: u32, nano: u32) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveTime&gt; {
-        <span class="kw">if </span>hour &gt;= <span class="number">24 </span>|| min &gt;= <span class="number">60 </span>|| sec &gt;= <span class="number">60 </span>|| nano &gt;= <span class="number">2_000_000_000 </span>{
+        <span class="kw">if </span>(hour &gt;= <span class="number">24 </span>|| min &gt;= <span class="number">60 </span>|| sec &gt;= <span class="number">60</span>)
+            || (nano &gt;= <span class="number">1_000_000_000 </span>&amp;&amp; sec != <span class="number">59</span>)
+            || nano &gt;= <span class="number">2_000_000_000
+        </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">let </span>secs = hour * <span class="number">3600 </span>+ min * <span class="number">60 </span>+ sec;
@@ -1929,8 +1967,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from the number of seconds since midnight and nanosecond.
     ///
-    /// The nanosecond part can exceed 1,000,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The nanosecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `secs % 60 == 59`.
     ///
     /// # Panics
     ///
@@ -1944,8 +1982,8 @@
 
     <span class="doccomment">/// Makes a new `NaiveTime` from the number of seconds since midnight and nanosecond.
     ///
-    /// The nanosecond part can exceed 1,000,000,000
-    /// in order to represent the [leap second](#leap-second-handling).
+    /// The nanosecond part is allowed to exceed 1,000,000,000 in order to represent a
+    /// [leap second](#leap-second-handling), but only when `secs % 60 == 59`.
     ///
     /// # Errors
     ///
@@ -1967,7 +2005,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>from_num_seconds_from_midnight_opt(secs: u32, nano: u32) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveTime&gt; {
-        <span class="kw">if </span>secs &gt;= <span class="number">86_400 </span>|| nano &gt;= <span class="number">2_000_000_000 </span>{
+        <span class="kw">if </span>secs &gt;= <span class="number">86_400 </span>|| nano &gt;= <span class="number">2_000_000_000 </span>|| (nano &gt;= <span class="number">1_000_000_000 </span>&amp;&amp; secs % <span class="number">60 </span>!= <span class="number">59</span>) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="prelude-val">Some</span>(NaiveTime { secs, frac: nano })
@@ -2538,9 +2576,9 @@
     ///
     /// ```
     /// # use chrono::{NaiveTime, Timelike};
-    /// # let dt = NaiveTime::from_hms_nano_opt(23, 56, 4, 12_345_678).unwrap();
-    /// assert_eq!(dt.with_nanosecond(1_333_333_333),
-    ///            Some(NaiveTime::from_hms_nano_opt(23, 56, 4, 1_333_333_333).unwrap()));
+    /// let dt = NaiveTime::from_hms_nano_opt(23, 56, 4, 12_345_678).unwrap();
+    /// let strange_leap_second = dt.with_nanosecond(1_333_333_333).unwrap();
+    /// assert_eq!(strange_leap_second.nanosecond(), 1_333_333_333);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>with_nanosecond(<span class="kw-2">&amp;</span><span class="self">self</span>, nano: u32) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveTime&gt; {

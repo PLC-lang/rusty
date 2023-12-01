@@ -19,8 +19,8 @@ be emitted.  This defaults to <code>3</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.header" class="method"><a class="srclink rightside" href="../../src/similar/udiff.rs.html#154-157">source</a><h4 class="code-header">pub fn <a href="#method.header" class="fn">header</a>(&amp;mut self, a: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.str.html">str</a>, b: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.str.html">str</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.reference.html">&amp;mut Self</a></h4></section></summary><div class="docblock"><p>Sets a header to the diff.</p>
 <p><code>a</code> and <code>b</code> are the file names that are added to the top of the unified
 file format.  The names are accepted verbatim which lets you encode
-a timestamp into it when separated by a tab (<code>\t</code>).  For more information
-see <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/diff.html#tag_20_34_10_07">the unified diff format specification</a></p>
+a timestamp into it when separated by a tab (<code>\t</code>).  For more information,
+see <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/diff.html#tag_20_34_10_07">the unified diff format specification</a>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.missing_newline_hint" class="method"><a class="srclink rightside" href="../../src/similar/udiff.rs.html#164-167">source</a><h4 class="code-header">pub fn <a href="#method.missing_newline_hint" class="fn">missing_newline_hint</a>(&amp;mut self, yes: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.reference.html">&amp;mut Self</a></h4></section></summary><div class="docblock"><p>Controls the missing newline hint.</p>
 <p>By default a special <code>\ No newline at end of file</code> marker is added to
 the output when a file is not terminated with a final newline.  This can

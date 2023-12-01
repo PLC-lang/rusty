@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/smallvec-1.11.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="smallvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../smallvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/smallvec-1.11.2/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="smallvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../smallvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2446,6 +2446,15 @@
 <a href="#2446" id="2446">2446</a>
 <a href="#2447" id="2447">2447</a>
 <a href="#2448" id="2448">2448</a>
+<a href="#2449" id="2449">2449</a>
+<a href="#2450" id="2450">2450</a>
+<a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
 </pre></div><pre class="rust"><code><span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
 // &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your
@@ -2597,8 +2606,7 @@
 /// - Create a [`SmallVec`] containing a given list of elements:
 ///
 /// ```
-/// # #[macro_use] extern crate smallvec;
-/// # use smallvec::SmallVec;
+/// # use smallvec::{smallvec, SmallVec};
 /// # fn main() {
 /// let v: SmallVec&lt;[_; 128]&gt; = smallvec![1, 2, 3];
 /// assert_eq!(v[0], 1);
@@ -2610,8 +2618,7 @@
 /// - Create a [`SmallVec`] from a given element and size:
 ///
 /// ```
-/// # #[macro_use] extern crate smallvec;
-/// # use smallvec::SmallVec;
+/// # use smallvec::{smallvec, SmallVec};
 /// # fn main() {
 /// let v: SmallVec&lt;[_; 0x8000]&gt; = smallvec![1; 3];
 /// assert_eq!(v, SmallVec::from_buf([1, 1, 1]));
@@ -2657,8 +2664,7 @@
 /// - Create a [`SmallVec`] containing a given list of elements:
 ///
 /// ```
-/// # #[macro_use] extern crate smallvec;
-/// # use smallvec::SmallVec;
+/// # use smallvec::{smallvec_inline, SmallVec};
 /// # fn main() {
 /// const V: SmallVec&lt;[i32; 3]&gt; = smallvec_inline![1, 2, 3];
 /// assert_eq!(V[0], 1);
@@ -2670,8 +2676,7 @@
 /// - Create a [`SmallVec`] from a given element and size:
 ///
 /// ```
-/// # #[macro_use] extern crate smallvec;
-/// # use smallvec::SmallVec;
+/// # use smallvec::{smallvec_inline, SmallVec};
 /// # fn main() {
 /// const V: SmallVec&lt;[i32; 3]&gt; = smallvec_inline![1; 3];
 /// assert_eq!(V, SmallVec::from_buf([1, 1, 1]));
@@ -2776,7 +2781,7 @@
 }
 
 <span class="doccomment">/// FIXME: use `Layout::array` when we require a Rust version where it’s stable
-/// https://github.com/rust-lang/rust/issues/55724
+/// &lt;https://github.com/rust-lang/rust/issues/55724&gt;
 </span><span class="kw">fn </span>layout_array&lt;T&gt;(n: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Layout, CollectionAllocErr&gt; {
     <span class="kw">let </span>size = mem::size_of::&lt;T&gt;()
         .checked_mul(n)
@@ -2878,7 +2883,7 @@
 </span><span class="doccomment">/// An iterator which uses a closure to determine if an element should be removed.
 ///
 /// Returned from [`SmallVec::drain_filter`][1].
-/// 
+///
 /// [1]: struct.SmallVec.html#method.drain_filter
 </span><span class="kw">pub struct </span>DrainFilter&lt;<span class="lifetime">&#39;a</span>, T, F&gt;
 <span class="kw">where
@@ -3263,7 +3268,7 @@
 
     <span class="doccomment">/// Construct a new `SmallVec` from a `Vec&lt;A::Item&gt;`.
     ///
-    /// Elements will be copied to the inline buffer if vec.capacity() &lt;= Self::inline_capacity().
+    /// Elements will be copied to the inline buffer if `vec.capacity() &lt;= Self::inline_capacity()`.
     ///
     /// ```rust
     /// use smallvec::SmallVec;
@@ -3418,7 +3423,7 @@
     </span>}
 
     <span class="doccomment">/// Returns a tuple with (data ptr, len, capacity)
-    /// Useful to get all SmallVec properties with a single check of the current storage variant.
+    /// Useful to get all `SmallVec` properties with a single check of the current storage variant.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>triple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (ConstNonNull&lt;A::Item&gt;, usize, usize) {
         <span class="kw">unsafe </span>{
@@ -3503,13 +3508,12 @@
         }
     }
 
-    
     <span class="attr">#[cfg(feature = <span class="string">&quot;drain_filter&quot;</span>)]
     </span><span class="doccomment">/// Creates an iterator which uses a closure to determine if an element should be removed.
-    /// 
+    ///
     /// If the closure returns true, the element is removed and yielded. If the closure returns
     /// false, the element will remain in the vector and will not be yielded by the iterator.
-    /// 
+    ///
     /// Using this method is equivalent to the following code:
     /// ```
     /// # use smallvec::SmallVec;
@@ -3524,7 +3528,7 @@
     ///         i += 1;
     ///     }
     /// }
-    /// 
+    ///
     /// # assert_eq!(vec, SmallVec::&lt;[i32; 8]&gt;::from_slice(&amp;[1i32, 4, 5]));
     /// ```
     /// ///
@@ -3568,7 +3572,7 @@
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>(<span class="kw-2">mut </span>ptr, <span class="kw-2">mut </span>len, cap) = <span class="self">self</span>.triple_mut();
             <span class="kw">if </span><span class="kw-2">*</span>len == cap {
-                <span class="self">self</span>.reserve(<span class="number">1</span>);
+                <span class="self">self</span>.reserve_one_unchecked();
                 <span class="kw">let </span>(heap_ptr, heap_len) = <span class="self">self</span>.data.heap_mut();
                 ptr = heap_ptr;
                 len = heap_len;
@@ -3673,13 +3677,23 @@
         infallible(<span class="self">self</span>.try_reserve(additional))
     }
 
+    <span class="doccomment">/// Internal method used to grow in push() and insert(), where we know already we have to grow.
+    </span><span class="attr">#[cold]
+    </span><span class="kw">fn </span>reserve_one_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.len(), <span class="self">self</span>.capacity());
+        <span class="kw">let </span>new_cap = <span class="self">self</span>.len()
+            .checked_add(<span class="number">1</span>)
+            .and_then(usize::checked_next_power_of_two)
+            .expect(<span class="string">&quot;capacity overflow&quot;</span>);
+        infallible(<span class="self">self</span>.try_grow(new_cap))
+    }
+
     <span class="doccomment">/// Reserve capacity for `additional` more elements to be inserted.
     ///
     /// May reserve more space to avoid frequent reallocations.
     </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), CollectionAllocErr&gt; {
-        <span class="comment">// prefer triple_mut() even if triple() would work
-        // so that the optimizer removes duplicated calls to it
-        // from callers like insert()
+        <span class="comment">// prefer triple_mut() even if triple() would work so that the optimizer removes duplicated
+        // calls to it from callers.
         </span><span class="kw">let </span>(<span class="kw">_</span>, <span class="kw-2">&amp;mut </span>len, cap) = <span class="self">self</span>.triple_mut();
         <span class="kw">if </span>cap - len &gt;= additional {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -3805,10 +3819,14 @@
     ///
     /// Panics if `index &gt; len`.
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, element: A::Item) {
-        <span class="self">self</span>.reserve(<span class="number">1</span>);
-
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>(ptr, len_ptr, <span class="kw">_</span>) = <span class="self">self</span>.triple_mut();
+            <span class="kw">let </span>(<span class="kw-2">mut </span>ptr, <span class="kw-2">mut </span>len_ptr, cap) = <span class="self">self</span>.triple_mut();
+            <span class="kw">if </span><span class="kw-2">*</span>len_ptr == cap {
+                <span class="self">self</span>.reserve_one_unchecked();
+                <span class="kw">let </span>(heap_ptr, heap_len_ptr) = <span class="self">self</span>.data.heap_mut();
+                ptr = heap_ptr;
+                len_ptr = heap_len_ptr;
+            }
             <span class="kw">let </span><span class="kw-2">mut </span>ptr = ptr.as_ptr();
             <span class="kw">let </span>len = <span class="kw-2">*</span>len_ptr;
             ptr = ptr.add(index);
@@ -3910,7 +3928,7 @@
         }
     }
 
-    <span class="doccomment">/// Convert a SmallVec to a Vec, without reallocating if the SmallVec has already spilled onto
+    <span class="doccomment">/// Convert a `SmallVec` to a `Vec`, without reallocating if the `SmallVec` has already spilled onto
     /// the heap.
     </span><span class="kw">pub fn </span>into_vec(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;A::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.spilled() {
@@ -3933,10 +3951,10 @@
         <span class="self">self</span>.into_vec().into_boxed_slice()
     }
 
-    <span class="doccomment">/// Convert the SmallVec into an `A` if possible. Otherwise return `Err(Self)`.
+    <span class="doccomment">/// Convert the `SmallVec` into an `A` if possible. Otherwise return `Err(Self)`.
     ///
-    /// This method returns `Err(Self)` if the SmallVec is too short (and the `A` contains uninitialized elements),
-    /// or if the SmallVec is too long (and all the elements were spilled to the heap).
+    /// This method returns `Err(Self)` if the `SmallVec` is too short (and the `A` contains uninitialized elements),
+    /// or if the `SmallVec` is too long (and all the elements were spilled to the heap).
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;A, <span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.spilled() || <span class="self">self</span>.len() != A::size() {
             <span class="comment">// Note: A::size, not Self::inline_capacity
@@ -4030,15 +4048,15 @@
     ///
     /// If `new_len` is greater than `len`, the `SmallVec` is extended by the difference, with each
     /// additional slot filled with the result of calling the closure `f`. The return values from `f`
-    </span><span class="comment">//// will end up in the `SmallVec` in the order they have been generated.
-    </span><span class="doccomment">///
+    /// will end up in the `SmallVec` in the order they have been generated.
+    ///
     /// If `new_len` is less than `len`, the `SmallVec` is simply truncated.
     ///
     /// This method uses a closure to create new values on every push. If you&#39;d rather `Clone` a given
     /// value, use `resize`. If you want to use the `Default` trait to generate values, you can pass
     /// `Default::default()` as the second argument.
     ///
-    /// Added for std::vec::Vec compatibility (added in Rust 1.33.0)
+    /// Added for `std::vec::Vec` compatibility (added in Rust 1.33.0)
     ///
     /// ```
     /// # use smallvec::{smallvec, SmallVec};
@@ -4101,8 +4119,7 @@
     /// # Examples
     ///
     /// ```
-    /// # #[macro_use] extern crate smallvec;
-    /// # use smallvec::SmallVec;
+    /// # use smallvec::{smallvec, SmallVec};
     /// use std::mem;
     /// use std::ptr;
     ///
@@ -4206,6 +4223,7 @@
     /// elements toward the back.
     ///
     /// For slices of `Copy` types, this is more efficient than `insert`.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>insert_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, slice: <span class="kw-2">&amp;</span>[A::Item]) {
         <span class="self">self</span>.reserve(slice.len());
 
@@ -4755,7 +4773,7 @@
     }
 }
 
-<span class="doccomment">/// Types that can be used as the backing store for a SmallVec
+<span class="doccomment">/// Types that can be used as the backing store for a [`SmallVec`].
 </span><span class="kw">pub unsafe trait </span>Array {
     <span class="doccomment">/// The type of the array&#39;s elements.
     </span><span class="kw">type </span>Item;
@@ -4765,7 +4783,7 @@
 
 <span class="doccomment">/// Set the length of the vec when the `SetLenOnDrop` value goes out of scope.
 ///
-/// Copied from https://github.com/rust-lang/rust/pull/36355
+/// Copied from &lt;https://github.com/rust-lang/rust/pull/36355&gt;
 </span><span class="kw">struct </span>SetLenOnDrop&lt;<span class="lifetime">&#39;a</span>&gt; {
     len: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>usize,
     local_len: usize,
@@ -4825,7 +4843,7 @@
     }
 }
 
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;const_generics&quot;</span>, not(doc)))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;const_generics&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_generics&quot;</span>)))]
 </span><span class="kw">unsafe impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; Array <span class="kw">for </span>[T; N] {
     <span class="kw">type </span>Item = T;
@@ -4835,7 +4853,7 @@
     }
 }
 
-<span class="attr">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;const_generics&quot;</span>))]
 </span><span class="macro">macro_rules! </span>impl_array(
     ($(<span class="macro-nonterminal">$size</span>:expr),+) =&gt; {
         $(
@@ -4848,7 +4866,7 @@
     }
 );
 
-<span class="attr">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;const_generics&quot;</span>))]
 </span><span class="macro">impl_array!</span>(
     <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>, <span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>, <span class="number">23</span>, <span class="number">24</span>, <span class="number">25</span>,
     <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>, <span class="number">32</span>, <span class="number">36</span>, <span class="number">0x40</span>, <span class="number">0x60</span>, <span class="number">0x80</span>, <span class="number">0x100</span>, <span class="number">0x200</span>, <span class="number">0x400</span>, <span class="number">0x600</span>, <span class="number">0x800</span>, <span class="number">0x1000</span>,

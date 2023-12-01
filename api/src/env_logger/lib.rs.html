@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../env_logger/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../env_logger/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1299,16 +1299,6 @@
 <a href="#1299" id="1299">1299</a>
 <a href="#1300" id="1300">1300</a>
 <a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
-<a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
 </pre></div><pre class="rust"><code><span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
 // https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
 // &lt;LICENSE-MIT or https://opensource.org/licenses/MIT&gt;, at your
@@ -1396,78 +1386,67 @@
 //!
 //! ## Enabling logging
 //!
-//! Log levels are controlled on a per-module basis, and **by default all
-//! logging is disabled except for the `error` level**.
+//! **By default all logging is disabled except for the `error` level**
 //!
-//! Logging is controlled via the **`RUST_LOG`** environment variable. The
-//! value of this environment variable is a comma-separated list of *logging
-//! directives*. A logging directive is of the form:
-//!
+//! The **`RUST_LOG`** environment variable controls logging with the syntax:
 //! ```text
-//! example::log::target=level
+//! RUST_LOG=[target][=][level][,...]
+//! ```
+//! Or in other words, its a comma-separated list of directives.
+//! Directives can filter by **target**, by **level**, or both (using `=`).
+//!
+//! For example,
+//! ```text
+//! RUST_LOG=data=debug,hardware=debug
 //! ```
 //!
-//! The log target is typically equal to the path of the module the message
+//! **target** is typically the path of the module the message
 //! in question originated from, though it can be overridden.
-//!
 //! The path is rooted in the name of the crate it was compiled for, so if
 //! your program is in a file called, for example, `hello.rs`, the path would
-//! simply be be `hello`.
+//! simply be `hello`.
 //!
 //! Furthermore, the log can be filtered using prefix-search based on the
-//! specified log target. A value of, for example, `RUST_LOG=example`, would
-//! match all of the messages with targets:
+//! specified log target.
 //!
-//! * `example`
-//! * `example::test`
-//! * `example::test::module::submodule`
-//! * `examples::and_more_examples`
+//! For example, `RUST_LOG=example` would match the following targets:
+//! - `example`
+//! - `example::test`
+//! - `example::test::module::submodule`
+//! - `examples::and_more_examples`
 //!
 //! When providing the crate name or a module path, explicitly specifying the
 //! log level is optional. If omitted, all logging for the item will be
 //! enabled.
 //!
-//! The names of the log levels that may be specified correspond to the
-//! variations of the [`log::Level`][level-enum] enum from the `log`
-//! crate. They are:
+//! **level** is the maximum [`log::Level`][level-enum] to be shown and includes:
+//! - `error`
+//! - `warn`
+//! - `info`
+//! - `debug`
+//! - `trace`
+//! - `off` (pseudo level to disable all logging for the target)
 //!
-//! * `error`
-//! * `warn`
-//! * `info`
-//! * `debug`
-//! * `trace`
-//!
-//! There is also a pseudo logging level, `off`, which may be specified to
-//! disable all logging for a given module or for the entire application. As
-//! with the logging levels, the letter case is not significant[^fn-off].
-//!
-//! [^fn-off]: Similar to the universe of log level names, the `off` pseudo
-//!    log level feature is also provided by the underlying `log` crate.
-//!
-//! The letter case is not significant for the logging level names; e.g.,
+//! Logging level names are case-insensitive; e.g.,
 //! `debug`, `DEBUG`, and `dEbuG` all represent the same logging level. For
 //! consistency, our convention is to use the lower case names. Where our docs
 //! do use other forms, they do so in the context of specific examples, so you
 //! won&#39;t be surprised if you see similar usage in the wild.
 //!
-//! As the log level for a module is optional, the module to enable logging for
-//! is also optional. **If only a level is provided, then the global log
-//! level for all modules is set to this value.**
-//!
 //! Some examples of valid values of `RUST_LOG` are:
 //!
-//! * `hello` turns on all logging for the &#39;hello&#39; module
-//! * `trace` turns on all logging for the application, regardless of its name
-//! * `TRACE` turns on all logging for the application, regardless of its name (same as previous)
-//! * `info` turns on all info logging
-//! * `INFO` turns on all info logging (same as previous)
-//! * `hello=debug` turns on debug logging for &#39;hello&#39;
-//! * `hello=DEBUG` turns on debug logging for &#39;hello&#39; (same as previous)
-//! * `hello,std::option` turns on hello, and std&#39;s option logging
-//! * `error,hello=warn` turn on global error logging and also warn for hello
-//! * `error,hello=off`  turn on global error logging, but turn off logging for hello
-//! * `off` turns off all logging for the application
-//! * `OFF` turns off all logging for the application (same as previous)
+//! - `RUST_LOG=hello` turns on all logging for the `hello` module
+//! - `RUST_LOG=trace` turns on all logging for the application, regardless of its name
+//! - `RUST_LOG=TRACE` turns on all logging for the application, regardless of its name (same as previous)
+//! - `RUST_LOG=info` turns on all info logging
+//! - `RUST_LOG=INFO` turns on all info logging (same as previous)
+//! - `RUST_LOG=hello=debug` turns on debug logging for `hello`
+//! - `RUST_LOG=hello=DEBUG` turns on debug logging for `hello` (same as previous)
+//! - `RUST_LOG=hello,std::option` turns on `hello`, and std&#39;s option logging
+//! - `RUST_LOG=error,hello=warn` turn on global error logging and also warn for `hello`
+//! - `RUST_LOG=error,hello=off`  turn on global error logging, but turn off logging for `hello`
+//! - `RUST_LOG=off` turns off all logging for the application
+//! - `RUST_LOG=OFF` turns off all logging for the application (same as previous)
 //!
 //! ## Filtering results
 //!
@@ -1495,9 +1474,10 @@
 //! The [`Builder::is_test`] method can be used in unit tests to ensure logs will be captured:
 //!
 //! ```
-//! # #[macro_use] extern crate log;
 //! #[cfg(test)]
 //! mod tests {
+//!     use log::info;
+//!
 //!     fn init() {
 //!         let _ = env_logger::builder().is_test(true).try_init();
 //!     }
@@ -1577,9 +1557,9 @@
 //! env_logger::Builder::from_env(Env::default().default_filter_or(&quot;warn&quot;)).init();
 //! ```
 //!
-//! [gh-repo-examples]: https://github.com/env-logger-rs/env_logger/tree/main/examples
+//! [gh-repo-examples]: https://github.com/rust-cli/env_logger/tree/main/examples
 //! [level-enum]: https://docs.rs/log/latest/log/enum.Level.html
-//! [log-crate-url]: https://docs.rs/log/
+//! [log-crate-url]: https://docs.rs/log
 //! [`Builder`]: struct.Builder.html
 //! [`Builder::is_test`]: struct.Builder.html#method.is_test
 //! [`Env`]: struct.Env.html
@@ -1589,6 +1569,7 @@
     html_logo_url = <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://www.rust-lang.org/static/images/favicon.ico&quot;
 </span>)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 </span><span class="comment">// When compiled for the rustc compiler itself we want to make sure that this is
 // an unstable crate
 </span><span class="attr">#![cfg_attr(rustbuild, feature(staged_api, rustc_private))]
@@ -1649,7 +1630,7 @@
 /// the associated [`Builder`] and install it with the
 /// [`log` crate][log-crate-url] directly.
 ///
-/// [log-crate-url]: https://docs.rs/log/
+/// [log-crate-url]: https://docs.rs/log
 /// [`init()`]: fn.init.html
 /// [`try_init()`]: fn.try_init.html
 /// [`Builder::init()`]: struct.Builder.html#method.init
@@ -1669,10 +1650,9 @@
 /// # Examples
 ///
 /// ```
-/// # #[macro_use] extern crate log;
 /// # use std::io::Write;
 /// use env_logger::Builder;
-/// use log::LevelFilter;
+/// use log::{LevelFilter, error, info};
 ///
 /// let mut builder = Builder::from_default_env();
 ///

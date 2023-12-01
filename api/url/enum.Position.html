@@ -37,7 +37,7 @@ and component ordering is preserved
 (so that a missing query “is between” a path and a fragment).</p>
 <p>The end of a component and the start of the next are either the same or separate
 by a delimiter.
-(Not that the initial <code>/</code> of a path is considered part of the path here, not a delimiter.)
+(Note that the initial <code>/</code> of a path is considered part of the path here, not a delimiter.)
 For example, <code>&amp;url[..BeforeFragment]</code> would include a <code>#</code> delimiter (if present in <code>url</code>),
 so <code>&amp;url[..AfterQuery]</code> might be desired instead.</p>
 <p><code>BeforeScheme</code> and <code>AfterFragment</code> are always the start and end of the entire URL,

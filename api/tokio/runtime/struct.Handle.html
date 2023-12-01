@@ -108,7 +108,7 @@ the future spawns internally will be executed on the runtime.</p>
 <p>When this is used on a <code>current_thread</code> runtime, only the
 <a href="struct.Runtime.html#method.block_on" title="method tokio::runtime::Runtime::block_on"><code>Runtime::block_on</code></a> method can drive the IO and timer drivers, but the
 <code>Handle::block_on</code> method cannot drive them. This means that, when using
-this method on a current_thread runtime, anything that relies on IO or
+this method on a <code>current_thread</code> runtime, anything that relies on IO or
 timers will not work unless there is another thread currently calling
 <a href="struct.Runtime.html#method.block_on" title="method tokio::runtime::Runtime::block_on"><code>Runtime::block_on</code></a> on the same runtime.</p>
 <h5 id="if-the-runtime-has-been-shut-down"><a href="#if-the-runtime-has-been-shut-down">If the runtime has been shut down</a></h5>

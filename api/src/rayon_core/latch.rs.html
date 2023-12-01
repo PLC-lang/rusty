@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.11.0/src/latch.rs`."><title>latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rayon_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.0/src/latch.rs`."><title>latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rayon_core/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -412,6 +412,52 @@
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
@@ -498,13 +544,6 @@
         }
     }
 
-    <span class="doccomment">/// Returns the address of this core latch as an integer. Used
-    /// for logging.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self </span><span class="kw">as </span><span class="kw-2">*const </span>CoreLatch <span class="kw">as </span>usize
-    }
-
     <span class="doccomment">/// Invoked by owning thread as it prepares to sleep. Returns true
     /// if the owning thread may proceed to fall asleep, false if the
     /// latch was set in the meantime.
@@ -554,6 +593,13 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>probe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.state.load(Ordering::Acquire) == SET
     }
+}
+
+<span class="kw">impl </span>AsCoreLatch <span class="kw">for </span>CoreLatch {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>as_core_latch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CoreLatch {
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// Spin latches are the simplest, most efficient kind, but they do
@@ -683,62 +729,32 @@
     }
 }
 
-<span class="doccomment">/// Counting latches are used to implement scopes. They track a
-/// counter. Unlike other latches, calling `set()` does not
-/// necessarily make the latch be considered `set()`; instead, it just
-/// decrements the counter. The latch is only &quot;set&quot; (in the sense that
-/// `probe()` returns true) once the counter reaches zero.
+<span class="doccomment">/// Once latches are used to implement one-time blocking, primarily
+/// for the termination flag of the threads in the pool.
 ///
-/// Note: like a `SpinLatch`, count laches are always associated with
+/// Note: like a `SpinLatch`, once-latches are always associated with
 /// some registry that is probing them, which must be tickled when
 /// they are set. *Unlike* a `SpinLatch`, they don&#39;t themselves hold a
 /// reference to that registry. This is because in some cases the
-/// registry owns the count-latch, and that would create a cycle. So a
-/// `CountLatch` must be given a reference to its owning registry when
+/// registry owns the once-latch, and that would create a cycle. So a
+/// `OnceLatch` must be given a reference to its owning registry when
 /// it is set. For this reason, it does not implement the `Latch`
 /// trait (but it doesn&#39;t have to, as it is not used in those generic
 /// contexts).
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CountLatch {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>OnceLatch {
     core_latch: CoreLatch,
-    counter: AtomicUsize,
 }
 
-<span class="kw">impl </span>CountLatch {
+<span class="kw">impl </span>OnceLatch {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; CountLatch {
-        <span class="self">Self</span>::with_count(<span class="number">1</span>)
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_count(n: usize) -&gt; CountLatch {
-        CountLatch {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; OnceLatch {
+        <span class="self">Self </span>{
             core_latch: CoreLatch::new(),
-            counter: AtomicUsize::new(n),
         }
     }
 
-    <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>increment(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.core_latch.probe());
-        <span class="self">self</span>.counter.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
-    }
-
-    <span class="doccomment">/// Decrements the latch counter by one. If this is the final
-    /// count, then the latch is **set**, and calls to `probe()` will
-    /// return true. Returns whether the latch was set.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set(this: <span class="kw-2">*const </span><span class="self">Self</span>) -&gt; bool {
-        <span class="kw">if </span>(<span class="kw-2">*</span>this).counter.fetch_sub(<span class="number">1</span>, Ordering::SeqCst) == <span class="number">1 </span>{
-            CoreLatch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).core_latch);
-            <span class="bool-val">true
-        </span>} <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
-    }
-
-    <span class="doccomment">/// Decrements the latch counter by one and possibly set it.  If
-    /// the latch is set, then the specific worker thread is tickled,
+    <span class="doccomment">/// Set the latch, then tickle the specific worker thread,
     /// which should be the one that owns this latch.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_and_tickle_one(
@@ -746,31 +762,81 @@
         registry: <span class="kw-2">&amp;</span>Registry,
         target_worker_index: usize,
     ) {
-        <span class="kw">if </span><span class="self">Self</span>::set(this) {
+        <span class="kw">if </span>CoreLatch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).core_latch) {
             registry.notify_worker_latch_is_set(target_worker_index);
         }
     }
 }
 
-<span class="kw">impl </span>AsCoreLatch <span class="kw">for </span>CountLatch {
+<span class="kw">impl </span>AsCoreLatch <span class="kw">for </span>OnceLatch {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_core_latch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CoreLatch {
         <span class="kw-2">&amp;</span><span class="self">self</span>.core_latch
     }
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CountLockLatch {
-    lock_latch: LockLatch,
+<span class="doccomment">/// Counting latches are used to implement scopes. They track a
+/// counter. Unlike other latches, calling `set()` does not
+/// necessarily make the latch be considered `set()`; instead, it just
+/// decrements the counter. The latch is only &quot;set&quot; (in the sense that
+/// `probe()` returns true) once the counter reaches zero.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CountLatch {
     counter: AtomicUsize,
+    kind: CountLatchKind,
 }
 
-<span class="kw">impl </span>CountLockLatch {
-    <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_count(n: usize) -&gt; CountLockLatch {
-        CountLockLatch {
-            lock_latch: LockLatch::new(),
-            counter: AtomicUsize::new(n),
+<span class="kw">enum </span>CountLatchKind {
+    <span class="doccomment">/// A latch for scopes created on a rayon thread which will participate in work-
+    /// stealing while it waits for completion. This thread is not necessarily part
+    /// of the same registry as the scope itself!
+    </span>Stealing {
+        latch: CoreLatch,
+        <span class="doccomment">/// If a worker thread in registry A calls `in_place_scope` on a ThreadPool
+        /// with registry B, when a job completes in a thread of registry B, we may
+        /// need to call `notify_worker_latch_is_set()` to wake the thread in registry A.
+        /// That means we need a reference to registry A (since at that point we will
+        /// only have a reference to registry B), so we stash it here.
+        </span>registry: Arc&lt;Registry&gt;,
+        <span class="doccomment">/// The index of the worker to wake in `registry`
+        </span>worker_index: usize,
+    },
+
+    <span class="doccomment">/// A latch for scopes created on a non-rayon thread which will block to wait.
+    </span>Blocking { latch: LockLatch },
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>CountLatchKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            CountLatchKind::Stealing { latch, .. } =&gt; {
+                f.debug_tuple(<span class="string">&quot;Stealing&quot;</span>).field(latch).finish()
+            }
+            CountLatchKind::Blocking { latch, .. } =&gt; {
+                f.debug_tuple(<span class="string">&quot;Blocking&quot;</span>).field(latch).finish()
+            }
+        }
+    }
+}
+
+<span class="kw">impl </span>CountLatch {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_count(<span class="number">1</span>, owner)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_count(count: usize, owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            counter: AtomicUsize::new(count),
+            kind: <span class="kw">match </span>owner {
+                <span class="prelude-val">Some</span>(owner) =&gt; CountLatchKind::Stealing {
+                    latch: CoreLatch::new(),
+                    registry: Arc::clone(owner.registry()),
+                    worker_index: owner.index(),
+                },
+                <span class="prelude-val">None </span>=&gt; CountLatchKind::Blocking {
+                    latch: LockLatch::new(),
+                },
+            },
         }
     }
 
@@ -780,16 +846,42 @@
         <span class="macro">debug_assert!</span>(old_counter != <span class="number">0</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.lock_latch.wait();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, owner: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt;) {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            CountLatchKind::Stealing {
+                latch,
+                registry,
+                worker_index,
+            } =&gt; <span class="kw">unsafe </span>{
+                <span class="kw">let </span>owner = owner.expect(<span class="string">&quot;owner thread&quot;</span>);
+                <span class="macro">debug_assert_eq!</span>(registry.id(), owner.registry().id());
+                <span class="macro">debug_assert_eq!</span>(<span class="kw-2">*</span>worker_index, owner.index());
+                owner.wait_until(latch);
+            },
+            CountLatchKind::Blocking { latch } =&gt; latch.wait(),
+        }
     }
 }
 
-<span class="kw">impl </span>Latch <span class="kw">for </span>CountLockLatch {
+<span class="kw">impl </span>Latch <span class="kw">for </span>CountLatch {
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>set(this: <span class="kw-2">*const </span><span class="self">Self</span>) {
         <span class="kw">if </span>(<span class="kw-2">*</span>this).counter.fetch_sub(<span class="number">1</span>, Ordering::SeqCst) == <span class="number">1 </span>{
-            LockLatch::set(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>this).lock_latch);
+            <span class="comment">// NOTE: Once we call `set` on the internal `latch`,
+            // the target may proceed and invalidate `this`!
+            </span><span class="kw">match </span>(<span class="kw-2">*</span>this).kind {
+                CountLatchKind::Stealing {
+                    <span class="kw-2">ref </span>latch,
+                    <span class="kw-2">ref </span>registry,
+                    worker_index,
+                } =&gt; {
+                    <span class="kw">let </span>registry = Arc::clone(registry);
+                    <span class="kw">if </span>CoreLatch::set(latch) {
+                        registry.notify_worker_latch_is_set(worker_index);
+                    }
+                }
+                CountLatchKind::Blocking { <span class="kw-2">ref </span>latch } =&gt; LockLatch::set(latch),
+            }
         }
     }
 }

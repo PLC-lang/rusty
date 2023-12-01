@@ -132,13 +132,13 @@ breaking change.</p>
 <p>See the <a href="https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md">README</a> for more details on the internals of parallel
 iterators.</p>
 </div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.collect_into_vec" class="method"><a class="srclink rightside" href="../../src/rayon/iter/mod.rs.html#2412-2414">source</a><h4 class="code-header">fn <a href="#method.collect_into_vec" class="fn">collect_into_vec</a>(self, target: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Self::<a class="associatedtype" href="trait.ParallelIterator.html#associatedtype.Item" title="type rayon::iter::ParallelIterator::Item">Item</a>&gt;)</h4></section></summary><div class="docblock"><p>Collects the results of the iterator into the specified
-vector. The vector is always truncated before execution
+vector. The vector is always cleared before execution
 begins. If possible, reusing the vector across calls can lead
 to better performance since it reuses the same backing buffer.</p>
 <h5 id="examples-1"><a href="#examples-1">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 
-<span class="comment">// any prior data will be truncated
+<span class="comment">// any prior data will be cleared
 </span><span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="macro">vec!</span>[-<span class="number">1</span>, -<span class="number">2</span>, -<span class="number">3</span>];
 
 (<span class="number">0</span>..<span class="number">5</span>).into_par_iter()
@@ -149,13 +149,13 @@ to better performance since it reuses the same backing buffer.</p>
     Self: <a class="trait" href="trait.IndexedParallelIterator.html" title="trait rayon::iter::IndexedParallelIterator">IndexedParallelIterator</a>&lt;Item = <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.tuple.html">(A, B)</a>&gt;,
     A: <a class="trait" href="https://doc.rust-lang.org/1.70.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>,
     B: <a class="trait" href="https://doc.rust-lang.org/1.70.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>,</span></h4></section></summary><div class="docblock"><p>Unzips the results of the iterator into the specified
-vectors. The vectors are always truncated before execution
+vectors. The vectors are always cleared before execution
 begins. If possible, reusing the vectors across calls can lead
 to better performance since they reuse the same backing buffer.</p>
 <h5 id="examples-2"><a href="#examples-2">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 
-<span class="comment">// any prior data will be truncated
+<span class="comment">// any prior data will be cleared
 </span><span class="kw">let </span><span class="kw-2">mut </span>left = <span class="macro">vec!</span>[<span class="number">42</span>; <span class="number">10</span>];
 <span class="kw">let </span><span class="kw-2">mut </span>right = <span class="macro">vec!</span>[-<span class="number">1</span>; <span class="number">10</span>];
 

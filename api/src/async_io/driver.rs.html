@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-1.13.0/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.2.1/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -232,17 +232,75 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::Waker;
 <span class="kw">use </span>std::task::{Context, Poll};
 <span class="kw">use </span>std::thread;
 <span class="kw">use </span>std::time::{Duration, Instant};
 
 <span class="kw">use </span>async_lock::OnceCell;
 <span class="kw">use </span>futures_lite::pin;
-<span class="kw">use </span>waker_fn::waker_fn;
+<span class="kw">use </span>parking::Parker;
 
 <span class="kw">use </span><span class="kw">crate</span>::reactor::Reactor;
 
@@ -277,6 +335,9 @@
 
 <span class="doccomment">/// The main loop for the &quot;async-io&quot; thread.
 </span><span class="kw">fn </span>main_loop(parker: parking::Parker) {
+    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;async_io::main_loop&quot;</span>);
+    <span class="kw">let </span>_enter = span.enter();
+
     <span class="comment">// The last observed reactor tick.
     </span><span class="kw">let </span><span class="kw-2">mut </span>last_tick = <span class="number">0</span>;
     <span class="comment">// Number of sleeps since this thread has called `react()`.
@@ -295,7 +356,7 @@
             };
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = reactor_lock {
-                <span class="macro">log::trace!</span>(<span class="string">&quot;main_loop: waiting on I/O&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;waiting on I/O&quot;</span>);
                 reactor_lock.react(<span class="prelude-val">None</span>).ok();
                 last_tick = Reactor::get().ticker();
                 sleeps = <span class="number">0</span>;
@@ -310,9 +371,9 @@
                 .get(sleeps <span class="kw">as </span>usize)
                 .unwrap_or(<span class="kw-2">&amp;</span><span class="number">10_000</span>);
 
-            <span class="macro">log::trace!</span>(<span class="string">&quot;main_loop: sleeping for {} us&quot;</span>, delay_us);
+            <span class="macro">tracing::trace!</span>(<span class="string">&quot;sleeping for {} us&quot;</span>, delay_us);
             <span class="kw">if </span>parker.park_timeout(Duration::from_micros(<span class="kw-2">*</span>delay_us)) {
-                <span class="macro">log::trace!</span>(<span class="string">&quot;main_loop: notified&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
 
                 <span class="comment">// If notified before timeout, reset the last tick and the sleep counter.
                 </span>last_tick = Reactor::get().ticker();
@@ -339,7 +400,8 @@
 /// });
 /// ```
 </span><span class="kw">pub fn </span>block_on&lt;T&gt;(future: <span class="kw">impl </span>Future&lt;Output = T&gt;) -&gt; T {
-    <span class="macro">log::trace!</span>(<span class="string">&quot;block_on()&quot;</span>);
+    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;async_io::block_on&quot;</span>);
+    <span class="kw">let </span>_enter = span.enter();
 
     <span class="comment">// Increment `BLOCK_ON_COUNT` so that the &quot;async-io&quot; thread becomes less aggressive.
     </span>BLOCK_ON_COUNT.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
@@ -350,112 +412,164 @@
         unparker().unpark();
     });
 
-    <span class="comment">// Parker and unparker for notifying the current thread.
-    </span><span class="kw">let </span>(p, u) = parking::pair();
-    <span class="comment">// This boolean is set to `true` when the current thread is blocked on I/O.
-    </span><span class="kw">let </span>io_blocked = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+    <span class="comment">// Creates a parker and an associated waker that unparks it.
+    </span><span class="kw">fn </span>parker_and_waker() -&gt; (Parker, Waker, Arc&lt;AtomicBool&gt;) {
+        <span class="comment">// Parker and unparker for notifying the current thread.
+        </span><span class="kw">let </span>(p, u) = parking::pair();
+
+        <span class="comment">// This boolean is set to `true` when the current thread is blocked on I/O.
+        </span><span class="kw">let </span>io_blocked = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+
+        <span class="comment">// Prepare the waker.
+        </span><span class="kw">let </span>waker = BlockOnWaker::create(io_blocked.clone(), u);
+
+        (p, waker, io_blocked)
+    }
 
     <span class="macro">thread_local! </span>{
+        <span class="comment">// Cached parker and waker for efficiency.
+        </span><span class="kw">static </span>CACHE: RefCell&lt;(Parker, Waker, Arc&lt;AtomicBool&gt;)&gt; = RefCell::new(parker_and_waker());
+
         <span class="comment">// Indicates that the current thread is polling I/O, but not necessarily blocked on it.
         </span><span class="kw">static </span>IO_POLLING: Cell&lt;bool&gt; = Cell::new(<span class="bool-val">false</span>);
     }
 
-    <span class="comment">// Prepare the waker.
-    </span><span class="kw">let </span>waker = waker_fn({
-        <span class="kw">let </span>io_blocked = io_blocked.clone();
-        <span class="kw">move </span>|| {
-            <span class="kw">if </span>u.unpark() {
+    <span class="kw">struct </span>BlockOnWaker {
+        io_blocked: Arc&lt;AtomicBool&gt;,
+        unparker: parking::Unparker,
+    }
+
+    <span class="kw">impl </span>BlockOnWaker {
+        <span class="kw">fn </span>create(io_blocked: Arc&lt;AtomicBool&gt;, unparker: parking::Unparker) -&gt; Waker {
+            Waker::from(Arc::new(BlockOnWaker {
+                io_blocked,
+                unparker,
+            }))
+        }
+    }
+
+    <span class="kw">impl </span>std::task::Wake <span class="kw">for </span>BlockOnWaker {
+        <span class="kw">fn </span>wake_by_ref(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
+            <span class="kw">if </span><span class="self">self</span>.unparker.unpark() {
                 <span class="comment">// Check if waking from another thread and if currently blocked on I/O.
-                </span><span class="kw">if </span>!IO_POLLING.with(Cell::get) &amp;&amp; io_blocked.load(Ordering::SeqCst) {
+                </span><span class="kw">if </span>!IO_POLLING.with(Cell::get) &amp;&amp; <span class="self">self</span>.io_blocked.load(Ordering::SeqCst) {
                     Reactor::get().notify();
                 }
             }
         }
-    });
-    <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span>waker);
-    <span class="macro">pin!</span>(future);
 
-    <span class="kw">loop </span>{
-        <span class="comment">// Poll the future.
-        </span><span class="kw">if let </span>Poll::Ready(t) = future.as_mut().poll(cx) {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;block_on: completed&quot;</span>);
-            <span class="kw">return </span>t;
-        }
-
-        <span class="comment">// Check if a notification was received.
-        </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;block_on: notified&quot;</span>);
-
-            <span class="comment">// Try grabbing a lock on the reactor to process I/O events.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = Reactor::get().try_lock() {
-                <span class="comment">// First let wakers know this parker is processing I/O events.
-                </span>IO_POLLING.with(|io| io.set(<span class="bool-val">true</span>));
-                <span class="kw">let </span>_guard = CallOnDrop(|| {
-                    IO_POLLING.with(|io| io.set(<span class="bool-val">false</span>));
-                });
-
-                <span class="comment">// Process available I/O events.
-                </span>reactor_lock.react(<span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">0</span>))).ok();
-            }
-            <span class="kw">continue</span>;
-        }
-
-        <span class="comment">// Try grabbing a lock on the reactor to wait on I/O.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = Reactor::get().try_lock() {
-            <span class="comment">// Record the instant at which the lock was grabbed.
-            </span><span class="kw">let </span>start = Instant::now();
-
-            <span class="kw">loop </span>{
-                <span class="comment">// First let wakers know this parker is blocked on I/O.
-                </span>IO_POLLING.with(|io| io.set(<span class="bool-val">true</span>));
-                io_blocked.store(<span class="bool-val">true</span>, Ordering::SeqCst);
-                <span class="kw">let </span>_guard = CallOnDrop(|| {
-                    IO_POLLING.with(|io| io.set(<span class="bool-val">false</span>));
-                    io_blocked.store(<span class="bool-val">false</span>, Ordering::SeqCst);
-                });
-
-                <span class="comment">// Check if a notification has been received before `io_blocked` was updated
-                // because in that case the reactor won&#39;t receive a wakeup.
-                </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;block_on: notified&quot;</span>);
-                    <span class="kw">break</span>;
-                }
-
-                <span class="comment">// Wait for I/O events.
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;block_on: waiting on I/O&quot;</span>);
-                reactor_lock.react(<span class="prelude-val">None</span>).ok();
-
-                <span class="comment">// Check if a notification has been received.
-                </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;block_on: notified&quot;</span>);
-                    <span class="kw">break</span>;
-                }
-
-                <span class="comment">// Check if this thread been handling I/O events for a long time.
-                </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;block_on: stops hogging the reactor&quot;</span>);
-
-                    <span class="comment">// This thread is clearly processing I/O events for some other threads
-                    // because it didn&#39;t get a notification yet. It&#39;s best to stop hogging the
-                    // reactor and give other threads a chance to process I/O events for
-                    // themselves.
-                    </span>drop(reactor_lock);
-
-                    <span class="comment">// Unpark the &quot;async-io&quot; thread in case no other thread is ready to start
-                    // processing I/O events. This way we prevent a potential latency spike.
-                    </span>unparker().unpark();
-
-                    <span class="comment">// Wait for a notification.
-                    </span>p.park();
-                    <span class="kw">break</span>;
-                }
-            }
-        } <span class="kw">else </span>{
-            <span class="comment">// Wait for an actual notification.
-            </span><span class="macro">log::trace!</span>(<span class="string">&quot;block_on: sleep until notification&quot;</span>);
-            p.park();
+        <span class="kw">fn </span>wake(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) {
+            <span class="self">self</span>.wake_by_ref()
         }
     }
+
+    CACHE.with(|cache| {
+        <span class="comment">// Try grabbing the cached parker and waker.
+        </span><span class="kw">let </span>tmp_cached;
+        <span class="kw">let </span>tmp_fresh;
+        <span class="kw">let </span>(p, waker, io_blocked) = <span class="kw">match </span>cache.try_borrow_mut() {
+            <span class="prelude-val">Ok</span>(cache) =&gt; {
+                <span class="comment">// Use the cached parker and waker.
+                </span>tmp_cached = cache;
+                <span class="kw-2">&amp;*</span>tmp_cached
+            }
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="comment">// Looks like this is a recursive `block_on()` call.
+                // Create a fresh parker and waker.
+                </span>tmp_fresh = parker_and_waker();
+                <span class="kw-2">&amp;</span>tmp_fresh
+            }
+        };
+
+        <span class="macro">pin!</span>(future);
+
+        <span class="kw">let </span>cx = <span class="kw-2">&amp;mut </span>Context::from_waker(waker);
+
+        <span class="kw">loop </span>{
+            <span class="comment">// Poll the future.
+            </span><span class="kw">if let </span>Poll::Ready(t) = future.as_mut().poll(cx) {
+                <span class="comment">// Ensure the cached parker is reset to the unnotified state for future block_on calls,
+                // in case this future called wake and then immediately returned Poll::Ready.
+                </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>));
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;completed&quot;</span>);
+                <span class="kw">return </span>t;
+            }
+
+            <span class="comment">// Check if a notification was received.
+            </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
+                <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+
+                <span class="comment">// Try grabbing a lock on the reactor to process I/O events.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = Reactor::get().try_lock() {
+                    <span class="comment">// First let wakers know this parker is processing I/O events.
+                    </span>IO_POLLING.with(|io| io.set(<span class="bool-val">true</span>));
+                    <span class="kw">let </span>_guard = CallOnDrop(|| {
+                        IO_POLLING.with(|io| io.set(<span class="bool-val">false</span>));
+                    });
+
+                    <span class="comment">// Process available I/O events.
+                    </span>reactor_lock.react(<span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">0</span>))).ok();
+                }
+                <span class="kw">continue</span>;
+            }
+
+            <span class="comment">// Try grabbing a lock on the reactor to wait on I/O.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = Reactor::get().try_lock() {
+                <span class="comment">// Record the instant at which the lock was grabbed.
+                </span><span class="kw">let </span>start = Instant::now();
+
+                <span class="kw">loop </span>{
+                    <span class="comment">// First let wakers know this parker is blocked on I/O.
+                    </span>IO_POLLING.with(|io| io.set(<span class="bool-val">true</span>));
+                    io_blocked.store(<span class="bool-val">true</span>, Ordering::SeqCst);
+                    <span class="kw">let </span>_guard = CallOnDrop(|| {
+                        IO_POLLING.with(|io| io.set(<span class="bool-val">false</span>));
+                        io_blocked.store(<span class="bool-val">false</span>, Ordering::SeqCst);
+                    });
+
+                    <span class="comment">// Check if a notification has been received before `io_blocked` was updated
+                    // because in that case the reactor won&#39;t receive a wakeup.
+                    </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
+                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                        <span class="kw">break</span>;
+                    }
+
+                    <span class="comment">// Wait for I/O events.
+                    </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;waiting on I/O&quot;</span>);
+                    reactor_lock.react(<span class="prelude-val">None</span>).ok();
+
+                    <span class="comment">// Check if a notification has been received.
+                    </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
+                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                        <span class="kw">break</span>;
+                    }
+
+                    <span class="comment">// Check if this thread been handling I/O events for a long time.
+                    </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
+                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;stops hogging the reactor&quot;</span>);
+
+                        <span class="comment">// This thread is clearly processing I/O events for some other threads
+                        // because it didn&#39;t get a notification yet. It&#39;s best to stop hogging the
+                        // reactor and give other threads a chance to process I/O events for
+                        // themselves.
+                        </span>drop(reactor_lock);
+
+                        <span class="comment">// Unpark the &quot;async-io&quot; thread in case no other thread is ready to start
+                        // processing I/O events. This way we prevent a potential latency spike.
+                        </span>unparker().unpark();
+
+                        <span class="comment">// Wait for a notification.
+                        </span>p.park();
+                        <span class="kw">break</span>;
+                    }
+                }
+            } <span class="kw">else </span>{
+                <span class="comment">// Wait for an actual notification.
+                </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;sleep until notification&quot;</span>);
+                p.park();
+            }
+        }
+    })
 }
 
 <span class="doccomment">/// Runs a closure when dropped.

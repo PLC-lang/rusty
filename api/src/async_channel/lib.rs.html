@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-channel-1.9.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_channel/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-channel-2.1.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_channel/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1191,23 +1191,6 @@
 <a href="#1191" id="1191">1191</a>
 <a href="#1192" id="1192">1192</a>
 <a href="#1193" id="1193">1193</a>
-<a href="#1194" id="1194">1194</a>
-<a href="#1195" id="1195">1195</a>
-<a href="#1196" id="1196">1196</a>
-<a href="#1197" id="1197">1197</a>
-<a href="#1198" id="1198">1198</a>
-<a href="#1199" id="1199">1199</a>
-<a href="#1200" id="1200">1200</a>
-<a href="#1201" id="1201">1201</a>
-<a href="#1202" id="1202">1202</a>
-<a href="#1203" id="1203">1203</a>
-<a href="#1204" id="1204">1204</a>
-<a href="#1205" id="1205">1205</a>
-<a href="#1206" id="1206">1206</a>
-<a href="#1207" id="1207">1207</a>
-<a href="#1208" id="1208">1208</a>
-<a href="#1209" id="1209">1209</a>
-<a href="#1210" id="1210">1210</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An async multi-producer multi-consumer channel, where each message can be received by only
 //! one of all existing consumers.
 //!
@@ -1236,21 +1219,31 @@
 //! # });
 //! ```
 
-</span><span class="attr">#![forbid(unsafe_code)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![forbid(unsafe_code)]
 #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
+#![doc(
+    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+</span>)]
+#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+</span>)]
 
-</span><span class="kw">use </span>std::error;
-<span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::process;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::task::{Context, Poll};
-<span class="kw">use </span>std::usize;
+</span><span class="kw">extern crate </span>alloc;
+
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::future::Future;
+<span class="kw">use </span>core::pin::Pin;
+<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>core::task::{Context, Poll};
+<span class="kw">use </span>core::usize;
+
+<span class="kw">use </span>alloc::sync::Arc;
 
 <span class="kw">use </span>concurrent_queue::{ConcurrentQueue, PopError, PushError};
 <span class="kw">use </span>event_listener::{Event, EventListener};
+<span class="kw">use </span>event_listener_strategy::{easy_wrapper, EventListenerFuture, Strategy};
+<span class="kw">use </span>futures_core::ready;
 <span class="kw">use </span>futures_core::stream::Stream;
 
 <span class="kw">struct </span>Channel&lt;T&gt; {
@@ -1332,8 +1325,8 @@
         channel: channel.clone(),
     };
     <span class="kw">let </span>r = Receiver {
+        listener: EventListener::new(),
         channel,
-        listener: <span class="prelude-val">None</span>,
     };
     (s, r)
 }
@@ -1372,8 +1365,8 @@
         channel: channel.clone(),
     };
     <span class="kw">let </span>r = Receiver {
+        listener: EventListener::new(),
         channel,
-        listener: <span class="prelude-val">None</span>,
     };
     (s, r)
 }
@@ -1444,11 +1437,11 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; Send&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        Send {
+        Send::_new(SendInner {
             sender: <span class="self">self</span>,
-            listener: <span class="prelude-val">None</span>,
             msg: <span class="prelude-val">Some</span>(msg),
-        }
+            listener: EventListener::new(),
+        })
     }
 
     <span class="doccomment">/// Sends a message into this channel using the blocking strategy.
@@ -1476,6 +1469,7 @@
     /// drop(r);
     /// assert_eq!(s.send_blocking(2), Err(SendError(2)));
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>send_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
         <span class="self">self</span>.send(msg).wait()
     }
@@ -1667,7 +1661,7 @@
 
         <span class="comment">// Make sure the count never overflows, even if lots of sender clones are leaked.
         </span><span class="kw">if </span>count &gt; usize::MAX / <span class="number">2 </span>{
-            process::abort();
+            abort();
         }
 
         Sender {
@@ -1676,20 +1670,34 @@
     }
 }
 
-<span class="doccomment">/// The receiving side of a channel.
-///
-/// Receivers can be cloned and shared among threads. When all receivers associated with a channel
-/// are dropped, the channel becomes closed.
-///
-/// The channel can also be closed manually by calling [`Receiver::close()`].
-///
-/// Receivers implement the [`Stream`] trait.
-</span><span class="kw">pub struct </span>Receiver&lt;T&gt; {
-    <span class="doccomment">/// Inner channel state.
-    </span>channel: Arc&lt;Channel&lt;T&gt;&gt;,
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="doccomment">/// The receiving side of a channel.
+    ///
+    /// Receivers can be cloned and shared among threads. When all receivers associated with a channel
+    /// are dropped, the channel becomes closed.
+    ///
+    /// The channel can also be closed manually by calling [`Receiver::close()`].
+    ///
+    /// Receivers implement the [`Stream`] trait.
+    </span><span class="kw">pub struct </span>Receiver&lt;T&gt; {
+        <span class="comment">// Inner channel state.
+        </span>channel: Arc&lt;Channel&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// Listens for a send or close event to unblock this stream.
-    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+        <span class="comment">// Listens for a send or close event to unblock this stream.
+        </span><span class="attr">#[pin]
+        </span>listener: EventListener,
+    }
+
+    <span class="kw">impl</span>&lt;T&gt; PinnedDrop <span class="kw">for </span>Receiver&lt;T&gt; {
+        <span class="kw">fn </span>drop(this: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
+            <span class="kw">let </span>this = this.project();
+
+            <span class="comment">// Decrement the receiver count and close the channel if it drops down to zero.
+            </span><span class="kw">if </span>this.channel.receiver_count.fetch_sub(<span class="number">1</span>, Ordering::AcqRel) == <span class="number">1 </span>{
+                this.channel.close();
+            }
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Receiver&lt;T&gt; {
@@ -1750,10 +1758,10 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Recv&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        Recv {
+        Recv::_new(RecvInner {
             receiver: <span class="self">self</span>,
-            listener: <span class="prelude-val">None</span>,
-        }
+            listener: EventListener::new(),
+        })
     }
 
     <span class="doccomment">/// Receives a message from the channel using the blocking strategy.
@@ -1784,6 +1792,7 @@
     /// assert_eq!(r.recv_blocking(), Ok(1));
     /// assert_eq!(r.recv_blocking(), Err(RecvError));
     /// ```
+    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">pub fn </span>recv_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
         <span class="self">self</span>.recv().wait()
     }
@@ -1954,15 +1963,6 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Decrement the receiver count and close the channel if it drops down to zero.
-        </span><span class="kw">if </span><span class="self">self</span>.channel.receiver_count.fetch_sub(<span class="number">1</span>, Ordering::AcqRel) == <span class="number">1 </span>{
-            <span class="self">self</span>.channel.close();
-        }
-    }
-}
-
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;Receiver {{ .. }}&quot;</span>)
@@ -1975,12 +1975,12 @@
 
         <span class="comment">// Make sure the count never overflows, even if lots of receiver clones are leaked.
         </span><span class="kw">if </span>count &gt; usize::MAX / <span class="number">2 </span>{
-            process::abort();
+            abort();
         }
 
         Receiver {
             channel: <span class="self">self</span>.channel.clone(),
-            listener: <span class="prelude-val">None</span>,
+            listener: EventListener::new(),
         }
     }
 }
@@ -1991,9 +1991,11 @@
     <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// If this stream is listening for events, first wait for a notification.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(listener) = <span class="self">self</span>.listener.as_mut() {
-                <span class="macro">futures_core::ready!</span>(Pin::new(listener).poll(cx));
-                <span class="self">self</span>.listener = <span class="prelude-val">None</span>;
+            </span>{
+                <span class="kw">let </span>this = <span class="self">self</span>.as_mut().project();
+                <span class="kw">if </span>this.listener.is_listening() {
+                    <span class="macro">ready!</span>(this.listener.poll(cx));
+                }
             }
 
             <span class="kw">loop </span>{
@@ -2001,27 +2003,26 @@
                 </span><span class="kw">match </span><span class="self">self</span>.try_recv() {
                     <span class="prelude-val">Ok</span>(msg) =&gt; {
                         <span class="comment">// The stream is not blocked on an event - drop the listener.
-                        </span><span class="self">self</span>.listener = <span class="prelude-val">None</span>;
+                        </span><span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+                        this.listener.as_mut().set(EventListener::new());
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(msg));
                     }
                     <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; {
                         <span class="comment">// The stream is not blocked on an event - drop the listener.
-                        </span><span class="self">self</span>.listener = <span class="prelude-val">None</span>;
+                        </span><span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+                        this.listener.as_mut().set(EventListener::new());
                         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
                     }
                     <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {}
                 }
 
                 <span class="comment">// Receiving failed - now start listening for notifications or wait for one.
-                </span><span class="kw">match </span><span class="self">self</span>.listener.as_mut() {
-                    <span class="prelude-val">None </span>=&gt; {
-                        <span class="comment">// Create a listener and try sending the message again.
-                        </span><span class="self">self</span>.listener = <span class="prelude-val">Some</span>(<span class="self">self</span>.channel.stream_ops.listen());
-                    }
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="comment">// Go back to the outer loop to poll the listener.
-                        </span><span class="kw">break</span>;
-                    }
+                </span><span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut().project();
+                <span class="kw">if </span>this.listener.is_listening() {
+                    <span class="comment">// Go back to the outer loop to wait for a notification.
+                    </span><span class="kw">break</span>;
+                } <span class="kw">else </span>{
+                    this.listener.as_mut().listen(<span class="kw-2">&amp;</span>this.channel.stream_ops);
                 }
             }
         }
@@ -2056,7 +2057,7 @@
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
                 <span class="prelude-val">Ok</span>(new_value) <span class="kw">if </span>new_value &gt; usize::MAX / <span class="number">2 </span>=&gt; {
                     <span class="comment">// Make sure the count never overflows, even if lots of sender clones are leaked.
-                    </span>process::abort();
+                    </span>abort();
                 }
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Sender {
                     channel: <span class="self">self</span>.channel.clone(),
@@ -2102,11 +2103,11 @@
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
                 <span class="prelude-val">Ok</span>(new_value) <span class="kw">if </span>new_value &gt; usize::MAX / <span class="number">2 </span>=&gt; {
                     <span class="comment">// Make sure the count never overflows, even if lots of receiver clones are leaked.
-                    </span>process::abort();
+                    </span>abort();
                 }
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Receiver {
                     channel: <span class="self">self</span>.channel.clone(),
-                    listener: <span class="prelude-val">None</span>,
+                    listener: EventListener::new(),
                 }),
             }
         }
@@ -2140,7 +2141,8 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T&gt; error::Error <span class="kw">for </span>SendError&lt;T&gt; {}
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;T&gt; std::error::Error <span class="kw">for </span>SendError&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>SendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
@@ -2190,7 +2192,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; error::Error <span class="kw">for </span>TrySendError&lt;T&gt; {}
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;T&gt; std::error::Error <span class="kw">for </span>TrySendError&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>TrySendError&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
@@ -2216,7 +2219,8 @@
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>RecvError;
 
-<span class="kw">impl </span>error::Error <span class="kw">for </span>RecvError {}
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span>std::error::Error <span class="kw">for </span>RecvError {}
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>RecvError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
@@ -2252,7 +2256,8 @@
     }
 }
 
-<span class="kw">impl </span>error::Error <span class="kw">for </span>TryRecvError {}
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span>std::error::Error <span class="kw">for </span>TryRecvError {}
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>TryRecvError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
@@ -2263,159 +2268,120 @@
     }
 }
 
-<span class="doccomment">/// A future returned by [`Sender::send()`].
-</span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>Send&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    sender: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Sender&lt;T&gt;,
-    listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
-    msg: <span class="prelude-ty">Option</span>&lt;T&gt;,
+<span class="macro">easy_wrapper! </span>{
+    <span class="doccomment">/// A future returned by [`Sender::send()`].
+    </span><span class="attr">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>Send&lt;<span class="lifetime">&#39;a</span>, T&gt;(SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Send&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">struct </span>SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        sender: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Sender&lt;T&gt;,
+        msg: <span class="prelude-ty">Option</span>&lt;T&gt;,
+        <span class="attr">#[pin]
+        </span>listener: EventListener,
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; EventListenerFuture <span class="kw">for </span>SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;;
+
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>run_with_strategy&lt;S: Strategy&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span>S::Context,
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span>S,
+        context: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+
         <span class="kw">loop </span>{
-            <span class="kw">let </span>msg = <span class="self">self</span>.msg.take().unwrap();
+            <span class="kw">let </span>msg = this.msg.take().unwrap();
             <span class="comment">// Attempt to send a message.
-            </span><span class="kw">match </span><span class="self">self</span>.sender.try_send(msg) {
+            </span><span class="kw">match </span>this.sender.try_send(msg) {
                 <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
                 <span class="prelude-val">Err</span>(TrySendError::Closed(msg)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(SendError(msg))),
-                <span class="prelude-val">Err</span>(TrySendError::Full(m)) =&gt; <span class="self">self</span>.msg = <span class="prelude-val">Some</span>(m),
+                <span class="prelude-val">Err</span>(TrySendError::Full(m)) =&gt; <span class="kw-2">*</span>this.msg = <span class="prelude-val">Some</span>(m),
             }
 
             <span class="comment">// Sending failed - now start listening for notifications or wait for one.
-            </span><span class="kw">match </span><span class="self">self</span>.listener.take() {
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// Start listening and then try sending again.
-                    </span><span class="self">self</span>.listener = <span class="prelude-val">Some</span>(<span class="self">self</span>.sender.channel.send_ops.listen());
-                }
-                <span class="prelude-val">Some</span>(l) =&gt; {
-                    <span class="comment">// Poll using the given strategy
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(l, cx) {
-                        <span class="self">self</span>.listener = <span class="prelude-val">Some</span>(l);
-                        <span class="kw">return </span>Poll::Pending;
-                    }
-                }
+            </span><span class="kw">if </span>this.listener.is_listening() {
+                <span class="comment">// Poll using the given strategy
+                </span><span class="macro">ready!</span>(S::poll(strategy, this.listener.as_mut(), context));
+            } <span class="kw">else </span>{
+                this.listener.as_mut().listen(<span class="kw-2">&amp;</span>this.sender.channel.send_ops);
             }
         }
     }
+}
 
-    <span class="doccomment">/// Run using the blocking strategy.
-    </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.run_with_strategy::&lt;Blocking&gt;(<span class="kw-2">&amp;mut </span>()) {
-            Poll::Ready(res) =&gt; res,
-            Poll::Pending =&gt; <span class="macro">unreachable!</span>(),
-        }
+<span class="macro">easy_wrapper! </span>{
+    <span class="doccomment">/// A future returned by [`Receiver::recv()`].
+    </span><span class="attr">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt;(RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
+}
+
+<span class="macro">pin_project_lite::pin_project! </span>{
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">struct </span>RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        receiver: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Receiver&lt;T&gt;,
+        <span class="attr">#[pin]
+        </span>listener: EventListener,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Unpin <span class="kw">for </span>Send&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; EventListenerFuture <span class="kw">for </span>RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Future <span class="kw">for </span>Send&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;;
-
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="self">self</span>.run_with_strategy::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(cx)
-    }
-}
-
-<span class="doccomment">/// A future returned by [`Receiver::recv()`].
-</span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    receiver: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Receiver&lt;T&gt;,
-    listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Unpin <span class="kw">for </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>run_with_strategy&lt;S: Strategy&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, RecvError&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+
         <span class="kw">loop </span>{
             <span class="comment">// Attempt to receive a message.
-            </span><span class="kw">match </span><span class="self">self</span>.receiver.try_recv() {
+            </span><span class="kw">match </span>this.receiver.try_recv() {
                 <span class="prelude-val">Ok</span>(msg) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(msg)),
                 <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(RecvError)),
                 <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {}
             }
 
             <span class="comment">// Receiving failed - now start listening for notifications or wait for one.
-            </span><span class="kw">match </span><span class="self">self</span>.listener.take() {
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// Start listening and then try receiving again.
-                    </span><span class="self">self</span>.listener = <span class="prelude-val">Some</span>(<span class="self">self</span>.receiver.channel.recv_ops.listen());
-                }
-                <span class="prelude-val">Some</span>(l) =&gt; {
-                    <span class="comment">// Poll using the given strategy.
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(l) = S::poll(l, cx) {
-                        <span class="self">self</span>.listener = <span class="prelude-val">Some</span>(l);
-                        <span class="kw">return </span>Poll::Pending;
-                    }
-                }
+            </span><span class="kw">if </span>this.listener.is_listening() {
+                <span class="comment">// Poll using the given strategy
+                </span><span class="macro">ready!</span>(S::poll(strategy, this.listener.as_mut(), cx));
+            } <span class="kw">else </span>{
+                this.listener
+                    .as_mut()
+                    .listen(<span class="kw-2">&amp;</span>this.receiver.channel.recv_ops);
             }
         }
     }
+}
 
-    <span class="doccomment">/// Run with the blocking strategy.
-    </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
-        <span class="kw">match </span><span class="self">self</span>.run_with_strategy::&lt;Blocking&gt;(<span class="kw-2">&amp;mut </span>()) {
-            Poll::Ready(res) =&gt; res,
-            Poll::Pending =&gt; <span class="macro">unreachable!</span>(),
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span>std::process::abort;
+
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">fn </span>abort() -&gt; ! {
+    <span class="kw">struct </span>PanicOnDrop;
+
+    <span class="kw">impl </span>Drop <span class="kw">for </span>PanicOnDrop {
+        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <span class="macro">panic!</span>(<span class="string">&quot;Panic while panicking to abort&quot;</span>);
         }
     }
-}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Future <span class="kw">for </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
-
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="self">self</span>.run_with_strategy::&lt;NonBlocking&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(cx)
-    }
-}
-
-<span class="doccomment">/// A strategy used to poll an `EventListener`.
-</span><span class="kw">trait </span>Strategy {
-    <span class="doccomment">/// Context needed to be provided to the `poll` method.
-    </span><span class="kw">type </span>Context;
-
-    <span class="doccomment">/// Polls the given `EventListener`.
-    ///
-    /// Returns the `EventListener` back if it was not completed; otherwise,
-    /// returns `Ok(())`.
-    </span><span class="kw">fn </span>poll(evl: EventListener, cx: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context) -&gt; <span class="prelude-ty">Result</span>&lt;(), EventListener&gt;;
-}
-
-<span class="doccomment">/// Non-blocking strategy for use in asynchronous code.
-</span><span class="kw">struct </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>());
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Strategy <span class="kw">for </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Context = Context&lt;<span class="lifetime">&#39;a</span>&gt;;
-
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span>evl: EventListener, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), EventListener&gt; {
-        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span>evl).poll(cx) {
-            Poll::Ready(()) =&gt; <span class="prelude-val">Ok</span>(()),
-            Poll::Pending =&gt; <span class="prelude-val">Err</span>(evl),
-        }
-    }
-}
-
-<span class="doccomment">/// Blocking strategy for use in synchronous code.
-</span><span class="kw">struct </span>Blocking;
-
-<span class="kw">impl </span>Strategy <span class="kw">for </span>Blocking {
-    <span class="kw">type </span>Context = ();
-
-    <span class="kw">fn </span>poll(evl: EventListener, _cx: <span class="kw-2">&amp;mut </span>()) -&gt; <span class="prelude-ty">Result</span>&lt;(), EventListener&gt; {
-        evl.wait();
-        <span class="prelude-val">Ok</span>(())
-    }
+    <span class="kw">let </span>_bomb = PanicOnDrop;
+    <span class="macro">panic!</span>(<span class="string">&quot;Panic while panicking to abort&quot;</span>)
 }
 </code></pre></div></section></main></body></html>

@@ -837,7 +837,7 @@
         <span class="kw">let </span>datetime = chrono::NaiveDate::from_ymd_opt(<span class="number">1982</span>, <span class="number">12</span>, <span class="number">15</span>)
             .and_then(|date| date.and_hms_nano_opt(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
             .expect(<span class="string">&quot;Cannot create date time from given parameters&quot;</span>);
-        <span class="kw">let </span>timestamp = datetime.timestamp_nanos();
+        <span class="kw">let </span>timestamp = datetime.timestamp_nanos_opt().unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>dest = [<span class="number">0_u8</span>; <span class="number">81</span>];
         <span class="kw">let </span>dest_ptr = dest.as_mut_ptr();
@@ -854,7 +854,7 @@
         <span class="kw">let </span>datetime = chrono::NaiveDate::from_ymd_opt(<span class="number">1982</span>, <span class="number">12</span>, <span class="number">15</span>)
             .and_then(|date| date.and_hms_nano_opt(<span class="number">10</span>, <span class="number">10</span>, <span class="number">2</span>, <span class="number">123456789</span>))
             .expect(<span class="string">&quot;Cannot create date time from given parameters&quot;</span>);
-        <span class="kw">let </span>timestamp = datetime.timestamp_nanos();
+        <span class="kw">let </span>timestamp = datetime.timestamp_nanos_opt().unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>dest = [<span class="number">0_u8</span>; <span class="number">81</span>];
         <span class="kw">let </span>dest_ptr = dest.as_mut_ptr();
@@ -871,7 +871,7 @@
         <span class="kw">let </span>datetime = chrono::NaiveDate::from_ymd_opt(<span class="number">1982</span>, <span class="number">12</span>, <span class="number">15</span>)
             .and_then(|date| date.and_hms_nano_opt(<span class="number">10</span>, <span class="number">10</span>, <span class="number">2</span>, <span class="number">123456789</span>))
             .expect(<span class="string">&quot;Cannot create date time from given parameters&quot;</span>);
-        <span class="kw">let </span>timestamp = datetime.timestamp_nanos();
+        <span class="kw">let </span>timestamp = datetime.timestamp_nanos_opt().unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>dest = [<span class="number">0_u8</span>; <span class="number">81</span>];
         <span class="kw">let </span>dest_ptr = dest.as_mut_ptr();
@@ -888,7 +888,7 @@
         <span class="kw">let </span>datetime = chrono::NaiveDate::from_ymd_opt(<span class="number">2023</span>, <span class="number">1</span>, <span class="number">23</span>)
             .and_then(|date| date.and_hms_nano_opt(<span class="number">10</span>, <span class="number">10</span>, <span class="number">0</span>, <span class="number">123456789</span>))
             .expect(<span class="string">&quot;Cannot create date time from given parameters&quot;</span>);
-        <span class="kw">let </span>timestamp = datetime.timestamp_nanos();
+        <span class="kw">let </span>timestamp = datetime.timestamp_nanos_opt().unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>dest = [<span class="number">0_u8</span>; <span class="number">81</span>];
         <span class="kw">let </span>dest_ptr = dest.as_mut_ptr();
