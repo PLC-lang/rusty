@@ -13,7 +13,10 @@ pub extern "C" fn CONCAT_DATE_TOD(in1: i64, in2: i64) -> i64 {
     let sec = tod.second();
     let nano = tod.timestamp_subsec_nanos();
 
-    date.and_hms_nano_opt(hour, min, sec, nano).expect("Invalid input").timestamp_nanos()
+    date.and_hms_nano_opt(hour, min, sec, nano)
+        .expect("Invalid input")
+        .timestamp_nanos_opt()
+        .expect("Out of range, cannot create Date")
 }
 
 /// .
@@ -79,7 +82,8 @@ pub extern "C" fn concat_date(in1: i32, in2: u32, in3: u32) -> i64 {
     let dt = NaiveDate::from_ymd_opt(in1, in2, in3)
         .and_then(|date| date.and_hms_opt(0, 0, 0))
         .expect("Invalid parameters, cannot create date");
-    dt.timestamp_nanos()
+
+    dt.timestamp_nanos_opt().expect("Out of range, cannot create date")
 }
 
 /// .
@@ -163,7 +167,8 @@ pub extern "C" fn concat_tod(in1: u32, in2: u32, in3: u32, in4: u32) -> i64 {
     let dt = NaiveDate::from_ymd_opt(1970, 1, 1)
         .and_then(|date| date.and_hms_milli_opt(in1, in2, in3, in4))
         .expect("Invalid parameters, cannot create TOD");
-    dt.timestamp_nanos()
+
+    dt.timestamp_nanos_opt().expect("Out of range, cannot create TOD")
 }
 
 /// .
