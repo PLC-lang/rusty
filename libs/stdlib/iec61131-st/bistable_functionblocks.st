@@ -10,11 +10,11 @@ Return: Output is used as return
 {external}
 FUNCTION_BLOCK SR
 VAR_INPUT
-	SET1: BOOL;	
-	RESET: BOOL;
+    SET1: BOOL;
+    RESET: BOOL;
 END_VAR
 VAR_OUTPUT
-	Q1: BOOL;
+    Q1: BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -30,10 +30,10 @@ Return: Output is used as return
 {external}
 FUNCTION_BLOCK RS
 VAR_INPUT
-	SET: 	BOOL;
-	RESET1: BOOL;
+    SET:    BOOL;
+    RESET1: BOOL;
 END_VAR
 VAR_OUTPUT
-	Q1:		BOOL;
+    Q1:     BOOL;
 END_VAR
 END_FUNCTION_BLOCK

@@ -19,7 +19,7 @@ struct MainType {
 #[test]
 fn bitaccess_assignment() {
     let prog = "
-    PROGRAM main 
+    PROGRAM main
     VAR
         a : BYTE := 2#0000_0101;
         b : WORD := 0;
@@ -98,9 +98,9 @@ fn qualified_reference_assignment() {
 #[test]
 fn bitaccess_test() {
     let prog = "
-    PROGRAM main 
-    VAR 
-        variable    : LWORD; 
+    PROGRAM main
+    VAR
+        variable    : LWORD;
         access_var  : INT;
         bitTarget   : BOOL;
         bitTarget2  : BOOL;
@@ -138,8 +138,8 @@ fn bitaccess_test() {
 fn bitaccess_with_var_test() {
     let prog = "
     PROGRAM main
-    VAR 
-        variable    : LWORD; 
+    VAR
+        variable    : LWORD;
         access_var  : INT;
         bitTarget   : BOOL;
         bitTarget2  : BOOL;

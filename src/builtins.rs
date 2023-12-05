@@ -8,8 +8,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstNode, AstStatement, CompilationUnit, GenericBinding,
-        LinkageType, TypeNature,
+        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
+        GenericBinding, LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -23,10 +23,10 @@ use crate::{
     lexer, parser,
     resolver::{
         self,
-        generics::{no_generic_name_resolver, GenericType},
+        generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_literal_actual_signed_type_name},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name},
     validation::{Validator, Validators},
 };
 
@@ -68,7 +68,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, _| {
+                annotation: Some(|annotator, _, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
@@ -288,8 +288,8 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
-                    annotate_variable_length_array_bound_function(annotator, parameters)
+                annotation: Some(|annotator, _, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -311,8 +311,8 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                annotation: Some(|annotator, _, parameters, _| {
-                    annotate_variable_length_array_bound_function(annotator, parameters)
+                annotation: Some(|annotator, _, _, parameters, _| {
+                    annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -323,7 +323,394 @@ lazy_static! {
                 }
             }
         ),
+        // Arithmetic functions
+        (
+            "ADD",
+            BuiltIn {
+                decl: "FUNCTION ADD<T: ANY_NUM> : T
+                    VAR_INPUT
+                        args: {sized} T...;
+                    END_VAR
+                    END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("ADD is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "MUL",
+            BuiltIn {
+                decl: "FUNCTION MUL<T: ANY_NUM> : T
+                VAR_INPUT
+                    args: {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
+                }),
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("MUL is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "SUB",
+            BuiltIn {
+                decl: "FUNCTION SUB<T1: ANY, T2: ANY> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("SUB is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "DIV",
+            BuiltIn {
+                decl: "FUNCTION DIV<T1: ANY, T2: ANY> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("DIV is not generated as a function call");
+                }
+            }
+        ),
+        // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
+        (
+            "GT",
+            BuiltIn {
+                decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater);
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Greater)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("GT is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "GE",
+            BuiltIn {
+                decl: "FUNCTION GE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual);
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::GreaterOrEqual)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("GE is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "EQ",
+            BuiltIn {
+                decl: "FUNCTION EQ<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal);
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Equal)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("EQ is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "LE",
+            BuiltIn {
+                decl: "FUNCTION LE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual);
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::LessOrEqual)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("LE is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "LT",
+            BuiltIn {
+                decl: "FUNCTION LT<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less);
+                }),
+                validation:Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Less)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("LT is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "NE",
+            BuiltIn {
+                decl: "FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
+                VAR_INPUT
+                    IN1 : T;
+                    IN2 : T;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual);
+                }),
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::NotEqual)
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code : |_, _, _| {
+                    unreachable!("NE is not generated as a function call");
+                }
+            }
+        ),
     ]);
+}
+
+fn validate_builtin_symbol_parameter_count(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
+    operation: Operator,
+) {
+    let Some(params) = parameters else {
+        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        return;
+    };
+
+    let count = flatten_expression_list(params).len();
+    match operation {
+        // non-extensible operators
+        Operator::Minus | Operator::Division | Operator::NotEqual => {
+            if count != 2 {
+                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                    2,
+                    count,
+                    operator.get_location(),
+                ));
+            }
+        }
+        _ => {
+            if count < 2 {
+                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                    2,
+                    count,
+                    operator.get_location(),
+                ));
+            }
+        }
+    }
+}
+
+// creates nested BinaryExpressions for each parameter, such that
+// GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
+fn annotate_comparison_function(
+    annotator: &mut TypeAnnotator,
+    statement: &AstNode,
+    operator: &AstNode,
+    parameters: &AstNode,
+    ctx: VisitorContext,
+    operation: Operator,
+) {
+    let mut ctx = ctx;
+    let params_flattened = flatten_expression_list(parameters);
+    if params_flattened.iter().any(|it| {
+        !annotator
+            .annotation_map
+            .get_type_or_void(it, annotator.index)
+            .has_nature(TypeNature::Elementary, annotator.index)
+    }) {
+        // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
+        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        return;
+    }
+
+    let comparisons = params_flattened
+        .windows(2)
+        .map(|window| {
+            AstFactory::create_binary_expression(
+                window[0].clone(),
+                operation,
+                window[1].clone(),
+                ctx.id_provider.next_id(),
+            )
+        })
+        .collect::<Vec<_>>();
+    let Some(new_statement) = comparisons.get(0) else {
+        // no windows => less than 2 parameters, caught during validation
+        return;
+    };
+    let mut new_statement = new_statement.clone();
+    comparisons.into_iter().skip(1).for_each(|right| {
+        new_statement = AstFactory::create_binary_expression(
+            new_statement.clone(),
+            Operator::And,
+            right,
+            ctx.id_provider.next_id(),
+        )
+    });
+
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
+}
+
+fn annotate_arithmetic_function(
+    annotator: &mut TypeAnnotator,
+    statement: &AstNode,
+    operator: &AstNode,
+    parameters: &AstNode,
+    ctx: VisitorContext,
+    operation: Operator,
+) {
+    let params_flattened = flatten_expression_list(parameters);
+    if params_flattened.iter().any(|it| {
+        !annotator
+            .annotation_map
+            .get_type_or_void(it, annotator.index)
+            .has_nature(TypeNature::Num, annotator.index)
+    }) {
+        // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
+        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        return;
+    }
+
+    let mut ctx = ctx;
+    // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
+    // mutable and immutable borrow of TypeAnnotator
+    let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
+        let mut bigger = annotator
+            .annotation_map
+            .get_type_or_void(params_flattened.get(0).expect("must have this parameter"), annotator.index);
+
+        for param in params_flattened.iter().skip(1) {
+            let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
+            bigger = get_bigger_type(bigger, right_type, annotator.index);
+        }
+
+        bigger.get_name().to_owned()
+    };
+
+    let bigger_type = find_biggest_param_type_name(annotator);
+
+    // create nested AstStatement::BinaryExpression for each parameter, such that
+    // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
+    let left = (*params_flattened.get(0).expect("Must exist")).clone();
+    let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+        AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
+    });
+
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
 }
 
 fn annotate_variable_length_array_bound_function(
@@ -497,7 +884,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, Option<&AstNode>, VisitorContext);
+type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
@@ -549,7 +936,7 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
     unit
 }
 
-/// Returns the requested functio from the builtin index or None
+/// Returns the requested function from the builtin index or None
 pub fn get_builtin(name: &str) -> Option<&'static BuiltIn> {
     BUILTIN.get(name.to_uppercase().as_str())
 }

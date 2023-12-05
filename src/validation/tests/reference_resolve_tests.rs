@@ -62,7 +62,7 @@ fn resole_struct_member_access() {
                 subfield3: INT;
                 END_STRUCT
             END_TYPE
- 
+
             TYPE MyStruct: STRUCT
                 field1: INT;
                 field2: INT;
@@ -72,8 +72,8 @@ fn resole_struct_member_access() {
             END_TYPE
 
             PROGRAM prg
-                VAR 
-                    a : INT; 
+                VAR
+                    a : INT;
                     s : MyStruct;
                 END_VAR
                 (* should be fine *)
@@ -85,7 +85,7 @@ fn resole_struct_member_access() {
                 s.field10;
                 s.field20;
                 s.field30;
- 
+
                 (* should be fine*)
                 s.sub.subfield1;
                 s.sub.subfield2;
@@ -115,7 +115,7 @@ fn resolve_function_block_calls_field_access() {
             END_FUNCTION_BLOCK
 
             PROGRAM prg
-                VAR 
+                VAR
                     s : FB;
                 END_VAR
                 s;
@@ -150,9 +150,9 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
                 fb2: FB;
                 END_STRUCT
             END_TYPE
- 
+
            PROGRAM prg
-                VAR 
+                VAR
                     s : MyStruct;
                 END_VAR
 
@@ -176,7 +176,7 @@ fn resolve_function_members_via_qualifier() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-                VAR 
+                VAR
                     s : MyStruct;
                 END_VAR
                 foo(a := 1, b := 2, c := 3);    (* ok *)
@@ -202,7 +202,7 @@ fn reference_to_private_variable_is_illegal() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-                VAR 
+                VAR
                     s : INT;
                 END_VAR
             END_PROGRAM
@@ -233,7 +233,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
 
             FUNCTION_BLOCK fb2
                 VAR_INPUT
-                    x : INT;                    
+                    x : INT;
                 END_VAR
             END_FUNCTION_BLOCK
 
@@ -257,7 +257,7 @@ fn program_vars_are_allowed_in_their_actions() {
     let diagnostics = parse_and_validate(
         "
             PROGRAM prg
-                VAR 
+                VAR
                     s : INT;
                 END_VAR
             END_PROGRAM
@@ -276,7 +276,7 @@ fn program_vars_are_allowed_in_their_actions() {
 fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
     let diagnostics = parse_and_validate(
         "
-		PROGRAM main
+        PROGRAM main
         VAR
             FileOpen : REF_TO file;
         END_VAR
@@ -303,7 +303,7 @@ fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
 fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
     let diagnostics = parse_and_validate(
         "
-		PROGRAM mainProg
+        PROGRAM mainProg
         VAR
             var_str1 : STRUCT1 := (myArr := [(x1 := FALSE, x2 := TRUE)]);
         END_VAR

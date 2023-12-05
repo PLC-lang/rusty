@@ -102,7 +102,7 @@ fn using_enums() {
     let src = r#"
         TYPE ProcessState : (open := 1, closed := 4, idle, running);
         END_TYPE;
- 
+
         TYPE Door : (open := 8, closed := 16);
         END_TYPE;
 

@@ -211,24 +211,24 @@ fn pointer_compare_instructions() {
     // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
     let result = codegen(
         "
-		PROGRAM main
-		VAR
-			x : INT := 10;
-			y : INT := 20;
-			pt : REF_TO INT;
-			comp : BOOL;
-		END_VAR
-		pt := &(x);
+        PROGRAM main
+        VAR
+            x : INT := 10;
+            y : INT := 20;
+            pt : REF_TO INT;
+            comp : BOOL;
+        END_VAR
+        pt := &(x);
 
-		(* compare pointer-pointer / pointer-int *)
-		comp := pt = pt;
-		comp := pt <> y;
-		comp := pt < pt;
-		comp := pt > y;
-		comp := pt <= pt;
-		comp := y >= pt;
-		END_PROGRAM
-		",
+        (* compare pointer-pointer / pointer-int *)
+        comp := pt = pt;
+        comp := pt <> y;
+        comp := pt < pt;
+        comp := pt > y;
+        comp := pt <= pt;
+        comp := y >= pt;
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -241,23 +241,23 @@ fn pointer_function_call_compare_instructions() {
         FUNCTION foo : LINT
         END_FUNCTION
 
-		PROGRAM main
-		VAR
-			pt : REF_TO INT;
+        PROGRAM main
+        VAR
+            pt : REF_TO INT;
             x : INT;
-			comp : BOOL;
-		END_VAR
-		pt := &(x);
+            comp : BOOL;
+        END_VAR
+        pt := &(x);
 
-		(* compare pointer-pointer / pointer-int *)
-		comp := pt = foo();
-		comp := pt <> foo();
-		comp := pt < foo();
-		comp := pt > foo();
-		comp := pt <= foo();
-		comp := pt >= foo();
-		END_PROGRAM
-		",
+        (* compare pointer-pointer / pointer-int *)
+        comp := pt = foo();
+        comp := pt <> foo();
+        comp := pt < foo();
+        comp := pt > foo();
+        comp := pt <= foo();
+        comp := pt >= foo();
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -266,56 +266,135 @@ fn pointer_function_call_compare_instructions() {
 fn compare_instructions_with_different_types() {
     let result = codegen(
         "
-		TYPE MySubRangeInt: INT(0..500); END_TYPE
-		TYPE MyDint: DINT; END_TYPE
+        TYPE MySubRangeInt: INT(0..500); END_TYPE
+        TYPE MyDint: DINT; END_TYPE
 
         FUNCTION foo : LINT
         END_FUNCTION
 
-		PROGRAM main
-		VAR
-			ptr_int : REF_TO INT;
+        PROGRAM main
+        VAR
+            ptr_int : REF_TO INT;
 
-			a : MySubRangeInt;
-			b : MyDint;
+            a : MySubRangeInt;
+            b : MyDint;
 
-			var_sint : SINT;
+            var_sint : SINT;
             var_int  : INT;
-			var_dint : DINT;
-			var_lint : LINT;
-			
-			var_usint : USINT;
+            var_dint : DINT;
+            var_lint : LINT;
+
+            var_usint : USINT;
             var_uint  : UINT;
-			var_udint : UDINT;
-			var_ulint : ULINT;
-		END_VAR
-			ptr_int := &(var_int);
+            var_udint : UDINT;
+            var_ulint : ULINT;
+        END_VAR
+            ptr_int := &(var_int);
 
-			var_sint = var_dint;
-			var_int < 30;
-			10 > var_lint;
+            var_sint = var_dint;
+            var_int < 30;
+            10 > var_lint;
 
-			var_usint <> var_udint;
-			var_uint <= UDINT#40;
-			UDINT#10 >= var_ulint;
+            var_usint <> var_udint;
+            var_uint <= UDINT#40;
+            UDINT#10 >= var_ulint;
 
-			var_sint = var_usint;
-			var_uint <= var_lint;
-			var_dint >= var_ulint;
+            var_sint = var_usint;
+            var_uint <= var_lint;
+            var_dint >= var_ulint;
 
-			var_lint < a;
-			a > var_sint;
-			b < var_lint;
-			SINT#5 <> b;
+            var_lint < a;
+            a > var_sint;
+            b < var_lint;
+            SINT#5 <> b;
 
-			ptr_int <= var_usint;
-			a = ptr_int;
+            ptr_int <= var_usint;
+            a = ptr_int;
 
-			foo() <> 40;
-			var_udint <= foo();
-			foo() = var_lint;
-		END_PROGRAM
-		",
+            foo() <> 40;
+            var_udint <= foo();
+            foo() = var_lint;
+        END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn compare_instruction_functions_with_different_types() {
+    let result = codegen(
+        "
+        TYPE MySubRangeInt: INT(0..500); END_TYPE
+        TYPE MyDint: DINT; END_TYPE
+
+        FUNCTION foo : REAL
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            ptr_float : REF_TO REAL;
+
+            a : MySubRangeInt;
+            b : MyDint;
+
+            var_real : REAL;
+            var_lreal : LREAL;
+
+            var_sint : SINT;
+            var_int  : INT;
+            var_dint : DINT;
+            var_lint : LINT;
+
+            var_usint : USINT;
+            var_uint  : UINT;
+            var_udint : UDINT;
+            var_ulint : ULINT;
+        END_VAR
+            ptr_float := &(var_real);
+
+            EQ(var_sint, var_dint)
+            GT(var_int, 30);
+            GT(10.5, var_lreal);
+
+            NE(var_usint, var_udint);
+            LE(var_uint, UDINT#40);
+            GE(UDINT#10, var_ulint);
+
+            EQ(var_sint, var_usint);
+            LE(var_uint, var_lint);
+            GE(var_dint, var_ulint);
+
+            LT(var_lint, a);
+            GT(a, var_sint);
+            LT(b, var_lint);
+            NE(SINT#5, b, 17);
+
+            LE(ptr_float, var_usint);
+            EQ(a, ptr_float);
+
+            NE(foo(), 40.5);
+            LE(var_udint, foo());
+            EQ(foo(), var_lint);
+        END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn compare_datetime_types() {
+    let result = codegen(
+        "
+        PROGRAM main
+        VAR
+            var_time: TIME;
+            var_time_of_day: TIME_OF_DAY;
+            var_date: DATE;
+            var_date_and_time: DATE_AND_TIME;
+        END_VAR
+            GT(var_time, var_time_of_day, var_date, var_date_and_time);
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }

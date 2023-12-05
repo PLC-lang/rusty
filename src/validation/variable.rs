@@ -169,7 +169,7 @@ mod variable_validator_tests {
         let diagnostics = parse_and_validate_buffered(
             "
         TYPE the_struct : STRUCT END_STRUCT END_TYPE
-            
+
         PROGRAM prg
             VAR
                 my_struct : STRUCT
@@ -186,7 +186,7 @@ mod variable_validator_tests {
         let diagnostics = parse_and_validate_buffered(
             "
         TYPE my_enum : (); END_TYPE
-            
+
         PROGRAM prg
             VAR
                 my_enum : ();
@@ -203,7 +203,7 @@ mod variable_validator_tests {
             "VAR_GLOBAL
                 x : (red, yellow, green) := 2; // error
             END_VAR
-    
+
             PROGRAM  main
             VAR
                 y : (metallic := 1, matte := 2, neon := 3) := red; // error

@@ -29,13 +29,13 @@ fn qualified_reference_statement_parsed() {
 
 #[test]
 fn bitwise_access_parsed() {
-    let src = "PROGRAM exp 
-    a.0; 
-    a.%X1; 
-    a.%B1; 
+    let src = "PROGRAM exp
+    a.0;
+    a.%X1;
+    a.%B1;
     a.%Bb;
-    a[0].%W1; 
-    a.b.%D1; 
+    a[0].%W1;
+    a.b.%D1;
     a.%B1.%X1;
     END_PROGRAM";
     let (result, diagnostics) = parse(src);
@@ -121,8 +121,8 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
 
 #[test]
 fn binary_stmts_of_two_variables_parsed() {
-    let src = "PROGRAM exp 
-        x+y; 
+    let src = "PROGRAM exp
+        x+y;
         x.y = y.z;
         x.y - y.z;
         &x.y = y.z;
@@ -266,8 +266,8 @@ fn equality_expression_test() {
 
 #[test]
 fn comparison_expression_test() {
-    let src = "PROGRAM exp 
-                                    a < 3; 
+    let src = "PROGRAM exp
+                                    a < 3;
                                     b > 0;
                                     c <= 7;
                                     d >= 4;
@@ -304,7 +304,7 @@ fn boolean_expression_param_ast_test() {
 #[test]
 fn signed_literal_minus_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         -1;
         END_PROGRAM
         ";
@@ -319,9 +319,9 @@ fn signed_literal_minus_test() {
 #[test]
 fn literal_date_test() {
     let src = "
-        PROGRAM exp 
-            DATE#1984-10-01; 
-            D#2021-04-20; 
+        PROGRAM exp
+            DATE#1984-10-01;
+            D#2021-04-20;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -344,8 +344,8 @@ fn literal_date_test() {
 #[test]
 fn literal_long_date_test() {
     let src = "
-        PROGRAM exp 
-            LDATE#1984-10-01; 
+        PROGRAM exp
+            LDATE#1984-10-01;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -363,7 +363,7 @@ fn literal_long_date_test() {
 #[test]
 fn literal_time_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             T#12d;
             T#12.4d;
             TIME#-12m;
@@ -475,7 +475,7 @@ fn literal_time_test() {
 #[test]
 fn literal_long_time_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             LTIME#12d;
             LTIME#12.4d;
         END_PROGRAM
@@ -510,14 +510,14 @@ fn literal_long_time_test() {
 #[test]
 fn literal_time_of_day_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             TOD#12:00:00;
             TOD#00:12:00;
             TOD#00:00:12;
             TIME_OF_DAY#04:16:22;
             TIME_OF_DAY#04:16:22.1;
             TIME_OF_DAY#04:16:22.001002003;
-			TIME_OF_DAY#04:16;
+            TIME_OF_DAY#04:16;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -572,7 +572,7 @@ fn literal_time_of_day_test() {
 #[test]
 fn literal_long_time_of_day_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             LTOD#12:00:00.123456789;
             LTOD#00:12:00.99;
             LTOD#00:00:12;
@@ -606,11 +606,11 @@ fn literal_long_time_of_day_test() {
 #[test]
 fn literal_date_and_time_test() {
     let src = "
-        PROGRAM exp 
-            DATE_AND_TIME#1984-10-01-16:40:22; 
-            DT#2021-04-20-22:33:14; 
-            DT#2021-04-20-22:33:14.999999999; 
-			DATE_AND_TIME#2000-01-01-20:15;
+        PROGRAM exp
+            DATE_AND_TIME#1984-10-01-16:40:22;
+            DT#2021-04-20-22:33:14;
+            DT#2021-04-20-22:33:14.999999999;
+            DATE_AND_TIME#2000-01-01-20:15;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -659,8 +659,8 @@ fn literal_date_and_time_test() {
 #[test]
 fn literal_long_date_and_time_test() {
     let src = "
-        PROGRAM exp 
-            LDT#1984-10-01-16:40:22.123456789; 
+        PROGRAM exp
+            LDT#1984-10-01-16:40:22.123456789;
             LDT#2021-04-20-22:33:14;
         END_PROGRAM
         ";
@@ -692,7 +692,7 @@ fn literal_long_date_and_time_test() {
 #[test]
 fn literal_real_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         1.1;
         1.2e3;
         1.2e-4;
@@ -748,7 +748,7 @@ fn cast(data_type: &str, value: AstNode) -> AstNode {
 #[test]
 fn literal_enum_parse_test() {
     let src = r#"
-        PROGRAM exp 
+        PROGRAM exp
             MyEnum#Val7;
             MyEnum#Val2;
             MyEnum#Val3;
@@ -764,7 +764,7 @@ fn literal_enum_parse_test() {
 #[test]
 fn literal_cast_parse_test() {
     let src = r#"
-        PROGRAM exp 
+        PROGRAM exp
             SINT#100;
             DINT#16#AFFE;
             BYTE#8#77;
@@ -776,8 +776,8 @@ fn literal_cast_parse_test() {
             BOOL#FALSE;
             STRING#"abc";
             WSTRING#'xyz';
-			CHAR#"A";
-			WCHAR#'B';
+            CHAR#"A";
+            WCHAR#'B';
         END_PROGRAM
         "#;
     let result = parse(src).0;
@@ -816,7 +816,7 @@ fn literal_cast_parse_test() {
 #[test]
 fn literal_exponents_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         1_2e3;
         12e3;
         12.0e3;
@@ -857,7 +857,7 @@ fn literal_exponents_test() {
 #[test]
 fn signed_literal_expression_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         2 +-x;
         END_PROGRAM
         ";
@@ -872,7 +872,7 @@ fn signed_literal_expression_test() {
 #[test]
 fn assignment_to_null() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x := NULL;
         END_PROGRAM
         ";
@@ -887,12 +887,12 @@ fn assignment_to_null() {
 #[test]
 fn assignment_to_number_with_implicit_and_explicit_plus_sign() {
     let src = "
-        PROGRAM exp 
-            VAR 
-                x : INT; 
-            END_VAR 
-            x := 1; 
-            x := +1; 
+        PROGRAM exp
+            VAR
+                x : INT;
+            END_VAR
+            x := 1;
+            x := +1;
         END_PROGRAM
     ";
 
@@ -905,12 +905,12 @@ fn assignment_to_number_with_implicit_and_explicit_plus_sign() {
 #[test]
 fn assignment_to_number_reference_with_explicit_plus_sign() {
     let src = "
-        PROGRAM exp 
-            VAR 
-                x : INT; 
-            END_VAR 
-            x := 1; 
-            x := +x; 
+        PROGRAM exp
+            VAR
+                x : INT;
+            END_VAR
+            x := 1;
+            x := +x;
         END_PROGRAM
     ";
 
@@ -922,7 +922,7 @@ fn assignment_to_number_reference_with_explicit_plus_sign() {
 #[test]
 fn pointer_address_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         &x;
         END_PROGRAM
         ";
@@ -936,7 +936,7 @@ fn pointer_address_test() {
 #[test]
 fn pointer_dereference_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x^;
         END_PROGRAM
         ";
@@ -951,7 +951,7 @@ fn pointer_dereference_test() {
 #[test]
 fn pointer_dereference_test_nested() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x^^[0][1]^[2]^^;
         END_PROGRAM
         ";
@@ -966,7 +966,7 @@ fn pointer_dereference_test_nested() {
 #[test]
 fn signed_literal_expression_reversed_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         -4 + 5;
         END_PROGRAM
         ";
@@ -981,7 +981,7 @@ fn signed_literal_expression_reversed_test() {
 #[test]
 fn or_compare_expressions_priority_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x > 1 OR b1;
         END_PROGRAM
         ";
@@ -996,7 +996,7 @@ fn or_compare_expressions_priority_test() {
 #[test]
 fn addition_compare_or_priority_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x + 1 > 2 OR b1;
         END_PROGRAM
         ";
@@ -1054,7 +1054,7 @@ fn amp_as_and_with_address_test() {
 #[test]
 fn boolean_priority_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         a AND b XOR c OR d;
         END_PROGRAM
         ";
@@ -1069,7 +1069,7 @@ fn boolean_priority_test() {
 #[test]
 fn comparison_priority_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x < 7 = y > 6;
         END_PROGRAM
         ";
@@ -1084,7 +1084,7 @@ fn comparison_priority_test() {
 fn expression_list() {
     //technically this is an illegal state, the parser will accept it though
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         1,2,3;
         END_PROGRAM
         ";
@@ -1100,7 +1100,7 @@ fn expression_list() {
 fn expression_list_assignments() {
     //technically this is an illegal state, the parser will accept it though
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         x := 1, y := 2, z:= 3;
         END_PROGRAM
         ";
@@ -1115,7 +1115,7 @@ fn expression_list_assignments() {
 #[test]
 fn range_expression() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         a..b;
         1..2;
         a..2;
@@ -1133,7 +1133,7 @@ fn range_expression() {
 #[test]
 fn negative_range_expression() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         -2..-1;
         END_PROGRAM
         ";
@@ -1158,7 +1158,7 @@ fn negative_range_expression() {
 #[test]
 fn negative_range_expression_space() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         -2 ..-1;
         END_PROGRAM
         ";
@@ -1183,7 +1183,7 @@ fn negative_range_expression_space() {
 #[test]
 fn range_expression2() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         1 .. 2;
         END_PROGRAM
         ";
@@ -1567,7 +1567,7 @@ fn qualified_reference_location_test() {
 #[test]
 fn expressions_location_test() {
     let source = "
-    PROGRAM prg 
+    PROGRAM prg
         a + b;
         x + z - y + u - v;
         -x;

@@ -12,13 +12,13 @@ FUNCTION main : DINT
 END_FUNCTION
 
 FUNCTION MyGT : BOOL
-	VAR_INPUT
-		a, b : DINT;
-	END_VAR
+    VAR_INPUT
+        a, b : DINT;
+    END_VAR
 
-	IF a > b THEN
-		MyGT := TRUE;
-	ELSE
-		MyGT := FALSE;
-	END_IF
+    IF a > b THEN
+        MyGT := TRUE;
+    ELSE
+        MyGT := FALSE;
+    END_IF
 END_FUNCTION

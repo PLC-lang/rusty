@@ -1,3 +1,4 @@
+use insta::assert_debug_snapshot;
 use plc_ast::{
     ast::{flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement},
     provider::IdProvider,
@@ -512,7 +513,7 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 fn builtin_adr_ref_return_annotated() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
-        "PROGRAM main 
+        "PROGRAM main
         VAR_INPUT
             input1 : REF_TO DINT;
             param1 : DINT;
@@ -573,7 +574,7 @@ fn resolve_variadic_generics() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-    FUNCTION ex<U: ANY> : U 
+    FUNCTION ex<U: ANY> : U
     VAR_INPUT
         ar : {sized}U...;
     END_VAR
@@ -613,14 +614,14 @@ fn generic_call_gets_cast_to_biggest_type() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         r"
- 
+
     {external}
     FUNCTION MAX<T : ANY> : T
         VAR_INPUT
             args : {sized} T...;
         END_VAR
     END_FUNCTION
- 
+
     FUNCTION main : LREAL
         MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
     END_FUNCTION",
@@ -694,13 +695,13 @@ fn auto_pointer_of_generic_resolved() {
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT_EXT<T : ANY> : DINT
         VAR_IN_OUT
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT__DINT : DINT
         VAR_INPUT
             IN : DINT;
@@ -731,14 +732,14 @@ fn string_ref_as_generic_resolved() {
             IN : T;
         END_VAR
         END_FUNCTION
-    
+
         FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
         VAR_INPUT {ref}
             IN : T;
         END_VAR
         END_FUNCTION
-    
-        FUNCTION LEFT__STRING : STRING 
+
+        FUNCTION LEFT__STRING : STRING
         VAR_INPUT
             IN : STRING;
         END_VAR
@@ -790,18 +791,18 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
         PROGRAM PRG
             VAR
                 a : INT;
-				b : UINT;
+                b : UINT;
             END_VAR
             myFunc(REAL#1.0);
             myFunc(SINT#1);
             myFunc(a);
             myFunc(DINT#1);
-			myFunc(LINT#1);
+            myFunc(LINT#1);
 
-			myFunc(USINT#1);
+            myFunc(USINT#1);
             myFunc(b);
             myFunc(UDINT#1);
-			myFunc(ULINT#1);
+            myFunc(ULINT#1);
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -832,7 +833,7 @@ fn generic_string_functions_are_annotated_correctly() {
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR        
+        END_VAR
         END_FUNCTION
 
         FUNCTION foo__STRING : STRING
@@ -878,7 +879,7 @@ fn generic_string_functions_are_annotated_correctly() {
 fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-        r#"         
+        r#"
         FUNCTION LEN <T: ANY_STRING> : DINT
         VAR_INPUT {ref}
             IN : T;
@@ -943,7 +944,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
             in : T;
-        END_VAR      
+        END_VAR
         VAR_OUTPUT {ref}
             out : T;
         END_VAR
@@ -1093,18 +1094,8 @@ fn generic_function_sharing_a_datatype_name_resolves() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];
 
-    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }, ..), .. } = statement {
-        assert_eq!(
-            annotations.get(operator).unwrap(),
-            &StatementAnnotation::Function {
-                return_type: "BOOL".to_string(),
-                qualified_name: "LT".to_string(),
-                call_name: Some("LT__STRING".to_string()),
-            }
-        );
-    } else {
-        unreachable!("This should always be a call statement.")
-    }
+    // comparision function calls are resolved to replacement-AST expressions
+    assert_debug_snapshot!(annotations.get(statement));
 }
 
 #[test]

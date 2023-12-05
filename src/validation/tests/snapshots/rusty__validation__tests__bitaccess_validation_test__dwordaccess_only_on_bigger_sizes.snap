@@ -2,7 +2,7 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: res
 ---
-SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 20, offset: 197 }..TextLocation { line: 9, column: 23, offset: 200 }) }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 21, offset: 223 }..TextLocation { line: 10, column: 24, offset: 226 }) }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 21, offset: 249 }..TextLocation { line: 11, column: 24, offset: 252 }) }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 20, offset: 196 }..TextLocation { line: 9, column: 23, offset: 199 }) }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 21, offset: 222 }..TextLocation { line: 10, column: 24, offset: 225 }) }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 21, offset: 248 }..TextLocation { line: 11, column: 24, offset: 251 }) }], err_no: type__incompatible_directaccess }
 

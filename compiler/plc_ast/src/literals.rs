@@ -100,8 +100,12 @@ fn calculate_date_time(
 ) -> Result<i64, String> {
     NaiveDate::from_ymd_opt(year, month, day)
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .map(|date_time| date_time.timestamp_nanos())
         .ok_or_else(|| format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
+        .and_then(|date_time| {
+            date_time
+                .timestamp_nanos_opt()
+                .ok_or_else(|| format!("Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
+        })
 }
 
 impl DateAndTime {

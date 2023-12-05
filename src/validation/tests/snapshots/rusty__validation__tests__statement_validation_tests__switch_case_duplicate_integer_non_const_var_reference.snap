@@ -2,8 +2,8 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 4, offset: 165 }..TextLocation { line: 13, column: 5, offset: 166 }) }], err_no: type__invalid_type }
-SyntaxError { message: "'y' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 4, offset: 216 }..TextLocation { line: 15, column: 5, offset: 217 }) }], err_no: type__invalid_type }
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 4, offset: 267 }..TextLocation { line: 17, column: 7, offset: 270 }) }], err_no: type__invalid_type }
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 4, offset: 346 }..TextLocation { line: 21, column: 11, offset: 353 }) }], err_no: type__invalid_type }
+SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 16, offset: 246 }..TextLocation { line: 13, column: 17, offset: 247 }) }], err_no: type__invalid_type }
+SyntaxError { message: "'y' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 16, offset: 324 }..TextLocation { line: 15, column: 17, offset: 325 }) }], err_no: type__invalid_type }
+SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 16, offset: 402 }..TextLocation { line: 17, column: 19, offset: 405 }) }], err_no: type__invalid_type }
+SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 16, offset: 535 }..TextLocation { line: 21, column: 23, offset: 542 }) }], err_no: type__invalid_type }
 

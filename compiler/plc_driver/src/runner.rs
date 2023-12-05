@@ -50,3 +50,14 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     module.print_to_stderr();
     module.run::<T, U>("main", params)
 }
+
+///
+/// A Convenience method to compile and then run the given source
+/// without external parameters
+///
+pub fn compile_and_run_no_params<U, S: Compilable>(source: S) -> U {
+    let context: CodegenContext = CodegenContext::create();
+    let module = compile(&context, source);
+    module.print_to_stderr();
+    module.run_no_param::<U>("main")
+}

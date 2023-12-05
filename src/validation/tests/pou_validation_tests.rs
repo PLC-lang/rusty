@@ -24,8 +24,8 @@ fn class_has_implementation() {
     // WHEN parse_and_validate is done
     let diagnostics = parse_and_validate(
         "
-        CLASS myCLASS 
-        VAR 
+        CLASS myCLASS
+        VAR
             LIGHT: BOOL;
         END_VAR
             LIGHT := TRUE;
@@ -46,7 +46,7 @@ fn program_has_super_class() {
         END_CLASS
 
         PROGRAM prog EXTENDS cls
-        END_PROGRAM 
+        END_PROGRAM
     ",
     );
     // THEN there should be one diagnostic -> Program cannot have super class
@@ -63,7 +63,7 @@ fn function_has_super_class() {
         END_CLASS
 
         FUNCTION func EXTENDS cls
-        END_FUNCTION 
+        END_FUNCTION
     ",
     );
     // THEN there should be one diagnostic -> Function cannot have super class
@@ -193,19 +193,19 @@ fn in_out_variable_out_of_order() {
 
         fb.foo(myOtherInOut := out2, myInOut := out1); // valid
     END_PROGRAM
-    
+
     FUNCTION_BLOCK fb_t
     VAR
-        myVar	: BOOL;
+        myVar   : BOOL;
     END_VAR
     VAR_INPUT
-        myInput	: USINT;    
+        myInput : USINT;
     END_VAR
     VAR_IN_OUT
-        myInOut	: BOOL;
+        myInOut : BOOL;
     END_VAR
     VAR_OUTPUT
-        myOut	: BOOL;
+        myOut   : BOOL;
     END_VAR
     VAR_IN_OUT
         myOtherInOut : BOOL;

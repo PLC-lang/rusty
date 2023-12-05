@@ -10,5 +10,5 @@ FUNCTION a : DINT END_FUNCTION
             y^.1 := 3;
             z^[0] := 4;
             z^[1].1 := 5;
-						a() := 5;
+            a() := 5;
         END_PROGRAM

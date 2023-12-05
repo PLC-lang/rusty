@@ -20,9 +20,9 @@ fn simple_class_with_defaults_can_be_parsed() {
 #[test]
 fn extends_can_be_parsed() {
     let src = "
-    CLASS MyClass 
+    CLASS MyClass
     END_CLASS
-    
+
     CLASS MyClass2 EXTENDS MyClass
     END_CLASS
     ";

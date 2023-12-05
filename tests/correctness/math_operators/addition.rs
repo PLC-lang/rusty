@@ -19,7 +19,7 @@ fn adds_in_result_dint_type() {
         foo := 10 + 50;
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
     VAR i1, i2: DINT; END_VAR
 
     i1 := 22 + 18;
@@ -246,8 +246,10 @@ fn add_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos() as u64;
-    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_var =
+        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let date_10_days =
+        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(res, date_10_days + date_var);
 }
 
@@ -272,8 +274,7 @@ fn adds_array_basic() {
 }
 
 //--------------------------
-
-fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {
+pub fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {
     let factor: T = NumCast::from(10.0.powi(decimal_places as i32)).unwrap();
     let a = (a * factor).round();
     let b = (b * factor).round();

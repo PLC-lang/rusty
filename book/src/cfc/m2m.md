@@ -21,10 +21,10 @@ Consider the heavily minified CFC file [`MyProgram.cfc`](m2m.md#myprogramcfc), w
             │ local_id:1  │        │ ref_local_id: 1 │
             └─────────────┘        └─────────────────┘
                                        local_id: 2
-``` 
+```
 
 The initial phase of the transformation process involves streaming the entire input file.
-During the streaming process, whenever important keywords such as `block` are encountered, they are directly mapped into a corresponding model structure. 
+During the streaming process, whenever important keywords such as `block` are encountered, they are directly mapped into a corresponding model structure.
 For example, when reaching the line `<block localId="3" ...>` within the XML file, we generate a model that can be represented as follows:
 ```rust,ignore
 struct Block {
@@ -44,7 +44,7 @@ This process is repeated for every element in the input file which has a corresp
 
 Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
 with the sequencing of block execution and inter-block links represented through corresponding `localId`, `refLocalId` and `excutionOrderId`,
-we have to order each element by their execution ID before proceeding to the next phase. 
+we have to order each element by their execution ID before proceeding to the next phase.
 Otherwise the generated AST statements would be out of order and hence semantically incorrect.
 
 ## Data-Model to AST
@@ -53,9 +53,9 @@ Consider the previous `block` example - the transformer first encounters the ele
 We then check and transform each parameter, input `a` and `b` corresponding to the variables `x` and `y` respectively. The result of this transformation looks as follows:
 
 ```rust,ignore
-CallStatement { 
-    operator: myAdd, 
-    parameters: [x, y] 
+CallStatement {
+    operator: myAdd,
+    parameters: [x, y]
 }
 ```
 
@@ -63,7 +63,7 @@ CallStatement {
 
 ```rust,ignore
 AssignmentStatement {
-    left: z, 
+    left: z,
     right: CallStatement {
         operator: myAdd,
         parameters: [x, y]

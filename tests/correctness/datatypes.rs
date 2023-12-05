@@ -524,7 +524,7 @@ fn unsinged_byte_expansion3() {
             arg3 : ULINT;
             result : ULINT;
         END_VAR
-        
+
         result := arg1 + (arg2 + arg3) + (arg2 + arg3);
         END_PROGRAM
         "#;
@@ -559,12 +559,12 @@ fn assign_short_string_to_long_string_variable() {
             text : STRING;
             text2 : STRING;
         END_VAR
-        
+
         text := 'abc';
 
         text2 := 'abcdefg';
         text2 := 'xyz';
-        
+
         END_PROGRAM
         "#;
 
@@ -606,12 +606,12 @@ fn assign_string_to_string() {
             text : STRING;
             text2 : STRING;
         END_VAR
-        
+
         text := 'abc';
 
         text2 := text;
         text := 'def';
-        
+
         END_PROGRAM
         "#;
 
@@ -906,7 +906,7 @@ fn function_return_string_by_ref_via_inout() {
             VAR_IN_OUT
                 ret: STRING;
             END_VAR
-            
+
             ret := 'abc';
         END_FUNCTION
 

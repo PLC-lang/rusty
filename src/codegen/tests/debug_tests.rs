@@ -61,8 +61,8 @@ fn test_global_var_float_added_to_debug_info() {
     let codegen = codegen(
         r#"
     VAR_GLOBAL
-        a : REAL; 
-        b : LREAL; 
+        a : REAL;
+        b : LREAL;
     END_VAR
     "#,
     );
@@ -75,9 +75,9 @@ fn test_global_var_array_added_to_debug_info() {
     let codegen = codegen(
         r#"
     VAR_GLOBAL
-        a : ARRAY[0..10] OF DINT; 
-        b : ARRAY[0..10, 11..20] OF DINT; 
-        c : ARRAY[0..10] OF ARRAY[11..20] OF DINT; 
+        a : ARRAY[0..10] OF DINT;
+        b : ARRAY[0..10, 11..20] OF DINT;
+        c : ARRAY[0..10] OF ARRAY[11..20] OF DINT;
     END_VAR
     "#,
     );
@@ -89,8 +89,8 @@ fn test_global_var_pointer_added_to_debug_info() {
     let codegen = codegen(
         r#"
     VAR_GLOBAL
-        a : REF_TO DINT; 
-        b : REF_TO ARRAY[0..10] DINT; 
+        a : REF_TO DINT;
+        b : REF_TO ARRAY[0..10] DINT;
     END_VAR
     "#,
     );

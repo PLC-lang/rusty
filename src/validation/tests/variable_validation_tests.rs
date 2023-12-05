@@ -6,7 +6,7 @@ use insta::assert_snapshot;
 fn uninitialized_constants_fall_back_to_the_default() {
     let diagnostics = parse_and_validate(
         "
-        VAR_GLOBAL 
+        VAR_GLOBAL
             gX : INT;
             gXi : INT := 7;
         END_VAR
@@ -17,7 +17,7 @@ fn uninitialized_constants_fall_back_to_the_default() {
         END_VAR
 
         PROGRAM prg
-            VAR 
+            VAR
                 x : INT;
                 xi : INT := 7;
             END_VAR
@@ -37,7 +37,7 @@ fn uninitialized_constants_fall_back_to_the_default() {
 fn unresolvable_variables_are_reported() {
     let diagnostics = parse_and_validate(
         "
-        VAR_GLOBAL 
+        VAR_GLOBAL
             gX : INT := 7 + cgX;
             gXi : INT := 7;
         END_VAR
@@ -48,7 +48,7 @@ fn unresolvable_variables_are_reported() {
         END_VAR
 
         PROGRAM prg
-            VAR 
+            VAR
                 x : INT;
                 xi : INT := 7;
             END_VAR
@@ -130,7 +130,7 @@ fn constant_fb_instances_are_illegal() {
                 testMethod := 1;
             END_METHOD
         END_CLASS
- 
+
         VAR_GLOBAL CONSTANT
             x : INT := 1;
             y : MyFb;
@@ -287,7 +287,7 @@ mod overflows {
             "
         VAR_GLOBAL CONSTANT
             a : INT := 16384; // OK
-            b : INT := 16384; // OK 
+            b : INT := 16384; // OK
             c : INT := a + b; // Will overflow
         END_VAR
         ",
@@ -302,8 +302,8 @@ mod overflows {
             "
         VAR_GLOBAL
             a : INT := 16384; // OK
-            b : INT := 16384; // OK 
-            c : INT := a + b; // Will overflow 
+            b : INT := 16384; // OK
+            c : INT := a + b; // Will overflow
         END_VAR
         ",
         );

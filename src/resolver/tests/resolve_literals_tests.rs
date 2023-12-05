@@ -114,12 +114,12 @@ fn date_literals_are_annotated() {
                 TIME#-12m;
                 TOD#00:00:12;
                 TIME_OF_DAY#04:16:22;
-				TIME_OF_DAY#04:16;
-                DATE_AND_TIME#1984-10-01-16:40:22; 
-                DT#2021-04-20-22:33:14; 
-				DATE_AND_TIME#2000-01-01-20:15;
-                DATE#1984-10-01; 
-                D#2021-04-20; 
+                TIME_OF_DAY#04:16;
+                DATE_AND_TIME#1984-10-01-16:40:22;
+                DT#2021-04-20-22:33:14;
+                DATE_AND_TIME#2000-01-01-20:15;
+                DATE#1984-10-01;
+                D#2021-04-20;
             END_PROGRAM",
         id_provider.clone(),
     );
@@ -149,9 +149,9 @@ fn long_date_literals_are_annotated() {
     let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 LTIME#12.4d;
-				LDATE#1984-10-01;
-				LDT#1984-10-01-16:40:22;
-				LTOD#00:00:12;
+                LDATE#1984-10-01;
+                LDT#1984-10-01-16:40:22;
+                LTOD#00:00:12;
             END_PROGRAM",
         id_provider.clone(),
     );
@@ -222,10 +222,10 @@ fn enum_literals_are_annotated() {
             TYPE Color: (Green, Yellow, Red); END_TYPE
             TYPE Animal: (Dog, Cat, Horse); END_TYPE
 
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 Cat : BOOL;
             END_VAR
-        
+
             PROGRAM PRG
                 VAR Yellow: BYTE; END_VAR
 
@@ -462,11 +462,11 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-			VAR_GLOBAL
-				a : ARRAY[0..2] OF INT := 1+1,2;
-				b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
-			END_VAR
-		",
+            VAR_GLOBAL
+                a : ARRAY[0..2] OF INT := 1+1,2;
+                b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
+            END_VAR
+        ",
         id_provider.clone(),
     );
 

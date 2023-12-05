@@ -62,4 +62,4 @@ While a fully fledged compiler generates machine code as a last step, RuSTy gene
     │                │    │            │   │            │   │            │   │            │
     │                │    │            │   │            │   │            │   │            │
     └────────────────┘    └────────────┘   └────────────┘   └────────────┘   └────────────┘
-```        
+```

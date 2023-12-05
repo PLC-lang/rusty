@@ -470,6 +470,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
+            // let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
+            //     self.annotations.get(operator)
+            // {
+            //     statement.get_as_list()
+            // } else {
+            //     parameters_list
+            // };
+
             return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 

@@ -96,7 +96,7 @@ An `ST` program called `ExternalFunctions.st` with the following code can be dec
 (*ExternalFunctions.st*)
 
 (**
- * The printf function's interface, marked as external since 
+ * The printf function's interface, marked as external since
  * it is defined directly along other ST functions
  *)
 {external}

@@ -75,8 +75,8 @@ fn using_nested_structs() {
     };
 
     let testcode = r#"
-    TYPE MyInnerStruct: 
-        STRUCT 
+    TYPE MyInnerStruct:
+        STRUCT
             innerField1 : BYTE;
             innerField2 : INT;
             innerField3 : DINT;
@@ -99,7 +99,7 @@ fn using_nested_structs() {
         myS.str1.innerField1 := 11;
         myS.str1.innerField2 := 12;
         myS.str1.innerField3 := 13;
-        
+
         myS.str2.innerField1 := 21;
         myS.str2.innerField2 := 22;
         myS.str2.innerField3 := 23;
@@ -142,14 +142,14 @@ fn using_enums() {
 
     PROGRAM main
     VAR
-        tf1 : TrafficLight;        
-        tf2 : TrafficLight;        
-        tf3 : TrafficLight;        
+        tf1 : TrafficLight;
+        tf2 : TrafficLight;
+        tf3 : TrafficLight;
     END_VAR
         tf1 := Red;
         tf2 := Yellow;
         tf3 := Green;
-        
+
     END_PROGRAM
     "#;
 
@@ -176,14 +176,14 @@ fn using_inline_enums() {
 
     PROGRAM main
     VAR
-        tf1 : (White1, Red1, Yellow1, Green1);        
-        tf2 : (White2, Red2, Yellow2, Green2);        
-        tf3 : (White3, Red3, Yellow3, Green3);        
+        tf1 : (White1, Red1, Yellow1, Green1);
+        tf2 : (White2, Red2, Yellow2, Green2);
+        tf3 : (White3, Red3, Yellow3, Green3);
     END_VAR
         tf1 := Red1;
         tf2 := Yellow2;
         tf3 := Green3;
-        
+
     END_PROGRAM
     "#;
 
@@ -209,16 +209,16 @@ fn using_duplicate_enums_with_casts() {
 
     TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
     END_TYPE
-    
+
     TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
     END_TYPE
 
 
     PROGRAM main
     VAR
-        tf1 : MyEnum;        
-        tf2 : MyEnum2;        
-        tf3 : MyEnum3;        
+        tf1 : MyEnum;
+        tf2 : MyEnum2;
+        tf3 : MyEnum3;
     END_VAR
         tf1 := MyEnum#red;
         tf2 := MyEnum2#yellow;
@@ -244,7 +244,7 @@ fn using_inline_enums_in_structs() {
     TYPE TrafficLight:
         (White, Red, Yellow, Green);
     END_TYPE
-    
+
     TYPE MyStruct:
     STRUCT
         tf1 : TrafficLight;
@@ -280,7 +280,7 @@ fn using_inline_arrays_in_structs() {
     let mut data = MyStruct { arr1: [0; 4], arr2: [0; 8], arr3: [0; 3] };
 
     let testcode = r#"
-    
+
     TYPE MyStruct:
     STRUCT
         arr1 : ARRAY[0..3] OF INT;

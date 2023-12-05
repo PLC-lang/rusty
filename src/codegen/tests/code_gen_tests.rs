@@ -38,7 +38,7 @@ fn empty_statements_dont_generate_anything() {
 fn external_program_global_var_is_external() {
     let result = codegen(
         r#"
-        @EXTERNAL 
+        @EXTERNAL
         PROGRAM prg
             VAR x : DINT; y : DINT; END_VAR
             x;
@@ -179,7 +179,7 @@ END_VAR
       // to result in an DINT (i32) and then truncated back
       // to i16 again
 
-      z := x + INT#7; 
+      z := x + INT#7;
 
 END_PROGRAM
 "#,
@@ -195,8 +195,8 @@ VAR
 x : DINT;
 END_VAR
 
-      x := INT#16#FFFF; 
-      x := WORD#16#FFFF; 
+      x := INT#16#FFFF;
+      x := WORD#16#FFFF;
 
 END_PROGRAM
 "#,
@@ -214,7 +214,7 @@ z : REAL;
 END_VAR
 
       // the LREAL# should fource a double addition
-      z := x + LREAL#7.7; 
+      z := x + LREAL#7.7;
 
 END_PROGRAM
 "#,
@@ -232,10 +232,10 @@ z : REAL;
 END_VAR
 
       // the REAL# should prevent this addition
-      // to result in an DINT (i32) and then result 
+      // to result in an DINT (i32) and then result
       // in an i32 devision
 
-      z := x / REAL#7; 
+      z := x / REAL#7;
 
 END_PROGRAM
 "#,
@@ -253,10 +253,10 @@ z : INT;
 END_VAR
 
       // the INT# should prevent this addition
-      // to result in an DINT (i32) and then  
+      // to result in an DINT (i32) and then
       // truncated back to i16
 
-      z := x +  INT#16#D; 
+      z := x +  INT#16#D;
 
 END_PROGRAM
 "#,
@@ -293,10 +293,10 @@ VAR
 z : BOOL;
 END_VAR
 
-      z := BOOL#TRUE; 
-      z := BOOL#FALSE; 
-      z := BOOL#1; 
-      z := BOOL#0; 
+      z := BOOL#TRUE;
+      z := BOOL#FALSE;
+      z := BOOL#1;
+      z := BOOL#0;
 
 END_PROGRAM
 "#,
@@ -717,7 +717,7 @@ fn program_with_xor_statement() {
 VAR
 x : BOOL;
 y : BOOL;
-z : BOOL; 
+z : BOOL;
 END_VAR
 z := x XOR y;
 END_PROGRAM
@@ -780,7 +780,7 @@ fn program_with_signed_combined_expressions() {
 fn if_elsif_else_generator_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             y : DINT;
@@ -809,7 +809,7 @@ fn if_elsif_else_generator_test() {
 fn if_generator_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             b1 : BOOL;
@@ -827,7 +827,7 @@ fn if_generator_test() {
 fn if_with_expression_generator_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             b1 : BOOL;
@@ -845,11 +845,11 @@ fn if_with_expression_generator_test() {
 fn for_statement_with_steps_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
-        FOR x := 3 TO 10 BY 7 DO 
+        FOR x := 3 TO 10 BY 7 DO
             x;
         END_FOR
         END_PROGRAM
@@ -863,7 +863,7 @@ fn for_statement_with_steps_test() {
 fn for_statement_with_continue() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -882,11 +882,11 @@ fn for_statement_with_continue() {
 fn for_statement_with_exit() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
-        FOR x := 3 TO 10 BY 7 DO 
+        FOR x := 3 TO 10 BY 7 DO
             x := x + 2;
             EXIT;
             x := x + 5;
@@ -906,11 +906,11 @@ fn class_method_in_pou() {
             VAR
                 x, y : INT;
             END_VAR
-        
+
             METHOD testMethod
                 VAR_INPUT myMethodArg : INT; END_VAR
                 VAR myMethodLocalVar : INT; END_VAR
-        
+
                 x := myMethodArg;
                 y := x;
                 myMethodLocalVar = y;
@@ -940,11 +940,11 @@ fn fb_method_in_pou() {
             VAR
                 x, y : INT;
             END_VAR
-        
+
             METHOD testMethod
                 VAR_INPUT myMethodArg : INT; END_VAR
                 VAR myMethodLocalVar : INT; END_VAR
-        
+
                 x := myMethodArg;
                 y := x;
                 myMethodLocalVar = y;
@@ -1008,11 +1008,11 @@ fn class_member_access_from_method() {
         VAR
             x, y : INT;
         END_VAR
-    
+
         METHOD testMethod
             VAR_INPUT myMethodArg : INT; END_VAR
             VAR myMethodLocalVar : INT; END_VAR
-    
+
             x := myMethodArg;
             y := x;
             myMethodLocalVar = y;
@@ -1028,7 +1028,7 @@ fn class_member_access_from_method() {
 fn while_loop_with_if_exit() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1048,11 +1048,11 @@ fn while_loop_with_if_exit() {
 fn for_statement_without_steps_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
-        FOR x := 3 TO 10 DO 
+        FOR x := 3 TO 10 DO
             x;
         END_FOR
         END_PROGRAM
@@ -1066,11 +1066,11 @@ fn for_statement_without_steps_test() {
 fn for_statement_sint() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : SINT;
         END_VAR
-        FOR x := 3 TO 10 DO 
+        FOR x := 3 TO 10 DO
             x;
         END_FOR
         END_PROGRAM
@@ -1084,11 +1084,11 @@ fn for_statement_sint() {
 fn for_statement_int() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : INT;
         END_VAR
-        FOR x := 3 TO 10 DO 
+        FOR x := 3 TO 10 DO
             x;
         END_FOR
         END_PROGRAM
@@ -1102,11 +1102,11 @@ fn for_statement_int() {
 fn for_statement_lint() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : LINT;
         END_VAR
-        FOR x := 3 TO 10 DO 
+        FOR x := 3 TO 10 DO
             x;
         END_FOR
         END_PROGRAM
@@ -1120,11 +1120,11 @@ fn for_statement_lint() {
 fn for_statement_continue() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
-        FOR x := 3 TO 10 DO 
+        FOR x := 3 TO 10 DO
         END_FOR
         x;
         END_PROGRAM
@@ -1138,14 +1138,14 @@ fn for_statement_continue() {
 fn for_statement_with_references_steps_test() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             step: DINT;
             x : DINT;
             y : DINT;
             z : DINT;
         END_VAR
-        FOR x := y TO z BY step DO 
+        FOR x := y TO z BY step DO
             x;
         END_FOR
         END_PROGRAM
@@ -1159,7 +1159,7 @@ fn for_statement_with_references_steps_test() {
 fn while_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : BOOL;
         END_VAR
@@ -1177,7 +1177,7 @@ fn while_statement() {
 fn while_with_expression_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : BOOL;
         END_VAR
@@ -1194,13 +1194,13 @@ fn while_with_expression_statement() {
 fn repeat_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : BOOL;
         END_VAR
         REPEAT
             x;
-        UNTIL x 
+        UNTIL x
         END_REPEAT
         END_PROGRAM
         ",
@@ -1213,7 +1213,7 @@ fn repeat_statement() {
 fn simple_case_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             y : DINT;
@@ -1236,7 +1236,7 @@ fn simple_case_statement() {
 fn simple_case_i8_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : BYTE;
             y : BYTE;
@@ -1259,7 +1259,7 @@ fn simple_case_i8_statement() {
 fn case_with_multiple_labels_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             y : DINT;
@@ -1281,7 +1281,7 @@ fn case_with_multiple_labels_statement() {
 fn case_with_ranges_statement() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
             y : DINT;
@@ -1301,9 +1301,9 @@ fn case_with_constant_expressions_in_case_selectors() {
     let result = codegen(
         r##"
 VAR_GLOBAL CONSTANT
-	FORWARD     : DINT := 7;
-	UP          : DINT := FORWARD + 1;
-	DOWN        : DINT := FORWARD + UP;
+    FORWARD     : DINT := 7;
+    UP          : DINT := FORWARD + 1;
+    DOWN        : DINT := FORWARD + UP;
 END_VAR
 
 FUNCTION drive : DINT
@@ -1312,17 +1312,17 @@ FUNCTION drive : DINT
         horiz, depth : DINT;
     END_VAR
 
-	CASE input OF
-		FORWARD : 
-			horiz := horiz + 1;
+    CASE input OF
+        FORWARD :
+            horiz := horiz + 1;
         FORWARD*2:
             horiz := horiz + 2;
-		UP :
-			depth := depth - 1;
-		DOWN : 
-			depth := depth + 1;
+        UP :
+            depth := depth - 1;
+        DOWN :
+            depth := depth + 1;
 
-	END_CASE
+    END_CASE
 
 END_FUNCTION
 "##,
@@ -1353,17 +1353,17 @@ FUNCTION drive : DINT
         horiz, depth : DINT;
     END_VAR
 
-	CASE input OF
-		FORWARD : 
+    CASE input OF
+        FORWARD :
         horiz := horiz + 1;
     FORWARD*2:
             horiz := horiz + 2;
-    UP : 
+    UP :
         depth := depth - 1;
-    DOWN : 
-			depth := depth + 1;
+    DOWN :
+            depth := depth + 1;
 
-	END_CASE
+    END_CASE
 
 END_FUNCTION
 "##,
@@ -1382,7 +1382,7 @@ fn function_called_in_program() {
         foo := 1;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1402,7 +1402,7 @@ fn real_function_called_in_program() {
         foo := 1.0;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1421,7 +1421,7 @@ fn external_function_called_in_program() {
         @EXTERNAL FUNCTION foo : DINT
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         foo();
         END_PROGRAM
         ",
@@ -1446,7 +1446,7 @@ fn nested_function_called_in_program() {
         foo := 1;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1469,7 +1469,7 @@ fn function_with_parameters_called_in_program() {
         foo := 1;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
         x : DINT;
         END_VAR
@@ -1493,7 +1493,7 @@ fn function_with_two_parameters_called_in_program() {
         foo := 1;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
         x : DINT;
         END_VAR
@@ -1583,7 +1583,7 @@ fn program_called_in_program() {
         PROGRAM foo
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
         foo();
         END_PROGRAM
         ",
@@ -1596,7 +1596,7 @@ fn program_called_in_program() {
 fn action_called_in_program() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1616,7 +1616,7 @@ fn action_called_in_program() {
 fn qualified_local_action_called_in_program() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1639,7 +1639,7 @@ fn qualified_foreign_action_called_in_program() {
         PROGRAM bar
             prg.foo();
         END_PROGRAM
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
@@ -1666,7 +1666,7 @@ fn qualified_action_from_fb_called_in_program() {
             fb_inst.foo();
         END_PROGRAM
 
-        FUNCTION_BLOCK fb 
+        FUNCTION_BLOCK fb
         VAR
             x : DINT;
         END_VAR
@@ -1686,14 +1686,14 @@ fn qualified_action_from_fb_called_in_program() {
 fn program_with_two_parameters_called_in_program() {
     let result = codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_INPUT
           bar : DINT;
           buz : BOOL;
         END_VAR
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
           foo(2, TRUE);
         END_PROGRAM
         ",
@@ -1706,14 +1706,14 @@ fn program_with_two_parameters_called_in_program() {
 fn program_with_two_explicit_parameters_called_in_program() {
     let result = codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_INPUT
           bar : DINT;
           buz : BOOL;
         END_VAR
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
           foo(buz := TRUE, bar := 2);
         END_PROGRAM
         ",
@@ -1726,7 +1726,7 @@ fn program_with_two_explicit_parameters_called_in_program() {
 fn program_with_var_out_called_in_program() {
     let result = codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_INPUT
           bar : DINT;
         END_VAR
@@ -1735,7 +1735,7 @@ fn program_with_var_out_called_in_program() {
         END_VAR
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             baz : BOOL;
         END_VAR
@@ -1751,14 +1751,14 @@ fn program_with_var_out_called_in_program() {
 fn program_with_var_inout_called_in_program() {
     let result = codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_IN_OUT
           inout : DINT;
         END_VAR
         inout := inout + 1;
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             baz : DINT;
         END_VAR
@@ -1779,19 +1779,19 @@ fn pass_inout_to_inout() {
         VAR_IN_OUT
           inout : DINT;
         END_VAR
-        VAR_INPUT 
+        VAR_INPUT
           in : DINT;
         END_VAR
         END_PROGRAM
 
-        PROGRAM foo 
+        PROGRAM foo
         VAR_IN_OUT
           inout : DINT;
         END_VAR
         foo2(inout := inout, in := inout);
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             baz : DINT;
         END_VAR
@@ -1807,27 +1807,27 @@ fn pass_inout_to_inout() {
 fn pointers_generated() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             X : BOOL;
             pX : POINTER TO BOOL;
             rX : REF_TO BOOL;
         END_VAR
-        
+
         //Assign address
         pX := NULL;
         rX := NULL;
         pX := &X;
         rX := &X;
 
-        //Read from pointer 
+        //Read from pointer
         X := pX^;
         X := rX^;
 
-        //Write in pointer 
+        //Write in pointer
         pX^ := X;
         rX^ := X;
-            
+
         END_PROGRAM
         ",
     );
@@ -1839,7 +1839,7 @@ fn pointers_generated() {
 fn complex_pointers() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             X : INT;
             arrX : ARRAY[1..10] OF INT;
@@ -1852,14 +1852,14 @@ fn complex_pointers() {
         arrrX[2] := &arrX[3];
         rarrX := &arrX;
 
-        //Read from pointer 
+        //Read from pointer
         X := arrrX[4]^;
         X := rarrX^[5];
 
-        //Write in pointer 
+        //Write in pointer
         arrrX[6]^ := X;
         rarrX^[7] := arrrX[8]^;
-            
+
         END_PROGRAM
         ",
     );
@@ -1871,7 +1871,7 @@ fn complex_pointers() {
 fn pointer_and_array_access_to_in_out() {
     let result = codegen(
         "
-        FUNCTION main : INT 
+        FUNCTION main : INT
         VAR_IN_OUT
             a : REF_TO INT;
             b : ARRAY[0..1] OF INT;
@@ -1892,7 +1892,7 @@ fn pointer_and_array_access_to_in_out() {
 fn program_with_var_out_called_mixed_in_program() {
     let result = codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
         VAR_INPUT
           bar : DINT;
         END_VAR
@@ -1901,7 +1901,7 @@ fn program_with_var_out_called_mixed_in_program() {
         END_VAR
         END_PROGRAM
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             baz : BOOL;
         END_VAR
@@ -1917,11 +1917,11 @@ fn program_with_var_out_called_mixed_in_program() {
 fn program_called_before_decalaration() {
     codegen(
         "
-        PROGRAM foo 
+        PROGRAM foo
           bar();
         END_PROGRAM
 
-        PROGRAM bar 
+        PROGRAM bar
         END_PROGRAM
         ",
     );
@@ -1952,7 +1952,7 @@ fn function_called_when_shadowed() {
         foo := 1;
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             froo : DINT;
         END_VAR
@@ -1975,7 +1975,7 @@ fn function_block_instance_call() {
           END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             fb_inst : foo;
         END_VAR
@@ -2028,13 +2028,13 @@ fn reference_qualified_name() {
             baz : fb;
         END_VAR
         END_PROGRAM
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             x : DINT;
         END_VAR
             x := foo.x;
             x := foo.y;
-            x := foo.baz.x;    
+            x := foo.baz.x;
         END_PROGRAM
         ",
     );
@@ -2086,7 +2086,7 @@ fn arrays_with_global_const_size_are_generated() {
     let result = codegen(
         "
         VAR_GLOBAL CONSTANT
-          THREE : INT := 3; 
+          THREE : INT := 3;
           ZERO  : INT := 0;
           LEN   : INT := THREE * THREE;
         END_VAR
@@ -2116,9 +2116,9 @@ fn structs_members_can_be_referenced() {
         END_STRUCT
         END_TYPE
 
-        PROGRAM MainProg 
+        PROGRAM MainProg
         VAR
-          Cord: MyStruct; 
+          Cord: MyStruct;
         END_VAR
           Cord.a := 0;
         END_PROGRAM
@@ -2153,7 +2153,7 @@ fn typed_enums_are_generated() {
 
         TYPE MyEnum2: UINT(red, yellow, green);
         END_TYPE
-        
+
         TYPE MyEnum3: DINT(red, yellow, green);
         END_TYPE
 
@@ -2177,12 +2177,12 @@ fn typed_enums_are_used_properly() {
 
         TYPE MyEnum2: UINT(red := 15, yellow, green);
         END_TYPE
-        
+
         TYPE MyEnum3: DINT(red := 25, yellow, green);
         END_TYPE
 
         PROGRAM prg
-            VAR 
+            VAR
                 x: BYTE;
                 y: UINT;
                 z: DINT;
@@ -2208,7 +2208,7 @@ fn typed_enums_with_initializers_are_generated() {
 
         TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
         END_TYPE
-        
+
         TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
         END_TYPE
 
@@ -2256,7 +2256,7 @@ fn enums_custom_type_are_generated() {
 
     PROGRAM main
     VAR
-        tf1 : TrafficLight;        
+        tf1 : TrafficLight;
     END_VAR
     END_PROGRAM
         ",
@@ -2290,7 +2290,7 @@ fn enum_members_can_be_used_in_asignments() {
 fn inline_structs_are_generated() {
     let result = codegen(
         "
-        
+
         VAR_GLOBAL
          x: STRUCT
               a: DINT;
@@ -2308,19 +2308,19 @@ fn accessing_nested_structs() {
     let result = codegen(
         "
         TYPE InnerStruct:
-        STRUCT 
+        STRUCT
           inner1 : INT;
           inner2 : INT;
         END_STRUCT
         END_TYPE
-        
+
         TYPE OuterStruct:
-        STRUCT 
+        STRUCT
           out1 : InnerStruct;
           out2 : InnerStruct;
         END_STRUCT
         END_TYPE
-        
+
         PROGRAM Main
         VAR
           m : OuterStruct;
@@ -2376,7 +2376,7 @@ fn basic_datatypes_generated() {
 fn array_of_int_type_generated() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..10] OF INT;
             END_VAR
@@ -2391,7 +2391,7 @@ fn array_of_int_type_generated() {
 fn array_of_cast_int_type_generated() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..INT#16#A] OF INT;
             END_VAR
@@ -2406,7 +2406,7 @@ fn array_of_cast_int_type_generated() {
 fn array_of_int_type_used() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..3] OF DINT;
             END_VAR
@@ -2423,7 +2423,7 @@ fn array_of_int_type_used() {
 fn array_of_int_non_zero_type_generated() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[10..20] OF INT;
             END_VAR
@@ -2438,7 +2438,7 @@ fn array_of_int_non_zero_type_generated() {
 fn array_of_int_type_with_non_zero_start_used() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[1..3] OF DINT;
             END_VAR
@@ -2455,7 +2455,7 @@ fn array_of_int_type_with_non_zero_start_used() {
 fn array_of_int_non_zero_negative_type_generated() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[-10..20] OF INT;
             END_VAR
@@ -2470,7 +2470,7 @@ fn array_of_int_non_zero_negative_type_generated() {
 fn array_of_int_type_with_non_zero_negative_start_used() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[-2..3] OF DINT;
             END_VAR
@@ -2487,7 +2487,7 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
 fn multidim_array_declaration() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..1, 2..4] OF INT;
             END_VAR
@@ -2502,7 +2502,7 @@ fn multidim_array_declaration() {
 fn multidim_array_access() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..3, 1..2] OF DINT;
             END_VAR
@@ -2519,7 +2519,7 @@ fn multidim_array_access() {
 fn nested_array_declaration() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[2..4] OF ARRAY[0..1] OF INT;
             END_VAR
@@ -2534,7 +2534,7 @@ fn nested_array_declaration() {
 fn nested_array_access() {
     let result = codegen(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..3] OF ARRAY[1..2] OF DINT;
             END_VAR
@@ -2624,11 +2624,11 @@ fn accessing_nested_array_in_struct() {
     let result = codegen(
         "
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
           field1 : ARRAY[0..4] OF INT;
         END_STRUCT
         END_TYPE
-        
+
         PROGRAM Main
         VAR
           m : MyStruct;
@@ -2655,11 +2655,11 @@ fn sub_range_type_calls_check_function_missing() {
             END_VAR
             Check_XX_RangeSigned := value;
             END_FUNCTION
-  
+
             PROGRAM Main
             VAR
               x : MyInt;
-            END_VAR 
+            END_VAR
 
             x := 7;
             END_PROGRAM
@@ -2683,11 +2683,11 @@ fn sub_range_type_calls_check_function_on_assigment() {
             END_VAR
             CheckRangeSigned := value;
             END_FUNCTION
-  
+
             PROGRAM Main
             VAR
               x : MyInt;
-            END_VAR 
+            END_VAR
 
             x := 7;
             END_PROGRAM
@@ -2707,7 +2707,7 @@ fn using_global_consts_in_expressions() {
           cA : INT := 1;
           cB : INT := 2;
           cC : INT := cA + cB;
-        END_VAR 
+        END_VAR
 
         PROGRAM prg
           VAR
@@ -2746,9 +2746,9 @@ fn using_const_expression_in_range_type() {
         r#"
         VAR_GLOBAL CONST
           MIN : INT := 7;
-        END_VAR 
+        END_VAR
 
-        FUNCTION CheckRangeSigned: INT 
+        FUNCTION CheckRangeSigned: INT
           VAR_INPUT
               value : INT;
               lower : INT;
@@ -2786,7 +2786,7 @@ fn inlined_array_size_from_local_scoped_constants() {
             VAR CONSTANT
                 a : INT := 3;
                 b : INT := 7;
-            END_VAR 
+            END_VAR
 
             VAR
                 arr : ARRAY[a..b] OF BYTE;
@@ -2805,20 +2805,20 @@ fn inlined_array_size_from_local_scoped_constants() {
 fn program_with_chars() {
     let result = codegen(
         r#"
-		PROGRAM mainPROG
-		VAR
-			x : CHAR;
-			y : WCHAR;
-		END_VAR
-			x := 'a';
-			x := ' ';
+        PROGRAM mainPROG
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := 'a';
+            x := ' ';
 
-			y := "A";
-			y := " ";
-			y := "'";
-			y := "$"";
-		END_PROGRAM
-		"#,
+            y := "A";
+            y := " ";
+            y := "'";
+            y := "$"";
+        END_PROGRAM
+        "#,
     );
     insta::assert_snapshot!(result);
 }
@@ -2827,15 +2827,15 @@ fn program_with_chars() {
 fn program_with_casted_chars_assignment() {
     let result = codegen(
         r#"
-		PROGRAM mainPROG
-		VAR
-			x : CHAR;
-			y : WCHAR;
-		END_VAR
-			x := CHAR#"A";
-			y := WCHAR#'B';
-		END_PROGRAM
-		"#,
+        PROGRAM mainPROG
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := CHAR#"A";
+            y := WCHAR#'B';
+        END_PROGRAM
+        "#,
     );
     insta::assert_snapshot!(result);
 }
@@ -2844,15 +2844,15 @@ fn program_with_casted_chars_assignment() {
 fn function_call_with_same_name_as_return_type() {
     let result = codegen(
         "
-		FUNCTION TIME : TIME
-		END_FUNCTION
+        FUNCTION TIME : TIME
+        END_FUNCTION
 
-		PROGRAM prg
-		VAR
-		END_VAR
-			TIME();
-		END_PROGRAM
-		",
+        PROGRAM prg
+        VAR
+        END_VAR
+            TIME();
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2861,18 +2861,18 @@ fn function_call_with_same_name_as_return_type() {
 fn variable_with_same_name_as_data_type() {
     let result = codegen(
         "
-		FUNCTION func : TIME
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_FUNCTION
+        FUNCTION func : TIME
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM prog
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM prog
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2886,12 +2886,12 @@ fn variable_with_same_name_as_data_type() {
 fn variable_with_same_name_as_function() {
     let result = codegen(
         "
-		FUNCTION TIME : TIME
-		VAR
-			TIME : TIME;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION TIME : TIME
+        VAR
+            TIME : TIME;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2900,12 +2900,12 @@ fn variable_with_same_name_as_function() {
 fn expression_list_as_array_initilization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[0..3] OF INT := 1, 2, 3;
-			b_exp : ARRAY[0..4] OF DINT := 1+3, 2*3, 7-1, 10;
-			str : ARRAY[0..2] OF STRING := 'first', 'second';
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..3] OF INT := 1, 2, 3;
+            b_exp : ARRAY[0..4] OF DINT := 1+3, 2*3, 7-1, 10;
+            str : ARRAY[0..2] OF STRING := 'first', 'second';
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2914,15 +2914,15 @@ fn expression_list_as_array_initilization() {
 fn default_values_for_not_initialized_function_vars() {
     let result = codegen(
         "
-		FUNCTION func : INT
-		VAR
-			int_var : INT;
-			arr_var : ARRAY[0..2] OF DINT;
-			ptr_var	: REF_TO DINT;
-			float_var	: REAL;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            int_var : INT;
+            arr_var : ARRAY[0..2] OF DINT;
+            ptr_var : REF_TO DINT;
+            float_var   : REAL;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -2932,15 +2932,15 @@ fn order_var_and_var_temp_block() {
     // GIVEN a program with defined VAR_TEMP before VAR block
     let result = codegen(
         "
-		PROGRAM main
-		VAR_TEMP
-			temp : INT;
-		END_VAR
-		VAR
-			var1 : INT;
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR_TEMP
+            temp : INT;
+        END_VAR
+        VAR
+            var1 : INT;
+        END_VAR
+        END_PROGRAM
+        ",
     );
     // codegen should be successful
     insta::assert_snapshot!(result);
@@ -2951,12 +2951,12 @@ fn constant_expressions_in_ranged_type_declaration_are_propagated() {
     //GIVEN a ranged type from 0 .. MIN+1 where MIN is a global constant
     //WHEN the code is generated
     let result = codegen(
-        "        
+        "
         VAR_GLOBAL CONSTANT
           MIN : INT := 7;
-        END_VAR 
+        END_VAR
 
-        FUNCTION CheckRangeSigned: INT 
+        FUNCTION CheckRangeSigned: INT
           VAR_INPUT
               value : INT;
               lower : INT;
@@ -2985,8 +2985,8 @@ fn constant_expression_in_function_blocks_are_propagated() {
     //GIVEN a constant in a function block
     //WHEN the code is generated
     let result = codegen(
-        "        
-        FUNCTION_BLOCK fbWithConstant 
+        "
+        FUNCTION_BLOCK fbWithConstant
         VAR
             x : INT;
         END_VAR
@@ -3009,7 +3009,7 @@ fn date_and_time_addition_in_var_output() {
     //GIVEN a date and time and a time addition on output variables
     //WHEN the code is generated
     let result = codegen(
-        "        
+        "
         FUNCTION func : DINT
         VAR_OUTPUT
             d_and_t : DT;
@@ -3049,18 +3049,18 @@ fn date_and_time_global_constants_initialize() {
 
     PROGRAM main
     VAR_TEMP
-        t1      : TIME;         
-        t2      : TIME;         
-        lt1     : LTIME;        
-        lt2     : LTIME;        
-        d1      : DATE;         
-        d2      : DATE;         
-        ld1     : LDATE;        
-        ld2     : LDATE;        
-        tod1    : TIME_OF_DAY;  
-        tod2    : TOD;          
-        ltod1   : LTOD;         
-        ltod2   : LTOD;        
+        t1      : TIME;
+        t2      : TIME;
+        lt1     : LTIME;
+        lt2     : LTIME;
+        d1      : DATE;
+        d2      : DATE;
+        ld1     : LDATE;
+        ld2     : LDATE;
+        tod1    : TIME_OF_DAY;
+        tod2    : TOD;
+        ltod1   : LTOD;
+        ltod2   : LTOD;
         dt1     : DATE_AND_TIME;
         dt2     : DT;
         ldt1    : LDT;
@@ -3071,16 +3071,16 @@ fn date_and_time_global_constants_initialize() {
         t2      := cT_SHORT;
         lt1     := cLT;
         lt2     := cLT_SHORT;
-        d1      := cD; 
-        d2      := cD_SHORT; 
+        d1      := cD;
+        d2      := cD_SHORT;
         ld1     := cLD;
         ld2     := cLD_SHORT;
         tod1    := cTOD;
         tod2    := cTOD_SHORT;
-        ltod1   := cLTOD; 
-        ltod2   := cLTOD_SHORT; 
-        dt1     := cDT; 
-        dt2     := cDT_SHORT; 
+        ltod1   := cLTOD;
+        ltod2   := cLTOD_SHORT;
+        dt1     := cDT;
+        dt2     := cDT_SHORT;
         ldt1    := cLDT;
         ldt2    := cLDT_SHORT;
     END_PROGRAM"#;
@@ -3093,7 +3093,7 @@ fn date_and_time_global_constants_initialize() {
 #[test]
 fn contants_in_case_statements_resolved() {
     let result = codegen(
-        " 
+        "
         PROGRAM main
             VAR
                 DAYS_IN_MONTH : DINT;
@@ -3102,12 +3102,12 @@ fn contants_in_case_statements_resolved() {
                 SIXTY : DINT := 60;
             END_VAR
             CASE DAYS_IN_MONTH OF
-              32..SIXTY	:	DAYS_IN_MONTH := 29;
-              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+              32..SIXTY :   DAYS_IN_MONTH := 29;
+              (SIXTY    + 2)..70 :  DAYS_IN_MONTH := 30;
             ELSE
               DAYS_IN_MONTH := 31;
             END_CASE;
-        END_PROGRAM 
+        END_PROGRAM
         ",
     );
 
@@ -3121,43 +3121,43 @@ fn sub_range_check_functions() {
     // GIVEN
     let result = codegen(
         "
-	FUNCTION CheckRangeSigned : DINT
-		VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
-		CheckRangeSigned := -7;
-	END_FUNCTION
+    FUNCTION CheckRangeSigned : DINT
+        VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
+        CheckRangeSigned := -7;
+    END_FUNCTION
 
-	FUNCTION CheckRangeUnsigned : UDINT
-		VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
-		CheckRangeUnsigned := 7;
-	END_FUNCTION
+    FUNCTION CheckRangeUnsigned : UDINT
+        VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
+        CheckRangeUnsigned := 7;
+    END_FUNCTION
 
-	FUNCTION CheckLRangeSigned : LINT
-		VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
-		CheckLRangeSigned := -77;
-	END_FUNCTION
+    FUNCTION CheckLRangeSigned : LINT
+        VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
+        CheckLRangeSigned := -77;
+    END_FUNCTION
 
-	FUNCTION CheckLRangeUnsigned : ULINT
-		VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
-		CheckLRangeUnsigned := 77;
-	END_FUNCTION
-	
-	PROGRAM main
-	VAR
-		a   : BYTE(0 .. 100);
-		b   : SINT(-100 .. 100);
-		c   : USINT(0 .. 100);
-		d   : WORD(0 .. 100);
-		e   : INT(-100 .. 100);
-		f   : UINT(0 .. 100);
-		g   : DINT(-100 .. 100);
-		h   : UDINT(0 .. 100);
-		i   : LINT(-100 .. 100);
-		j   : ULINT(0 .. 100);
-	END_VAR
-	a := 1; b := 1; c := 1; d := 1; e := 1;
-	f := 1; g := 1; h := 1; i := 1; j := 1;
-	END_PROGRAM
-	",
+    FUNCTION CheckLRangeUnsigned : ULINT
+        VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
+        CheckLRangeUnsigned := 77;
+    END_FUNCTION
+
+    PROGRAM main
+    VAR
+        a   : BYTE(0 .. 100);
+        b   : SINT(-100 .. 100);
+        c   : USINT(0 .. 100);
+        d   : WORD(0 .. 100);
+        e   : INT(-100 .. 100);
+        f   : UINT(0 .. 100);
+        g   : DINT(-100 .. 100);
+        h   : UDINT(0 .. 100);
+        i   : LINT(-100 .. 100);
+        j   : ULINT(0 .. 100);
+    END_VAR
+    a := 1; b := 1; c := 1; d := 1; e := 1;
+    f := 1; g := 1; h := 1; i := 1; j := 1;
+    END_PROGRAM
+    ",
     );
 
     // THEN for every assignment a check function should be called
@@ -3202,7 +3202,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input2 := REF(global2),
             input3 := &global3
         );
-        
+
         prog(
             // These are not valid but we want to see if there's a cast involved
             input1 := ADR(global4),
@@ -3219,7 +3219,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
 #[test]
 fn sizeof_works_in_binary_expression_with_different_size() {
     let result = codegen(
-        r#"    
+        r#"
         FUNCTION main : DINT
         VAR
             i : DINT;

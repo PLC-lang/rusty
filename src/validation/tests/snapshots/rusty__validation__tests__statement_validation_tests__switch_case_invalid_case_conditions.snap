@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 4, offset: 120 }..TextLocation { line: 10, column: 10, offset: 126 }) }], err_no: case__case_condition_outside_case_statement }
-SyntaxError { message: "Cannot resolve constant: CallStatement {\n    operator: ReferenceExpr {\n        kind: Member(\n            Identifier {\n                name: \"foo\",\n            },\n        ),\n        base: None,\n    },\n    parameters: None,\n}. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 4, offset: 120 }..TextLocation { line: 10, column: 10, offset: 126 }) }], err_no: type__invalid_type }
-SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 4, offset: 146 }..TextLocation { line: 12, column: 12, offset: 154 }) }], err_no: case__case_condition_outside_case_statement }
+SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 16, offset: 174 }..TextLocation { line: 10, column: 22, offset: 180 }) }], err_no: case__case_condition_outside_case_statement }
+SyntaxError { message: "Cannot resolve constant: CallStatement {\n    operator: ReferenceExpr {\n        kind: Member(\n            Identifier {\n                name: \"foo\",\n            },\n        ),\n        base: None,\n    },\n    parameters: None,\n}. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 16, offset: 174 }..TextLocation { line: 10, column: 22, offset: 180 }) }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 16, offset: 227 }..TextLocation { line: 12, column: 24, offset: 235 }) }], err_no: case__case_condition_outside_case_statement }
 

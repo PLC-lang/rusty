@@ -10,7 +10,7 @@ It can be defined as either a Program, a Function, a Function Block, or an Actio
 A POU is defined as:
 
 ```iecst
-<POU Type> name 
+<POU Type> name
 (* parameters *)
 
 (* code *)
@@ -106,7 +106,7 @@ A program does not support passing input parameters by reference.
 Example:
 
 ```iecst
-PROGRAM prg 
+PROGRAM prg
 (* parameters *)
 VAR_INPUT
     x : INT;
