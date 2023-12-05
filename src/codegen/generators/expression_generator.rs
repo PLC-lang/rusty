@@ -754,7 +754,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     // by val
                     if !parameter.is_empty_statement() {
-                        self.generate_argument_by_val(type_name, parameter)?
+                        if parameter_info.is_some_and(|it| !it.0.is_by_ref()) {
+                            self.generate_argument_by_val2(type_name, parameter)?
+                        } else {
+                            self.generate_argument_by_val(type_name, parameter)?
+                        }
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {
@@ -789,6 +793,39 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
+    }
+
+    fn generate_argument_by_val2(
+        &self,
+        type_name: &str,
+        param_statement: &AstNode,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        Ok(match self.index.find_effective_type_by_name(type_name) {
+            Some(type_info) if type_info.information.is_string() => {
+                self.generate_string_argument(type_info, param_statement)?
+            }
+            Some(type_info) if type_info.is_aggregate_type() && !type_info.is_vla() => {
+                // First attempt, bit-cast the pointer to an array
+                // let res = self.generate_expression(param_statement)?;
+                let deref = self.generate_expression_value(param_statement)?;
+                if deref.get_basic_value_enum().is_pointer_value() {
+                    let ty = self.llvm_index.get_associated_type(type_name)?;
+                    let cast = dbg!(self.llvm.builder.build_bitcast(
+                        deref.get_basic_value_enum(),
+                        ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                        ""
+                    ));
+                    self.llvm.builder.build_load(
+                        cast.into_pointer_value(),
+                        &self.get_load_name(param_statement).unwrap_or_default(),
+                    )
+                } else {
+                    self.generate_expression(param_statement)?
+                }
+            }
+
+            _ => self.generate_expression(param_statement)?,
+        })
     }
 
     fn generate_argument_by_val(
