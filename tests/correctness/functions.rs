@@ -1243,3 +1243,56 @@ fn sizeof_len() {
 
     assert_eq!(13, res);
 }
+
+#[test]
+fn argument_passed_by_ref_then_by_val() {
+    #[repr(C)]
+    struct MainType {
+        arr: [i32; 5],
+    }
+
+    let source = r"
+    TYPE MyType : ARRAY[1..5] OF DINT; END_TYPE
+
+    PROGRAM main
+        VAR
+            arr : MyType;
+        END_VAR
+
+        fn_by_ref(arr);
+    END_PROGRAM
+
+    FUNCTION fn_by_ref : DINT
+        VAR_IN_OUT
+            arg_by_ref : MyType;
+        END_VAR
+
+        // These SHOULD modify the underlying array passed from main
+        arg_by_ref[1] := 1;
+        arg_by_ref[2] := 2;
+        arg_by_ref[3] := 3;
+        arg_by_ref[4] := 4;
+        arg_by_ref[5] := 5;
+
+        fn_by_val(arg_by_ref);
+    END_FUNCTION
+
+    FUNCTION fn_by_val : DINT
+        VAR_INPUT
+            arg_by_val : MyType;
+        END_VAR
+
+        // These should NOT modify the underlying array passed from main
+        arg_by_val[1] := 10;
+        arg_by_val[2] := 20;
+        arg_by_val[3] := 30;
+        arg_by_val[4] := 40;
+        arg_by_val[5] := 50;
+    END_FUNCTION
+    ";
+
+    let mut maintype = MainType { arr: [0; 5] };
+    let _: i32 = compile_and_run(source, &mut maintype);
+
+    assert_eq!(maintype.arr, [1, 2, 3, 4, 5]);
+}
